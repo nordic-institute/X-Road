@@ -48,6 +48,7 @@ import {
   XrdIconClose,
   XrdIconCopy,
   XrdIconDeclined,
+  XrdIconEdit,
   XrdIconError,
   XrdIconFolderOutline,
   XrdIconSortingArrow,
@@ -57,6 +58,7 @@ import {
   XrdStatusIcon,
   XrdSubViewContainer,
   XrdSubViewTitle,
+  XrdTitledView,
 } from '@niis/shared-ui';
 import vuetify from './plugins/vuetify';
 import './plugins/vee-validate';
@@ -66,12 +68,12 @@ import router from './router';
 import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
-import { i18n, languageHelper } from './plugins/i18n';
+import { createLanguageHelper } from './plugins/i18n';
 import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import { createFilters } from '@/filters';
 import { createValidators } from '@/plugins/vee-validate';
-import { useLanguage } from '@/store/modules/language';
+import provider from '@/plugins/provider';
 
 const pinia = createPinia();
 pinia.use(
@@ -85,11 +87,11 @@ axios.defaults.headers.get.Accepts = 'application/json';
 
 const app = createApp(App);
 app.use(router);
-app.use(i18n);
 app.use(vuetify);
 app.use(pinia);
 app.use(createFilters());
 app.use(createValidators());
+app.use(provider);
 //icons
 app.component('XrdIconFolderOutline', XrdIconFolderOutline);
 app.component('XrdIconBase', XrdIconBase);
@@ -103,6 +105,7 @@ app.component('XrdIconTooltip', XrdIconTooltip);
 app.component('XrdIconSortingArrow', XrdIconSortingArrow);
 app.component('XrdIconDeclined', XrdIconDeclined);
 app.component('XrdStatusIcon', XrdStatusIcon);
+app.component('XrdIconEdit', XrdIconEdit);
 //components
 app.component('XrdButton', XrdButton);
 app.component('XrdSearch', XrdSearch);
@@ -116,7 +119,9 @@ app.component('XrdCloseButton', XrdCloseButton);
 app.component('XrdFileUpload', XrdFileUpload);
 app.component('XrdFormLabel', XrdFormLabel);
 app.component('XrdExpandable', XrdExpandable);
+app.component('XrdTitledView', XrdTitledView);
 // translations
-const languageStorage = useLanguage();
-languageHelper.selectLanguage(languageStorage.getLanguage)
-  .finally(() => app.mount('#app'))
+
+createLanguageHelper()
+  .then((plugin) => app.use(plugin))
+  .finally(() => app.mount('#app'));

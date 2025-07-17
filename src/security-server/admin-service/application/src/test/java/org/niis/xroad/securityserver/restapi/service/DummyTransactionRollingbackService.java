@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,10 +26,9 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
+import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -61,26 +61,26 @@ public class DummyTransactionRollingbackService {
      * Edit local group description and throw exception to cause transaction rollback
      *
      * @param exceptionType which type of exception, if any, to throw
-     * @return LocalGroupType
+     * @return LocalGroupEntity
      * @throws LocalGroupNotFoundException if local group with given id was not found
      * @throws LocalGroupService.DuplicateLocalGroupCodeException
      * if exceptionType = SERVICE_EXCEPTION
      * @throws RuntimeException if exceptionType = RUNTIME_EXCEPTION
      * @throws Exception if exceptionType = EXCEPTION
      */
-    public LocalGroupType updateDescriptionAndRollback(Long groupId, String description, ExceptionType exceptionType)
+    public LocalGroupEntity updateDescriptionAndRollback(Long groupId, String description, ExceptionType exceptionType)
             throws Exception {
-        LocalGroupType localGroupType = localGroupRepository.getLocalGroup(groupId);
-        if (localGroupType == null) {
+        LocalGroupEntity localGroupEntity = localGroupRepository.getLocalGroup(groupId);
+        if (localGroupEntity == null) {
             throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
         }
-        localGroupType.setDescription(description);
-        localGroupType.setUpdated(new Date());
+        localGroupEntity.setDescription(description);
+        localGroupEntity.setUpdated(new Date());
         return switch (exceptionType) {
             case EXCEPTION -> throw new Exception("failing on purpose");
             case RUNTIME_EXCEPTION -> throw new RuntimeException("failing on purpose");
             case SERVICE_EXCEPTION -> throw new LocalGroupService.DuplicateLocalGroupCodeException("failing on purpose");
-            default -> localGroupType;
+            default -> localGroupEntity;
         };
     }
 

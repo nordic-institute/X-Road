@@ -26,34 +26,38 @@
 package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
-import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.Anchor;
-import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedName;
-import org.niis.xroad.securityserver.restapi.openapi.model.NodeType;
-import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponse;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfo;
-import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
+import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
+import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
+import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedNameDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeMessageDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
+import org.niis.xroad.securityserver.restapi.service.AnchorFileNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -71,9 +75,12 @@ import java.util.Set;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.ANCHOR_FILE;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.INTERNAL_CERT_CN;
@@ -121,14 +128,14 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     public void generateSystemCertificateRequestCorrectPermission() throws InvalidDistinguishedNameException {
         when(systemService.generateInternalCsr(any())).thenReturn("foo".getBytes());
         ResponseEntity<Resource> result = systemApiController.generateSystemCertificateRequest(
-                new DistinguishedName().name("foobar"));
+                new DistinguishedNameDto().name("foobar"));
         assertNotNull(result);
     }
 
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = {"GENERATE_INTERNAL_CERT_REQ"})
     public void generateSystemCertificateRequestWrongPermission() {
-        systemApiController.generateSystemCertificateRequest(new DistinguishedName().name("foobar"));
+        systemApiController.generateSystemCertificateRequest(new DistinguishedNameDto().name("foobar"));
     }
 
     @Test
@@ -140,11 +147,11 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"VIEW_VERSION"})
     public void getVersionInfo() {
-        VersionInfoDto mockVersionInfo = new VersionInfoDto();
+        VersionInfo mockVersionInfo = new VersionInfo();
         mockVersionInfo.setJavaVersion(33);
 
         given(versionService.getVersionInfo()).willReturn(mockVersionInfo);
-        ResponseEntity<VersionInfo> response = systemApiController.systemVersion();
+        ResponseEntity<VersionInfoDto> response = systemApiController.systemVersion();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(33, (long) response.getBody().getJavaVersion());
@@ -157,7 +164,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         }
         given(mockRepository.getInternalTlsCertificate()).willReturn(x509Certificate);
 
-        CertificateDetails certificate =
+        CertificateDetailsDto certificate =
                 systemApiController.getSystemCertificate().getBody();
         assertEquals(INTERNAL_CERT_CN, certificate.getIssuerCommonName());
     }
@@ -169,11 +176,11 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
                 Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME),
                         TestUtils.createTspType(TSA_2_URL, TSA_2_NAME))));
 
-        ResponseEntity<Set<TimestampingService>> response =
+        ResponseEntity<Set<TimestampingServiceDto>> response =
                 systemApiController.getConfiguredTimestampingServices();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        Set<TimestampingService> timestampingServices = response.getBody();
+        Set<TimestampingServiceDto> timestampingServices = response.getBody();
 
         assertEquals(2, timestampingServices.size());
     }
@@ -181,13 +188,13 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"VIEW_TSPS"})
     public void getConfiguredTimestampingServicesEmptyList() {
-        when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<TspType>());
+        when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<TimestampingService>());
 
-        ResponseEntity<Set<TimestampingService>> response =
+        ResponseEntity<Set<TimestampingServiceDto>> response =
                 systemApiController.getConfiguredTimestampingServices();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        Set<TimestampingService> timestampingServices = response.getBody();
+        Set<TimestampingServiceDto> timestampingServices = response.getBody();
 
         assertEquals(0, timestampingServices.size());
     }
@@ -195,9 +202,9 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"ADD_TSP"})
     public void addConfiguredTimestampingService() {
-        TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_2_URL, TSA_2_NAME);
+        TimestampingServiceDto timestampingService = TestUtils.createTimestampingService(TSA_2_URL, TSA_2_NAME);
 
-        ResponseEntity<TimestampingService> response = systemApiController
+        ResponseEntity<TimestampingServiceDto> response = systemApiController
                 .addConfiguredTimestampingService(timestampingService);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -209,13 +216,13 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"ADD_TSP"})
     public void addDuplicateConfiguredTimestampingService()
             throws SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
-        TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
+        TimestampingServiceDto timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
 
         Mockito.doThrow(new SystemService.DuplicateConfiguredTimestampingServiceException("")).when(systemService)
                 .addConfiguredTimestampingService(any());
 
         try {
-            ResponseEntity<TimestampingService> response = systemApiController
+            ResponseEntity<TimestampingServiceDto> response = systemApiController
                     .addConfiguredTimestampingService(timestampingService);
             fail("should throw ConflictException");
         } catch (ConflictException expected) {
@@ -228,16 +235,15 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     public void addNonExistingConfiguredTimestampingService() throws
                                                               SystemService.DuplicateConfiguredTimestampingServiceException,
                                                               TimestampingServiceNotFoundException {
-        TimestampingService timestampingService = TestUtils
+        TimestampingServiceDto timestampingService = TestUtils
                 .createTimestampingService("http://dummy.com", "Dummy");
 
         Mockito.doThrow(new TimestampingServiceNotFoundException("")).when(systemService)
                 .addConfiguredTimestampingService(any());
 
         try {
-            ResponseEntity<TimestampingService> response = systemApiController
-                    .addConfiguredTimestampingService(timestampingService);
-            fail("should throw ResourceNotFoundException");
+            systemApiController.addConfiguredTimestampingService(timestampingService);
+            fail("should throw ValidationFailureException");
         } catch (BadRequestException expected) {
             // success
         }
@@ -254,7 +260,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"DELETE_TSP"})
     public void deleteNonExistingConfiguredTimestampingService() throws TimestampingServiceNotFoundException {
-        TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
+        TimestampingServiceDto timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
 
         Mockito.doThrow(new TimestampingServiceNotFoundException("")).when(systemService)
                 .deleteConfiguredTimestampingService(any());
@@ -270,26 +276,26 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"VIEW_ANCHOR"})
-    public void getAnchor() throws AnchorNotFoundException {
+    public void getAnchor() throws AnchorFileNotFoundException {
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
         when(systemService.getAnchorFile()).thenReturn(anchorFile);
 
-        ResponseEntity<Anchor> response = systemApiController.getAnchor();
+        ResponseEntity<AnchorDto> response = systemApiController.getAnchor();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        Anchor anchor = response.getBody();
+        AnchorDto anchor = response.getBody();
         assertEquals(ANCHOR_HASH, anchor.getHash());
         assertEquals(ANCHOR_CREATED_AT, anchor.getCreatedAt().toString());
     }
 
     @Test
     @WithMockUser(authorities = {"VIEW_ANCHOR"})
-    public void getAnchorNotFound() throws AnchorNotFoundException {
-        Mockito.doThrow(new AnchorNotFoundException("")).when(systemService).getAnchorFile();
+    public void getAnchorNotFound() throws AnchorFileNotFoundException {
+        Mockito.doThrow(new AnchorFileNotFoundException("err", new Exception())).when(systemService).getAnchorFile();
 
         try {
-            ResponseEntity<Anchor> response = systemApiController.getAnchor();
+            ResponseEntity<AnchorDto> response = systemApiController.getAnchor();
             fail("should throw InternalServerErrorException");
         } catch (InternalServerErrorException expected) {
             // success
@@ -298,7 +304,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"DOWNLOAD_ANCHOR"})
-    public void downloadAnchor() throws AnchorNotFoundException, IOException {
+    public void downloadAnchor() throws AnchorFileNotFoundException, IOException {
         byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
         when(systemService.readAnchorFile()).thenReturn(bytes);
         when(systemService.getAnchorFilenameForDownload())
@@ -311,11 +317,11 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"DOWNLOAD_ANCHOR"})
-    public void downloadAnchorNotFound() throws AnchorNotFoundException {
-        Mockito.doThrow(new AnchorNotFoundException("")).when(systemService).readAnchorFile();
+    public void downloadAnchorNotFound() throws AnchorFileNotFoundException {
+        Mockito.doThrow(new AnchorFileNotFoundException("err", new Exception())).when(systemService).readAnchorFile();
 
         try {
-            ResponseEntity<Resource> response = systemApiController.downloadAnchor();
+            systemApiController.downloadAnchor();
             fail("should throw InternalServerErrorException");
         } catch (InternalServerErrorException expected) {
             // success
@@ -335,9 +341,9 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"UPLOAD_ANCHOR"})
     public void previewAnchor() throws IOException {
         Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
-        ResponseEntity<Anchor> response = systemApiController.previewAnchor(true, anchorResource);
+        ResponseEntity<AnchorDto> response = systemApiController.previewAnchor(true, anchorResource);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Anchor anchor = response.getBody();
+        AnchorDto anchor = response.getBody();
         assertEquals(ANCHOR_HASH, anchor.getHash());
         assertEquals(ANCHOR_CREATED_AT, anchor.getCreatedAt().toString());
     }
@@ -345,23 +351,55 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypeStandalone() {
-        ResponseEntity<NodeTypeResponse> response = systemApiController.getNodeType();
-        assertEquals(response.getBody().getNodeType(), NodeType.STANDALONE); // default value is STANDALONE
+        ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
+        assertEquals(NodeTypeDto.STANDALONE, response.getBody().getNodeType()); // default value is STANDALONE
     }
 
     @Test
     @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypePrimary() {
         when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.MASTER);
-        ResponseEntity<NodeTypeResponse> response = systemApiController.getNodeType();
-        assertEquals(response.getBody().getNodeType(), NodeType.PRIMARY);
+        ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
+        assertEquals(NodeTypeDto.PRIMARY, response.getBody().getNodeType());
     }
 
     @Test
     @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypeSecondary() {
         when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.SLAVE);
-        ResponseEntity<NodeTypeResponse> response = systemApiController.getNodeType();
-        assertEquals(response.getBody().getNodeType(), NodeType.SECONDARY);
+        ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
+        assertEquals(NodeTypeDto.SECONDARY, response.getBody().getNodeType());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"TOGGLE_MAINTENANCE_MODE"})
+    public void getMaintenanceMode() {
+        final var message = "message";
+        when(systemService.getMaintenanceMode()).thenReturn(new MaintenanceMode(MaintenanceMode.Status.ENABLED, message));
+        var response = systemApiController.maintenanceMode();
+        assertEquals(message, response.getBody().getMessage());
+        assertEquals(MaintenanceModeStatusDto.ENABLED_MAINTENANCE_MODE, response.getBody().getStatus());
+
+        when(systemService.getMaintenanceMode()).thenReturn(new MaintenanceMode(MaintenanceMode.Status.DISABLED, null));
+        response = systemApiController.maintenanceMode();
+        assertNull(response.getBody().getMessage());
+        assertEquals(MaintenanceModeStatusDto.DISABLED_MAINTENANCE_MODE, response.getBody().getStatus());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"TOGGLE_MAINTENANCE_MODE"})
+    public void enableMaintenanceMode() {
+        final var message = "message";
+        var response = systemApiController.enableMaintenanceMode(new MaintenanceModeMessageDto().message(message));
+        assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
+        verify(systemService).enableMaintenanceMode(eq(message));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"TOGGLE_MAINTENANCE_MODE"})
+    public void disableMaintenanceMode() {
+        var response = systemApiController.disableMaintenanceMode();
+        assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
+        verify(systemService).disableMaintenanceMode();
     }
 }

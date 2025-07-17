@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,13 +28,14 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 
-import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AddOnStatusConverter {
-    public AddOnStatus convert(AddOnStatusDiagnostics addOnStatus) {
-        return new AddOnStatus()
-                .messagelogEnabled(addOnStatus.isMessageLogEnabled());
+    public AddOnStatusDto convert(AddOnStatusDiagnostics addOnStatus) {
+        return new AddOnStatusDto()
+                .messagelogEnabled(addOnStatus.isMessageLogEnabled())
+                .opmonitoringEnabled(addOnStatus.isOpMonitoringEnabled());
     }
 }

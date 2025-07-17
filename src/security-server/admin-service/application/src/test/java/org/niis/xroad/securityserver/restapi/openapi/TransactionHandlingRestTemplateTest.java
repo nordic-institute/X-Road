@@ -25,18 +25,19 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.securityserver.restapi.openapi.model.Client;
-import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
-import org.niis.xroad.securityserver.restapi.openapi.model.Members;
+import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MembersDto;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.model.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
@@ -60,7 +61,7 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.OWNER_SERVER_
  * Test live clients api controller with rest template.
  * Test exists to check proper loading of lazy collections, and
  * open-session-in-view configuration.
- *
+ * <p>
  * If data source is altered with TestRestTemplate (e.g. POST, PUT or DELETE) in this test class,
  * please remember to mark the context dirty with the following annotation:
  * <code>@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)</code>
@@ -87,7 +88,11 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
             List<MemberInfo> members = new ArrayList<>();
             for (String encodedId : encodedClientIds) {
                 ClientId.Conf clientId = clientIdConverter.convertId(encodedId);
-                members.add(new MemberInfo(clientId, "mock-name-for-" + encodedId));
+                members.add(new MemberInfo(
+                        clientId,
+                        "mock-name-for-" + encodedId,
+                        clientId.isSubsystem() ? ("subsystem-name-for" + encodedId) : null
+                ));
             }
             return members;
         }).when(globalConfProvider).getMembers();
@@ -115,20 +120,20 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         // add a new member, and delete it. Delete fails if lazy collections are not handled ok
-        ResponseEntity<LocalGroup> groupResponse = restTemplate.getForEntity(
+        ResponseEntity<LocalGroupDto> groupResponse = restTemplate.getForEntity(
                 localGroupEndpointUrl,
-                LocalGroup.class);
+                LocalGroupDto.class);
         assertEquals(HttpStatus.OK, groupResponse.getStatusCode());
         assertTrue(groupResponse.getBody().getMembers().isEmpty());
 
         // add member
-        Members members = new Members().addItemsItem(TestUtils.CLIENT_ID_SS1);
+        MembersDto members = new MembersDto().addItemsItem(TestUtils.CLIENT_ID_SS1);
         response = restTemplate.postForEntity(
                 localGroupEndpointUrl + "/members", members, Object.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
         groupResponse = restTemplate.getForEntity(localGroupEndpointUrl,
-                LocalGroup.class);
+                LocalGroupDto.class);
         assertEquals(HttpStatus.OK, groupResponse.getStatusCode());
         assertEquals(1, groupResponse.getBody().getMembers().size());
 
@@ -138,7 +143,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
         groupResponse = restTemplate.getForEntity(localGroupEndpointUrl,
-                LocalGroup.class);
+                LocalGroupDto.class);
         assertEquals(HttpStatus.OK, groupResponse.getStatusCode());
         assertEquals(0, groupResponse.getBody().getMembers().size());
     }
@@ -185,8 +190,8 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void normalClientConverterWorks() {
-        ResponseEntity<Client> clientResponse = restTemplate.getForEntity("/api/v1/clients/" + TestUtils.CLIENT_ID_SS1,
-                Client.class);
+        ResponseEntity<ClientDto> clientResponse = restTemplate.getForEntity("/api/v1/clients/" + TestUtils.CLIENT_ID_SS1,
+                ClientDto.class);
         assertEquals(HttpStatus.OK, clientResponse.getStatusCode());
         assertEquals("M1", clientResponse.getBody().getMemberCode());
     }
@@ -195,11 +200,12 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void clientConverterCannotLazyLoadPropertiesSinceOsivIsNotUsed() {
         doAnswer((Answer<String>) invocation -> {
-            ClientType clientType = (ClientType) invocation.getArguments()[0];
+            ClientEntity clientEntity = (ClientEntity) invocation.getArguments()[0];
             // cause a lazy loading exception
-            log.info("lazy loaded server code=" + clientType.getConf().getServerCode());
+            clientEntity.getServiceDescriptions().size();
+            log.info("lazy loaded server code=" + clientEntity.getConf().getServerCode());
             return null;
-        }).when(clientConverter).convert(any(ClientType.class));
+        }).when(clientConverter).convert(any(Client.class));
 
         ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/clients/" + TestUtils.CLIENT_ID_SS1,
                 Object.class);

@@ -68,8 +68,11 @@ public class MailServiceTest {
     public void getMailNotificationStatus() {
         MailService.MailNotificationStatus mailNotificationStatus = mailService.getMailNotificationStatus();
         assertTrue(mailNotificationStatus.configurationPresent());
-        assertTrue(mailNotificationStatus.successStatus());
-        assertTrue(mailNotificationStatus.failureStatus());
+        assertTrue(mailNotificationStatus.enabledNotifications().contains(MailNotificationType.ACME_FAILURE));
+        assertTrue(mailNotificationStatus.enabledNotifications().contains(MailNotificationType.ACME_SUCCESS));
+        assertTrue(mailNotificationStatus.enabledNotifications().contains(MailNotificationType.AUTH_CERT_REGISTERED));
+        assertTrue(mailNotificationStatus.enabledNotifications().contains(MailNotificationType.ACME_CERT_AUTOMATICALLY_ACTIVATED));
+        assertTrue(mailNotificationStatus.enabledNotifications().contains(MailNotificationType.ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE));
         assertEquals(List.of("TestMember: myMail@example.org"), mailNotificationStatus.recipientsEmails());
     }
 

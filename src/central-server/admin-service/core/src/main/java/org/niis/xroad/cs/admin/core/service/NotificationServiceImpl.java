@@ -28,8 +28,6 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +39,8 @@ import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.NotificationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -49,7 +49,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.common.SystemProperties.getCenterTrustedAnchorsAllowed;
-import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.NOT_INITIALIZED;
 import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -58,6 +57,7 @@ import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalC
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_EXTERNAL;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_INTERNAL;
 import static org.niis.xroad.cs.admin.core.service.TokensServiceImpl.SOFTWARE_TOKEN_ID;
+import static org.niis.xroad.signer.protocol.dto.TokenStatusInfo.NOT_INITIALIZED;
 
 @Service
 @RequiredArgsConstructor

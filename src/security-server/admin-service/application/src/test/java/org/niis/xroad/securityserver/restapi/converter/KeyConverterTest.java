@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,15 +26,14 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.Key;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.api.dto.CertRequestInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -51,7 +51,7 @@ public class KeyConverterTest extends AbstractConverterTestContext {
                 .csr(createTestCsr())
                 .build();
 
-        Key key = keyConverter.convert(info);
+        KeyDto key = keyConverter.convert(info);
 
         assertEquals(true, key.getAvailable());
         assertNotNull(key.getCertificates());
@@ -62,7 +62,7 @@ public class KeyConverterTest extends AbstractConverterTestContext {
         assertEquals("label", key.getLabel());
         assertEquals("friendly-name", key.getName());
         assertEquals(true, key.getSavedToConfiguration());
-        assertEquals(KeyUsageType.SIGNING, key.getUsage());
+        assertEquals(KeyUsageTypeDto.SIGNING, key.getUsage());
     }
 
     @Test

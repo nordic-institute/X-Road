@@ -54,7 +54,7 @@ public class ClearCacheService {
                              RestTemplateBuilder restTemplateBuilder) {
         this.clearConfCacheUrl = String.format(clearConfCacheUrl, PortNumbers.ADMIN_PORT);
         this.restTemplate = restTemplateBuilder
-                .setReadTimeout(Duration.ofMillis(REST_TEMPLATE_TIMEOUT_MS))
+                .readTimeout(Duration.ofMillis(REST_TEMPLATE_TIMEOUT_MS))
                 .build();
     }
 
@@ -77,7 +77,7 @@ public class ClearCacheService {
             log.error("Clearing cache failed", e);
             return false;
         }
-        if (response != null && response.getStatusCode() != HttpStatus.OK) {
+        if (response.getStatusCode() != HttpStatus.OK) {
             log.error("Clearing cache failed, HttpStatus={}", response.getStatusCode().value());
             return false;
         }

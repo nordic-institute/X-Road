@@ -2,14 +2,15 @@ FROM ubuntu:24.04
 
 # ACME
 ARG A2C_VER=0.35
-ADD https://github.com/grindsa/acme2certifier/releases/download/$A2C_VER/acme2certifier_$A2C_VER-1_all.deb /tmp/
+ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2certifier_${A2C_VER}-1_all.deb /tmp/
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV ORGANIZATION_NAME=Test
 
 RUN apt-get -qq update \
   && apt-get -qq install --no-install-recommends  \
     python3 nginx supervisor bash openssl curl python3-pip uwsgi uwsgi-plugin-python3 \
-  && apt -y install --no-install-recommends /tmp/acme2certifier_$A2C_VER-1_all.deb \
+  && apt -y install --no-install-recommends /tmp/acme2certifier_${A2C_VER}-1_all.deb \
   && apt-get -qq clean \
   #Setup TEST-CA with TSA and OCSP
   && useradd -m ca -U \

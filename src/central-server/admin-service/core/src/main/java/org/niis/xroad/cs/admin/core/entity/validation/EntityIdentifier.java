@@ -29,8 +29,6 @@ package org.niis.xroad.cs.admin.core.entity.validation;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import org.hibernate.validator.constraints.Length;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -42,38 +40,12 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @NotBlank
-@Length(
-        max = 255,
-        message = EntityIdentifier.LENGTH_VIOLATION_MESSAGE
-)
-@Pattern(
-        regexp = "^"
-                + "\\s*("
-                + "(?!"
-                + "\\s*" // Don't allow preceding spaces while eliminating
-                + "(?:\\.$|\\./|\\.\\.$|\\.\\./)" // Eliminate beginnings ".", "..", "./", "../"
-                + ")"
-                + "("
-                + "(?!/\\.\\s*$|/\\./|/\\.\\.\\s*$|/\\.\\./)" // Eliminate anywhere "/./", "/../" and ending "/.", "/.."
-                // and don't allow following spaces while eliminating the
-                // ending
-                + "[^\\\\\\u0000-\\u001F\\u007F-\\u009F\\u200B\\uFEFF]" // Allow only printable characters
-                + ")*"
-                + ")?"
-                + "$",
-        message = EntityIdentifier.PATTERN_VIOLATION_MESSAGE
-)
+@OptionalEntityIdentifier
 @Target({METHOD, FIELD, ANNOTATION_TYPE})
 @Retention(RUNTIME)
 @Constraint(validatedBy = {})
 @Documented
 public @interface EntityIdentifier {
-    String LENGTH_VIOLATION_MESSAGE = "length must be less or equal to {max}";
-    String PATTERN_VIOLATION_MESSAGE = "must not "
-            + "start with \".\", \"./\", \"..\", \"../\", "
-            + "contain non-printable characters, \"/./\", \"/../\", "
-            + "end with \"/.\", \"/..\"";
-
     String message() default "X-Road identifier is invalid";
 
     Class<?>[] groups() default {};

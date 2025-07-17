@@ -26,12 +26,12 @@
 package org.niis.xroad.securityserver.restapi.util;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.junit.Test;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;

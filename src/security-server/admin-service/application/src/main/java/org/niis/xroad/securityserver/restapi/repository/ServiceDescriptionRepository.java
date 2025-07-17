@@ -25,61 +25,52 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 /**
- * ServiceDescription repository
+ * ServiceDescriptionEntity repository
  */
 @Slf4j
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class ServiceDescriptionRepository {
+public class ServiceDescriptionRepository extends AbstractRepository<ServiceDescriptionEntity> {
 
+    @Getter(AccessLevel.PROTECTED)
     private final PersistenceUtils persistenceUtils;
 
     /**
-     * Return multiple ServiceDescriptionTypes
-     * @param entityIds
-     * @return
+     * Return one ServiceDescriptionEntity
+     * @param entityId entity id
+     * @return ServiceDescriptionEntity
      */
-    public List<ServiceDescriptionType> getServiceDescriptions(Long... entityIds) {
-        ServiceDescriptionDAOImpl serviceDescriptionDAO = new ServiceDescriptionDAOImpl();
-        return serviceDescriptionDAO.getServiceDescriptions(persistenceUtils.getCurrentSession(), entityIds);
-    }
-
-    /**
-     * Return one ServiceDescriptionType
-     * @param entityId
-     * @return
-     */
-    public ServiceDescriptionType getServiceDescription(Long entityId) {
+    public ServiceDescriptionEntity getServiceDescription(Long entityId) {
         ServiceDescriptionDAOImpl serviceDescriptionDAO = new ServiceDescriptionDAOImpl();
         return serviceDescriptionDAO.getServiceDescription(persistenceUtils.getCurrentSession(), entityId);
     }
 
     /**
-     * Executes a Hibernate saveOrUpdate(serviceDescriptionType)
-     * @param serviceDescriptionType
+     * Executes a Hibernate saveOrUpdate(serviceDescriptionEntity)
+     *
+     * @param serviceDescriptionEntity ServiceDescriptionEntity
      */
-    public void saveOrUpdate(ServiceDescriptionType serviceDescriptionType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(serviceDescriptionType);
+    public void saveOrUpdate(ServiceDescriptionEntity serviceDescriptionEntity) {
+        persistenceUtils.getCurrentSession().merge(serviceDescriptionEntity);
     }
 
     /**
-     * Executes a Hibernate delete(serviceDescriptionType)
-     * @param serviceDescriptionType
+     * Executes a Hibernate delete(serviceDescriptionEntity)
+     * @param serviceDescriptionEntity ServiceDescriptionEntity
      */
-    public void delete(ServiceDescriptionType serviceDescriptionType) {
-        persistenceUtils.getCurrentSession().delete(serviceDescriptionType);
+    public void delete(ServiceDescriptionEntity serviceDescriptionEntity) {
+        persistenceUtils.getCurrentSession().remove(serviceDescriptionEntity);
     }
 }

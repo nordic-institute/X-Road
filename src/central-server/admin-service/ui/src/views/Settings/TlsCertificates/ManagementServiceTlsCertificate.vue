@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view
+  <xrd-titled-view
     title-key="tlsCertificates.managementService.title"
     data-test="tls-certificates-view"
   >
@@ -60,7 +60,7 @@
                 <div class="button-wrap">
                   <xrd-button
                     v-if="hasPermissionToGenerateKey"
-                    class="button-spacing"
+                    class="mr-4"
                     outlined
                     data-test="management-service-certificate-generateKey"
                     @click="generateKey"
@@ -74,7 +74,7 @@
                   </xrd-button>
                   <xrd-button
                     v-if="hasPermissionToUploadCertificate"
-                    class="button-spacing"
+                    class="mr-4"
                     outlined
                     data-test="upload-management-service-certificate"
                     @click="uploadCertificate"
@@ -129,7 +129,7 @@
         </table>
       </v-card>
     </div>
-  </titled-view>
+  </xrd-titled-view>
 
   <management-service-generate-key-dialog
     v-if="showGenerateKeyDialog"
@@ -161,8 +161,8 @@ import {
   XrdIconDownload,
   XrdIconUpload,
   XrdIconCertificate,
+  XrdTitledView,
 } from '@niis/shared-ui';
-import TitledView from '@/components/ui/TitledView.vue';
 import { useManagementServices } from '@/store/modules/management-services';
 import ManagementServiceUploadCertificateDialog from '@/components/tlsCertificates/ManagementServiceUploadCertificateDialog.vue';
 import ManagementServiceGenerateKeyDialog from '@/components/tlsCertificates/ManagementServiceGenerateKeyDialog.vue';
@@ -172,8 +172,8 @@ import HashValue from '@/components/ui/HashValue.vue';
 
 export default defineComponent({
   components: {
+    XrdTitledView,
     ManagementServiceUploadCertificateDialog,
-    TitledView,
     XrdIconDownload,
     XrdIconUpload,
     XrdIconCertificate,
@@ -265,21 +265,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
 
 .button-wrap {
   width: 100%;
   display: flex;
   justify-content: flex-end;
-}
-
-.cert-row {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  padding-left: 56px;
-  height: 56px;
 }
 
 .internal-conf-icon {

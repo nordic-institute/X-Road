@@ -31,12 +31,12 @@
           <p>{{ $t('wizard.finish.acme.infoLine') }}</p>
         </template>
         <template v-else>
-        <p>{{ $t('wizard.finish.infoLine1') }}</p>
-        <p>{{ $t('wizard.finish.infoLine2') }}</p>
-        <br />
-        <p>{{ $t('wizard.finish.todo1') }}</p>
-        <p>{{ $t('wizard.finish.todo2') }}</p>
-        <p>{{ $t('wizard.finish.todo3') }}</p>
+          <p>{{ $t('wizard.finish.infoLine1') }}</p>
+          <p>{{ $t('wizard.finish.infoLine2') }}</p>
+          <br />
+          <p>{{ $t('wizard.finish.todo1') }}</p>
+          <p>{{ $t('wizard.finish.todo2') }}</p>
+          <p>{{ $t('wizard.finish.todo3') }}</p>
         </template>
         <br />
         <br />
@@ -125,6 +125,7 @@ export default defineComponent({
       'memberClass',
       'memberCode',
       'subsystemCode',
+      'subsystemName',
       'tokens',
     ]),
     ...mapState(useUser, ['currentSecurityServer']),
@@ -274,5 +275,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,14 +26,13 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceConverter;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,12 +57,12 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_TSPS')")
-    public ResponseEntity<Set<TimestampingService>> getApprovedTimestampingServices() {
-        Set<TimestampingService> timestampingServices;
-        Collection<TspType> tsps = globalConfService.getApprovedTspsForThisInstance();
-        timestampingServices = timestampingServiceConverter.convert(tsps);
+    public ResponseEntity<Set<TimestampingServiceDto>> getApprovedTimestampingServices() {
+        Set<TimestampingServiceDto> timestampingServiceDtos;
+        Collection<TimestampingService> tsps = globalConfService.getApprovedTspsForThisInstance();
+        timestampingServiceDtos = timestampingServiceConverter.convert(tsps);
 
-        return new ResponseEntity<>(timestampingServices, HttpStatus.OK);
+        return new ResponseEntity<>(timestampingServiceDtos, HttpStatus.OK);
     }
 
 }

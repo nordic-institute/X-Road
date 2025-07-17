@@ -189,6 +189,19 @@ Feature: Management requests API
     And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
 
   @Modifying
+  Scenario: Register a new subsystem with name as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And member 'CS:E2E:member-1' subsystems does not contain 'subsystem-1'
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And client 'CS:E2E:member-1:subsystem-1' with name 'Subsystem 1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    Then security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-1:subsystem-1'
+    And member 'CS:E2E:member-1' subsystems contains 'subsystem-1' with name 'Subsystem 1'
+
+  @Modifying
   Scenario: Register a new subsystem of non existing member as security server client
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
@@ -305,6 +318,42 @@ Feature: Management requests API
     And member 'CS:E2E:member-2' owned servers contains 'CS:E2E:member-2:SS-X'
 
   @Modifying
+  Scenario: Disabling/enabling maintenance mode
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And security server 'CS:E2E:member-1:SS-X' is not in maintenance mode
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS-X' is put into maintenance mode
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And security server 'CS:E2E:member-1:SS-X' is in maintenance mode without message
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS-X' is taken out of maintenance mode
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And security server 'CS:E2E:member-1:SS-X' is not in maintenance mode
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS-X' is put into maintenance mode with message: 'Will be back up soon'
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And security server 'CS:E2E:member-1:SS-X' is in maintenance mode with message: 'Will be back up soon'
+
+  @Modifying
+  Scenario: Enabling maintenance mode for management service security server should fail
+    Given Authentication header is set to REGISTRATION_OFFICER
+    And new subsystem "CS:E2E:member-1:Management" is added
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:E2E:member-1:SS0' authentication certificate registered with origin 'SECURITY_SERVER'
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to SECURITY_OFFICER
+    And Management services provider id is set to "CS:E2E:member-1:Management"
+    And security server 'CS:E2E:member-1:SS0' is registered as management service provider
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And security server 'CS:E2E:member-1:SS0' is not in maintenance mode
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS0' is put into maintenance mode
+    Then Response is of status code 409 and error code "mr_forbidden_enable_maintenance_mode_for_management_service"
+
+  @Modifying
   Scenario: View management request details
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
@@ -328,6 +377,44 @@ Feature: Management requests API
     And security server 'CS:E2E:member-1:SS-X' client 'CS:E2E:member-1:subsystem-1' is enabled
     And Authentication header is set to REGISTRATION_OFFICER
     Then member 'CS:E2E:member-1' subsystem 'subsystem-1' status in server 'SS-X' is 'APPROVED'
+
+  @Modifying
+  Scenario: Disabling subsystem which is management service provider should fail
+    Given Authentication header is set to REGISTRATION_OFFICER
+    And new subsystem "CS:E2E:member-1:Management" is added
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:E2E:member-1:SS0' authentication certificate registered with origin 'SECURITY_SERVER'
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to SECURITY_OFFICER
+    And Management services provider id is set to "CS:E2E:member-1:Management"
+    And security server 'CS:E2E:member-1:SS0' is registered as management service provider
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And security server 'CS:E2E:member-1:SS0' is not in maintenance mode
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS0' client 'CS:E2E:member-1:Management' is disabled
+    Then Response is of status code 409 and error code "mr_forbidden_disable_management_service_client"
+
+  @Modifying
+  Scenario: Renaming subsystem
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And member 'CS:E2E:member-1' subsystems does not contain 'subsystem-1'
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And client 'CS:E2E:member-1:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    Then security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-1:subsystem-1'
+    And member 'CS:E2E:member-1' subsystems contains 'subsystem-1' without name
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS-X' client 'CS:E2E:member-1:subsystem-1' is renamed to 'Subsystem 1'
+    And Authentication header is set to REGISTRATION_OFFICER
+    Then member 'CS:E2E:member-1' subsystems contains 'subsystem-1' with name 'Subsystem 1'
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS-X' client 'CS:E2E:member-1:subsystem-1' is renamed to 'Just Subsystem'
+    And Authentication header is set to REGISTRATION_OFFICER
+    Then member 'CS:E2E:member-1' subsystems contains 'subsystem-1' with name 'Just Subsystem'
 
   @Modifying
   Scenario: Management requests list

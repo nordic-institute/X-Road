@@ -25,12 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.DiagnosticsStatus;
-
 import com.google.common.collect.Streams;
-import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatus;
+import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatusDto;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -43,13 +42,13 @@ import java.util.stream.Collectors;
 @Component
 public class TimestampingServiceDiagnosticConverter {
 
-    public TimestampingServiceDiagnostics convert(DiagnosticsStatus diagnosticsStatus) {
-        TimestampingServiceDiagnostics timestampingServiceDiagnostics = new TimestampingServiceDiagnostics();
+    public TimestampingServiceDiagnosticsDto convert(DiagnosticsStatus diagnosticsStatus) {
+        TimestampingServiceDiagnosticsDto timestampingServiceDiagnostics = new TimestampingServiceDiagnosticsDto();
         timestampingServiceDiagnostics.setUrl(diagnosticsStatus.getDescription());
-        Optional<TimestampingStatus> statusCode = TimestampingStatusMapping.map(
+        Optional<TimestampingStatusDto> statusCode = TimestampingStatusMapping.map(
                 diagnosticsStatus.getReturnCode());
         timestampingServiceDiagnostics.setStatusCode(statusCode.orElse(null));
-        Optional<DiagnosticStatusClass> statusClass = DiagnosticStatusClassMapping.map(
+        Optional<DiagnosticStatusClassDto> statusClass = DiagnosticStatusClassMapping.map(
                 diagnosticsStatus.getReturnCode());
         timestampingServiceDiagnostics.setStatusClass(statusClass.orElse(null));
         if (diagnosticsStatus.getPrevUpdate() != null) {
@@ -59,7 +58,7 @@ public class TimestampingServiceDiagnosticConverter {
         return timestampingServiceDiagnostics;
     }
 
-    public Set<TimestampingServiceDiagnostics> convert(Iterable<DiagnosticsStatus> statuses) {
+    public Set<TimestampingServiceDiagnosticsDto> convert(Iterable<DiagnosticsStatus> statuses) {
         return Streams.stream(statuses)
                 .map(this::convert)
                 .collect(Collectors.toSet());

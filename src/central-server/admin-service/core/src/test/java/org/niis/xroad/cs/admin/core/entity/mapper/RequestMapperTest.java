@@ -46,9 +46,11 @@ import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ActiveProfiles("test")
 @SpringBootTest(classes = {RequestMapperImpl.class, ClientIdMapperImpl.class, SecurityServerIdMapperImpl.class})
 class RequestMapperTest {
     private static final byte[] CERT = {1, 0, 1};
@@ -111,8 +113,9 @@ class RequestMapperTest {
 
     @Test
     void shouldMapClientRegistrationRequestEntity() {
+        final var name = "Name";
         RequestEntity source = new ClientRegistrationRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY,
-                MEMBER_ID_ENTITY, "comments");
+                MEMBER_ID_ENTITY, name, "comments");
 
         var result = mapper.toTarget(source);
 
@@ -122,6 +125,7 @@ class RequestMapperTest {
         assertThat(result.getManagementRequestType()).isEqualTo(ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
         assertThat(result.getSecurityServerId().getServerCode()).isEqualTo(source.getSecurityServerId().getServerCode());
         assertThat(((ClientRegistrationRequest) result).getClientId().getMemberCode()).isEqualTo(MEMBER_ID_ENTITY.getMemberCode());
+        assertThat(((ClientRegistrationRequest) result).getSubsystemName()).isEqualTo(name);
     }
 
     @Test

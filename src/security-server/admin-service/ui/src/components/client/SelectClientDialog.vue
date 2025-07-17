@@ -71,7 +71,9 @@
                   </div>
                 </td>
 
-                <td>{{ member.member_name }}</td>
+                <td>
+                  <client-name :client="member" />
+                </td>
                 <td>{{ member.id }}</td>
               </tr>
             </tbody>
@@ -107,8 +109,10 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { Client } from '@/openapi-types';
+import ClientName from '@/components/client/ClientName.vue';
 
 export default defineComponent({
+  components: { ClientName },
   props: {
     dialog: {
       type: Boolean,
@@ -176,7 +180,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/tables';
 @use '@/assets/add-dialogs';
 
 .checkbox-column {

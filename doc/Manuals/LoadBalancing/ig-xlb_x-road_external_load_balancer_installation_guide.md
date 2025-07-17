@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.25
+Version: 1.28
 Doc. ID: IG-XLB
 
 
@@ -32,6 +32,9 @@ Doc. ID: IG-XLB
 | 16.08.2024 | 1.23    | Added assumption that the load balancer supports TLS passthrough                                                         | Petteri Kivimäki            |
 | 06.09.2024 | 1.24    | Updated RHEL default configuration files location                                                                        | Eneli Reimets               |
 | 17.12.2024 | 1.25    | When adding user xroad-slave, the home directory must be explicitly added for Ubuntu                                     | Eneli Reimets               |
+| 17.03.2025 | 1.26    | Syntax and styling                                                                                                       | Pauline Dimmek              |
+| 02.04.2025 | 1.27    | Added Proxy memory health check paragraph                                                                                | Mikk-Erik Bachmann          |
+| 06.05.2025 | 1.28    | Added more details about the soft token status check result caching                                                      | Petteri Kivimäki            |
 
 ## Table of Contents
 
@@ -65,6 +68,7 @@ Doc. ID: IG-XLB
     - [3.4 Health check service configuration](#34-health-check-service-configuration)
       - [3.4.1 Known check result inconsistencies vs. actual state](#341-known-check-result-inconsistencies-vs-actual-state)
       - [3.4.2 Health check examples](#342-health-check-examples)
+      - [3.4.3 Proxy memory health check](#343-proxy-memory-health-check)
   - [4. Database replication setup](#4-database-replication-setup)
     - [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
     - [4.2 Creating a separate PostgreSQL instance for the `serverconf` database](#42-creating-a-separate-postgresql-instance-for-the-serverconf-database)
@@ -115,7 +119,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 |             Document Id              | Document                                                                                                                                   |
 | :----------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------- |
-|            \[SS-CLUSTER\]            | [Readme: Security server cluster setup with Ansible](https://github.com/nordic-institute/X-Road/tree/develop/ansible/ss_cluster/README.md) |
+|            \[SS-CLUSTER\]            | [Readme: Security Server cluster setup with Ansible](https://github.com/nordic-institute/X-Road/tree/develop/ansible/ss_cluster/README.md) |
 |              \[IG-SS\]               | [X-Road: Security Server Installation Guide](../ig-ss_x-road_v6_security_server_installation_guide.md)                                     |
 |              \[UG-SS\]               | [X-Road 7 Security Server User Guide](../ug-ss_x-road_6_security_server_user_guide.md)                                                     |
 | <a name="Ref_TERMS"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../../terms_x-road_docs.md)                                                                               |
@@ -334,7 +338,7 @@ In order to properly set up the data replication, the secondary nodes must be ab
    
    Note: `xroad-security-officer` should remain, otherwise you will not be able to enter token PIN codes.
 
-   After removing these groups, the super user created during the Security Server installation is a member of two UI privilege groups: `xroad-securityserver-observer` and `xroad-security-officer`. These groups allow read-only access to the admin user interface and provide a safe way to use the UI for checking the configuration status of the secondary Security Server. In addition, the groups allow the user to enter the token PIN code. Since admin UI users are UNIX users that are members of specific privilege groups, more users can be added to the groups as necessary. Security server installation scripts detect the node type of existing installations and modify user group creation accordingly. Instead, version upgrades do not overwrite or modify this configuration during Security Server updates.
+   After removing these groups, the super user created during the Security Server installation is a member of two UI privilege groups: `xroad-securityserver-observer` and `xroad-security-officer`. These groups allow read-only access to the admin user interface and provide a safe way to use the UI for checking the configuration status of the secondary Security Server. In addition, the groups allow the user to enter the token PIN code. Since admin UI users are UNIX users that are members of specific privilege groups, more users can be added to the groups as necessary. Security Server installation scripts detect the node type of existing installations and modify user group creation accordingly. Instead, version upgrades do not overwrite or modify this configuration during Security Server updates.
 
    For more information on user groups and their effect on admin user interface privileges in the Security Server, see the  Security Server User Guide \[[UG-SS](#13-references)\].
 
@@ -385,8 +389,8 @@ and `HTTP 500 Internal Server Error` otherwise. A short message about the failur
 body of the response. The service runs as a part of the `xroad-proxy` service.
 
 In addition to implicitly verifying that the `xroad-proxy` service is running, the  health checks verify that:
-* The server authentication key is accessible and that the OCSP response for the certificate is `good`. This requires a
-running `xroad-signer` service in good condition.
+* The server authentication key is accessible and the software token is logged in. This requires a running `xroad-signer` service in good condition.
+* The OCSP response for the certificate is `good`. This requires a running `xroad-signer` service in good condition.
 * The `serverconf` database is accessible.
 * The `global configuration` is valid and not expired.
 
@@ -395,11 +399,12 @@ time, it will be considered a health check failure and will cause a `HTTP 500` r
 
 In addition, each status check result will be cached for a short while to avoid excess resource usage. A successful status
 check result will be cached for 2 seconds before a new verification is triggered. This is to make sure the OK results are
-as fresh as possible while avoiding per-request verification. In contrast, verification failures will be cached for 30
-seconds before a new verification is triggered. This should allow for the Security Server to get up and running after a
-failure or possible reboot before the status is queried again.
+as fresh as possible while avoiding per-request verification. The only exception is checking the software token state
+(logged in / out) since the software token status check result is cached for 300 seconds. In contrast, verification failures are 
+cached for 30 seconds before a new verification is triggered. This should allow for the Security Server to get up and 
+running after a failure or possible reboot before the status is queried again.
 
-Security server's health check interface can also be manually switched to a maintenance mode in order to inform the load
+Security Server's health check interface can also be manually switched to a maintenance mode in order to inform the load
 balancing solution that the Security Server will be undergoing maintenance and should be removed from active use.
 
 When in maintenance mode the health check interface will only respond with `HTTP 503 Service unavailable` and the message
@@ -455,6 +460,10 @@ Fetching health check response timed out for: Authentication key OCSP status
 
 
 Continue to [chapter 6](#6-verifying-the-setup) to verify the setup.
+
+#### 3.4.3 Proxy memory health check
+
+Besides the health checks mentioned above, Proxy can also be configured to check its own memory usage. To turn this memory check on `memory-usage-threshold` System Property needs to be set to a numerical value which represents a percentage of the maximum memory being used over which the health check starts failing. For example if this is set to 80, then the health check will fail if more than 80% of the maximum is being used by the Proxy. The maximum memory is configured by the java `-Xmx` flag. For more info about configuring the Security Server Proxy's memory allocation see [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#211-updating-proxy-services-memory-allocation-command-line-arguments).
 
 ## 4. Database replication setup
 

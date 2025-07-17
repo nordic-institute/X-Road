@@ -28,8 +28,9 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.ClientDisableRequest;
+import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ClientDisableRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
@@ -42,18 +43,19 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_FORBIDDEN_DISABLE_MANAGEMENT_SERVICE_CLIENT;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_CLIENT_NOT_FOUND;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 class ClientDisableRequestHandler implements RequestHandler<ClientDisableRequest> {
+    private final SystemParameterService systemParameterService;
     private final SecurityServerRepository servers;
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final IdentifierRepository<ClientIdEntity> clientIds;
     private final RequestRepository<ClientDisableRequestEntity> disableRequests;
     private final RequestMapper requestMapper;
-
 
     @Override
     public boolean canAutoApprove(ClientDisableRequest request) {
@@ -65,8 +67,13 @@ class ClientDisableRequestHandler implements RequestHandler<ClientDisableRequest
         final var serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final var clientId = clientIds.findOne(ClientIdEntity.ensure(request.getClientId()));
         var serverClient = findServerClient(serverId, clientId)
-                .orElseThrow(() -> new DataIntegrityException(MR_SERVER_CLIENT_NOT_FOUND,
-                        request.getSecurityServerId().toString(), request.getClientId().toString()));
+                .orElseThrow(() -> new ConflictException(MR_SERVER_CLIENT_NOT_FOUND.build(
+                        request.getSecurityServerId(),
+                        request.getClientId())));
+
+        if (request.getClientId().equals(systemParameterService.getManagementServiceProviderId())) {
+            throw new ConflictException(MR_FORBIDDEN_DISABLE_MANAGEMENT_SERVICE_CLIENT.build(request.getClientId()));
+        }
 
         serverClient.setEnabled(false);
 
@@ -92,4 +99,5 @@ class ClientDisableRequestHandler implements RequestHandler<ClientDisableRequest
     public Class<ClientDisableRequest> requestType() {
         return ClientDisableRequest.class;
     }
+
 }

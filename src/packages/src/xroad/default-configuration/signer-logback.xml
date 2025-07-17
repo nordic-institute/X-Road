@@ -30,9 +30,10 @@
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO" />
+    <logger name="org.niis.xroad" level="INFO" />
 
     <!--TokenManager is very verbose /-->
-    <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="OFF" />
+    <logger name="org.niis.xroad.signer.core.tokenmanager.TokenManager" level="OFF" />
 
     <root level="INFO">
         <appender-ref ref="FILE" />

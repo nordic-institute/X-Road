@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -34,33 +35,31 @@ import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.restapi.openapi.validator.IdentifierValidationErrorInfo;
-import org.niis.xroad.securityserver.restapi.openapi.model.Client;
-import org.niis.xroad.securityserver.restapi.openapi.model.ClientAdd;
-import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.CsrGenerate;
-import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
-import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdate;
-import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConf;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabel;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabelWithCsrGenerate;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyName;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
-import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
-import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAdd;
-import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDescription;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionAdd;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionUpdate;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceType;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceUpdate;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenName;
-import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientAddDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrGenerateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.EndpointDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConfDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabelDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabelWithCsrGenerateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyNameDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAddDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDescriptionDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionAddDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionUpdateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceUpdateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenNameDto;
+import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -88,7 +87,7 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.addApiKeyAuth
 /**
  * test validation of identifier parameters with real requests
  * (can't test binders with regular integration tests, for some reason)
- *
+ * <p>
  * TestRestTemplate requests will not be rolled back so the context will need to be reloaded after this test class
  */
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -104,20 +103,18 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     public static final String HAS_BACKSLASH = "aa\\bb";
     public static final String HAS_CONTROL_CHAR = "aa​bb"; // zero-width-space in the middle
 
-    public static final String FIELD_CLIENTADD_MEMBER_CODE = "clientAdd.client.memberCode";
-    public static final String FIELD_CLIENTADD_SUBSYSTEM_CODE = "clientAdd.client.subsystemCode";
-    public static final String FIELD_LOCALGROUPADD_CODE = "localGroupAdd.code";
-    public static final String FIELD_SERVICEUPDATE_URL = "serviceUpdate.url";
-    public static final String FIELD_KEYLABEL_LABEL = "keyLabel.label";
-    public static final String FIELD_TOKENNAME_NAME = "tokenName.name";
-    public static final String FIELD_KEYNAME_NAME = "keyName.name";
-    public static final String FIELD_ENDPOINTUPDATE_PATH = "endpointUpdate.path";
-    public static final String FIELD_ENDPOINT_PATH = "endpoint.path";
-    public static final String FIELD_KEYLABELWITHCSRGENERATE_KEYLABEL = "keyLabelWithCsrGenerate.keyLabel";
-    public static final String FIELD_KEYLABELWITHCSRGENERATE_CSRGENERATEREQUEST
-            = "keyLabelWithCsrGenerate.csrGenerateRequest";
-    public static final String FIELD_LOCALGROUPADD_DESCRIPTION = "localGroupAdd.description";
-    public static final String FIELD_LOCALGROUPDESCRIPTION = "localGroupDescription.description";
+    public static final String FIELD_CLIENTADD_MEMBER_CODE = "clientAddDto.client.memberCode";
+    public static final String FIELD_CLIENTADD_SUBSYSTEM_CODE = "clientAddDto.client.subsystemCode";
+    public static final String FIELD_LOCALGROUPADD_CODE = "localGroupAddDto.code";
+    public static final String FIELD_SERVICEUPDATE_URL = "serviceUpdateDto.url";
+    public static final String FIELD_KEYLABEL_LABEL = "keyLabelDto.label";
+    public static final String FIELD_TOKENNAME_NAME = "tokenNameDto.name";
+    public static final String FIELD_KEYNAME_NAME = "keyNameDto.name";
+    public static final String FIELD_ENDPOINTUPDATE_PATH = "endpointUpdateDto.path";
+    public static final String FIELD_ENDPOINT_PATH = "endpointDto.path";
+    public static final String FIELD_KEYLABELWITHCSRGENERATE_KEYLABEL = "keyLabelWithCsrGenerateDto.keyLabel";
+    public static final String FIELD_LOCALGROUPADD_DESCRIPTION = "localGroupAddDto.description";
+    public static final String FIELD_LOCALGROUPDESCRIPTION = "localGroupDescriptionDto.description";
 
     private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
             TestUtils.MEMBER_CLASS_PRO);
@@ -149,7 +146,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
         when(systemService.isAnchorImported()).thenReturn(false);
         when(urlValidator.isValidUrl(any())).thenReturn(true);
-        doThrow(new AnchorNotFoundException(""))
+        doThrow(new InitializationService.AnchorNotFoundException("err"))
                 .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
     }
 
@@ -180,12 +177,12 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private ResponseEntity<Object> createTestClient(String memberCode, String subsystemCode) {
-        Client client = new Client()
+        ClientDto client = new ClientDto()
                 .memberClass("GOV")
                 .memberCode(memberCode)
                 .subsystemCode(subsystemCode)
-                .status(ClientStatus.SAVED);
-        ClientAdd clientAdd = new ClientAdd().client(client);
+                .status(ClientStatusDto.SAVED);
+        ClientAddDto clientAdd = new ClientAddDto().client(client);
         return restTemplate.postForEntity("/api/v1/clients", clientAdd, Object.class);
     }
 
@@ -209,10 +206,10 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private ResponseEntity<Object> createClientServiceDescription(String url, String restServiceCode) {
-        ServiceDescriptionAdd serviceDescriptionAdd = new ServiceDescriptionAdd()
+        ServiceDescriptionAddDto serviceDescriptionAdd = new ServiceDescriptionAddDto()
                 .url(url)
                 .restServiceCode(restServiceCode)
-                .type(ServiceType.REST);
+                .type(ServiceTypeDto.REST);
         return restTemplate.postForEntity("/api/v1/clients/FI:GOV:M1:SS1/service-descriptions",
                 serviceDescriptionAdd, Object.class);
     }
@@ -229,7 +226,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
         expectedFieldValidationErrors.put(FIELD_SERVICEUPDATE_URL,
                 Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
-        ServiceUpdate serviceUpdate = new ServiceUpdate().url("http://www.goo" + HAS_CONTROL_CHAR + "gle.com")
+        ServiceUpdateDto serviceUpdate = new ServiceUpdateDto().url("http://www.goo" + HAS_CONTROL_CHAR + "gle.com")
                 .timeout(60).sslAuth(false);
         assertUpdateServiceValidationError("1", serviceUpdate, expectedFieldValidationErrors);
     }
@@ -251,11 +248,11 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
      * @return response body as a Map
      */
     private Object updateServiceDescription(String url, String restServiceCode) {
-        ServiceDescriptionUpdate serviceDescriptionUpdate = new ServiceDescriptionUpdate()
+        ServiceDescriptionUpdateDto serviceDescriptionUpdate = new ServiceDescriptionUpdateDto()
                 .url(url)
                 .restServiceCode("asdf")
                 .newRestServiceCode(restServiceCode)
-                .type(ServiceType.REST);
+                .type(ServiceTypeDto.REST);
 
         return restTemplate.patchForObject("/api/v1/service-descriptions/1", serviceDescriptionUpdate, Object.class);
     }
@@ -297,7 +294,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
 
     private ResponseEntity<Object> createInitialServerConf(String securityServerCode, String ownerMemberClass,
                                                            String ownerMemberCode) {
-        InitialServerConf initialServerConf = new InitialServerConf()
+        InitialServerConfDto initialServerConf = new InitialServerConfDto()
                 .securityServerCode(securityServerCode)
                 .ownerMemberClass(ownerMemberClass)
                 .ownerMemberCode(ownerMemberCode)
@@ -359,7 +356,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
         expectedFieldValidationErrors.put(FIELD_KEYNAME_NAME,
                 Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
-        assertKeyNameValidationError("1", new KeyName().name(HAS_CONTROL_CHAR), expectedFieldValidationErrors);
+        assertKeyNameValidationError("1", new KeyNameDto().name(HAS_CONTROL_CHAR), expectedFieldValidationErrors);
     }
 
     @Test
@@ -368,8 +365,8 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
         expectedFieldValidationErrors.put(FIELD_ENDPOINTUPDATE_PATH,
                 Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
-        EndpointUpdate endpointUpdate = new EndpointUpdate()
-                .method(EndpointUpdate.MethodEnum.GET).path(HAS_CONTROL_CHAR);
+        EndpointUpdateDto endpointUpdate = new EndpointUpdateDto()
+                .method(EndpointUpdateDto.MethodEnum.GET).path(HAS_CONTROL_CHAR);
         assertEndpointUpdateValidationError("1", endpointUpdate, expectedFieldValidationErrors);
     }
 
@@ -379,7 +376,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
         expectedFieldValidationErrors.put(FIELD_ENDPOINT_PATH,
                 Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
-        Endpoint endpoint = new Endpoint().path(HAS_CONTROL_CHAR).serviceCode("foobar").method(Endpoint.MethodEnum.GET);
+        EndpointDto endpoint = new EndpointDto().path(HAS_CONTROL_CHAR).serviceCode("foobar").method(EndpointDto.MethodEnum.GET);
         assertEndpointValidationError("1", endpoint, expectedFieldValidationErrors);
     }
 
@@ -398,8 +395,8 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
         expectedFieldValidationErrors.put(FIELD_KEYLABELWITHCSRGENERATE_KEYLABEL,
                 Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
-        CsrGenerate csrGenerate = new CsrGenerate().keyUsageType(KeyUsageType.AUTHENTICATION).caName("foobar");
-        KeyLabelWithCsrGenerate keyLabelWithCsrGenerate = new KeyLabelWithCsrGenerate().keyLabel(HAS_CONTROL_CHAR)
+        CsrGenerateDto csrGenerate = new CsrGenerateDto().keyUsageType(KeyUsageTypeDto.AUTHENTICATION).caName("foobar");
+        KeyLabelWithCsrGenerateDto keyLabelWithCsrGenerate = new KeyLabelWithCsrGenerateDto().keyLabel(HAS_CONTROL_CHAR)
                 .csrGenerateRequest(csrGenerate);
         assertAddKeyAndCsrValidationError("1", keyLabelWithCsrGenerate, expectedFieldValidationErrors);
     }
@@ -443,15 +440,15 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
 
     private void assertAddKeyValidationError(String tokenIdParam, String keyLabelParam,
                                              Map<String, List<String>> expectedFieldValidationErrors) {
-        KeyLabel keyLabel = new KeyLabel().label(keyLabelParam);
+        KeyLabelDto keyLabel = new KeyLabelDto().label(keyLabelParam);
         ResponseEntity<Object> response =
                 restTemplate.postForEntity("/api/v1/tokens/" + tokenIdParam + "/keys", keyLabel, Object.class);
         assertValidationErrors(response, expectedFieldValidationErrors);
     }
 
-    private void assertKeyNameValidationError(String idParam, KeyName keyNameParam,
+    private void assertKeyNameValidationError(String idParam, KeyNameDto keyNameParam,
                                               Map<String, List<String>> expectedFieldValidationErrors) {
-        HttpEntity<KeyName> keyNameEntity = new HttpEntity<>(keyNameParam);
+        HttpEntity<KeyNameDto> keyNameEntity = new HttpEntity<>(keyNameParam);
         ResponseEntity<Object> response = restTemplate.exchange("/api/v1/keys/" + idParam,
                 HttpMethod.PATCH,
                 keyNameEntity,
@@ -461,8 +458,8 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
 
     private void assertTokenNameValidationError(String tokenIdParam, String tokenNameParam,
                                                 Map<String, List<String>> expectedFieldValidationErrors) {
-        TokenName tokenName = new TokenName().name(tokenNameParam);
-        HttpEntity<TokenName> tokenNameEntity = new HttpEntity<>(tokenName);
+        TokenNameDto tokenName = new TokenNameDto().name(tokenNameParam);
+        HttpEntity<TokenNameDto> tokenNameEntity = new HttpEntity<>(tokenName);
         ResponseEntity<Object> response = restTemplate.exchange("/api/v1/tokens/" + tokenIdParam,
                 HttpMethod.PATCH,
                 tokenNameEntity,
@@ -471,8 +468,8 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertAddKeyAndCsrValidationError(String tokenIdParam,
-                                                   KeyLabelWithCsrGenerate keyLabelWithCsrGenerateParam, Map<String,
-            List<String>> expectedFieldValidationErrors) {
+                                                   KeyLabelWithCsrGenerateDto keyLabelWithCsrGenerateParam, Map<String,
+                    List<String>> expectedFieldValidationErrors) {
         ResponseEntity<Object> response =
                 restTemplate.postForEntity("/api/v1/tokens/" + tokenIdParam + "/keys-with-csrs",
                         keyLabelWithCsrGenerateParam, Object.class);
@@ -486,23 +483,21 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private ResponseEntity<Object> updateLocalGroupDesc(String newLocalGroupDescription) {
-        LocalGroupDescription localGroupDescription = new LocalGroupDescription()
+        LocalGroupDescriptionDto localGroupDescription = new LocalGroupDescriptionDto()
                 .description(newLocalGroupDescription);
-        HttpEntity<LocalGroupDescription> localGroupDescriptionEntity = new HttpEntity<>(localGroupDescription);
-        ParameterizedTypeReference<LocalGroup> typeRef = new ParameterizedTypeReference<LocalGroup>() {
-        };
+        HttpEntity<LocalGroupDescriptionDto> localGroupDescriptionEntity = new HttpEntity<>(localGroupDescription);
         return restTemplate.exchange("/api/v1/local-groups/0", HttpMethod.PATCH, localGroupDescriptionEntity,
                 Object.class);
     }
 
     private ResponseEntity<Object> createTestLocalGroup(String localGroupCode, String localGroupDescription) {
-        LocalGroupAdd localGroupAdd = new LocalGroupAdd().code(localGroupCode).description(localGroupDescription);
+        LocalGroupAddDto localGroupAdd = new LocalGroupAddDto().code(localGroupCode).description(localGroupDescription);
         return restTemplate.postForEntity("/api/v1/clients/FI:GOV:M1:SS1/local-groups", localGroupAdd, Object.class);
     }
 
-    private void assertUpdateServiceValidationError(String idParam, ServiceUpdate serviceUpdate,
+    private void assertUpdateServiceValidationError(String idParam, ServiceUpdateDto serviceUpdate,
                                                     Map<String, List<String>> expectedFieldValidationErrors) {
-        HttpEntity<ServiceUpdate> serviceUpdateEntity = new HttpEntity<>(serviceUpdate);
+        HttpEntity<ServiceUpdateDto> serviceUpdateEntity = new HttpEntity<>(serviceUpdate);
         ResponseEntity<Object> response = restTemplate.exchange("/api/v1/services/" + idParam,
                 HttpMethod.PATCH,
                 serviceUpdateEntity,
@@ -510,9 +505,9 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         assertValidationErrors(response, expectedFieldValidationErrors);
     }
 
-    private void assertEndpointUpdateValidationError(String idParam, EndpointUpdate update,
+    private void assertEndpointUpdateValidationError(String idParam, EndpointUpdateDto update,
                                                      Map<String, List<String>> expectedFieldValidationErrors) {
-        HttpEntity<EndpointUpdate> updateEntity = new HttpEntity<>(update);
+        HttpEntity<EndpointUpdateDto> updateEntity = new HttpEntity<>(update);
         ResponseEntity<Object> response = restTemplate.exchange("/api/v1/endpoints/" + idParam,
                 HttpMethod.PATCH,
                 updateEntity,
@@ -520,7 +515,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         assertValidationErrors(response, expectedFieldValidationErrors);
     }
 
-    private void assertEndpointValidationError(String idParam, Endpoint endpoint,
+    private void assertEndpointValidationError(String idParam, EndpointDto endpoint,
                                                Map<String, List<String>> expectedFieldValidationErrors) {
         ResponseEntity<Object> response =
                 restTemplate.postForEntity("/api/v1/services/" + idParam + "/endpoints",

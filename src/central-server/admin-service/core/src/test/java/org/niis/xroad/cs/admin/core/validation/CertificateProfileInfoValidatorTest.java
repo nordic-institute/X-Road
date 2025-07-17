@@ -27,7 +27,7 @@ package org.niis.xroad.cs.admin.core.validation;
 
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -52,7 +52,7 @@ class CertificateProfileInfoValidatorTest {
     @Test
     void failWhenClassDoesNotImplementProfileInfoInterface() {
         assertThatThrownBy(() -> CertificateProfileInfoValidator.validate("java.lang.String"))
-                .isInstanceOf(ValidationFailureException.class);
+                .isInstanceOf(BadRequestException.class);
     }
 
     /**
@@ -63,7 +63,7 @@ class CertificateProfileInfoValidatorTest {
     void failWhenClassIsInterface() {
         assertThatThrownBy(() -> CertificateProfileInfoValidator
                 .validate("ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider"))
-                .isInstanceOf(ValidationFailureException.class);
+                .isInstanceOf(BadRequestException.class);
     }
 
     /**
@@ -72,6 +72,6 @@ class CertificateProfileInfoValidatorTest {
     @Test
     void failWhenClassDoesNotExist() {
         assertThatThrownBy(() -> CertificateProfileInfoValidator.validate("a.b.C"))
-                .isInstanceOf(ValidationFailureException.class);
+                .isInstanceOf(BadRequestException.class);
     }
 }

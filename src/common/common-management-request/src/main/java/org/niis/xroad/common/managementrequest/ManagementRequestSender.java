@@ -27,7 +27,6 @@
 package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.Soap;
@@ -45,8 +44,13 @@ import org.niis.xroad.common.managementrequest.model.AuthCertRegRequest;
 import org.niis.xroad.common.managementrequest.model.ClientDisableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientRegRequest;
+import org.niis.xroad.common.managementrequest.model.ClientRenameRequest;
+import org.niis.xroad.common.managementrequest.model.MaintenanceModeDisableRequest;
+import org.niis.xroad.common.managementrequest.model.MaintenanceModeEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ManagementRequest;
 import org.niis.xroad.common.managementrequest.model.OwnerChangeRequest;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -70,18 +74,20 @@ import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
 public final class ManagementRequestSender {
     private final GlobalConfProvider globalConfProvider;
     private final ManagementRequestClient managementRequestClient;
+    private final SignerRpcClient signerRpcClient;
     private final String securityServerUrl;
     private final ManagementRequestBuilder builder;
 
     /**
      * Creates the sender for the user ID, client and receiver used in
      * constructing the X-Road message.
-     *
      * @param sender   the sender
      * @param receiver the receiver
      */
-    public ManagementRequestSender(GlobalConfProvider globalConfProvider, ClientId sender, ClientId receiver, String securityServerUrl) {
+    public ManagementRequestSender(GlobalConfProvider globalConfProvider, SignerRpcClient signerRpcClient, ClientId sender,
+                                   ClientId receiver, String securityServerUrl) {
         this.globalConfProvider = globalConfProvider;
+        this.signerRpcClient = signerRpcClient;
         this.builder = new ManagementRequestBuilder(sender, receiver);
         this.securityServerUrl = securityServerUrl;
         this.managementRequestClient = new ManagementRequestClient(globalConfProvider);
@@ -101,7 +107,6 @@ public final class ManagementRequestSender {
      * Sends the authentication certificate registration request directly
      * to the central server. The request is sent as a signed mime multipart
      * message.
-     *
      * @param securityServer the security server id whose certificate is to be
      *                       registered
      * @param address        the IP address of the security server
@@ -112,7 +117,7 @@ public final class ManagementRequestSender {
     public Integer sendAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
             throws Exception {
         try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
-            return send(sender, getCentralServiceURI(), new AuthCertRegRequest(authCert, securityServer.getOwner(),
+            return send(sender, getCentralServiceURI(), new AuthCertRegRequest(signerRpcClient, authCert, securityServer.getOwner(),
                     builder.buildAuthCertRegRequest(securityServer, address, authCert)));
         }
     }
@@ -120,7 +125,6 @@ public final class ManagementRequestSender {
     /**
      * Sends the authentication certificate deletion request as a normal
      * X-Road message.
-     *
      * @param securityServer the security server id whose certificate is to be
      *                       deleted
      * @param authCert       the authentication certificate bytes
@@ -135,7 +139,6 @@ public final class ManagementRequestSender {
 
     /**
      * Sends the SecurityServer address change request as a normal X-Road message.
-     *
      * @param securityServer the security server id
      * @param address        the new address
      * @return request ID in the central server database
@@ -144,28 +147,56 @@ public final class ManagementRequestSender {
     public Integer sendAddressChangeRequest(SecurityServerId.Conf securityServer, String address) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new AddressChangeRequest(securityServer.getOwner(), builder.buildAddressChangeRequest(securityServer, address)));
+                    new AddressChangeRequest(signerRpcClient, securityServer.getOwner(),
+                            builder.buildAddressChangeRequest(securityServer, address)));
+        }
+    }
+
+    /**
+     * Sends enable maintenance mode request as a normal X-Road message.
+     * @param securityServer the security server id
+     * @param message        the optional message
+     * @return request ID in the central server database
+     * @throws Exception if an error occurs
+     */
+    public Integer sendMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message) throws Exception {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new MaintenanceModeEnableRequest(signerRpcClient, securityServer.getOwner(),
+                            builder.buildMaintenanceModeEnableRequest(securityServer, message)));
+        }
+    }
+
+    /**
+     * Sends disable maintenance mode request as a normal X-Road message.
+     * @param securityServer the security server id
+     * @return request ID in the central server database
+     * @throws Exception if an error occurs
+     */
+    public Integer sendMaintenanceModeDisableRequest(SecurityServerId.Conf securityServer) throws Exception {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new MaintenanceModeDisableRequest(signerRpcClient, securityServer.getOwner(),
+                            builder.buildMaintenanceModeDisableRequest(securityServer)));
         }
     }
 
     /**
      * Sends a client registration request as a normal X-Road message.
-     *
      * @param securityServer the security server id
      * @param clientId       the client id that will be registered
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
-    public Integer sendClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) throws Exception {
+    public Integer sendClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId, String clientName) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new ClientRegRequest(clientId, builder.buildClientRegRequest(securityServer, clientId)));
+                    new ClientRegRequest(signerRpcClient, clientId, builder.buildClientRegRequest(securityServer, clientId, clientName)));
         }
     }
 
     /**
      * Sends a client deletion request as a normal X-Road message.
-     *
      * @param securityServer the security server id
      * @param clientId       the client id that will be registered
      * @return request ID in the central server database
@@ -179,7 +210,6 @@ public final class ManagementRequestSender {
 
     /**
      * Sends an owner change request as a normal X-Road message.
-     *
      * @param securityServer the security server id
      * @param clientId       the client id of the new security server owner
      * @return request ID in the central server database
@@ -189,7 +219,7 @@ public final class ManagementRequestSender {
                                           ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new OwnerChangeRequest(clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
+                    new OwnerChangeRequest(signerRpcClient, clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
         }
     }
 
@@ -197,7 +227,7 @@ public final class ManagementRequestSender {
                                             ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new ClientDisableRequest(clientId, builder.buildClientDisableRequest(securityServer, clientId)));
+                    new ClientDisableRequest(signerRpcClient, clientId, builder.buildClientDisableRequest(securityServer, clientId)));
         }
     }
 
@@ -205,7 +235,16 @@ public final class ManagementRequestSender {
                                            ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new ClientEnableRequest(clientId, builder.buildClientEnableRequest(securityServer, clientId)));
+                    new ClientEnableRequest(signerRpcClient, clientId, builder.buildClientEnableRequest(securityServer, clientId)));
+        }
+    }
+
+    public Integer sendClientRenameRequest(SecurityServerId.Conf securityServer,
+                                           ClientId.Conf clientId, String subsystemName) throws Exception {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new ClientRenameRequest(signerRpcClient, clientId,
+                            builder.buildClientRenameRequest(securityServer, clientId, subsystemName)));
         }
     }
 

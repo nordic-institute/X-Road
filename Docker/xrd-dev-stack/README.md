@@ -19,6 +19,8 @@ The Compose environment also contains a Hurl container and scripts to initialize
 * **SS1** One consumer Security Server, which has the `DEV:COM:4321:TestClient` subsystem registered to it.
 * **ISSOAP** The `example-adapter` container. More information regarding it is available in
   [its own repository](https://github.com/nordic-institute/xrd4j/tree/develop/example-adapter).
+* **ISOPENAPI** The `example-restapi` container. More information regarding it is available in
+  [its own repository](https://github.com/nordic-institute/x-road-example-restapi).
 * **ISREST** Wiremock container with a simple predefined rest endpoint.
 * **TESTCA** CA authority for dev env.
 
@@ -32,8 +34,9 @@ lost.
 
 ### Prerequisites:
 
-* Add `XROAD_HOME` environment variable to your shell profile. This variable should point to the root directory of the X-Road
-  source code. This is needed for the scripts to find the correct files.
+* Optionally set the `XROAD_HOME` environment variable in your shell profile. This variable should point to the root
+  directory of the X-Road source code. This is needed for the scripts to find the correct files if the shell script is
+  executed from a different working directory.
 
 ### Creating the environment
 
@@ -68,6 +71,7 @@ This script will do the following:
   * Type `./local-dev-prepare.sh -h` for complete list of usage arguments. For example:
     * `--skip-gradle-build` to skip gradle build
     * `--skip-tests` to skip tests
+    * `--parallel` to run gradle build in parallel
     * `-r release-name` for a specific release only
 * Build Ubuntu Jammy packages in Docker
 * Copy the resulting Debian packages to their correct locations

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,8 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Before;
@@ -39,7 +38,11 @@ import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.model.Client;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -49,7 +52,7 @@ import static org.mockito.Mockito.when;
  * test classes inheriting this will shared the same mock bean configuration, and have a common
  * Spring Application Context therefore drastically reducing the execution time of the tests.
  *
- * Do not introduce new @MockBean or @SpyBean dependencies in the inherited classes. Doing so will mean Spring
+ * Do not introduce new @MockitoBean or @SpyBean dependencies in the inherited classes. Doing so will mean Spring
  * creates a different applicationContext for the inherited class and other AbstractServiceTestContext classes,
  * and the performance improvement from using this base class is not realized. If possible, define all mocks and spies
  * in this base class instead.
@@ -65,48 +68,48 @@ import static org.mockito.Mockito.when;
  * be a common solution, and all inheriting tests that use the same dependency need to be updated
  * when such change is made.
  *
- * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
+ * Mocks the usual untestable facades (such as SignerRpcClient) via {@link AbstractFacadeMockingTestContext}
  */
 public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTestContext {
-    @MockBean
+    @MockitoBean
     BackupRepository backupRepository;
-    @MockBean
+    @MockitoBean
     ClientRepository clientRepository;
-    @MockBean
+    @MockitoBean
     ServerConfRepository serverConfRepository;
-    @MockBean
+    @MockitoBean
     AnchorRepository anchorRepository;
-    @MockBean
+    @MockitoBean
     IdentifierRepository identifierRepository;
-    @MockBean
+    @MockitoBean
     LocalGroupRepository localGroupRepository;
-    @MockBean
-    ServerConfType serverConfType;
-    @MockBean
+    @MockitoBean
+    ServerConfEntity serverConfEntity;
+    @MockitoBean
     TokenPinValidator tokenPinValidator;
 
-    static final ClientId.Conf COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
+    static final ClientIdEntity COMMON_OWNER_ID = ClientIdEntity.createMember("FI", "GOV", "M1");
 
     @Before
     public void setupCommonMocks() {
-        ServerConfType sct = new ServerConfType();
-        ClientType owner = new ClientType();
+        ServerConfEntity sct = new ServerConfEntity();
+        ClientEntity owner = new ClientEntity();
         owner.setIdentifier(COMMON_OWNER_ID);
         sct.setOwner(owner);
         sct.setServerCode("SS1");
         when(serverConfRepository.getServerConf()).thenReturn(sct);
         when(globalConfProvider.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
-            ClientId.Conf identifier = (ClientId.Conf) args[0];
+            ClientId identifier = (ClientId) args[0];
             return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
                     : TestUtils.NAME_FOR + "test-member";
         });
-        when(clientRepository.getClient(any(ClientId.Conf.class))).thenAnswer((Answer<ClientType>) invocation -> {
+        when(clientRepository.getClient(any(ClientId.Conf.class))).thenAnswer((Answer<Client>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId.Conf identifier = (ClientId.Conf) args[0];
-            ClientType clientType = new ClientType();
-            clientType.setIdentifier(identifier);
-            return clientType;
+            Client client = new Client();
+            client.setIdentifier(identifier);
+            return client;
         });
     }
 }

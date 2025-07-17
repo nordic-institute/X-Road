@@ -37,6 +37,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.testcontainers.containers.BindMode;
@@ -59,6 +60,9 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
     private static final String NETWORK_ALIAS = "testca";
 
     private final ContainerProperties testableContainerProperties;
+
+    @Value("${test-automation.containers.context-containers.ca-server.relative-a2c-path}")
+    private final String a2cPath;
 
     public static class TestCaContainer extends GenericContainer<TestCaContainer> {
         public TestCaContainer(@NonNull Future<String> image) {
@@ -90,13 +94,13 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
     @SneakyThrows
     private ImageFromDockerfile imageDefinition() {
         log.info("Initializing test-ca..");
-        String xroadHome = System.getenv("XROAD_HOME");
-        var a2cPath = Paths.get(xroadHome + "/development/acme2certifier");
+
+        var a2cAbsolutePath = Paths.get(".", this.a2cPath);
 
         var reuse = testableContainerProperties.getContextContainers().get(getConfigurationKey()).getReuseBetweenRuns();
         return new ReusableImageFromDockerfile("xrd-test-ca", !reuse, reuse)
                 .withFileFromClasspath(".", "META-INF/ca-container/")
-                .withFileFromPath("files/acme2certifier", a2cPath);
+                .withFileFromPath("files/acme2certifier", a2cAbsolutePath);
     }
 
     @NotNull

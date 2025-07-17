@@ -9,7 +9,7 @@ Feature: 0550 - SS: Client REST with base path services
     And Clients tab is selected
 
   Scenario: Client service with Base Path is configured
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When Rest service dialog is opened and base path is set to "invalid-url" and service code "asd"
     Then Form shows an error "URL is not valid"
@@ -27,25 +27,25 @@ Feature: 0550 - SS: Client REST with base path services
     And  Service "REST (http://example2.com)" is present in the list
 
   Scenario: Client Rest service with duplicate service code is not added
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When Rest service dialog is opened and base path is set to "http://example2.com" and service code "s3c1"
     Then Dialog data is saved and error message "Service code already exists" is shown
 
   Scenario: Client Rest service with duplicate url is not added
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When Rest service dialog is opened and base path is set to "http://example.com" and service code "s3c10"
     Then Dialog data is saved and error message "URL already exists" is shown
 
   Scenario: Updating service url to duplicate url is not allowed
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When Service "REST (http://example2.com)" is updated with url "http://example.com" and service code "s3c1x"
     Then Rest service details are saved and error message "URL already exists" is shown
 
   Scenario: Client service is edited
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     And Service "REST (http://example.com)" is expanded
     And Service with code "s3c1" is opened
@@ -57,7 +57,7 @@ Feature: 0550 - SS: Client REST with base path services
     Then Rest service parameters are saved and error message "URL already exists" is shown
 
   Scenario: Client service has access rights added to it
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     And Service "REST (http://example.com/v2)" is expanded
     And Service with code "s3c1" is opened
@@ -68,7 +68,7 @@ Feature: 0550 - SS: Client REST with base path services
     And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is present
 
   Scenario: Client service has one access rights removed
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     And Service "REST (http://example.com/v2)" is expanded
     And Service with code "s3c1" is opened
@@ -78,7 +78,7 @@ Feature: 0550 - SS: Client REST with base path services
     And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is present
 
   Scenario: Client service has all access rights removed
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     And Service "REST (http://example.com/v2)" is expanded
     And Service with code "s3c1" is opened
@@ -93,7 +93,7 @@ Feature: 0550 - SS: Client REST with base path services
     And Service Access Rights table member with id "DEV:COM:1234:TestService" is missing
 
   Scenario: Client service has new endpoint added to it
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     And Service "REST (http://example.com/v2)" is expanded
     And Service with code "s3c1" is opened
@@ -104,7 +104,7 @@ Feature: 0550 - SS: Client REST with base path services
     Then Service endpoint with HTTP request method "PATCH" and path "/new/path/" is present in the list
 
   Scenario: Manually added endpoints can be edited
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     And Service "REST (http://example.com/v2)" is expanded
     And Service with code "s3c1" is opened
@@ -114,7 +114,7 @@ Feature: 0550 - SS: Client REST with base path services
     And Service endpoint with HTTP request method "PATCH" and path "/new/path/" is missing in the list
 
   Scenario: Manually added endpoints can be deleted
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     And Service "REST (http://example.com/v2)" is expanded
     And Service with code "s3c1" is opened
@@ -123,7 +123,7 @@ Feature: 0550 - SS: Client REST with base path services
     And Service endpoint with HTTP request method "PATCH" and path "/new/path/edited" is missing in the list
 
   Scenario: Newly added one service is disabled and the second is enabled with one added endpoint
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When Service "REST (http://example.com/v2)" is enabled
     Then Service "REST (http://example.com/v2)" is disabled with notice "just disabled."
@@ -135,7 +135,7 @@ Feature: 0550 - SS: Client REST with base path services
     Then Service endpoint with HTTP request method "GET" and path "/*/pets/*" is present in the list
 
   Scenario: Newly added service is edited
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When Service "REST (http://example.com/v2)" is updated with url "http://example.com/v3" and service code "s5c200"
     Then Rest service details are saved and success message "Description saved" is shown
@@ -143,7 +143,7 @@ Feature: 0550 - SS: Client REST with base path services
     And Service "REST (http://example.com/v3)" is present in the list
 
   Scenario: Newly added service is deleted
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When Service "REST (http://example.com/v3)" is deleted
     Then Service "REST (http://example.com/v3)" is missing in the list

@@ -182,7 +182,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { defineRule, PublicPathState, useForm } from 'vee-validate';
 import { useServices } from '@/store/modules/services';
-import { i18n } from '@/plugins/i18n';
+import { i18n } from '@niis/shared-ui';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
 
 defineRule(
@@ -381,7 +381,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 @use '@/assets/detail-views';
 
 .main-wrap {

@@ -95,7 +95,9 @@ const [description, descriptionAttrs] = defineField('description', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { loading, showSuccess, showOrTranslateErrors, t } = useBasicForm(setFieldError, {
+const { loading, showSuccess, showOrTranslateErrors, t } = useBasicForm(
+  setFieldError,
+  {
     code: 'memberClassDto.code',
     description: 'memberClassDescriptionDto.description',
   },

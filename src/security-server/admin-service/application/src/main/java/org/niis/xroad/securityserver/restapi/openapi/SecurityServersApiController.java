@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,16 +26,16 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.SecurityServerConverter;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServer;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerDto;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.springframework.http.HttpStatus;
@@ -65,28 +66,28 @@ public class SecurityServersApiController implements SecurityServersApi {
 
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
-    public ResponseEntity<SecurityServer> getSecurityServer(String encodedSecurityServerId) {
+    public ResponseEntity<SecurityServerDto> getSecurityServer(String encodedSecurityServerId) {
         SecurityServerId securityServerId = securityServerIdConverter.convertId(encodedSecurityServerId);
         if (!globalConfService.securityServerExists(securityServerId)) {
-            throw new ResourceNotFoundException("Security server " + encodedSecurityServerId + " not found");
+            throw new SecurityServerNotFoundException(securityServerId);
         }
-        SecurityServer securityServer = securityServerConverter.convert(securityServerId);
-        return new ResponseEntity<>(securityServer, HttpStatus.OK);
+        SecurityServerDto securityServerDto = securityServerConverter.convert(securityServerId);
+        return new ResponseEntity<>(securityServerDto, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
-    public ResponseEntity<Set<SecurityServer>> getSecurityServers(Boolean currentServer) {
+    public ResponseEntity<Set<SecurityServerDto>> getSecurityServers(Boolean currentServer) {
         boolean shouldGetOnlyCurrentServer = Boolean.TRUE.equals(currentServer);
-        Set<SecurityServer> securityServers = null;
+        Set<SecurityServerDto> securityServerDtos = null;
         if (shouldGetOnlyCurrentServer) {
             SecurityServerId currentSecurityServerId = serverConfService.getSecurityServerId();
-            SecurityServer currentSecurityServer = securityServerConverter.convert(currentSecurityServerId);
-            securityServers = Collections.singleton(currentSecurityServer);
+            SecurityServerDto currentSecurityServerDto = securityServerConverter.convert(currentSecurityServerId);
+            securityServerDtos = Collections.singleton(currentSecurityServerDto);
         } else {
             List<SecurityServerId.Conf> securityServerIds = globalConfProvider.getSecurityServers();
-            securityServers = securityServerConverter.convert(securityServerIds);
+            securityServerDtos = securityServerConverter.convert(securityServerIds);
         }
-        return new ResponseEntity<>(securityServers, HttpStatus.OK);
+        return new ResponseEntity<>(securityServerDtos, HttpStatus.OK);
     }
 }

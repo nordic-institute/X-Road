@@ -27,21 +27,23 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -83,33 +85,26 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String tokenId = (String) args[0];
-            if (WRONG_SOFTTOKEN_PIN_TOKEN_ID.equals(tokenId)) {
-                throw new SignerException(ErrorCodes.X_PIN_INCORRECT);
-            } else if (WRONG_HSM_PIN_TOKEN_ID.equals(tokenId)) {
-                throw new SignerException(ErrorCodes.X_LOGIN_FAILED, SignerException.CKR_PIN_INCORRECT_MESSAGE);
-            } else if (UNKNOWN_LOGIN_FAIL_TOKEN_ID.equals(tokenId)) {
-                throw new SignerException(ErrorCodes.X_LOGIN_FAILED, "dont know what happened");
-            } else if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
-                throw new SignerException(ErrorCodes.X_TOKEN_NOT_FOUND, "did not find it");
-            } else if (UNRECOGNIZED_FAULT_CODE_TOKEN_ID.equals(tokenId)) {
-                throw new SignerException("foo", "bar");
-            } else {
-                log.debug("activate successful");
+            switch (tokenId) {
+                case WRONG_SOFTTOKEN_PIN_TOKEN_ID -> throw new SignerException(ErrorCodes.X_PIN_INCORRECT);
+                case UNKNOWN_LOGIN_FAIL_TOKEN_ID -> throw new SignerException(ErrorCodes.X_LOGIN_FAILED, "dont know what happened");
+                case TOKEN_NOT_FOUND_TOKEN_ID -> throw new SignerException(ErrorCodes.X_TOKEN_NOT_FOUND, "did not find it");
+                case UNRECOGNIZED_FAULT_CODE_TOKEN_ID -> throw new SignerException("foo", "bar");
+                case null, default -> log.debug("activate successful");
             }
             return null;
-        }).when(signerProxyFacade).activateToken(any(), any());
+        }).when(signerRpcClient).activateToken(any(), any());
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String oldPin = new String((char[]) args[1]);
-            String newPin = new String((char[]) args[2]);
             if (WRONG_SOFTTOKEN_PIN_TOKEN_ID.equals(oldPin)) {
                 throw new SignerException(ErrorCodes.X_PIN_INCORRECT);
             } else {
                 log.debug("activate successful");
             }
             return null;
-        }).when(signerProxyFacade).updateSoftwareTokenPin(any(), any(), any());
+        }).when(signerRpcClient).updateTokenPin(any(), any(), any());
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -122,7 +117,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
                 log.debug("deactivate successful");
             }
             return null;
-        }).when(signerProxyFacade).deactivateToken(any());
+        }).when(signerRpcClient).deactivateToken(any());
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -132,7 +127,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             } else {
                 return tokenInfo;
             }
-        }).when(signerProxyFacade).getToken(any());
+        }).when(signerRpcClient).getToken(any());
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -144,7 +139,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
                     .build();
 
             return null;
-        }).when(signerProxyFacade).setTokenFriendlyName(any(), any());
+        }).when(signerRpcClient).setTokenFriendlyName(any(), any());
         mockPossibleActionsRuleEngineAllowAll();
     }
 
@@ -153,17 +148,8 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         char[] password = "foobar".toCharArray();
         tokenService.activateToken("token-should-be-activatable", password);
 
-        try {
-            tokenService.activateToken(WRONG_SOFTTOKEN_PIN_TOKEN_ID, password);
-            fail("should have thrown exception");
-        } catch (TokenService.PinIncorrectException expected) {
-        }
-
-        try {
-            tokenService.activateToken(WRONG_HSM_PIN_TOKEN_ID, password);
-            fail("should have thrown exception");
-        } catch (TokenService.PinIncorrectException expected) {
-        }
+        assertThrows(TokenService.PinIncorrectException.class, () -> tokenService.activateToken(WRONG_SOFTTOKEN_PIN_TOKEN_ID, password));
+        assertThrows(TokenService.PinIncorrectException.class, () -> tokenService.activateToken(WRONG_HSM_PIN_TOKEN_ID, password));
 
         try {
             tokenService.activateToken(UNKNOWN_LOGIN_FAIL_TOKEN_ID, password);
@@ -173,11 +159,9 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             assertEquals("dont know what happened", expected.getFaultString());
         }
 
-        try {
-            tokenService.activateToken(TOKEN_NOT_FOUND_TOKEN_ID, password);
-            fail("should have thrown exception");
-        } catch (TokenNotFoundException expected) {
-        }
+        assertThrows(TokenNotFoundException.class, () ->
+                tokenService.activateToken(TOKEN_NOT_FOUND_TOKEN_ID, password)
+        );
 
         try {
             tokenService.activateToken(UNRECOGNIZED_FAULT_CODE_TOKEN_ID, password);
@@ -193,11 +177,9 @@ public class TokenServiceTest extends AbstractServiceTestContext {
     public void deactivateToken() throws Exception {
         tokenService.deactivateToken("token-should-be-deactivatable");
 
-        try {
-            tokenService.deactivateToken(TOKEN_NOT_FOUND_TOKEN_ID);
-            fail("should have thrown exception");
-        } catch (TokenNotFoundException expected) {
-        }
+        assertThrows(TokenNotFoundException.class, () ->
+                tokenService.deactivateToken(TOKEN_NOT_FOUND_TOKEN_ID)
+        );
 
         try {
             tokenService.deactivateToken(UNRECOGNIZED_FAULT_CODE_TOKEN_ID);
@@ -211,10 +193,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
     @Test
     public void getToken() throws Exception {
 
-        try {
-            tokenService.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
-        } catch (TokenNotFoundException expected) {
-        }
+        assertThrows(TokenNotFoundException.class, () -> tokenService.getToken(TOKEN_NOT_FOUND_TOKEN_ID));
 
         TokenInfo token = tokenService.getToken(GOOD_TOKEN_ID);
         assertEquals(GOOD_TOKEN_NAME, token.getFriendlyName());
@@ -228,14 +207,25 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         assertEquals("friendly-neighborhood", token.getFriendlyName());
     }
 
+    @Test
+    public void deleteToken() throws Exception {
+        TokenInfo token = tokenService.getToken(GOOD_TOKEN_ID);
+        assertEquals(GOOD_TOKEN_NAME, token.getFriendlyName());
+        tokenService.deleteToken(GOOD_TOKEN_ID);
+    }
+
     @Test(expected = TokenNotFoundException.class)
     public void updateNonExistingTokenFriendlyName() throws Exception {
         tokenService.updateTokenFriendlyName(TOKEN_NOT_FOUND_TOKEN_ID, "new-name");
     }
 
+    public void deleteNonExistingToken() {
+        assertThrows(NotFoundException.class, () -> tokenService.deleteToken(TOKEN_NOT_FOUND_TOKEN_ID));
+    }
+
     @Test
-    public void getUnknownSoftwareTokenInitStatus() throws Exception {
-        when(signerProxyFacade.getTokens()).thenThrow(new SignerException("Error"));
+    public void getUnknownSoftwareTokenInitStatus() {
+        when(signerRpcClient.getTokens()).thenThrow(new SignerException("Error"));
         TokenInitStatusInfo tokenStatus = tokenService.getSoftwareTokenInitStatus();
         assertEquals(TokenInitStatusInfo.UNKNOWN, tokenStatus);
     }
@@ -273,7 +263,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
 
     private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngineParam) {
         // override instead of mocking for better performance
-        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngineParam, auditDataHelper,
+        tokenService = new TokenService(signerRpcClient, possibleActionsRuleEngineParam, auditDataHelper,
                 tokenPinValidator);
     }
 

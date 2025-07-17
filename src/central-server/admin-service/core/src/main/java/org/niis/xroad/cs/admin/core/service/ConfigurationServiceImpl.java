@@ -34,8 +34,8 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
@@ -64,10 +64,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.crypto.Digests.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
@@ -77,6 +73,10 @@ import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNA
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_PART_FILE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.UNKNOWN_CONFIGURATION_PART;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CONTENT_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.PART_FILE_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SOURCE_TYPE;
@@ -193,7 +193,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return switch (contentIdentifier) {
             case CONTENT_ID_PRIVATE_PARAMETERS -> FILE_NAME_PRIVATE_PARAMETERS;
             case CONTENT_ID_SHARED_PARAMETERS -> FILE_NAME_SHARED_PARAMETERS;
-            default -> throw new ServiceException(UNKNOWN_CONFIGURATION_PART);
+            default -> throw new InternalServerErrorException(UNKNOWN_CONFIGURATION_PART.build());
         };
     }
 
@@ -202,7 +202,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return distributedFileRepository
                 .findByContentIdAndVersion(contentIdentifier, version, getHaNodeName(contentIdentifier))
                 .map(distributedFileMapper::toFile)
-                .orElseThrow(() -> new NotFoundException(CONFIGURATION_PART_FILE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CONFIGURATION_PART_FILE_NOT_FOUND.build()));
     }
 
     @Override
@@ -249,7 +249,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         auditDataHelper.put(UPLOAD_FILE_NAME, originalFileName);
 
         if (sourceType == EXTERNAL && !contentIdentifier.equals(CONTENT_ID_SHARED_PARAMETERS)) {
-            throw new ServiceException(UNKNOWN_CONFIGURATION_PART);
+            throw new InternalServerErrorException(UNKNOWN_CONFIGURATION_PART.build());
         }
 
         auditDataHelper.put(UPLOAD_FILE_HASH_ALGORITHM, DEFAULT_UPLOAD_FILE_HASH_ALGORITHM);

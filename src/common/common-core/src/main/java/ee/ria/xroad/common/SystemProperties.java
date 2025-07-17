@@ -58,7 +58,7 @@ public final class SystemProperties {
             PREFIX + "common.configuration-path";
 
     /** Current version number of the global configuration **/
-    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 4;
+    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 5;
 
     /** Minimum supported version number of the global configuration **/
     public static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
@@ -128,6 +128,8 @@ public final class SystemProperties {
     /** property name of whether the service should listen on port 80 for incoming acme challenge requests */
     public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED =
             PREFIX + "proxy-ui-api.acme-challenge-port-enabled";
+    public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED_ENV =
+            propertyNameToEnvVariable(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED);
 
     public static final String PROXY_UI_API_ACME_RENEWAL_ACTIVE =
             PREFIX + "proxy-ui-api.acme-renewal-active";
@@ -144,6 +146,12 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
             PREFIX + "proxy-ui-api.acme-keypair-renewal-time-before-expiration-date";
 
+    public static final String PROXY_UI_API_AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE =
+            PREFIX + "proxy-ui-api.automatic-activate-auth-certificate";
+
+    public static final String PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE =
+            PREFIX + "proxy-ui-api.automatic-activate-acme-sign-certificate";
+
     /** property name of whether notification e-mail is sent in case of automatic certificate renewal job success */
     public static final String PROXY_UI_API_ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED =
             PREFIX + "proxy-ui-api.acme-renewal-success-notification-enabled";
@@ -155,6 +163,14 @@ public final class SystemProperties {
     /** property name of whether notification e-mail is sent when authentication certificate has been registered in global conf */
     public static final String PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED =
             PREFIX + "proxy-ui-api.auth-cert-registered-notification-enabled";
+
+    /** property name of whether notification e-mail is sent when certificate has been automatically activated */
+    public static final String PROXY_UI_API_CERT_AUTO_ACTIVATION_NOTIFICATION_ENABLED =
+            PREFIX + "proxy-ui-api.cert-auto-activation-notification-enabled";
+
+    /** property name of whether notification e-mail is sent when certificate automatic activation has failed  */
+    public static final String PROXY_UI_API_CERT_AUTO_ACTIVATION_FAILURE_NOTIFICATION_ENABLED =
+            PREFIX + "proxy-ui-api.cert-auto-activation-failure-notification-enabled";
 
     /** Locale for mail notifications, which determines the language of the notifications.
      * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
@@ -351,11 +367,11 @@ public final class SystemProperties {
 
     private static final String HSM_HEALTH_CHECK_ENABLED = PROXY_PREFIX + "hsm-health-check-enabled";
     private static final String PROXY_MESSAGE_SIGN_DIGEST_NAME = PROXY_PREFIX + "message-sign-digest-name";
+    public static final String PROXY_MEMORY_USAGE_THRESHOLD = PROXY_PREFIX + "memory-usage-threshold";
 
     private static final String FALSE = Boolean.FALSE.toString();
     private static final String TRUE = Boolean.TRUE.toString();
     private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = FALSE;
-    private static final String DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED = FALSE;
     private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = FALSE;
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
 
@@ -794,9 +810,6 @@ public final class SystemProperties {
     // --------------------------------------------------------------------- //
 
     // For testing purpose only!
-    public static final boolean USE_DUMMY_SIGNATURE = false;
-
-    // For testing purpose only!
     public static final boolean IGNORE_SIGNATURE_VERIFICATION = false;
 
     // --------------------------------------------------------------------- //
@@ -894,8 +907,9 @@ public final class SystemProperties {
     }
 
     public static boolean isAcmeChallengePortEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED,
-                DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED));
+        String isAcmeChallengePortEnabled = Optional.ofNullable(System.getenv().get(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED_ENV))
+                .orElse(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, FALSE));
+        return TRUE.equalsIgnoreCase(isAcmeChallengePortEnabled);
     }
 
     /**
@@ -1235,6 +1249,20 @@ public final class SystemProperties {
     }
 
     /**
+     * @return whether to automatically activate new authentication certificates after they have been registered on the Central Server.
+     */
+    public static boolean getAutomaticActivateAuthCertificate() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE, FALSE));
+    }
+
+    /**
+     * @return whether to automatically activate new signing certificates after they are ordered with ACME.
+     */
+    public static boolean getAutomaticActivateAcmeSignCertificate() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE, FALSE));
+    }
+
+    /**
      * @return true if ACME automatic renewal job success notifications are enabled
      */
     public static boolean getAcmeRenewalSuccessNotificationEnabled() {
@@ -1253,6 +1281,20 @@ public final class SystemProperties {
      */
     public static boolean getAuthCertRegisteredNotificationEnabled() {
         return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED, TRUE));
+    }
+
+    /**
+     * @return true if certificate automatic activation success notifications are enabled
+     */
+    public static boolean getAcmeCertAutomaticallyActivatedNotificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_CERT_AUTO_ACTIVATION_NOTIFICATION_ENABLED, TRUE));
+    }
+
+    /**
+     * @return true if certificate automatic activation failure notifications are enabled
+     */
+    public static boolean getAcmeCertAutomaticActivationFailureNotificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_CERT_AUTO_ACTIVATION_FAILURE_NOTIFICATION_ENABLED, TRUE));
     }
 
     /**
@@ -1930,6 +1972,12 @@ public final class SystemProperties {
         return Optional.ofNullable(System.getProperty(PROXY_MESSAGE_SIGN_DIGEST_NAME))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
+    }
+
+    public static Long getProxyMemoryUsageThreshold() {
+        return Optional.ofNullable(System.getProperty(PROXY_MEMORY_USAGE_THRESHOLD))
+                .map(Long::parseLong)
+                .orElse(null);
     }
 
     /**

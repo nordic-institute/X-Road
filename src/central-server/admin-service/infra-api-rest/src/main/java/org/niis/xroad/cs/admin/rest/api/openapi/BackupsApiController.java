@@ -26,9 +26,9 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.cs.admin.rest.api.converter.BackupDtoConverter;
 import org.niis.xroad.cs.openapi.BackupsApi;
@@ -58,7 +58,6 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_INTERRUPTED;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_INTERRUPTED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @Controller
@@ -83,9 +82,9 @@ public class BackupsApiController implements BackupsApi {
                     .status(CREATED)
                     .body(backupDtoConverter.toTarget(backupFile));
         } catch (InterruptedException e) {
-            throw new ServiceException(BACKUP_GENERATION_INTERRUPTED);
+            throw new InternalServerErrorException(BACKUP_GENERATION_INTERRUPTED.build());
         } catch (NotFoundException e) {
-            throw new ServiceException(e);
+            throw new InternalServerErrorException(e);
         }
     }
 
@@ -122,9 +121,9 @@ public class BackupsApiController implements BackupsApi {
         try {
             configurationRestorationService.restoreFromBackup(filename);
         } catch (NotFoundException e) {
-            throw new ServiceException(e);
+            throw new InternalServerErrorException(e);
         } catch (InterruptedException e) {
-            throw new ServiceException(BACKUP_RESTORATION_INTERRUPTED);
+            throw new InternalServerErrorException(e, BACKUP_RESTORATION_INTERRUPTED.build());
         }
         BackupRestorationStatusDto restorationStatus = new BackupRestorationStatusDto().hsmTokensLoggedOut(hasHardwareTokens);
         return new ResponseEntity<>(restorationStatus, HttpStatus.OK);
@@ -141,9 +140,9 @@ public class BackupsApiController implements BackupsApi {
                     file.getOriginalFilename(), fileBytes);
             return ResponseEntity.status(CREATED).body(backupDtoConverter.toTarget(backupFile));
         } catch (UnhandledWarningsException e) {
-            throw new ValidationFailureException(e);
+            throw new BadRequestException(e);
         } catch (IOException e) {
-            throw new ServiceException(INTERNAL_ERROR, e);
+            throw new InternalServerErrorException(e);
         }
     }
 }

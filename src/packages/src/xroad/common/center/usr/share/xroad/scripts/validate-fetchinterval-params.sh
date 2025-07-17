@@ -3,7 +3,7 @@
 FETCHINTERVAL_PARAMS_FILE=$1
 # classpath needs signer.jar for the dependencies
 CLASSPATH=/usr/share/xroad/jlib/signer.jar
-VALIDATOR_CLASS=ee.ria.xroad.common.conf.globalconfextension.OcspFetchIntervalStdinValidator
+VALIDATOR_CLASS=org.niis.xroad.globalconf.extension.OcspFetchIntervalStdinValidator
 
 test -e $FETCHINTERVAL_PARAMS_FILE
 FILE_EXISTS=$?

@@ -37,7 +37,7 @@
       class="elevation-0 data-table xrd-table"
       item-key="code"
       :loader-height="2"
-      :no-data-text="$t('noData.noMemberClasses')"
+      no-data-text="noData.noMemberClasses"
     >
       <template #top>
         <data-table-toolbar title-key="systemSettings.memberClasses">
@@ -171,49 +171,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
-
-.server-code {
-  color: colors.$Purple100;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.align-fix {
-  align-items: center;
-}
-
-.card-corner-button {
-  display: flex;
-}
-
-.card-top {
-  padding-top: 15px;
-  margin-bottom: 10px;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.title-cell {
-  max-width: 40%;
-  width: 40%;
-}
-
-.action-cell {
-  text-align: right;
-  width: 100px;
-}
-
-.card-main-title {
-  color: colors.$Black100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
-  margin-left: 16px;
-}
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
 </style>

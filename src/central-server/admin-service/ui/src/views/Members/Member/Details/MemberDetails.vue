@@ -28,7 +28,7 @@
   Member details view
 -->
 <template>
-  <main id="member-details-content">
+  <main id="member-details-content" class="mt-5">
     <!-- Member Details -->
     <div id="member-details">
       <info-card
@@ -55,16 +55,22 @@
 
     <!-- Owned Servers -->
     <div id="owned-servers">
-      <ServersList title-key="members.member.details.ownedServers" :loading="loadingOwnedServers"
-                   :servers="ownedServers"
-                   data-test="owned-servers-table" />
+      <ServersList
+        title-key="members.member.details.ownedServers"
+        :loading="loadingOwnedServers"
+        :servers="ownedServers"
+        data-test="owned-servers-table"
+      />
     </div>
 
     <!-- Used Servers -->
     <div id="used-servers">
-      <ServersList title-key="members.member.details.usedServers" :loading="loadingUsedServers"
-                   :servers="usedServers"
-                   data-test="used-servers-table">
+      <ServersList
+        title-key="members.member.details.usedServers"
+        :loading="loadingUsedServers"
+        :servers="usedServers"
+        data-test="used-servers-table"
+      >
         <template #actions="{ server }">
           <xrd-button
             v-if="allowUnregisterMember"
@@ -84,9 +90,11 @@
         :server="unregisterFromServer"
         data-test="unregister-member"
         @cancel="unregisterFromServer = null"
-        @unregister="unregisterFromServer = null; loadClientServers()"
+        @unregister="
+          unregisterFromServer = null;
+          loadClientServers();
+        "
       />
-
     </div>
 
     <!-- Global Groups -->
@@ -110,7 +118,7 @@
             <date-time :value="item.added_to_group" />
           </template>
           <template #bottom>
-            <custom-data-table-footer />
+            <XrdDataTableFooter />
           </template>
         </v-data-table>
       </searchable-titled-view>
@@ -157,7 +165,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Colors, Permissions } from '@/global';
+import { Permissions } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
@@ -168,11 +176,10 @@ import MemberDeleteDialog from './DeleteMemberDialog.vue';
 import EditMemberNameDialog from './EditMemberNameDialog.vue';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 import DateTime from '@/components/ui/DateTime.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { XrdDataTableFooter, Colors } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 import ServersList from './ServersList.vue';
 import UnregisterMemberDialog from './UnregisterMemberDialog.vue';
-
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -185,7 +192,7 @@ export default defineComponent({
   name: 'MemberDetails',
   components: {
     ServersList,
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     DateTime,
     SearchableTitledView,
     EditMemberNameDialog,
@@ -249,6 +256,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
 
     this.loadingGroups = true;
@@ -265,10 +273,11 @@ export default defineComponent({
       });
 
     this.loadingOwnedServers = true;
-    this.memberStore.getMemberOwnedServers(this.memberid)
-      .then((resp) => this.ownedServers = resp)
+    this.memberStore
+      .getMemberOwnedServers(this.memberid)
+      .then((resp) => (this.ownedServers = resp))
       .catch((error) => this.showError(error))
-      .finally(() => this.loadingOwnedServers = false);
+      .finally(() => (this.loadingOwnedServers = false));
 
     this.loadClientServers();
   },
@@ -285,40 +294,19 @@ export default defineComponent({
     },
     loadClientServers() {
       this.loadingUsedServers = true;
-      this.memberStore.getUsedServers(this.memberid)
-        .then((resp) => this.usedServers = resp)
+      this.memberStore
+        .getUsedServers(this.memberid)
+        .then((resp) => (this.usedServers = resp))
         .catch((error) => this.showError(error))
-        .finally(() => this.loadingUsedServers = false);
+        .finally(() => (this.loadingUsedServers = false));
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
-
-.server-code {
-  color: colors.$Purple100;
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-}
-
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: colors.$Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.card-corner-button {
-  display: flex;
-  justify-content: flex-end;
-}
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 .delete-action {
   margin-top: 34px;
@@ -333,14 +321,12 @@ export default defineComponent({
 }
 
 #member-details {
-  margin-top: 24px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: flex-end;
 
-  margin-bottom: 24px;
-
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .details-card {
     width: 100%;
 
@@ -351,12 +337,6 @@ export default defineComponent({
     &:last-child {
       margin-left: 30px;
     }
-  }
-}
-
-#global-groups-table {
-  tbody tr td:last-child {
-    width: 50px;
   }
 }
 </style>

@@ -35,7 +35,7 @@
     <main
       v-if="securityServer && !loading"
       data-test="security-server-details-view"
-      class="mt-8"
+      class="mt-5"
     >
       <!-- Security Server Details -->
       <div id="security-server-details">
@@ -76,10 +76,22 @@
       />
 
       <info-card
+        class="mb-6"
+        data-test="security-server-maintenance-mode"
+        :title-text="$t('securityServers.maintenanceMode')"
+      >
+        <xrd-icon-base v-if="securityServer.in_maintenance_mode" class="mr-4">
+          <xrd-icon-checked :color="colors.Success100" />
+        </xrd-icon-base>
+        {{ securityServer.maintenance_mode_message }}
+      </info-card>
+
+      <info-card
         :title-text="$t('securityServers.registered')"
         data-test="security-server-registered"
-        ><date-time :value="securityServer.created_at" with-seconds
-      /></info-card>
+      >
+        <date-time :value="securityServer.created_at" with-seconds />
+      </info-card>
 
       <div class="delete-action" @click="showDeleteServerDialog = true">
         <div>
@@ -121,7 +133,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
-import { Colors, Permissions, RouteName } from '@/global';
+import { Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { SecurityServer } from '@/openapi-types';
@@ -130,6 +142,7 @@ import EditSecurityServerAddressDialog from '@/views/SecurityServers/SecuritySer
 import DeleteSecurityServerDialog from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerDialog.vue';
 import { useNotifications } from '@/store/modules/notifications';
 import DateTime from '@/components/ui/DateTime.vue';
+import { XrdIconChecked, Colors } from '@niis/shared-ui';
 
 /**
  * Component for a Security server details view
@@ -137,6 +150,7 @@ import DateTime from '@/components/ui/DateTime.vue';
 export default defineComponent({
   name: 'SecurityServerDetails',
   components: {
+    XrdIconChecked,
     DateTime,
     DeleteSecurityServerDialog,
     EditSecurityServerAddressDialog,
@@ -184,8 +198,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 #security-server-details {
   margin-top: 24px;
@@ -196,6 +210,7 @@ export default defineComponent({
 
   margin-bottom: 24px;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .details-card {
     width: 100%;
 
@@ -206,12 +221,6 @@ export default defineComponent({
     &:last-child {
       margin-left: 30px;
     }
-  }
-}
-
-#global-groups-table {
-  tbody tr td:last-child {
-    width: 50px;
   }
 }
 

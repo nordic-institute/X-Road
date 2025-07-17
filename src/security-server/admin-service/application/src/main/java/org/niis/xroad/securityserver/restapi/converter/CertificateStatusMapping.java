@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,44 +26,43 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.CertificateStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.CertificateStatusDto;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between {@link CertificateStatus} in api (enum) and model {@link CertificateInfo} status string
+ * Mapping between {@link CertificateStatusDto} in api (enum) and model {@link CertificateInfo} status string
  */
 @Getter
 @RequiredArgsConstructor
 public enum CertificateStatusMapping {
-    SAVED(CertificateInfo.STATUS_SAVED, CertificateStatus.SAVED),
-    REGISTRATION_IN_PROGRESS(CertificateInfo.STATUS_REGINPROG, CertificateStatus.REGISTRATION_IN_PROGRESS),
-    REGISTERED(CertificateInfo.STATUS_REGISTERED, CertificateStatus.REGISTERED),
-    DELETION_IN_PROGRESS(CertificateInfo.STATUS_DELINPROG, CertificateStatus.DELETION_IN_PROGRESS),
-    GLOBAL_ERROR(CertificateInfo.STATUS_GLOBALERR, CertificateStatus.GLOBAL_ERROR);
+    SAVED(CertificateInfo.STATUS_SAVED, CertificateStatusDto.SAVED),
+    REGISTRATION_IN_PROGRESS(CertificateInfo.STATUS_REGINPROG, CertificateStatusDto.REGISTRATION_IN_PROGRESS),
+    REGISTERED(CertificateInfo.STATUS_REGISTERED, CertificateStatusDto.REGISTERED),
+    DELETION_IN_PROGRESS(CertificateInfo.STATUS_DELINPROG, CertificateStatusDto.DELETION_IN_PROGRESS),
+    GLOBAL_ERROR(CertificateInfo.STATUS_GLOBALERR, CertificateStatusDto.GLOBAL_ERROR);
 
     private final String status;
-    private final CertificateStatus certificateStatus;
+    private final CertificateStatusDto certificateStatusDto;
 
     /**
      * Return matching status, if any
-     * @param certificateStatus
+     * @param certificateStatusDto
      */
-    public static Optional<String> map(CertificateStatus certificateStatus) {
-        return getFor(certificateStatus).map(CertificateStatusMapping::getStatus);
+    public static Optional<String> map(CertificateStatusDto certificateStatusDto) {
+        return getFor(certificateStatusDto).map(CertificateStatusMapping::getStatus);
     }
 
     /**
-     * Return matching {@link CertificateStatus}, if any
+     * Return matching {@link CertificateStatusDto}, if any
      * @param status
      */
-    public static Optional<CertificateStatus> map(String status) {
-        return getFor(status).map(CertificateStatusMapping::getCertificateStatus);
+    public static Optional<CertificateStatusDto> map(String status) {
+        return getFor(status).map(CertificateStatusMapping::getCertificateStatusDto);
     }
 
     /**
@@ -77,11 +77,11 @@ public enum CertificateStatusMapping {
 
     /**
      * Return matching {@link CertificateStatusMapping}, if any
-     * @param certificateStatus
+     * @param certificateStatusDto
      */
-    public static Optional<CertificateStatusMapping> getFor(CertificateStatus certificateStatus) {
+    public static Optional<CertificateStatusMapping> getFor(CertificateStatusDto certificateStatusDto) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.certificateStatus.equals(certificateStatus))
+                .filter(mapping -> mapping.certificateStatusDto.equals(certificateStatusDto))
                 .findFirst();
     }
 

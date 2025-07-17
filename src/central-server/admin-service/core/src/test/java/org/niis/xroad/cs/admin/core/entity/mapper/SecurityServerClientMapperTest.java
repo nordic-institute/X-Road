@@ -42,12 +42,14 @@ import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static ee.ria.xroad.common.identifier.XRoadObjectType.SERVER;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.SUBSYSTEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ActiveProfiles("test")
 @SpringBootTest(classes = {SecurityServerClientMapperImpl.class, ClientIdMapperImpl.class, ServerClientMapperImpl.class})
 class SecurityServerClientMapperTest {
 

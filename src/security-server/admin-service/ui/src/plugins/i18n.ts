@@ -23,20 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { prepareI18n } from '@niis/shared-ui';
-import enMessages from '@/locales/en.json';
 
-export const availableLanguages = ['en', 'es', 'et'];
+import { createLanguageHelper as _createLanguageHelper } from '@niis/shared-ui';
 
-export const { i18n, languageHelper } = prepareI18n(enMessages, loadMessages);
+const availableLanguages = ['en', 'es', 'et', 'ru', 'tk', 'pt-BR']; // Added support for the pt-BR (Brazilian Portuguese) language
+
+export async function createLanguageHelper() {
+  return _createLanguageHelper(availableLanguages, loadMessages);
+}
 
 // Fetches all language-specific messages for the given language
 async function loadMessages(language: string) {
   try {
-    let module = await import(`@/locales/${language}.json`);
+    const module = await import(`@/locales/${language}.json`);
     return await module.default;
   } catch (e) {
-    console.error("Failed to load translations for: " + language);
+    // eslint-disable-next-line no-console
+    console.warn('Failed to load translations for: ' + language);
     return {};
   }
 }

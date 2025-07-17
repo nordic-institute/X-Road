@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { Subsystem, SubsystemAdd } from '@/openapi-types';
+import { Subsystem, SubsystemAdd, SubsystemName } from '@/openapi-types';
 import { defineStore } from 'pinia';
 
 export const useSubsystem = defineStore('subsystem', {
@@ -40,6 +40,9 @@ export const useSubsystem = defineStore('subsystem', {
         .catch((error) => {
           throw error;
         });
+    },
+    renameSubsystem(subsystemId: string, newName: SubsystemName) {
+      return axios.patch(`/subsystems/${subsystemId}`, newName);
     },
     deleteById(subsystemId: string) {
       return axios.delete(`/subsystems/${subsystemId}`);

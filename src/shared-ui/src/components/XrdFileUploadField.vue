@@ -25,21 +25,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdFileUpload
-    v-slot="{ upload, filedrop,errors }"
-    :accepts="accept"
-    @file-changed="onFileSelected"
-  >
+  <XrdFileUpload v-slot="{ upload, filedrop }" :accepts="accept" @file-changed="onFileSelected">
     <v-text-field
       variant="outlined"
       append-inner-icon="icon-Upload"
       :model-value="fileTitle"
       :label="$t(labelKey)"
       :autofocus="autofocus"
-
       @click="upload"
       @keyup.space="upload"
-      @drop.stop.prevent="filedrop" @dragenter.prevent @dragover.prevent
+      @drop.stop.prevent="filedrop"
+      @dragenter.prevent
+      @dragover.prevent
     />
   </XrdFileUpload>
 </template>

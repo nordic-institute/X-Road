@@ -26,21 +26,21 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -84,10 +85,10 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
         tokens.put(token0.getId(), token0);
         tokens.put(token1.getId(), token1);
         // mock related signer proxy methods
-        when(signerProxyFacade.getTokens()).thenAnswer(i -> new ArrayList<>(tokens.values()));
-        when(signerProxyFacade.getToken(any())).thenAnswer(
+        when(signerRpcClient.getTokens()).thenAnswer(i -> new ArrayList<>(tokens.values()));
+        when(signerRpcClient.getToken(any())).thenAnswer(
                 invocation -> tokens.get(invocation.getArguments()[0]));
-        when(signerProxyFacade.generateKey(any(), any(), any())).thenAnswer(invocation -> {
+        when(signerRpcClient.generateKey(any(), any(), any())).thenAnswer(invocation -> {
             String tokenId = (String) invocation.getArguments()[0];
             String label = (String) invocation.getArguments()[1];
             // new keys start with usage = null
@@ -103,11 +104,11 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
             tokens.put(tokenId, newTokenInfo);
             return keyInfo;
         });
-        when(signerProxyFacade.getTokenForKeyId(any())).thenAnswer(invocation -> {
+        when(signerRpcClient.getTokenForKeyId(any())).thenAnswer(invocation -> {
             String keyId = (String) invocation.getArguments()[0];
             return getTokenWithKey(tokens, keyId);
         });
-        when(signerProxyFacade.generateCertRequest(any(), any(), any(), any(), any(), any(), any()))
+        when(signerRpcClient.generateCertRequest(any(), any(), any(), any(), any(), any(), any()))
                 .thenAnswer(invocation -> {
                     // keyInfo is immutable, so we need some work to replace KeyInfo with
                     // one that has correct usage
@@ -130,7 +131,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                             .build());
                     tokens.put(newToken.getId(), newToken);
 
-                    return new SignerProxy.GeneratedCertRequestInfo(null, null, null, null, null);
+                    return new SignerRpcClient.GeneratedCertRequestInfo(null, null, null, null, null);
                 });
         when(globalConfProvider.getApprovedCAs(any())).thenReturn(Arrays.asList(
                 new ApprovedCAInfo(MOCK_CA,
@@ -173,9 +174,9 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                         ClientId.Conf.create("FI", "GOV", "M1"),
                         KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
                         CertificateRequestFormat.PEM, false);
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .generateKey(SOFTWARE_TOKEN_ID, "keylabel", KeyAlgorithm.RSA);
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .generateCertRequest(any(), any(), any(), any(), any(), any(), any());
     }
 
@@ -216,21 +217,20 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
     @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
     public void csrGenerateFailureRollsBackKeyCreate() throws Exception {
         HashMap<String, String> dnParams = createCsrDnParams();
-        try {
-            ClientId.Conf notFoundClient = ClientId.Conf.create("not-found", "GOV", "M1");
-            keyAndCertificateRequestService
-                    .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
-                            notFoundClient,
-                            KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
-                            CertificateRequestFormat.PEM, false);
-            fail("should throw exception");
-        } catch (ClientNotFoundException expected) {
-            // our mock sets key id = label
-            verify(signerProxyFacade, times(1))
-                    .deleteKey("keylabel", true);
-            verify(signerProxyFacade, times(1))
-                    .deleteKey("keylabel", false);
-        }
+
+        ClientId.Conf notFoundClient = ClientId.Conf.create("not-found", "GOV", "M1");
+
+        assertThrows(ClientNotFoundException.class,
+                () -> keyAndCertificateRequestService.addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel", notFoundClient,
+                        KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
+                        CertificateRequestFormat.PEM, false));
+
+        // our mock sets key id = label
+        verify(signerRpcClient, times(1))
+                .deleteKey("keylabel", true);
+        verify(signerRpcClient, times(1))
+                .deleteKey("keylabel", false);
+
     }
 
     @Test
@@ -238,7 +238,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
     public void failedRollback() throws Exception {
         HashMap<String, String> dnParams = createCsrDnParams();
         doThrow(new SignerException(ErrorCodes.X_KEY_NOT_FOUND))
-                .when(signerProxyFacade).getTokenForKeyId(any());
+                .when(signerRpcClient).getTokenForKeyId(any());
         try {
             ClientId.Conf notFoundClient = ClientId.Conf.create("not-found", "GOV", "M1");
             keyAndCertificateRequestService

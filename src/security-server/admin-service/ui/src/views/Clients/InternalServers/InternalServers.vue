@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card v-if="showConnectionType" variant="flat" class="xrd-card">
-    <v-card-title class="text-h6 mb-3 mt-4">
+  <v-card v-if="showConnectionType" variant="flat" class="xrd-card mb-5">
+    <v-card-title class="text-h6 mb-3 pa-4">
       {{ $t('internalServers.connectionType') }}
     </v-card-title>
     <v-select
@@ -42,7 +42,7 @@
     </v-card-text>
   </v-card>
 
-  <v-card variant="flat" class="xrd-card pb-4">
+  <v-card variant="flat" class="xrd-card mb-5">
     <v-card-title class="tls-title-wrap pa-4">
       <h1 class="text-h6 mb-3">{{ $t('internalServers.tlsTitle') }}</h1>
       <xrd-file-upload
@@ -53,7 +53,7 @@
       >
         <xrd-button outlined color="primary" @click="upload">
           <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add/>
+            <xrd-icon-add />
           </xrd-icon-base>
           {{ $t('action.add') }}
         </xrd-button>
@@ -70,21 +70,21 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
-      :no-data-text="$t('noData.noCertificates')"
+      no-data-text="noData.noCertificates"
       data-test="tls-certificate-table"
     >
-
       <template #[`item.hash`]="{ item }">
         <td class="pr-12 pt-2">
-          <i class="icon-Certificate icon"/>
+          <i class="icon-Certificate icon" />
         </td>
         <td>
           <span
             v-if="canViewTlsCertDetails"
             class="certificate-link"
-            @click="openCertificate(item)"
             data-test="tls-certificate-link"
-          >{{ $filters.colonize(item.hash) }}</span>
+            @click="openCertificate(item)"
+            >{{ $filters.colonize(item.hash) }}</span
+          >
           <span v-else>{{ $filters.colonize(item.hash) }}</span>
         </td>
       </template>
@@ -106,11 +106,10 @@
           {{ $filters.formatDate(item.not_after) }}
         </span>
       </template>
-
     </v-data-table>
   </v-card>
 
-  <v-card v-if="canViewSSCert" variant="flat" class="xrd-card pb-4">
+  <v-card v-if="canViewSSCert" variant="flat" class="xrd-card mb-5">
     <v-card-title class="text-h6 mb-3 pa-4">{{
       $t('internalServers.ssCertTitle')
     }}</v-card-title>
@@ -163,11 +162,11 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
-import {FileUploadResult, XrdIconAdd, XrdIconFolder} from '@niis/shared-ui';
-import {DataTableHeader} from "@/ui-types";
+import { FileUploadResult, XrdIconAdd } from '@niis/shared-ui';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
-  components: {XrdIconFolder, XrdIconAdd },
+  components: { XrdIconAdd },
   props: {
     id: {
       type: String,
@@ -341,8 +340,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .select-connection {
   max-width: 240px;
@@ -355,7 +354,6 @@ export default defineComponent({
 }
 
 .xrd-card {
-  margin-top: 40px;
 }
 
 .conn-info {

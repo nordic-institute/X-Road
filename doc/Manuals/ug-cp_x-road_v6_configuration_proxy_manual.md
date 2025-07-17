@@ -1,6 +1,6 @@
 # X-Road: Configuration Proxy Manual
 
-Version: 2.13  
+Version: 2.16  
 Doc. ID: UG-CP
 
 ## Version History
@@ -27,7 +27,9 @@ Doc. ID: UG-CP
 | 30.10.2023 | 2.11    | Configuring TLS Certificates                                                                                                                                                                  | Madis Loitmaa        |
 | 25.04.2024 | 2.12    | Updated for Ubuntu 24.04                                                                                                                                                                      | Madis Loitmaa        |
 | 21.10.2024 | 2.13    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA keys and addtinal arguments for `confproxy-add-signing-key` to enable EC key creation        | Ovidijus Narkevicius |
-
+| 10.03.2025 | 2.14    | Remove Ubuntu 20.04 from supported platforms and other minor updates                                                                                                                          | Petteri Kivimäki     |
+| 20.05.2025 | 2.15    | Minor updates                                                                                                                                                                                 | Eneli Reimets        |
+| 30.06.2025 | 2.16    | Update the method of adding X-Road apt repository                                                                                                                                             | Mikk-Erik Bachmann   |
 
 ## Table of Contents
 
@@ -70,7 +72,7 @@ Doc. ID: UG-CP
 
 ### 1.1 Target Audience
 
-The intended audience of this Manual are X-Road system administrators responsible for installing and using X-Road configuration proxy software.
+The intended audience of this Manual are X-Road system administrators responsible for installing and using the X-Road Configuration Proxy software.
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, and the X-Road working principles.
 
@@ -84,18 +86,18 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.4 X-Road Configuration Proxy
 
-The configuration proxy acts as an intermediary between X-Road servers in the matters of global configuration exchange.
+The Configuration Proxy acts as an intermediary between X-Road servers in the matters of global configuration exchange.
 
-The goal of the configuration proxy is to download an X-Road global configuration from a provided configuration source and further distribute it in a secure way. Optionally, the downloaded global configuration may be modified to suit the requirements of the configuration proxy owner.
+The goal of the Configuration Proxy is to download an X-Road global configuration from a provided configuration source and further distribute it in a secure way. Optionally, the downloaded global configuration may be modified to suit the requirements of the Configuration Proxy owner.
 
-The configuration proxy can be configured to mediate several global configurations (from multiple configuration sources).
+The Configuration Proxy can be configured to mediate several global configurations (from multiple configuration sources).
 
 
 ## 2 Installation
 
 ### 2.1 Supported Platforms
 
-The configuration proxy runs on the Ubuntu Server 20.04 LTS, 22.04 or 24.04 LTS operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
+The Configuration Proxy runs on the Ubuntu Server 22.04 and 24.04 LTS operating system on a 64-bit platform. The Configuration Proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -106,14 +108,14 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 **Caution:** Data necessary for the functioning of the operating system is not included.
 
-| Ref |                                                     | Explanation                                                                                                                                                                                                                                                                                |
-|-----|-----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.0 | Ubuntu 20.04, 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements.                                                                                                                                                                                                                                                                      |
-| 1.1 | https://artifactory.niis.org/xroad-release-deb      | X-Road package repository.                                                                                                                                                                                                                                                                 |
-| 1.2 | https://artifactory.niis.org/api/gpg/key/public     | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
-| 1.3 | TCP 80                                              | Global configuration distribution.<br>Ports for inbound connections (from the external network to the configuration proxy).                                                                                                                                                                |
-| 1.4 | TCP 80                                              | Global configuration download.<br>Ports for outbound connections (from the configuration proxy to the external network).                                                                                                                                                                   |
-| 1.5 |                                                     | Configuration proxy’s public IP address, NAT address.                                                                                                                                                                                                                                      |
+| Ref |                                                                       | Explanation                                                                                                                                                                                                                                                                                |
+|-----|-----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0 | Ubuntu 22.04 or 24.04 (x86-64), 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements.                                                                                                                                                                                                                                                                      |
+| 1.1 | https://artifactory.niis.org/xroad-release-deb                        | X-Road package repository.                                                                                                                                                                                                                                                                 |
+| 1.2 | https://artifactory.niis.org/api/gpg/key/public                       | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
+| 1.3 | TCP 80, 443                                                           | Global configuration distribution.<br>Ports for inbound connections (from the external network to the Configuration Proxy).                                                                                                                                                                |
+| 1.4 | TCP 80, 443                                                           | Global configuration download.<br>Ports for outbound connections (from the Configuration Proxy to the external network).                                                                                                                                                                   |
+| 1.5 |                                                                       | Configuration proxy’s public IP address, NAT address.                                                                                                                                                                                                                                      |
 
 
 ### 2.3 Requirements for the Configuration Proxy
@@ -129,8 +131,8 @@ Minimum recommended hardware parameters:
 Requirements to software and settings:
 
 * an installed and configured supported version of Ubuntu x86-64 operating system;
-* if the configuration proxy is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server must be allowed (reference data: 1.3; 1.4). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) is outside the scope of this guide;
-* if the configuration proxy has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.5).
+* if the Configuration Proxy is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server must be allowed (reference data: 1.3; 1.4). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) is outside the scope of this guide;
+* if the Configuration Proxy has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.5).
 
 
 ### 2.4 Preparing OS
@@ -142,26 +144,26 @@ Requirements to software and settings:
 
 ### 2.5 Installation
 
-To install the X-Road configuration proxy software, follow these steps.
+To install the X-Road Configuration Proxy software, follow these steps.
 
 1.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-        curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+        curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo tee /usr/share/keyrings/niis-artifactory-keyring.gpg > /dev/null
 
 2.  Add X-Road package repository (**reference data: 1.1**)
 
-        sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+        echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main" | sudo tee /etc/apt/sources.list.d/xroad.list > /dev/null
 
-3.  Issue the following commands to install the configuration proxy packages:
+3.  Issue the following commands to install the Configuration Proxy packages:
 
             sudo apt-get update
             sudo apt-get install xroad-confproxy
 
 ### 2.6 Post-Installation Checks
 
-The installation is successful if the 'xroad-signer' service is started, the 'xroad-confproxy' cron job is added, and the configuration proxy management utilities are available from the command line.
+The installation is successful if the 'xroad-signer' service is started, the 'xroad-confproxy' cron job is added, and the Configuration Proxy management utilities are available from the command line.
 
-* Check from the command line that the 'xroad-signer' service is in the running state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the configuration proxy since it operates in one-shot mode.
+* Check from the command line that the 'xroad-signer' service is in the running state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the Configuration Proxy since it operates in one-shot mode.
   
   ```bash
   systemctl list-units "xroad*" 
@@ -237,7 +239,7 @@ Depending on the hardware token there may be a need for more additional configur
 
 The installation process creates a self-signed TLS certificate for serving configurations over HTTPS. However, self-signed certificates are not recommended for production use, and should be substituted with certificate issued by a trusted Certificate Authority (CA).
 
-To configure the configuration proxy to use a certificate issued by a trusted CA, replace the existing certificate files (`confproxy.crt`) and its associated private key (`confproxy.key`), located in the `/etc/xroad/ssl/` directory.
+To configure the Configuration Proxy to use a certificate issued by a trusted CA, replace the existing certificate files (`confproxy.crt`) and its associated private key (`confproxy.key`), located in the `/etc/xroad/ssl/` directory.
 
 Reload the nginx service for the certificate change to take effect.
 
@@ -247,14 +249,14 @@ systemctl reload nginx
 
 ## 3 Configuration
 
-To start using the configuration proxy, a proxy instance configuration needs to be created. Several proxy instances can be configured to mediate multiple global configurations.
+To start using the Configuration Proxy, a proxy instance configuration needs to be created. Several proxy instances can be configured to mediate multiple global configurations.
 
 
 ### 3.1 Prerequisites
 
 #### 3.1.1 Security Token Activation
 
-The configuration proxy uses a security token for storing the key that is used for signing the distributed configuration. The token can be stored either on hard disk (software token) or in hardware. Before the configuration proxy can be used, the security token must be initialized and activated.
+The Configuration Proxy uses a security token for storing the key that is used for signing the distributed configuration. The token can be stored either on hard disk (software token) or in hardware. Before the Configuration Proxy can be used, the security token must be initialized and activated.
 
 Initialization of a software token can be done as follows:
 
@@ -295,23 +297,23 @@ Modify '/etc/xroad/conf.d/local.ini' to contain the following:
 ; address=<public or NAT address>
 ```
 
-The configuration of this parameter is necessary for generating a correctly formatted configuration anchor file that will need to be uploaded to central servers that should receive configurations mediated by this proxy, this process is described in detail in [3.4](#34-proxy-instance-configuration). There are several more system parameters that can be configured in '/etc/xroad/conf.d/local.ini' under the 'configuration-proxy' section, their descriptions and default values can be seen from the following table:
+The configuration of this parameter is necessary for generating a correctly formatted configuration anchor file that will need to be uploaded to Central Servers that should receive configurations mediated by this proxy, this process is described in detail in [3.4](#34-proxy-instance-configuration). There are several more system parameters that can be configured in '/etc/xroad/conf.d/local.ini' under the 'configuration-proxy' section, their descriptions and default values can be seen from the following table:
 
 | Parameter                     | Default value                                               | Explanation                                                                                                                                                                                                                                   |
 |-------------------------------|-------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | address                       | 0.0.0.0                                                     | The public IP or NAT address (reference data: 1.5) which can be accessed for downloading the distributed global configurations.                                                                                                               |
 | configuration-path            | /etc/xroad/confproxy/                                       | Absolute path to the directory containing the configuration files of the proxy instance. The format of the configuration directory is described in [3.2.1](#321-configuration-structure-of-the-instances).                                    |
-| generated-conf-path           | /var/lib/xroad/public                                       | Absolute path to the public web server directory where the global configuration files generated by this configuration proxy, should be placed for distribution.                                                                               |
-| signature-digest-algorithm-id | SHA-512                                                     | ID of the digest algorithm the configuration proxy should use when computing global configuration signatures. The possible values are: *SHA-256*, *SHA-384*, *SHA-512*.                                                                       |
-| hash-algorithm-uri            | http://www.w3.org/2001/04/xmlenc#sha512                     | URI identifying the algorithm the configuration proxy should use to calculate hash values for the global configuration file. The possible values are:<br>http://www.w3.org/2001/04/xmlenc#sha256,<br>http://www.w3.org/2001/04/xmlenc#sha512. |
+| generated-conf-path           | /var/lib/xroad/public                                       | Absolute path to the public web server directory where the global configuration files generated by this Configuration Proxy, should be placed for distribution.                                                                               |
+| signature-digest-algorithm-id | SHA-512                                                     | ID of the digest algorithm the Configuration Proxy should use when computing global configuration signatures. The possible values are: *SHA-256*, *SHA-384*, *SHA-512*.                                                                       |
+| hash-algorithm-uri            | http://www.w3.org/2001/04/xmlenc#sha512                     | URI identifying the algorithm the Configuration Proxy should use to calculate hash values for the global configuration file. The possible values are:<br>http://www.w3.org/2001/04/xmlenc#sha256,<br>http://www.w3.org/2001/04/xmlenc#sha512. |
 | download-script               | /usr/share/xroad/scripts/download_instance_configuration.sh | Absolute path to the location of the script that initializes the global configuration download procedure.                                                                                                                                     |
 
-The configuration proxy is periodically started by a cron job. It reads the properties described above, from the configuration file before executing each proxy instance configured in 'configuration-path', generating new global configuration directories using algorithms as defined by 'signature-digest-algorithm-id' and 'hash-algorithm-uri'. The generated directories are subsequently placed in 'generated-conf-path' for distribution.
+The Configuration Proxy is periodically started by a cron job. It reads the properties described above, from the configuration file before executing each proxy instance configured in 'configuration-path', generating new global configuration directories using algorithms as defined by 'signature-digest-algorithm-id' and 'hash-algorithm-uri'. The generated directories are subsequently placed in 'generated-conf-path' for distribution.
 
 
 #### 3.2.1 Configuration Structure of the Instances
 
-Each global configuration that is to be mediated by the configuration proxy requires a proxy instance to be configured. The configuration of a proxy instance consists of a set of configuration files, including
+Each global configuration that is to be mediated by the Configuration Proxy requires a proxy instance to be configured. The configuration of a proxy instance consists of a set of configuration files, including
 
 * a trusted anchor .xml of the configuration being mediated;
 * a configuration .ini file;
@@ -338,13 +340,13 @@ The configuration of proxy instances is described in [3.4](#34-proxy-instance-co
 
 ### 3.3 Proxy Instance Reference Data
 
-**ATTENTION:** The names in the angle brackets&lt;&gt; are chosen by the X-Road configuration proxy administrator.
+**ATTENTION:** The names in the angle brackets&lt;&gt; are chosen by the X-Road Configuration Proxy administrator.
 
 | Ref |                           | Explanation                                                                                                                               |
 |-----|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
 | 2.1 | &lt;PROXY_NAME&gt;        | Name of the proxy instance being configured                                                                                               |
 | 2.2 | &lt;SECURITY_TOKEN_ID&gt; | ID of a security token (as defined by prerequisites [3.1](#31-prerequisites))                                                             |
-| 2.3 | &lt;ANCHOR_FILENAME&gt;   | Filename of the generated anchor .xml file that the configuration proxy clients will need to use for downloading the global configuration |
+| 2.3 | &lt;ANCHOR_FILENAME&gt;   | Filename of the generated anchor .xml file that the Configuration Proxy clients will need to use for downloading the global configuration |
 
 
 ### 3.4 Proxy Instance Configuration
@@ -380,7 +382,7 @@ active-signing-key-id:
 confproxy-add-signing-key -p <PROXY_NAME> -t <SECURITY_TOKEN_ID> [-a <RSA|EC>]
 ```
 
-Note: **-a** parameter is optional and can be used to specify the key algorithm(since version 7.6.0). If not provided, the default value is RSA. If keys are using EC algorithm and consumers of the configuration proxy are using older X-Road instances then they will fail to verify global configuration signatures.
+Note: **-a** parameter is optional and can be used to specify the key algorithm(since version 7.6.0). If not provided, the default value is RSA. If keys are using EC algorithm and consumers of the Configuration Proxy are using older X-Road instances then they will fail to verify global configuration signatures.
 
 If no active signing key is configured for the proxy instance, then the new key should be set as the currently active key (example output follows):
 
@@ -406,9 +408,9 @@ No active key configured, setting new key as active in conf.ini
 Saved self-signed certificate to cert_QWERTY123.pem
 ```
 
-3) To define which global configuration this proxy instance should distribute, download the source anchor from an X-Road central server and save it as '/etc/xroad/confproxy/&lt;PROXY_NAME&gt;/anchor.xml'.
+3) To define which global configuration this proxy instance should distribute, download the source anchor from an X-Road Central Server and save it as '/etc/xroad/confproxy/&lt;PROXY_NAME&gt;/anchor.xml'.
 
-4) The configuration proxy should be operational at this point. The periodic cron job (once a minute) should download the global configuration defined in '/etc/xroad/confproxy/&lt;PROXY_NAME&gt;/anchor.xml' and generate a directory for distribution. The output of 'confproxy-view-conf -p &lt;PROXY_NAME&gt;' should be similar to the following:
+4) The Configuration Proxy should be operational at this point. The periodic cron job (once a minute) should download the global configuration defined in '/etc/xroad/confproxy/&lt;PROXY_NAME&gt;/anchor.xml' and generate a directory for distribution. The output of 'confproxy-view-conf -p &lt;PROXY_NAME&gt;' should be similar to the following:
 
 ```bash
 confproxy-view-conf -p PROXY
@@ -475,7 +477,7 @@ The default value is 10 minutes (600 seconds). The property is set by modifying 
 validity-interval-seconds=600
 ```
 
-Notice that when the configuration proxy instance is started, it deletes all the previously generated global configuration directories that are older than the currently configured validity interval for that instance.
+Notice that when the Configuration Proxy instance is started, it deletes all the previously generated global configuration directories that are older than the currently configured validity interval for that instance.
 
 
 #### 3.5.2 Deleting the Signing Keys

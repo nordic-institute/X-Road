@@ -14,7 +14,7 @@
     "**/*.config.js",
     "**/*.cer",
     "**/*.log",
-    "**/*.gradle",
+    "**/*.gradle.kts",
     "**/*.yaml*",
     "**/.*",
     "src/openapi-types/",
@@ -22,7 +22,8 @@
     "**/openapi-types.ts",
     "scripts/dtsgen-wrapper.js",
     "tests/e2e/testdata/",
-    "build/"
+    "build/",
+    ".settings/**"
   ],
   "license": "../../../LICENSE.txt",
   "licenseFormats": {

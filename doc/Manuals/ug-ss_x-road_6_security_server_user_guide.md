@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.90  
+Version: 2.101  
 Doc. ID: UG-SS
 
 ---
@@ -119,6 +119,17 @@ Doc. ID: UG-SS
 | 08.11.2024 | 2.88    | Add EC key support for authentication and signing certificates                                                                                                                                                                                                                                                                                                                                              | Ovidijus Narkevicius |
 | 17.12.2024 | 2.89    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
 | 07.01.2025 | 2.90    | Updated references                                                                                                                                                                                                                                                                                                                                                                                          | Petteri Kivimäki     |
+| 15.01.2025 | 2.91    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                               | Petteri Kivimäki     |
+| 29.01.2025 | 2.92    | Inactive token deletion                                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets        |
+| 07.02.2025 | 2.93    | Automatic certificate activation related updates                                                                                                                                                                                                                                                                                                                                                            | Mikk-Erik Bachmann   |
+| 13.02.2025 | 2.94    | Add helper script for allocating memory for proxy service                                                                                                                                                                                                                                                                                                                                                   | Ovidijus Narkevicius |
+| 09.03.2025 | 2.95    | Naming/Renaming subsystems                                                                                                                                                                                                                                                                                                                                                                                  | Ovidijus Narkevicius |
+| 26.03.2025 | 2.96    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                          | Pauline Dimmek       |
+| 30.04.2025 | 2.97    | Added ACME challenge port environment variable toggle                                                                                                                                                                                                                                                                                                                                                       | Mikk-Erik Bachmann   |
+| 20.05.2025 | 2.98    | Enabling/Disabling maintenance mode for the security server                                                                                                                                                                                                                                                                                                                                                 | Ovidijus Narkevicius |
+| 18.06.2025 | 2.99    | ACME-related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
+| 01.07.2025 | 2.100   | Added configuration notes for external op-monitor's gRPC                                                                                                                                                                                                                                                                                                                                                    | Mikk-Erik Bachmann   |
+| 07.07.2025 | 2.101   | Added chapter on Security Server Traffic visualisation                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa        |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -145,10 +156,12 @@ Doc. ID: UG-SS
     - [3.1.1 Generating a Signing Key and Certificate Signing Request](#311-generating-a-signing-key-and-certificate-signing-request)
     - [3.1.2 Importing a Certificate from the Local File System](#312-importing-a-certificate-from-the-local-file-system)
     - [3.1.3 Importing a Certificate from a Security Token](#313-importing-a-certificate-from-a-security-token)
+    - [3.1.4 Ordering the Signing Certificate from the ACME server](#314-ordering-the-signing-certificate-from-the-acme-server)
   - [3.2 Configuring the Authentication Key and Certificate for the Security Server](#32-configuring-the-authentication-key-and-certificate-for-the-security-server)
     - [3.2.1 Generating an Authentication Key](#321-generating-an-authentication-key)
     - [3.2.2 Generating a Certificate Signing Request for an Authentication Key](#322-generating-a-certificate-signing-request-for-an-authentication-key)
     - [3.2.3 Importing an Authentication Certificate from the Local File System](#323-importing-an-authentication-certificate-from-the-local-file-system)
+    - [3.2.4 Ordering the Authentication Certificate from the ACME server](#324-ordering-the-authentication-certificate-from-the-acme-server)
   - [3.3 Registering the Security Server in the X-Road Governing Authority](#33-registering-the-security-server-in-the-x-road-governing-authority)
     - [3.3.1 Registering an Authentication Certificate](#331-registering-an-authentication-certificate)
   - [3.4 Changing the Security Server Owner](#34-changing-the-security-server-owner)
@@ -165,6 +178,7 @@ Doc. ID: UG-SS
   - [4.7 Disabling Client Subsystem Temporarily](#47-disabling-client-subsystem-temporarily)
     - [4.7.1 Disabling Client Subsystem](#471-disabling-client-subsystem)
     - [4.7.2 Enabling Client Subsystem](#472-enabling-client-subsystem)
+  - [4.8 Renaming Client Subsystem](#48-renaming-client-subsystem)
 - [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
   - [5.1 Availability States of Security Tokens](#51-availability-states-of-security-tokens)
   - [5.2 Registration States of Certificates](#52-registration-states-of-certificates)
@@ -177,6 +191,7 @@ Doc. ID: UG-SS
     - [5.6.1 Unregistering an Authentication Certificate](#561-unregistering-an-authentication-certificate)
     - [5.6.2 Deleting a Certificate or a certificate Signing Request notice](#562-deleting-a-certificate-or-a-certificate-signing-request-notice)
   - [5.7 Deleting a Key](#57-deleting-a-key)
+  - [5.8 Deleting an inactive Token](#58-deleting-an-inactive-token)
 - [6 X-Road Services](#6-x-road-services)
   - [6.1 Adding a service description](#61-adding-a-service-description)
     - [6.1.1 SOAP](#611-soap)
@@ -207,6 +222,7 @@ Doc. ID: UG-SS
   - [10.3 Managing the Timestamping Services](#103-managing-the-timestamping-services)
   - [10.4 Changing the Internal TLS Key and Certificate](#104-changing-the-internal-tls-key-and-certificate)
   - [10.5 Approved Certificate Authorities](#105-approved-certificate-authorities)
+  - [10.6 Enable/Disable maintenance mode for the Security Server](#106-enabledisable-maintenance-mode-for-the-security-server)
 - [11 Message Log](#11-message-log)
   - [11.1 Changing the Configuration of the Message Log](#111-changing-the-configuration-of-the-message-log)
     - [11.1.1 Common Parameters](#1111-common-parameters)
@@ -228,9 +244,12 @@ Doc. ID: UG-SS
   - [13.4 Backup Encryption Configuration](#134-backup-encryption-configuration)
   - [13.5 Verifying Backup Archive Consistency](#135-verifying-backup-archive-consistency)
 - [14 Diagnostics](#14-diagnostics)
-  - [14.1 Examine Security Server services status information](#141-examine-security-server-services-status-information)
-  - [14.2 Examine Security Server Java version information](#142-examine-security-server-java-version-information)
-  - [14.3 Examine Security Server encryption status information](#143-examine-security-server-encryption-status-information)
+  - [14.1 Diagnostics Overview](#141-diagnostics-overview)
+    - [14.1.1 Examine Security Server services status information](#1411-examine-security-server-services-status-information)
+    - [14.1.2 Examine Security Server Java version information](#1412-examine-security-server-java-version-information)
+    - [14.3.3 Examine Security Server encryption status information](#1433-examine-security-server-encryption-status-information)
+    - [14.1.4 Download diagnostics report](#1414-download-diagnostics-report)
+  - [14.2 Security Server Traffic](#142-security-server-traffic)
 - [15 Operational Monitoring](#15-operational-monitoring)
   - [15.1 Operational Monitoring Buffer](#151-operational-monitoring-buffer)
     - [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
@@ -263,12 +282,13 @@ Doc. ID: UG-SS
   - [19.5 Warning responses](#195-warning-responses)
 - [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 - [21 Adding command line arguments](#21-adding-command-line-arguments)
+  - [21.1 Updating Proxy Service's memory allocation command line arguments](#211-updating-proxy-services-memory-allocation-command-line-arguments)
 - [22 Additional Security Hardening](#22-additional-security-hardening)
 - [23 Passing additional parameters to psql](#23-passing-additional-parameters-to-psql)
 - [24 Configuring ACME](#24-configuring-acme)
 - [25 Migrating to EC Based Authentication and Signing Certificates](#25-migrating-to-ec-based-authentication-and-signing-certificates)
-  - [25.1 Steps to Enable EC Based Certificates](#251-Steps-to-enable-EC-based-certificates) 
-  - [25.2Backwards Compatibility](#252-Backwards-compatibility) 
+  - [25.1 Steps to Enable EC Based Certificates](#251-steps-to-enable-ec-based-certificates)
+  - [25.2 Backwards Compatibility](#252-backwards-compatibility)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -460,7 +480,7 @@ To configure LDAP user authentication on the X-Road Security Server using SSSD, 
         - `ldap_uri = ldap://<LDAP_SERVER_IP_OR_DNS>/`
         - `ldap_search_base = dc=example,dc=com`
         - `ldap_default_bind_dn = cn=admin,dc=example,dc=com`
-        - `ldap_default_authtok_type = password` 
+        - `ldap_default_authtok_type = password`
         - `ldap_default_authtok = <BIND_PASSWORD>`
         - Ensure that the file permissions are secure:
           ```shell
@@ -516,9 +536,9 @@ API keys are used to authenticate API calls to Security Server's management REST
 3.  In the opening view, click **CREATE API KEY**. In the wizard that opens
 
     1. Select the roles you want to be associated with the API key. Click **NEXT**.
-    
+
     2. Click **CREATE KEY**. The API key, API key id and assigned roles will be displayed in the view. **The API key will only be displayed this once so save it in a secure location**.
-    
+
     3. Click **FINISH**.
 
 #### 2.4.2 Editing the roles of an API key
@@ -534,7 +554,7 @@ API keys are used to authenticate API calls to Security Server's management REST
 3.  In the opening view, in the API key list, locate the API key you want to edit and click **Edit** at the end of the API key row. In the popup that opens
 
     1. Select the roles you want to be associated with the API key. Click **SAVE**.
-    
+
 #### 2.4.3 Revoking an API key
 
 **Access rights**
@@ -580,28 +600,28 @@ To generate a Signing key and a Certificate Signing Request, follow these steps.
 
 3.  To log in to the token, click **LOG IN** on the token's row in the table and enter the PIN code. Once the correct PIN is entered, the **LOG IN** button changes to **LOG OUT**.
 
-4.  To generate a signing key and CSR for it, expand the token's information by clicking the caret next to the token name and click **ADD KEY**. In the wizard that opens 
-    
-    1. Define a label for the newly created signing key (not mandatory) and click **NEXT**. 
-    
+4.  To generate a signing key and CSR for it, expand the token's information by clicking the caret next to the token name and click **ADD KEY**. In the wizard that opens
+
+    1. Define a label for the newly created signing key (not mandatory) and click **NEXT**.
+
     2. In the dialog page that opens
-    
+
        1. Select the certificate usage policy from the **Usage** drop down list (SIGNING for signing certificates)
-    
+
        2. Select the X-Road member the certificate will be issued for from the **Client** drop-down list
-    
+
        3. Select the issuer of the certificate from the **Certification Service** drop-down list
-    
+
        4. Select the format of the certificate signing request (PEM or DER) from the **CSR Format** drop-down list, according to the certification service provider's requirements
-    
+
        5. Click **CONTINUE**
-    
-    3. In the dialog that opens 
-    
+
+    3. In the dialog that opens
+
        1. Review the certificate owner's information that will be included in the CSR and fill in the empty fields, if needed
-    
+
        2. Click **GENERATE CSR**
-    
+
        3. Click **DONE**
 
 After the generation of the CSR, a "Request" record is added under the key's row in the table, indicating that a certificate signing request has been created for this key. The record is added even if the request file was not saved to the local file system.
@@ -644,7 +664,7 @@ To import a certificate from a security token, follow these steps.
 
 If an approved CA supports ACME, then an alternative to creating the CSR, sending it to be signed by the CA by some outside means and later importing it manually, is to order the certificate from the ACME server of the CA. In this case all these steps are done automatically. To do this:
 
-1. Start the same way as in Section [3.1.1](#331-registering-an-authentication-certificate) 
+1. Start the same way as in Section [3.1.1](#331-registering-an-authentication-certificate)
 
 2. In step 4.ii.d choose a **Certification Service** that supports ACME.
 
@@ -688,26 +708,26 @@ The **background colors** of the devices, keys and certificate are explained in 
 
 3.  Show more details about the token by clicking the caret next to the token name.
 
-4.  To generate an authentication key and CSR for it, click the **ADD KEY** button below the token row. In the wizard that opens 
-    
-    1. Define a label for the newly created authentication key (not mandatory) and click **NEXT**. 
-    
+4.  To generate an authentication key and CSR for it, click the **ADD KEY** button below the token row. In the wizard that opens
+
+    1. Define a label for the newly created authentication key (not mandatory) and click **NEXT**.
+
     2. In the dialog page that opens
-    
+
        1. Select the certificate usage policy from the **Usage** drop down list (AUTHENTICATION for authentication certificates)
-    
+
        2. Select the issuer of the certificate from the **Certification Service** drop-down list
-    
+
        3. Select the format of the certificate signing request (PEM or DER) from the **CSR Format** drop-down list, according to the certification service provider's requirements
-    
+
        4. Click **CONTINUE**
-    
-    3. In the dialog that opens 
-    
+
+    3. In the dialog that opens
+
        1. Review the certificate owner's information that will be included in the CSR and fill in the empty fields, if needed
-    
+
        2. Click **GENERATE CSR**
-    
+
        3. Click **DONE**
 
 
@@ -779,7 +799,7 @@ Authentication Certificate can also be ordered with an already existing CSR. For
 
 2. Show more details about a token by clicking the caret next to the token name.
 
-3. On the row of the desired authentication key, click **Order Certificate**. This link is only shown if the CSR has been generated beforehand and there are Certificate Authorities available that support ACME and use the same Certificate Profile that the CSR was created with. 
+3. On the row of the desired authentication key, click **Order Certificate**. This link is only shown if the CSR has been generated beforehand and there are Certificate Authorities available that support ACME and use the same Certificate Profile that the CSR was created with.
 
 4. In the dialog that opens select the issuer of the certificate from the **Certification Service** drop-down list.
 
@@ -816,6 +836,15 @@ On submitting the request, the message "Certificate registration request success
 
 After the X-Road governing authority has accepted the registration, the registration state of the authentication certificate is set to "Registered" and the registration process is completed.
 
+**Note:** If the registration request is rejected by the X-Road governing authority, no automatic notification is sent to the Security Server administrator and the authentication certificate remains in the "Registration in process" state on the Security Server. The X-Road governing authority must notify the Security Server administrator about the rejection of the request through an external channel, e.g., email.
+
+After a rejected authentication certificate registration request, complete the following steps to send a new authentication certificate registration request:
+
+1.  Unregister the authentication certificate (see [5.6.1](#561-unregistering-an-authentication-certificate)).
+2.  Delete the authentication certificate (see [5.6.2](#562-deleting-a-certificate-or-a-certificate-signing-request-notice)).
+3.  Import an authentication certificate from the local file system (see [3.2.3](#323-importing-an-authentication-certificate-from-the-local-file-system)).
+4.  Register the authentication certificate (see [3.3.1](#331-registering-an-authentication-certificate)).
+
 ### 3.4 Changing the Security Server Owner
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
@@ -827,29 +856,29 @@ To add a new member and change it to Owner member, the following actions must be
 1.  Add a new Owner member to the Security Server
 
     1.1 On the **CLIENTS** view, select **ADD MEMBER**.
-    
+
     1.2 In the opening wizard, Select the new Owner member from the list of Security Server clients
-    
+
     1.3 Add the selected member
-    
+
     Note: Signing Key and Certificate must be configured for the new Owner member. If needed, the wizard will automatically show the dedicated steps for Key and Certificate configuration to collect the needed information.
-    
+
 2.  Register the new member
 
     2.1 On the **CLIENTS** view, locate the new member in the Clients list and click **Register** in the corresponding row
-    
+
     2.2 In the opening dialog, click **Register**. A registeration request is sent to the X-Road Governing Authority
-    
+
     Note: Once the request is approved, the new member appears as "Registered" - it can be set as Owner member.
 
 3.  Request a change of the Security Server owner
 
     3.1 On the **CLIENTS** view, locate the new member and click its name to open the member's detail view
-    
+
     3.2 In the detail view, click **MAKE OWNER**
-    
+
     1.3 In the opening dialog, click **MAKE OWNER**. An owner change request is sent to the X-Road Governing Authority
-    
+
 Once the owner change request is approved, the new member will be automatically shown as the Security Server Owner member.
 
 - A new member must be added to the Security Server (see [4.2](#42-adding-a-security-server-client)). If needed, specify the token on which the member is configured
@@ -934,18 +963,18 @@ Follow these steps.
 1.  In the **CLIENTS** view, click **ADD CLIENT**.
 
 2.  In the wizard that opens
-    
-    1. Client details page: Select an existing client from the Global list by pressing **SELECT CLIENT** or specify the details of the Client to be added manually and click **NEXT**
-    
+
+    1. Client details page: Select an existing client from the Global list by pressing **SELECT CLIENT** or specify the details of the Client to be added manually. Also renaming existing or adding name for new subsystem is possible by editing value in Subsystem name field. Click **NEXT**
+
     2. Token page: Select the token where you want to add the SIGN key for the new Client. Click **NEXT**
-    
+
     3. Sign key page: Define a label (optional) for the newly created SIGN key and click **NEXT**
-    
+
     4. CSR details page: Select the Certification Authority (CA) that will issue the certificate in **Certification Service** field and format of the certificate signing request according to the CA's requirements in the **CSR Format** field. Click **NEXT**.
-    
+
     5. Generate CSR page: Fill in empty CSR fields as needed (like **Organization Name (O)** and **Subject Alternative Name (SAN)**) that are based on the certificate profile that the chosen CA uses, and click **NEXT**
-    
-       1. If the CA supports it, an ACME certificate order can be made with the generated CSR by checking the "**Order certificate from ACME Server with the generated CSR and import the returned certificate to the token.**" checkbox. 
+
+       1. If the CA supports it, an ACME certificate order can be made with the generated CSR by checking the "**Order certificate from ACME Server with the generated CSR and import the returned certificate to the token.**" checkbox.
 
     6. Finish page: click **SUBMIT** and the new client will be added to the Clients list and the new key and CSR (or certificate in case of ACME) will appear in the Keys and Certificates view.
 
@@ -960,13 +989,13 @@ Follow these steps.
 1.  In the **CLIENTS** view in the client list, locate the X-Road member you want to add a subsystem to and click **Add Subsystem** at the end of the row.
 
 2.  In the wizard that opens
-    
-    2.1. Select an existing subsystem from the Global list by pressing **SELECT SUBSYSTEM** or specify the **Subsystem Code** manually
-    
+
+    2.1. Select an existing subsystem from the Global list by pressing **SELECT SUBSYSTEM** or specify the **Subsystem Code** manually. Also renaming existing or adding name for new subsystem is possible by editing value in Subsystem name field
+
     2.2. If you wish to register the new subsystem immediately, check the **Register subsystem** checkbox and then click **ADD SUBSYSTEM**.
-    
+
     (2.3.) If you checked the **Register subsystem** checkbox, a popup will appear asking whether you wish to register the subsystem immediately. In the popup, click **YES**.
-    
+
 The new subsystem is added to the list of Security Server clients in the "Saved" state.
 
 ### 4.4 Configuring a Signing Key and Certificate for a Security Server Client
@@ -1001,7 +1030,7 @@ To submit a client registration request follow these steps.
 
 1.  In the **CLIENTS** view.
 
-2.  Click **Register** button on the row that contains the client you wish to register. 
+2.  Click **Register** button on the row that contains the client you wish to register.
 
 3.  Click **YES** to submit the request.
 
@@ -1009,6 +1038,14 @@ On submitting the request, the message "Request sent" is displayed, and the clie
 
 After the X-Road governing authority has accepted the registration, the state of the client is set to "Registered" and the registration process is completed.
 
+**Note:** If the registration request is rejected by the X-Road governing authority, no automatic notification is sent to the Security Server administrator and the client remains in the "Registration in process" state on the Security Server. The X-Road governing authority must notify the Security Server administrator about the rejection of the request through an external channel, e.g., email.
+
+After a rejected client registration request, complete the following steps to send a new client registration request:
+
+1.  Unregister the client (see [4.6.1](#461-unregistering-a-client)).
+2.  Delete the client (see [4.6.2](#462-deleting-a-client)).
+3.  Add a client (see [4.2](#42-adding-a-security-server-client)) or a subsystem (see [4.3](#43-adding-a-security-server-member-subsystem)).
+4.  Register the client (see [4.5.1](#451-registering-a-security-server-client)).
 
 ### 4.6 Deleting a Client from the Security Server
 
@@ -1031,7 +1068,7 @@ To unregister a client, follow these steps.
 
 3.  Next, a notification is displayed about unregistering client. Now the client is moved to the "Deletion in progress" state, wherein the client cannot mediate messages and cannot be registered again in the X-Road governing authority.
 
-*Note:* It is possible to unregister a registered client from the Central Server without sending a deletion request through the Security Server. In this case, the Security Server's administrator responsible for the client must transmit a request containing information about the client to be unregistered to the Central Server's administrator. If the client has been deleted from the Central Server without a prior deletion request from the Security Server, the client is shown in the "Global error" state in the Security Server.
+**Note:** It is possible to unregister a registered client from the Central Server without sending a deletion request through the Security Server. In this case, the Security Server's administrator responsible for the client must transmit a request containing information about the client to be unregistered to the Central Server's administrator. If the client has been deleted from the Central Server without a prior deletion request from the Security Server, the client is shown in the "Global error" state in the Security Server.
 
 
 #### 4.6.2 Deleting a Client
@@ -1049,9 +1086,9 @@ To delete a client, follow these steps.
 
 ### 4.7 Disabling Client Subsystem Temporarily
 
-Security Server client subsystem in "Registered" state may be disabled temporarily for maintenance purposes. 
+Security Server client subsystem in "Registered" state may be disabled temporarily for maintenance purposes.
 
-When client subsystem is disabled in Security Server it first enters "Disabling in progress" state. Once the state change is propagated through the global configuration, client subsystem enters the "Disabled" state. 
+When client subsystem is disabled in Security Server it first enters "Disabling in progress" state. Once the state change is propagated through the global configuration, client subsystem enters the "Disabled" state.
 
 Client subsystem in "Disabled" state may be enabled again. When it is enabled in the Security Server it first enters "Enabling in progress" state.
 
@@ -1069,6 +1106,8 @@ To disable client subsystem, follow these steps.
 
 2.  In the window that opens, click **DISABLE** and then click **YES** in the confirmation dialog.
 
+Notice that if the Client Subsystem is provider of management services, then **DISABLE** button is disabled. 
+
 #### 4.7.2 Enabling Client Subsystem
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
@@ -1080,6 +1119,21 @@ To enable client subsystem, follow these steps.
 1.  In the **CLIENTS** view click the name of the client you wish to enable.
 
 2.  In the window that opens, click **ENABLE** and then click **YES** in the confirmation dialog.
+
+
+### 4.8 Renaming Client Subsystem
+
+**Access rights:** [Registration Officer](#xroad-registration-officer)
+
+To rename a client subsystem, follow these steps.
+
+1.  In the **CLIENTS** view click the name of subsystem that you wish to rename
+
+2.  In the window that opens, click **Edit** and then enter name for subsystem and click **Save**. The Security Server automatically sends a client rename request to the X-Road Central Server.
+
+3.  Next, a subsystem is put into "Name change is submitted" state, which doesn't affect the subsystem functionality. Once the name change is propagated through the global configuration, subsystem name is updated.
+
+**Note:** In case of "Registered" no additional renames are allowed for the subsystem while its rename isn't propagated through global configuration. Only exception is "Saved" subsystem in which case multiple renames are allowed, where the latest rename replaces the previous one and rename will be executed on client registration request using last provided name. 
 
 
 ## 5 Security Tokens, Keys, and Certificates
@@ -1176,7 +1230,7 @@ A Security Server certificate can be in one of the following validity states.
 
 -   For signing certificates: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer)
 
-Disabled certificates are not used for signing messages or for establishing secure channels between Security Servers (authentication). If a certificate is disabled, its status in the "OCSP" column in the "Keys and Certificates" table is "Disabled".
+Disabled certificates are not used for signing messages or for establishing secure channels between Security Servers (authentication). If a certificate is disabled, its status in the "OCSP" column in the "Keys and Certificates" table is "Disabled". Certificate can be activated only when OCSP responses are valid.
 
 To activate or disable a certificate, follow these steps.
 
@@ -1186,7 +1240,7 @@ To activate or disable a certificate, follow these steps.
 
 3.  To activate a certificate, click on the desired certificate's name.
 
-    3.1 In the opening **Certificate** dialog, click **Activate**. To deactivate a certificate, click **DISABLE** in the **Certificate** dialog. 
+    3.1 In the opening **Certificate** dialog, click **Activate**. To deactivate a certificate, click **DISABLE** in the **Certificate** dialog.
 
 
 ### 5.5 Configuring and Registering an Authentication key and Certificate
@@ -1278,6 +1332,19 @@ To delete a key, follow these steps.
 
     3.1 In the opening **Key** dialog, click **DELETE**. Confirm the deletion of the key (and its associated certificates) by clicking **YES**.
 
+### 5.8 Deleting an inactive Token
+
+**Warning:** Deleting an inactive token from the server configuration also deletes all associated information of the token.
+
+**Access rights:** [Service Administrator](#xroad-service-administrator)
+
+To delete a token, follow these steps.
+
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
+
+2.  Select the inactive token, then end of the token name click **Edit** icon.
+
+3.  In the opening **Edit** dialog, click **DELETE**. Confirm the deletion of the token (and its associated information) by clicking **YES**.
 
 ## 6 X-Road Services
 
@@ -1298,7 +1365,7 @@ When a new WSDL file is added, the Security Server reads service information fro
 
 **To add a WSDL**, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client for which you wish to add WSDL to and click the **SERVICES** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client for which you wish to add WSDL to and click the **SERVICES** tab.
 
 3.  Click **ADD WSDL**, enter the WSDL address in the dialog that opens and click **ADD**. Once the window is closed, the WSDL and the information about the services it contains are added to the client. By default, the WSDL is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
 
@@ -1312,7 +1379,7 @@ After a new REST service is added, the Security Server displays text "REST" and 
 
 **To add a REST service**, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client for which you wish to add REST service to and click the **SERVICES** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client for which you wish to add REST service to and click the **SERVICES** tab.
 
 3.  Click **ADD REST**. Select whether the URL type is "REST API Base Path" or "OpenAPI 3 Description". Enter the url and service code in the window that opens and click **ADD**.
 
@@ -1330,7 +1397,7 @@ Upon refreshing, the Security Server reloads the service description file from t
 
 To refresh the service description, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to refresh and click the **SERVICES** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to refresh and click the **SERVICES** tab.
 
 2.  Click the arrow symbol in front of the WSDL or REST to be refreshed and click the **Refresh** button.
 
@@ -1351,7 +1418,7 @@ If a service description is enabled, the services described there become accessi
 
 To **enable** or **disable** a service description, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
 
 2. Click the switch icon on the same row with service WSDL or REST service you wish to enable or disable
 
@@ -1364,7 +1431,7 @@ To **enable** or **disable** a service description, follow these steps.
 
 To change the service description address, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
 
 2. Click the link text containing the type of the service and its url in paranthesis
 
@@ -1379,11 +1446,11 @@ When a service description is deleted, all information related to the services d
 
 To delete a service description, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
 
-2. Click the link text containing the type of the service and its url in paranthesis. 
+2. Click the link text containing the type of the service and its url in paranthesis.
 
-3. Click **DELETE** and confirm the deletion by clicking **YES** in the dialog that opens. 
+3. Click **DELETE** and confirm the deletion by clicking **YES** in the dialog that opens.
 
 ### 6.6 Changing the Parameters of a Service
 
@@ -1401,7 +1468,7 @@ Service parameters are
 
 To change service parameters, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
 
 2.  Click the arrow symbol in front of a REST or WSDL service and in the list that is displayed click the service code which you wish to edit.
 
@@ -1418,7 +1485,7 @@ When URL type of the REST service is an OpenAPI 3 description, endpoints are par
 
 To create API endpoint manually, follow these steps
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
 
 2.  Click the arrow symbol in front of a REST service and click the service code that is displayed.
 
@@ -1469,7 +1536,7 @@ In general, a REST service usually has multiple endpoints. When access rights ar
 
 To change the access rights to a **service**, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
 
 2.  Click the arrow symbol in front of a service and click the service code that is displayed.
 
@@ -1481,7 +1548,7 @@ To change the access rights to a **service**, follow these steps.
 
 To change access rights to an **endpoint**, follow there steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
 
 2.  Click the arrow symbol in front of a REST service and click the service code that is displayed.
 
@@ -1500,12 +1567,12 @@ The service client view (**CLIENTS** -&gt; **SERVICE CLIENTS**) displays all the
 
 To add a service client, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICE CLIENTS** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICE CLIENTS** tab.
 
 2.  Click **ADD SUBJECT**. In the following wizard that opens
-    
+
     1. Select a subject (a subsystem, or a local or global group) to which you want to grant access rights to and click **NEXT**
-    
+
     2. Select service(s) whose access rights you want to grant to the selected subject. Click **ADD SELECTED** to grant access rights to the selected services to this subject. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **SERVICES** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
 The subject is added to the list of service clients, after which the service clients view is displayed.
@@ -1517,7 +1584,7 @@ The subject is added to the list of service clients, after which the service cli
 
 To change the service client's access rights, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICE CLIENTS** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICE CLIENTS** tab.
 
 2.  In the view that opens click the name of a subject (a subsystem, or a local or global group) whose access rights you want to change
 
@@ -1525,10 +1592,10 @@ To change the service client's access rights, follow these steps.
 
     - To add access rights to a service client, start by clicking **ADD SERVICE**. In the window that opens, select the service(s) that you wish to grant to the subject and click **ADD**. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **SERVICES** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
-    - To remove a single access right to a service from the service client click **Remove** button on the corresponding row and click **YES** in the confirmation dialog. 
-    
-    - To remove all access rights to a service from the service client click **REMOVE ALL** and click **YES** in the confirmation dialog. 
-    
+    - To remove a single access right to a service from the service client click **Remove** button on the corresponding row and click **YES** in the confirmation dialog.
+
+    - To remove all access rights to a service from the service client click **REMOVE ALL** and click **YES** in the confirmation dialog.
+
     - Removing service level access rights from the service client also removes all REST API endpoint level access rights to the endpoints of the service. In other words, removing access rights from the service client removes all access rights to a service and its endpoints.
 
 
@@ -1577,7 +1644,7 @@ To change the description of a local group, follow these steps.
 
 2.  In the view that opens click the code of the group you wish to edit.
 
-3.  In the group´s detail view change the description. The description is saved when the input field loses focus. 
+3.  In the group´s detail view change the description. The description is saved when the input field loses focus.
 
 
 ### 8.4 Deleting a Local Group
@@ -1621,7 +1688,7 @@ To set the connection method for information systems in the **service consumer r
 1. In the **Navigation tabs**, select **CLIENTS**, select a Security Server owner or a client from the table
 
 2. In the view that opens, select the **INTERNAL SERVERS** tab
- 
+
 3. On the **Connection type** drop-down, select the connection method between HTTP, HTTPS NOAUTH or HTTPS. The changes will be saved immediately on selecting the new method and a "Connection type updated" message is displayed.
 
 
@@ -1641,16 +1708,16 @@ The connection method for information systems in the **service provider role** i
 1.  In the **Navigation tabs**, select **CLIENTS**, select a Security Server owner or a client from the table.
 
 2.  In the view that opens, select the **SERVICES** tab.
-    
+
 3.  Click the caret next to the desired service description to show all services related to it.
 
 4.  Click on a service code in the table.
-    
+
 5.  In the view that opens, change the protocol (a.k.a. scheme) part in the Service URL to either **http://** or **https://**.
 
 - HTTP – the service/adapter URL begins with "**http:**//...".
 
-- HTTPS – the service/adapter URL begins with "**https**://".
+- HTTPS – the service/adapter URL begins with "**https:**//...".
   - If **Verify TLS certificate** checkbox is left unchecked it means that service provider information system's TLS certificate is not verified and trusted by default.
   - If **Verify TLS certificate** checkbox is checked it means that service provider information system's TLS certificate is verified. In order to make the information system's TLS certificate trusted, it must be added into Security Server's **Information System TLS certificate** list (see section [9.3](#93-managing-information-system-tls-certificates)).
   - When the service provider information system needs to verify the Security Server's internal TLS certificate, the certificate must be first exported and then imported into the service provider information system's truststore (see section [9.3](#93-managing-information-system-tls-certificates)).
@@ -1846,6 +1913,20 @@ Lists approved certificate authorities. The listing contains the following infor
   * Additional status "not available" if the OCSP response is not available at all, e.g. due to an error.
 * Certificate expiration date.
 
+### 10.6 Enable/Disable maintenance mode for the Security Server
+
+**Access rights:** [System Administrator](#xroad-system-administrator)
+
+To enable or disable maintenance mode for the Security Server, follow these steps.
+1. In the **Navigation tabs**, select **SETTINGS**.
+2. In the opening view select **SYSTEM PARAMETERS** tab.
+3. At the top of the **SYSTEM PARAMETERS** tab, click the switch for Maintenance mode to turn it on or off.
+4. The confirmation dialog will open with an optional field for message (only when enabling maintenance mode) which will be included in error messages returned to clients when they try to access services when the maintenance mode is enabled.
+5. Click **Confirm** to proceed.
+6. Next, the maintenance mode request is submitted to the Central Server. This does not affect the Security Server functionality until the change is propagated through the global configuration - the Security Server downloads a new version of the global configuration where the maintenance mode is enabled. Once propagated, the Security Server will have the maintenance mode set to "On" or "Off." Other Security Servers will recognize the change and start/stop sending requests to the Security Server depending on the maintenance mode status.
+
+Notice that if the Security Server is provider of management services, then the maintenance mode is disabled without possibility to enable it.
+
 ## 11 Message Log
 
 The purpose of the message log is to provide means to prove the reception of a regular request or response message to a third party. The Security Server supports three options for configuring message log:
@@ -1856,7 +1937,7 @@ The purpose of the message log is to provide means to prove the reception of a r
   - Only metadata is logged while message body is not logged. Verifying the log records afterwards is not possible and they cannot be used as evidence.
 - No message logging
   - Message logging is fully disabled, neither message body nor metadata is logged. No log records are generated.
-  
+
 Full logging and metadata logging can be configured on Security Server and subsystem level. When the Security Server level configuration is used, the same configuration is applied to all the subsystems. Instead, when the subsystem level configuration is used, the configuration is applied to specific subsystems only. In addition, combining the Security Server and subsystem level configurations is also possible, e.g., set metadata logging on the Security Server level and enable full logging for specific subsystems only. Instead, message logging is fully disabled on a Security Server level. Therefore, a subsystem that requires full or metadata logging should not be registered on the same Security Server with a subsystem that requires fully disabling message logging.
 
 Regardless of how logging is configured, messages exchanged between Security Servers are always signed and encrypted. Also, when full logging or metadata logging is enabled, the Security Server produces a signed and timestamped document (Associated Signature Container [ASiC]) for regular requests and responses.
@@ -1901,7 +1982,7 @@ For example, to configure the parameters `archive-path` and `archive-max-filesiz
 3.  `enabled-body-logging-remote-producer-subsystems` - when message-body-logging is set to false, this field contains the overrides for the remote producer subsystems.
 
 4.  `disabled-body-logging-local-producer-subsystems` - when message-body-logging is set to true, this field contains the overrides for the local producer subsystems.
-  
+
 5.  `disabled-body-logging-remote-producer-subsystems` - when message-body-logging is set to true, this field contains the overrides for the remote producer subsystems.
 
 6.  `max-loggable-message-body-size` - the maximum REST message body size that will be written to the messagelog.
@@ -2293,7 +2374,7 @@ In case original backup encryption and signing key is lost additional parameters
 signature verification. Use `-P` command line switch when backup archive is already decrypted externally and `-N` switch to
 skip checking archive signature.
 
-If a backup is restored on a new uninitialized (the initial configuration hasn't been completed) Security Server, the 
+If a backup is restored on a new uninitialized (the initial configuration hasn't been completed) Security Server, the
 Security Server's gpg key must be manually created before restoring the backup:
 
     /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome <Security Server ID>
@@ -2313,7 +2394,7 @@ By default the Security Server backs up its configuration automatically once eve
 automatically removed from the server. If needed, backup removal policies can be adjusted by editing the
 `/etc/cron.d/xroad-proxy` file.
 
-Automatic backup schedule can be adjusted  in the file `/etc/xroad/conf.d/local.ini`, 
+Automatic backup schedule can be adjusted  in the file `/etc/xroad/conf.d/local.ini`,
 in the `[configuration-client]` section (add or edit this section).
 
 ```ini
@@ -2321,7 +2402,7 @@ in the `[configuration-client]` section (add or edit this section).
 proxy-configuration-backup-cron=0 15 3 * * ?
 ```
 
-**Note:** In cases where automatic backup is not required (ex: extensions which rely on configuration-client) 
+**Note:** In cases where automatic backup is not required (ex: extensions which rely on configuration-client)
 it is suggested to disable it by using cron expression that will never trigger. For example `* * * * * ? 2099`
 
 ### 13.4 Backup Encryption Configuration
@@ -2382,7 +2463,7 @@ backup-encryption-keyids = 96F20FF6578A5EF90DFBA18D8C003019508B5637
 To decrypt the encrypted backups, use the following syntax:
 
 ```bash
-gpg --homedir /etc/xroad/gpghome --decrypt <backup name> --output <output file name> 
+gpg --homedir /etc/xroad/gpghome --decrypt <backup name> --output <output file name>
 ```
 
 ### 13.5 Verifying Backup Archive Consistency
@@ -2414,7 +2495,13 @@ for backup archive consistency verification.
 
 Click on **DIAGNOSTICS** in the **Navigation tabs**.
 
-On the Diagnostics page you can view the status information of:
+Diangostics view contains the following tabs:
+- **Overview** – overview of the Security Server status information
+- **Traffic** – visual overview of the Security Server traffic
+
+### 14.1 Diagnostics Overview
+
+On the Diagnostics Overview page you can view the status information of:
 
 - Security Server services;
     - global configuration client;
@@ -2426,7 +2513,7 @@ On the Diagnostics page you can view the status information of:
     - message log archive encryption and grouping;
     - message log database encryption.
 
-### 14.1 Examine Security Server services status information
+#### 14.1.1 Examine Security Server services status information
 
 Security server services status information covers the following services:
 
@@ -2447,7 +2534,7 @@ The status message offers more detailed information on the current status.
 
 If a section of the diagnostics view appears empty, it means that there either is no configured service available or that checking the service status has failed. If sections are empty, try refreshing the diagnostics view or check the service configuration.
 
-### 14.2 Examine Security Server Java version information
+#### 14.1.2 Examine Security Server Java version information
 
 Security server Java version information provides the following details:
 
@@ -2466,7 +2553,7 @@ The status colors indicate the following:
 - **Red indicator** – Security Server's java version number isn't supported
 - **Green indicator** – Security Server's java version number is supported
 
-### 14.3 Examine Security Server encryption status information
+#### 14.3.3 Examine Security Server encryption status information
 
 **Backup encryption status**
 
@@ -2489,7 +2576,7 @@ The status colors indicate the following:
 - **Red indicator** – there's an error with checking the message log archive encryption status
 - **Yellow indicator** – message log archive encryption is disabled
 - **Green indicator** – message log archive encryption is enabled
-- 
+
 **Message log database encryption status**
 
 The status shows is the message log database encryption `enabled` or `disabled`.
@@ -2498,6 +2585,36 @@ The status colors indicate the following:
 - **Red indicator** – there's an error with checking the message log database encryption status
 - **Yellow indicator** – message log database encryption is disabled
 - **Green indicator** – message log database encryption is enabled
+
+#### 14.1.4 Download diagnostics report
+
+It is possible to download a diagnostics report file which can be included as additional information when registering issues for the Security Server.
+File includes following information:
+- X-Road and Java version
+- OS version
+- Configuration overrides from local.ini (just property names)
+- Authentication certificates (name, status, is it active)
+- Global configuration status
+- OCSP responders status
+- Timestamping status
+- Deployment mode (native / container)
+- Installed X-Road packages
+- Running Java processes
+- Is maintenance mode enabled
+
+File is in JSON format and can be downloaded by clicking the **Download diagnostics report** button.
+
+### 14.2 Security Server Traffic
+
+The "Traffic" tab in Diagnostics page displays a graph representation of number of requests passed through the Security Server. 
+
+**NOTE:** Security Server Traffic view depends on data collected by Operational Data Monitoring add-on (`xroad-addon-opmonitoring`), which must be installed to enable traffic view.
+
+By default, the page displays all the requests handled during the last 7 days. The displayed data can be filtered using controls on top of the page:
+- **Period** - start and end date/time of the period to display.
+- **Party** - member, subsystem, or service participating in the message exchange. The service dropdown displays only the services defined by the selected subsystem. If no subsystem is selected or subsystem has no defined services, the service dropdown is disabled.
+- **Exchange role** - the role of this Security Server in the message exchange. The options are "Producer" and "Consumer".
+- **Status** - the status of the message exchange. The options are "Success" and "Failure".
 
 ## 15 Operational Monitoring
 
@@ -2633,6 +2750,39 @@ The generated certificate, in the file `opmonitor.crt`, must be copied to the co
 
     [op-monitor]
     tls-certificate = <path/to/external/daemon/tls/cert>
+
+For the request traffic visualization on the Security Server UI Diagnostics page, gRPC keystore and truststore also need to be configured on both ends. Certificate that corresponds to the key in external Operational Monitoring gRPC keystore needs to be added to the gRPC truststore on the Security Server side and vice versa - Security Server's gRPC certificate needs to be added to the external monitoring daemon's truststore. The gRPC keystore and truststore system parameters are described in \[[UGSYSPAR](#31-common-parameters--common)\].
+
+You can use java `keytool` and `openssl` when working with gRPC keystores and truststores:
+
+* **Example 1 - extracting certificate in pem format from existing p12 keystore in default location**:
+
+    ```shell
+    openssl pkcs12 -in /var/run/xroad/xroad-grpc-internal-keystore.p12 -nokeys -out <path/to/cert>
+    ```
+
+* **Example 2 - importing existing certificate in pem format to new or existing truststore in p12 format**:
+
+    ```shell
+    keytool -importcert \
+      -file <path/to/cert> \       
+      -alias <suitable unique alias for security server> \
+      -keystore <path/to/truststore> \
+      -storetype PKCS12 \                                        
+      -storepass <truststorepassword>
+    ```
+    and then in `/etc/xroad/local.ini` add:
+
+    ```properties
+    ...
+    [common]
+    grpc-internal-keystore=<path/to/keystore>
+    grpc-internal-keystore-password=<keystorepassword>
+    grpc-internal-truststore=<path/to/truststore>
+    grpc-internal-truststore-password=<truststorepassword>
+    ...
+    ```
+  _Note: By default Security Server gRPC keystore and truststore are one and the same with a single key and certificate that is shared by different applications which all sit on the same machine. But in case of multiple hosts and certificates it's recommended to have keystore and truststore be separate: the keystore has the local application's key and truststore has certificates of trusted external applications that communicate with it over the network._
 
 For the external operational daemon to be used, the proxy service at the Security Server must be restarted:
 
@@ -2965,7 +3115,7 @@ For example, these log messages are related to an API call with correlation ID `
 ### 19.4 Validation errors
 
 An error response from the REST API can include validation errors if an unsupported parameter was provided with the request.
-When 
+When
 
 Example request and response of adding a new subsystem with illegal characters:
 ```
@@ -3011,7 +3161,7 @@ In addition to the validation messages declared in [Java Validation API](https:/
 
 ### 19.5 Warning responses
 
-Error response from the Management API can include additional warnings that you can ignore if seen necessary. The warnings can be ignored by your decision, by executing the same operation with `ignore_warnings` boolean parameter set to `true`. *Always consider the warning before making the decision to ignore it.* 
+Error response from the Management API can include additional warnings that you can ignore if seen necessary. The warnings can be ignored by your decision, by executing the same operation with `ignore_warnings` boolean parameter set to `true`. *Always consider the warning before making the decision to ignore it.*
 
 An example case:
 1. Client executes a REST request, without `ignore_warnings` parameter, to backend.
@@ -3024,7 +3174,7 @@ Error response with warnings always contains the error code `warnings_detected`.
 
 Like errors, warnings contain an identifier (code) and possibly some metadata.
 
-Warning example when trying to register a WSDL that produces non-fatal validation warnings: 
+Warning example when trying to register a WSDL that produces non-fatal validation warnings:
 ```json
 {
   "status": 400,
@@ -3218,6 +3368,60 @@ XROAD_PROXY_UI_API_PARAMS
 XROAD_SIGNER_CONSOLE_PARAMS
 ```
 
+### 21.1 Updating Proxy Service's memory allocation command line arguments
+
+In case of proxy service, the memory allocation command line arguments can be updated by using  helper script `proxy_memory_helper.sh` located in `/usr/share/xroad/scripts/` directory. The script updates the `XROAD_PROXY_PARAMS` property in `/etc/xroad/services/local.properties` file.
+
+Usage examples:
+
+* Get information about total memory, used memory, current configuration and suggested configuration for proxy service:
+
+    ```bash
+    proxy_memory_helper.sh
+    #alternatively
+    #proxy_memory_helper.sh status
+    ```
+
+* Get/Apply recommended memory allocation config based on total memory:
+
+    ```bash
+    #Prints the recommended memory allocation configuration
+    proxy_memory_helper.sh get-recommended
+    #Applies the recommended memory allocation configuration
+    proxy_memory_helper.sh apply-recommended
+    ```
+  
+* Get/Apply default memory allocation config based on total memory:
+
+    ```bash
+    #Prints the default memory allocation configuration
+    proxy_memory_helper.sh get-default
+    #Applies the default memory allocation configuration
+    proxy_memory_helper.sh apply-default
+    ```
+    
+* Apply custom memory allocation config based on total memory, first value is for initial heap size and second value is for maximum heap size:
+
+    ```bash
+    proxy_memory_helper.sh apply 256m 4g
+    ```
+
+* All available commands can be listed with:
+
+    ```bash
+    proxy_memory_helper.sh help
+    ```  
+
+  Value format is the same as for Java's `-Xms` and `-Xmx` options. The script will update the `XROAD_PROXY_PARAMS` property in `/etc/xroad/services/local.properties` file.
+
+  After running the script, the changes will take effect only after restarting the `xroad-proxy` service.
+
+    ```bash
+    sudo systemctl restart xroad-proxy
+    ```
+
+  Note that only -Xms, -Xmx, -XX:InitialHeapSize and -XX:MaxHeapSize options will be overwritten. Instead, any other options present in the XROAD_PROXY_PARAMS property will be preserved.
+
 ## 22 Additional Security Hardening
 
 For the guidelines on security hardening, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
@@ -3246,7 +3450,7 @@ In case it is needed to pass additional flags to internally initialized `PGOPTIO
 
 ## 24 Configuring ACME
 
-Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating the certificate request process, but the process has to be initiated manually when applying for a certificate for the first time. Also, activating the received certificates is a manual task.
+Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating the certificate request process, but the process has to be initiated manually when applying for a certificate for the first time.
 
 The ACME protocol can be used only if the Certificate Authority (CA) issuing the certificates supports it and the X-Road operator has enabled the use of the protocol on the Central Server. Therefore, also the communication between the CA's ACME server and the Security Server is disabled by default. In addition, some member-specific configuration is required on the Security Server.
 
@@ -3262,11 +3466,23 @@ The renewal status of ACME supported certificates can be seen on the Keys and ce
 * **"Renewal error:"** followed by an error message - indicates that the last renewal attempt has failed, also showing the reason for the failure.
 * **"Next planned renewal on"** followed by a date - indicates when the next renewal should happen. Note that this date might change in the future when the information is received from the ACME Server.
 
+When an authentication certificate is automatically renewed using ACME, the authentication certificate registration request is automatically sent to the Central Server for approval. In all other situations, the authentication certificate registration request must be sent manually.
+
+The certificate renewal process can be fully automated by enabling automatic certificate activation. In that case, all the steps of the renewal process are automated and email notifications are sent to a defined email address to notify about the success or failure of different phases.
+
+**Automatic certificate activation**
+
+The Security Server supports automatic activation of new certificates that have been ordered using ACME. Sign certificates are automatically activated when they're imported to the Security Server while authentication certificates are activated once they've been registered on the Central Server. By default, automatic activation is disabled. This behaviour can be controlled by the `proxy-ui-api.automatic-activate-auth-certificate` and `proxy-ui-api.automatic-activate-acme-sign-certificate` system properties. The properties can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+
 **E-mail notifications**
 
-The Security Server supports sending email notifications on ACME-related events. Notifications are sent in case of authentication and sign certificate renewal success and failure and authentication certificate registration success. The notifications can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+The Security Server supports sending email notifications on ACME-related events. Notifications are sent in the following cases and they can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api):
 
-The member's e-mail address defined in the `mail.yml` configuration file is used as the recipient. The same email address is also used as a member-specific contact information when a certificate is ordered from the ACME Server.
+* Authentication and sign certificate renewal success and failure.
+* Authentication certificate registration success.
+* Signing and authentication certificate automatic activation success and failure.
+
+A member-specific e-mail address defined in the `mail.yml` configuration file is used as the recipient. The same email address is also used as a member-specific contact information when a certificate is ordered from the ACME Server. Therefore, defining the email address is mandatory even if the email notifications are disabled. If the member-specific email address is missing from the `mail.yml` configuration file, ordering a certificate from the ACME Server will fail.
 
 For the e-mail notifications to work, an external mail server needs to be configured beforehand in the `/etc/xroad/conf.d/mail.yml` configuration file. The configuration include:
 
@@ -3276,20 +3492,44 @@ For the e-mail notifications to work, an external mail server needs to be config
 * **password** - used for authentication to the mail server.
 * **use-ssl-tls** - if "true", then full `ssl/tls` protocol is used for connection. If "false" or missing, then `starttls` protocol is used instead.
 
-The **host**, **port**, **username** and **password** properties are mandatory. The mail server configuration status can be viewed in the Diagnostics page. If the Diagnostics page shows that the configuration is incomplete, it means that at least one of required configuration properties is missing. Instead, if all the required configuration are in-place, a test email can be sent from the Diagnostics page.
+The **host**, **port**, **username** and **password** properties are mandatory. The mail server configuration status can be viewed in the Diagnostics page. If the Diagnostics page shows that the configuration is incomplete, it means that at least one of required configuration properties is missing. Instead, if all the required configuration are in-place, a test email can be sent from the Diagnostics page. It's strongly recommended to use the test email feature to validate the mail server's configuration.
+
+Example of the `/etc/xroad/conf.d/mail.yml` file contents (can be found from `/etc/xroad/conf.d/mail.example.yml`):
+
+```yaml
+# host name and port number used to connect to the mail server
+host: mail.example.org
+port: 587
+# credentials used for authentication to the mail server
+username: testuser
+password: secret
+# if "true", then full `SSL/TLS` protocol is used for connection. If "false" or missing, then `STARTTLS` protocol is used instead.
+use-ssl-tls: true
+
+# Contact emails for each Member used for notifications and when ordering certificates from the ACME Servers.
+# The key is the Member ID in the form <instance_id>:<member_class>:<member_code> and
+# should also be surrounded by quotation marks to allow for ':' (both single and double work).
+# When ordering Authentication Certificates, Security Server owner's Member ID is used.
+contacts:
+  'EU:COM:1234567-8': member1@example.com
+  'EU:GOV:9090909-1': member2@example.com
+```
 
 **Enable connections from the ACME server**
 
 The Security Server has a `[proxy-ui-api]` parameter [acme-challenge-port-enabled](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) that defines whether the Security Server listens to incoming ACME challenge requests on port 80. The default value for this parameter is `false` which means that  the Security Server does not listen on port 80. The parameter can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
+This parameter can be overridden by an environment variable `XROAD_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED` which takes precedence when both are set.
 
 **Member-specific configuration**
 
-Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). An example file is added by the installer when installing or upgrading X-Road to version 7.5. The configurations to be added are:
+Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). The configurations to be added are:
 
 1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
 2. `account-keystore-password` -  a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server, when communicating with the ACME Server.
 
-There are currently two ways to let the ACME server know which type of certificate to return (the chosen CA also needs to support them). The first one, which sends profile ids for authentication and signing certificates in http header, does not require any further configuration on the Security Server side. The second one uses certificate type specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the `/etc/xroad/conf.d/acme.yml` file. For the signing certificate add the prefix "**sign-**".
+**Note:** In addition, the member-specific e-mail address must be defined in the `/etc/xroad/conf.d/mail.yml` configuration file. See the E-mail notifications section for more detailed information.
+
+There are currently two ways to let the ACME server know which type of certificate (authentication or sign certificate) to return. The way that should be used depends on the ACME Server and the options it supports. The first one, which sends profile ids for authentication and signing certificates in http header, does not require any certificate type-specific configuration on the Security Server side. Instead, the second one uses certificate type-specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the `/etc/xroad/conf.d/acme.yml` file. For the signing certificate add the prefix "**sign-**". If you are not sure which configuration option should be used, please contact your X-Road Operator or CA for assistance.
 
 Example of the `/etc/xroad/conf.d/acme.yml` file contents (can be found from `/etc/xroad/conf.d/acme.example.yml`):
 
@@ -3351,4 +3591,4 @@ signing-key-algorithm = EC
 
 EC based keys are supported starting from X-Road version 7.6.0 (=> 7.6.0). If an X-Road instance contains Security Servers prior to version 7.6.0 (< 7.6.0), then:
 A Security Server prior to version 7.6.0 (< 7.6.0) is able to verify requests signed with EC keys from a Security Server version 7.6.0 or later (=> 7.6.0).
-If a Security Server prior to version 7.6.0 (< 7.6.0) makes a request to a Security Server version 7.6.0 or later (=> 7.6.0), which uses EC based authentication certificate, then TLS handshake failed error may occur. To fix this without upgrading the older Security Server, update the Security Server's xroad-tls-ciphers property to include EC compatible TLS cipher, e.g.: TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, read more in [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
+If a Security Server prior to version 7.6.0 (< 7.6.0) makes a request to a Security Server version 7.6.0 or later (=> 7.6.0), which uses EC based authentication certificate, then "TLS handshake failed" error may occur. To fix this without upgrading the older Security Server, update the Security Server's `xroad-tls-ciphers` property to include EC compatible TLS cipher, e.g.: `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384`, please see [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md) for details.

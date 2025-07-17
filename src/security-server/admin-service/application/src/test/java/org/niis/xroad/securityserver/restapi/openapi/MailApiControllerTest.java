@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,10 +32,11 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.MailRecipient;
-import org.niis.xroad.securityserver.restapi.openapi.model.MailStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.TestMailResponse;
+import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MailRecipientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MailStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TestMailResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailSendException;
@@ -42,6 +44,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -77,9 +80,13 @@ public class MailApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void getMailNotificationStatus() {
-        ResponseEntity<MailNotificationStatus> mailNotificationStatus = mailApiController.getMailNotificationStatus();
-        assertEquals(true, mailNotificationStatus.getBody().getFailureStatus());
-        assertEquals(true, mailNotificationStatus.getBody().getSuccessStatus());
+        ResponseEntity<MailNotificationStatusDto> mailNotificationStatus = mailApiController.getMailNotificationStatus();
+        Set<MailNotificationTypeDto> activatedTypes = Set.of(MailNotificationTypeDto.ACME_FAILURE,
+                MailNotificationTypeDto.ACME_SUCCESS,
+                MailNotificationTypeDto.AUTH_CERT_REGISTERED,
+                MailNotificationTypeDto.ACME_CERT_AUTOMATICALLY_ACTIVATED,
+                MailNotificationTypeDto.ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE);
+        assertEquals(activatedTypes, mailNotificationStatus.getBody().getEnabledNotifications());
         assertEquals(true, mailNotificationStatus.getBody().getConfigurationPresent());
         assertEquals(List.of("DEV:COM:1234: member1@example.org"), mailNotificationStatus.getBody().getRecipientsEmails());
     }
@@ -87,9 +94,9 @@ public class MailApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void testSendMail() {
-        ResponseEntity<TestMailResponse> testMailResponse =
-                mailApiController.sendTestMail(new MailRecipient("test@mailaddress.org"));
-        assertEquals(MailStatus.SUCCESS, testMailResponse.getBody().getStatus());
+        ResponseEntity<TestMailResponseDto> testMailResponse =
+                mailApiController.sendTestMail(new MailRecipientDto("test@mailaddress.org"));
+        assertEquals(MailStatusDto.SUCCESS, testMailResponse.getBody().getStatus());
     }
 
     @Test
@@ -97,8 +104,8 @@ public class MailApiControllerTest extends AbstractApiControllerTestContext {
     public void testSendMailException() {
 
         doThrow(new MailSendException("Sending failed")).when(mailService).sendTestMail(any(), any(), any());
-        ResponseEntity<TestMailResponse> testMailResponse =
-                mailApiController.sendTestMail(new MailRecipient("test@mailaddress.org"));
-        assertEquals(MailStatus.ERROR, testMailResponse.getBody().getStatus());
+        ResponseEntity<TestMailResponseDto> testMailResponse =
+                mailApiController.sendTestMail(new MailRecipientDto("test@mailaddress.org"));
+        assertEquals(MailStatusDto.ERROR, testMailResponse.getBody().getStatus());
     }
 }

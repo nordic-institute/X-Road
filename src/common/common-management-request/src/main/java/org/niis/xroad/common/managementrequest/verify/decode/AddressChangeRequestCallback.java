@@ -27,35 +27,29 @@
 
 package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.request.AddressChangeRequestType;
 
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
-import java.util.Objects;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.assertAddress;
-import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
 
-public class AddressChangeRequestCallback extends BaseSignedRequestCallback<AddressChangeRequestType> {
+public class AddressChangeRequestCallback extends BaseServerRequestCallback<AddressChangeRequestType> {
 
     public AddressChangeRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback) {
         super(globalConfProvider, rootCallback, ManagementRequestType.ADDRESS_CHANGE_REQUEST);
     }
 
     @Override
-    protected void verifyMessage() {
-        final SecurityServerId serverId = getRequest().getServer();
+    protected SecurityServerId getServer() {
+        return getRequest().getServer();
+    }
 
-        validateServerId(serverId);
-
-        if (!Objects.equals(rootCallback.getSoapMessage().getClient(), serverId.getOwner())) {
-            throw new CodedException(X_INVALID_REQUEST, "Sender does not match server owner.");
-        }
+    @Override
+    protected void verifyMessage() throws Exception {
+        super.verifyMessage();
 
         assertAddress(getRequest().getAddress());
     }

@@ -25,17 +25,20 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WRONG_KEY_USAGE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.WRONG_KEY_USAGE;
 
 /**
  * Thrown if attempted to use KeyUsageInfo.SIGNING when only KeyUsageInfo.AUTHENTICATION
  * was allowed, or vice versa.
  */
-public class WrongKeyUsageException extends ServiceException {
+public class WrongKeyUsageException extends BadRequestException {
     public WrongKeyUsageException() {
-        super(new ErrorDeviation(ERROR_WRONG_KEY_USAGE));
+        super(WRONG_KEY_USAGE.build());
+    }
+
+    public WrongKeyUsageException(String message) {
+        super(message, WRONG_KEY_USAGE.build());
     }
 }

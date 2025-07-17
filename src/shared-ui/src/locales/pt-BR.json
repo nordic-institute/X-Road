@@ -1,0 +1,287 @@
+{
+  "403": {
+  "goBack": "Voltar",
+  "mainTitle": "Permissão negada",
+  "text": "Parece que você não tem permissão para ver esta página. Se acha que é um erro, verifique se está logado na conta correta ou contate o administrador para conferir suas permissões.",
+  "topTitle": "Proibido"
+},
+"404": {
+  "pageNotFound": "404 - página não encontrada",
+  "text": "Ops! Essa página não existe.",
+  "textUnicorn": "Verifique o endereço ou volte a página inicial."
+},
+  "action": {
+    "activate": "Ativar",
+    "add": "Adicionar",
+    "addClient": "Adicionar cliente",
+    "addMember": "Adicionar membro",
+    "addSubsystem": "Adicionar subsistema",
+    "cancel": "Cancelar",
+    "close": "Fechar",
+    "confirm": "Confirmar",
+    "continue": "Continuar",
+    "copy": "Copiar",
+    "copyId": "Copiar ID",
+    "deactivate": "Desativar",
+    "delete": "Excluir",
+    "done": "Concluído",
+    "download": "Download",
+    "edit": "Editar",
+    "emptySearch": "Sua pesquisa por {msg} não encontrou resultados.",
+    "export": "Exportar",
+    "finish": "Finalizar",
+    "goToFront": "Ir para a página inicial",
+    "next": "Próximo",
+    "no": "Não",
+    "noData": "Sem dados",
+    "ok": "Ok",
+    "previous": "Anterior",
+    "refresh": "Atualizar",
+    "register": "Registrar",
+    "remove": "Remover",
+    "removeAll": "Remover tudo",
+    "restore": "Restaurar",
+    "save": "Salvar",
+    "search": "Pesquisar",
+    "searching": "Pesquisando...",
+    "submit": "Enviar",
+    "unregister": "Cancelar registro",
+    "upload": "Upload",
+    "yes": "Sim"
+  },
+  "alert": {
+    "count": "Quantidade de erros iguais:",
+    "id": "ID"
+  },
+  "apiKey": {
+    "createApiKey": {
+      "button": "CRIAR API KEY",
+      "step": {
+        "keyDetails": {
+          "apiKey": "Chave API",
+          "apiKeyID": "ID da chave API",
+          "assignedRoles": "Papéis atribuídos",
+          "createKeyButton": "Criar chave",
+          "name": "Detalhes da chave",
+          "note": "ATENÇÃO: salve a chave API em um local seguro. A chave será exibida apenas no momento da geração e não poderá ser recuperada posteriormente."
+        },
+        "roles": {
+          "description": "Selecione os papéis associados à chave API. Os papéis definem as permissões concedidas.",
+          "name": "Papéis",
+          "selectRoles": "Selecionar papéis"
+        }
+      },
+      "success": "Chave API criada com sucesso",
+      "title": "Criar chave API"
+    },
+    "edit": {
+      "roleRemoveOnly": "(remover apenas)"
+    },
+    "role": {
+      "XROAD_REGISTRATION_OFFICER": "Oficial de Registro",
+      "XROAD_SECURITY_OFFICER": "Oficial de Segurança",
+      "XROAD_SYSTEM_ADMINISTRATOR": "Administrador do Sistema"
+    },
+    "table": {
+      "action": {
+        "edit": {
+          "button": "Editar",
+          "dialog": {
+            "message": "Papéis associados à chave API:",
+            "title": "Editar chave API (ID: {id})"
+          },
+          "success": "Chave API com ID {id} salva"
+        },
+        "revoke": {
+          "button": "Revogar chave",
+          "confirmationDialog": {
+            "message": "Tem certeza que deseja revogar a chave API com ID {id}?",
+            "title": "Tem certeza?"
+          },
+          "success": "Chave API com ID {id} revogada com sucesso"
+        }
+      },
+      "header": {
+        "id": "ID",
+        "roles": "Papéis"
+      }
+    }
+  },
+  "backup": {
+    "createBackup": {
+      "button": "Fazer backup da configuração",
+      "messages": {
+        "localConfWarning": "Atenção! O arquivo “/etc/xroad/services/local.conf” usado para sobrescrever configurações está obsoleto e não será incluído no backup. Utilize o arquivo “/etc/xroad/services/local.properties”.",
+        "success": "Backup {file} criado com sucesso"
+      }
+    },
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "Tem certeza que deseja excluir o backup {file}?",
+        "title": "Tem certeza?"
+      },
+      "success": "Backup {file} excluído"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "Tem certeza que deseja restaurar do backup {file}?",
+        "title": "Tem certeza?"
+      },
+      "success": "Configuração restaurada do backup {file}"
+    },
+    "uploadBackup": {
+      "button": "Enviar backup",
+      "confirmationDialog": {
+        "confirmation": "O arquivo {name} já existe. Deseja substituí-lo?",
+        "title": "Arquivo já existe"
+      },
+      "success": "Backup {file} enviado com sucesso"
+    }
+  },
+  "cert": {
+    "certificate": "Certificado",
+    "ecParameters": "Parâmetros da Chave Pública EC",
+    "ecPoint": "Ponto da Chave Pública EC",
+    "hashInfo": "Hash (SHA-256)",
+    "keyUsage": {
+      "CRL_SIGN": "Assinatura de CRL",
+      "DATA_ENCIPHERMENT": "Cifragem de Dados",
+      "DECIPHER_ONLY": "Apenas Decifragem",
+      "DIGITAL_SIGNATURE": "Assinatura Digital",
+      "ENCIPHER_ONLY": "Apenas Cifragem",
+      "KEY_AGREEMENT": "Acordo de Chave",
+      "KEY_CERT_SIGN": "Assinatura de Certificado",
+      "KEY_ENCIPHERMENT": "Cifragem de Chave",
+      "NON_REPUDIATION": "Não Repúdio"
+    },
+    "rsaExp": "Expoente da Chave Pública RSA",
+    "rsaModulus": "Módulo da Chave Pública RSA"
+  },
+  "error_code": {
+    "api_key_not_found": "Chave API não encontrada",
+    "backup_file_not_found": "Backup não encontrado",
+    "backup_generation_failed": "Falha ao gerar backup",
+    "backup_restore_interrupted": "Restauração de backup interrompida",
+    "core": {
+      "Signer": {
+        "CertNotFound": "Certificado não encontrado",
+        "KeyNotFound": "Chave não encontrada",
+        "NetworkError": "Signer não está acessível no momento.",
+        "PinIncorrect": "PIN inválido",
+        "TokenNotAvailable": "Token não disponível",
+        "TokenNotFound": "Token não encontrado",
+        "UnknownMember": "Signer do X-Road: Membro desconhecido"
+      }
+    },
+    "generate_backup_interrupted": "Geração de backup interrompida",
+    "internal_error": "Erro interno. Veja os logs do servidor para mais detalhes",
+    "invalid_backup_file": "Arquivo de backup inválido",
+    "invalid_certificate": "Certificado X.509 inválido",
+    "invalid_distinguished_name": "Nome distinto inválido",
+    "invalid_filename": "Nome de arquivo inválido",
+    "resource_read_failed": "Falha ao ler recurso",
+    "restore_process_failed": "Falha no processo de restauração",
+    "token_fetch_failed": "Erro ao obter tokens.",
+    "token_not_found": "Token não encontrado.",
+    "token_weak_pin": "O PIN fornecido é muito fraco",
+    "tr": {
+      "check_signer_logs": "Verifique o log do signer para detalhes.",
+      "code": "Código: {0}",
+      "pin_min_char_classes_count": "Mínimo de classes de caracteres no PIN: {0}",
+      "pin_min_length": "Comprimento mínimo do PIN: {0}"
+    },
+    "validation_failure": "Falha de validação"
+  },
+  "fields": {
+    "code": "Código",
+    "description": "Descrição",
+    "memberClass": "Classe de Membro",
+    "password": "Senha",
+    "securityServerCode": "Código do Servidor de Segurança",
+    "shared": "biblioteca compartilhada",
+    "subsystemName": "Nome do Subsistema",
+    "username": "Usuário"
+  },
+  "footer": {
+    "copyright": {
+      "company": "Instituto Nórdico de Soluções de Interoperabilidade (NIIS)",
+      "licenceInfo": "Informações de licença",
+      "title": "Direitos autorais"
+    },
+    "software": {
+      "feedback": "Feedback",
+      "title": "Software",
+      "versionPrefix": "X-Road"
+    }
+  },
+  "global": {
+    "all": "Todos",
+    "name": "Nome"
+  },
+  "keys": {
+    "gotIt": "Entendi",
+    "token": {
+      "label": "Token:"
+    }
+  },
+  "locals_demo": "Este é um exemplo localizado na biblioteca",
+  "login": {
+    "errorMsg401": "Usuário ou senha incorretos",
+    "generalError": "Falha no login. Por favor, tente novamente.",
+    "logIn": "Entrar",
+    "logOut": "Sair"
+  },
+  "logout": {
+    "idleWarning": "Você ficou inativo por 30 minutos e sua sessão expirou. Por segurança, você será desconectado.",
+    "sessionExpired": "Sessão expirada"
+  },
+  "noData": {
+    "loading": "Carregando... Por favor, aguarde",
+    "noBackups": "Nenhum backup ainda",
+    "noCertificate": "Sem certificado",
+    "noCertificates": "Sem certificados",
+    "noData": "Sem dados",
+    "noMatches": "Nenhum item correspondente",
+    "noServices": "Sem serviços",
+    "noTokens": "Sem tokens"
+  },
+  "type": "Tipo",
+  "validation": {
+    "messages": {
+      "address": "O campo {field} contém caracteres inválidos"
+    }
+  },
+  "validationError": {
+    "AssertFalse": "O valor deve ser 'falso'",
+    "AssertTrue": "O valor deve ser 'verdadeiro'",
+    "DecimalMax": "Valor numérico excede o máximo permitido",
+    "DecimalMin": "Valor numérico abaixo do mínimo permitido",
+    "Digits": "O valor deve conter apenas dígitos",
+    "Email": "Valor não está em formato de e-mail",
+    "Future": "O valor de data/hora deve estar no futuro",
+    "FutureOrPresent": "O valor de data/hora deve ser agora ou no futuro",
+    "Max": "Valor numérico excede o máximo permitido",
+    "Min": "Valor numérico abaixo do mínimo permitido",
+    "Negative": "O valor numérico deve ser menor que zero",
+    "NegativeOrZero": "O valor numérico deve ser menor ou igual a zero",
+    "NoBackslashes": "O valor não deve conter barras invertidas (\\)",
+    "NoColons": "O valor não deve conter dois pontos (:)",
+    "NoForwardslashes": "O valor não deve conter barra (/)",
+    "NoPercents": "O valor não deve conter porcentagem (%)",
+    "NoSemicolons": "O valor não deve conter ponto e vírgula (;)",
+    "Normalized": "O valor deve ser normalizado",
+    "NotBlank": "O valor não deve estar em branco",
+    "NotEmpty": "O valor não deve estar vazio",
+    "NotNull": "O valor é obrigatório",
+    "Null": "O valor não deve ser definido",
+    "Past": "O valor de data/hora deve estar no passado",
+    "PastOrPresent": "O valor de data/hora deve ser agora ou no passado",
+    "Pattern": "O valor não corresponde ao formato exigido",
+    "Positive": "O valor numérico deve ser maior que zero",
+    "PositiveOrZero": "O valor numérico deve ser maior ou igual a zero",
+    "Size": "O valor não atende aos requisitos de tamanho",
+    "ValidHostAddress": "Nome de domínio totalmente qualificado (ex. host.exemplo.org) ou endereço IP público (ex. 192.168.123.123) necessários",
+    "ValidHostAddressField": "Endereço IP ou nome de domínio totalmente qualificado necessário"
+  },
+  "warning": "Aviso"
+}

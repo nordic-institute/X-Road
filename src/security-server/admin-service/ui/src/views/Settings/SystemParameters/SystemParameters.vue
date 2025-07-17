@@ -24,10 +24,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="mt-3" data-test="system-parameters-tab-view">
-    <div class="xrd-view-title pb-6">{{ $t('systemParameters.title') }}</div>
-
-    <v-card flat class="xrd-card" v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)">
+  <XrdTitledView
+    data-test="system-parameters-tab-view"
+    title-key="systemParameters.title"
+  >
+    <template #header-buttons>
+      <maintenance-mode-widget class="pr-1" />
+    </template>
+    <v-card
+      v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)"
+      flat
+      class="xrd-card"
+    >
       <v-card-text class="card-text">
         <v-row no-gutters class="px-4">
           <v-col>
@@ -39,7 +47,9 @@
             <table class="xrd-table">
               <thead>
                 <tr>
-                  <th>{{ $t('systemParameters.securityServer.serverAddress') }}</th>
+                  <th>
+                    {{ $t('systemParameters.securityServer.serverAddress') }}
+                  </th>
                   <th></th>
                   <th></th>
                 </tr>
@@ -48,17 +58,25 @@
                 <tr>
                   <td>{{ serverAddress }}</td>
                   <td>
-                    <div v-if="addressChangeInProgress" class="status-wrapper" >
-                      <xrd-status-icon :status="'progress-register'"/>
-                      <div class="status-text">{{ $t('systemParameters.securityServer.addressChangeInProgress') }}</div>
+                    <div v-if="addressChangeInProgress" class="status-wrapper">
+                      <xrd-status-icon :status="'progress-register'" />
+                      <div class="status-text">
+                        {{
+                          $t(
+                            'systemParameters.securityServer.addressChangeInProgress',
+                          )
+                        }}
+                      </div>
                     </div>
                   </td>
                   <td class="pr-4">
-                    <xrd-button :outlined="false"
-                        data-test="change-server-address-button"
-                        text
-                        :disabled="addressChangeInProgress"
-                        @click="showEditServerAddressDialog = true">
+                    <xrd-button
+                      :outlined="false"
+                      data-test="change-server-address-button"
+                      text
+                      :disabled="addressChangeInProgress"
+                      @click="showEditServerAddressDialog = true"
+                    >
                       {{ $t('action.edit') }}
                     </xrd-button>
                   </td>
@@ -76,11 +94,9 @@
           no-gutters
           class="px-4"
         >
-          <v-col
-            ><h3>
-              {{ $t('systemParameters.configurationAnchor.title') }}
-            </h3></v-col
-          >
+          <v-col>
+            <h3>{{ $t('systemParameters.configurationAnchor.title') }}</h3>
+          </v-col>
           <v-col class="text-right">
             <div class="anchor-buttons">
               <xrd-button
@@ -129,7 +145,9 @@
                 <tr v-if="configurationAnchor">
                   <td>{{ $filters.colonize(configurationAnchor.hash) }}</td>
                   <td class="pr-4">
-                    {{ $filters.formatDateTime(configurationAnchor.created_at) }}
+                    {{
+                      $filters.formatDateTime(configurationAnchor.created_at)
+                    }}
                   </td>
                 </tr>
 
@@ -225,11 +243,11 @@
           no-gutters
           class="px-4"
         >
-          <v-col
-            ><h3>
+          <v-col>
+            <h3>
               {{ $t('systemParameters.approvedCertificateAuthorities.title') }}
-            </h3></v-col
-          >
+            </h3>
+          </v-col>
         </v-row>
         <v-row
           v-if="
@@ -284,12 +302,25 @@
                   >
                     {{ approvedCA.subject_distinguished_name }}
                   </td>
-                  <td v-if="approvedCA.acme_server_ip_addresses
-                  && approvedCA.acme_server_ip_addresses.length > 0">
-                    <p v-for="ipAddress in approvedCA.acme_server_ip_addresses">{{ ipAddress }}</p>
+                  <td
+                    v-if="
+                      approvedCA.acme_server_ip_addresses &&
+                      approvedCA.acme_server_ip_addresses.length > 0
+                    "
+                  >
+                    <p
+                      v-for="ipAddress in approvedCA.acme_server_ip_addresses"
+                      :key="ipAddress"
+                    >
+                      {{ ipAddress }}
+                    </p>
                   </td>
                   <td v-else>
-                    {{ $t('systemParameters.approvedCertificateAuthorities.table.notAvailable') }}
+                    {{
+                      $t(
+                        'systemParameters.approvedCertificateAuthorities.table.notAvailable',
+                      )
+                    }}
                   </td>
                   <td v-if="approvedCA.top_ca">
                     {{
@@ -322,7 +353,7 @@
         </v-row>
       </v-card-text>
     </v-card>
-  </div>
+  </XrdTitledView>
 
   <edit-security-server-address-dialog
     v-if="showEditServerAddressDialog"
@@ -330,11 +361,11 @@
     @cancel="showEditServerAddressDialog = false"
     @address-updated="addressChangeSubmitted"
   />
-
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { XrdButton, XrdIconDownload } from '@niis/shared-ui';
 import {
   AddOnStatus,
   Anchor,
@@ -351,11 +382,13 @@ import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddT
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import { XrdButton, XrdIconDownload } from '@niis/shared-ui';
 import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
+import { sortTimestampingServices } from '@/util/sorting';
+import MaintenanceModeWidget from '@/views/Settings/SystemParameters/MaintenanceModeWidget.vue';
 
 export default defineComponent({
   components: {
+    MaintenanceModeWidget,
     EditSecurityServerAddressDialog,
     XrdButton,
     XrdIconDownload,
@@ -430,7 +463,12 @@ export default defineComponent({
       this.loadingTimestampingservices = true;
       return api
         .get<TimestampingService[]>('/system/timestamping-services')
-        .then((resp) => (this.configuredTimestampingServices = resp.data))
+        .then(
+          (resp) =>
+            (this.configuredTimestampingServices = sortTimestampingServices(
+              resp.data,
+            )),
+        )
         .catch((error) => this.showError(error))
         .finally(() => (this.loadingTimestampingservices = false));
     },
@@ -457,12 +495,13 @@ export default defineComponent({
     fetchServerAddress(): boolean {
       if (this.hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
         api
-            .get<SecurityServerAddressStatus>('/system/server-address')
-            .then((resp) => {
-              this.serverAddress = resp.data.current_address?.address!;
-              this.addressChangeInProgress = resp.data.requested_change !== undefined;
-            })
-            .catch((error) => this.showError(error))
+          .get<SecurityServerAddressStatus>('/system/server-address')
+          .then((resp) => {
+            this.serverAddress = resp.data.current_address?.address || '';
+            this.addressChangeInProgress =
+              resp.data.requested_change !== undefined;
+          })
+          .catch((error) => this.showError(error));
       }
       return false;
     },
@@ -475,8 +514,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
 
 h3 {
   color: colors.$Black100;
@@ -524,11 +563,13 @@ tr td:last-child {
   display: flex;
   justify-content: flex-end;
 }
+
 .status-wrapper {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
+
 .status-text {
   font-style: normal;
   font-weight: bold;

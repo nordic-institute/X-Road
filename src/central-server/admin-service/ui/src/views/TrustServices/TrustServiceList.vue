@@ -27,7 +27,7 @@
 <template>
   <div>
     <div data-test="certification-services">
-      <titled-view title-key="trustServices.certificationServices">
+      <xrd-titled-view title-key="trustServices.certificationServices">
         <template #header-buttons>
           <xrd-button
             v-if="showAddCSButton"
@@ -75,10 +75,10 @@
           </template>
 
           <template #bottom>
-            <custom-data-table-footer />
+            <XrdDataTableFooter />
           </template>
         </v-data-table>
-      </titled-view>
+      </xrd-titled-view>
     </div>
 
     <timestamping-services-list v-if="showTsaList" class="tsa-list" />
@@ -104,14 +104,13 @@ import { ApprovedCertificationServiceListItem } from '@/openapi-types';
 import TimestampingServicesList from '@/components/timestampingServices/TimestampingServicesList.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import { DataTableHeader } from '@/ui-types';
-import TitledView from '@/components/ui/TitledView.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { XrdTitledView, XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
   name: 'TrustServiceList',
   components: {
-    CustomDataTableFooter,
-    TitledView,
+    XrdTitledView,
+    XrdDataTableFooter,
     DateTime,
     AddCertificationServiceDialog,
     TimestampingServicesList,
@@ -187,14 +186,8 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
-
-.server-code {
-  color: colors.$Purple100;
-  font-weight: 600;
-  font-size: 14px;
-}
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
 
 .tsa-list {
   margin-top: 20px;

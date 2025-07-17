@@ -56,6 +56,12 @@ services:
       - "4403:9998"
     networks:
       - xroad-network
+  isopenapi:
+    container_name: isopenapi
+    ports:
+      - "4700:8080"
+    networks:
+      - xroad-network
   isrest:
     container_name: isrest
     ports:
@@ -82,5 +88,4 @@ networks:
   # Use implicitly named network so that is easier to add container outside the compose
   xroad-network:
     name: xroad-network
-    external: true
     driver: bridge

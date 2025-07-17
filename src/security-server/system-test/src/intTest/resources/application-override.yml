@@ -31,6 +31,7 @@ test-automation:
         reuse-between-runs: ${reuse-between-runs}
       ca-server:
         enabled: true
+        relative-a2c-path: "../../../development/acme2certifier"
         reuse-between-runs: ${reuse-between-runs}
       mail-server:
         enabled: true

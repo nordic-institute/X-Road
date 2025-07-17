@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,11 +26,10 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,23 +42,12 @@ public class EndpointRepository {
     private final PersistenceUtils persistenceUtils;
 
     /**
-     * Get Endpoint by id
+     * Get EndpointEntity by id
      *
-     * @param id
-     * @return
+     * @param id endpoint id
+     * @return EndpointEntity
      */
-    public EndpointType getEndpoint(Long id) {
-        return this.persistenceUtils.getCurrentSession().get(EndpointType.class, id);
+    public EndpointEntity getEndpoint(Long id) {
+        return this.persistenceUtils.getCurrentSession().get(EndpointEntity.class, id);
     }
-
-    /**
-     * Executes a Hibernate saveOrUpdate({@Link EndpointType})
-     *
-     * @param endpointType
-     */
-    public void saveOrUpdate(EndpointType endpointType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(endpointType);
-    }
-
-
 }

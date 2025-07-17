@@ -25,24 +25,20 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
+import org.niis.xroad.common.exception.NotFoundException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CSR_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CSR_NOT_FOUND;
 
 /**
  * Thrown if Certificate sign request was not found
  */
 public class CsrNotFoundException extends NotFoundException {
     public CsrNotFoundException(String s) {
-        super(s, createError());
+        super(s, CSR_NOT_FOUND.build());
     }
 
     public CsrNotFoundException(Throwable t) {
-        super(t, createError());
+        super(t, CSR_NOT_FOUND.build());
     }
 
-    private static ErrorDeviation createError() {
-        return new ErrorDeviation(ERROR_CSR_NOT_FOUND);
-    }
 }

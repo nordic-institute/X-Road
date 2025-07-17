@@ -35,4 +35,5 @@ import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 public class SubsystemCreationRequest {
     ClientId memberId;
     SubsystemId subsystemId;
+    String subsystemName;
 }

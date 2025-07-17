@@ -69,4 +69,9 @@ public class NavigationStepDefs extends BaseUiStepDefs {
     public void apiKeysSubTabIsSelected() {
         commonPageObj.subMenu.apiKeysTab().click();
     }
+
+    @Step("Traffic sub-tab is selected")
+    public void trafficSubTabIsSelected() {
+        commonPageObj.subMenu.trafficTab().click();
+    }
 }

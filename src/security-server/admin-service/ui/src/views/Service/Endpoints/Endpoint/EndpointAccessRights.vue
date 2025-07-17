@@ -63,7 +63,9 @@
       </thead>
       <tbody>
         <tr v-for="sc in serviceClients" :key="sc.id">
-          <td class="identifier-wrap">{{ sc.name }}</td>
+          <td class="identifier-wrap">
+            <client-name :service-client="sc" />
+          </td>
           <td class="identifier-wrap">{{ sc.id }}</td>
           <td>{{ $filters.formatDateTime(sc.rights_given_at ?? '') }}</td>
           <td>
@@ -121,10 +123,12 @@ import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
 import { useNotifications } from '@/store/modules/notifications';
+import ClientName from '@/components/client/ClientName.vue';
 
 export default defineComponent({
   name: 'EndpointAccessRights',
   components: {
+    ClientName,
     AccessRightsDialog,
   },
   props: {
@@ -244,8 +248,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .group-members-row {
   width: 100%;

@@ -31,7 +31,7 @@ import ee.ria.xroad.common.CodedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.cs.management.core.api.ManagementRequestService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -55,27 +55,15 @@ public class ManagementRequestController {
             produces = {MediaType.TEXT_XML_VALUE},
             consumes = {MediaType.MULTIPART_RELATED_VALUE, MediaType.TEXT_XML_VALUE + ";charset=UTF-8"})
     public ResponseEntity<String> addManagementRequest(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {
-        return managementRequestSoapExecutor.process(contentType, body,
-                result -> {
-                    Integer requestId;
-                    if (ManagementRequestType.AUTH_CERT_DELETION_REQUEST == result.getRequestType()) {
-                        var authCertDeletionRequest = result.getAuthCertDeletionRequest()
-                                .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "AuthCertDeletionRequest is missing"));
-
-                        requestId = managementRequestService.addManagementRequest(authCertDeletionRequest);
-                    } else if (ManagementRequestType.ADDRESS_CHANGE_REQUEST == result.getRequestType()) {
-                        var request = result.getAddressChangeRequest()
-                                .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "AddressChangeRequest is missing"));
-                        requestId = managementRequestService.addManagementRequest(request);
-                    } else {
-                        var clientRequest = result.getClientRequest()
-                                .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "ClientRequest is missing"));
-
-                        requestId = managementRequestService.addManagementRequest(clientRequest, result.getRequestType());
-                    }
-                    log.info("Added new management request with id {}", requestId);
-                    return requestId;
-                });
+        return managementRequestSoapExecutor.process(contentType, body, this::process);
     }
 
+    private Integer process(ManagementRequestVerifier.Result result) {
+        var requestId = result.getRequest()
+                .map(request -> managementRequestService.addManagementRequest(request, result.requestType()))
+                .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "Request of type: %s is missing".formatted(result.requestType())));
+
+        log.info("Added new management request with id {}", requestId);
+        return requestId;
+    }
 }

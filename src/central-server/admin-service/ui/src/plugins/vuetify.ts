@@ -26,14 +26,14 @@
  */
 
 import 'vuetify/styles';
-import * as components from 'vuetify/components';
 import '@mdi/font/css/materialdesignicons.css';
 import { createVuetify } from 'vuetify';
+import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
+import { useI18n } from 'vue-i18n';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
-import { Colors } from '@/global';
+import { i18n, Colors } from '@niis/shared-ui';
 
 export default createVuetify({
-  components,
   defaults: {
     VProgressLinear: {
       color: 'primary',
@@ -55,6 +55,9 @@ export default createVuetify({
       mdi,
     },
   },
+  locale: {
+    adapter: createVueI18nAdapter({ i18n, useI18n }),
+  },
   theme: {
     themes: {
       light: {
@@ -63,6 +66,7 @@ export default createVuetify({
           primary: Colors.Purple100,
           secondary: Colors.Purple70,
           error: Colors.Error,
+          success: Colors.Success10,
         },
       },
     },

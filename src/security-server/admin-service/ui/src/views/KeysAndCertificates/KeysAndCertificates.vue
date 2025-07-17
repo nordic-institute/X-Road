@@ -24,14 +24,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-container fluid class="xrd-view-common mt-7">
-      <router-view />
-    </v-container>
-  </div>
+  <router-view />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+
 export default defineComponent({});
 </script>

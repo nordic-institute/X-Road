@@ -1,4 +1,4 @@
- <!--
+<!--
    The MIT License
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -24,39 +24,35 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="xrd-view-common pa-7">
-    <div class="table-toolbar pb-3 pt-5">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title">{{ $t('tab.main.clients') }}</div>
+  <XrdTitledView title-key="tab.main.clients">
+    <template #append-title>
+      <xrd-search v-model="search" class="mb-1 ml-5" />
+    </template>
+    <template #header-buttons>
+      <xrd-button
+        v-if="showAddMember"
+        data-test="add-member-button"
+        class="add-member"
+        outlined
+        @click="addMember"
+      >
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-add />
+        </xrd-icon-base>
 
-        <xrd-search v-model="search" />
-      </div>
-      <div>
-        <xrd-button
-          v-if="showAddMember"
-          data-test="add-member-button"
-          class="add-member"
-          outlined
-          @click="addMember"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add />
-          </xrd-icon-base>
-
-          {{ $t('action.addMember') }}
-        </xrd-button>
-        <xrd-button
-          v-if="showAddClient"
-          data-test="add-client-button"
-          @click="addClient"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add />
-          </xrd-icon-base>
-          {{ $t('action.addClient') }}
-        </xrd-button>
-      </div>
-    </div>
+        {{ $t('action.addMember') }}
+      </xrd-button>
+      <xrd-button
+        v-if="showAddClient"
+        data-test="add-client-button"
+        @click="addClient"
+      >
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-add />
+        </xrd-icon-base>
+        {{ $t('action.addClient') }}
+      </xrd-button>
+    </template>
 
     <!-- @vue-ignore -->
     <v-data-table
@@ -85,14 +81,19 @@
           </xrd-icon-base>
           <span
             v-if="canOpenClient"
-            class="member-name identifier-wrap clickable"
+            class="client-name member-name identifier-wrap clickable"
+            data-test="btn-client-details"
             @click="openClient(item)"
-            >{{ item.visibleName }}
-            <span class="owner-box">{{ $t('client.owner') }}</span></span
           >
-          <span v-else class="member-name identifier-wrap owner-box"
-            >{{ item.visibleName }} {{ $t('client.owner') }}</span
+            {{ item.visibleName }}
+            <span class="owner-box">{{ $t('client.owner') }}</span>
+          </span>
+          <span
+            v-else
+            class="client-name member-name identifier-wrap owner-box"
           >
+            {{ item.visibleName }} {{ $t('client.owner') }}
+          </span>
         </template>
         <!-- Name - Member -->
         <template v-else-if="item.type === clientTypes.MEMBER">
@@ -104,13 +105,15 @@
           </xrd-icon-base>
           <span
             v-if="canOpenClient"
-            class="member-name identifier-wrap clickable"
+            class="client-name member-name identifier-wrap clickable"
+            data-test="btn-client-details"
             @click="openClient(item)"
-            >{{ item.visibleName }}</span
           >
-          <span v-else class="name identifier-wrap">{{
-            item.visibleName
-          }}</span>
+            {{ item.visibleName }}
+          </span>
+          <span v-else class="client-name name identifier-wrap">
+            {{ item.visibleName }}
+          </span>
         </template>
         <!-- Name - virtual member -->
         <template
@@ -123,19 +126,23 @@
             <xrd-icon-folder-outline />
           </xrd-icon-base>
 
-          <span class="identifier-wrap member-name">{{
-            item.visibleName
-          }}</span>
+          <span class="client-name identifier-wrap member-name">
+            {{ item.visibleName }}
+          </span>
         </template>
         <!-- Name - Subsystem -->
         <template v-else>
           <span
             v-if="canOpenClient"
             class="name identifier-wrap clickable"
+            data-test="btn-client-details"
             @click="openSubsystem(item)"
-            >{{ item.visibleName }}</span
           >
-          <span v-else class="name">{{ item.visibleName }}</span>
+            <subsystem-name class="client-name" :name="item.visibleName" />
+          </span>
+          <span v-else class="name">
+            <subsystem-name class="client-name" :name="item.visibleName" />
+          </span>
         </template>
       </template>
 
@@ -177,7 +184,8 @@
             text
             :outlined="false"
             @click="registerClient(item)"
-            >{{ $t('action.register') }}
+          >
+            {{ $t('action.register') }}
           </xrd-button>
         </div>
       </template>
@@ -185,7 +193,7 @@
       <template #no-data>{{ $t('action.noData') }}</template>
 
       <template #bottom>
-        <div class="custom-footer"></div>
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -201,7 +209,7 @@
       @cancel="confirmRegisterClient = false"
       @accept="registerAccepted(selectedClient)"
     />
-  </v-container>
+  </XrdTitledView>
 </template>
 
 <script lang="ts">
@@ -211,7 +219,7 @@
  */
 import { defineComponent } from 'vue';
 import ClientStatus from './ClientStatus.vue';
-import { Permissions, RouteName, ClientTypes } from '@/global';
+import { ClientTypes, Permissions, RouteName } from '@/global';
 import { createClientId } from '@/util/helpers';
 import { DataTableHeader, ExtendedClient } from '@/ui-types';
 import * as api from '@/util/api';
@@ -220,14 +228,21 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClients } from '@/store/modules/clients';
-import { XrdIconFolder, XrdIconFolderOutline } from '@niis/shared-ui';
+import {
+  XrdIconFolder,
+  XrdIconFolderOutline,
+  XrdDataTableFooter,
+} from '@niis/shared-ui';
 import { AxiosError } from 'axios';
+import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
   components: {
+    SubsystemName,
     XrdIconFolder,
     XrdIconFolderOutline,
     ClientStatus,
+    XrdDataTableFooter,
   },
 
   data: () => ({
@@ -262,21 +277,25 @@ export default defineComponent({
           title: this.$t('client.name') as string,
           align: 'start',
           key: 'visibleName',
+          cellProps: { 'data-test': 'client-name' },
         },
         {
           title: this.$t('client.id') as string,
           align: 'start',
           key: 'id',
+          cellProps: { 'data-test': 'client-id' },
         },
         {
           title: this.$t('client.status') as string,
           align: 'start',
           key: 'status',
+          cellProps: { 'data-test': 'client-status' },
         },
         {
           title: '',
           key: 'button',
           sortable: false,
+          cellProps: { 'data-test': 'client-actions' },
         },
       ];
     },
@@ -461,6 +480,10 @@ export default defineComponent({
         (client) => client.type === ClientTypes.SUBSYSTEM,
       );
 
+      function orUndefinedStr(name?: string): string {
+        return name || 'undefined';
+      }
+
       // First we order and filter the groups (filtering is based on the isFiltered attribute as well as if subsystems are visible)
       const groups = items
         .filter((client) => client.type !== ClientTypes.SUBSYSTEM)
@@ -479,8 +502,9 @@ export default defineComponent({
             index !== 'visibleName' ? 1 : sortDirection;
 
           return (
-            clientA.visibleName.localeCompare(clientB.visibleName) *
-            groupSortDirection
+            orUndefinedStr(clientA.visibleName).localeCompare(
+              orUndefinedStr(clientB.visibleName),
+            ) * groupSortDirection
           );
         });
 
@@ -495,8 +519,9 @@ export default defineComponent({
                 switch (index) {
                   case 'visibleName':
                     return (
-                      clientA.visibleName.localeCompare(clientB.visibleName) *
-                      sortDirection
+                      orUndefinedStr(clientA.visibleName).localeCompare(
+                        orUndefinedStr(clientB.visibleName),
+                      ) * sortDirection
                     );
                   case 'id':
                     return clientA.id.localeCompare(clientB.id) * sortDirection;
@@ -533,30 +558,13 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
-@use '@/assets/colors';
-
-.xrd-table-header {
-  border-bottom: 1px solid colors.$WarmGrey30 !important;
-}
-
-// Override Vuetify default table cell height
-.v-data-table > .v-table__wrapper > table > tbody > tr > td,
-.v-data-table > .v-table__wrapper > table > thead > tr > td,
-.v-data-table > .v-table__wrapper > table > tfoot > tr > td {
-  height: 56px;
-  color: colors.$Black100;
-}
-
-// Override Vuetify table row hover color
-.v-data-table > .v-table__wrapper > table > tbody > tr:hover {
-  background: colors.$Purple10 !important;
-}
-</style>
-
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+
+:deep(.data-table .v-data-table__td) {
+  height: 56px;
+}
 
 .icon-member {
   padding-left: 0;
@@ -572,15 +580,6 @@ export default defineComponent({
 .icon-size {
   font-size: 20px;
   padding-bottom: 4px;
-}
-
-.table-toolbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-bottom: 24px;
 }
 
 .data-table {

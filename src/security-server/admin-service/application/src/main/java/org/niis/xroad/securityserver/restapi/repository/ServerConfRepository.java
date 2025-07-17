@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,16 +26,15 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.stereotype.Repository;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * repository for working with ServerConfEntity / serverconf table
  */
 @Slf4j
 @Repository
@@ -44,20 +44,18 @@ public class ServerConfRepository {
     private final PersistenceUtils persistenceUtils;
 
     /**
-     * Return ServerConfType
-     * @return
+     * Return ServerConfEntity
+     * @return ServerConfEntity
      */
-    public ServerConfType getServerConf() {
+    public ServerConfEntity getServerConf() {
         ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
         return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
     }
 
     /**
-     * Save or update ServerConf
-     * @return
+     * Save or update ServerConfEntity
      */
-    public ServerConfType saveOrUpdate(ServerConfType serverConfType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(serverConfType);
-        return serverConfType;
+    public void saveOrUpdate(ServerConfEntity serverConfEntity) {
+        persistenceUtils.getCurrentSession().merge(serverConfEntity);
     }
 }

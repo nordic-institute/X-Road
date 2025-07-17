@@ -25,13 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,6 +36,12 @@ import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.api.dto.CertRequestInfo;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -57,6 +56,7 @@ import java.util.Set;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
@@ -155,16 +155,13 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 throw new RuntimeException(arguments[0] + " not supported");
             }
             return null;
-        }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
+        }).when(signerRpcClient).setKeyFriendlyName(any(), any());
         mockPossibleActionsRuleEngineAllowAll();
     }
 
     @Test
     public void getKey() throws Exception {
-        try {
-            keyService.getKey(KEY_NOT_FOUND_KEY_ID);
-        } catch (KeyNotFoundException expected) {
-        }
+        assertThrows(KeyNotFoundException.class, () -> keyService.getKey(KEY_NOT_FOUND_KEY_ID));
         KeyInfo keyInfo = keyService.getKey(AUTH_KEY_ID);
         assertEquals(AUTH_KEY_ID, keyInfo.getId());
     }
@@ -191,21 +188,17 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY", "SEND_AUTH_CERT_DEL_REQ"})
     public void deleteKey() throws Exception {
         keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .deleteKey(AUTH_KEY_ID, true);
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .deleteKey(AUTH_KEY_ID, false);
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .setCertStatus(REGISTERED_AUTH_CERT_ID, CertificateInfo.STATUS_DELINPROG);
         verify(managementRequestSenderService, times(1))
                 .sendAuthCertDeletionRequest(any());
-        verifyNoMoreInteractions(signerProxyFacade);
+        verifyNoMoreInteractions(signerRpcClient);
 
-        try {
-            keyService.deleteKeyAndIgnoreWarnings(KEY_NOT_FOUND_KEY_ID);
-            fail("should throw exception");
-        } catch (KeyNotFoundException expected) {
-        }
+        assertThrows(KeyNotFoundException.class, () -> keyService.deleteKeyAndIgnoreWarnings(KEY_NOT_FOUND_KEY_ID));
 
     }
 
@@ -217,7 +210,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
             fail("should throw exception");
         } catch (UnhandledWarningsException expected) {
             Assert.assertEquals(DeviationCodes.WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED,
-                    expected.getWarningDeviations().iterator().next().getCode());
+                    expected.getWarningDeviations().iterator().next().code());
         }
 
     }
@@ -281,11 +274,8 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
     public void deleteChecksPossibleActions() throws Exception {
         mockPossibleActionsRuleEngineDenyAll();
-        try {
-            keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
-            fail("should not be possible");
-        } catch (ActionNotPossibleException expected) {
-        }
+
+        assertThrows(ActionNotPossibleException.class, () -> keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID));
     }
 
     @Test
@@ -298,7 +288,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
 
     private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngineParam) {
         // override instead of mocking for better performance
-        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngineParam, auditDataHelper,
+        tokenService = new TokenService(signerRpcClient, possibleActionsRuleEngineParam, auditDataHelper,
                 tokenPinValidator) {
             @Override
             public TokenInfo getTokenForKeyId(String keyId) throws KeyNotFoundException {
@@ -316,7 +306,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 return Collections.singletonList(tokenInfo);
             }
         };
-        keyService = new KeyService(signerProxyFacade, tokenService, possibleActionsRuleEngineParam,
+        keyService = new KeyService(signerRpcClient, tokenService, possibleActionsRuleEngineParam,
                 managementRequestSenderService, securityHelper, auditDataHelper, auditEventHelper);
     }
 

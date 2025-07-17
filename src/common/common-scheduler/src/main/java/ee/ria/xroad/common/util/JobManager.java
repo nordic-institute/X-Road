@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.util;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.CronExpression;
@@ -37,8 +39,6 @@ import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.spi.JobFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Date;
 import java.util.List;
@@ -52,7 +52,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
  * Service to manage periodic jobs.
  */
 @Slf4j
-public class JobManager implements InitializingBean, DisposableBean {
+public class JobManager {
 
     static {
         // Disable update check
@@ -84,12 +84,12 @@ public class JobManager implements InitializingBean, DisposableBean {
         jobScheduler.setJobFactory(jobFactory);
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         jobScheduler.start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         jobScheduler.shutdown();
     }

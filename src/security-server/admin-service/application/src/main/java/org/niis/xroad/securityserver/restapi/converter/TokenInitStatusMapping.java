@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,42 +29,42 @@ package org.niis.xroad.securityserver.restapi.converter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenInitStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenInitStatusDto;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between {@link TokenInitStatus} in api (enum) and model {@link TokenInitStatusInfo}
+ * Mapping between {@link TokenInitStatusDto} in api (enum) and model {@link TokenInitStatusInfo}
  */
 @Getter
 @RequiredArgsConstructor
 public enum TokenInitStatusMapping {
-    INITIALIZED(TokenInitStatusInfo.INITIALIZED, TokenInitStatus.INITIALIZED),
-    NOT_INITIALIZED(TokenInitStatusInfo.NOT_INITIALIZED, TokenInitStatus.NOT_INITIALIZED),
-    UNKNOWN(TokenInitStatusInfo.UNKNOWN, TokenInitStatus.UNKNOWN);
+    INITIALIZED(TokenInitStatusInfo.INITIALIZED, TokenInitStatusDto.INITIALIZED),
+    NOT_INITIALIZED(TokenInitStatusInfo.NOT_INITIALIZED, TokenInitStatusDto.NOT_INITIALIZED),
+    UNKNOWN(TokenInitStatusInfo.UNKNOWN, TokenInitStatusDto.UNKNOWN);
 
     private final TokenInitStatusInfo tokenInitStatusInfo;
-    private final TokenInitStatus tokenInitStatus;
+    private final TokenInitStatusDto tokenInitStatusDto;
 
     /**
      * Return matching {@link TokenInitStatusInfo}, if any
      *
-     * @param tokenInitStatus
+     * @param tokenInitStatusDto
      */
-    public static Optional<TokenInitStatusInfo> map(TokenInitStatus tokenInitStatus) {
-        return getFor(tokenInitStatus).map(TokenInitStatusMapping::getTokenInitStatusInfo);
+    public static Optional<TokenInitStatusInfo> map(TokenInitStatusDto tokenInitStatusDto) {
+        return getFor(tokenInitStatusDto).map(TokenInitStatusMapping::getTokenInitStatusInfo);
     }
 
     /**
-     * Return matching {@link TokenInitStatus}, if any
+     * Return matching {@link TokenInitStatusDto}, if any
      *
      * @param tokenInitStatusInfo
      */
-    public static TokenInitStatus map(TokenInitStatusInfo tokenInitStatusInfo) {
+    public static TokenInitStatusDto map(TokenInitStatusInfo tokenInitStatusInfo) {
         return getFor(tokenInitStatusInfo)
-                .map(TokenInitStatusMapping::getTokenInitStatus)
-                .orElse(TokenInitStatus.UNKNOWN);
+                .map(TokenInitStatusMapping::getTokenInitStatusDto)
+                .orElse(TokenInitStatusDto.UNKNOWN);
     }
 
     /**
@@ -80,11 +81,11 @@ public enum TokenInitStatusMapping {
     /**
      * Return matching {@link TokenInitStatusMapping}, if any
      *
-     * @param tokenInitStatus
+     * @param tokenInitStatusDto
      */
-    public static Optional<TokenInitStatusMapping> getFor(TokenInitStatus tokenInitStatus) {
+    public static Optional<TokenInitStatusMapping> getFor(TokenInitStatusDto tokenInitStatusDto) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.tokenInitStatus.equals(tokenInitStatus))
+                .filter(mapping -> mapping.tokenInitStatusDto.equals(tokenInitStatusDto))
                 .findFirst();
     }
 }

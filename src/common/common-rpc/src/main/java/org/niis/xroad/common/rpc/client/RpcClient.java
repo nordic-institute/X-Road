@@ -48,13 +48,14 @@ import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 import org.niis.xroad.rpc.error.CodedExceptionProto;
 
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Slf4j
 public final class RpcClient<C extends RpcClient.ExecutionContext> {
+    private static final int SHUTDOWN_TIMEOUT_SECONDS = 30;
     private static final int DEFAULT_DEADLINE_MILLIS = 60 * 1000;
 
     private final long rpcDeadlineMillis;
@@ -108,7 +109,18 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
         if (channel.isShutdown()) {
             log.warn("gRPC client is already shutdown!");
         } else {
-            channel.shutdown();
+            log.info("Shutting down RPC client...");
+            try {
+                channel.shutdown();
+                if (!channel.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                    log.warn("RPC channel did not terminate gracefully within 30 seconds");
+                    channel.shutdownNow();
+                }
+                log.info("RPC client shutdown completed");
+            } catch (Exception e) {
+                log.error("Error shutting down RPC client", e);
+                channel.shutdownNow();
+            }
         }
     }
 
@@ -121,9 +133,8 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             return grpcCall.exec(executionContext);
         } catch (StatusRuntimeException error) {
             if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
-                throw CodedException.tr(X_NETWORK_ERROR, "signer_client_timeout",
-                                "Signer client timed out. Deadline: " + rpcDeadlineMillis + " ms")
-                        .withPrefix(SIGNER_X);
+                throw CodedException.tr(X_NETWORK_ERROR, "grpc_client_timeout",
+                                "gRPC client timed out. Deadline: " + rpcDeadlineMillis + " ms");
             }
             com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
             if (status != null) {
@@ -138,8 +149,7 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             if (any.is(CodedExceptionProto.class)) {
                 try {
                     final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
-                    throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString())
-                            .withPrefix(SIGNER_X);
+                    throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString());
                 } catch (InvalidProtocolBufferException e) {
                     throw new RuntimeException("Failed to parse grpc message", e);
                 }

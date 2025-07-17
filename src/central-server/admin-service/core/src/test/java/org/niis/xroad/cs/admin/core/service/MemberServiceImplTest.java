@@ -38,7 +38,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
@@ -159,9 +159,9 @@ class MemberServiceImplTest {
 
             Executable testable = () -> memberService.add(new MemberCreationRequest(memberName, MEMBER_CLASS, memberId));
 
-            DataIntegrityException exception = assertThrows(DataIntegrityException.class, testable);
-            assertEquals(MEMBER_EXISTS.getDescription(), exception.getMessage());
-            assertThat(exception.getErrorDeviation().getMetadata())
+            ConflictException exception = assertThrows(ConflictException.class, testable);
+            assertEquals(MEMBER_EXISTS.code(), exception.getErrorDeviation().code());
+            assertThat(exception.getErrorDeviation().metadata())
                     .hasSize(1)
                     .containsExactly(clientIdentifier);
 
@@ -223,7 +223,7 @@ class MemberServiceImplTest {
             Executable testable = () -> memberService.delete(clientId);
 
             NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
-            assertEquals(ErrorMessage.MEMBER_NOT_FOUND.getDescription(), actualThrown.getMessage());
+            assertEquals(ErrorMessage.MEMBER_NOT_FOUND.code(), actualThrown.getErrorDeviation().code());
             verify(xRoadMemberRepository).findMember(clientId);
             verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
             verify(auditData).put(MEMBER_CODE, "MEMBER");

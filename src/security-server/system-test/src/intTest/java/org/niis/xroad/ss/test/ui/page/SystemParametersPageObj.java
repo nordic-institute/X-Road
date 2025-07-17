@@ -71,6 +71,10 @@ public class SystemParametersPageObj {
                 .get(index).$x(".//button[@data-test='system-parameters-timestamping-service-delete-button']");
     }
 
+    public SelenideElement toggleMaintenanceMode() {
+        return $x("//div[@data-test='maintenance-mode-switch']");
+    }
+
     public static class DialogEditServerAddress {
         public SelenideElement addressField() {
             return $x("//div[@data-test='security-server-address-edit-field']");

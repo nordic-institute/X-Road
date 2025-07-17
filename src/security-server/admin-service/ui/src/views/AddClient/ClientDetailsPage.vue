@@ -43,35 +43,35 @@
     </div>
 
     <div class="wizard-step-form-content">
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.memberName')"
-          :help-text="$t('wizard.client.memberNameTooltip')"
-        />
+      <wizard-row-wrap-t
+        label="wizard.memberName"
+        tooltip="wizard.client.memberNameTooltip"
+      >
         <div data-test="selected-member-name">{{ selectedMemberName }}</div>
-      </div>
+      </wizard-row-wrap-t>
 
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.memberClass')"
-          :help-text="$t('wizard.client.memberClassTooltip')"
-        />
+      <wizard-row-wrap-t
+        label="wizard.memberClass"
+        tooltip="wizard.client.memberClassTooltip"
+      >
         <v-select
-          v-bind="memberClassRef"
+          v-model="memberClassMdl"
+          v-bind="memberClassAttr"
           :items="memberClassItems"
           class="wizard-form-input"
           data-test="member-class-input"
           :placeholder="$t('wizard.selectMemberClass')"
           variant="outlined"
         ></v-select>
-      </div>
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.memberCode')"
-          :help-text="$t('wizard.client.memberCodeTooltip')"
-        />
+      </wizard-row-wrap-t>
+
+      <wizard-row-wrap-t
+        label="wizard.memberCode"
+        tooltip="wizard.client.memberCodeTooltip"
+      >
         <v-text-field
-          v-bind="memberCodeRef"
+          v-model="memberCodeMdl"
+          v-bind="memberCodeAttr"
           class="wizard-form-input"
           type="text"
           autofocus
@@ -79,34 +79,44 @@
           variant="outlined"
           data-test="member-code-input"
         ></v-text-field>
-      </div>
+      </wizard-row-wrap-t>
 
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.subsystemCode')"
-          :help-text="$t('wizard.client.subsystemCodeTooltip')"
-        />
+      <wizard-row-wrap-t
+        label="wizard.subsystemCode"
+        tooltip="wizard.client.subsystemCodeTooltip"
+      >
         <v-text-field
-          v-bind="subsystemCodeRef"
+          v-model="subsystemCodeMdl"
+          v-bind="subsystemCodeAttr"
           class="wizard-form-input"
           type="text"
           variant="outlined"
           :placeholder="$t('wizard.subsystemCode')"
           data-test="subsystem-code-input"
         ></v-text-field>
-      </div>
-      <div v-if="duplicateClient" class="wizard-duplicate-warning">
-        {{ $t('wizard.client.clientExists') }}
-      </div>
+      </wizard-row-wrap-t>
+
+      <wizard-row-wrap-t
+        v-if="doesSupportSubsystemNames"
+        label="wizard.subsystemName"
+        tooltip="wizard.client.subsystemNameTooltip"
+      >
+        <v-text-field
+          v-model="subsystemNameMdl"
+          v-bind="subsystemNameAttr"
+          class="wizard-form-input"
+          type="text"
+          variant="outlined"
+          :placeholder="$t('wizard.subsystemName')"
+          data-test="subsystem-name-input"
+        ></v-text-field>
+      </wizard-row-wrap-t>
     </div>
     <div class="button-footer">
       <xrd-button outlined data-test="cancel-button" @click="cancel"
         >{{ $t('action.cancel') }}
       </xrd-button>
-      <xrd-button
-        :disabled="!meta.valid || duplicateClient"
-        data-test="next-button"
-        @click="done"
+      <xrd-button :disabled="!meta.valid" data-test="next-button" @click="done"
         >{{ $t('action.next') }}
       </xrd-button>
     </div>
@@ -125,15 +135,18 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
-import { debounce, isEmpty, containsClient } from '@/util/helpers';
+import { containsClient, debounce, isEmpty } from '@/util/helpers';
 import { Client } from '@/openapi-types';
 import { AddMemberWizardModes } from '@/global';
-import { PublicPathState, useForm } from 'vee-validate';
+import { defineRule, PublicPathState, useForm } from 'vee-validate';
 import { mapActions, mapState, mapWritableState } from 'pinia';
 import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
 import { useUser } from '@/store/modules/user';
+import WizardRowWrapT from '@/components/ui/WizardRowWrapT.vue';
+import { useI18n } from 'vue-i18n';
+import { useSystem } from '@/store/modules/system';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -141,40 +154,60 @@ let that: any;
 
 export default defineComponent({
   components: {
+    WizardRowWrapT,
     SelectClientDialog,
   },
   emits: ['cancel', 'done'],
   setup() {
-    const { meta, values, validateField, setFieldValue, defineComponentBinds } =
-      useForm({
+    const { reservedClients, memberClass, memberCode } = useAddClient();
+    const { t } = useI18n();
+
+    function uniqueClient(subsystemCode: string) {
+      if (
+        containsClient(reservedClients, memberClass, memberCode, subsystemCode)
+      ) {
+        return t('wizard.client.clientExists');
+      }
+      return true;
+    }
+
+    defineRule('uniqueClient', uniqueClient);
+    const { meta, values, validateField, setFieldValue, defineField } = useForm(
+      {
         validationSchema: {
           'addClient.memberClass': 'required',
           'addClient.memberCode': 'required|max:255|xrdIdentifier',
-          'addClient.subsystemCode': 'required|max:255|xrdIdentifier',
+          'addClient.subsystemCode':
+            'required|max:255|xrdIdentifier|uniqueClient',
+          'addClient.subsystemName': 'max:255|xrdIdentifier',
         },
         initialValues: {
           addClient: {
             memberClass: '',
             memberCode: '',
             subsystemCode: '',
+            subsystemName: '',
           },
         },
-      });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
       },
-    });
-    const memberClassRef = defineComponentBinds(
+    );
+    const componentConfig = {
+      props: (state: PublicPathState) => ({ 'error-messages': state.errors }),
+    };
+    const [memberClassMdl, memberClassAttr] = defineField(
       'addClient.memberClass',
       componentConfig,
     );
-    const memberCodeRef = defineComponentBinds(
+    const [memberCodeMdl, memberCodeAttr] = defineField(
       'addClient.memberCode',
       componentConfig,
     );
-    const subsystemCodeRef = defineComponentBinds(
+    const [subsystemCodeMdl, subsystemCodeAttr] = defineField(
       'addClient.subsystemCode',
+      componentConfig,
+    );
+    const [subsystemNameMdl, subsystemNameAttr] = defineField(
+      'addClient.subsystemName',
       componentConfig,
     );
     return {
@@ -182,9 +215,14 @@ export default defineComponent({
       values,
       validateField,
       setFieldValue,
-      memberClassRef,
-      memberCodeRef,
-      subsystemCodeRef,
+      memberClassMdl,
+      memberClassAttr,
+      memberCodeMdl,
+      memberCodeAttr,
+      subsystemCodeMdl,
+      subsystemCodeAttr,
+      subsystemNameMdl,
+      subsystemNameAttr,
     };
   },
   data() {
@@ -195,31 +233,21 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useAddClient, [
-      'reservedClients',
-      'selectableClients',
-      'selectedMemberName',
-    ]),
+    ...mapState(useAddClient, ['selectableClients', 'selectedMemberName']),
     ...mapWritableState(useAddClient, [
       'memberClass',
       'memberCode',
       'subsystemCode',
+      'subsystemName',
     ]),
     ...mapState(useGeneral, ['memberClassesCurrentInstance']),
     ...mapState(useUser, ['currentSecurityServer']),
+    ...mapState(useSystem, ['doesSupportSubsystemNames']),
     memberClassItems() {
       return this.memberClassesCurrentInstance.map((memberClass) => ({
         title: memberClass,
         value: memberClass,
       }));
-    },
-    duplicateClient(): boolean {
-      return containsClient(
-        this.reservedClients,
-        this.values.addClient.memberClass,
-        this.values.addClient.memberCode,
-        this.values.addClient.subsystemCode,
-      );
     },
   },
   watch: {
@@ -258,6 +286,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
     this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
     this.fetchSelectableClients(that.currentSecurityServer.instance_id);
@@ -282,6 +311,7 @@ export default defineComponent({
       this.memberClass = this.values.addClient.memberClass;
       this.memberCode = this.values.addClient.memberCode;
       this.subsystemCode = this.values.addClient.subsystemCode;
+      this.subsystemName = this.values.addClient.subsystemName;
       this.$emit('done');
     },
     saveSelectedClient(selectedMember: Client): void {
@@ -292,9 +322,13 @@ export default defineComponent({
         'addClient.subsystemCode',
         selectedMember.subsystem_code ?? '',
       );
-      this.fetchReservedClients(selectedMember).catch((error) => {
-        this.showError(error);
-      });
+      this.setFieldValue(
+        'addClient.subsystemName',
+        selectedMember.subsystem_name ?? '',
+      );
+      this.fetchReservedClients(selectedMember).catch((error) =>
+        this.showError(error),
+      );
 
       this.showSelectClient = false;
     },
@@ -346,5 +380,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

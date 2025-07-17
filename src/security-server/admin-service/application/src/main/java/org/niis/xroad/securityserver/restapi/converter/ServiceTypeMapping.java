@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,14 +26,14 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceType;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceTypeDto;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Mapping between ServiceType in api (enum) and model (DescriptionType)
@@ -40,51 +41,24 @@ import java.util.Optional;
 @Getter
 @RequiredArgsConstructor
 public enum ServiceTypeMapping {
-    WSDL(DescriptionType.WSDL, ServiceType.WSDL),
-    OPENAPI3(DescriptionType.OPENAPI3, ServiceType.OPENAPI3),
-    REST(DescriptionType.REST, ServiceType.REST);
+    WSDL(DescriptionType.WSDL, ServiceTypeDto.WSDL),
+    OPENAPI3(DescriptionType.OPENAPI3, ServiceTypeDto.OPENAPI3),
+    REST(DescriptionType.REST, ServiceTypeDto.REST);
 
     private final DescriptionType descriptionType;
-    private final ServiceType serviceType;
+    private final ServiceTypeDto serviceTypeDto;
 
-    /**
-     * Return matching ServiceType, if any
-     * @param descriptionType
-     * @return
-     */
-    public static Optional<ServiceType> map(DescriptionType descriptionType) {
-        return getFor(descriptionType).map(ServiceTypeMapping::getServiceType);
+    private static final Map<DescriptionType, ServiceTypeDto> DESCRIPTION_TO_SERVICE_MAP =
+            Stream.of(values()).collect(Collectors.toMap(ServiceTypeMapping::getDescriptionType, ServiceTypeMapping::getServiceTypeDto));
+
+    private static final Map<ServiceTypeDto, DescriptionType> SERVICE_TO_DESCRIPTION_MAP =
+            Stream.of(values()).collect(Collectors.toMap(ServiceTypeMapping::getServiceTypeDto, ServiceTypeMapping::getDescriptionType));
+
+    public static ServiceTypeDto map(DescriptionType descriptionType) {
+        return DESCRIPTION_TO_SERVICE_MAP.get(descriptionType);
     }
 
-    /**
-     * Return matching DescriptionType, if any
-     * @param serviceType
-     * @return
-     */
-    public static Optional<DescriptionType> map(ServiceType serviceType) {
-        return getFor(serviceType).map(ServiceTypeMapping::getDescriptionType);
+    public static DescriptionType map(ServiceTypeDto serviceType) {
+        return SERVICE_TO_DESCRIPTION_MAP.get(serviceType);
     }
-
-    /**
-     * return ServiceTypeMapping matching the given descriptionType, if any
-     * @param descriptionType
-     * @return
-     */
-    public static Optional<ServiceTypeMapping> getFor(DescriptionType descriptionType) {
-        return Arrays.stream(values())
-                .filter(mapping -> mapping.descriptionType.equals(descriptionType))
-                .findFirst();
-    }
-
-    /**
-     * return ServiceTypeMapping matching the given serviceType, if any
-     * @param serviceType
-     * @return
-     */
-    public static Optional<ServiceTypeMapping> getFor(ServiceType serviceType) {
-        return Arrays.stream(values())
-                .filter(mapping -> mapping.serviceType.equals(serviceType))
-                .findFirst();
-    }
-
 }

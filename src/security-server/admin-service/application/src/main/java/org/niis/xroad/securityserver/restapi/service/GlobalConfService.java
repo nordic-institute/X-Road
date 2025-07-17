@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,19 +28,19 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.GlobalGroupInfo;
+import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -54,6 +55,7 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -85,7 +87,7 @@ public class GlobalConfService {
         this.serverConfService = serverConfService;
         this.downloadConfigurationAnchorUrl = String.format(downloadConfigurationAnchorUrl, CONF_CLIENT_ADMIN_PORT);
         this.restTemplate = restTemplateBuilder
-                .setReadTimeout(Duration.ofMillis(REST_TEMPLATE_TIMEOUT_MS))
+                .readTimeout(Duration.ofMillis(REST_TEMPLATE_TIMEOUT_MS))
                 .build();
     }
 
@@ -109,9 +111,10 @@ public class GlobalConfService {
      * Global groups may or may not have entries in IDENTIFIER table
      */
     public boolean globalGroupsExist(Collection<? extends XRoadId> identifiers) {
-        List<XRoadId> existingIdentifiers = globalConfProvider.getGlobalGroups().stream()
-                .map(GlobalGroupInfo::getId)
-                .collect(Collectors.toList());
+        var existingIdentifiers = globalConfProvider.getGlobalGroups().stream()
+                .map(GlobalGroupInfo::id)
+                .map(XRoadId.class::cast)
+                .collect(Collectors.toSet());
         return existingIdentifiers.containsAll(identifiers);
     }
 
@@ -121,9 +124,10 @@ public class GlobalConfService {
      * Clients may or may not have entries in IDENTIFIER table
      */
     public boolean clientsExist(Collection<? extends XRoadId> identifiers) {
-        List<XRoadId> existingIdentifiers = globalConfProvider.getMembers().stream()
-                .map(MemberInfo::getId)
-                .collect(Collectors.toList());
+        var existingIdentifiers = globalConfProvider.getMembers().stream()
+                .map(MemberInfo::id)
+                .map(XRoadId.class::cast)
+                .collect(Collectors.toSet());
         return existingIdentifiers.containsAll(identifiers);
     }
 
@@ -140,7 +144,6 @@ public class GlobalConfService {
 
     /**
      * Check the validity of the GlobalConf
-     *
      * @throws GlobalConfOutdatedException if conf is outdated
      */
     public void verifyGlobalConfValidity() throws GlobalConfOutdatedException {
@@ -184,9 +187,9 @@ public class GlobalConfService {
 
     /**
      * @return approved timestamping services for current instance.
-     * {@link TspType#getId()} is null for all returned items
+     * {@link TimestampingService#getId()} is null for all returned items
      */
-    public List<TspType> getApprovedTspsForThisInstance() {
+    public List<TimestampingService> getApprovedTspsForThisInstance() {
         List<SharedParameters.ApprovedTSA> approvedTspTypes =
                 globalConfProvider.getApprovedTsps(globalConfProvider.getInstanceIdentifier());
         return approvedTspTypes.stream()
@@ -195,10 +198,10 @@ public class GlobalConfService {
     }
 
     /**
-     * init TspType DTO with name and url. id will be null
+     * init TimestampingService DTO with name and url. id will be null
      */
-    private TspType createTspType(SharedParameters.ApprovedTSA approvedTSA) {
-        TspType tsp = new TspType();
+    private TimestampingService createTspType(SharedParameters.ApprovedTSA approvedTSA) {
+        TimestampingService tsp = new TimestampingService();
         tsp.setUrl(approvedTSA.getUrl());
         tsp.setName(approvedTSA.getName());
         return tsp;
@@ -214,26 +217,24 @@ public class GlobalConfService {
 
     /**
      * Sends an http request to configuration-client in order to trigger the downloading of the global conf
-     *
      * @throws ConfigurationDownloadException if the request succeeds but configuration-client returns an error
      * @throws DeviationAwareRuntimeException if the request fails
      */
     public void executeDownloadConfigurationFromAnchor() throws ConfigurationDownloadException {
         log.info("Starting to download GlobalConf");
-        ResponseEntity<String> response = null;
+        ResponseEntity<String> response;
         try {
             response = restTemplate.getForEntity(downloadConfigurationAnchorUrl, String.class);
         } catch (RestClientException e) {
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_GLOBAL_CONF_DOWNLOAD_REQUEST));
         }
-        if (response != null && response.getStatusCode() != HttpStatus.OK) {
+        if (response.getStatusCode() != HttpStatus.OK) {
             throw new ConfigurationDownloadException(response.getBody());
         }
     }
 
     /**
      * Find member's name in the global conf
-     *
      * @param memberClass
      * @param memberCode
      * @return
@@ -242,5 +243,10 @@ public class GlobalConfService {
         String instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         ClientId clientId = ClientId.Conf.create(instanceIdentifier, memberClass, memberCode);
         return globalConfProvider.getMemberName(clientId);
+    }
+
+
+    public OptionalInt getGlobalConfigurationVersion() {
+        return globalConfProvider.getVersion();
     }
 }

@@ -13,13 +13,14 @@
     "**/*.cer",
     "**/*.log",
     "**/*.yaml*",
-    "**/*.gradle",
+    "**/*.gradle.kts",
     "**/.*",
     "src/openapi-types/",
     "**/openapi-types.ts",
     "scripts/dtsgen-wrapper.js",
     "tests/e2e/testdata/**",
-    "build/"
+    "build/",
+    ".settings/**"
   ],
   "license": "LICENSE.txt",
   "licenseFormats": {

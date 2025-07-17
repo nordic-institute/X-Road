@@ -1,15 +1,4 @@
 {
-  "403": {
-    "goBack": "Volver",
-    "mainTitle": "Permiso denegado",
-    "text": "Parece que no tienes el permiso para ver esta página. Si crees que esto es un error, verifica si has iniciado sesión en la cuenta correcta o comunícate con tu Administrador para preguntar sobre tus permisos.",
-    "topTitle": "Denegado"
-  },
-  "404": {
-    "pageNotFound": "404 - Página no encontrada",
-    "text": "Ups, página no encontrada",
-    "textUnicorn": "Error 404"
-  },
   "accessRights": {
     "addServiceClients": "Agregar permisos",
     "addServiceClientsSuccess": "Permisos de acceso agregados con éxito",
@@ -26,8 +15,6 @@
     "title": "Permisos de acceso"
   },
   "action": {
-    "cancel": "Cancelar",
-    "delete": "Eliminar",
     "disable": "Desactivar",
     "enable": "Permitir",
     "order": "Orden"
@@ -61,6 +48,12 @@
     "signCertificate": "Firmar certificado",
     "state": "Estado"
   },
+  "certificate": {
+    "hash": "Certificado Hash",
+    "notAfter": "No después",
+    "notBefore": "No antes",
+    "subjectDistinguishedName": "Sujeto Nombre distinguido"
+  },
   "certificateProfile": {
     "COMMON_NAME": "Nombre común (CN)",
     "COUNTRY_CODE": "Código de país (C)",
@@ -86,6 +79,16 @@
         "confirmTitle": "Eliminar cliente",
         "success": "Cliente eliminado"
       },
+      "disable": {
+        "confirmText": "¿Quieres deshabilitar a este cliente?",
+        "confirmTitle": "Deshabilitar el cliente",
+        "success": "La deshabilitación del cliente está en progreso"
+      },
+      "enable": {
+        "confirmText": "Estás seguro de que deseas habilitar a este cliente?",
+        "confirmTitle": "Habilitación de cliente",
+        "success": "La habilitación del cliente está en progreso"
+      },
       "makeOwner": {
         "button": "Convertir en propietario",
         "confirmText1": "¿Desea convertir al miembro que se indica a continuación en el nuevo miembro propietario de este servidor de seguridad?",
@@ -103,16 +106,6 @@
         "confirmText": "¿Estas seguro de que deseas quitar el registro a este cliente?",
         "confirmTitle": "Se ha quitado el registro al cliente. El cliente ya no está registrado.",
         "success": "Se ha quitado el registro al cliente."
-      },
-      "disable": {
-        "confirmText": "¿Quieres deshabilitar a este cliente?",
-        "confirmTitle": "Deshabilitar el cliente",
-        "success": "La deshabilitación del cliente está en progreso"
-      },
-      "enable": {
-        "confirmText": "Estás seguro de que deseas habilitar a este cliente?",
-        "confirmTitle": "Habilitación de cliente",
-        "success": "La habilitación del cliente está en progreso"
       }
     },
     "id": "ID",
@@ -125,13 +118,13 @@
     "status": "Estado",
     "statusText": {
       "deletionInProgress": "Eliminación en progreso",
+      "disabled": "DESHABILITADO",
+      "disablingInProgress": "Deshabilitación en progreso",
+      "enablingInProgress": "Habilitación en progreso",
       "globalError": "Error global",
       "registered": "REGISTRADO",
       "registrationInProgress": "Registro en progreso",
-      "saved": "Guardado",
-      "disabled": "DESHABILITADO",
-      "disablingInProgress": "Deshabilitación en progreso",
-      "enablingInProgress": "Habilitación en progreso"
+      "saved": "Guardado"
     },
     "subsystemCode": "Código de subsistema",
     "unknownMember": "Miembro desconocido"
@@ -160,9 +153,9 @@
     "helpClient": "Miembro de X-Road para el cual se emitirá el certificado.",
     "helpCsrFormat": "Formato de la solicitud de firma de certificado según los requisitos de la CA.",
     "helpUsage": "Política de uso del certificado: firmar mensajes o autenticar el servidor de seguridad.",
+    "orderAcmeCertificate": "Solicita el certificado al servidor ACME con el CSR generado e importa el certificado devuelto al token.",
     "saveInfo": "Genera un nuevo CSR y guárdalo en un lugar seguro.",
-    "usage": "Uso",
-    "orderAcmeCertificate": "Solicita el certificado al servidor ACME con el CSR generado e importa el certificado devuelto al token."
+    "usage": "Uso"
   },
   "customValidation": {
     "invalidEndpoint": "El Endpoint contiene caracteres ilegales",
@@ -173,6 +166,29 @@
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Deshabilitado por configuración"
+    },
+    "encryption": {
+      "backup": {
+        "configuredKeyId": "Clave de ID configurada",
+        "title": "Cifrado de copia de seguridad"
+      },
+      "messageLog": {
+        "archive": {
+          "defaultKeyNote": "Este miembro está configurado para usar la clave de cifrado predeterminada de los servidores. Para una seguridad adicional, considera definir una clave específica para ser utilizada.",
+          "groupingTitle": "Regla de agrupación:",
+          "keyId": "Clave de ID",
+          "memberIdentifier": "Identificador de miembro",
+          "title": "Cifrado de archivo de registro de mensajes"
+        },
+        "database": {
+          "title": "Cifrado de la base de datos del registro de mensajes"
+        }
+      },
+      "status": {
+        "false": "Deshabilitado",
+        "true": "Habilitado"
+      },
+      "statusTitle": "Estado de cifrado:"
     },
     "globalConfiguration": {
       "configurationStatus": {
@@ -196,23 +212,23 @@
       "vendor": "Nombre del proveedor"
     },
     "mailNotificationConfiguration": {
-      "title": "Notificaciones por correo",
-      "help": {
-        "title": "Notificación de correo disponibles",
-        "description": "Las notificaciones por correo se envían automáticamente a los destinatarios configurados para los siguientes eventos, dependiendo de la configuración: renovación del certificado de autenticación a través de ACME exitosa / fallida, renovación del certificado de firma a través de ACME exitosa / fallida, registro del certificado de autenticación exitoso. Habilitar las notificaciones por correo electrónico requiere cambios en la configuración del Servidor de Seguridad. Consulta la Guía de Usuario del Servidor de Seguridad para más detalles."
+      "confStatus": {
+        "false": "Configuración incompleta",
+        "true": "Configuredo"
+      },
+      "configuration": "Configuración del servidor de correo",
+      "enabled": {
+        "false": "Deshabilitado",
+        "true": "Habilitado"
       },
       "failureEnabled": "Notificaciones de falla",
-      "successEnabled": "Notificaciones de éxito",
-      "configuration": "Configuración del servidor de correo",
-      "recipientsEmails": "Correos electrónicos de los destinatarios",
-      "enabled": {
-        "true": "Habilitado",
-        "false": "Deshabilitado"
+      "help": {
+        "description": "Las notificaciones por correo se envían automáticamente a los destinatarios configurados para los siguientes eventos, dependiendo de la configuración: renovación del certificado de autenticación a través de ACME exitosa / fallida, renovación del certificado de firma a través de ACME exitosa / fallida, registro del certificado de autenticación exitoso. Habilitar las notificaciones por correo electrónico requiere cambios en la configuración del Servidor de Seguridad. Consulta la Guía de Usuario del Servidor de Seguridad para más detalles.",
+        "title": "Notificación de correo disponibles"
       },
-      "confStatus": {
-        "true": "Configuredo",
-        "false": "Configuración incompleta"
-      }
+      "recipientsEmails": "Correos electrónicos de los destinatarios",
+      "successEnabled": "Notificaciones de éxito",
+      "title": "Notificaciones por correo"
     },
     "message": "Mensaje",
     "nextUpdate": "Siguiente actualización",
@@ -236,35 +252,33 @@
       "timestampingStatus": {
         "ERROR_CODE_INTERNAL": "Se produjo un error interno",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "URL del servidor de marca de tiempo malformado. Revise la URL.",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Tiempo de agotado. Verifique la conexión de red con el proveedor de configuración global.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Tiempo de agotado. Verifique la conexión de red.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Conexión OK, aún no se realizó ninguna solicitud de marca de tiempo",
         "SUCCESS": "Todo bien",
         "UNKNOWN": "Desconocido"
       },
       "title": "Marca de tiempo"
     },
-    "encryption": {
-      "status": {
-        "false": "Deshabilitado",
-        "true": "Habilitado"
-      },
-      "statusTitle": "Estado de cifrado:",
-      "backup": {
-        "title": "Cifrado de copia de seguridad",
-        "configuredKeyId": "Clave de ID configurada"
-      },
-      "messageLog": {
-        "archive": {
-          "title": "Cifrado de archivo de registro de mensajes",
-          "groupingTitle": "Regla de agrupación:",
-          "memberIdentifier": "Identificador de miembro",
-          "keyId": "Clave de ID",
-          "defaultKeyNote": "Este miembro está configurado para usar la clave de cifrado predeterminada de los servidores. Para una seguridad adicional, considera definir una clave específica para ser utilizada."
-        },
-        "database": {
-          "title": "Cifrado de la base de datos del registro de mensajes"
-        }
-      }
+    "traffic": {
+      "period": "Período",
+      "periodInfo": "Selecciona inicio y fin",
+      "date": "Fecha",
+      "time": "Hora",
+      "party": "Parte",
+      "partyInfo": "Servicio, subsistema, miembro",
+      "client": "Cliente",
+      "service": "Servicio",
+      "exchangeRole": "Rol de intercambio",
+      "exchangeRoleInfo": "Productor o Consumidor",
+      "producer": "Productor",
+      "status": "Estado",
+      "statusInfo": "Estado del intercambio de mensajes",
+      "success": "Éxito",
+      "failure": "Fallo",
+      "successfulRequests": "Solicitudes exitosas",
+      "failedRequests": "Solicitudes fallidas",
+      "disabledTitle": "La monitorización de datos operativos está deshabilitada",
+      "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instala el complemento de monitorización de datos operativos (xroad-addon-opmonitoring)."
     }
   },
   "endpoints": {
@@ -286,22 +300,22 @@
   "error_code": {
     "accessright_not_found": "Permiso de acceso no encontrado",
     "acme": {
-      "eab_credentials_missing": "Faltan las credenciales de vinculación de cuenta externa, pero son requeridas",
-      "eab_secret_length": "Longitud de la clave secreta base64 de vinculación de cuenta externa no válida",
+      "account_creation_failure": "Error al crear la cuenta en el servidor ACME. Si se requiere vinculación de cuenta externa, verifique que las credenciales correctas estén configuradas en acme.yml",
       "account_key_pair_error": "Error al obtener el par de claves para la cuenta del servidor ACME",
       "account_keystore_password_missing": "Falta la contraseña del almacén de claves de la cuenta ACME en el archivo de configuración acme.yml",
-      "fetching_metadata_error": "Error al obtener los metadatos del servidor ACME. Es posible que el servidor ACME no sea accesible",
-      "account_creation_failure": "Error al crear la cuenta en el servidor ACME. Si se requiere vinculación de cuenta externa, verifique que las credenciales correctas estén configuradas en acme.yml",
-      "order_creation_failure": "Error al crear un nuevo pedido en el servidor ACME",
-      "order_finalization_failure": "Error al finalizar el pedido en el servidor ACME",
-      "http_challenge_file_creation": "Error al crear el archivo de desafío HTTP de ACME",
-      "http_challenge_file_deletion": "Error al eliminar el archivo de desafío HTTP de ACME",
-      "http_challenge_missing": "Actualmente, X-Road solo admite el desafío HTTP, pero este no está disponible entre las opciones posibles del servidor ACME",
-      "challenge_trigger_failure": "Error al solicitar al servidor ACME validar el desafío",
       "authorization_failure": "Error de autorización. Generalmente relacionado con una falla en la validación del desafío necesario para demostrar la propiedad del dominio",
       "authorization_wait_failure": "Error al esperar que se complete la autorización",
       "certificate_failure": "Error al obtener el certificado del servidor ACME",
-      "certificate_wait_failure": "Error al esperar la creación del nuevo certificado"
+      "certificate_wait_failure": "Error al esperar la creación del nuevo certificado",
+      "challenge_trigger_failure": "Error al solicitar al servidor ACME validar el desafío",
+      "eab_credentials_missing": "Faltan las credenciales de vinculación de cuenta externa, pero son requeridas",
+      "eab_secret_length": "Longitud de la clave secreta base64 de vinculación de cuenta externa no válida",
+      "fetching_metadata_error": "Error al obtener los metadatos del servidor ACME. Es posible que el servidor ACME no sea accesible",
+      "http_challenge_file_creation": "Error al crear el archivo de desafío HTTP de ACME",
+      "http_challenge_file_deletion": "Error al eliminar el archivo de desafío HTTP de ACME",
+      "http_challenge_missing": "Actualmente, X-Road solo admite el desafío HTTP, pero este no está disponible entre las opciones posibles del servidor ACME",
+      "order_creation_failure": "Error al crear un nuevo pedido en el servidor ACME",
+      "order_finalization_failure": "Error al finalizar el pedido en el servidor ACME"
     },
     "action_not_possible": "La acción no es posible",
     "additional_member_already_exists": "Ya existe un miembro adicional",
@@ -343,14 +357,6 @@
           },
           "UnknownService": "Servicio desconocido"
         }
-      },
-      "Signer": {
-        "CertNotFound": "No se encuentra el certificado",
-        "KeyNotFound": "No se encuentra la clave",
-        "NetworkError": "El firmante no es actualmente accesible.",
-        "TokenNotAvailable": "El token no está disponible",
-        "TokenNotFound": "No se encuentra el token",
-        "UnknownMember": "X -Road Core - Signer: miembro desconocido"
       }
     },
     "csr_not_found": "No se encontró el CSR",
@@ -368,7 +374,6 @@
     "import_internal_cert_failed": "Error al importar el certificado interno",
     "internal_anchor_upload_invalid_instance_id": "El Ancla tiene una identificación de instancia inválida",
     "internal_key_cert_interrupted": "Clave de certificado interna interrumpida",
-    "invalid_cert": "Certificado no válido",
     "invalid_characters_pin": "El PIN tiene caracteres no permitidos",
     "invalid_dn_parameter": "Parámetro DN no es válido",
     "invalid_https_url": "La URL no utiliza HTTPS",
@@ -399,8 +404,6 @@
     "pin_code_exists": "El código PIN ya existe",
     "pin_code_not_provided": "No has proporcionado el código PIN",
     "pin_incorrect": "PIN incorrecto. Por favor intente de nuevo.",
-    "pin_min_char_classes_count": "Cantidad mínima de clases de caracteres para el PIN",
-    "pin_min_length": "Longitud mínima",
     "process_failed": "Falló el proceso",
     "process_not_executable": "El proceso no es ejecutable",
     "server_already_fully_initialized": "El servidor ya está completamente inicializado",
@@ -409,6 +412,7 @@
     "service_already_exists": "El servicio ya existe",
     "service_client_not_found": "No se ha encontrado el Cliente de servicio",
     "service_code_already_exists": "El código de servicio ya existe",
+    "service_code_reserved": "El código de servicio ingresado está reservado para uso interno del sistema",
     "service_description_not_found": "Descripción del servicio no encontrada",
     "service_not_found": "servicio no encontrado",
     "sign_cert_not_supported": "El certificado de firma no es compatible",
@@ -422,7 +426,6 @@
     "unsupported_openapi_version": "Versión OpenAPI no soportada. Solo las versiones 3.0.x y 3.1.0 son actualmente compatibles.",
     "url_already_exists": "URL ya existe",
     "warnings_detected": "Advertencias detectadas",
-    "weak_pin": "PIN débil",
     "wrong_key_usage": "Uso de la clave incorrecta",
     "wrong_servicedescription_type": "Tipo de descripción del servicio incorrecto",
     "wsdl_download_failed": "Falló la descarga de WSDL",
@@ -431,35 +434,36 @@
     "wsdl_validator_not_executable": "El validador de WSDL no es ejecutable"
   },
   "fields": {
+    "C": "Código del país",
+    "CN": "Nombre de DNS del servidor",
+    "O": "Nombre de la organización",
     "addClient": {
       "memberClass": "Clase del miembro",
       "memberCode": "Código del miembro",
       "subsystemCode": "Código de subsistema"
     },
-    "C": "Código del país",
+    "certificationService": "Servicio de certificación",
     "clientAdd": {
       "client": {
         "memberCode": "Código miembro",
         "subsystemCode": "Código de subsistema"
       }
     },
-    "CN": "Nombre de DNS del servidor",
     "confirmPin": "Confirmar PIN",
     "csr": {
       "certService": "Servicio de certificación",
+      "certificationService": "Servicio de certificación",
       "client": "Cliente",
       "csrFormat": "Formato CSR",
-      "usage": "Uso",
-      "certificationService": "Servicio de certificación"
+      "usage": "Uso"
     },
     "dns": "DNS",
     "keys": {
       "name": "Nombre"
     },
-    "O": "Nombre de la organización",
+    "memberCode": "Código miembro",
     "path": "Ruta",
     "pin": "PIN",
-    "memberCode": "Código miembro",
     "securityServerAddress": "Dirección del servidor de seguridad",
     "serialNumber": "Número de serie",
     "serviceCode": "Código de servicio",
@@ -481,11 +485,7 @@
     },
     "tokenPin": "PIN",
     "url": "URL",
-    "username": "Nombre de usuario",
-    "certificationService": "Servicio de certificación"
-  },
-  "global": {
-    "appTitle": "Servidor de seguridad X-road"
+    "username": "Nombre de usuario"
   },
   "general": {
     "instance": "Instancia",
@@ -496,15 +496,18 @@
     "subsystemCode": "Código de subsistema",
     "type": "Tipo"
   },
+  "global": {
+    "appTitle": "Servidor de seguridad X-road"
+  },
   "globalAlert": {
     "backupRestoreInProgress": "La configuración del servidor de seguridad se está restaurando desde una copia de seguridad. El proceso se inició a las {starttime}",
-    "globalConfigurationInvalid": "La configuración global ha expirado",
-    "secondaryNode": "Está en un nodo secundario en un clúster de servidor de seguridad. La modificación de la configuración está deshabilitada.",
-    "softTokenPinNotEntered": "Ingrese el PIN del soft token",
     "certificateRenewalJobFailure": "Se produjo un error en la última tarea de renovación del certificado.",
     "certificateRenewalJobFailureAuth": "Certificado de autenticación fallido (s):",
     "certificateRenewalJobFailureSign": "Certificado de firma fallido (s):",
-    "navigateToKeysPage": "Consulte la página de claves y certificados para obtener más detalles"
+    "globalConfigurationInvalid": "La configuración global ha expirado",
+    "navigateToKeysPage": "Consulte la página de claves y certificados para obtener más detalles",
+    "secondaryNode": "Está en un nodo secundario en un clúster de servidor de seguridad. La modificación de la configuración está deshabilitada.",
+    "softTokenPinNotEntered": "Ingrese el PIN del soft token"
   },
   "initialConfiguration": {
     "anchor": {
@@ -547,13 +550,8 @@
     "ssCertTitle": "Certificado de servidor de seguridad",
     "tlsTitle": "Certificado de TLS del sistema de información"
   },
-  "certificate": {
-    "hash": "Certificado Hash",
-    "subjectDistinguishedName": "Sujeto Nombre distinguido",
-    "notBefore": "No antes",
-    "notAfter": "No después"
-  },
   "keys": {
+    "acmeCertOrdered": "Certificado solicitado con éxito",
     "addKey": "Agregar clave",
     "authDetailsTitle": "Detalles de la clave de autenticación",
     "authKeyCert": "Claves y certificados de autenticación",
@@ -593,6 +591,7 @@
     "importCert": "Importar certificado.",
     "importCertSuccess": "Certificado importado con éxito",
     "incorrectPin": "PIN incorrecto. Por favor intente de nuevo.",
+    "keyAlgorithm": "Algoritmo clave:",
     "keyDeleted": "Clave eliminada",
     "keyId": "ID de clave:",
     "keyInfo": "Información clave",
@@ -616,21 +615,22 @@
       "unknown": "Desconocido"
     },
     "orderAcmeCertificate": "Solicitar certificado",
-    "acmeCertOrdered": "Certificado solicitado con éxito",
     "readOnly": "Solo lectura:",
-    "keyAlgorithm": "Algoritmo clave:",
     "registrationRequest": "Solicitud de registro",
     "renewal": "Renovación automática",
     "request": "Solicitud",
     "signDetailsTitle": "Detalles de la clave de firma",
     "signKeyCert": "Firmar claves y certificados",
     "status": "Estado",
-    "token": "Token:",
-    "tokenDetails": "Detalles del token",
-    "tokenId": "ID de token:",
-    "tokenInfo": "Información del token",
-    "tokenPin": "PIN",
-    "tokenSaved": "Token guardado",
+    "token": {
+      "details": "Detalles del token",
+      "id": "ID de token:",
+      "info": "Información del token",
+      "saved": "Token guardado",
+      "deleteText": "¿Estás seguro que deseas eliminar este token y toda la información asociada de la configuración del servidor?",
+      "deleteTitle": "¿Eliminar token?",
+      "deleteSuccess": "Token fue eliminado"
+    },
     "tokenStatus": {
       "active": "",
       "available": "",
@@ -659,7 +659,7 @@
     "id": "ID",
     "localGroup": "Grupo local",
     "localGroupAdded": "Grupo local agregado",
-    "name": "Nombre de miembro",
+    "memberName": "Nombre de miembro",
     "noResults": "La búsqueda no obtuvo resultados.",
     "removeAllText": "¿Estás seguro de que quieres eliminar a todos los miembros de este grupo?",
     "removeAllTitle": "¿Remover todos los miembros?",
@@ -676,8 +676,8 @@
   },
   "noData": {
     "noBackUpEncryptionKeys": "No hay claves de cifrado de copia de seguridad configuradas",
-    "noClientData": "Sin datos del cliente",
     "noCertificateAuthorities": "No hay autoridades de certificación",
+    "noClientData": "Sin datos del cliente",
     "noLocalGroups": "No hay grupos locales",
     "noServiceClients": "No hay clientes de servicio",
     "noTimestampingServices": "Sin servicios de marca de tiempo"
@@ -743,9 +743,9 @@
     "serviceType": "Tipo de URL",
     "serviceUrl": "URL de servicio",
     "service_parameters_ssl_test_warnings": {
-	  "internal_server_ssl_error": "La verificación de los certificados del servidor interno falló. ¿Es correcta y accesible la URL del servidor de origen desde el Servidor de Seguridad?",
-	  "internal_server_ssl_handshake_error": "El TLS handshake con el servidor de origen falló. Falta el certificado del servidor en la configuración:"
-	},
+      "internal_server_ssl_error": "La verificación de los certificados del servidor interno falló. ¿Es correcta y accesible la URL del servidor de origen desde el Servidor de Seguridad?",
+      "internal_server_ssl_handshake_error": "El TLS handshake con el servidor de origen falló. Falta el certificado del servidor en la configuración:"
+    },
     "timeout": "Tiempo de espera agotado",
     "timeoutSec": "Tiempo de espera (s)",
     "timeoutTooltip": "Duración máxima del tiempo de espera de una solicitud, en segundos",
@@ -753,16 +753,16 @@
     "url": "URL",
     "urlPlaceholder": "Insertar URL",
     "urlTooltip": "La URL donde se dirigen las solicitudes dirigidas al servicio",
+    "verifyTls": "Verificar el certificado TLS",
     "warning": "Advertencia",
     "warningCode": {
       "adding_endpoints": "Agregar endponints:",
       "adding_services": "Agregar servicios:",
       "deleting_endpoints": "Eliminar endpoints:",
       "deleting_services": "Eliminar servicios:",
-      "wsdl_validation_warnings": "Advertencias de validación:",
-      "openapi_validation_warnings": "Advertencias de validación:"
+      "openapi_validation_warnings": "Advertencias de validación:",
+      "wsdl_validation_warnings": "Advertencias de validación:"
     },
-    "verifyTls": "Verificar el certificado TLS",
     "wsdlAdded": "WSDL agregado",
     "wsdlDescription": "Descripción de WSDL",
     "wsdlDetails": "Detalles de WSDL"
@@ -806,10 +806,10 @@
     "approvedCertificateAuthorities": {
       "table": {
         "header": {
+          "acmeIpAddresses": "IP del servidor ACME",
           "distinguishedName": "Nombre distinguido",
           "expires": "Expira",
-          "ocspResponse": "Respuesta OCSP",
-          "acmeIpAddresses": "IP del servidor ACME"
+          "ocspResponse": "Respuesta OCSP"
         },
         "notAvailable": "No disponible",
         "ocspResponse": {
@@ -847,6 +847,15 @@
       },
       "title": "Ancla de configuración"
     },
+    "securityServer": {
+      "addressChangeInProgress": "Cambio en proceso",
+      "editDialog": {
+        "title": "Editar dirección del servidor de seguridad"
+      },
+      "securityServer": "Servidor de seguridad",
+      "serverAddress": "Dirección del servidor",
+      "updateSubmitted": "Cambio de dirección del servidor de seguridad enviado correctamente"
+    },
     "timestampingServices": {
       "action": {
         "add": {
@@ -876,15 +885,6 @@
       },
       "title": "Servicios de marca de tiempo"
     },
-    "securityServer": {
-      "securityServer": "Servidor de seguridad",
-      "serverAddress": "Dirección del servidor",
-      "editDialog": {
-        "title": "Editar dirección del servidor de seguridad"
-      },
-      "addressChangeInProgress": "Cambio en proceso",
-      "updateSubmitted": "Cambio de dirección del servidor de seguridad enviado correctamente"
-    },
     "title": "Parámetros del sistema"
   },
   "tab": {
@@ -894,6 +894,10 @@
       "localGroups": "Grupos locales",
       "serviceClients": "Clientes de servicio",
       "services": "Servicios"
+    },
+    "diagnostics": {
+      "overview": "Resumen",
+      "traffic": "Tráfico"
     },
     "keys": {
       "apiKey": "Clave de API",
@@ -918,14 +922,14 @@
   "token": {
     "changePin": "Cambiar el PIN",
     "pinChanged": "Se cambió el PIN del token: inicie sesión en el token con el nuevo PIN",
-    "tokenPinPolicyHeader": "La política de PIN del token está habilitada.",
-    "tokenPinPolicy": "El PIN del token de software debe tener al menos 10 caracteres ASCII provenientes de al menos tres clases de caracteres (letras minúsculas, letras mayúsculas, dígitos, caracteres especiales)."
+    "tokenPinPolicy": "El PIN del token de software debe tener al menos 10 caracteres ASCII provenientes de al menos tres clases de caracteres (letras minúsculas, letras mayúsculas, dígitos, caracteres especiales).",
+    "tokenPinPolicyHeader": "La política de PIN del token está habilitada."
   },
   "toolbar": {
     "securityServerNodeType": {
-      "undefined": "",
       "PRIMARY": "Nodo primario",
-      "SECONDARY": "Nodo secundario"
+      "SECONDARY": "Nodo secundario",
+      "undefined": ""
     }
   },
   "validationError": {

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,12 +27,8 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.x509.CRLReason;
@@ -39,45 +36,58 @@ import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.IsAuthentication;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.jdbc.JdbcTestUtils;
 
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLED;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_ENABLING_INPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.INSTANCE_FI;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.MEMBER_CLASS_GOV;
+import static org.niis.xroad.serverconf.model.Client.STATUS_DELINPROG;
+import static org.niis.xroad.serverconf.model.Client.STATUS_DISABLED;
+import static org.niis.xroad.serverconf.model.Client.STATUS_DISABLING_INPROG;
+import static org.niis.xroad.serverconf.model.Client.STATUS_ENABLING_INPROG;
+import static org.niis.xroad.serverconf.model.Client.STATUS_GLOBALERR;
+import static org.niis.xroad.serverconf.model.Client.STATUS_REGINPROG;
+import static org.niis.xroad.serverconf.model.Client.STATUS_REGISTERED;
+import static org.niis.xroad.serverconf.model.Client.STATUS_SAVED;
 
 /**
  * test client service
@@ -104,7 +114,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Before
     public void setup() throws Exception {
-        List<MemberInfo> globalMemberInfos = new ArrayList<>(List.of(
+        var globalMemberInfos = List.of(
                 // exists in serverconf
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
                 // exists in serverconf
@@ -118,30 +128,38 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, null),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2, null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3, null)));
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3, null));
+        Map<ClientId, MemberInfo> globalMemberInfosMap = globalMemberInfos.stream()
+                .collect(Collectors.toMap(MemberInfo::id, Function.identity()));
+        when(globalConfProvider.getVersion()).thenReturn(OptionalInt.of(5));
         when(globalConfProvider.getMembers()).thenReturn(globalMemberInfos);
         when(globalConfProvider.getMemberName(any())).thenAnswer(invocation -> {
-            ClientId clientId = (ClientId) invocation.getArguments()[0];
-            return globalMemberInfos.stream()
-                    .filter(g -> g.getId().equals(clientId))
-                    .findFirst()
-                    .map(MemberInfo::getName)
+            ClientId clientId = invocation.getArgument(0);
+            return Optional.ofNullable(globalMemberInfosMap.get(clientId))
+                    .map(MemberInfo::name)
                     .orElse(null);
         });
-        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
+
+        when(globalConfProvider.getSubsystemName(any())).thenAnswer(invocation -> {
+            ClientId clientId = invocation.getArgument(0);
+            return Optional.ofNullable(globalMemberInfosMap.get(clientId))
+                    .map(MemberInfo::subsystemName)
+                    .orElse(null);
+        });
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString())).thenReturn(1);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_FI);
         when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
         when(globalConfProvider.isSecurityServerClient(any(), any())).thenAnswer(invocation -> {
             // mock isSecurityServerClient: it is a client, if it exists in DB / getAllLocalClients
             ClientId clientId = (ClientId) invocation.getArguments()[0];
-            Optional<ClientType> match = clientService.getAllLocalClients()
+            Optional<Client> match = clientService.getAllLocalClients()
                     .stream()
                     .filter(ct -> ct.getIdentifier().equals(clientId))
                     .findFirst();
             return match.isPresent();
         });
 
-        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString())).thenReturn(1);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
@@ -191,7 +209,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
      * - FI:GOV:M2 has a sign cert "cert3" with ocsp status UNKNOWN
      * - FI:DUMMY:M2 has a sign cert "cert4" with ocsp status REVOKED
      * - DUMMY:PRO:M2 does not have any sign certs
-     *
+     * <p>
      * local sign certificates for global-only clients (not local clients of this SS):
      * - EE:PRO:M1 has a sign cert "cert5" with ocsp status GOOD
      * - EE:PRO:M2 has a sign cert "cert6" with ocsp status REVOKED
@@ -258,7 +276,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     private long countByType(boolean subsystems) {
-        List<ClientType> localClients = clientService.getAllLocalClients();
+        List<Client> localClients = clientService.getAllLocalClients();
         return localClients.stream()
                 .filter(client -> (client.getIdentifier().getSubsystemCode() != null) == subsystems)
                 .count();
@@ -274,13 +292,13 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         // second member FI:GOV:M3, subsystem FI:GOV:M3:SS-NEW
         ClientId memberId = TestUtils.getClientId("FI:GOV:M3");
         ClientId subsystemId = TestUtils.getClientId("FI:GOV:M3:SS-NEW");
-        ClientType addedMember = clientService.addLocalClient(memberId.getMemberClass(), memberId.getMemberCode(),
-                memberId.getSubsystemCode(),
+        Client addedMember = clientService.addLocalClient(memberId.getMemberClass(), memberId.getMemberCode(),
+                memberId.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, false);
 
         assertEquals(STATUS_SAVED, addedMember.getClientStatus());
-        ClientType addedSubsystem = clientService.addLocalClient(subsystemId.getMemberClass(),
-                subsystemId.getMemberCode(), subsystemId.getSubsystemCode(),
+        Client addedSubsystem = clientService.addLocalClient(subsystemId.getMemberClass(),
+                subsystemId.getMemberCode(), subsystemId.getSubsystemCode(), "New Subsystem",
                 IsAuthentication.SSLAUTH, false);
         assertEquals(STATUS_SAVED, addedSubsystem.getClientStatus());
         assertEquals(startMembers + 1, countMembers());
@@ -305,29 +323,24 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         assertNull(clientService.getLocalClient(subsystemId));
 
         // 404 from member
-        try {
-            clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:NON-EXISTENT"));
-            fail("should throw exception");
-        } catch (ClientNotFoundException expected) {
-        }
+        assertThrows(ClientNotFoundException.class,
+                () -> clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:NON-EXISTENT")));
 
         // 404 from subsystem
-        try {
-            clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:NON-EXISTENT:SUBSYSTEM"));
-            fail("should throw exception");
-        } catch (ClientNotFoundException expected) {
-        }
+        assertThrows(ClientNotFoundException.class,
+                () -> clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:NON-EXISTENT:SUBSYSTEM")));
     }
 
     /**
      * add a new client, set status, attempt to delete
      */
-    private void addAndDeleteLocalClient(ClientId clientId, String status) throws ActionNotPossibleException,
-            ClientService.CannotDeleteOwnerException, ClientNotFoundException,
-            ClientService.AdditionalMemberAlreadyExistsException, UnhandledWarningsException,
-            ClientService.ClientAlreadyExistsException, ClientService.InvalidMemberClassException {
-        ClientType addedClient = clientService.addLocalClient(clientId.getMemberClass(),
-                clientId.getMemberCode(), clientId.getSubsystemCode(),
+    private void addAndDeleteLocalClient(ClientId clientId, String status)
+            throws ActionNotPossibleException,
+                   ClientService.CannotDeleteOwnerException, ClientNotFoundException,
+                   ClientService.AdditionalMemberAlreadyExistsException, UnhandledWarningsException,
+                   ClientService.ClientAlreadyExistsException, ClientService.InvalidMemberClassException {
+        ClientEntity addedClient = clientService.addLocalClientEntity(clientId.getMemberClass(),
+                clientId.getMemberCode(), clientId.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, true);
         addedClient.setClientStatus(status);
         clientService.deleteLocalClient(clientId);
@@ -379,14 +392,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        try {
-            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        } catch (ActionNotPossibleException expected) {
-        }
-        try {
-            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
-        } catch (ActionNotPossibleException expected) {
-        }
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status));
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status));
 
         assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
@@ -398,14 +405,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        try {
-            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        } catch (ActionNotPossibleException expected) {
-        }
-        try {
-            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
-        } catch (ActionNotPossibleException expected) {
-        }
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status));
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status));
 
         assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
@@ -426,14 +427,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        try {
-            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        } catch (ActionNotPossibleException expected) {
-        }
-        try {
-            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
-        } catch (ActionNotPossibleException expected) {
-        }
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status));
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status));
 
         assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
@@ -445,14 +440,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        try {
-            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        } catch (ActionNotPossibleException expected) {
-        }
-        try {
-            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
-        } catch (ActionNotPossibleException expected) {
-        }
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status));
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status));
 
         assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
@@ -464,14 +453,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        try {
-            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        } catch (ActionNotPossibleException expected) {
-        }
-        try {
-            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
-        } catch (ActionNotPossibleException expected) {
-        }
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status));
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status));
 
         assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
@@ -495,27 +478,29 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         long startMembers = countMembers();
         long startSubsystems = countSubsystems();
         int startIdentifiers = countIdentifiers();
-        ClientType added;
+        Client added;
 
         // add local subsystem: add SS-NEW to M1
         ClientId id = TestUtils.getClientId("FI:GOV:M1:SS-NEW");
-        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, false);
         assertEquals(startMembers, countMembers());
         assertEquals(startSubsystems + 1, countSubsystems());
         assertEquals(startIdentifiers + 1, countIdentifiers());
         assertEquals(INSTANCE_FI, added.getIdentifier().getXRoadInstance());
         assertEquals(STATUS_SAVED, added.getClientStatus());
+        assertTrue("Should not register new name for null", subsystemNameStatus.getRename(id).isEmpty());
 
         // add global subsystem: add FI:GOV:M3:SS1, which exists in global conf but not serverconf
         id = TestUtils.getClientId("FI:GOV:M3:SS1");
-        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), "SS1 Name",
                 IsAuthentication.SSLAUTH, false);
         assertEquals(startMembers, countMembers());
         assertEquals(startMembers, countMembers());
         assertEquals(startSubsystems + 2, countSubsystems());
         assertEquals(startIdentifiers + 2, countIdentifiers());
         assertEquals(STATUS_SAVED, added.getClientStatus());
+        assertTrue("Should have new name registered", subsystemNameStatus.isSet(id));
     }
 
     @Test
@@ -527,7 +512,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // add second member FI:GOV:M2
         ClientId id = TestUtils.getClientId("FI:GOV:M2");
-        ClientType added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        Client added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, false);
         assertEquals(startMembers + 1, countMembers());
         assertEquals(startSubsystems, countSubsystems());
@@ -535,55 +520,42 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         assertEquals(STATUS_SAVED, added.getClientStatus());
 
         // add third member FI:GOV:M3 fails
-        try {
-            id = TestUtils.getClientId("FI:GOV:M3");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
-                    IsAuthentication.SSLAUTH, false);
-            fail("should have thrown ClientService.AdditionalMemberAlreadyExistsException");
-        } catch (ClientService.AdditionalMemberAlreadyExistsException expected) {
-        }
+
+        ClientId id2 = TestUtils.getClientId("FI:GOV:M3");
+
+        assertThrows(ClientService.AdditionalMemberAlreadyExistsException.class,
+                () -> clientService.addLocalClient(id2.getMemberClass(), id2.getMemberCode(), id2.getSubsystemCode(), null,
+                        IsAuthentication.SSLAUTH, false));
     }
 
     @Test
     public void addLocalClientDuplicateFails() throws Exception {
         // try member, FI:GOV:M1
-        try {
-            ClientId id = TestUtils.getClientId("FI:GOV:M1");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
-                    IsAuthentication.SSLAUTH, false);
-            fail("should have thrown ClientService.ClientAlreadyExistsException");
-        } catch (ClientService.ClientAlreadyExistsException expected) {
-        }
+        ClientId member = TestUtils.getClientId("FI:GOV:M1");
+        assertThrows(ClientService.ClientAlreadyExistsException.class,
+                () -> clientService.addLocalClient(member.getMemberClass(), member.getMemberCode(), member.getSubsystemCode(), null,
+                        IsAuthentication.SSLAUTH, false));
 
         // and subsystem, FI:GOV:M1:SS1
-        try {
-            ClientId id = TestUtils.getClientId("FI:GOV:M1:SS1");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
-                    IsAuthentication.SSLAUTH, false);
-            fail("should have thrown ClientService.ClientAlreadyExistsException");
-        } catch (ClientService.ClientAlreadyExistsException expected) {
-        }
+        ClientId subsystem = TestUtils.getClientId("FI:GOV:M1:SS1");
+        assertThrows(ClientService.ClientAlreadyExistsException.class,
+                () -> clientService.addLocalClient(subsystem.getMemberClass(), subsystem.getMemberCode(), subsystem.getSubsystemCode(),
+                        null, IsAuthentication.SSLAUTH, false));
     }
 
     @Test
     public void addLocalClientWithInvalidMemberClass() throws Exception {
         // try member, FI:INVALID:M1
-        try {
-            ClientId id = TestUtils.getClientId("FI:INVALID:M1");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
-                    IsAuthentication.SSLAUTH, false);
-            fail("should have thrown ClientService.InvalidMemberClassException");
-        } catch (ClientService.InvalidMemberClassException expected) {
-        }
+        ClientId member = TestUtils.getClientId("FI:INVALID:M1");
+        assertThrows(ClientService.InvalidMemberClassException.class,
+                () -> clientService.addLocalClient(member.getMemberClass(), member.getMemberCode(), member.getSubsystemCode(),
+                        null, IsAuthentication.SSLAUTH, false));
 
         // and subsystem, FI:INVALID:M1:SS1
-        try {
-            ClientId id = TestUtils.getClientId("FI:INVALID:M1:SS1");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
-                    IsAuthentication.SSLAUTH, false);
-            fail("should have thrown ClientService.InvalidMemberClassException");
-        } catch (ClientService.InvalidMemberClassException expected) {
-        }
+        ClientId subsystem = TestUtils.getClientId("FI:INVALID:M1:SS1");
+        assertThrows(ClientService.InvalidMemberClassException.class,
+                () -> clientService.addLocalClient(subsystem.getMemberClass(), subsystem.getMemberCode(), subsystem.getSubsystemCode(),
+                        null, IsAuthentication.SSLAUTH, false));
     }
 
     @Test
@@ -596,7 +568,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         long startSubsystems = countSubsystems();
         int startIdentifiers = countIdentifiers();
         ClientId id = TestUtils.getClientId("FI:GOV:M3");
-        ClientType added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        Client added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, false);
         // these should have status "REGISTERED"
         assertEquals(STATUS_REGISTERED, added.getClientStatus());
@@ -605,7 +577,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         assertEquals(startIdentifiers + 1, countIdentifiers());
 
         id = TestUtils.getClientId("FI:GOV:M3:SS1");
-        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, false);
         assertEquals(STATUS_REGISTERED, added.getClientStatus());
         assertEquals(startMembers + 1, countMembers());
@@ -622,7 +594,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         // unregistered member without skip warnings
         try {
             ClientId id = TestUtils.getClientId("FI:GOV:UNREGISTERED-MX");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                     IsAuthentication.SSLAUTH, false);
             fail("should have thrown UnhandledWarningsException");
         } catch (UnhandledWarningsException expected) {
@@ -631,7 +603,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         // unregistered member + subsystem without skip warnings
         try {
             ClientId id = TestUtils.getClientId("FI:GOV:UNREGISTERED-MX:SS1");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                     IsAuthentication.SSLAUTH, false);
             fail("should have thrown UnhandledWarningsException");
         } catch (UnhandledWarningsException expected) {
@@ -639,8 +611,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // unregistered member with skip warnings
         ClientId id = TestUtils.getClientId("FI:GOV:UNREGISTERED-MX");
-        clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), "Name",
                 IsAuthentication.SSLAUTH, true);
+        assertTrue("Should not register new name for member", subsystemNameStatus.getRename(id).isEmpty());
 
         assertEquals(startMembers + 1, countMembers());
         assertEquals(startSubsystems, countSubsystems());
@@ -648,15 +621,17 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // unregistered members subsystem with skip warnings
         id = TestUtils.getClientId("FI:GOV:UNREGISTERED-MX:SS1");
-        clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        assertTrue(subsystemNameStatus.getRename(id).isEmpty());
+        clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), "SS1 Name",
                 IsAuthentication.SSLAUTH, true);
         assertEquals(startMembers + 1, countMembers());
         assertEquals(startSubsystems + 1, countSubsystems());
         assertEquals(startIdentifiers + 2, countIdentifiers());
+        assertTrue(subsystemNameStatus.isSet(id));
 
         // subsystem for a different unregistered member
         id = TestUtils.getClientId("FI:GOV:UNREGISTERED-MY:SS1");
-        clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, true);
         assertEquals(startMembers + 1, countMembers());
         assertEquals(startSubsystems + 2, countSubsystems());
@@ -671,10 +646,10 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         // added again. Identifier is kept when client is deleted
         int dataSqlIdentifiers = countIdentifiers();
         jdbcTemplate.execute("INSERT INTO IDENTIFIER"
-                + "(id, discriminator, type, x_road_instance, member_class, member_code, subsystem_code)"
+                + "(id, discriminator, type, xroadinstance, memberclass, membercode, subsystemcode)"
                 + " values (1000, 'C', 'MEMBER', 'FI', 'GOV', 'M-DELETED', null)");
         jdbcTemplate.execute("INSERT INTO IDENTIFIER"
-                + "(id, discriminator, type, x_road_instance, member_class, member_code, subsystem_code)"
+                + "(id, discriminator, type, xroadinstance, memberclass, membercode, subsystemcode)"
                 + " values (1001, 'C', 'SUBSYSTEM', 'FI', 'GOV', 'M-DELETED2', 'SS-DELETED')");
         long startMembers = countMembers();
         long startSubsystems = countSubsystems();
@@ -683,7 +658,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // unregistered member with skip warnings
         ClientId id = TestUtils.getClientId("FI:GOV:M-DELETED");
-        clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, true);
 
         assertEquals(startMembers + 1, countMembers());
@@ -692,7 +667,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // unregistered member's subsystem with skip warnings
         id = TestUtils.getClientId("FI:GOV:M-DELETED2:SS-DELETED");
-        clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, true);
 
         assertEquals(startMembers + 1, countMembers());
@@ -702,7 +677,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Test
     public void getAllLocalMembers() {
-        List<ClientType> localMembers = clientService.getAllLocalMembers();
+        List<ClientEntity> localMembers = clientService.getAllLocalMemberEntities();
         assertEquals(1, localMembers.size());
         assertEquals(1, (long) localMembers.iterator().next().getId());
     }
@@ -718,12 +693,12 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         long startMembers = countMembers();
         long startSubsystems = countSubsystems();
         int startIdentifiers = countIdentifiers();
-        ClientType added;
-        ClientType loadedAdded;
+        Client added;
+        Client loadedAdded;
 
         // add local subsystem
         ClientId id = TestUtils.getClientId("FI:GOV:M1:SS-NEW-SSLAUTH");
-        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, false);
         assertEquals(startMembers, countMembers());
         assertEquals(startSubsystems + 1, countSubsystems());
@@ -738,7 +713,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // add local subsystem
         id = TestUtils.getClientId("FI:GOV:M1:SS-NEW-NOSSL");
-        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                 IsAuthentication.NOSSL, false);
         assertEquals(startMembers, countMembers());
         assertEquals(startSubsystems + 2, countSubsystems());
@@ -751,7 +726,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // add local subsystem
         id = TestUtils.getClientId("FI:GOV:M1:SS-NEW-SSLNOAUTH");
-        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+        added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
                 IsAuthentication.SSLNOAUTH, false);
         assertEquals(startMembers, countMembers());
         assertEquals(startSubsystems + 3, countSubsystems());
@@ -767,9 +742,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void updateConnectionType() throws Exception {
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getLocalClient(id);
-        assertEquals("SSLNOAUTH", clientType.getIsAuthentication());
-        assertEquals(3, clientType.getLocalGroup().size());
+        ClientEntity clientEntity = clientService.getLocalClientEntity(id);
+        assertEquals("SSLNOAUTH", clientEntity.getIsAuthentication());
+        assertEquals(3, clientEntity.getLocalGroups().size());
 
         try {
             clientService.updateConnectionType(id, "FUBAR");
@@ -778,9 +753,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         }
 
         clientService.updateConnectionType(id, "NOSSL");
-        clientType = clientService.getLocalClient(id);
-        assertEquals("NOSSL", clientType.getIsAuthentication());
-        assertEquals(3, clientType.getLocalGroup().size());
+        clientEntity = clientService.getLocalClientEntity(id);
+        assertEquals("NOSSL", clientEntity.getIsAuthentication());
+        assertEquals(3, clientEntity.getLocalGroups().size());
 
     }
 
@@ -788,22 +763,22 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void addCertificatePem() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getLocalClient(id);
-        assertEquals(0, clientType.getIsCert().size());
+        ClientEntity clientEntity = clientService.getLocalClientEntity(id);
+        assertEquals(0, clientEntity.getCertificates().size());
 
         clientService.addTlsCertificate(id, pemBytes);
 
-        clientType = clientService.getLocalClient(id);
-        assertEquals(1, clientType.getIsCert().size());
-        assertTrue(Arrays.equals(derBytes, clientType.getIsCert().get(0).getData()));
+        clientEntity = clientService.getLocalClientEntity(id);
+        assertEquals(1, clientEntity.getCertificates().size());
+        assertArrayEquals(derBytes, clientEntity.getCertificates().getFirst().getData());
     }
 
     @Test
     public void addInvalidCertificate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getLocalClient(id);
-        assertEquals(0, clientType.getIsCert().size());
+        ClientEntity clientEntity = clientService.getLocalClientEntity(id);
+        assertEquals(0, clientEntity.getCertificates().size());
 
         try {
             clientService.addTlsCertificate(id, sqlFileBytes);
@@ -816,53 +791,45 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void addCertificateDer() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getLocalClient(id);
-        assertEquals(0, clientType.getIsCert().size());
+        ClientEntity clientEntity = clientService.getLocalClientEntity(id);
+        assertEquals(0, clientEntity.getCertificates().size());
 
         clientService.addTlsCertificate(id, derBytes);
 
-        clientType = clientService.getLocalClient(id);
-        assertEquals(1, clientType.getIsCert().size());
-        assertTrue(Arrays.equals(derBytes, clientType.getIsCert().get(0).getData()));
+        clientEntity = clientService.getLocalClientEntity(id);
+        assertEquals(1, clientEntity.getCertificates().size());
+        assertArrayEquals(derBytes, clientEntity.getCertificates().getFirst().getData());
     }
 
     @Test
     public void addDuplicate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getLocalClient(id);
-        assertEquals(0, clientType.getIsCert().size());
+        ClientEntity clientEntity = clientService.getLocalClientEntity(id);
+        assertEquals(0, clientEntity.getCertificates().size());
 
         clientService.addTlsCertificate(id, derBytes);
 
-        try {
-            clientService.addTlsCertificate(id, pemBytes);
-            fail("should have thrown CertificateAlreadyExistsException");
-        } catch (CertificateAlreadyExistsException expected) {
-        }
+        assertThrows(CertificateAlreadyExistsException.class, () -> clientService.addTlsCertificate(id, pemBytes));
     }
 
     @Test
     public void deleteCertificate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getLocalClient(id);
-        assertEquals(0, clientType.getIsCert().size());
+        ClientEntity clientEntity = clientService.getLocalClientEntity(id);
+        assertEquals(0, clientEntity.getCertificates().size());
 
         clientService.addTlsCertificate(id, derBytes);
         String hash = CryptoUtils.calculateCertHexHash(derBytes);
 
-        try {
-            clientService.deleteTlsCertificate(id, "wrong hash");
-            fail("should have thrown CertificateNotFoundException");
-        } catch (CertificateNotFoundException expected) {
-        }
-        clientType = clientService.getLocalClient(id);
-        assertEquals(1, clientType.getIsCert().size());
+        assertThrows(CertificateNotFoundException.class, () -> clientService.deleteTlsCertificate(id, "wrong hash"));
+        clientEntity = clientService.getLocalClientEntity(id);
+        assertEquals(1, clientEntity.getCertificates().size());
 
         clientService.deleteTlsCertificate(id, hash);
-        clientType = clientService.getLocalClient(id);
-        assertEquals(0, clientType.getIsCert().size());
+        clientEntity = clientService.getLocalClientEntity(id);
+        assertEquals(0, clientEntity.getCertificates().size());
     }
 
     /* Test findClients search */
@@ -876,7 +843,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .internalSearch(false)
                 .excludeLocal(true)
                 .build();
-        List<ClientType> locallyMissingFiGovClients = clientService.findClients(searchParams);
+        List<Client> locallyMissingFiGovClients = clientService.findClients(searchParams);
         assertEquals(1, locallyMissingFiGovClients.size());
     }
 
@@ -887,7 +854,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
                 .showMembers(true)
                 .hasValidLocalSignCert(false).build();
-        List<ClientType> clients = clientService.findLocalClients(searchParams);
+        List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
         assertEquals(1, clients.size());
     }
 
@@ -897,8 +864,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .instance(INSTANCE_FI)
                 .showMembers(true)
                 .hasValidLocalSignCert(false).build();
-        List<ClientType> clients = clientService.findLocalClients(searchParams);
-        assertEquals(6, clients.size());
+        List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
+        assertEquals(7, clients.size());
     }
 
     @Test
@@ -907,8 +874,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .memberClass(MEMBER_CLASS_GOV)
                 .showMembers(true)
                 .hasValidLocalSignCert(false).build();
-        List<ClientType> clients = clientService.findLocalClients(searchParams);
-        assertEquals(5, clients.size());
+        List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
+        assertEquals(6, clients.size());
     }
 
     @Test
@@ -918,7 +885,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .showMembers(true)
                 .hasValidLocalSignCert(false).build();
-        List<ClientType> clients = clientService.findLocalClients(searchParams);
+        List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
         assertEquals(3, clients.size());
     }
 
@@ -932,7 +899,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .subsystemCode(TestUtils.SUBSYSTEM1)
                 .showMembers(true)
                 .hasValidLocalSignCert(false).build();
-        List<ClientType> clients = clientService.findLocalClients(searchParams);
+        List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
         assertEquals(1, clients.size());
     }
 
@@ -942,7 +909,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
                 .showMembers(false)
                 .hasValidLocalSignCert(false).build();
-        List<ClientType> clients = clientService.findLocalClients(searchParams);
+        List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
         assertEquals(1, clients.size());
     }
 
@@ -952,8 +919,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .instance(INSTANCE_FI)
                 .showMembers(false)
                 .hasValidLocalSignCert(false).build();
-        List<ClientType> clients = clientService.findLocalClients(searchParams);
-        assertEquals(5, clients.size());
+        List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
+        assertEquals(6, clients.size());
     }
 
     @Test
@@ -962,8 +929,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .memberClass(MEMBER_CLASS_GOV)
                 .showMembers(false)
                 .hasValidLocalSignCert(false).build();
-        List<ClientType> clients = clientService.findLocalClients(searchParams);
-        assertEquals(4, clients.size());
+        List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
+        assertEquals(5, clients.size());
     }
 
     @Test
@@ -973,7 +940,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .showMembers(false)
                 .hasValidLocalSignCert(false).build();
-        List<ClientType> clients = clientService.findLocalClients(searchParams);
+        List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
         assertEquals(2, clients.size());
     }
 
@@ -987,7 +954,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .subsystemCode(TestUtils.SUBSYSTEM1)
                 .showMembers(false)
                 .hasValidLocalSignCert(false).build();
-        List<ClientType> clients = clientService.findLocalClients(searchParams);
+        List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
         assertEquals(1, clients.size());
     }
 
@@ -1003,20 +970,18 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var searchParams = ClientService.SearchParameters.builder()
                 .showMembers(false)
                 .hasValidLocalSignCert(true).build();
-        List<ClientType> clients = clientService.findLocalClients(searchParams);
+        List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
         assertEquals(2, clients.size());
-        assertTrue("GOV".equals(clients.get(0).getIdentifier().getMemberClass()));
-        assertTrue("M1".equals(clients.get(0).getIdentifier().getMemberCode()));
-        assertTrue("SS1".equals(clients.get(0).getIdentifier().getSubsystemCode()));
-        assertTrue("GOV".equals(clients.get(1).getIdentifier().getMemberClass()));
-        assertTrue("M1".equals(clients.get(1).getIdentifier().getMemberCode()));
-        assertTrue("SS2".equals(clients.get(1).getIdentifier().getSubsystemCode()));
+        assertEquals("GOV", clients.getFirst().getIdentifier().getMemberClass());
+        assertEquals("M1", clients.getFirst().getIdentifier().getMemberCode());
+        assertEquals("SS1", clients.getFirst().getIdentifier().getSubsystemCode());
+        assertEquals("GOV", clients.get(1).getIdentifier().getMemberClass());
+        assertEquals("M1", clients.get(1).getIdentifier().getMemberCode());
+        assertEquals("SS2", clients.get(1).getIdentifier().getSubsystemCode());
     }
 
     /**
      * Test hasValidLocalSignCert parameter in
-     * {@link ClientService#findClients(ClientService.SearchParameters)}
-     * @throws Exception
      */
     @Test
     public void findClientsByHasValidLocalSignCertComplexScenario() {
@@ -1034,12 +999,14 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
           A -- FI:GOV:M1:SS2
           B  -- FI:GOV:M2:SS5
           B  -- FI:GOV:M2:SS6
+          B  -- FI:GOV:M2:SS7
           B  -- DUMMY:PRO:M2:SS6
           B  -- FI:DUMMY:M2:SS6
 
           global-only clients:
           B  -- FI:GOV:M2
           B  -- FI:GOV:M3
+          B  -- FI:GOV:M4
           B  -- FI:GOV:M3:SS1
           A  -- EE:PRO:M1
           A  -- EE:PRO:M1:SS1
@@ -1064,6 +1031,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         Set<ClientId> localGroupBClientIds = createSortedClientIdSet(new HashSet<>());
         localGroupBClientIds.add(TestUtils.getClientId("FI:GOV:M2:SS5"));
         localGroupBClientIds.add(TestUtils.getClientId("FI:GOV:M2:SS6"));
+        localGroupBClientIds.add(TestUtils.getClientId("FI:GOV:M2:SS7"));
         localGroupBClientIds.add(TestUtils.getClientId("DUMMY:PRO:M2:SS6"));
         localGroupBClientIds.add(TestUtils.getClientId("FI:DUMMY:M2:SS6"));
 
@@ -1127,9 +1095,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .internalSearch(internalSearch)
                 .showMembers(true)
                 .hasValidLocalSignCert(hasValidLocalSignCert).build();
-        List<ClientType> clients = clientService.findClients(searchParams);
+        List<Client> clients = clientService.findClients(searchParams);
         return createSortedClientIdSet(clients.stream()
-                .map(ClientType::getIdentifier)
+                .map(Client::getIdentifier)
                 .collect(Collectors.toSet()));
     }
 
@@ -1149,7 +1117,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
                 .showMembers(true)
                 .build();
-        List<ClientType> clients = clientService.findGlobalClients(searchParams);
+        List<ClientEntity> clients = clientService.findGlobalClientEntities(searchParams);
         assertEquals(3, clients.size());
     }
 
@@ -1159,7 +1127,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .instance(TestUtils.INSTANCE_EE)
                 .showMembers(true)
                 .build();
-        List<ClientType> clients = clientService.findGlobalClients(searchParams);
+        List<ClientEntity> clients = clientService.findGlobalClientEntities(searchParams);
         assertEquals(5, clients.size());
     }
 
@@ -1169,7 +1137,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .memberClass(MEMBER_CLASS_GOV)
                 .showMembers(true)
                 .build();
-        List<ClientType> clients = clientService.findGlobalClients(searchParams);
+        List<ClientEntity> clients = clientService.findGlobalClientEntities(searchParams);
         assertEquals(6, clients.size());
     }
 
@@ -1180,7 +1148,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .showMembers(true)
                 .build();
-        List<ClientType> clients = clientService.findGlobalClients(searchParams);
+        List<ClientEntity> clients = clientService.findGlobalClientEntities(searchParams);
         assertEquals(3, clients.size());
     }
 
@@ -1194,7 +1162,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .subsystemCode(TestUtils.SUBSYSTEM1)
                 .showMembers(true)
                 .build();
-        List<ClientType> clients = clientService.findGlobalClients(searchParams);
+        List<ClientEntity> clients = clientService.findGlobalClientEntities(searchParams);
         assertEquals(1, clients.size());
     }
 
@@ -1204,7 +1172,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
                 .showMembers(false)
                 .build();
-        List<ClientType> clients = clientService.findGlobalClients(searchParams);
+        List<ClientEntity> clients = clientService.findGlobalClientEntities(searchParams);
         assertEquals(3, clients.size());
     }
 
@@ -1214,7 +1182,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .instance(TestUtils.INSTANCE_EE)
                 .showMembers(false)
                 .build();
-        List<ClientType> clients = clientService.findGlobalClients(searchParams);
+        List<ClientEntity> clients = clientService.findGlobalClientEntities(searchParams);
         assertEquals(2, clients.size());
     }
 
@@ -1224,7 +1192,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .memberClass(MEMBER_CLASS_GOV)
                 .showMembers(false)
                 .build();
-        List<ClientType> clients = clientService.findGlobalClients(searchParams);
+        List<ClientEntity> clients = clientService.findGlobalClientEntities(searchParams);
         assertEquals(3, clients.size());
     }
 
@@ -1235,7 +1203,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .showMembers(false)
                 .build();
-        List<ClientType> clients = clientService.findGlobalClients(searchParams);
+        List<ClientEntity> clients = clientService.findGlobalClientEntities(searchParams);
         assertEquals(2, clients.size());
     }
 
@@ -1249,7 +1217,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .subsystemCode(TestUtils.SUBSYSTEM1)
                 .showMembers(false)
                 .build();
-        List<ClientType> clients = clientService.findGlobalClients(searchParams);
+        List<ClientEntity> clients = clientService.findGlobalClientEntities(searchParams);
         assertEquals(1, clients.size());
     }
 
@@ -1268,11 +1236,27 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Test
     public void registerClient() throws Exception {
-        ClientType clientType = clientService.getLocalClient(existingSavedClientId);
-        assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
+        Client client = clientService.getLocalClient(existingSavedClientId);
+        assertEquals(Client.STATUS_SAVED, client.getClientStatus());
         clientService.registerClient(existingSavedClientId);
-        clientType = clientService.getLocalClient(existingSavedClientId);
-        assertEquals(ClientType.STATUS_REGINPROG, clientType.getClientStatus());
+        verify(managementRequestSenderService).sendClientRegisterRequest(eq(existingSavedClientId), isNull());
+        client = clientService.getLocalClient(existingSavedClientId);
+        assertEquals(Client.STATUS_REGINPROG, client.getClientStatus());
+    }
+
+    @Test
+    public void registerClientWithName() throws Exception {
+        var name = "SS7 name";
+        var id = TestUtils.getClientId("FI:GOV:M2:SS7");
+        Client client = clientService.getLocalClient(id);
+        assertEquals(Client.STATUS_SAVED, client.getClientStatus());
+        subsystemNameStatus.set(id, null, name);
+        assertTrue(subsystemNameStatus.isSet(id));
+        clientService.registerClient(id);
+        verify(managementRequestSenderService).sendClientRegisterRequest(eq(id), eq(name));
+        assertTrue(subsystemNameStatus.isSubmitted(id));
+        client = clientService.getLocalClient(id);
+        assertEquals(Client.STATUS_REGINPROG, client.getClientStatus());
     }
 
     @Test(expected = ClientNotFoundException.class)
@@ -1292,30 +1276,30 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Test(expected = CodedException.class)
     public void registerClientCodedException() throws Exception {
-        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenThrow(CodedException.class);
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), any())).thenThrow(CodedException.class);
         clientService.registerClient(existingSavedClientId);
     }
 
     @Test(expected = DeviationAwareRuntimeException.class)
     public void registerClientRuntimeException() throws Exception {
-        when(managementRequestSenderService.sendClientRegisterRequest(any()))
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), any()))
                 .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
         clientService.registerClient(existingSavedClientId);
     }
 
     @Test
     public void unregisterClient() throws Exception {
-        ClientType clientType = clientService.getLocalClient(existingRegisteredClientId);
-        assertEquals(ClientType.STATUS_REGISTERED, clientType.getClientStatus());
+        Client client = clientService.getLocalClient(existingRegisteredClientId);
+        assertEquals(Client.STATUS_REGISTERED, client.getClientStatus());
         clientService.unregisterClient(existingRegisteredClientId);
-        clientType = clientService.getLocalClient(existingRegisteredClientId);
-        assertEquals(ClientType.STATUS_DELINPROG, clientType.getClientStatus());
+        client = clientService.getLocalClient(existingRegisteredClientId);
+        assertEquals(Client.STATUS_DELINPROG, client.getClientStatus());
     }
 
     @Test(expected = ActionNotPossibleException.class)
     public void unregisterClientNotPossible() throws Exception {
-        ClientType clientType = clientService.getLocalClient(existingSavedClientId);
-        assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
+        Client client = clientService.getLocalClient(existingSavedClientId);
+        assertEquals(Client.STATUS_SAVED, client.getClientStatus());
         clientService.unregisterClient(existingSavedClientId);
     }
 
@@ -1346,9 +1330,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void changeOwner() {
         try {
             clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
-                    null, IsAuthentication.SSLAUTH, false);
-            ClientType clientType = clientService.getLocalClient(newOwnerClientId);
-            clientType.setClientStatus(STATUS_REGISTERED);
+                    null, null, IsAuthentication.SSLAUTH, false);
+            ClientEntity clientEntity = clientService.getLocalClientEntity(newOwnerClientId);
+            clientEntity.setClientStatus(STATUS_REGISTERED);
             clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
                     newOwnerClientId.getSubsystemCode());
         } catch (Exception e) {
@@ -1371,7 +1355,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test(expected = ActionNotPossibleException.class)
     public void changeOwnerNewOwnerNotRegistered() throws Exception {
         clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
-                null, IsAuthentication.SSLAUTH, false);
+                null, null, IsAuthentication.SSLAUTH, false);
         clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
                 newOwnerClientId.getSubsystemCode());
     }
@@ -1386,9 +1370,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void changeOwnerCodedException() throws Exception {
         when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenThrow(CodedException.class);
         clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
-                null, IsAuthentication.SSLAUTH, false);
-        ClientType clientType = clientService.getLocalClient(newOwnerClientId);
-        clientType.setClientStatus(STATUS_REGISTERED);
+                null, null, IsAuthentication.SSLAUTH, false);
+        ClientEntity clientEntity = clientService.getLocalClientEntity(newOwnerClientId);
+        clientEntity.setClientStatus(STATUS_REGISTERED);
         clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
                 newOwnerClientId.getSubsystemCode());
     }
@@ -1398,9 +1382,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         when(managementRequestSenderService.sendOwnerChangeRequest(any()))
                 .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
         clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
-                null, IsAuthentication.SSLAUTH, false);
-        ClientType clientType = clientService.getLocalClient(newOwnerClientId);
-        clientType.setClientStatus(STATUS_REGISTERED);
+                null, null, IsAuthentication.SSLAUTH, false);
+        ClientEntity clientEntity = clientService.getLocalClientEntity(newOwnerClientId);
+        clientEntity.setClientStatus(STATUS_REGISTERED);
         clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
                 newOwnerClientId.getSubsystemCode());
     }

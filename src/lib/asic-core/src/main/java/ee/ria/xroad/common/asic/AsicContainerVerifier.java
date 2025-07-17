@@ -1,0 +1,302 @@
+/*
+ * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package ee.ria.xroad.common.asic;
+
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.Providers;
+import ee.ria.xroad.common.hashchain.DigestValue;
+import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
+import ee.ria.xroad.common.hashchain.HashChainVerifier;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.RestMessage;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
+import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.signature.MessagePart;
+import ee.ria.xroad.common.signature.Signature;
+import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.EncoderUtils;
+import ee.ria.xroad.common.util.MessageFileNames;
+import ee.ria.xroad.common.util.MimeTypes;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.apache.xml.security.signature.XMLSignatureDigestInput;
+import org.apache.xml.security.signature.XMLSignatureInput;
+import org.apache.xml.security.signature.XMLSignatureStreamInput;
+import org.apache.xml.security.utils.resolver.ResourceResolverContext;
+import org.apache.xml.security.utils.resolver.ResourceResolverException;
+import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.cms.ContentInfo;
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.tsp.TimeStampToken;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
+import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeHex;
+import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
+import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.util.MessageFileNames.isAttachment;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+/**
+ * Controls the validity of ASiC containers.
+ */
+@Getter(AccessLevel.PUBLIC)
+@RequiredArgsConstructor(access = AccessLevel.PUBLIC)
+public class AsicContainerVerifier {
+
+    static {
+        Providers.init();
+        org.apache.xml.security.Init.init();
+    }
+
+    private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifier ocspVerifier;
+    private final List<String> attachmentHashes = new ArrayList<>();
+    private final AsicContainer asic;
+
+    private Signature signature;
+
+    private ClientId signerName;
+    private X509Certificate signerCert;
+
+    private Date timestampDate;
+    private X509Certificate timestampCert;
+
+    private Date ocspDate;
+    private X509Certificate ocspCert;
+
+    private byte[] attachmentDigest;
+
+    /**
+     * Constructs a new ASiC container verifier for the ZIP file with the
+     * given filename. Attempts to verify its contents.
+     *
+     * @param globalConfProvider global conf provider
+     * @param filename           name of the ASiC container ZIP file
+     * @throws Exception if the file could not be read
+     */
+    public AsicContainerVerifier(GlobalConfProvider globalConfProvider,
+                                 String filename) throws Exception {
+        this.globalConfProvider = globalConfProvider;
+        this.ocspVerifier = new OcspVerifier(globalConfProvider);
+
+        try (FileInputStream in = new FileInputStream(filename)) {
+            asic = AsicContainer.read(in);
+        }
+    }
+
+    /**
+     * Attempts to verify the ASiC container's signature and timestamp.
+     *
+     * @throws Exception if verification was unsuccessful
+     */
+    public void verify() throws Exception {
+        String message = asic.getMessage();
+        SignatureData signatureData = asic.getSignature();
+        signature = new Signature(signatureData.getSignatureXml());
+        signerName = getSigner(message);
+
+        SignatureVerifier signatureVerifier =
+                new SignatureVerifier(globalConfProvider,
+                        signature,
+                        signatureData.getHashChainResult(),
+                        signatureData.getHashChain());
+        verifyRequiredReferencesExist();
+
+        Date atDate = verifyTimestamp();
+
+        configureResourceResolvers(signatureVerifier);
+
+        // Do not verify the schema, since the signature in the ASiC container
+        // may contain the XadesTimeStamp element, which is not standard.
+        signatureVerifier.setVerifySchema(false);
+
+        // Add required part "message" to the hash chain verifier.
+        signatureVerifier.addPart(new MessagePart(MESSAGE, null, null, null));
+
+        signatureVerifier.verify(signerName, atDate);
+        signerCert = signatureVerifier.getSigningCertificate();
+
+        OCSPResp ocsp = signatureVerifier.getSigningOcspResponse(
+                signerName.getXRoadInstance());
+        ocspDate = ((BasicOCSPResp) ocsp.getResponseObject()).getProducedAt();
+        ocspCert = ocspVerifier.getOcspCert(
+                (BasicOCSPResp) ocsp.getResponseObject());
+    }
+
+    private void verifyRequiredReferencesExist() throws Exception {
+        if (!signature.references(MESSAGE)
+                && !signature.references(SIG_HASH_CHAIN_RESULT)) {
+            throw new CodedException(X_MALFORMED_SIGNATURE,
+                    "Signature does not reference '%s' or '%s'",
+                    MESSAGE, SIG_HASH_CHAIN_RESULT);
+        }
+    }
+
+    private void configureResourceResolvers(SignatureVerifier verifier) {
+        attachmentHashes.clear();
+
+        verifier.setSignatureResourceResolver(new ResourceResolverSpi() {
+
+            @Override
+            public boolean engineCanResolveURI(ResourceResolverContext context) {
+                if (isAttachment(context.attr.getValue())) {
+                    return asic.getAttachmentDigest(context.attr.getValue()) != null;
+                }
+                return asic.hasEntry(context.attr.getValue());
+            }
+
+            @Override
+            public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
+                if (isAttachment(context.attr.getValue())) {
+                    return new XMLSignatureDigestInput(EncoderUtils.encodeBase64(asic.getAttachmentDigest(context.attr.getValue())));
+                }
+                return new XMLSignatureStreamInput(asic.getEntry(context.attr.getValue()));
+            }
+        });
+
+        verifier.setHashChainResourceResolver(new HashChainReferenceResolverImpl());
+    }
+
+    private void logUnresolvableHash(String uri, byte[] digestValue) {
+        boolean verified = isAttachment(uri) && Arrays.equals(digestValue, asic.getAttachmentDigest(uri));
+        attachmentHashes.add(String.format("The digest for \"%s\" is: %s", uri,
+                encodeHex(digestValue)) + (verified ? " (verified)" : " (unverified)"));
+    }
+
+    private Date verifyTimestamp() throws Exception {
+        TimeStampToken tsToken = getTimeStampToken();
+
+        TimestampVerifier.verify(tsToken, getTimestampedData(), globalConfProvider.getTspCertificates());
+
+        timestampDate = tsToken.getTimeStampInfo().getGenTime();
+        timestampCert = TimestampVerifier.getSignerCertificate(tsToken, globalConfProvider.getTspCertificates());
+
+        return tsToken.getTimeStampInfo().getGenTime();
+    }
+
+    private void verifyTimestampHashChain(byte[] tsHashChainResultBytes) {
+        Map<String, DigestValue> inputs = new HashMap<>();
+        inputs.put(MessageFileNames.SIGNATURE, null);
+
+        InputStream in = new ByteArrayInputStream(tsHashChainResultBytes);
+        try {
+            HashChainVerifier.verify(in, new HashChainReferenceResolverImpl(),
+                    inputs);
+        } catch (Exception e) {
+            throw new CodedException(X_MALFORMED_SIGNATURE,
+                    "Failed to verify time-stamp hash chain: %s", e);
+        }
+    }
+
+    private byte[] getTimestampedData() throws Exception {
+        String tsHashChainResult =
+                asic.getEntryAsString(ENTRY_TS_HASH_CHAIN_RESULT);
+        if (tsHashChainResult != null) { // batch time-stamp
+            byte[] tsHashChainResultBytes = tsHashChainResult.getBytes(StandardCharsets.UTF_8);
+            verifyTimestampHashChain(tsHashChainResultBytes);
+            return tsHashChainResultBytes;
+        } else {
+            return signature.getXmlSignature().getSignatureValue();
+        }
+    }
+
+    private TimeStampToken getTimeStampToken() throws Exception {
+        String timestampDerBase64 = asic.getEntryAsString(ENTRY_TIMESTAMP);
+        byte[] tsDerDecoded = decodeBase64(timestampDerBase64);
+        return new TimeStampToken(ContentInfo.getInstance(ASN1Primitive.fromByteArray(tsDerDecoded)));
+    }
+
+    private static ClientId getSigner(String messageXml) {
+        final byte[] messageBytes = messageXml.getBytes(UTF_8);
+
+        try {
+            Soap soap = new SaxSoapParserImpl().parse(
+                    MimeTypes.TEXT_XML_UTF8,
+                    new ByteArrayInputStream(messageBytes));
+            if (!(soap instanceof SoapMessageImpl msg)) {
+                throw new RuntimeException("Unexpected SOAP: " + soap.getClass());
+            }
+            return msg.isRequest()
+                    ? msg.getClient() : msg.getService().getClientId();
+        } catch (CodedException ce) {
+            if (X_INVALID_SOAP.equals(ce.getFaultCode())) {
+                try {
+                    final RestMessage restMessage = RestMessage.of(messageBytes);
+                    return restMessage.getSender();
+                } catch (Exception e) {
+                    throw new RuntimeException("Invalid message", e);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private final class HashChainReferenceResolverImpl
+            implements HashChainReferenceResolver {
+
+        @Override
+        public boolean shouldResolve(String uri, byte[] digestValue) {
+            if (asic.hasEntry(uri)) {
+                return true;
+            } else {
+                logUnresolvableHash(uri, digestValue);
+                return false;
+            }
+        }
+
+        @Override
+        public InputStream resolve(String uri) throws IOException {
+            return asic.getEntry(uri);
+        }
+    }
+}

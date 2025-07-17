@@ -35,10 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -61,6 +61,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         ManagementServiceMain.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
+                "spring.main.banner-mode=off",
+                "logging.level.root=ERROR",
                 "xroad.management-service.rate-limit-requests-per-minute=10",
                 "xroad.management-service.rate-limit-requests-per-second=5"})
 @ActiveProfiles({"test"})
@@ -71,7 +73,7 @@ class ApplicationIpRateLimitTest {
     @Autowired
     private MockMvc mvc;
 
-    @MockBean(name = "adminServiceHttpClient")
+    @MockitoBean(name = "adminServiceHttpClient")
     private CloseableHttpClient adminServiceHttpClient;
 
     @Nested

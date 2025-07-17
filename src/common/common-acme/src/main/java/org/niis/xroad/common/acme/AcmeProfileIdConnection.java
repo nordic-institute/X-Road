@@ -25,13 +25,11 @@
  */
 package org.niis.xroad.common.acme;
 
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.util.SpringApplicationContext;
-
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.connector.DefaultConnection;
 import org.shredzone.acme4j.connector.HttpConnector;
@@ -107,7 +105,7 @@ public class AcmeProfileIdConnection extends DefaultConnection {
     }
 
     private String buildProfileIdHeader(Session session) {
-        GlobalConfProvider globalConfProvider = SpringApplicationContext.getBean(GlobalConfProvider.class);
+        GlobalConfProvider globalConfProvider = GlobalConfBeanLookup.getGlobalConfProvider();
         Collection<ApprovedCAInfo> approvedCAsForThisInstance =
                 globalConfProvider.getApprovedCAs(globalConfProvider.getInstanceIdentifier());
         ApprovedCAInfo approvedCA = approvedCAsForThisInstance.stream()

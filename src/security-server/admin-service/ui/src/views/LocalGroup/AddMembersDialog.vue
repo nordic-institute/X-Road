@@ -130,11 +130,16 @@
                   <v-checkbox-btn
                     density="compact"
                     data-test="add-local-group-member-checkbox"
-                    @update:model-value="checkboxChange(member.id as string, $event)" />
+                    @update:model-value="
+                      checkboxChange(member.id as string, $event)
+                    "
+                  />
                 </div>
               </td>
 
-              <td>{{ member.member_name }}</td>
+              <td>
+                <subsystem-name :name="member.subsystem_name ?? member.subsystem_code" />
+              </td>
               <td>{{ member.id }}</td>
             </tr>
           </tbody>
@@ -174,8 +179,8 @@ import { Client, GroupMember } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
-import { Colors } from '@/global';
-import { XrdExpandable } from '@niis/shared-ui';
+import { Colors, XrdExpandable } from '@niis/shared-ui';
+import SubsystemName from '@/components/client/SubsystemName.vue';
 
 const initialState = () => {
   return {
@@ -194,7 +199,7 @@ const initialState = () => {
 };
 
 export default defineComponent({
-  components: { XrdExpandable },
+  components: { SubsystemName, XrdExpandable },
   props: {
     dialog: {
       type: Boolean,
@@ -298,7 +303,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/tables';
 @use '@/assets/add-dialogs';
 
 .cursor-pointer {

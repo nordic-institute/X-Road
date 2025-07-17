@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,8 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -37,8 +36,10 @@ import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestCon
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidator;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.ServerConf;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import static org.mockito.Mockito.when;
 
@@ -46,41 +47,40 @@ import static org.mockito.Mockito.when;
  * Base for all service integration tests that need mocked beans in the application context. All service
  * integration test classes inheriting this will shared the same mock bean configuration, and have a common
  * Spring Application Context therefore drastically reducing the execution time of the integration tests.
- *
+ * <p>
  * Extend this when
  * - you are implementing an service layer integration test
  * - you do not want to mock other services
  * - you want to use the real repository layer, and not mock it
- *
+ * <p>
  * In case you want to mock some of the non-mocked dependencies (such as some other service) in some specific test,
  * you can consider moving that dependency into this class as a SpyBean (like {@link GlobalConfService})
  * but this should not be a common solution, and all inheriting tests that use the same dependency need to be updated
  * when such change is made.
- *
+ * <p>
  * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
- *
  */
 public abstract class AbstractServiceIntegrationTestContext extends AbstractFacadeMockingTestContext {
-    @SpyBean
+    @MockitoSpyBean
     GlobalConfService globalConfService;
-    @SpyBean
+    @MockitoSpyBean
     OpenApiParser openApiParser;
 
-    @MockBean
+    @MockitoBean
     CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
-    @MockBean
+    @MockitoBean
     CurrentSecurityServerId currentSecurityServerId;
-    @MockBean
+    @MockitoBean
     WsdlValidator wsdlValidator;
-    @MockBean
+    @MockitoBean
     UrlValidator urlValidator;
 
     static final ClientId.Conf COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
 
     @Before
     public void setupCommonMocks() {
-        ServerConfType sct = new ServerConfType();
-        ClientType owner = new ClientType();
+        ServerConf sct = new ServerConf();
+        Client owner = new Client();
         owner.setIdentifier(COMMON_OWNER_ID);
         sct.setOwner(owner);
         sct.setServerCode("SS1");

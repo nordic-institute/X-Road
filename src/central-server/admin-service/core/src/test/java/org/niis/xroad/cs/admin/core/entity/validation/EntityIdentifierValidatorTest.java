@@ -82,12 +82,12 @@ public class EntityIdentifierValidatorTest {
     private static Stream<Arguments> invalidEntityIdentifiers() {
         return Stream.of(
                 Arguments.of("", "must not be blank"),
-                Arguments.of("./", EntityIdentifier.PATTERN_VIOLATION_MESSAGE),
-                Arguments.of("../", EntityIdentifier.PATTERN_VIOLATION_MESSAGE),
-                Arguments.of("/../", EntityIdentifier.PATTERN_VIOLATION_MESSAGE),
-                Arguments.of("/.", EntityIdentifier.PATTERN_VIOLATION_MESSAGE),
-                Arguments.of("/./", EntityIdentifier.PATTERN_VIOLATION_MESSAGE),
-                Arguments.of(">CONTAINS NON-PRINTABLE CHARACTER: \u0000<", EntityIdentifier.PATTERN_VIOLATION_MESSAGE),
+                Arguments.of("./", OptionalEntityIdentifier.PATTERN_VIOLATION_MESSAGE),
+                Arguments.of("../", OptionalEntityIdentifier.PATTERN_VIOLATION_MESSAGE),
+                Arguments.of("/../", OptionalEntityIdentifier.PATTERN_VIOLATION_MESSAGE),
+                Arguments.of("/.", OptionalEntityIdentifier.PATTERN_VIOLATION_MESSAGE),
+                Arguments.of("/./", OptionalEntityIdentifier.PATTERN_VIOLATION_MESSAGE),
+                Arguments.of(">CONTAINS NON-PRINTABLE CHARACTER: \u0000<", OptionalEntityIdentifier.PATTERN_VIOLATION_MESSAGE),
                 Arguments.of("TOO LONG INPUT" + " ".repeat(255), "length must be less or equal to 255")
         );
     }

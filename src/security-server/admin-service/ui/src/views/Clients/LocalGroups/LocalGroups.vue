@@ -59,11 +59,11 @@
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
-      class="elevation-0 data-table mt-10"
+      class="elevation-0 data-table mt-5"
       item-key="id"
       :loader-height="2"
       hide-default-footer
-      :no-data-text="$t('noData.noLocalGroups')"
+      no-data-text="noData.noLocalGroups"
       data-test="local-groups-table"
     >
       <template #[`item.code`]="{ item }">
@@ -77,7 +77,7 @@
       </template>
 
       <template #bottom>
-        <div class="custom-footer"></div>
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -104,10 +104,12 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
 import { DataTableHeader } from '@/ui-types';
+import { XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     NewGroupDialog,
+    XrdDataTableFooter,
   },
   props: {
     id: {
@@ -213,8 +215,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .group-code {
   color: colors.$Link;

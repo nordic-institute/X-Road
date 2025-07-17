@@ -23,13 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { Tab } from '@/ui-types';
+import { Tab } from '@niis/shared-ui';
 
 // A "single source of truth" for route names
 export enum RouteName {
   BaseRoute = 'base',
   Keys = 'keys',
   Diagnostics = 'diagnostics',
+  DiagnosticsTraffic = 'diagnostics-traffic',
   AddSubsystem = 'add-subsystem',
   AddClient = 'add-client',
   Clients = 'clients',
@@ -98,6 +99,7 @@ export enum Permissions {
   DELETE_WSDL = 'DELETE_WSDL', // can delete WSDL or REST
   DELETE_ENDPOINT = 'DELETE_ENDPOINT', // can delete endpoint
   DISABLE_CLIENT = 'DISABLE_CLIENT',
+  RENAME_SUBSYSTEM = 'RENAME_SUBSYSTEM',
   DIAGNOSTICS = 'DIAGNOSTICS', // diagnostics tab
   DOWNLOAD_ANCHOR = 'DOWNLOAD_ANCHOR', // settings > system parameters
   EDIT_ACL_SUBJECT_OPEN_SERVICES = 'EDIT_ACL_SUBJECT_OPEN_SERVICES', // client > service clients
@@ -109,6 +111,7 @@ export enum Permissions {
   EDIT_SERVICE_ACL = 'EDIT_SERVICE_ACL', // client > service clients > access rights
   EDIT_SERVICE_PARAMS = 'EDIT_SERVICE_PARAMS', // client > services > rest/wsdl > service params
   EDIT_TOKEN_FRIENDLY_NAME = 'EDIT_TOKEN_FRIENDLY_NAME', // token details
+  DELETE_TOKEN = 'DELETE_TOKEN', // delete inactive token
   EDIT_WSDL = 'EDIT_WSDL', // client > services > edit service description of type WSDL
   EDIT_REST = 'EDIT_REST', // client > services > edit service description of type rest
   EDIT_OPENAPI3 = 'EDIT_OPENAPI3', // client > services > edit service description of type openapi3
@@ -158,6 +161,8 @@ export enum Permissions {
   VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS', // settings > system paramters tab
   VIEW_TSPS = 'VIEW_TSPS', // settings > system parameters > timestamping services
   CHANGE_SS_ADDRESS = 'CHANGE_SS_ADDRESS', // settings > system parameters > server address
+  DOWNLOAD_DIAGNOSTICS_REPORT = 'DOWNLOAD_DIAGNOSTICS_REPORT', // diagnostics > download diagnostics report
+  TOGGLE_MAINTENANCE_MODE = 'TOGGLE_MAINTENANCE_MODE', // diagnostics > enable / disable maintenance mode button
 }
 
 export enum UsageTypes {
@@ -218,30 +223,4 @@ export enum AddMemberWizardModes {
   CSR_EXISTS = 'CSR_EXISTS',
   CERTIFICATE_EXISTS = 'CERTIFICATE_EXISTS',
   FULL = 'FULL',
-}
-
-// Version 7.0 colors as enum.
-export enum Colors {
-  Purple10 = '#efebfb',
-  Purple20 = '#e0d8f8',
-  Purple30 = '#d1c4f4',
-  Purple70 = '#9376e6',
-  Purple100 = '#663cdc',
-  Black10 = '#e8e8e8',
-  Black30 = '#bcbbbb',
-  Black50 = '#908e8e',
-  Black70 = '#636161',
-  Black100 = '#211e1e',
-  White100 = '#ffffff',
-  WarmGrey10 = '#f4f3f6',
-  WarmGrey20 = '#eae8ee',
-  WarmGrey30 = '#dedce4',
-  WarmGrey50 = '#c9c6d3',
-  WarmGrey70 = '#b4afc2',
-  WarmGrey100 = '#575169',
-  Error = '#ec4040',
-  Warning = '#f5a623',
-  Success100 = '#0cc177',
-  Success10 = '#e6f8f1',
-  Background = '#e5e5e5',
 }

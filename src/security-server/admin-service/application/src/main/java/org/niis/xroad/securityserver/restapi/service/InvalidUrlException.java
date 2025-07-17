@@ -25,22 +25,15 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MALFORMED_URL;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.MALFORMED_URL;
 
-public class InvalidUrlException extends ServiceException {
-    public InvalidUrlException() {
-        super(createError());
-    }
+public class InvalidUrlException extends BadRequestException {
 
     public InvalidUrlException(String s) {
-        super(s, createError());
+        super(s, MALFORMED_URL.build());
     }
 
-    private static ErrorDeviation createError() {
-        return new ErrorDeviation(ERROR_MALFORMED_URL);
-    }
 
 }

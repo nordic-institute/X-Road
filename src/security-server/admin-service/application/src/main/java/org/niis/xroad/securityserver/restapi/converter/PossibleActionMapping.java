@@ -27,51 +27,52 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between {@link org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction} in api (enum) and
+ * Mapping between {@link org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto} in api (enum) and
  * model {@link PossibleActionEnum} status string
  */
 @Getter
 @RequiredArgsConstructor
 public enum PossibleActionMapping {
 
-    DELETE(PossibleActionEnum.DELETE, PossibleAction.DELETE),
-    ACTIVATE(PossibleActionEnum.ACTIVATE, PossibleAction.ACTIVATE),
-    DISABLE(PossibleActionEnum.DISABLE, PossibleAction.DISABLE),
-    LOGIN(PossibleActionEnum.TOKEN_ACTIVATE, PossibleAction.LOGIN),
-    LOGOUT(PossibleActionEnum.TOKEN_DEACTIVATE, PossibleAction.LOGOUT),
-    TOKEN_CHANGE_PIN(PossibleActionEnum.TOKEN_CHANGE_PIN, PossibleAction.TOKEN_CHANGE_PIN),
-    REGISTER(PossibleActionEnum.REGISTER, PossibleAction.REGISTER),
-    UNREGISTER(PossibleActionEnum.UNREGISTER, PossibleAction.UNREGISTER),
-    IMPORT_FROM_TOKEN(PossibleActionEnum.IMPORT_FROM_TOKEN, PossibleAction.IMPORT_FROM_TOKEN),
-    GENERATE_KEY(PossibleActionEnum.GENERATE_KEY, PossibleAction.GENERATE_KEY),
-    EDIT_FRIENDLY_NAME(PossibleActionEnum.EDIT_FRIENDLY_NAME, PossibleAction.EDIT_FRIENDLY_NAME),
-    GENERATE_AUTH_CSR(PossibleActionEnum.GENERATE_AUTH_CSR, PossibleAction.GENERATE_AUTH_CSR),
-    GENERATE_SIGN_CSR(PossibleActionEnum.GENERATE_SIGN_CSR, PossibleAction.GENERATE_SIGN_CSR);
+    DELETE(PossibleActionEnum.DELETE, PossibleActionDto.DELETE),
+    ACTIVATE(PossibleActionEnum.ACTIVATE, PossibleActionDto.ACTIVATE),
+    DISABLE(PossibleActionEnum.DISABLE, PossibleActionDto.DISABLE),
+    LOGIN(PossibleActionEnum.TOKEN_ACTIVATE, PossibleActionDto.LOGIN),
+    LOGOUT(PossibleActionEnum.TOKEN_DEACTIVATE, PossibleActionDto.LOGOUT),
+    TOKEN_CHANGE_PIN(PossibleActionEnum.TOKEN_CHANGE_PIN, PossibleActionDto.TOKEN_CHANGE_PIN),
+    TOKEN_DELETE(PossibleActionEnum.TOKEN_DELETE, PossibleActionDto.TOKEN_DELETE),
+    REGISTER(PossibleActionEnum.REGISTER, PossibleActionDto.REGISTER),
+    UNREGISTER(PossibleActionEnum.UNREGISTER, PossibleActionDto.UNREGISTER),
+    IMPORT_FROM_TOKEN(PossibleActionEnum.IMPORT_FROM_TOKEN, PossibleActionDto.IMPORT_FROM_TOKEN),
+    GENERATE_KEY(PossibleActionEnum.GENERATE_KEY, PossibleActionDto.GENERATE_KEY),
+    EDIT_FRIENDLY_NAME(PossibleActionEnum.EDIT_FRIENDLY_NAME, PossibleActionDto.EDIT_FRIENDLY_NAME),
+    GENERATE_AUTH_CSR(PossibleActionEnum.GENERATE_AUTH_CSR, PossibleActionDto.GENERATE_AUTH_CSR),
+    GENERATE_SIGN_CSR(PossibleActionEnum.GENERATE_SIGN_CSR, PossibleActionDto.GENERATE_SIGN_CSR);
 
     private final PossibleActionEnum possibleActionEnum;
-    private final PossibleAction possibleAction;
+    private final PossibleActionDto possibleActionDto;
 
     /**
      * Return matching {@link PossibleActionEnum}, if any
-     * @param possibleAction
+     * @param possibleActionDto
      */
-    public static Optional<PossibleActionEnum> map(PossibleAction possibleAction) {
-        return getFor(possibleAction).map(PossibleActionMapping::getPossibleActionEnum);
+    public static Optional<PossibleActionEnum> map(PossibleActionDto possibleActionDto) {
+        return getFor(possibleActionDto).map(PossibleActionMapping::getPossibleActionEnum);
     }
 
     /**
-     * Return matching {@link PossibleAction}, if any
+     * Return matching {@link PossibleActionDto}, if any
      * @param possibleActionEnum
      */
-    public static Optional<PossibleAction> map(PossibleActionEnum possibleActionEnum) {
-        return getFor(possibleActionEnum).map(PossibleActionMapping::getPossibleAction);
+    public static Optional<PossibleActionDto> map(PossibleActionEnum possibleActionEnum) {
+        return getFor(possibleActionEnum).map(PossibleActionMapping::getPossibleActionDto);
     }
 
     /**
@@ -86,11 +87,11 @@ public enum PossibleActionMapping {
 
     /**
      * Return matching {@link PossibleActionMapping}, if any
-     * @param possibleAction
+     * @param possibleActionDto
      */
-    public static Optional<PossibleActionMapping> getFor(PossibleAction possibleAction) {
+    public static Optional<PossibleActionMapping> getFor(PossibleActionDto possibleActionDto) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.possibleAction.equals(possibleAction))
+                .filter(mapping -> mapping.possibleActionDto.equals(possibleActionDto))
                 .findFirst();
     }
 

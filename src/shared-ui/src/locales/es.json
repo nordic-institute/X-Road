@@ -1,21 +1,29 @@
 {
-  "locals_demo": "Esto se localiza en la biblioteca",
-  "type": "Tipo",
-  "warning": "Advertencia",
+  "403": {
+    "goBack": "Volver",
+    "mainTitle": "Permiso denegado",
+    "text": "Parece que no tienes el permiso para ver esta página. Si crees que esto es un error, verifica si has iniciado sesión en la cuenta correcta o comunícate con tu Administrador para preguntar sobre tus permisos.",
+    "topTitle": "Denegado"
+  },
+  "404": {
+    "pageNotFound": "404 - Página no encontrada",
+    "text": "Ups, página no encontrada",
+    "textUnicorn": "Error 404"
+  },
   "action": {
     "activate": "Activar",
-    "cancel": "Cancelar",
     "add": "Agregar",
     "addClient": "Agregar cliente",
     "addMember": "Agregar miembro",
     "addSubsystem": "Agregar subsistema",
+    "cancel": "Cancelar",
     "close": "Cerrar",
     "confirm": "Confirmar",
     "continue": "Continuar",
     "copy": "Copiar",
     "copyId": "Copiar identificación",
-    "delete": "Borrar",
     "deactivate": "Desactivar",
+    "delete": "Borrar",
     "done": "Hecho",
     "download": "Descargar",
     "edit": "Editar",
@@ -66,13 +74,13 @@
       "success": "Clave API creada con éxito",
       "title": "Crear clave API"
     },
+    "edit": {
+      "roleRemoveOnly": "(solo eliminar)"
+    },
     "role": {
       "XROAD_REGISTRATION_OFFICER": "Oficial de registro",
       "XROAD_SECURITY_OFFICER": "Oficial de seguridad",
       "XROAD_SYSTEM_ADMINISTRATOR": "Administrador del Sistema"
-    },
-    "edit": {
-      "roleRemoveOnly": "(solo eliminar)"
     },
     "table": {
       "action": {
@@ -99,10 +107,14 @@
       }
     }
   },
-  "keys": {
-    "gotIt": "Entiendo"
-  },
   "backup": {
+    "createBackup": {
+      "button": "Refiguración de copia de seguridad.",
+      "messages": {
+        "localConfWarning": "¡Advertencia! El archivo o fichero \"/etc/xroad/services/local.conf\" utilizado para las anulaciones de configuración está en desuso y ya no se incluye en las copias de seguridad. El archivo \"/etc/xroad/services/local.properties\" debe usarse en su lugar.",
+        "success": "Copia de seguridad {archivo} creada correctamente"
+      }
+    },
     "deleteBackup": {
       "dialog": {
         "confirmation": "¿Estás seguro de que quieres eliminar la copia de seguridad {archivo}?",
@@ -117,13 +129,6 @@
       },
       "success": "Configuración restaurada desde {archivo}"
     },
-    "createBackup": {
-      "button": "Refiguración de copia de seguridad.",
-      "messages": {
-        "success": "Copia de seguridad {archivo} creada correctamente",
-        "localConfWarning": "¡Advertencia! El archivo o fichero \"/etc/xroad/services/local.conf\" utilizado para las anulaciones de configuración está en desuso y ya no se incluye en las copias de seguridad. El archivo \"/etc/xroad/services/local.properties\" debe usarse en su lugar."
-      }
-    },
     "uploadBackup": {
       "button": "Subir copia de seguridad",
       "confirmationDialog": {
@@ -135,6 +140,8 @@
   },
   "cert": {
     "certificate": "Certificado",
+    "ecParameters": "Parámetros de clave pública de la EC",
+    "ecPoint": "Punto de clave pública de la EC",
     "hashInfo": "Hash (SHA-256)",
     "keyUsage": {
       "CRL_SIGN": "Firma CRL",
@@ -148,33 +155,51 @@
       "NON_REPUDIATION": "No repudio"
     },
     "rsaExp": "Exponente de clave pública de RSA",
-    "rsaModulus": "Módulo de clave pública RSA",
-    "ecParameters": "Parámetros de clave pública de la EC",
-    "ecPoint": "Punto de clave pública de la EC"
+    "rsaModulus": "Módulo de clave pública RSA"
   },
   "error_code": {
     "api_key_not_found": "Clave de API no encontrada",
     "backup_file_not_found": "La copia de seguridad no se encontró",
     "backup_generation_failed": "No se pudo generar la copia de seguridad",
     "backup_restore_interrupted": "La restauración de la copia de seguridad ha sido interrumpida",
+    "core": {
+      "Signer": {
+        "CertNotFound": "No se encuentra el certificado",
+        "KeyNotFound": "No se encuentra la clave",
+        "NetworkError": "El firmante no es actualmente accesible.",
+        "PinIncorrect": "PIN no válido",
+        "TokenNotAvailable": "El token no está disponible",
+        "TokenNotFound": "No se encuentra el token",
+        "UnknownMember": "X -Road Core - Signer: miembro desconocido"
+      }
+    },
     "generate_backup_interrupted": "La generación de la copia de seguridad ha sido interrumpida",
+    "internal_error": "Error interno. Consulte los registros del servidor para más detalles",
     "invalid_backup_file": "Archivo de copia de seguridad no válido",
+    "invalid_certificate": "Certificado X.509 no válido",
     "invalid_distinguished_name": "El nombre distinguido no es válido",
     "invalid_filename": "Nombre de archivo no válido",
     "resource_read_failed": "No se pudo leer el recurso",
     "restore_process_failed": "El proceso de restauración falló",
     "token_fetch_failed": "Error al obtener el token",
     "token_not_found": "Token no encontrado",
+    "token_weak_pin": "El código PIN proporcionado era demasiado débil",
+    "tr": {
+      "check_signer_logs": "Consulte el registro (log) del firmante para más detalles.",
+      "code": "Código: {0}",
+      "pin_min_char_classes_count": "Cantidad mínima de clases de caracteres para el PIN: {0}",
+      "pin_min_length": "Longitud mínima: {0}"
+    },
     "validation_failure": "Falla de validación"
   },
   "fields": {
-    "password": "Contraseña",
-    "username": "LIB-Username",
-    "shared": "sharedlib",
     "code": "Código",
     "description": "Descripción",
     "memberClass": "Clase del miembro",
-    "securityServerCode": "Código de servidor de seguridad"
+    "password": "Contraseña",
+    "securityServerCode": "Código de servidor de seguridad",
+    "shared": "sharedlib",
+    "username": "LIB-Username"
   },
   "footer": {
     "copyright": {
@@ -192,6 +217,13 @@
     "all": "Todo",
     "name": "Nombre"
   },
+  "keys": {
+    "gotIt": "Entiendo",
+    "token": {
+      "label": "Token:"
+    }
+  },
+  "locals_demo": "Esto se localiza en la biblioteca",
   "login": {
     "errorMsg401": "Nombre de usuario o contraseña incorrectos",
     "generalError": "Error de inicio de sesion. Por favor intente de nuevo.",
@@ -202,9 +234,6 @@
     "idleWarning": "Has estado inactivo durante 30 minutos y tu sesión ha expirado. Por razones de seguridad, deberás autenticarte nuevamente.",
     "sessionExpired": "Sesión expirada"
   },
-  "meta": {
-    "check_signer_logs": "Consulte el registro (log) del firmante para más detalles."
-  },
   "noData": {
     "loading": "Cargando ... por favor espera",
     "noBackups": "No hay copias de seguridad todavía",
@@ -214,6 +243,12 @@
     "noMatches": "Sin coincidencias con los criterios",
     "noServices": "Sin servicios",
     "noTokens": "Sin Tokens"
+  },
+  "type": "Tipo",
+  "validation": {
+    "messages": {
+      "address": "El campo {campo} contiene caracteres no válidos"
+    }
   },
   "validationError": {
     "AssertFalse": "el valor debe ser 'falso'",
@@ -247,9 +282,5 @@
     "ValidHostAddress": "Se requiere un nombre de dominio completamente calificado (FQDN) válido (por ejemplo, host.example.org) o una dirección IP pública (por ejemplo, 192.168.123.123).",
     "ValidHostAddressField": "Se requiere una dirección IP válida o un nombre de dominio completamente calificado (FQDN)."
   },
-  "validation": {
-    "messages": {
-      "address": "El campo {campo} contiene caracteres no válidos"
-    }
-  }
+  "warning": "Advertencia"
 }

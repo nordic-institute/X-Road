@@ -25,16 +25,15 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INSTANTIATION_FAILED;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CP_INSTANTIATION_FAILED;
 
 /**
  * If certificate profile could not be instantiated
  */
-public class CertificateProfileInstantiationException extends ServiceException {
+public class CertificateProfileInstantiationException extends InternalServerErrorException {
     public CertificateProfileInstantiationException(Throwable t) {
-        super(t, new ErrorDeviation(ERROR_INSTANTIATION_FAILED));
+        super(t, CP_INSTANTIATION_FAILED.build());
     }
 }

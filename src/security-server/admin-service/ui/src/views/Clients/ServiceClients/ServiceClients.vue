@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <div class="xrd-table-toolbar pt-4">
+    <div class="xrd-table-toolbar">
       <v-text-field
         v-model="search"
         :label="$t('serviceClients.searchPlaceHolder')"
@@ -60,11 +60,11 @@
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
-      class="elevation-0 data-table mt-10"
+      class="elevation-0 data-table mt-5"
       item-key="id"
       :loader-height="2"
       hide-default-footer
-      :no-data-text="$t('noData.noServiceClients')"
+      no-data-text="noData.noServiceClients"
       data-test="service-clients-main-view-table"
     >
       <template #[`item.name`]="{ item }">
@@ -73,7 +73,7 @@
           data-test="open-access-rights"
           @click="showAccessRights(item.id)"
         >
-          {{ item.name }}
+          <client-name :service-client="item" />
         </div>
       </template>
 
@@ -84,7 +84,7 @@
       </template>
 
       <template #bottom>
-        <div class="custom-footer"></div>
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
   </div>
@@ -94,16 +94,19 @@
 import { defineComponent } from 'vue';
 
 import * as api from '@/util/api';
-import { ServiceClient } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
+import { ServiceClient } from '@/openapi-types';
 import { Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
 import { DataTableHeader } from '@/ui-types';
+import ClientName from '@/components/client/ClientName.vue';
+import { XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { ClientName, XrdDataTableFooter },
   props: {
     id: {
       type: String,
@@ -176,8 +179,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .search-input {
   max-width: 300px;

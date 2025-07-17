@@ -26,39 +26,40 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeService;
-import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.util.SecurityHelper;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
+import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.signer.api.dto.CertRequestInfo;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
+import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -74,8 +75,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CertUtils.getCommonName;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.AUTH_CERT_NOT_SUPPORTED;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CERTIFICATE_NOT_FOUND_WITH_ID;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CERTIFICATE_WRONG_USAGE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SIGN_CERT_NOT_SUPPORTED;
 
 /**
  * token certificate service
@@ -96,7 +101,7 @@ public class TokenCertificateService {
     private final GlobalConfService globalConfService;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final ClientRepository clientRepository;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final ClientService clientService;
@@ -109,10 +114,11 @@ public class TokenCertificateService {
     private final AuditDataHelper auditDataHelper;
     private final AuditEventHelper auditEventHelper;
     private final AcmeService acmeService;
+    private final MailNotificationHelper mailNotificationHelper;
+    private final ServerConfService serverConfService;
 
     /**
      * Create a CSR
-     *
      * @param keyId
      * @param memberId
      * @param keyUsage
@@ -129,9 +135,9 @@ public class TokenCertificateService {
      *                                                   were some extra parameters
      * @throws ActionNotPossibleException                if generate csr was not possible for this key
      */
-    public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                                        String caName, Map<String, String> subjectFieldValues,
-                                                        CertificateRequestFormat format, Boolean isAcmeOrder)
+    public SignerRpcClient.GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
+                                                                        String caName, Map<String, String> subjectFieldValues,
+                                                                        CertificateRequestFormat format, Boolean isAcmeOrder)
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
                    WrongKeyUsageException,
                    KeyNotFoundException,
@@ -171,12 +177,7 @@ public class TokenCertificateService {
                     tokenInfo, key);
         }
 
-        CertificateProfileInfo profile = null;
-        try {
-            profile = certificateAuthorityService.getCertificateProfile(caName, keyUsage, memberId, false);
-        } catch (CertificateProfileInstantiationException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
-        }
+        CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile(caName, keyUsage, memberId, false);
 
         String subjectAltName = null;
         if (subjectFieldValues.get(DN_SUBJECT_ALT_NAME) != null
@@ -196,14 +197,14 @@ public class TokenCertificateService {
         auditDataHelper.put(RestApiAuditProperty.CSR_FORMAT, format);
 
         ApprovedCAInfo caInfo = certificateAuthorityService.getCertificateAuthorityInfo(caName);
-        GeneratedCertRequestInfo generatedCertRequestInfo;
+        SignerRpcClient.GeneratedCertRequestInfo generatedCertRequestInfo;
         try {
-            generatedCertRequestInfo = signerProxyFacade.generateCertRequest(keyId, memberId,
+            generatedCertRequestInfo = signerRpcClient.generateCertRequest(keyId, memberId,
                     keyUsage, subjectName, subjectAltName, format, caInfo.getCertificateProfileInfo());
         } catch (CodedException e) {
             throw e;
         } catch (Exception e) {
-            throw new ServiceException(INTERNAL_ERROR, e, "Generate cert request failed");
+            throw new InternalServerErrorException("Generate cert request failed", e, INTERNAL_ERROR.build());
         }
         if (isAcmeOrder && caInfo.getAcmeServerDirectoryUrl() != null) {
             acmeOrderAndImportCert(memberId, keyUsage, subjectFieldValues, subjectAltName, caInfo, generatedCertRequestInfo);
@@ -216,7 +217,7 @@ public class TokenCertificateService {
                                         Map<String, String> subjectFieldValues,
                                         String subjectAltName,
                                         ApprovedCAInfo caInfo,
-                                        GeneratedCertRequestInfo generatedCertRequestInfo)
+                                        SignerRpcClient.GeneratedCertRequestInfo generatedCertRequestInfo)
             throws GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException, CertificateAlreadyExistsException,
                    WrongCertificateUsageException, CsrNotFoundException, AuthCertificateNotSupportedException, ClientNotFoundException {
         String memberEncodedId = keyUsage == KeyUsageInfo.SIGNING
@@ -227,7 +228,7 @@ public class TokenCertificateService {
         if (chain != null) {
             log.info("Acme order was successful, importing certificate");
             try {
-                importCertificate(chain.get(0).getEncoded(), false);
+                importCertificate(chain.getFirst().getEncoded(), false, true);
             } catch (CertificateEncodingException e) {
                 throw new InvalidCertificateException(e);
             }
@@ -242,7 +243,6 @@ public class TokenCertificateService {
      * <p>
      * Permissions and possible actions use the values for generate csr,
      * there are no separate values for this operation.
-     *
      * @param keyId
      * @param csrId
      * @param format
@@ -251,7 +251,7 @@ public class TokenCertificateService {
      * @throws CsrNotFoundException       if csr with csrId was not found
      * @throws ActionNotPossibleException if regenerate was not possible
      */
-    public GeneratedCertRequestInfo regenerateCertRequest(String keyId, String csrId, CertificateRequestFormat format)
+    public SignerRpcClient.GeneratedCertRequestInfo regenerateCertRequest(String keyId, String csrId, CertificateRequestFormat format)
             throws KeyNotFoundException, CsrNotFoundException, ActionNotPossibleException {
 
         // validate key and memberId existence
@@ -283,17 +283,16 @@ public class TokenCertificateService {
         }
 
         try {
-            return signerProxyFacade.regenerateCertRequest(csrId, format);
+            return signerRpcClient.regenerateCertRequest(csrId, format);
         } catch (CodedException e) {
             throw e;
         } catch (Exception e) {
-            throw new ServiceException(INTERNAL_ERROR, e, "Regenerate cert request failed");
+            throw new InternalServerErrorException("Regenerate cert request failed", e, INTERNAL_ERROR.build());
         }
     }
 
     /**
-     * Find an existing cert from a token by it's hash
-     *
+     * Find an existing cert from a token by its hash
      * @param hash cert hash of an existing cert. Will be transformed to lowercase
      * @return
      * @throws CertificateNotFoundException
@@ -301,14 +300,14 @@ public class TokenCertificateService {
     public CertificateInfo getCertificateInfo(String hash) throws CertificateNotFoundException {
         CertificateInfo certificateInfo = null;
         try {
-            certificateInfo = signerProxyFacade.getCertForHash(hash);
+            certificateInfo = signerRpcClient.getCertForHash(hash);
         } catch (CodedException e) {
             if (e instanceof SignerException se && se.isCausedByCertNotFound()) {
                 throw new CertificateNotFoundException("Certificate with hash " + hash + " " + NOT_FOUND, e);
             }
             throw e;
         } catch (Exception e) {
-            throw new ServiceException(INTERNAL_ERROR, e, "error getting certificate");
+            throw new InternalServerErrorException("Error getting certificate", e, INTERNAL_ERROR.build());
         }
         return certificateInfo;
     }
@@ -316,9 +315,8 @@ public class TokenCertificateService {
     /**
      * Find an existing cert from a token (e.g. HSM) by cert hash and import it to keyconf.xml. This enables the cert
      * to be used for signing messages.
-     *
      * @param hash cert hash of an existing cert
-     * @return CertificateType
+     * @return CertificateInfo
      * @throws CertificateNotFoundException
      * @throws InvalidCertificateException          other general import failure
      * @throws GlobalConfOutdatedException
@@ -349,7 +347,7 @@ public class TokenCertificateService {
                 getPossibleActionsForCertificateInternal(hash, certificateInfo, keyInfo, tokenInfo);
         possibleActionsRuleEngine.requirePossibleAction(
                 PossibleActionEnum.IMPORT_FROM_TOKEN, possibleActions);
-        return importCertificate(certificateInfo.getCertificateBytes(), true);
+        return importCertificate(certificateInfo.getCertificateBytes(), true, false);
     }
 
     /**
@@ -358,10 +356,9 @@ public class TokenCertificateService {
      * - clientId (if sign cert),
      * - cert hash and cert hash algo
      * - key usage
-     *
      * @param certificateBytes
      * @param isFromToken      whether the cert was read from a token or not
-     * @return CertificateType
+     * @return CertificateInfo
      * @throws GlobalConfOutdatedException
      * @throws KeyNotFoundException
      * @throws InvalidCertificateException          other general import failure
@@ -369,7 +366,7 @@ public class TokenCertificateService {
      * @throws WrongCertificateUsageException
      * @throws AuthCertificateNotSupportedException if trying to import an auth cert from a token
      */
-    private CertificateInfo importCertificate(byte[] certificateBytes, boolean isFromToken)
+    private CertificateInfo importCertificate(byte[] certificateBytes, boolean isFromToken, boolean isAcme)
             throws GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException,
                    CertificateAlreadyExistsException, WrongCertificateUsageException, CsrNotFoundException,
                    AuthCertificateNotSupportedException, ClientNotFoundException {
@@ -404,9 +401,14 @@ public class TokenCertificateService {
             byte[] certBytes = x509Certificate.getEncoded();
             String hash = CryptoUtils.calculateCertHexHash(certBytes);
             auditDataHelper.putCertificateHash(hash);
-            signerProxyFacade.importCert(certBytes, certificateState, clientId, !isAuthCert);
+            boolean activate = !isAuthCert && (!isAcme || SystemProperties.getAutomaticActivateAcmeSignCertificate());
+            signerRpcClient.importCert(certBytes, certificateState, clientId, activate);
             certificateInfo = getCertificateInfo(hash);
-            setNextPlannedAcmeAutomaticRenewalDate(clientId, x509Certificate, keyUsageInfo, certificateInfo);
+            ClientId memberId = clientId != null ? clientId : serverConfProvider.getIdentifier().getOwner();
+            if (isAcme && activate) {
+                notifyAboutCertActivation(certificateInfo, memberId, keyUsageInfo);
+            }
+            setNextPlannedAcmeAutomaticRenewalDate(memberId, x509Certificate, keyUsageInfo, certificateInfo);
         } catch (SignerException e) {
             translateCodedExceptions(e);
         } catch (ClientNotFoundException | AccessDeniedException | AuthCertificateNotSupportedException | CodedException e) {
@@ -419,22 +421,36 @@ public class TokenCertificateService {
         return certificateInfo;
     }
 
-    private void setNextPlannedAcmeAutomaticRenewalDate(ClientId.Conf clientId,
+    private void notifyAboutCertActivation(CertificateInfo certificateInfo, ClientId memberId, KeyUsageInfo keyUsageInfo) {
+        SecurityServerId.Conf securityServerId = serverConfService.getSecurityServerId();
+        if (isNotBlank(certificateInfo.getOcspVerifyBeforeActivationError())) {
+            mailNotificationHelper.sendCertActivationFailureNotification(memberId.asEncodedId(),
+                    certificateInfo.getCertificateDisplayName(),
+                    securityServerId,
+                    keyUsageInfo,
+                    certificateInfo.getOcspVerifyBeforeActivationError());
+        } else {
+            mailNotificationHelper.sendCertActivatedNotification(memberId.asEncodedId(),
+                    securityServerId,
+                    certificateInfo,
+                    keyUsageInfo);
+        }
+    }
+
+    private void setNextPlannedAcmeAutomaticRenewalDate(ClientId memberId,
                                                         X509Certificate x509Certificate,
                                                         KeyUsageInfo keyUsageInfo,
                                                         CertificateInfo certificateInfo) throws Exception {
-        ClientId memberId = clientId != null ? clientId : serverConfProvider.getIdentifier().getOwner();
         X509Certificate caX509Certificate = globalConfProvider.getCaCert(memberId.getXRoadInstance(), x509Certificate);
         ApprovedCAInfo approvedCA = globalConfProvider.getApprovedCA(memberId.getXRoadInstance(), caX509Certificate);
         if (approvedCA.getAcmeServerDirectoryUrl() != null) {
             Instant nextRenewalTime = acmeService.getNextRenewalTime(memberId.asEncodedId(), approvedCA, x509Certificate, keyUsageInfo);
-            signerProxyFacade.setNextPlannedRenewal(certificateInfo.getId(), nextRenewalTime);
+            signerRpcClient.setNextPlannedRenewal(certificateInfo.getId(), nextRenewalTime);
         }
     }
 
     /**
      * Convert cert bytes to X509Certificate, throw InvalidCertificateException if not possible
-     *
      * @throws InvalidCertificateException if bytes did not represent a valid X509Certificate
      */
     public X509Certificate convertToX509Certificate(byte[] certificateBytes) throws InvalidCertificateException {
@@ -449,7 +465,6 @@ public class TokenCertificateService {
 
     /**
      * Activates certificate
-     *
      * @param hash
      * @throws CertificateNotFoundException if cert with given hash was not found
      * @throws AccessDeniedException        if user did not have correct permission for (de)activate
@@ -462,7 +477,6 @@ public class TokenCertificateService {
 
     /**
      * Deactivates certificate
-     *
      * @param hash
      * @throws CertificateNotFoundException if cert with given hash was not found
      * @throws AccessDeniedException        if user did not have correct permission for (de)activate
@@ -505,9 +519,9 @@ public class TokenCertificateService {
 
         try {
             if (activate) {
-                signerProxyFacade.activateCert(certificateInfo.getId());
+                signerRpcClient.activateCert(certificateInfo.getId());
             } else {
-                signerProxyFacade.deactivateCert(certificateInfo.getId());
+                signerRpcClient.deactivateCert(certificateInfo.getId());
             }
         } catch (CodedException e) {
             if (e instanceof SignerException se && se.isCausedByCertNotFound()) {
@@ -518,26 +532,20 @@ public class TokenCertificateService {
             }
         } catch (Exception e) {
             var action = activate ? "activation" : "deactivation";
-            throw new ServiceException(INTERNAL_ERROR, e, "certificate %s failed".formatted(action));
+            throw new InternalServerErrorException("Certificate %s failed".formatted(action), e, INTERNAL_ERROR.build());
         }
     }
 
     /**
      * Adds audit log data for basic token, key and cert details.
      * Executes a new signer request to find out token and key details.
-     *
      * @param fullKeyDetails true: full key details are added false: only key id is added
      * @throws CertificateNotFoundException
      */
     private void auditLogTokenKeyAndCert(String hash, CertificateInfo certificateInfo, boolean fullKeyDetails)
             throws CertificateNotFoundException {
-        TokenInfoAndKeyId tokenInfoAndKeyId = null;
-        try {
-            tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateHash(hash);
-        } catch (KeyNotFoundException e) {
-            // key not found for a cert that exists, should not be possible
-            throw new RuntimeException(e);
-        }
+        TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateHash(hash);
+
         TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();
         KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
         auditDataHelper.put(tokenInfo);
@@ -553,9 +561,8 @@ public class TokenCertificateService {
     /**
      * Import a cert from given bytes. If importing an existing cert from a token use
      * {@link #importCertificateFromToken(String hash)}
-     *
      * @param certificateBytes
-     * @return CertificateType
+     * @return CertificateInfo
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
      * @throws KeyNotFoundException
@@ -569,12 +576,11 @@ public class TokenCertificateService {
                    KeyNotFoundException, CertificateAlreadyExistsException,
                    WrongCertificateUsageException, ClientNotFoundException, CsrNotFoundException,
                    AuthCertificateNotSupportedException {
-        return importCertificate(certificateBytes, false);
+        return importCertificate(certificateBytes, false, false);
     }
 
     /**
      * Check user authority to the given certificate
-     *
      * @param certificateBytes
      * @throws InvalidCertificateException if bytes were not valid cert
      * @throws AccessDeniedException       if no authority to activate or disable cert
@@ -601,7 +607,6 @@ public class TokenCertificateService {
     /**
      * Check if given certificate is a valid auth cert. Any exceptions (such as missing key usage extension)
      * while processing result in a logged warning and return false
-     *
      * @param x509Certificate the certificate
      */
     public boolean isValidAuthCert(X509Certificate x509Certificate) {
@@ -616,7 +621,6 @@ public class TokenCertificateService {
     /**
      * Check if given certificate is a valid sign cert. Any exceptions (such as missing key usage extension)
      * while processing result in a logged warning and return false
-     *
      * @param x509Certificate the certificate
      */
     public boolean isValidSignCert(X509Certificate x509Certificate) {
@@ -631,7 +635,6 @@ public class TokenCertificateService {
 
     /**
      * Returns the given certificate owner's client ID.
-     *
      * @param instanceIdentifier instance identifier of the owner
      * @param cert               the certificate
      * @return certificate owner's client ID
@@ -653,7 +656,6 @@ public class TokenCertificateService {
 
     /**
      * Verify if action can be performed on cert
-     *
      * @param action
      * @param certificateInfo
      * @param hash
@@ -671,7 +673,6 @@ public class TokenCertificateService {
 
     /**
      * Send the authentication certificate registration request to central server
-     *
      * @param hash                  certificate hash
      * @param securityServerAddress IP address or DNS name of the security server
      * @throws CertificateNotFoundException
@@ -695,18 +696,17 @@ public class TokenCertificateService {
             auditDataHelper.put(RestApiAuditProperty.ADDRESS, securityServerAddress);
             auditDataHelper.putManagementRequestId(requestId);
             auditDataHelper.put(RestApiAuditProperty.CERT_STATUS, CertificateInfo.STATUS_REGINPROG);
-            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
-        } catch (GlobalConfOutdatedException | CodedException e) {
+            signerRpcClient.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
+        } catch (DeviationAwareRuntimeException | CodedException e) {
             throw e;
         } catch (Exception e) {
-            throw new ServiceException(INTERNAL_ERROR, e, "Could not register auth cert");
+            throw new InternalServerErrorException("Could not register auth cert", e, INTERNAL_ERROR.build());
         }
     }
 
     /**
      * Send the authentication certificate deletion request to central server and set the cert status to
      * {@link CertificateInfo#STATUS_DELINPROG}
-     *
      * @param hash           certificate hash
      * @param skipUnregister whether to skip the actual delete request and only change cert status
      * @throws SignCertificateNotSupportedException
@@ -732,19 +732,18 @@ public class TokenCertificateService {
         }
         try {
             auditDataHelper.put(RestApiAuditProperty.CERT_STATUS, CertificateInfo.STATUS_DELINPROG);
-            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
+            signerRpcClient.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
         } catch (CodedException e) {
             throw e;
         } catch (Exception e) {
             // this means that cert was not found (which has been handled already) or some Akka error
-            throw new ServiceException(INTERNAL_ERROR, e, "Could not change auth cert status");
+            throw new InternalServerErrorException("Could not change auth cert status", e, INTERNAL_ERROR.build());
         }
     }
 
     /**
      * Send the authentication certificate deletion request to central server and set cert status to
      * {@link CertificateInfo#STATUS_DELINPROG}
-     *
      * @param hash certificate hash
      * @throws SignCertificateNotSupportedException
      * @throws ActionNotPossibleException
@@ -764,7 +763,6 @@ public class TokenCertificateService {
 
     /**
      * Set the authentication certificate status to {@link CertificateInfo#STATUS_DELINPROG}
-     *
      * @param hash certificate hash
      * @throws SignCertificateNotSupportedException
      * @throws ActionNotPossibleException
@@ -777,12 +775,8 @@ public class TokenCertificateService {
             throws SignCertificateNotSupportedException, ActionNotPossibleException,
                    GlobalConfOutdatedException, InvalidCertificateException,
                    KeyNotFoundException, CertificateNotFoundException {
-        try {
-            unregisterAuthCertAndMarkForDeletion(hash, true);
-        } catch (ManagementRequestSendingFailedException e) {
-            // should never happen
-            throw new RuntimeException("Management request failed", e);
-        }
+
+        unregisterAuthCertAndMarkForDeletion(hash, true);
     }
 
     private void verifyAuthCert(CertificateInfo certificateInfo)
@@ -804,7 +798,6 @@ public class TokenCertificateService {
 
     /**
      * Helper to translate caught {@link CodedException CodedExceptions}
-     *
      * @param e
      * @throws CertificateAlreadyExistsException
      * @throws InvalidCertificateException
@@ -833,7 +826,6 @@ public class TokenCertificateService {
 
     /**
      * Return possible actions for one cert
-     *
      * @param hash
      * @return
      * @throws CertificateNotFoundException
@@ -847,18 +839,13 @@ public class TokenCertificateService {
      * Return possible actions for one csr
      * Key not found exceptions are wrapped as RuntimeExceptions
      * since them happening is considered to be internal error.
-     *
      * @throws CsrNotFoundException
      */
     public EnumSet<PossibleActionEnum> getPossibleActionsForCsr(
             String csrId) throws CsrNotFoundException {
 
-        TokenInfoAndKeyId tokenInfoAndKeyId = null;
-        try {
-            tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateRequestId(csrId);
-        } catch (KeyNotFoundException e) {
-            throw new RuntimeException("internal error", e);
-        }
+        TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateRequestId(csrId);
+
         TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();
 
         return possibleActionsRuleEngine.getPossibleCsrActions(tokenInfo);
@@ -872,7 +859,6 @@ public class TokenCertificateService {
      * instead to determine correct KeyInfo.
      * Key not found exceptions are wrapped as RuntimeExceptions
      * since them happening is considered to be internal error.
-     *
      * @param hash            certificate hash
      * @param certificateInfo
      * @param keyInfo
@@ -889,18 +875,14 @@ public class TokenCertificateService {
             certificateInfo = getCertificateInfo(hash);
         }
 
-        try {
-            if (tokenInfo == null) {
-                TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateHash(hash);
-                tokenInfo = tokenInfoAndKeyId.getTokenInfo();
-                keyInfo = tokenInfoAndKeyId.getKeyInfo();
-            }
-            if (keyInfo == null) {
-                String keyId = getKeyIdForCertificateHash(hash);
-                keyInfo = keyService.getKey(keyId);
-            }
-        } catch (KeyNotFoundException e) {
-            throw new RuntimeException("internal error", e);
+        if (tokenInfo == null) {
+            TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateHash(hash);
+            tokenInfo = tokenInfoAndKeyId.getTokenInfo();
+            keyInfo = tokenInfoAndKeyId.getKeyInfo();
+        }
+        if (keyInfo == null) {
+            String keyId = getKeyIdForCertificateHash(hash);
+            keyInfo = keyService.getKey(keyId);
         }
 
         return possibleActionsRuleEngine.
@@ -909,7 +891,6 @@ public class TokenCertificateService {
 
     /**
      * Deletes a collection of certificates
-     *
      * @throws CertificateNotFoundException if certificate with given hash was not found
      * @throws ActionNotPossibleException   if delete was not possible due to cert/key/token states
      */
@@ -940,7 +921,6 @@ public class TokenCertificateService {
 
     /**
      * Delete certificate with given hash
-     *
      * @param hash
      * @throws CertificateNotFoundException if certificate with given hash was not found
      * @throws KeyNotFoundException         if for some reason the key linked to the cert could not
@@ -968,7 +948,6 @@ public class TokenCertificateService {
 
     /**
      * Delete certificate with given hash
-     *
      * @throws CertificateNotFoundException if signer could not find the cert
      * @throws ActionNotPossibleException   if delete was not possible due to cert/key/token states
      */
@@ -985,26 +964,25 @@ public class TokenCertificateService {
             securityHelper.verifyAuthority("DELETE_AUTH_CERT");
         }
         try {
-            signerProxyFacade.deleteCert(certificateInfo.getId());
+            signerRpcClient.deleteCert(certificateInfo.getId());
         } catch (CodedException e) {
             if (e instanceof SignerException se && se.isCausedByCertNotFound()) {
-                throw new CertificateNotFoundException(CERTIFICATE_NOT_FOUND_WITH_ID, e, certificateInfo.getId());
+                throw new CertificateNotFoundException(e, CERTIFICATE_NOT_FOUND_WITH_ID.build(certificateInfo.getId()));
             } else {
                 throw e;
             }
         } catch (Exception other) {
-            throw new ServiceException(INTERNAL_ERROR, other, "deleting a csr failed");
+            throw new InternalServerErrorException("Deleting a CSR failed", other, INTERNAL_ERROR.build());
         }
     }
 
     /**
      * Return key id for a key containing a cert with given hash
-     *
      * @throws CertificateNotFoundException if no match found
      */
     public String getKeyIdForCertificateHash(String hash) throws CertificateNotFoundException {
         try {
-            return signerProxyFacade.getKeyIdForCertHash(hash).keyId();
+            return signerRpcClient.getKeyIdForCertHash(hash).keyId();
         } catch (CodedException e) {
             if (e instanceof SignerException se && se.isCausedByCertNotFound()) {
                 throw new CertificateNotFoundException("Certificate with hash " + hash + " not found", e);
@@ -1012,13 +990,12 @@ public class TokenCertificateService {
                 throw e;
             }
         } catch (Exception e) {
-            throw new ServiceException(INTERNAL_ERROR, e, "error getting certificate");
+            throw new InternalServerErrorException("Error getting certificate", e, INTERNAL_ERROR.build());
         }
     }
 
     /**
      * Deletes one csr
-     *
      * @param csrId
      * @throws KeyNotFoundException       if for some reason the key linked to the csr could not
      *                                    be loaded (should not be possible)
@@ -1055,7 +1032,7 @@ public class TokenCertificateService {
                 PossibleActionEnum.DELETE, tokenInfo, keyInfo, certRequestInfo);
 
         try {
-            signerProxyFacade.deleteCertRequest(csrId);
+            signerRpcClient.deleteCertRequest(csrId);
         } catch (CodedException e) {
             if (e instanceof SignerException se && se.isCausedByCsrNotFound()) {
                 throw new CsrNotFoundException(e);
@@ -1063,7 +1040,7 @@ public class TokenCertificateService {
                 throw e;
             }
         } catch (Exception other) {
-            throw new ServiceException(INTERNAL_ERROR, other, "deleting a csr failed");
+            throw new InternalServerErrorException("Deleting a CSR failed", other, INTERNAL_ERROR.build());
         }
     }
 
@@ -1088,7 +1065,7 @@ public class TokenCertificateService {
         CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);
         auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, certRequestInfo.getSubjectName());
 
-        GeneratedCertRequestInfo generatedCertRequestInfo =
+        SignerRpcClient.GeneratedCertRequestInfo generatedCertRequestInfo =
                 regenerateCertRequest(keyInfo.getId(), csrId, CertificateRequestFormat.DER);
         if (caInfo.getAcmeServerDirectoryUrl() != null) {
             String commonName = getCommonName(certRequestInfo.getSubjectName());
@@ -1108,7 +1085,7 @@ public class TokenCertificateService {
                     generatedCertRequestInfo.certRequest());
             if (chain != null) {
                 try {
-                    importCertificate(chain.get(0).getEncoded(), false);
+                    importCertificate(chain.get(0).getEncoded(), false, true);
                 } catch (CertificateEncodingException e) {
                     throw new InvalidCertificateException(e);
                 }
@@ -1118,7 +1095,6 @@ public class TokenCertificateService {
 
     /**
      * Finds csr with matching id from KeyInfo, or throws {@link CsrNotFoundException}
-     *
      * @throws CsrNotFoundException
      */
     private CertRequestInfo getCsr(KeyInfo keyInfo, String csrId) throws CsrNotFoundException {
@@ -1134,27 +1110,27 @@ public class TokenCertificateService {
     /**
      * Cert usage info is wrong (e.g. cert is both auth and sign or neither)
      */
-    public static class WrongCertificateUsageException extends ServiceException {
+    public static class WrongCertificateUsageException extends InternalServerErrorException {
         public WrongCertificateUsageException(Throwable t) {
-            super(ErrorMessage.CERTIFICATE_WRONG_USAGE, t);
+            super(t, CERTIFICATE_WRONG_USAGE.build());
         }
     }
 
     /**
      * Probably a rare case of when importing an auth cert from an HSM
      */
-    public static class AuthCertificateNotSupportedException extends ServiceException {
+    public static class AuthCertificateNotSupportedException extends InternalServerErrorException {
         public AuthCertificateNotSupportedException(String msg) {
-            super(ErrorMessage.AUTH_CERT_NOT_SUPPORTED, msg);
+            super(AUTH_CERT_NOT_SUPPORTED.build(msg));
         }
     }
 
     /**
      * When trying to register a sign cert
      */
-    public static class SignCertificateNotSupportedException extends ServiceException {
+    public static class SignCertificateNotSupportedException extends BadRequestException {
         public SignCertificateNotSupportedException(String msg) {
-            super(ErrorMessage.SIGN_CERT_NOT_SUPPORTED, msg);
+            super(SIGN_CERT_NOT_SUPPORTED.build(msg));
         }
     }
 }

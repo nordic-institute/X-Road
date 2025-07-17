@@ -122,10 +122,10 @@ export default defineComponent({
     selectableSecurityServers(): SecurityServer[] {
       return this.securityServerStore.securityServers || [];
     },
-    emptyListReasoning(): TranslateResult {
+    emptyListReasoning(): string {
       return this.pagingOptions.search
-        ? this.$t('noData.noMatches')
-        : this.$t('noData.noSecurityServers');
+        ? 'noData.noMatches'
+        : 'noData.noSecurityServers';
     },
     changed(): boolean {
       return (
@@ -162,6 +162,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
   },
   methods: {
@@ -182,7 +183,6 @@ export default defineComponent({
         this.loading = false;
       }
     },
-    // @ts-expect-error
     changeOptions: async function ({ itemsPerPage, page, sortBy }) {
       this.pagingOptions.itemsPerPage = itemsPerPage;
       this.pagingOptions.page = page;
@@ -222,11 +222,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-
-.checkbox-column {
-  width: 50px;
-}
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 .search-input {
   width: 300px;

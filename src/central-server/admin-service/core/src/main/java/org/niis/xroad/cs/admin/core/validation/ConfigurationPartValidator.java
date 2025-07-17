@@ -27,19 +27,18 @@
 
 package org.niis.xroad.cs.admin.core.validation;
 
-import ee.ria.xroad.common.conf.globalconfextension.OcspFetchIntervalSchemaValidator;
-import ee.ria.xroad.common.conf.globalconfextension.OcspNextUpdateSchemaValidator;
-import ee.ria.xroad.common.conf.monitoringconf.MonitoringParametersSchemaValidator;
-
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.globalconf.extension.OcspFetchIntervalSchemaValidator;
+import org.niis.xroad.globalconf.extension.OcspNextUpdateSchemaValidator;
+import org.niis.xroad.globalconf.monitoringconf.MonitoringParametersSchemaValidator;
 import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_MONITORING;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_OCSP_FETCH_INTERVAL;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_OCSP_NEXT_UPDATE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_PART_VALIDATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_PART_VALIDATOR_NOT_FOUND;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_MONITORING;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_OCSP_FETCH_INTERVAL;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_OCSP_NEXT_UPDATE;
 
 @Component
 public class ConfigurationPartValidator {
@@ -51,10 +50,10 @@ public class ConfigurationPartValidator {
                 case CONTENT_ID_MONITORING -> MonitoringParametersSchemaValidator.validate(content);
                 case CONTENT_ID_OCSP_FETCH_INTERVAL -> OcspFetchIntervalSchemaValidator.validate(content);
                 case CONTENT_ID_OCSP_NEXT_UPDATE -> OcspNextUpdateSchemaValidator.validate(content);
-                default -> throw new ValidationFailureException(CONFIGURATION_PART_VALIDATOR_NOT_FOUND);
+                default -> throw new BadRequestException(CONFIGURATION_PART_VALIDATOR_NOT_FOUND.build());
             }
         } catch (Exception e) {
-            throw new ValidationFailureException(CONFIGURATION_PART_VALIDATION_FAILED, e);
+            throw new BadRequestException(e, CONFIGURATION_PART_VALIDATION_FAILED.build());
         }
     }
 

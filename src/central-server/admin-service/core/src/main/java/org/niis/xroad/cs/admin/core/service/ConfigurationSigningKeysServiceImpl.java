@@ -30,15 +30,12 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.SignerProxyException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
@@ -59,6 +56,9 @@ import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -136,7 +136,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                 .collect(toList());
     }
 
-    private ConfigurationSigningKeyWithDetails mapWithDetails(final ee.ria.xroad.signer.protocol.dto.TokenInfo token,
+    private ConfigurationSigningKeyWithDetails mapWithDetails(final TokenInfo token,
                                                               ConfigurationSigningKey signingKey,
                                                               KeyInfo keyInfo) {
         var possibleActions = List.copyOf(signingKeyActionsResolver.resolveActions(token, signingKey));
@@ -173,10 +173,10 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             configurationSigningKeyRepository.deleteByKeyIdentifier(identifier);
             signerProxyFacade.deleteKey(signingKey.getKeyIdentifier(), true);
             return signingKey;
-        } catch (ValidationFailureException e) {
+        } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
-            throw new SigningKeyException(ERROR_DELETING_SIGNING_KEY, e);
+            throw new SigningKeyException(e, ERROR_DELETING_SIGNING_KEY.build());
         }
     }
 
@@ -203,10 +203,10 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             auditDataHelper.put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
 
             activateKey(signingKeyEntity);
-        } catch (ValidationFailureException e) {
+        } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
-            throw new SigningKeyException(ERROR_ACTIVATING_SIGNING_KEY, e);
+            throw new SigningKeyException(e, ERROR_ACTIVATING_SIGNING_KEY.build());
         }
     }
 
@@ -251,7 +251,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             auditDataHelper.put(RestApiAuditProperty.KEY_ID, keyInfo.getId());
             auditDataHelper.put(RestApiAuditProperty.KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
         } catch (Exception e) {
-            throw new SignerProxyException(KEY_GENERATION_FAILED, e);
+            throw new SignerProxyException(e, KEY_GENERATION_FAILED.build());
         }
 
         final Instant generatedAt = TimeUtils.now();
@@ -288,7 +288,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             return mapWithDetails(tokenInfo, response, keyInfo);
         } catch (Exception e) {
             deleteKey(keyInfo.getId());
-            throw new SignerProxyException(KEY_GENERATION_FAILED);
+            throw new SignerProxyException(e, KEY_GENERATION_FAILED.build());
         }
     }
 
@@ -302,11 +302,11 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             signingKey.getConfigurationSource().setConfigurationSigningKey(signingKey);
             configurationSigningKeyRepository.save(signingKey);
         } catch (Exception e) {
-            throw new SigningKeyException(ERROR_ACTIVATING_SIGNING_KEY, e);
+            throw new SigningKeyException(e, ERROR_ACTIVATING_SIGNING_KEY.build());
         }
     }
 
     private static NotFoundException notFoundException() {
-        return new NotFoundException(SIGNING_KEY_NOT_FOUND);
+        return new NotFoundException(SIGNING_KEY_NOT_FOUND.build());
     }
 }

@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.10  
+Version: 1.12
 Doc. ID: DM-SS
 
 ## Version history
@@ -21,6 +21,8 @@ Doc. ID: DM-SS
 | 10.05.2023 | 1.8     | Security Categories removed.                                        | Justas Samuolis                 |
 | 08.12.2023 | 1.9     | Added "Disabled" and related "in progress" client states            | Madis Loitmaa                   |
 | 26.01.2024 | 1.10    | When client is deleted, respective identifier is deleted as well    | Eneli Reimets                   |
+| 12.03.2025 | 1.11    | Minor fixes                                                         | Eneli Reimets                   |
+| 21.03.2025 | 1.12    | Syntax and styling                               								   | Pauline Dimmek		               |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -68,17 +70,17 @@ Doc. ID: DM-SS
   * [2.13 SERVICE](#213-service)
     * [2.13.1 Indexes](#2131-indexes)
     * [2.13.2 Attributes](#2132-attributes)
-  * [2.14 TSP](#215-tsp)
-    * [2.14.1 Indexes](#2151-indexes)
-    * [2.14.2 Attributes](#2152-attributes)
-  * [2.15 UIUSER](#216-uiuser)
-    * [2.15.1 Attributes](#2161-attributes)
-  * [2.16 SERVICEDESCRIPTION](#217-servicedescription)
-    * [2.16.1 Indexes](#2171-indexes)
-    * [2.16.2 Attributes](#2172-attributes)
-  * [2.17 ENDPOINT](#218-endpoint)
-    * [2.17.1 Indexes](#2181-indexes)
-    * [2.17.2 Attributes](#2182-attributes)
+  * [2.14 TSP](#214-tsp)
+    * [2.14.1 Indexes](#2141-indexes)
+    * [2.14.2 Attributes](#2142-attributes)
+  * [2.15 UIUSER](#215-uiuser)
+    * [2.15.1 Attributes](#2151-attributes)
+  * [2.16 SERVICEDESCRIPTION](#216-servicedescription)
+    * [2.16.1 Indexes](#2161-indexes)
+    * [2.16.2 Attributes](#2162-attributes)
+  * [2.17 ENDPOINT](#217-endpoint)
+    * [2.17.1 Indexes](#2171-indexes)
+    * [2.17.2 Attributes](#2172-attributes)
 
 <!-- vim-markdown-toc -->
 
@@ -273,12 +275,12 @@ Member of a local group. A group membership record is created when the administr
 
 #### 2.8.2 Attributes
 
-| Name        | Type           | Modifiers        | Description    |
-|:----------- |:-----------------:|:----------- |:-----------------|
-| id [PK] | bigint | NOT NULL | Primary key. |
-| groupmemberid [FK] | bigint | NOT NULL | Identifier of the member or the subsystem who is a member of the local group. References id attribute of IDENTIFIER entity. |
-| added | timestamp with time zone | NOT NULL | The time when the group member  was added. |
-| localgroup_id [FK] | bigint |  | The local group. References id attribute of LOCALGROUP entity. |
+| Name               |            Type             | Modifiers | Description                                                                                                                 |
+|:-------------------|:---------------------------:|:----------|:----------------------------------------------------------------------------------------------------------------------------|
+| id [PK]            |           bigint            | NOT NULL  | Primary key.                                                                                                                |
+| groupmemberid [FK] |           bigint            | NOT NULL  | Identifier of the member or the subsystem who is a member of the local group. References id attribute of IDENTIFIER entity. |
+| added              | timestamp without time zone | NOT NULL  | The time when the group member  was added.                                                                                  |
+| localgroup_id [FK] |           bigint            |           | The local group. References id attribute of LOCALGROUP entity.                                                              |
 
 ### 2.9 HISTORY
 
@@ -330,13 +332,13 @@ Group of members and/or subsystems. The group is local to a security server clie
 
 #### 2.11.2 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------|
-| id [PK] | bigint | NOT NULL | Primary key |
-| groupcode] | character varying(255) | NOT NULL | The code of the group. |
-| description | character varying(255) | NOT NULL | The description of the group. |
-| updated | timestamp with time zone | NOT NULL | The time when the description of the group was last updated. |
-| client_id [FK] | bigint |  | The security server client for whom the local group is defined. References id attribute of CLIENT entity. |
+| Name           |            Type             | Modifiers | Description                                                                                               |
+|:---------------|:---------------------------:|:----------|:----------------------------------------------------------------------------------------------------------|
+| id [PK]        |           bigint            | NOT NULL  | Primary key                                                                                               |
+| groupcode]     |   character varying(255)    | NOT NULL  | The code of the group.                                                                                    |
+| description    |   character varying(255)    | NOT NULL  | The description of the group.                                                                             |
+| updated        | timestamp without time zone | NOT NULL  | The time when the description of the group was last updated.                                              |
+| client_id [FK] |           bigint            |           | The security server client for whom the local group is defined. References id attribute of CLIENT entity. |
 
 ### 2.12 SERVERCONF
 
@@ -422,15 +424,15 @@ Pointer to a SERVICEDESCRIPTION containing the descriptions of services provided
 
 #### 2.16.2 Attributes
 
-| Name        | Type           | Modifiers        | Description     |
-|:----------- |:-----------------:|:----------- |:------------------|
-| id [PK] | bigint | NOT NULL | Primary key. |
-| client_id [FK] | bigint |   | The security server client providing the services described in this SERVICEDESCRIPTION. References id attribute of CLIENT entity. |
-| url | character varying(255) | NOT NULL | The URL of the SERVICEDESCRIPTION. The URL points to the information system of the security server client. |
-| disabled | boolean | NOT NULL | A flag indicating whether the SERVICEDESCRIPTION and all its services are disabled. |
-| disablednotice | character varying(255) |   | The error message returned in response to a call to a service belonging to a disabled SERVICEDESCRIPTION. |
-| refresheddate | timestamp with time zone |   | The time when the SERVICEDESCRIPTION was last refreshed. |
-| type | character varying(255) | NOT NULL | The type of the service description. At the time of writing 'WSDL' and 'OPENAPI3' types are supported. |
+| Name           |            Type             | Modifiers | Description                                                                                                                       |
+|:---------------|:---------------------------:|:----------|:----------------------------------------------------------------------------------------------------------------------------------|
+| id [PK]        |           bigint            | NOT NULL  | Primary key.                                                                                                                      |
+| client_id [FK] |           bigint            |           | The security server client providing the services described in this SERVICEDESCRIPTION. References id attribute of CLIENT entity. |
+| url            |   character varying(255)    | NOT NULL  | The URL of the SERVICEDESCRIPTION. The URL points to the information system of the security server client.                        |
+| disabled       |           boolean           | NOT NULL  | A flag indicating whether the SERVICEDESCRIPTION and all its services are disabled.                                               |
+| disablednotice |   character varying(255)    |           | The error message returned in response to a call to a service belonging to a disabled SERVICEDESCRIPTION.                         |
+| refresheddate  | timestamp without time zone |           | The time when the SERVICEDESCRIPTION was last refreshed.                                                                          |
+| type           |   character varying(255)    | NOT NULL  | The type of the service description. At the time of writing 'WSDL' and 'OPENAPI3' types are supported.                            |
 
 ### 2.17 ENDPOINT
 

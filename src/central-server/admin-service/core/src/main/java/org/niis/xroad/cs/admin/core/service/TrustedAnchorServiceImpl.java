@@ -26,14 +26,11 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationLocation;
-
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
 import org.niis.xroad.cs.admin.core.entity.AnchorUrlCertEntity;
@@ -43,6 +40,8 @@ import org.niis.xroad.cs.admin.core.entity.mapper.TrustedAnchorMapper;
 import org.niis.xroad.cs.admin.core.repository.AnchorUrlCertRepository;
 import org.niis.xroad.cs.admin.core.repository.AnchorUrlRepository;
 import org.niis.xroad.cs.admin.core.repository.TrustedAnchorRepository;
+import org.niis.xroad.globalconf.model.ConfigurationAnchor;
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,7 +55,7 @@ import static ee.ria.xroad.common.crypto.Digests.DEFAULT_ANCHOR_HASH_ALGORITHM_I
 import static ee.ria.xroad.common.crypto.Digests.calculateAnchorHashDelimited;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MALFORMED_ANCHOR;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.MALFORMED_ANCHOR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ANCHOR_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ANCHOR_VERIFICATION_FAILED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH;
@@ -93,7 +92,7 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
             final ConfigurationAnchor anchorV2 = new ConfigurationAnchor(trustedAnchorFile);
             return trustedAnchorMapper.map(anchorV2, trustedAnchorFile);
         } catch (Exception e) {
-            throw new ValidationFailureException(MALFORMED_ANCHOR);
+            throw new BadRequestException(MALFORMED_ANCHOR.build());
         }
     }
 
@@ -152,13 +151,13 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
     public TrustedAnchor findByHash(String hash) {
         return trustedAnchorRepository.findFirstByTrustedAnchorHash(hash)
                 .map(trustedAnchorMapper::toTarget)
-                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND, hash));
+                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND.build(hash)));
     }
 
     @Override
     public void delete(String hash) {
         final TrustedAnchorEntity trustedAnchor = trustedAnchorRepository.findFirstByTrustedAnchorHash(hash)
-                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND, hash));
+                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND.build(hash)));
 
         auditDataHelper.put(INSTANCE_IDENTIFIER, trustedAnchor.getInstanceIdentifier());
         auditDataHelper.put(ANCHOR_FILE_HASH, trustedAnchor.getTrustedAnchorHash());
@@ -174,7 +173,7 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
             Files.write(tempFile, trustedAnchor);
             configurationVerifier.verifyConfiguration(configVerifierScriptPath, tempFile.toAbsolutePath().toString());
         } catch (Exception e) {
-            throw new ValidationFailureException(TRUSTED_ANCHOR_VERIFICATION_FAILED, e);
+            throw new BadRequestException(e, TRUSTED_ANCHOR_VERIFICATION_FAILED.build());
         } finally {
             if (tempFile != null) {
                 FileUtils.deleteQuietly(tempFile.toFile());

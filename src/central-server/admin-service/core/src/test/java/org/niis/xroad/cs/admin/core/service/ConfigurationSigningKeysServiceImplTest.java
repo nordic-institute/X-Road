@@ -30,12 +30,6 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,8 +37,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.KeyLabel;
@@ -63,6 +57,12 @@ import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 
 import java.time.Instant;
 import java.util.Date;
@@ -70,7 +70,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
@@ -85,6 +84,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
+import static org.niis.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 
 @ExtendWith(MockitoExtension.class)
 class ConfigurationSigningKeysServiceImplTest {
@@ -143,7 +143,7 @@ class ConfigurationSigningKeysServiceImplTest {
     void deleteKeyNotFoundShouldThrowException() {
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey("some_random_id"))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Signing key not found");
+                .hasMessage("Error[code=signing_key_not_found]");
     }
 
 
@@ -155,8 +155,8 @@ class ConfigurationSigningKeysServiceImplTest {
                 .thenReturn(Optional.of(signingKeyEntity));
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Signing key action not possible");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=signing_key_action_not_possible]");
     }
 
     @Test
@@ -168,7 +168,7 @@ class ConfigurationSigningKeysServiceImplTest {
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
                 .isInstanceOf(SigningKeyException.class)
-                .hasMessage("Error deleting signing key");
+                .hasMessage("Error[code=error_deleting_signing_key]");
     }
 
     @Test
@@ -182,7 +182,7 @@ class ConfigurationSigningKeysServiceImplTest {
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
                 .isInstanceOf(SigningKeyException.class)
-                .hasMessage("Error deleting signing key");
+                .hasMessage("Error[code=error_deleting_signing_key]");
         verify(configurationSigningKeyRepository).deleteByKeyIdentifier(signingKeyEntity.getKeyIdentifier());
     }
 
@@ -261,8 +261,8 @@ class ConfigurationSigningKeysServiceImplTest {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of(createKeyInfo("keyId"))));
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.addKey(INTERNAL_CONFIGURATION, TOKEN_ID, KEY_LABEL))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Token action not possible");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=token_action_not_possible]");
 
         verify(signerProxyFacade).getToken(TOKEN_ID);
         verifyNoMoreInteractions(signerProxyFacade);
@@ -289,7 +289,7 @@ class ConfigurationSigningKeysServiceImplTest {
     void activateKeyShouldFailWhenKeyNotFound() {
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.activateKey("some_random_id"))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Signing key not found");
+                .hasMessage("Error[code=signing_key_not_found]");
     }
 
     @Test
@@ -300,10 +300,9 @@ class ConfigurationSigningKeysServiceImplTest {
                 .thenReturn(Optional.of(signingKeyEntity));
         when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenReturn(tokenInfo);
 
-
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.activateKey(signingKeyEntity.getKeyIdentifier()))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Signing key action not possible");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=signing_key_action_not_possible]");
     }
 
     @Test
@@ -330,7 +329,7 @@ class ConfigurationSigningKeysServiceImplTest {
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.activateKey(signingKeyEntity.getKeyIdentifier()))
                 .isInstanceOf(SigningKeyException.class)
-                .hasMessage("Error activating signing key");
+                .hasMessage("Error[code=error_activating_signing_key]");
     }
 
     @Test
@@ -350,7 +349,7 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     private KeyInfo createKeyInfo(String keyIdentifier) {
-        return new ee.ria.xroad.signer.protocol.dto.KeyInfo(KeyInfoProto.newBuilder()
+        return new KeyInfo(KeyInfoProto.newBuilder()
                 .setAvailable(true)
                 .setUsage(KeyUsageInfo.SIGNING)
                 .setFriendlyName("keyFriendlyName")

@@ -8,10 +8,16 @@ gradleModule=""
 gradleArgs="clean build -x check "
 case $1 in
 "proxy")
-  gradleModule="proxy"
+  gradleModule="service/proxy"
+  ;;
+"addon-messagelog")
+  gradleModule="addons/messagelog/messagelog-addon"
+  ;;
+"addon-metaservice")
+  gradleModule="addons/metaservice"
   ;;
 "configuration-client")
-  gradleModule="configuration-client"
+  gradleModule="service/configuration-client"
   ;;
 "signer")
   gradleModule="signer"
@@ -21,11 +27,9 @@ case $1 in
   ;;
 "cs-admin-service")
   gradleModule="central-server/admin-service"
-  gradleArgs+="-xintTest"
   ;;
 "cs-management-service")
   gradleModule="central-server/management-service"
-  gradleArgs+="-xintTest"
   ;;
 esac
 

@@ -3,3 +3,7 @@ container_ports:
     connect: "tcp:127.0.0.1:4000"
     listen: "tcp:0.0.0.0:4001"
     type: proxy
+  test_ca_web:
+    connect: "tcp:127.0.0.1:9998"
+    listen: "tcp:0.0.0.0:4003"
+    type: proxy

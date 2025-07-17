@@ -17,7 +17,7 @@ Feature: 0700 - SS: Permissions
   Scenario: Registration officer sees only relevant pages
     Given Login form is visible
     When User xrd-reg logs in to SecurityServer with password secret
-    Then Clients Tab is missing
+    Then Clients Tab is present
     * Settings Tab is missing
     * Diagnostics Tab is missing
     * Add clients button is present
@@ -35,11 +35,11 @@ Feature: 0700 - SS: Permissions
   Scenario: Security officer sees only relevant pages
     Given Login form is visible
     When User xrd-sec logs in to SecurityServer with password secret
-    Then Clients Tab is missing
+    Then Clients Tab is present
     * Settings Tab is present
     * Diagnostics Tab is missing
     * Add clients button is missing
-    * Client "TestClient" details are not available
+    * Client "Test client" details are not available
 
     * Keys and certificates tab is selected
     * Token: softToken-0 is present
@@ -54,12 +54,12 @@ Feature: 0700 - SS: Permissions
   Scenario: Observer sees only relevant pages
     Given Login form is visible
     When User xrd-obs logs in to SecurityServer with password secret
-    Then Clients Tab is missing
+    Then Clients Tab is present
     * Settings Tab is present
     * Diagnostics Tab is present
     * Add clients button is missing
 
-    * Client "TestService" is opened
+    * Client "Test service" is opened
     * Client Details is as follows: Member Name "Test member", Member Class "COM", Member Code "1234", Sign Cert: "Test CA"
 
     * Local groups sub-tab is selected
@@ -82,13 +82,13 @@ Feature: 0700 - SS: Permissions
   Scenario: Service administrator sees only relevant pages
     Given Login form is visible
     When User xrd-ser logs in to SecurityServer with password secret
-    Then Clients Tab is missing
+    Then Clients Tab is present
     * Settings Tab is missing
     * Diagnostics Tab is missing
     * Keys and Certificates Tab is missing
     * Add clients button is missing
 
-    * Client "TestService" is opened
+    * Client "Test service" is opened
     * Client Details is as follows: Member Name "Test member", Member Class "COM", Member Code "1234", Sign Cert: "Test CA"
 
     * Local groups sub-tab is selected

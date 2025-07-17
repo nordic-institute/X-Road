@@ -1,46 +1,54 @@
 {
-    "locals_demo": "Lokaliseeritakse teegis",
-    "type": "Tüüp",
-    "warning": "Hoiatus",
-    "action": {
-        "activate": "Aktiveeri",
-        "cancel": "Tühista",
-        "add": "Lisa",
-        "addClient": "Lisa klient",
-        "addMember": "Lisa liige",
-        "addSubsystem": "Lisa alamsüsteem",
-        "close": "Sulge",
-        "confirm": "Kinnita",
-        "continue": "Jätka",
-        "copy": "Kopeeri",
-        "copyId": "Kopeeri ID",
-        "delete": "Kustuta",
-        "deactivate": "Blokeeri",
-        "done": "Valmis",
-        "download": "Lae alla",
-        "edit": "Redigeeri",
-        "emptySearch": "Teie {msg} otsing ei andnud tulemusi.",
-        "export": "Eksport",
-        "finish": "Lõpeta",
-        "goToFront": "Mine esilehele",
-        "next": "Järgmine",
-        "no": "Ei",
-        "noData": "Andmed puuduvad",
-        "ok": "Korras",
-        "previous": "Eelmine",
-        "refresh": "Värskenda",
-        "register": "Registreeri",
-        "remove": "Eemalda",
-        "removeAll": "Eemalda kõik",
-        "restore": "Taasta",
-        "save": "Salvesta",
-        "search": "Otsi",
-        "searching": "Otsimine...",
-        "submit": "Esita",
-        "unregister": "Kustuta registrist",
-        "upload": "",
-        "yes": "Jah"
-        },
+  "403": {
+    "goBack": " Tagasi",
+    "mainTitle": " Toiming ei ole lubatud",
+    "text": "Näib, et teil pole selle lehekülje vaatamiseks luba. Kui teie arvates on tegemist veaga, siis kontrollige, kas olete õige kontoga sisse logitud või võtke ühendust oma administraatoriga.",
+    "topTitle": "Keelatud"
+  },
+  "404": {
+    "pageNotFound": "404 – lehekülge ei leitud",
+    "text": "Näib, et olete leidnud",
+    "textUnicorn": "ükssarviku"
+  },
+  "action": {
+    "activate": "Aktiveeri",
+    "add": "Lisa",
+    "addClient": "Lisa klient",
+    "addMember": "Lisa liige",
+    "addSubsystem": "Lisa alamsüsteem",
+    "cancel": "Tühista",
+    "close": "Sulge",
+    "confirm": "Kinnita",
+    "continue": "Jätka",
+    "copy": "Kopeeri",
+    "copyId": "Kopeeri ID",
+    "deactivate": "Blokeeri",
+    "delete": "Kustuta",
+    "done": "Valmis",
+    "download": "Lae alla",
+    "edit": "Redigeeri",
+    "emptySearch": "Teie {msg} otsing ei andnud tulemusi.",
+    "export": "Eksport",
+    "finish": "Lõpeta",
+    "goToFront": "Mine esilehele",
+    "next": "Järgmine",
+    "no": "Ei",
+    "noData": "Andmed puuduvad",
+    "ok": "Korras",
+    "previous": "Eelmine",
+    "refresh": "Värskenda",
+    "register": "Registreeri",
+    "remove": "Eemalda",
+    "removeAll": "Eemalda kõik",
+    "restore": "Taasta",
+    "save": "Salvesta",
+    "search": "Otsi",
+    "searching": "Otsimine...",
+    "submit": "Esita",
+    "unregister": "Kustuta registrist",
+    "upload": "",
+    "yes": "Jah"
+  },
   "alert": {
     "count": "Samade vigade hulk:",
     "id": "ID"
@@ -66,13 +74,13 @@
       "success": "API võti edukalt loodud",
       "title": "Loo API võti"
     },
+    "edit": {
+      "roleRemoveOnly": "(remove only)"
+    },
     "role": {
       "XROAD_REGISTRATION_OFFICER": "Registreerimisadministraator",
       "XROAD_SECURITY_OFFICER": "Turvaadministraator",
       "XROAD_SYSTEM_ADMINISTRATOR": "Süsteemiadministraator"
-    },
-    "edit": {
-      "roleRemoveOnly": "(remove only)"
     },
     "table": {
       "action": {
@@ -99,42 +107,41 @@
       }
     }
   },
-    "keys": {
-        "gotIt": "Sain aru"
+  "backup": {
+    "createBackup": {
+      "button": "Varunda konfiguratsiooni",
+      "messages": {
+        "localConfWarning": "Hoiatus! Konfiguratsiooni üle kirjutamiseks kasutatav fail „/etc/xroad/services/local.conf“ on mittesobiv ja ei sisaldu enam varukoopiate hulgas. Selle asemel tuleb kasutada faili „/etc/xroad/services/local.properties“.",
+        "success": "Varukoopia {file} edukalt loodud"
+      }
     },
-    "backup": {
-        "deleteBackup": {
-            "dialog": {
-                "confirmation": "Kas soovite kindlasti {file} varukoopia kustutada?",
-                "title": "Kas olete kindel?"
-            },
-            "success": "{file} varukoopia kustutatud"
-        },
-        "restoreFromBackup": {
-            "dialog": {
-                "confirmation": "Kas soovite kindlasti {file} taastada?",
-                "title": "Kas olete kindel?"
-            },
-            "success": "Konfiguratsioon {file} taastatud"
-        },
-        "createBackup": {
-            "button": "Varunda konfiguratsiooni",
-            "messages": {
-                "success": "Varukoopia {file} edukalt loodud",
-                "localConfWarning": "Hoiatus! Konfiguratsiooni üle kirjutamiseks kasutatav fail „/etc/xroad/services/local.conf“ on mittesobiv ja ei sisaldu enam varukoopiate hulgas. Selle asemel tuleb kasutada faili „/etc/xroad/services/local.properties“."
-            }
-        },
-        "uploadBackup": {
-            "button": "Lae varukoopia üles",
-            "confirmationDialog": {
-                "confirmation": "Fail {name} on juba olemas, kas soovite selle kindlasti üle kirjutada?",
-                "title": "Fail on juba olemas"
-            },
-            "success": "Varukoopia {file} edukalt üles laaditud"
-        }
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "Kas soovite kindlasti {file} varukoopia kustutada?",
+        "title": "Kas olete kindel?"
+      },
+      "success": "{file} varukoopia kustutatud"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "Kas soovite kindlasti {file} taastada?",
+        "title": "Kas olete kindel?"
+      },
+      "success": "Konfiguratsioon {file} taastatud"
+    },
+    "uploadBackup": {
+      "button": "Lae varukoopia üles",
+      "confirmationDialog": {
+        "confirmation": "Fail {name} on juba olemas, kas soovite selle kindlasti üle kirjutada?",
+        "title": "Fail on juba olemas"
+      },
+      "success": "Varukoopia {file} edukalt üles laaditud"
+    }
   },
   "cert": {
     "certificate": "Sertifikaat",
+    "ecParameters": "EC avaliku võtme parameetrid",
+    "ecPoint": "EC avaliku võtme punkt",
     "hashInfo": "Räsi (SHA-256)",
     "keyUsage": {
       "CRL_SIGN": "CRL Märk",
@@ -148,32 +155,48 @@
       "NON_REPUDIATION": "Salgamatus"
     },
     "rsaExp": "RSA avaliku võtme eksponent",
-    "rsaModulus": "RSA avaliku võtme moodul",
-    "ecParameters": "EC avaliku võtme parameetrid",
-    "ecPoint": "EC avaliku võtme punkt"
+    "rsaModulus": "RSA avaliku võtme moodul"
   },
   "error_code": {
     "api_key_not_found": "API võtit ei leitud",
     "backup_file_not_found": "Varufaili ei leitud",
     "backup_generation_failed": "Varukoopia loomine ebaõnnestus",
     "backup_restore_interrupted": "Varukoopia taastamine katkestatud",
+    "core": {
+      "Signer": {
+        "CertNotFound": "Sertifikaati ei leitud",
+        "KeyNotFound": "Võtit ei leitud",
+        "PinIncorrect": "Vale PIN-kood",
+        "TokenNotAvailable": "Krüptomoodul pole saadaval",
+        "TokenNotFound": " Krüptomoodulit ei leitud",
+        "UnknownMember": "X-Road tarkvara - signeerija: Tundmatu liige"
+      }
+    },
     "generate_backup_interrupted": "Varukoopia loomine katkestatud",
     "invalid_backup_file": "Kehtetu varundusfail",
+    "invalid_certificate": "Vale X.509 sertifikaat",
     "invalid_distinguished_name": "Eristusnimi on kehtetu",
     "invalid_filename": "Kehtetu failinimi",
     "resource_read_failed": "Ressursi lugemine ebaõnnestus",
     "restore_process_failed": "Taastamise protsess ebaõnnestus",
     "token_not_found": "Krüptomoodulit ei leitud",
+    "token_weak_pin": "Nõrk PIN",
+    "tr": {
+      "check_signer_logs": "Vt täpsemalt vt signeerija logi.",
+      "code": "Kood: {0}",
+      "pin_min_char_classes_count": "PIN-koodi minimaalne tähemärgiklasside arv: {0}",
+      "pin_min_length": "PIN-koodi minimaalne pikkus: {0}"
+    },
     "validation_failure": "Valideerimistõrge"
   },
   "fields": {
-    "password": "Parool",
-    "username": "LIB-Kasutajanimi",
-    "shared": "ühisteek",
     "code": "Kood",
     "description": "Kirjeldus",
     "memberClass": "Liikmeklass",
-    "securityServerCode": "Turvaserveri kood"
+    "password": "Parool",
+    "securityServerCode": "Turvaserveri kood",
+    "shared": "ühisteek",
+    "username": "LIB-Kasutajanimi"
   },
   "footer": {
     "copyright": {
@@ -191,6 +214,13 @@
     "all": "Kõik",
     "name": "Nimi"
   },
+  "keys": {
+    "gotIt": "Sain aru",
+    "token": {
+      "label": "Krüptomoodul:"
+    }
+  },
+  "locals_demo": "Lokaliseeritakse teegis",
   "login": {
     "errorMsg401": "Vale kasutajanimi või parool",
     "generalError": "Sisselogimine ebaõnnestus. Palun proovige uuesti.",
@@ -201,9 +231,6 @@
     "idleWarning": "Olete olnud eemal 30 minutit ja teie seanss on aegunud. Turvapõhjustel logitakse teid välja.",
     "sessionExpired": "Seanss on aegunud"
   },
-  "meta": {
-    "check_signer_logs": "Vt täpsemalt vt signeerija logi."
-  },
   "noData": {
     "loading": "Laadimine... Palun oodake",
     "noBackups": "Varukoopiaid pole",
@@ -213,42 +240,44 @@
     "noMatches": "Kriteeriumidele vastavad elemendid puuduvad",
     "noServices": "Teenused puuduvad",
     "noTokens": "Krüptomoodulid puuduvad"
-    },
-    "validationError": {
-        "AssertFalse": "väärtus peab olema 'väär'",
-        "AssertTrue": "väärtus peab olema 'tõene'",
-        "DecimalMax": "arvuline väärtus ületab maksimaalse lubatud väärtuse",
-        "DecimalMin": "arvuline väärtus on minimaalsest lubatud väärtusest väiksem",
-        "Digits": "väärtus võib sisaldada ainult numbreid",
-        "Email": "väärtus ei vasta e-posti vormingule",
-        "Future": "kuupäeva ja kellaaja väärtus peab olema tulevikus",
-        "FutureOrPresent": "kuupäeva ja kellaaja väärtus peab olema praegu või tulevikus",
-        "Max": "arvuline väärtus ületab maksimaalse lubatud väärtuse",
-        "Min": "arvuline väärtus on minimaalsest lubatud väärtusest väiksem",
-        "Negative": "arvuline väärtus peab olema nullist väiksem",
-        "NegativeOrZero": "arvuline väärtus peab olema nullist väiksem või sellega võrdne",
-        "NoBackslashes": "väärtus ei tohi sisaldada längkriipsu (\\) sümboleid",
-        "NoColons": "väärtus ei tohi sisaldada kooloni (:) sümboleid",
-        "NoForwardslashes": "väärtus ei tohi sisaldada kaldkriipsu (/) sümboleid",
-        "NoPercents": "väärtus ei tohi sisaldada protsendi (%) sümboleid",
-        "NoSemicolons": "väärtus ei tohi sisaldada semikooloni (;) sümboleid",
-        "Normalized": "väärtus peab olema normaliseeritud",
-        "NotBlank": "väärtus ei tohi olla tühimärk",
-        "NotEmpty": "väärtus ei tohi olla tühi",
-        "NotNull": "väärtus on nõutav",
-        "Null": "väärtust ei tohi seadistada",
-        "Past": "kuupäeva ja kellaaja väärtus peab olema minevikus",
-        "PastOrPresent": "kuupäeva ja kellaaja väärtus peab olema praegu või minevikus",
-        "Pattern": "väärtus ei vasta nõutavale vormingule",
-        "Positive": "arvuline väärtus peab olema nullist suurem",
-        "PositiveOrZero": "arvuline väärtus peab olema nullist suurem või sellega võrdne",
-        "Size": "väärtus ei vasta pikkusenõuetele",
-        "ValidHostAddress": "Vajalik on kehtiv täielikult kvalifitseeritud domeeni nimi (nt host.example.org) või avalik IP aadress (nt 192.168.123.123)",
-        "ValidHostAddressField": "Vajalik on kehtiv IP aadress või täielikult kvalifitseeritud domeeni nimi"
-    },
-    "validation": {
-        "messages": {
-            "address": "{field} väli sisaldab kehtetuid tähemärke"
-        }
+  },
+  "type": "Tüüp",
+  "validation": {
+    "messages": {
+      "address": "{field} väli sisaldab kehtetuid tähemärke"
     }
+  },
+  "validationError": {
+    "AssertFalse": "väärtus peab olema 'väär'",
+    "AssertTrue": "väärtus peab olema 'tõene'",
+    "DecimalMax": "arvuline väärtus ületab maksimaalse lubatud väärtuse",
+    "DecimalMin": "arvuline väärtus on minimaalsest lubatud väärtusest väiksem",
+    "Digits": "väärtus võib sisaldada ainult numbreid",
+    "Email": "väärtus ei vasta e-posti vormingule",
+    "Future": "kuupäeva ja kellaaja väärtus peab olema tulevikus",
+    "FutureOrPresent": "kuupäeva ja kellaaja väärtus peab olema praegu või tulevikus",
+    "Max": "arvuline väärtus ületab maksimaalse lubatud väärtuse",
+    "Min": "arvuline väärtus on minimaalsest lubatud väärtusest väiksem",
+    "Negative": "arvuline väärtus peab olema nullist väiksem",
+    "NegativeOrZero": "arvuline väärtus peab olema nullist väiksem või sellega võrdne",
+    "NoBackslashes": "väärtus ei tohi sisaldada längkriipsu (\\) sümboleid",
+    "NoColons": "väärtus ei tohi sisaldada kooloni (:) sümboleid",
+    "NoForwardslashes": "väärtus ei tohi sisaldada kaldkriipsu (/) sümboleid",
+    "NoPercents": "väärtus ei tohi sisaldada protsendi (%) sümboleid",
+    "NoSemicolons": "väärtus ei tohi sisaldada semikooloni (;) sümboleid",
+    "Normalized": "väärtus peab olema normaliseeritud",
+    "NotBlank": "väärtus ei tohi olla tühimärk",
+    "NotEmpty": "väärtus ei tohi olla tühi",
+    "NotNull": "väärtus on nõutav",
+    "Null": "väärtust ei tohi seadistada",
+    "Past": "kuupäeva ja kellaaja väärtus peab olema minevikus",
+    "PastOrPresent": "kuupäeva ja kellaaja väärtus peab olema praegu või minevikus",
+    "Pattern": "väärtus ei vasta nõutavale vormingule",
+    "Positive": "arvuline väärtus peab olema nullist suurem",
+    "PositiveOrZero": "arvuline väärtus peab olema nullist suurem või sellega võrdne",
+    "Size": "väärtus ei vasta pikkusenõuetele",
+    "ValidHostAddress": "Vajalik on kehtiv täielikult kvalifitseeritud domeeni nimi (nt host.example.org) või avalik IP aadress (nt 192.168.123.123)",
+    "ValidHostAddressField": "Vajalik on kehtiv IP aadress või täielikult kvalifitseeritud domeeni nimi"
+  },
+  "warning": "Hoiatus"
 }

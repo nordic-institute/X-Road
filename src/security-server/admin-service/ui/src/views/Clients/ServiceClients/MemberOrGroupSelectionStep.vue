@@ -26,9 +26,18 @@
 <template>
   <div>
     <div class="search-field">
-      <v-text-field v-model="search" :label="$t('serviceClients.memberGroupStep')" single-line hide-details autofocus
-        data-test="search-service-client" variant="underlined" density="compact" class="search-input"
-        append-inner-icon="mdi-magnify">
+      <v-text-field
+        v-model="search"
+        :label="$t('serviceClients.memberGroupStep')"
+        single-line
+        hide-details
+        autofocus
+        data-test="search-service-client"
+        variant="underlined"
+        density="compact"
+        class="search-input"
+        append-inner-icon="mdi-magnify"
+      >
       </v-text-field>
     </div>
 
@@ -44,14 +53,17 @@
         <tr v-for="candidate in filteredCandidates" :key="candidate.id">
           <td class="checkbox-column">
             <div class="checkbox-wrap">
-              <v-radio :key="candidate.id" :disabled="isDisabled(candidate)" data-test="candidate-selection"
-                v-model="selection" @click="updateSelection(candidate)"/>
-              </div>
-            </td>
-            <td class="identifier-wrap">
-              {{
-                candidate.name
-            }}
+              <v-radio
+                :key="candidate.id"
+                v-model="selection"
+                :disabled="isDisabled(candidate)"
+                data-test="candidate-selection"
+                @click="updateSelection(candidate)"
+              />
+            </div>
+          </td>
+          <td class="identifier-wrap">
+            <client-name :service-client="candidate" />
           </td>
           <td class="identifier-wrap">{{ candidate.id }}</td>
         </tr>
@@ -59,13 +71,16 @@
     </table>
 
     <div class="button-footer full-width">
-      <xrd-button outlined data-test="cancel-button" @click="cancel">{{
-        $t('action.cancel')
-      }}</xrd-button>
+      <xrd-button outlined data-test="cancel-button" @click="cancel"
+        >{{ $t('action.cancel') }}
+      </xrd-button>
 
-      <xrd-button :disabled="!selection" data-test="next-button" @click="$emit('set-step', selection)">{{
-        $t('action.next')
-      }}</xrd-button>
+      <xrd-button
+        :disabled="!selection"
+        data-test="next-button"
+        @click="$emit('set-step', selection)"
+        >{{ $t('action.next') }}
+      </xrd-button>
     </div>
   </div>
 </template>
@@ -77,8 +92,10 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
+import ClientName from '@/components/client/ClientName.vue';
 
 export default defineComponent({
+  components: { ClientName },
   props: {
     id: {
       type: String,
@@ -145,8 +162,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/wizards';
 
 .search-field {
   max-width: 300px;

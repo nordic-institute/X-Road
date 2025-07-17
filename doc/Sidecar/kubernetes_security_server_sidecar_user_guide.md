@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.13  
+Version: 1.14  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -21,6 +21,7 @@ Doc. ID: UG-K-SS-SIDECAR
 | 10.07.2024 | 1.11    | Fix incorrect section numbering                       | Petteri Kivimäki          |
 | 02.10.2024 | 1.12    | Add example of set up the volume for backups          | Eneli Reimets             |
 | 23.12.2024 | 1.13    | Minor documentation updates                           | Eneli Reimets             |
+| 21.03.2025 | 1.14    | Syntax and styling                                    | Pauline Dimmek            |
 
 ## License
 

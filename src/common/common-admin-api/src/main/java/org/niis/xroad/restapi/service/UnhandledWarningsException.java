@@ -30,7 +30,7 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WARNINGS_DETECTED;
 
@@ -39,11 +39,11 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WARNINGS_DE
  */
 public class UnhandledWarningsException extends DeviationAwareException {
     public UnhandledWarningsException(Collection<WarningDeviation> warningDeviations) {
-        super(new ErrorDeviation(ERROR_WARNINGS_DETECTED), warningDeviations);
+        super("Warnings detected", new ErrorDeviation(ERROR_WARNINGS_DETECTED), warningDeviations);
     }
 
     public UnhandledWarningsException(WarningDeviation warningDeviation) {
-        super(new ErrorDeviation(ERROR_WARNINGS_DETECTED), Collections.singletonList(warningDeviation));
+        this(List.of(warningDeviation));
     }
 
 }

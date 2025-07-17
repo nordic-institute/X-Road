@@ -26,25 +26,33 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
+import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.service.FileVerifier;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 
 @Import({GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class})
 @Configuration
 public class BootstrapConfiguration {
+
+    @Bean
+    @Profile("!int-test")
+    SignerRpcClient signerRpcClient() {
+        return new SignerRpcClient();
+    }
 
     @Bean
     public ExternalProcessRunner externalProcessRunner() {

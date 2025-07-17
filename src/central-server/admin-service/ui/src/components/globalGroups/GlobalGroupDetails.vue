@@ -25,7 +25,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view :title="globalGroup.code" :loading="loading" :data="globalGroup">
+  <xrd-titled-view
+    :title="globalGroup.code"
+    :loading="loading"
+    :data="globalGroup"
+  >
     <template #header-buttons>
       <xrd-button
         v-if="allowGroupDelete"
@@ -70,13 +74,13 @@
       :group-code="globalGroup.code"
       @cancel="showDeleteGroupDialog = false"
     />
-  </titled-view>
+  </xrd-titled-view>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 
-import { Colors, Permissions } from '@/global';
+import { Permissions } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { mapActions, mapState, mapStores } from 'pinia';
@@ -85,14 +89,12 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import DeleteGlobalGroupDialog from './DeleteGlobalGroupDialog.vue';
 import EditGlobalGroupDescriptionDialog from './EditGlobalGroupDescriptionDialog.vue';
-import TitledView from '@/components/ui/TitledView.vue';
 
 /**
  * Global group view
  */
 export default defineComponent({
   components: {
-    TitledView,
     EditGlobalGroupDescriptionDialog,
     DeleteGlobalGroupDialog,
     InfoCard,
@@ -105,7 +107,6 @@ export default defineComponent({
   },
   data() {
     return {
-      colors: Colors,
       globalGroup: {} as GlobalGroupResource,
       loading: false,
       showDeleteGroupDialog: false,
@@ -146,6 +147,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

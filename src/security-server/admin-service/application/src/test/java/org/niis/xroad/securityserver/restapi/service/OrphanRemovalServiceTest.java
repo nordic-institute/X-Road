@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,20 +26,21 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
+import org.niis.xroad.signer.api.dto.CertRequestInfo;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -53,8 +55,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
@@ -212,29 +214,29 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
                     certCsrIdentifierToKey.put(csr.getId(), key);
                 }));
 
-        doReturn(Collections.singletonList(tokenInfo)).when(signerProxyFacade).getTokens();
-        Map<ClientId, ClientType> localClients = new HashMap<>();
+        doReturn(Collections.singletonList(tokenInfo)).when(signerRpcClient).getTokens();
+        Map<ClientId, ClientEntity> localClients = new HashMap<>();
         ALL_LOCAL_CLIENTS.forEach(id -> {
-            ClientType clientType = new ClientType();
-            clientType.setIdentifier(id);
-            localClients.put(id, clientType);
+            ClientEntity clientEntity = new ClientEntity();
+            clientEntity.setIdentifier(XRoadIdMapper.get().toEntity(id));
+            localClients.put(id, clientEntity);
         });
         doReturn(new ArrayList<>(localClients.values())).when(clientRepository).getAllLocalClients();
         doAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             return localClients.get(clientId);
         }).when(clientRepository).getClient(any());
-        doReturn(tokenInfo).when(signerProxyFacade).getTokenForKeyId(any());
+        doReturn(tokenInfo).when(signerRpcClient).getTokenForKeyId(any());
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
             return new TokenInfoAndKeyId(tokenInfo,
                     certCsrIdentifierToKey.get(certHash).getId());
-        }).when(signerProxyFacade).getTokenAndKeyIdForCertHash(any());
+        }).when(signerRpcClient).getTokenAndKeyIdForCertHash(any());
         doAnswer(invocation -> {
             String csrId = (String) invocation.getArguments()[0];
             return new TokenInfoAndKeyId(tokenInfo,
                     certCsrIdentifierToKey.get(csrId).getId());
-        }).when(signerProxyFacade).getTokenAndKeyIdForCertRequestId(any());
+        }).when(signerRpcClient).getTokenAndKeyIdForCertRequestId(any());
     }
 
     @Test
@@ -364,26 +366,17 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
     @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
     public void cantDeleteOrphansForDifferentReasons() throws Exception {
         // client exists
-        try {
-            orphanRemovalService.deleteOrphans(NON_DELETED_CLIENT_ID_O1);
-            fail("should throw exception");
-        } catch (OrphanRemovalService.OrphansNotFoundException expected) {
-        }
+        assertThrows(OrphanRemovalService.OrphansNotFoundException.class,
+                () -> orphanRemovalService.deleteOrphans(NON_DELETED_CLIENT_ID_O1));
 
         // siblings exist
-        try {
-            orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_SIBLINGS_O3);
-            fail("should throw exception");
-        } catch (OrphanRemovalService.OrphansNotFoundException expected) {
-        }
+        assertThrows(OrphanRemovalService.OrphansNotFoundException.class,
+                () -> orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_SIBLINGS_O3));
 
         // siblings dont exist, but there is no orphan data
         // siblings exist
-        try {
-            orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITHOUT_ORPHAN_ITEMS_O4);
-            fail("should throw exception");
-        } catch (OrphanRemovalService.OrphansNotFoundException expected) {
-        }
+        assertThrows(OrphanRemovalService.OrphansNotFoundException.class,
+                () -> orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITHOUT_ORPHAN_ITEMS_O4));
     }
 
     @Test
@@ -392,15 +385,15 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
         // single orphan csr -> key is deleted
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_ORPHAN_CSR_O5);
         // allow some needed getters
-        verify(signerProxyFacade, atLeast(0)).getTokens();
-        verify(signerProxyFacade, atLeast(0)).getTokenForKeyId(any());
+        verify(signerRpcClient, atLeast(0)).getTokens();
+        verify(signerRpcClient, atLeast(0)).getTokenForKeyId(any());
         // updates: delete key (twice)
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .deleteKey(KEY_05_ID, true);
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .deleteKey(KEY_05_ID, false);
         // no more interactions
-        verifyNoMoreInteractions(signerProxyFacade);
+        verifyNoMoreInteractions(signerRpcClient);
     }
 
     @Test
@@ -409,15 +402,15 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
         // single orphan cert -> key is deleted
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_ORPHAN_CERT_O6);
         // allow some needed getters
-        verify(signerProxyFacade, atLeast(0)).getTokens();
-        verify(signerProxyFacade, atLeast(0)).getTokenForKeyId(any());
+        verify(signerRpcClient, atLeast(0)).getTokens();
+        verify(signerRpcClient, atLeast(0)).getTokenForKeyId(any());
         // updates: delete key (twice)
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .deleteKey(KEY_06_ID, true);
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .deleteKey(KEY_06_ID, false);
         // no more interactions
-        verifyNoMoreInteractions(signerProxyFacade);
+        verifyNoMoreInteractions(signerRpcClient);
     }
 
     @Test
@@ -426,27 +419,27 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
         // combination of orphan keys and shared keys
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07);
         // allow some needed getters
-        verify(signerProxyFacade, atLeast(0)).getTokens();
-        verify(signerProxyFacade, atLeast(0)).getTokenForKeyId(any());
-        verify(signerProxyFacade, atLeast(0)).getTokenAndKeyIdForCertRequestId(any());
+        verify(signerRpcClient, atLeast(0)).getTokens();
+        verify(signerRpcClient, atLeast(0)).getTokenForKeyId(any());
+        verify(signerRpcClient, atLeast(0)).getTokenAndKeyIdForCertRequestId(any());
 
         // verify updates (deletes)
         // keys KEY_07_SIGN_ORPHAN_1_ID and KEY_07_SIGN_ORPHAN_2_ID only contain this
         // client's orphans, so the full keys will be deleted
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .deleteKey(KEY_07_SIGN_ORPHAN_1_ID, true);
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .deleteKey(KEY_07_SIGN_ORPHAN_1_ID, false);
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .deleteKey(KEY_07_SIGN_ORPHAN_2_ID, true);
-        verify(signerProxyFacade, times(1))
+        verify(signerRpcClient, times(1))
                 .deleteKey(KEY_07_SIGN_ORPHAN_2_ID, false);
         // key KEY_07_SIGN_SHARED_ID has orphan csr for this client,
         // orphan certs for this client, and a csr for other client
-        verify(signerProxyFacade, times(1)).deleteCert(SHARED_KEY_CERT_07_1_HASH);
-        verify(signerProxyFacade, times(1)).deleteCert(SHARED_KEY_CERT_07_2_HASH);
-        verify(signerProxyFacade, times(1)).deleteCertRequest(SHARED_KEY_CSR_07_ID);
+        verify(signerRpcClient, times(1)).deleteCert(SHARED_KEY_CERT_07_1_HASH);
+        verify(signerRpcClient, times(1)).deleteCert(SHARED_KEY_CERT_07_2_HASH);
+        verify(signerRpcClient, times(1)).deleteCertRequest(SHARED_KEY_CSR_07_ID);
 
-        verifyNoMoreInteractions(signerProxyFacade);
+        verifyNoMoreInteractions(signerRpcClient);
     }
 }

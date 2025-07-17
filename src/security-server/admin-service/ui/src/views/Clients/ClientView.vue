@@ -24,38 +24,20 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-container fluid class="xrd-view-common mt-7">
-      <v-row class="title-action identifier-wrap mx-0">
-        <div v-if="clientLoading" class="xrd-view-title mb-3">
-          {{ $t('noData.loading') }}
-        </div>
-        <div v-else-if="client && client.owner" class="xrd-view-title mb-3">
-          {{ `${client.member_name} (${$t('client.owner')})` }}
-        </div>
-        <div v-else-if="client" class="xrd-view-title mb-3">
-          {{ `${client.member_name} (${$t('client.member')})` }}
-        </div>
+  <XrdTitledView :title="title">
+    <template #header-buttons>
+      <MakeOwnerButton v-if="showMakeOwner" :id="id" @done="fetchData" />
+      <DeleteClientButton v-if="showDelete" :id="id" class="ml-5" />
+      <UnregisterClientButton
+        v-if="showUnregister"
+        :id="id"
+        class="ml-5"
+        @done="fetchData"
+      />
+    </template>
 
-        <div class="action-block">
-          <MakeOwnerButton
-            v-if="showMakeOwner"
-            :id="id"
-            class="first-button"
-            @done="fetchData"
-          />
-          <DeleteClientButton v-if="showDelete" :id="id" />
-          <UnregisterClientButton
-            v-if="showUnregister"
-            :id="id"
-            @done="fetchData"
-          />
-        </div>
-      </v-row>
-
-      <router-view />
-    </v-container>
-  </div>
+    <router-view />
+  </XrdTitledView>
 </template>
 
 <script lang="ts">
@@ -69,9 +51,11 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
+import { XrdTitledView } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
+    XrdTitledView,
     UnregisterClientButton,
     DeleteClientButton,
     MakeOwnerButton,
@@ -85,6 +69,16 @@ export default defineComponent({
   computed: {
     ...mapState(useClient, ['client', 'clientLoading']),
     ...mapState(useUser, ['hasPermission']),
+    title(): string {
+      if (this.clientLoading) {
+        return this.$t('noData.loading');
+      } else if (this.client && this.client.owner) {
+        return `${this.client.member_name} (${this.$t('client.owner')})`;
+      } else if (this.client) {
+        return `${this.client.member_name} (${this.$t('client.member')})`;
+      }
+      return '';
+    },
     showMakeOwner(): boolean {
       return (
         !!this.client &&
@@ -128,19 +122,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-.title-action {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.action-block {
-  display: flex;
-  flex-direction: row;
-}
-
-.first-button {
-  margin-right: 20px;
-}
-</style>
+<style lang="scss" scoped></style>

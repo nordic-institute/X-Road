@@ -26,18 +26,18 @@
 package org.niis.xroad.common.acme;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.jose4j.jws.AlgorithmIdentifiers;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.mail.MailNotificationProperties;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.AcmeJsonResource;
@@ -128,27 +128,27 @@ public final class AcmeService {
         try {
             keyPair = getAccountKeyPair(memberId, keyUsage, caInfo);
         } catch (GeneralSecurityException | OperatorCreationException | IOException e) {
-            throw new AcmeServiceException(ACCOUNT_KEY_PAIR_ERROR, e);
+            throw new AcmeServiceException(e, ACCOUNT_KEY_PAIR_ERROR.build());
         }
 
         Account account;
         try {
             account = startSession(keyUsage, caInfo, keyPair, memberId);
         } catch (AcmeException e) {
-            throw new AcmeServiceException(ACCOUNT_CREATION_FAILURE, e);
+            throw new AcmeServiceException(e, ACCOUNT_CREATION_FAILURE.build());
         }
 
         Order order;
         try {
             order = createOrder(commonName, subjectAltName, account);
         } catch (AcmeException e) {
-            throw new AcmeServiceException(ORDER_CREATION_FAILURE, e);
+            throw new AcmeServiceException(e, ORDER_CREATION_FAILURE.build());
         }
 
         try {
             doAuthorizationAndFinalizeOrder(certRequest, order);
         } catch (AcmeException e) {
-            throw new AcmeServiceException(ORDER_FINALIZATION_FAILURE, e);
+            throw new AcmeServiceException(e, ORDER_FINALIZATION_FAILURE.build());
         }
 
         Certificate cert = getCertificate(order);
@@ -194,7 +194,7 @@ public final class AcmeService {
         KeyStore keyStore;
         char[] storePassword = acmeProperties.getAccountKeystorePassword();
         if (isEmpty(storePassword)) {
-            throw new AcmeServiceException(ACCOUNT_KEYSTORE_PASSWORD_MISSING);
+            throw new AcmeServiceException(ACCOUNT_KEYSTORE_PASSWORD_MISSING.build());
         }
         if (acmeKeystoreFile.exists()) {
             keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
@@ -292,7 +292,7 @@ public final class AcmeService {
         try {
             return session.getMetadata();
         } catch (Exception e) {
-            throw new AcmeServiceException(FETCHING_METADATA_ERROR, e);
+            throw new AcmeServiceException(e, FETCHING_METADATA_ERROR.build());
         }
     }
 
@@ -305,7 +305,7 @@ public final class AcmeService {
         } else if (base64StringWithoutPadding.length() % 4 == 0) {
             return base64StringWithoutPadding;
         } else {
-            throw new ValidationFailureException(EAB_SECRET_LENGTH);
+            throw new BadRequestException(EAB_SECRET_LENGTH.build());
         }
     }
 
@@ -323,7 +323,7 @@ public final class AcmeService {
         for (Authorization auth : order.getAuthorizations()) {
             if (auth.getStatus() == Status.PENDING) {
                 Http01Challenge httpChallenge = auth.findChallenge(Http01Challenge.class)
-                        .orElseThrow(() -> new AcmeServiceException(HTTP_CHALLENGE_MISSING));
+                        .orElseThrow(() -> new AcmeServiceException(HTTP_CHALLENGE_MISSING.build()));
                 String token = httpChallenge.getToken();
                 String content = httpChallenge.getAuthorization();
                 String acmeChallenge = acmeChallengePath + token;
@@ -331,18 +331,18 @@ public final class AcmeService {
                     AtomicSave.execute(acmeChallenge, "tmp_challenge",
                             out -> out.write(content.getBytes(StandardCharsets.UTF_8)));
                 } catch (Exception e) {
-                    throw new AcmeServiceException(HTTP_CHALLENGE_FILE_CREATION, e);
+                    throw new AcmeServiceException(e, HTTP_CHALLENGE_FILE_CREATION.build());
                 }
                 try {
                     httpChallenge.trigger();
                 } catch (AcmeException e) {
-                    throw new AcmeServiceException(CHALLENGE_TRIGGER_FAILURE, e);
+                    throw new AcmeServiceException(e, CHALLENGE_TRIGGER_FAILURE.build());
                 }
                 waitForTheChallengeToBeCompleted(httpChallenge);
                 try {
                     Files.delete(Path.of(acmeChallenge));
                 } catch (IOException e) {
-                    throw new AcmeServiceException(HTTP_CHALLENGE_FILE_DELETION, e);
+                    throw new AcmeServiceException(e, HTTP_CHALLENGE_FILE_DELETION.build());
                 }
                 log.debug("Finalizing order");
                 order.execute(certRequest);
@@ -368,23 +368,23 @@ public final class AcmeService {
                                                             long interval,
                                                             AcmeDeviationMessage fetchFailure,
                                                             AcmeDeviationMessage fetchWaitFailure) {
-        while (statusSupplier.get() != Status.VALID  && attempts-- > 0) {
+        while (statusSupplier.get() != Status.VALID && attempts-- > 0) {
             if (statusSupplier.get() == Status.INVALID) {
-                throw new AcmeServiceException(fetchFailure);
+                throw new AcmeServiceException(fetchFailure.build());
             }
             Instant now = Instant.now();
             try {
                 Instant retryAfter = acmeJsonResource.fetch().orElse(now.plusSeconds(interval));
                 Thread.sleep(now.until(retryAfter, ChronoUnit.MILLIS));
             } catch (AcmeException e) {
-                throw new AcmeServiceException(fetchFailure, e);
+                throw new AcmeServiceException(e, fetchFailure.build());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new AcmeServiceException(fetchWaitFailure, e);
+                throw new AcmeServiceException(e, fetchWaitFailure.build());
             }
         }
         if (statusSupplier.get() != Status.VALID) {
-            throw new AcmeServiceException(fetchWaitFailure);
+            throw new AcmeServiceException(fetchWaitFailure.build());
         }
     }
 
@@ -401,7 +401,7 @@ public final class AcmeService {
         try {
             accountKeyPair = getAccountKeyPair(memberId, keyUsage, approvedCA);
         } catch (GeneralSecurityException | IOException | OperatorCreationException e) {
-            throw new AcmeServiceException(ACCOUNT_KEY_PAIR_ERROR, e);
+            throw new AcmeServiceException(e, ACCOUNT_KEY_PAIR_ERROR.build());
         }
 
         Session session = new Session(approvedCA.getAcmeServerDirectoryUrl());
@@ -414,7 +414,7 @@ public final class AcmeService {
             accountWithEabCredentials(accountBuilder, keyUsage, approvedCA, memberId);
             return accountBuilder.createLogin(session);
         } catch (AcmeException e) {
-            throw new AcmeServiceException(ACCOUNT_CREATION_FAILURE, e);
+            throw new AcmeServiceException(e, ACCOUNT_CREATION_FAILURE.build());
         }
     }
 
@@ -425,7 +425,7 @@ public final class AcmeService {
             renewalInfo = login.bindRenewalInfo(certificate);
             renewalInfo.fetch();
         } catch (AcmeException e) {
-            throw new AcmeServiceException(FETCHING_RENEWAL_INFO_FAILURE, e);
+            throw new AcmeServiceException(e, FETCHING_RENEWAL_INFO_FAILURE.build());
         }
         return renewalInfo;
     }
@@ -449,7 +449,7 @@ public final class AcmeService {
         } catch (Exception ex) {
             log.error(
                     "Retrieving renewal information from ACME Server failed. "
-                    + "Falling back to fixed renewal time based on certificate expiration date: {}", ex.getMessage());
+                            + "Falling back to fixed renewal time based on certificate expiration date: {}", ex.getMessage());
         }
         int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeRenewalTimeBeforeExpirationDate();
         return x509Certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS);
@@ -459,7 +459,7 @@ public final class AcmeService {
         try {
             return getLogin(memberId, approvedCA, keyUsage).getSession().resourceUrlOptional(Resource.RENEWAL_INFO).isPresent();
         } catch (AcmeException e) {
-            throw new AcmeServiceException(FETCHING_RENEWAL_INFO_FAILURE, e);
+            throw new AcmeServiceException(e, FETCHING_RENEWAL_INFO_FAILURE.build());
         }
     }
 
@@ -475,13 +475,13 @@ public final class AcmeService {
                     .replaces(oldCertificate)
                     .create();
         } catch (AcmeException e) {
-            throw new AcmeServiceException(ORDER_CREATION_FAILURE, e);
+            throw new AcmeServiceException(e, ORDER_CREATION_FAILURE.build());
         }
 
         try {
             doAuthorizationAndFinalizeOrder(newCsr, order);
         } catch (AcmeException e) {
-            throw new AcmeServiceException(ORDER_FINALIZATION_FAILURE, e);
+            throw new AcmeServiceException(e, ORDER_FINALIZATION_FAILURE.build());
         }
 
         Certificate cert = getCertificate(order);

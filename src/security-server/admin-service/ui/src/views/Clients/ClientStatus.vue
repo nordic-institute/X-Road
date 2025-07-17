@@ -57,6 +57,10 @@ export default defineComponent({
         case 'deletion_in_progress':
         case 'disabling_in_progress':
           return 'progress-delete';
+        case 'name_set':
+          return 'name-set';
+        case 'name_submitted':
+          return 'name-submitted';
         case 'disabled':
           return 'error-disabled';
         case 'global_error':
@@ -87,6 +91,10 @@ export default defineComponent({
           return this.$t('client.statusText.disabled');
         case 'enabling_in_progress':
           return this.$t('client.statusText.enablingInProgress');
+        case 'name_set':
+          return this.$t('client.statusText.nameSet');
+        case 'name_submitted':
+          return this.$t('client.statusText.nameSubmitted');
         case 'global_error':
           return this.$t('client.statusText.globalError');
         default:
@@ -98,9 +106,10 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .status-wrapper {
+  width: fit-content;
   display: flex;
   flex-direction: row;
   align-items: center;

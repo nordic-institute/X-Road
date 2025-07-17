@@ -10,7 +10,7 @@
       ssh_server:
           ubuntu: ssh
           redhat: sshd
-          centos: sshd              
+          rocky: sshd
   service: 
       name: "{{ ssh_server[ansible_distribution|lower] }}"
       state: started

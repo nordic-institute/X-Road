@@ -65,11 +65,11 @@ public class DiagnosticsPageObj {
     }
 
     public SelenideElement mailNotificationOnSuccessEnabled() {
-        return $x("//td[@data-test='mail-success-notification-status']");
+        return $x("//span[@data-test='enabled-ACME_SUCCESS']");
     }
 
     public SelenideElement mailNotificationOnFailureEnabled() {
-        return $x("//td[@data-test='mail-failure-notification-status']");
+        return $x("//span[@data-test='enabled-ACME_FAILURE']");
     }
 
     public SelenideElement mailNotificationConfigurationStatus() {
@@ -95,4 +95,21 @@ public class DiagnosticsPageObj {
     public SelenideElement ocspResponderMessage() {
         return $x("//td[@data-test='ocsp-responders-message']");
     }
+
+    public SelenideElement proxyMemoryUsageMessage() {
+        return $x("//td[@data-test='proxy-memory-usage-status-message']");
+    }
+
+    public SelenideElement proxyMemoryUsageMax() {
+        return $x("//td[@data-test='proxy-memory-max']");
+    }
+
+    public SelenideElement proxyMemoryUsageThreshold() {
+        return $x("//td[@data-test='proxy-memory-threshold']");
+    }
+
+    public SelenideElement btnDownloadDiagnoticsReport() {
+        return $x("//button[@data-test='download-diagnostics-report-button']");
+    }
+
 }

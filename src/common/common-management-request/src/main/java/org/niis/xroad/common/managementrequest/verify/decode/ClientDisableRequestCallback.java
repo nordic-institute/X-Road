@@ -26,17 +26,30 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.request.ClientRequestType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 @Slf4j
-public class ClientDisableRequestCallback extends BaseClientRequestCallback {
+public class ClientDisableRequestCallback extends BaseClientRequestCallback<ClientRequestType> {
 
     public ClientDisableRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback) {
         super(globalConfProvider, rootCallback, ManagementRequestType.CLIENT_DISABLE_REQUEST);
+    }
+
+    @Override
+    protected SecurityServerId getServer() {
+        return getRequest().getServer();
+    }
+
+    @Override
+    protected ClientId getClient() {
+        return getRequest().getClient();
     }
 
 }

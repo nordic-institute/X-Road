@@ -27,13 +27,14 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +46,7 @@ import org.springframework.stereotype.Service;
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class ManagementRequestSenderService {
-
+    private final SignerRpcClient signerRpcClient;
     private final GlobalConfProvider globalConfProvider;
     private final GlobalConfService globalConfService;
     private final CurrentSecurityServerId currentSecurityServerId;
@@ -59,7 +60,6 @@ public class ManagementRequestSenderService {
      * <p>
      * Request is sent for this securityserver (ManagementRequestSender
      * call's SecurityServerId = this security server's id)
-     *
      * @param address  the IP address of the security server
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
@@ -85,14 +85,13 @@ public class ManagementRequestSenderService {
      * <p>
      * Request is sent for this securityserver (ManagementRequestSender
      * call's SecurityServerId = this security server's id)
-     *
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
     public Integer sendAuthCertDeletionRequest(byte[] authCert) throws
-            GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+                                                                GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendAuthCertDeletionRequest(currentSecurityServerId.getServerId(), authCert);
@@ -107,7 +106,6 @@ public class ManagementRequestSenderService {
      * <p>
      * Request is sent for this securityserver (ManagementRequestSender
      * call's SecurityServerId = this security server's id)
-     *
      * @param newAddress the new Security Server address
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      * @throws GlobalConfOutdatedException
@@ -125,17 +123,17 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends a client register request as a normal X-Road message
-     *
-     * @param clientId the client id that will be registered
+     * @param clientId      the client id that will be registered
+     * @param subsystemName subsystem name (in case of a subsystem)
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
-    public Integer sendClientRegisterRequest(ClientId.Conf clientId)
+    public Integer sendClientRegisterRequest(ClientId.Conf clientId, String subsystemName)
             throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendClientRegRequest(currentSecurityServerId.getServerId(), clientId);
+            return sender.sendClientRegRequest(currentSecurityServerId.getServerId(), clientId, subsystemName);
         } catch (CodedException ce) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, ce);
             throw ce;
@@ -147,7 +145,6 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends a client unregister request as a normal X-Road message
-     *
      * @param clientId the client id that will be unregistered
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
@@ -169,7 +166,6 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends an owner change request as a normal X-Road message
-     *
      * @param clientId the client id that will be set as a new  owner
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
@@ -211,12 +207,43 @@ public class ManagementRequestSenderService {
         }
     }
 
+    public Integer sendClientRenameRequest(ClientId.Conf clientId, String subsystemName)
+            throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendClientRenameRequest(currentSecurityServerId.getServerId(), clientId, subsystemName);
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
+
     private ManagementRequestSender createManagementRequestSender()
             throws GlobalConfOutdatedException {
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(globalConfProvider, sender, receiver, SystemProperties.getProxyUiSecurityServerUrl());
+        return new ManagementRequestSender(globalConfProvider, signerRpcClient, sender, receiver,
+                SystemProperties.getProxyUiSecurityServerUrl());
     }
 
+    public Integer sendMaintenanceModeEnableRequest(String message) {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendMaintenanceModeEnableRequest(currentSecurityServerId.getServerId(), message);
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
+
+    public Integer sendMaintenanceModeDisableRequest() {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendMaintenanceModeDisableRequest(currentSecurityServerId.getServerId());
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
 }

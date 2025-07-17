@@ -26,6 +26,7 @@
 package org.niis.xroad.e2e.container;
 
 import com.nortal.test.testcontainers.TestableContainerInitializer;
+import com.nortal.test.testcontainers.logging.TestContainerLoggerFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.e2e.CustomProperties;
@@ -84,6 +85,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                             .withEnv("CS_IMG", customProperties.getCsImage())
                             .withEnv("SS_IMG", customProperties.getSsImage())
                             .withEnv("CA_IMG", customProperties.getCaImage())
+                            .withEnv("IS_OPENAPI_IMG", customProperties.getIsopenapiImage())
                             .withEnv("IS_SOAP_IMG", customProperties.getIssoapImage())
                             .withLogConsumer(HURL, createLogConsumer(HURL))
                             .withLogConsumer(CS, createLogConsumer(CS))
@@ -98,7 +100,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     }
 
     private Slf4jLogConsumer createLogConsumer(String containerName) {
-        return new Slf4jLogConsumer(new ComposeLoggerFactory().create(containerName));
+        return new Slf4jLogConsumer(TestContainerLoggerFactory.create(containerName));
     }
 
     @SuppressWarnings("checkstyle:magicnumber")

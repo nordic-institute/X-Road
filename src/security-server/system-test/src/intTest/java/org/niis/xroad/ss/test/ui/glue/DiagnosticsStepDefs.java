@@ -26,25 +26,49 @@
  */
 package org.niis.xroad.ss.test.ui.glue;
 
+import ee.ria.xroad.common.util.JsonUtils;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebElementCondition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.page.DiagnosticsPageObj;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.or;
 import static com.codeborne.selenide.Condition.partialText;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.given;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class DiagnosticsStepDefs extends BaseUiStepDefs {
+    private static final String[] EXPECTED_REPORT_ITEMS = {
+            "X-Road and Java version",
+            "JAVA Processes",
+            "Installed X-Road packages",
+            "Timestamping",
+            "Runs in container",
+            "OS version",
+            "OCSP responders",
+            "Global configuration",
+            "Configuration overrides from local.ini",
+            "Authentication certificates",
+            "Maintenance mode"
+    };
     private final DiagnosticsPageObj diagnosticsPage = new DiagnosticsPageObj();
 
     @Step("Diagnostics tab is {string}")
@@ -107,9 +131,9 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
 
     @Step("Mail notification status should be ok")
     public void mailNotificationStatus() {
+        diagnosticsPage.mailNotificationConfigurationStatus().shouldHave(partialText("Configured"));
         diagnosticsPage.mailNotificationOnSuccessEnabled().shouldHave(partialText("Enabled"));
         diagnosticsPage.mailNotificationOnFailureEnabled().shouldHave(partialText("Enabled"));
-        diagnosticsPage.mailNotificationConfigurationStatus().shouldHave(partialText("Configured"));
     }
 
     @Step("Sending test mail is a success")
@@ -151,5 +175,49 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
                         partialText("not sent yet")));
     }
 
+    @Step("Proxy memory usage should be ok")
+    public void proxyMemoryUsageStatus() {
+        diagnosticsPage.proxyMemoryUsageMessage()
+                .scrollIntoView(false)
+                .shouldHave(partialText("ok"));
+        diagnosticsPage.proxyMemoryUsageMax().shouldHave(partialText("512.0MB"));
+        diagnosticsPage.proxyMemoryUsageThreshold().shouldHave(partialText("Not set"));
+    }
 
+    @Step("download diagnostic report button is clicked")
+    public void clickDiagnosticReportButton() {
+        var file = diagnosticsPage.btnDownloadDiagnoticsReport()
+                .shouldBe(visible, enabled)
+                .download();
+
+        putStepData(StepDataKey.DOWNLOADED_FILE, file);
+    }
+
+    @Step("downloaded diagnostic report contains required data")
+    public void downloadedDiagnosticReportIsNotEmpty() throws IOException {
+        Optional<File> report = getStepData(StepDataKey.DOWNLOADED_FILE);
+
+        assertThat(report)
+                .isNotEmpty();
+
+        assertThat(report.get())
+                .exists()
+                .isFile()
+                .isNotEmpty()
+                .hasExtension("json");
+
+        try (InputStream in = new FileInputStream(report.get())) {
+            var json = JsonUtils.getObjectReader().readTree(in);
+            assertThat(json.isArray()).isTrue();
+            assertThat(json.size()).isEqualTo(EXPECTED_REPORT_ITEMS.length);
+            var actualItems = new HashSet<String>();
+            for (var item : json) {
+                String name = item.get("name").asText();
+                assertThat(name).withFailMessage("Item should have name", name).isNotEmpty();
+                assertThat(item.get("value")).withFailMessage("Item \"%s\" should have value", name).isNotNull();
+                actualItems.add(name);
+            }
+            assertThat(actualItems).contains(EXPECTED_REPORT_ITEMS);
+        }
+    }
 }

@@ -29,6 +29,7 @@ package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.ValidationHelper;
+import feign.FeignException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
@@ -39,6 +40,9 @@ import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientRenameRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeDisableRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestListViewDto;
@@ -78,6 +82,9 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DE
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DISABLE_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_RENAME_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.MAINTENANCE_MODE_DISABLE_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.MAINTENANCE_MODE_ENABLE_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
 import static org.niis.xroad.cs.test.utils.AssertionUtils.isTheListSorted;
 import static org.springframework.http.HttpStatus.ACCEPTED;
@@ -126,11 +133,17 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
 
     @Step("client {string} is registered as security server {string} client from {string}")
     public void memberIsRegisteredAsSecurityServerClient(String memberId, String securityServerId, String origin) {
+        memberIsRegisteredAsSecurityServerClient(memberId, null, securityServerId, origin);
+    }
+
+    @Step("client {string} with name {string} is registered as security server {string} client from {string}")
+    public void memberIsRegisteredAsSecurityServerClient(String memberId, String subsystemName, String securityServerId, String origin) {
         final ClientRegistrationRequestDto managementRequest = new ClientRegistrationRequestDto();
         managementRequest.setType(CLIENT_REGISTRATION_REQUEST);
         managementRequest.setOrigin(valueOf(origin));
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setClientId(memberId);
+        managementRequest.setSubsystemName(subsystemName);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
@@ -159,8 +172,55 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         managementRequest.setOrigin(SECURITY_SERVER);
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setClientId(clientId);
+        try {
+            final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+            this.managementRequestId = response.getBody().getId();
+
+            validate(response)
+                    .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                    .execute();
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("security server {string} is put into maintenance mode with message: {string}")
+    public void securityServerToMaintenanceMode(String securityServerId, String message) {
+        final var managementRequest = new MaintenanceModeEnableRequestDto()
+                .type(MAINTENANCE_MODE_ENABLE_REQUEST)
+                .origin(SECURITY_SERVER)
+                .securityServerId(securityServerId)
+                .message(message);
+
+        try {
+            final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+
+            this.managementRequestId = response.getBody().getId();
+
+            validate(response)
+                    .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                    .execute();
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("security server {string} is put into maintenance mode")
+    public void securityServerToMaintenanceMode(String securityServerId) {
+        securityServerToMaintenanceMode(securityServerId, null);
+    }
+
+    @Step("security server {string} is taken out of maintenance mode")
+    public void securityServerOutOfMaintenanceMode(String securityServerId) {
+        final var managementRequest = new MaintenanceModeDisableRequestDto()
+                .type(MAINTENANCE_MODE_DISABLE_REQUEST)
+                .origin(SECURITY_SERVER)
+                .securityServerId(securityServerId);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+
         this.managementRequestId = response.getBody().getId();
 
         validate(response)
@@ -175,6 +235,23 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         managementRequest.setOrigin(SECURITY_SERVER);
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setClientId(clientId);
+
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+        this.managementRequestId = response.getBody().getId();
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                .execute();
+    }
+
+    @Step("security server {string} client {string} is renamed to {string}")
+    public void securityServerClientIsRenamed(String securityServerId, String clientId, String newName) {
+        final var managementRequest = new ClientRenameRequestDto();
+        managementRequest.setType(CLIENT_RENAME_REQUEST);
+        managementRequest.setOrigin(SECURITY_SERVER);
+        managementRequest.setSecurityServerId(securityServerId);
+        managementRequest.setClientId(clientId);
+        managementRequest.setSubsystemName(newName);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();

@@ -36,8 +36,10 @@ import static java.lang.String.format;
 
 public class KeyAndCertPageObj {
     private static final String X_FOLLOWING = "//following::";
-    private static final String X_TOKEN_EXPANDABLE = "//div[@class='exp-wrapper expandable']"
+    private static final String X_TOKEN_EXPANDABLE = "//div[@data-test='tokens-table']"
             + "//div[span[text()='Token: %s']]";
+    private static final String X_TOKEN_EDIT_BUTTON = "//div[span[text()='Token: %s']]"
+            + "//button[@data-test='token-icon-button'][1]";
     private static final String X_TOKEN_EXPANDABLE_W_FOLLOWING = X_TOKEN_EXPANDABLE + X_FOLLOWING;
 
     public final TokenLoginDialog tokenLoginDialog = new TokenLoginDialog();
@@ -115,8 +117,12 @@ public class KeyAndCertPageObj {
             return $x(format(X_TOKEN_EXPANDABLE, token));
         }
 
-        public SelenideElement tokenEditButton() {
-            return $x("//button[@data-test='token-icon-button'][1]");
+        public SelenideElement tokenEditButton(String tokenKey) {
+            return $x(format(X_TOKEN_EDIT_BUTTON, tokenKey));
+        }
+
+        public SelenideElement tokenDeleteButton() {
+            return $x("//button[@data-test='token-delete-button']");
         }
 
         public SelenideElement tokenLabeledKey(String label) {

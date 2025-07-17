@@ -25,20 +25,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">{{ $t('keys.title') }}</div>
-      </div>
-    </div>
-
+  <xrd-titled-view title-key="keys.title">
     <tokens-list
       :configuration-type="configurationType"
       @update-keys="refreshAnchor"
     />
 
     <!-- Internal configuration -->
-    <div class="header-row mt-7">
+    <div class="header-row mt-6">
       <div class="xrd-view-title">{{ title }}</div>
     </div>
 
@@ -53,7 +47,7 @@
 
     <!-- Configuration parts -->
     <configuration-parts-list :configuration-type="configurationType" />
-  </div>
+  </xrd-titled-view>
 </template>
 
 <script lang="ts">
@@ -66,9 +60,11 @@ import ConfigurationPartsList from '@/components/configurationParts/Configuratio
 import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
 import { ConfigurationType } from '@/openapi-types';
 import TokensList from '@/components/tokens/TokensList.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
+    XrdTitledView,
     TokensList,
     ConfigurationDownloadUrl,
     ConfigurationAnchor,
@@ -97,46 +93,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: colors.$Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.card-corner-button {
-  display: flex;
-}
-
-.card-top {
-  padding-top: 15px;
-  margin-bottom: 10px;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-main-title {
-  color: colors.$Black100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
-  margin-left: 16px;
-}
-
-.internal-conf-icon {
-  margin-right: 15px;
-  color: colors.$Purple100;
-}
-
-.td-align-right {
-  text-align: right;
-}
+@use '@niis/shared-ui/src/assets/colors';
 </style>

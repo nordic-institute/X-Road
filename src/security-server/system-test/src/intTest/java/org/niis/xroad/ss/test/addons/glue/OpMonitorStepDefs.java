@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.ss.test.addons.glue;
 
+
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
@@ -33,8 +34,6 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParser;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.opmonitordaemon.OperationalDataRecord;
-import ee.ria.xroad.opmonitordaemon.OperationalDataRecords;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Step;
@@ -43,6 +42,8 @@ import jakarta.xml.soap.SOAPMessage;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.niis.xroad.opmonitor.core.OperationalDataRecord;
+import org.niis.xroad.opmonitor.core.OperationalDataRecords;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
 import org.springframework.beans.factory.annotation.Autowired;

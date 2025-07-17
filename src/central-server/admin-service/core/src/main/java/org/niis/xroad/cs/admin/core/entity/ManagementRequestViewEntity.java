@@ -49,16 +49,7 @@ import org.niis.xroad.cs.admin.core.entity.converter.XRoadObjectTypeConverter;
 import org.springframework.data.annotation.Immutable;
 
 import java.time.Instant;
-import java.util.Map;
-
-import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.ADDRESS_CHANGE_REQUEST;
-import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
-import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
-import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_DELETION_REQUEST;
-import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_DISABLE_REQUEST;
-import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_ENABLE_REQUEST;
-import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
-import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.OWNER_CHANGE_REQUEST;
+import java.util.Arrays;
 
 @Entity
 @Immutable
@@ -127,6 +118,9 @@ public class ManagementRequestViewEntity {
     @Column(name = "client_subsystem_code")
     private String clientSubsystemCode;
 
+    @Column(name = "client_subsystem_name")
+    private String clientSubsystemName;
+
     @Column(name = "auth_cert")
     private byte[] authCert;
 
@@ -147,26 +141,28 @@ public class ManagementRequestViewEntity {
     }
 
     public static class ManagementRequestTypeDiscriminatorMapping {
-        private static final Map<ManagementRequestType, String> MAPPING = Map.of(
-                AUTH_CERT_REGISTRATION_REQUEST, AuthenticationCertificateRegistrationRequestEntity.DISCRIMINATOR_VALUE,
-                CLIENT_REGISTRATION_REQUEST, ClientRegistrationRequestEntity.DISCRIMINATOR_VALUE,
-                OWNER_CHANGE_REQUEST, OwnerChangeRequestEntity.DISCRIMINATOR_VALUE,
-                CLIENT_DELETION_REQUEST, ClientDeletionRequestEntity.DISCRIMINATOR_VALUE,
-                CLIENT_DISABLE_REQUEST, ClientDisableRequestEntity.DISCRIMINATOR_VALUE,
-                CLIENT_ENABLE_REQUEST, ClientEnableRequestEntity.DISCRIMINATOR_VALUE,
-                AUTH_CERT_DELETION_REQUEST, AuthenticationCertificateDeletionRequestEntity.DISCRIMINATOR_VALUE,
-                ADDRESS_CHANGE_REQUEST, AddressChangeRequestEntity.DISCRIMINATOR_VALUE
-        );
 
         public static ManagementRequestType getManagementRequestType(String discriminator) {
-            return MAPPING.entrySet().stream()
-                    .filter(entry -> entry.getValue().equalsIgnoreCase(discriminator))
-                    .map(Map.Entry::getKey)
-                    .findFirst().orElse(null);
+            return Arrays.stream(ManagementRequestType.values())
+                    .filter(val -> getDiscriminator(val).equalsIgnoreCase(discriminator))
+                    .findFirst()
+                    .orElse(null);
         }
 
         public static String getDiscriminator(ManagementRequestType managementRequestType) {
-            return MAPPING.get(managementRequestType);
+            return switch (managementRequestType) {
+                case AUTH_CERT_REGISTRATION_REQUEST -> AuthenticationCertificateRegistrationRequestEntity.DISCRIMINATOR_VALUE;
+                case CLIENT_REGISTRATION_REQUEST -> ClientRegistrationRequestEntity.DISCRIMINATOR_VALUE;
+                case OWNER_CHANGE_REQUEST -> OwnerChangeRequestEntity.DISCRIMINATOR_VALUE;
+                case CLIENT_DELETION_REQUEST -> ClientDeletionRequestEntity.DISCRIMINATOR_VALUE;
+                case CLIENT_DISABLE_REQUEST -> ClientDisableRequestEntity.DISCRIMINATOR_VALUE;
+                case CLIENT_ENABLE_REQUEST -> ClientEnableRequestEntity.DISCRIMINATOR_VALUE;
+                case AUTH_CERT_DELETION_REQUEST -> AuthenticationCertificateDeletionRequestEntity.DISCRIMINATOR_VALUE;
+                case ADDRESS_CHANGE_REQUEST -> AddressChangeRequestEntity.DISCRIMINATOR_VALUE;
+                case CLIENT_RENAME_REQUEST -> ClientRenameRequestEntity.DISCRIMINATOR_VALUE;
+                case MAINTENANCE_MODE_ENABLE_REQUEST -> MaintenanceModeEnableRequestEntity.DISCRIMINATOR_VALUE;
+                case MAINTENANCE_MODE_DISABLE_REQUEST -> MaintenanceModeDisableRequestEntity.DISCRIMINATOR_VALUE;
+            };
         }
     }
 

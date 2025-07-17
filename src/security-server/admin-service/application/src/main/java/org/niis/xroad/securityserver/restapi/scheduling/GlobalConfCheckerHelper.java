@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,10 +26,9 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,9 +52,9 @@ class GlobalConfCheckerHelper {
 
     /**
      * Get the Security Server's ServerConf
-     * @return ServerConfType
+     * @return ServerConfEntity
      */
-    ServerConfType getServerConf() {
+    ServerConfEntity getServerConf() {
         return serverConfRepository.getServerConf();
     }
 }

@@ -1,4 +1,3 @@
-
 /*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -26,15 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
@@ -45,16 +38,25 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.niis.xroad.common.acme.AcmeServiceException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
+import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.scheduling.support.NoOpTaskScheduler;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -86,10 +88,12 @@ import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.ge
 public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
 
     private static final String DNS = "ss9";
-    @SpyBean
+    @MockitoSpyBean
     private AcmeClientWorker acmeClientWorker;
     @Mock
     ManagementRequestSender managementRequestSenderMock;
+    @MockitoSpyBean
+    MailNotificationHelper mailNotificationHelper;
 
     private final KeyPair keyPair = getKeyPairGenerator().generateKeyPair();
     private final TestCertUtil.PKCS12 ca = getCa();
@@ -122,18 +126,18 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
                 .key(authKey)
                 .build();
 
-        when(signerProxyFacade.getTokens()).thenReturn(new ArrayList<>(List.of(tokenInfo)));
-        when(signerProxyFacade.getTokenAndKeyIdForCertHash(any())).thenReturn(new TokenInfoAndKeyId(tokenInfo, authKey.getId()));
-        when(signerProxyFacade.getCertForHash(calculateCertHexHash(authCertInfo.getCertificateBytes()))).thenReturn(authCertInfo);
-        when(signerProxyFacade.getCertForHash(calculateCertHexHash(signCertInfo.getCertificateBytes()))).thenReturn(signCertInfo);
+        when(signerRpcClient.getTokens()).thenReturn(new ArrayList<>(List.of(tokenInfo)));
+        when(signerRpcClient.getTokenAndKeyIdForCertHash(any())).thenReturn(new TokenInfoAndKeyId(tokenInfo, authKey.getId()));
+        when(signerRpcClient.getCertForHash(calculateCertHexHash(authCertInfo.getCertificateBytes()))).thenReturn(authCertInfo);
+        when(signerRpcClient.getCertForHash(calculateCertHexHash(signCertInfo.getCertificateBytes()))).thenReturn(signCertInfo);
 
         KeyInfo newKey = new TokenTestUtils.KeyInfoBuilder()
                 .id("new_key_id")
                 .build();
 
-        when(signerProxyFacade.generateKey(any(), any(), any())).thenReturn(newKey);
-        when(signerProxyFacade.generateCertRequest(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(new SignerProxy.GeneratedCertRequestInfo(null, getMockSignCsrBytes(), null, null, null));
+        when(signerRpcClient.generateKey(any(), any(), any())).thenReturn(newKey);
+        when(signerRpcClient.generateCertRequest(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(new SignerRpcClient.GeneratedCertRequestInfo(null, getMockSignCsrBytes(), null, null, null));
 
         when(acmeService.hasRenewalInfo(any(), any(), any())).thenReturn(true);
         when(acmeService.isRenewalRequired(any(), any(), any(), any())).thenReturn(true);
@@ -144,8 +148,8 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
         CertificateInfo newAuthCertInfo = createCertificateInfo("new_auth_cert_id", DNS, new KeyUsage(KeyUsage.digitalSignature),
                 Date.from(TimeUtils.now()), Date.from(TimeUtils.now().plus(365, ChronoUnit.DAYS)), null);
 
-        when(signerProxyFacade.getCertForHash(calculateCertHexHash(newSignCertInfo.getCertificateBytes()))).thenReturn(newSignCertInfo);
-        when(signerProxyFacade.getCertForHash(calculateCertHexHash(newAuthCertInfo.getCertificateBytes()))).thenReturn(newAuthCertInfo);
+        when(signerRpcClient.getCertForHash(calculateCertHexHash(newSignCertInfo.getCertificateBytes()))).thenReturn(newSignCertInfo);
+        when(signerRpcClient.getCertForHash(calculateCertHexHash(newAuthCertInfo.getCertificateBytes()))).thenReturn(newAuthCertInfo);
 
         when(acmeService.renew(any(),
                 any(),
@@ -162,6 +166,11 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
                 any())).thenReturn(List.of(readCertificate(newAuthCertInfo.getCertificateBytes())));
 
         doReturn(managementRequestSenderMock).when(acmeClientWorker).createManagementRequestSender();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        System.clearProperty(SystemProperties.PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE);
     }
 
     private CertificateInfo createCertificateInfo(String certId, String commonName, KeyUsage keyUsage, Date notBefore,
@@ -199,22 +208,44 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
     public void successfulAuthAndSignCertRenewals() throws Exception {
         CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
         acmeClientWorker.execute(scheduler);
-        verify(signerProxyFacade, times(2)).importCert(any(), any(), any(), anyBoolean());
+        verify(signerRpcClient, times(2)).importCert(any(), any(), any(), anyBoolean());
         verify(managementRequestSenderMock, times(1)).sendAuthCertRegRequest(any(), any(), any());
-        verify(signerProxyFacade, times(2)).setRenewedCertHash(any(), any());
-        verify(signerProxyFacade, times(2)).setNextPlannedRenewal(any(), any());
+        verify(signerRpcClient, times(2)).setRenewedCertHash(any(), any());
+        verify(signerRpcClient, times(2)).setNextPlannedRenewal(any(), any());
     }
 
     @Test
-    public void failureAuthAndSignCertRollback() throws Exception {
-        when(acmeService.renew(any(), any(), any(), any(), any(), any())).thenThrow(new AcmeServiceException(ORDER_CREATION_FAILURE));
+    public void successfulAuthAndSignCertRenewalsAutoActivateCert() {
+        System.setProperty(SystemProperties.PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE, "true");
+        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
+        acmeClientWorker.execute(scheduler);
+
+        verify(signerRpcClient).importCert(any(), any(), any(), eq(false));
+        verify(signerRpcClient).importCert(any(), any(), any(), eq(true));
+        verify(mailNotificationHelper).sendCertActivatedNotification(any(), any(), any(), any());
+    }
+
+    @Test
+    public void successfulAuthAndSignCertRenewalsManualActivateCert() {
+        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
+        acmeClientWorker.execute(scheduler);
+
+        verify(signerRpcClient, times(2)).importCert(any(), any(), any(), eq(false));
+        verify(signerRpcClient, times(0)).importCert(any(), any(), any(), eq(true));
+        verify(mailNotificationHelper, times(0)).sendCertActivatedNotification(any(), any(), any(), any());
+    }
+
+    @Test
+    public void failureAuthAndSignCertRollback() {
+        when(acmeService.renew(any(), any(), any(), any(), any(), any()))
+                .thenThrow(new AcmeServiceException(ORDER_CREATION_FAILURE.build()));
 
         CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
         acmeClientWorker.execute(scheduler);
 
-        verify(signerProxyFacade, never()).importCert(any(), any(), any(), anyBoolean());
-        verify(signerProxyFacade, times(4)).deleteKey(any(), anyBoolean());
-        verify(signerProxyFacade, times(2)).setRenewalError(any(), any());
+        verify(signerRpcClient, never()).importCert(any(), any(), any(), anyBoolean());
+        verify(signerRpcClient, times(4)).deleteKey(any(), anyBoolean());
+        verify(signerRpcClient, times(2)).setRenewalError(any(), any());
     }
 
 }

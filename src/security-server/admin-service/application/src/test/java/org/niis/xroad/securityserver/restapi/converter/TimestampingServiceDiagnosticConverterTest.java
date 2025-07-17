@@ -26,14 +26,14 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatus;
+import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatusDto;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -61,12 +61,12 @@ public class TimestampingServiceDiagnosticConverterTest {
         final OffsetDateTime now = TimeUtils.offsetDateTimeNow();
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, now);
         diagnosticsStatus.setDescription(URL_1);
-        TimestampingServiceDiagnostics timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter.convert(
+        TimestampingServiceDiagnosticsDto timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter.convert(
                 diagnosticsStatus
         );
 
-        assertEquals(TimestampingStatus.SUCCESS, timestampingServiceDiagnostics.getStatusCode());
-        assertEquals(DiagnosticStatusClass.OK, timestampingServiceDiagnostics.getStatusClass());
+        assertEquals(TimestampingStatusDto.SUCCESS, timestampingServiceDiagnostics.getStatusCode());
+        assertEquals(DiagnosticStatusClassDto.OK, timestampingServiceDiagnostics.getStatusClass());
         assertEquals(now, timestampingServiceDiagnostics.getPrevUpdateAt());
     }
 
@@ -81,27 +81,27 @@ public class TimestampingServiceDiagnosticConverterTest {
                 new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED, prevUpdate2);
         diagnosticsStatus2.setDescription(URL_2);
         List<DiagnosticsStatus> list = new ArrayList<>(Arrays.asList(diagnosticsStatus1, diagnosticsStatus2));
-        Set<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter
+        Set<TimestampingServiceDiagnosticsDto> timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter
                 .convert(list);
 
         assertEquals(2, timestampingServiceDiagnostics.size());
-        TimestampingServiceDiagnostics firstDiagnostic = timestampingServiceDiagnostics
+        TimestampingServiceDiagnosticsDto firstDiagnostic = timestampingServiceDiagnostics
                 .stream()
                 .filter(item -> item.getUrl().equals(URL_1))
                 .findFirst()
                 .orElse(null);
 
-        TimestampingServiceDiagnostics secondDiagnostic = timestampingServiceDiagnostics
+        TimestampingServiceDiagnosticsDto secondDiagnostic = timestampingServiceDiagnostics
                 .stream()
                 .filter(item -> item.getUrl().equals(URL_2))
                 .findFirst()
                 .orElse(null);
-        assertEquals(TimestampingStatus.ERROR_CODE_INTERNAL, firstDiagnostic.getStatusCode());
-        assertEquals(DiagnosticStatusClass.FAIL, firstDiagnostic.getStatusClass());
+        assertEquals(TimestampingStatusDto.ERROR_CODE_INTERNAL, firstDiagnostic.getStatusCode());
+        assertEquals(DiagnosticStatusClassDto.FAIL, firstDiagnostic.getStatusClass());
         assertEquals(prevUpdate, firstDiagnostic.getPrevUpdateAt());
 
-        assertEquals(TimestampingStatus.ERROR_CODE_TIMESTAMP_UNINITIALIZED, secondDiagnostic.getStatusCode());
-        assertEquals(DiagnosticStatusClass.WAITING, secondDiagnostic.getStatusClass());
+        assertEquals(TimestampingStatusDto.ERROR_CODE_TIMESTAMP_UNINITIALIZED, secondDiagnostic.getStatusCode());
+        assertEquals(DiagnosticStatusClassDto.WAITING, secondDiagnostic.getStatusClass());
         assertEquals(prevUpdate2, secondDiagnostic.getPrevUpdateAt());
     }
 }

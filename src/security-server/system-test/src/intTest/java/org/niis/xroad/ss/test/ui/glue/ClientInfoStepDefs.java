@@ -32,6 +32,7 @@ import org.niis.xroad.ss.test.ui.page.ClientInfoPageObj;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientInfoStepDefs extends BaseUiStepDefs {
     private final ClientInfoPageObj clientInfoPageObj = new ClientInfoPageObj();
@@ -80,5 +81,45 @@ public class ClientInfoStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnSave()
                 .shouldBe(enabled)
                 .click();
+    }
+
+    @Step("Client Edit button is clicked")
+    public void clickEditClientButton() {
+        clientInfoPageObj.details.btnEdit()
+                .should(visible)
+                .click();
+    }
+
+    @Step("Client Edit button isn't visible")
+    public void validateEditClientButtonNotVisible() {
+        clientInfoPageObj.details.btnEdit()
+                .shouldNotBe(visible);
+    }
+
+    @Step("Rename dialog save button is disabled")
+    public void validateRenameDialogSaveButtonDisabled() {
+        clientInfoPageObj.renameClientDialog.btnSave()
+                .shouldBe(visible)
+                .shouldNotBe(enabled);
+    }
+
+    @Step("Rename dialog save button is active")
+    public void renameDialogSaveButtonClicked() {
+        clientInfoPageObj.renameClientDialog.btnSave()
+                .shouldBe(visible)
+                .shouldBe(enabled);
+    }
+
+    @Step("Subsystem is renamed to {string}")
+    public void renameSubsystem(String newName) {
+        vTextField(clientInfoPageObj.renameClientDialog.inputName())
+                .setValue(newName);
+    }
+
+    @Step("Subsystem is rename status is: {string}")
+    public void validateRenameStatus(String status) {
+        clientInfoPageObj.details.renameStatusText()
+                .shouldBe(visible)
+                .shouldHave(text(status));
     }
 }

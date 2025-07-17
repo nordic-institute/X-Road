@@ -39,15 +39,16 @@
         </encoder>
     </appender>
 
-    <logger name="ee.ria.xroad.proxy.clientproxy.RequestLog" level="INFO" additivity="false">
+    <logger name="org.niis.xroad.proxy.core.clientproxy.RequestLog" level="INFO" additivity="false">
         <appender-ref ref="clientproxy-access-log"/>
     </logger>
 
-    <logger name="ee.ria.xroad.proxy.serverproxy.RequestLog" level="INFO" additivity="false">
+    <logger name="org.niis.xroad.proxy.core.serverproxy.RequestLog" level="INFO" additivity="false">
         <appender-ref ref="serverproxy-access-log"/>
     </logger>
 
     <logger name="ee.ria.xroad" level="INFO"/>
+    <logger name="org.niis.xroad" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="FILE"/>

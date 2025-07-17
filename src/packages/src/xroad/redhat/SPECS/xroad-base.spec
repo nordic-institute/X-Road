@@ -20,7 +20,7 @@ Requires:  systemd
 Requires:  rlwrap
 %endif
 Requires:  jre-21-headless, tzdata-java
-Requires:  crudini, hostname, sudo, openssl
+Requires:  crudini, hostname, sudo, openssl, bc
 
 %define src %{_topdir}/..
 
@@ -51,12 +51,12 @@ mkdir -p %{buildroot}/var/lib/xroad/backup
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/jlib/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/common-db.jar
-ln -s /usr/share/xroad/jlib/postgresql-42.7.5.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
+ln -s /usr/share/xroad/jlib/postgresql-42.7.7.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
 ln -s /usr/share/xroad/db/liquibase-core-4.19.0.jar %{buildroot}/usr/share/xroad/db/liquibase-core.jar
 
 cp -p %{_sourcedir}/base/xroad-base.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../common/common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../security-server/admin-service/application/build/unpacked-libs/postgresql-42.7.5.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../security-server/admin-service/application/build/unpacked-libs/postgresql-42.7.7.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
@@ -95,6 +95,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/_backup_restore_common.sh
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
 /usr/share/xroad/scripts/_setup_db.sh
+/usr/share/xroad/scripts/_setup_memory.sh
 /usr/share/xroad/scripts/xroad-base.sh
 /usr/share/xroad/db/liquibase-core.jar
 /usr/share/xroad/db/liquibase-core-*.jar

@@ -27,11 +27,13 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.DataIntegrityException;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.Origin;
@@ -55,8 +57,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
-import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
@@ -100,47 +102,55 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
 
         MemberIdEntity ownerId = serverId.getOwner();
         if (ownerId.equals(clientId)) {
-            throw new ValidationFailureException(MR_CANNOT_REGISTER_OWNER);
+            throw new BadRequestException(MR_CANNOT_REGISTER_OWNER.build());
         }
 
         if (Origin.CENTER.equals(origin)) {
-            XRoadMemberEntity owner = members.findOneBy(ownerId).orElseThrow(
-                    () -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
-                            ownerId.toString()));
+            XRoadMemberEntity owner = members.findOneBy(ownerId)
+                    .orElseThrow(() -> new ConflictException(MR_SERVER_NOT_FOUND.build(ownerId.toString())));
 
-            servers.findByOwnerIdAndServerCode(owner.getId(), serverId.getServerCode()).orElseThrow(
-                    () -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
-                            serverId.toString()));
+            servers.findByOwnerIdAndServerCode(owner.getId(), serverId.getServerCode())
+                    .orElseThrow(() -> new ConflictException(MR_SERVER_NOT_FOUND.build(serverId.toString())));
 
-            members.findMember(clientId).orElseThrow(() ->
-                    new DataIntegrityException(MR_MEMBER_NOT_FOUND,
-                            request.getClientId().toString()));
+            members.findMember(clientId)
+                    .orElseThrow(() -> new ConflictException(MR_MEMBER_NOT_FOUND.build(request.getClientId().toString())));
         }
 
         clientId = clientIds.findOrCreate(clientId);
-        servers.findBy(serverId, clientId).map(s -> {
-            throw new DataIntegrityException(MR_CLIENT_ALREADY_REGISTERED);
-        });
+        servers.findBy(serverId, clientId)
+                .map(s -> {
+                    throw new ConflictException(MR_CLIENT_ALREADY_REGISTERED.build());
+                });
 
         List<ClientRegistrationRequestEntity> pending = clientRegRequests.findBy(
                 serverId, clientId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)
         );
 
+        var oldName = Optional.of(clientId)
+                .filter(XRoadId::isSubsystem)
+                .flatMap(clients::findOneBy)
+                .map(SecurityServerClientEntity::getName)
+                .orElse(null);
+
+        var comments = clientId.isSubsystem()
+                ? ClientRenameRequestHandler.formatRenameComment(oldName, request.getSubsystemName(), request.getComments())
+                : request.getComments();
+
         ClientRegistrationRequestEntity req;
         switch (pending.size()) {
             case 0:
-                req = new ClientRegistrationRequestEntity(origin, serverId, clientId, request.getComments());
+                req = new ClientRegistrationRequestEntity(origin, serverId, clientId, request.getSubsystemName(), comments);
                 break;
             case 1:
                 ClientRegistrationRequestEntity anotherReq = pending.getFirst();
                 if (anotherReq.getOrigin().equals(request.getOrigin())) {
-                    throw new DataIntegrityException(MR_EXISTS, valueOf(anotherReq.getId()));
+                    throw new ConflictException(MR_EXISTS.build(anotherReq.getId()));
                 }
-                req = new ClientRegistrationRequestEntity(origin, request.getComments(), anotherReq);
+                req = new ClientRegistrationRequestEntity(origin, comments, anotherReq);
                 req.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
                 break;
             default:
-                throw new DataIntegrityException(MR_EXISTS);
+                throw new ConflictException(MR_EXISTS.build());
         }
 
         var persistedRequest = clientRegRequests.save(req);
@@ -151,15 +161,14 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     public ClientRegistrationRequest approve(ClientRegistrationRequest request) {
         Integer requestId = request.getId();
         final ClientRegistrationRequestEntity clientRegistrationRequest = clientRegRequests.findById(requestId)
-                .orElseThrow(() -> new ValidationFailureException(MR_NOT_FOUND, valueOf(requestId)));
+                .orElseThrow(() -> new BadRequestException(MR_NOT_FOUND.build(requestId)));
 
         if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(clientRegistrationRequest.getProcessingStatus())) {
-            throw new ValidationFailureException(MR_INVALID_STATE_FOR_APPROVAL,
-                    valueOf(clientRegistrationRequest.getId()));
+            throw new BadRequestException(MR_INVALID_STATE_FOR_APPROVAL.build(clientRegistrationRequest.getId()));
         }
 
         SecurityServerEntity server = servers.findBy(clientRegistrationRequest.getSecurityServerId())
-                .orElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND));
+                .orElseThrow(() -> new BadRequestException(MR_SERVER_NOT_FOUND.build()));
 
         XRoadMemberEntity clientMember = memberHelper.findOrCreate(clientRegistrationRequest.getClientId());
 
@@ -167,8 +176,8 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
             case MEMBER -> clientMember;
             case SUBSYSTEM -> clients
                     .findOneBy(clientRegistrationRequest.getClientId())
-                    // create new subsystem if necessary
-                    .orElseGet(() -> clients.save(new SubsystemEntity(clientMember, clientRegistrationRequest.getClientId())));
+                    .map(entity -> updateSubsystemNameIfNeeded(entity, clientRegistrationRequest.getSubsystemName()))
+                    .orElseGet(() -> createSubsystem(clientMember, clientRegistrationRequest));
             default -> throw new IllegalArgumentException("Invalid client type");
         };
 
@@ -181,8 +190,21 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
         return requestMapper.toDto(persistedRequest);
     }
 
+    private SecurityServerClientEntity updateSubsystemNameIfNeeded(SecurityServerClientEntity subsystem, String subsystemName) {
+        if (StringUtils.isEmpty(subsystemName) || StringUtils.equals(subsystemName, subsystem.getName())) {
+            return subsystem;
+        } else {
+            subsystem.setName(subsystemName);
+            return clients.save(subsystem);
+        }
+    }
+
     @Override
     public Class<ClientRegistrationRequest> requestType() {
         return ClientRegistrationRequest.class;
+    }
+
+    private SecurityServerClientEntity createSubsystem(XRoadMemberEntity clientMember, ClientRegistrationRequestEntity request) {
+        return clients.save(new SubsystemEntity(clientMember, request.getClientId(), request.getSubsystemName()));
     }
 }

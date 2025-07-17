@@ -1,21 +1,29 @@
 {
-  "locals_demo": "This is localised in library",
-  "type": "Type",
-  "warning": "Warning",
+  "403": {
+    "goBack": "Go back",
+    "mainTitle": "Permission denied",
+    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
+    "topTitle": "Forbidden"
+  },
+  "404": {
+    "pageNotFound": "404 - page not found",
+    "text": "Seems like you found the",
+    "textUnicorn": "unicorn"
+  },
   "action": {
     "activate": "Activate",
-    "cancel": "Cancel",
     "add": "Add",
     "addClient": "Add client",
     "addMember": "Add member",
     "addSubsystem": "Add subsystem",
+    "cancel": "Cancel",
     "close": "Close",
     "confirm": "Confirm",
     "continue": "Continue",
     "copy": "Copy",
     "copyId": "Copy ID",
-    "delete": "Delete",
     "deactivate": "Disable",
+    "delete": "Delete",
     "done": "Done",
     "download": "Download",
     "edit": "Edit",
@@ -66,13 +74,13 @@
       "success": "API key successfully created",
       "title": "Create API key"
     },
+    "edit": {
+      "roleRemoveOnly": "(remove only)"
+    },
     "role": {
       "XROAD_REGISTRATION_OFFICER": "Registration Officer",
       "XROAD_SECURITY_OFFICER": "Security Officer",
       "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
-    },
-    "edit": {
-      "roleRemoveOnly": "(remove only)"
     },
     "table": {
       "action": {
@@ -99,10 +107,14 @@
       }
     }
   },
-  "keys": {
-    "gotIt": "Got it"
-  },
   "backup": {
+    "createBackup": {
+      "button": "Back up config.",
+      "messages": {
+        "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead.",
+        "success": "Backup {file} successfully created"
+      }
+    },
     "deleteBackup": {
       "dialog": {
         "confirmation": "Are you sure you want to delete backup {file}?",
@@ -117,13 +129,6 @@
       },
       "success": "Configuration restored from {file}"
     },
-    "createBackup": {
-      "button": "Back up config.",
-      "messages": {
-        "success": "Backup {file} successfully created",
-        "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead."
-      }
-    },
     "uploadBackup": {
       "button": "Upload backup",
       "confirmationDialog": {
@@ -135,6 +140,8 @@
   },
   "cert": {
     "certificate": "Certificate",
+    "ecParameters": "EC Public Key Parameters",
+    "ecPoint": "EC Public Key Point",
     "hashInfo": "Hash (SHA-256)",
     "keyUsage": {
       "CRL_SIGN": "CRL Sign",
@@ -148,34 +155,52 @@
       "NON_REPUDIATION": "Non Repudiation"
     },
     "rsaExp": "RSA Public Key Exponent",
-    "rsaModulus": "RSA Public Key Modulus",
-    "ecParameters": "EC Public Key Parameters",
-    "ecPoint": "EC Public Key Point"
+    "rsaModulus": "RSA Public Key Modulus"
   },
   "error_code": {
     "api_key_not_found": "API key not found",
     "backup_file_not_found": "Backup was not found",
     "backup_generation_failed": "Failed to generate backup",
     "backup_restore_interrupted": "Backup restoration has been interrupted",
+    "core": {
+      "Signer": {
+        "CertNotFound": "Certification is not found",
+        "KeyNotFound": "Key is not found",
+        "NetworkError": "Signer is not currently reachable.",
+        "PinIncorrect": "Invalid PIN",
+        "TokenNotAvailable": "Token is not available",
+        "TokenNotFound": "Token is not found",
+        "UnknownMember": "X-Road core - signer: Unknown member"
+      }
+    },
     "generate_backup_interrupted": "Backup generation has been interrupted",
     "internal_error": "Internal error. See server logs for more details",
     "invalid_backup_file": "Invalid backup file",
+    "invalid_certificate": "Invalid X.509 certificate",
     "invalid_distinguished_name": "Distinguished name is invalid",
     "invalid_filename": "Invalid filename",
     "resource_read_failed": "Failed to read resource",
     "restore_process_failed": "Restore process failed",
     "token_fetch_failed": "Error getting tokens.",
     "token_not_found": "Token not found.",
+    "token_weak_pin": "The provided pin code was too weak",
+    "tr": {
+      "check_signer_logs": "Please check the signer log for details.",
+      "code": "Code: {0}",
+      "pin_min_char_classes_count": "PIN minimum character classes count: {0}",
+      "pin_min_length": "PIN minimum length: {0}"
+    },
     "validation_failure": "Validation failure"
   },
   "fields": {
-    "password": "Password",
-    "username": "LIB-Username",
-    "shared": "sharedlib",
     "code": "Code",
     "description": "Description",
     "memberClass": "Member Class",
-    "securityServerCode": "Security Server Code"
+    "password": "Password",
+    "securityServerCode": "Security Server Code",
+    "shared": "sharedlib",
+    "subsystemName": "Subsystem Name",
+    "username": "LIB-Username"
   },
   "footer": {
     "copyright": {
@@ -193,6 +218,13 @@
     "all": "All",
     "name": "Name"
   },
+  "keys": {
+    "gotIt": "Got it",
+    "token": {
+      "label": "Token:"
+    }
+  },
+  "locals_demo": "This is localised in library",
   "login": {
     "errorMsg401": "Wrong username or password",
     "generalError": "Login failed. Please try again.",
@@ -203,9 +235,6 @@
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
   },
-  "meta": {
-    "check_signer_logs": "Please check the signer log for details."
-  },
   "noData": {
     "loading": "Loading... Please wait",
     "noBackups": "No backups yet",
@@ -215,6 +244,12 @@
     "noMatches": "No items matching criteria",
     "noServices": "No services",
     "noTokens": "No tokens"
+  },
+  "type": "Type",
+  "validation": {
+    "messages": {
+      "address": "The {field} field contains invalid characters"
+    }
   },
   "validationError": {
     "AssertFalse": "value should be 'false'",
@@ -248,9 +283,5 @@
     "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
     "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
   },
-  "validation": {
-    "messages": {
-      "address": "The {field} field contains invalid characters"
-    }
-  }
+  "warning": "Warning"
 }

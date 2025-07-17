@@ -29,11 +29,11 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.Date;
 import java.util.List;
@@ -44,55 +44,26 @@ import java.util.List;
  * Exists to make testing easier by offering non-static methods.
  */
 public interface SignerProxyFacade {
-    /**
-     * {@link SignerProxy#initSoftwareToken(char[])}
-     */
+
     void initSoftwareToken(char[] password) throws SignerException;
 
-    /**
-     * {@link SignerProxy#getTokens()}
-     */
     List<TokenInfo> getTokens() throws SignerException;
 
-    /**
-     * {@link SignerProxy#getToken(String)}
-     */
     TokenInfo getToken(String tokenId) throws SignerException;
 
-    /**
-     * {@link SignerProxy#activateToken(String, char[])}
-     */
     void activateToken(String tokenId, char[] password) throws SignerException;
 
-    /**
-     * {@link SignerProxy#deactivateToken(String)}
-     */
     void deactivateToken(String tokenId) throws SignerException;
 
-    /**
-     * {@link SignerProxy#generateKey(String, String, KeyAlgorithm)}
-     */
     KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws SignerException;
 
-    /**
-     * {@link SignerProxy#generateSelfSignedCert(String, ClientId.Conf, KeyUsageInfo, String, Date, Date)}
-     */
     byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
                                   String commonName, Date notBefore, Date notAfter) throws SignerException;
 
-    /**
-     * {@link SignerProxy#deleteKey(String, boolean)}
-     */
     void deleteKey(String keyId, boolean deleteFromToken) throws SignerException;
 
-    /**
-     * {ling {@link SignerProxy#getSignMechanism(String)}}
-     */
     SignMechanism getSignMechanism(String keyId) throws SignerException;
 
-    /**
-     * {@link SignerProxy#sign(String, SignAlgorithm, byte[])}
-     */
     byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws SignerException;
 
 }

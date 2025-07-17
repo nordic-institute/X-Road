@@ -31,17 +31,13 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.DataIntegrityException;
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.InitialServerConfDto;
 import org.niis.xroad.cs.admin.api.dto.InitializationStatusDto;
@@ -54,8 +50,10 @@ import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -63,6 +61,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.GPG_KEY_GENERATION_FAILED;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INITIALIZATION_INTERRUPTED;
 import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.INITIALIZED;
 import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.NOT_INITIALIZED;
@@ -70,11 +69,10 @@ import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.UNKNOWN;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_ALREADY_INITIALIZED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SIGNER_PIN_POLICY_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SOFTWARE_TOKEN_FAILED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_FAILED;
 
 @Slf4j
 @Service
-@Transactional(rollbackOn = ValidationFailureException.class)
+@Transactional(rollbackOn = BadRequestException.class)
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class InitializationServiceImpl implements InitializationService {
@@ -114,7 +112,7 @@ public class InitializationServiceImpl implements InitializationService {
         final boolean isServerAddressInitialized = !systemParameterService.getCentralServerAddress().isEmpty();
         final boolean isInstanceIdentifierInitialized = !systemParameterService.getInstanceIdentifier().isEmpty();
         if (isSWTokenInitialized && isServerAddressInitialized && isInstanceIdentifierInitialized) {
-            throw new DataIntegrityException(INIT_ALREADY_INITIALIZED);
+            throw new ConflictException(INIT_ALREADY_INITIALIZED.build());
         }
 
         if (!isSWTokenInitialized) {
@@ -147,10 +145,10 @@ public class InitializationServiceImpl implements InitializationService {
                         && ce.getFaultCode().contains(ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE)) {
                     log.warn("Signer saw Token pin policy failure, remember to restart also the central server after "
                             + "configuring policy enforcement", e);
-                    throw new ValidationFailureException(INIT_SIGNER_PIN_POLICY_FAILED);
+                    throw new BadRequestException(INIT_SIGNER_PIN_POLICY_FAILED.build());
                 }
                 log.warn("Software token initialization failed", e);
-                throw new DataIntegrityException(INIT_SOFTWARE_TOKEN_FAILED, e);
+                throw new ConflictException(e, INIT_SOFTWARE_TOKEN_FAILED.build());
             }
         }
 
@@ -207,9 +205,9 @@ public class InitializationServiceImpl implements InitializationService {
             log.info(String.join("\n", processResult.getProcessOutput()));
             log.info(" --- Generate GPG keypair script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_GPG_KEY_GENERATION_FAILED));
+            throw new InternalServerErrorException(e, GPG_KEY_GENERATION_FAILED.build());
         } catch (InterruptedException e) {
-            throw new ServiceException(INITIALIZATION_INTERRUPTED);
+            throw new InternalServerErrorException(e, INITIALIZATION_INTERRUPTED.build());
         }
     }
 
@@ -217,7 +215,7 @@ public class InitializationServiceImpl implements InitializationService {
         var status = NOT_INITIALIZED;
         TokenInfo tokenInfo;
         try {
-            tokenInfo = signerProxyFacade.getToken(SignerProxy.SSL_TOKEN_ID);
+            tokenInfo = signerProxyFacade.getToken(SignerRpcClient.SSL_TOKEN_ID);
             if (null != tokenInfo) {
                 status = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED ? INITIALIZED : NOT_INITIALIZED;
             }

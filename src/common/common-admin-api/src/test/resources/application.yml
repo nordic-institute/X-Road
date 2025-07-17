@@ -1,23 +1,27 @@
 # properties for test runtime
 spring:
   jpa:
-    mapping-resources: apikey.hbm.xml
     open-in-view: false
     generate-ddl: true
     show-sql: false
     defer-datasource-initialization: true
     hibernate:
       ddl-auto: create
+    properties:
+      hibernate:
+        id:
+          db_structure_naming_strategy: single
   profiles:
     active: test
   main:
     lazy-initialization: true
+    banner-mode: off
   jackson:
     default-property-inclusion: NON_NULL
 
 logging:
   level:
-    root: INFO
+    root: ERROR
 
 xroad:
   admin-service:

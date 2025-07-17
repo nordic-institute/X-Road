@@ -24,17 +24,15 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="mt-3" data-test="api-keys-view">
-    <div class="xrd-table-toolbar mt-0 pl-0">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
-
-        <help-button
-          :help-image="helpImg"
-          help-title="keys.helpTitleApi"
-          help-text="keys.helpTextApi"
-        ></help-button>
-      </div>
+  <XrdTitledView title-key="tab.keys.apiKey" data-test="api-keys-view">
+    <template #append-title>
+      <help-button
+        :help-image="helpImg"
+        help-title="keys.helpTitleApi"
+        help-text="keys.helpTextApi"
+      />
+    </template>
+    <template #header-buttons>
       <xrd-button
         v-if="canCreateApiKey"
         data-test="api-key-create-key-button"
@@ -45,7 +43,7 @@
         </xrd-icon-base>
         {{ $t('apiKey.createApiKey.title') }}
       </xrd-button>
-    </div>
+    </template>
 
     <!-- Table -->
     <v-data-table
@@ -98,7 +96,7 @@
       </template>
 
       <template #bottom>
-        <div class="custom-footer"></div>
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -161,7 +159,7 @@
       @cancel="confirmRevoke = false"
       @accept="revokeApiKey"
     />
-  </div>
+  </XrdTitledView>
 </template>
 
 <script lang="ts">
@@ -179,12 +177,13 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { DataTableHeader } from '@/ui-types';
 import helpImg from '@/assets/api_keys.png';
-import { XrdIconKey } from '@niis/shared-ui';
+import { XrdIconKey, XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     HelpButton,
     XrdIconKey,
+    XrdDataTableFooter,
   },
   data() {
     return {
@@ -325,7 +324,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/tables';
 
 .button-wrap {
   width: 100%;

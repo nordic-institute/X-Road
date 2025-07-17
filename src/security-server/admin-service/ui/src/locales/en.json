@@ -1,15 +1,4 @@
 {
-  "403": {
-    "goBack": "Go back",
-    "mainTitle": "Permission denied",
-    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
-    "topTitle": "Forbidden"
-  },
-  "404": {
-    "pageNotFound": "404 - page not found",
-    "text": "Seems like you found the",
-    "textUnicorn": "unicorn"
-  },
   "accessRights": {
     "addServiceClients": "Add subjects",
     "addServiceClientsSuccess": "Access rights added successfully",
@@ -26,8 +15,6 @@
     "title": "Access Rights"
   },
   "action": {
-    "cancel": "Cancel",
-    "delete": "Delete",
     "disable": "Disable",
     "enable": "Enable",
     "order": "Order"
@@ -61,6 +48,12 @@
     "signCertificate": "Sign Certificate",
     "state": "State"
   },
+  "certificate": {
+    "hash": "Certificate Hash",
+    "notAfter": "Not After",
+    "notBefore": "Not Before",
+    "subjectDistinguishedName": "Subject Distinguished Name"
+  },
   "certificateProfile": {
     "COMMON_NAME": "Common Name (CN)",
     "COUNTRY_CODE": "Country Code (C)",
@@ -86,6 +79,16 @@
         "confirmTitle": "Delete client",
         "success": "Client deleted"
       },
+      "disable": {
+        "confirmText": "Do you want to disable this client?",
+        "confirmTitle": "Disable client",
+        "success": "Client disabling in progress"
+      },
+      "enable": {
+        "confirmText": "Do you want to enable this client?",
+        "confirmTitle": "Enable client",
+        "success": "Client enabling in progress"
+      },
       "makeOwner": {
         "button": "Make Owner",
         "confirmText1": "Do you want to make the Member below the new Owner Member of this Security Server?",
@@ -99,22 +102,19 @@
         "confirmTitle": "Key and certificate deletion",
         "success": "Certificate deleted"
       },
+      "renameSubsystem": {
+        "changeAdded": "Subsystem name change successfully added and will be applied on client registration",
+        "changeSubmitted": "Subsystem name change successfully submitted",
+        "title": "Edit subsystem name"
+      },
       "unregister": {
         "confirmText": "Do you want to unregister this client?",
         "confirmTitle": "Unregister client",
         "success": "Client unregistered"
-      },
-      "disable": {
-        "confirmText": "Do you want to disable this client?",
-        "confirmTitle": "Disable client",
-        "success": "Client disabling in progress"
-      },
-      "enable": {
-        "confirmText": "Do you want to enable this client?",
-        "confirmTitle": "Enable client",
-        "success": "Client enabling in progress"
       }
     },
+    "defaultSubsystemNameTooltip": "Subsystem name is not defined",
+    "forbiddenDisable": "The provider of management services is not eligible for deactivation.",
     "id": "ID",
     "member": "Member",
     "memberClass": "Member Class",
@@ -125,15 +125,19 @@
     "status": "Status",
     "statusText": {
       "deletionInProgress": "DELETION IN PROGRESS",
-      "globalError": "GLOBAL ERROR",
-      "registered": "REGISTERED",
-      "registrationInProgress": "REGISTRATION IN PROGRESS",
-      "saved": "SAVED",
       "disabled": "DISABLED",
       "disablingInProgress": "DISABLING IN PROGRESS",
-      "enablingInProgress": "ENABLING IN PROGRESS"
+      "enablingInProgress": "ENABLING IN PROGRESS",
+      "globalError": "GLOBAL ERROR",
+      "nameSet": "Name change will be applied on client registration",
+      "nameSubmitted": "Name change is submitted",
+      "registered": "REGISTERED",
+      "registrationInProgress": "REGISTRATION IN PROGRESS",
+      "saved": "SAVED"
     },
     "subsystemCode": "Subsystem Code",
+    "subsystemName": "Subsystem Name",
+    "subsystemTitleSuffix": " (@:general.subsystem)",
     "unknownMember": "unknown member"
   },
   "clients": {
@@ -160,9 +164,9 @@
     "helpClient": "X-Road member the certificate will be issued for.",
     "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements.",
     "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
+    "orderAcmeCertificate": "Order certificate from ACME Server with the generated CSR and import the returned certificate to the token.",
     "saveInfo": "Generate a new CSR and save it into a safe place.",
-    "usage": "Usage",
-    "orderAcmeCertificate": "Order certificate from ACME Server with the generated CSR and import the returned certificate to the token."
+    "usage": "Usage"
   },
   "customValidation": {
     "invalidEndpoint": "Endpoint contains illegal characters",
@@ -174,9 +178,33 @@
     "addOnStatus": {
       "messageLogDisabled": "Disabled by configuration"
     },
+    "downloadReport": "Download Diagnostic Report",
+    "encryption": {
+      "backup": {
+        "configuredKeyId": "Configured Key Id",
+        "title": "Backup encryption"
+      },
+      "messageLog": {
+        "archive": {
+          "defaultKeyNote": "This member is configured to use the servers default encryption key. For additional security, consider defining a specific key to be used.",
+          "groupingTitle": "Grouping rule:",
+          "keyId": "Key id",
+          "memberIdentifier": "Member identifier",
+          "title": "Message log archive encryption"
+        },
+        "database": {
+          "title": "Message log database encryption"
+        }
+      },
+      "status": {
+        "false": "Disabled",
+        "true": "Enabled"
+      },
+      "statusTitle": "Encryption status:"
+    },
     "globalConfiguration": {
       "configurationStatus": {
-        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
+        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check the network connection.",
         "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
         "ERROR_CODE_INTERNAL": "Internal error occurred.",
         "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Invalid signature value.",
@@ -196,22 +224,46 @@
       "vendor": "Vendor name"
     },
     "mailNotificationConfiguration": {
-      "title": "Mail notification status",
-      "help": {
-        "title": "Different mail notification statuses available",
-        "description": "Mail notifications are sent automatically to configured recipients for the following events depending on the configuration: authentication certificate renewal over ACME succeeded / failed, signing certificate renewal over ACME succeeded / failed, authentication certificate registration succeeded. Enabling email notifications requires changes to the Security Server’s configuration. Please see the Security Server User Guide for details."
-      },
-      "failureEnabled": "Failure notifications",
-      "successEnabled": "Success notifications",
-      "configuration": "Mail server configuration",
-      "recipientsEmails": "Recipients' emails",
-      "enabled": {
-        "true": "Enabled",
-        "false": "Disabled"
-      },
       "confStatus": {
-        "true": "Configured",
-        "false": "Configuration incomplete"
+        "false": "Configuration incomplete",
+        "true": "Configured"
+      },
+      "configuration": "Mail server configuration",
+      "enabled": {
+        "false": "Disabled",
+        "true": "Enabled"
+      },
+      "help": {
+        "description": "Mail notifications are sent automatically to configured recipients for the following events depending on the configuration: authentication certificate renewal over ACME succeeded / failed, signing certificate renewal over ACME succeeded / failed, authentication certificate registration succeeded. Enabling email notifications requires changes to the Security Server’s configuration. Please see the Security Server User Guide for details.",
+        "title": "Different mail notification statuses available"
+      },
+      "recipientsEmails": "Recipients' emails",
+      "status": "Status",
+      "sentTestMail": "Send test e-mail",
+      "title": "Mail notification status",
+      "type": {
+        "ACME_FAILURE": "ACME failure notifications",
+        "ACME_SUCCESS": "ACME success notifications",
+        "AUTH_CERT_REGISTERED": "AUTH certificate registered notifications",
+        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME certificate automatically activated notifications",
+        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME certificate automatic activation failure notifications"
+      },
+      "types": "Mail notification types"
+    },
+    "maintenanceMode": {
+      "enableTitle": "Enable maintenance mode",
+      "enableConfirm": "Do you want to enable maintenance mode?",
+      "enableSuccess": "Maintenance mode enabling in progress",
+      "disableTitle": "Disable maintenance mode",
+      "disableConfirm": "Do you want to disable maintenance mode?",
+      "disableSuccess": "Maintenance mode disabling in progress",
+      "forbiddenEnable": "Maintenance mode cannot be enabled for a management services provider",
+      "label": "Maintenance mode:",
+      "status": {
+        "DISABLED_MAINTENANCE_MODE": "Maintenance mode is disabled",
+        "ENABLED_MAINTENANCE_MODE": "Maintenance mode is enabled",
+        "PENDING_DISABLE_MAINTENANCE_MODE": "Disable maintenance mode request is submitted",
+        "PENDING_ENABLE_MAINTENANCE_MODE": "Enable maintenance mode request is submitted"
       }
     },
     "message": "Message",
@@ -230,41 +282,49 @@
       "title": "OCSP responders"
     },
     "previousUpdate": "Previous Update",
+    "proxyMemoryUsage": {
+      "alertOverThreshold": "Warning: Proxy's memory usage is above configured threshold",
+      "max": "Maximum memory",
+      "ok": "Everything ok",
+      "threshold": "Threshold",
+      "title": "Proxy memory usage",
+      "total": "Total allocated memory",
+      "usagePercent": "Used memory (%)",
+      "used": "Used memory"
+    },
     "serviceUrl": "Service URL",
     "status": "Status",
     "timestamping": {
       "timestampingStatus": {
         "ERROR_CODE_INTERNAL": "Internal error occurred",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed timestamp server URL. Check the URL.",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection to global configuration provider.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Connection ok, no timestamp request made yet",
         "SUCCESS": "Everything ok",
         "UNKNOWN": "Unknown"
       },
       "title": "Timestamping"
     },
-    "encryption": {
-      "status": {
-        "false": "Disabled",
-        "true": "Enabled"
-      },
-      "statusTitle": "Encryption status:",
-      "backup": {
-        "title": "Backup encryption",
-        "configuredKeyId": "Configured Key Id"
-      },
-      "messageLog": {
-        "archive": {
-          "title": "Message log archive encryption",
-          "groupingTitle": "Grouping rule:",
-          "memberIdentifier": "Member identifier",
-          "keyId": "Key id",
-          "defaultKeyNote": "This member is configured to use the servers default encryption key. For additional security, consider defining a specific key to be used."
-        },
-        "database": {
-          "title": "Message log database encryption"
-        }
-      }
+    "traffic": {
+      "period": "Period",
+      "periodInfo": "Select start and end",
+      "date": "Date",
+      "time": "Time",
+      "party": "Party",
+      "partyInfo": "Service, subsystem, member",
+      "client": "Client",
+      "service": "Service",
+      "exchangeRole": "Exchange role",
+      "exchangeRoleInfo": "Producer or Consumer",
+      "producer": "Producer",
+      "status": "Status",
+      "statusInfo": "Message exchange status",
+      "success": "Success",
+      "failure": "Failure",
+      "successfulRequests": "Successful requests",
+      "failedRequests": "Failed requests",
+      "disabledTitle": "Operational Data Monitoring Is Disabled",
+      "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring)."
     }
   },
   "endpoints": {
@@ -286,25 +346,27 @@
   "error_code": {
     "accessright_not_found": "Access right not found",
     "acme": {
-      "eab_credentials_missing": "External Account binding credentials missing, but required",
-      "eab_secret_length": "Invalid external account binding base64 secret length",
+      "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
       "account_keystore_password_missing": "ACME account keystore password missing from the acme.yml configuration file",
-      "fetching_metadata_error": "Fetching ACME server metadata failed. ACME Server might be unreachable",
-      "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
-      "order_creation_failure": "Creating new Order on ACME server failed",
-      "order_finalization_failure": "Finalizing the Order on ACME server failed",
-      "http_challenge_file_creation": "Creating ACME HTTP challenge file failed",
-      "http_challenge_file_deletion": "Deleting ACME HTTP challenge file failed",
-      "http_challenge_missing": "Currently X-Road only supports HTTP challenge, but is missing from the possible options from the ACME server",
-      "challenge_trigger_failure": "Requesting the ACME server to validate the challenge failed",
       "authorization_failure": "Authorization failed. Usually related to a challenge validation failure that is required to prove the ownership of the domain",
       "authorization_wait_failure": "Waiting for the Authorization to complete failed",
       "certificate_failure": "Getting the Certificate from the ACME server failed",
-      "certificate_wait_failure": "Waiting for the creation of the new Certificate failed"
+      "certificate_wait_failure": "Waiting for the creation of the new Certificate failed",
+      "challenge_trigger_failure": "Requesting the ACME server to validate the challenge failed",
+      "eab_credentials_missing": "External Account binding credentials missing, but required",
+      "eab_secret_length": "Invalid external account binding base64 secret length",
+      "fetching_metadata_error": "Fetching ACME server metadata failed. ACME Server might be unreachable",
+      "http_challenge_file_creation": "Creating ACME HTTP challenge file failed",
+      "http_challenge_file_deletion": "Deleting ACME HTTP challenge file failed",
+      "http_challenge_missing": "Currently X-Road only supports HTTP challenge, but is missing from the possible options from the ACME server",
+      "order_creation_failure": "Creating new Order on ACME server failed",
+      "order_finalization_failure": "Finalizing the Order on ACME server failed"
     },
     "action_not_possible": "Action is not possible",
     "additional_member_already_exists": "Additional member already exists",
+    "already_disabled_maintenance_mode": "Maintenance mode is already disabled",
+    "already_enabled_maintenance_mode": "Maintenance mode is already enabled",
     "anchor_already_exists": "Anchor already exists",
     "anchor_file_not_found": "Anchor file not found",
     "anchor_not_found": "Anchor not found",
@@ -343,14 +405,6 @@
           },
           "UnknownService": "Unknown service"
         }
-      },
-      "Signer": {
-        "CertNotFound": "Certification is not found",
-        "NetworkError": "Signer is not currently reachable.",
-        "KeyNotFound": "Key is not found",
-        "TokenNotAvailable": "Token is not available",
-        "TokenNotFound": "Token is not found",
-        "UnknownMember": "X-Road core - signer: Unknown member"
       }
     },
     "csr_not_found": "CSR not found",
@@ -358,6 +412,8 @@
     "duplicate_accessright": "Duplicate access right",
     "endpoint_already_exists": "Endpoint already exists",
     "endpoint_not_found": "Endpoint not found",
+    "forbidden_disable_management_service_client": "The management services provider cannot be deactivated.",
+    "forbidden_enable_maintenance_mode_for_management_service": "The management services provider cannot be deactivated.",
     "global_conf_download_request_failed": "Global configuration download request failed",
     "global_conf_outdated": "Global configuration is outdated",
     "gpg_key_generation_failed": "GPG keypair generation failed",
@@ -367,9 +423,7 @@
     "illegal_generated_endpoint_update": "Updating the generated endpoint is not allowed",
     "import_internal_cert_failed": "Importing internal certificate failed",
     "internal_anchor_upload_invalid_instance_id": "Anchor has an invalid instance id",
-    "internal_error": "Internal error. See the Security Server application logs for more details.",
     "internal_key_cert_interrupted": "Internal key certificate interrupted",
-    "invalid_cert": "Invalid certificate",
     "invalid_characters_pin": "PIN has invalid characters",
     "invalid_dn_parameter": "Invalid DN parameter",
     "invalid_https_url": "URL does not use HTTPS",
@@ -387,6 +441,7 @@
     "local_group_member_not_found": "Local group member not found",
     "local_group_not_found": "Local group not found",
     "malformed_anchor": "Malformed anchor",
+    "maintenance_mode_change_request_already_submitted": "Maintenance mode change is already pending",
     "malformed_url": "Malformed URL",
     "management_request_sending_failed": "Sending of management request failed",
     "member_already_owner": "Member is already the owner",
@@ -400,8 +455,6 @@
     "pin_code_exists": "PIN code exists",
     "pin_code_not_provided": "PIN code is not provided",
     "pin_incorrect": "Incorrect PIN. Please try again.",
-    "pin_min_char_classes_count": "PIN minimum character classes count",
-    "pin_min_length": "PIN minimum length",
     "process_failed": "Process failed",
     "process_not_executable": "Process is not executable",
     "server_already_fully_initialized": "Server is already fully initialised",
@@ -410,6 +463,7 @@
     "service_already_exists": "Service already exists",
     "service_client_not_found": "Service client not found",
     "service_code_already_exists": "Service code already exists",
+    "service_code_reserved": "The service code provided is reserved for internal system use and cannot be assigned to custom services.",
     "service_description_not_found": "Service description not found",
     "service_not_found": "service not found",
     "sign_cert_not_supported": "Signing certificate is not supported",
@@ -423,7 +477,6 @@
     "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
     "url_already_exists": "URL already exists",
     "warnings_detected": "Warnings detected",
-    "weak_pin": "Weak PIN",
     "wrong_key_usage": "Wrong key usage",
     "wrong_servicedescription_type": "Wrong service description type",
     "wsdl_download_failed": "WSDL download failed",
@@ -432,35 +485,38 @@
     "wsdl_validator_not_executable": "WSDL validator is not executable"
   },
   "fields": {
+    "C": "Country Code",
+    "CN": "Server DNS Name",
+    "O": "Organization Name",
     "addClient": {
       "memberClass": "Member Class",
       "memberCode": "Member Code",
-      "subsystemCode": "Subsystem Code"
+      "subsystemCode": "Subsystem Code",
+      "subsystemName": "Subsystem Name"
     },
-    "C": "Country Code",
+    "certificationService": "Certification Service",
     "clientAdd": {
       "client": {
         "memberCode": "Member Code",
         "subsystemCode": "Subsystem Code"
       }
     },
-    "CN": "Server DNS Name",
     "confirmPin": "Confirm PIN",
     "csr": {
       "certService": "Certification Service",
+      "certificationService": "Certification Service",
       "client": "Client",
       "csrFormat": "CSR Format",
-      "usage": "Usage",
-      "certificationService": "Certification Service"
+      "usage": "Usage"
     },
     "dns": "DNS",
     "keys": {
       "name": "Name"
     },
-    "O": "Organization Name",
+    "maintenanceModeMessage": "Maintenance mode message",
+    "memberCode": "Member Code",
     "path": "path",
     "pin": "PIN",
-    "memberCode": "Member Code",
     "securityServerAddress": "Security Server address",
     "serialNumber": "Serial Number",
     "serviceCode": "Service Code",
@@ -482,11 +538,7 @@
     },
     "tokenPin": "Token PIN",
     "url": "URL",
-    "username": "Username",
-    "certificationService": "Certification Service"
-  },
-  "global": {
-    "appTitle": "X-Road Security Server"
+    "username": "Username"
   },
   "general": {
     "instance": "Instance",
@@ -495,17 +547,21 @@
     "name": "Name",
     "subsystem": "subsystem",
     "subsystemCode": "Subsystem code",
-    "type": "Type"
+    "type": "Type",
+    "undefinedSubsystemName": "undefined"
+  },
+  "global": {
+    "appTitle": "X-Road Security Server"
   },
   "globalAlert": {
     "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}",
-    "globalConfigurationInvalid": "Global configuration is expired",
-    "secondaryNode": "You are on a secondary node in a Security Server cluster. Modifying configuration is disabled.",
-    "softTokenPinNotEntered": "Please enter soft token PIN",
     "certificateRenewalJobFailure": "Last certificate renewal job has failed.",
     "certificateRenewalJobFailureAuth": "Failed Authentication certificate(s):",
     "certificateRenewalJobFailureSign": "Failed Signing certificate(s):",
-    "navigateToKeysPage": "See keys and certificates page for more details"
+    "globalConfigurationInvalid": "Global configuration is expired",
+    "navigateToKeysPage": "See keys and certificates page for more details",
+    "secondaryNode": "You are on a secondary node in a Security Server cluster. Modifying configuration is disabled.",
+    "softTokenPinNotEntered": "Please enter soft token PIN"
   },
   "initialConfiguration": {
     "anchor": {
@@ -548,13 +604,8 @@
     "ssCertTitle": "Security Server certificate",
     "tlsTitle": "Information System TLS certificate"
   },
-  "certificate": {
-    "hash": "Certificate Hash",
-    "subjectDistinguishedName": "Subject Distinguished Name",
-    "notBefore": "Not Before",
-    "notAfter": "Not After"
-  },
   "keys": {
+    "acmeCertOrdered": "Certificate successfully ordered",
     "addKey": "Add key",
     "authDetailsTitle": "AUTH Key details",
     "authKeyCert": "AUTH Keys and Certificates",
@@ -592,8 +643,10 @@
     "helpTitleSS": "Security Server TLS Certificate",
     "id": "ID",
     "importCert": "Import cert.",
+    "importCertOcspVerifyWarning": "Could not activate certificate, because OCSP Responses could not be verified. Error message: {errorMessage}",
     "importCertSuccess": "Uploading certificate succeeded",
     "incorrectPin": "Incorrect PIN. Please try again.",
+    "keyAlgorithm": "Key Algorithm:",
     "keyDeleted": "Key deleted",
     "keyId": "Key ID:",
     "keyInfo": "Key information",
@@ -617,21 +670,22 @@
       "unknown": "Unknown"
     },
     "orderAcmeCertificate": "Order Certificate",
-    "acmeCertOrdered": "Certificate successfully ordered",
     "readOnly": "Read-only:",
-    "keyAlgorithm": "Key Algorithm:",
     "registrationRequest": "Registration request",
     "renewal": "Automatic Renewal",
     "request": "Request",
     "signDetailsTitle": "SIGN Key details",
     "signKeyCert": "SIGN Keys and Certificates",
     "status": "Status",
-    "token": "Token:",
-    "tokenDetails": "Token details",
-    "tokenId": "Token ID:",
-    "tokenInfo": "Token information",
-    "tokenPin": "Token PIN",
-    "tokenSaved": "Token saved",
+    "token": {
+      "details": "Token details",
+      "id": "Token ID:",
+      "info": "Token information",
+      "saved": "Token saved",
+      "deleteText": "Are you sure that you want to delete this token and all associated information from the server configuration?",
+      "deleteTitle": "Delete token?",
+      "deleteSuccess": "Token was deleted"
+    },
     "tokenStatus": {
       "active": "",
       "available": "",
@@ -660,13 +714,14 @@
     "id": "Id",
     "localGroup": "Local group",
     "localGroupAdded": "Local group added",
-    "name": "Member Name",
+    "memberName": "Member Name",
     "noResults": "Your search found no results.",
     "removeAllText": "Are you sure you want to remove all members of this group?",
     "removeAllTitle": "Remove all members?",
     "removeText": "Are you sure you want to remove this member?",
     "removeTitle": "Remove member?",
-    "searchOptions": "Search options"
+    "searchOptions": "Search options",
+    "subsystemName": "Subsystem Name"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -677,8 +732,8 @@
   },
   "noData": {
     "noBackUpEncryptionKeys": "No configured backup encryption keys",
-    "noClientData": "No client data",
     "noCertificateAuthorities": "No certificate authorities",
+    "noClientData": "No client data",
     "noLocalGroups": "No local groups",
     "noServiceClients": "No service clients",
     "noTimestampingServices": "No timestamping services"
@@ -699,7 +754,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Member/Group code",
     "memberGroupStep": "Member / Group",
-    "name": "Member name / Group description",
+    "name": "Member(Subsystem) name / Group description",
     "noAccessRights": "No access rights to this client",
     "noAvailableServices": "No available services",
     "removeAll": "Remove all",
@@ -754,16 +809,16 @@
     "url": "URL",
     "urlPlaceholder": "Insert URL",
     "urlTooltip": "The URL where requests targeted at the service are directed",
+    "verifyTls": "Verify TLS certificate",
     "warning": "Warning",
     "warningCode": {
       "adding_endpoints": "Adding endpoints:",
       "adding_services": "Adding services:",
       "deleting_endpoints": "Deleting endpoints:",
       "deleting_services": "Deleting services:",
-      "wsdl_validation_warnings": "Validation warnings:",
-      "openapi_validation_warnings": "Validation warnings:"
+      "openapi_validation_warnings": "Validation warnings:",
+      "wsdl_validation_warnings": "Validation warnings:"
     },
-    "verifyTls": "Verify TLS certificate",
     "wsdlAdded": "WSDL added",
     "wsdlDescription": "WSDL Description",
     "wsdlDetails": "WSDL details"
@@ -807,10 +862,10 @@
     "approvedCertificateAuthorities": {
       "table": {
         "header": {
+          "acmeIpAddresses": "ACME Server IP",
           "distinguishedName": "Distinguished Name",
           "expires": "Expires",
-          "ocspResponse": "OCSP Response",
-          "acmeIpAddresses": "ACME Server IP"
+          "ocspResponse": "OCSP Response"
         },
         "notAvailable": "N/A",
         "ocspResponse": {
@@ -848,6 +903,15 @@
       },
       "title": "Configuration Anchor"
     },
+    "securityServer": {
+      "addressChangeInProgress": "CHANGE IN PROGRESS",
+      "editDialog": {
+        "title": "Edit Security Server address"
+      },
+      "securityServer": "Security Server",
+      "serverAddress": "Server address",
+      "updateSubmitted": "Security Server address change successfully submitted"
+    },
     "timestampingServices": {
       "action": {
         "add": {
@@ -877,15 +941,6 @@
       },
       "title": "Timestamping Services"
     },
-    "securityServer": {
-      "securityServer": "Security Server",
-      "serverAddress": "Server address",
-      "editDialog": {
-        "title": "Edit Security Server address"
-      },
-      "addressChangeInProgress": "CHANGE IN PROGRESS",
-      "updateSubmitted": "Security Server address change successfully submitted"
-    },
     "title": "System parameters"
   },
   "tab": {
@@ -914,19 +969,23 @@
     "settings": {
       "backupAndRestore": "Backup And Restore",
       "systemParameters": "System Parameters"
+    },
+    "diagnostics": {
+      "overview": "Overview",
+      "traffic": "Traffic"
     }
   },
   "token": {
     "changePin": "Change the pin",
     "pinChanged": "Token pin was changed – please log in the token with the new pin",
-    "tokenPinPolicyHeader": "Token PIN policy is enabled.",
-    "tokenPinPolicy": "Software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters)."
+    "tokenPinPolicy": "Software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters).",
+    "tokenPinPolicyHeader": "Token PIN policy is enabled."
   },
   "toolbar": {
     "securityServerNodeType": {
-      "undefined": "",
       "PRIMARY": "Primary node",
-      "SECONDARY": "Secondary node"
+      "SECONDARY": "Secondary node",
+      "undefined": ""
     }
   },
   "validationError": {
@@ -944,7 +1003,8 @@
       "memberNameTooltip": "Name of the member organization.",
       "register": "Register client",
       "searchLabel": "Client",
-      "subsystemCodeTooltip": "Subsystem code that identifies an information system owned by the Member."
+      "subsystemCodeTooltip": "Subsystem code that identifies an information system owned by the Member.",
+      "subsystemNameTooltip": "Name of an information system owned by the Member."
     },
     "clientDetails": "Client details",
     "clientInfo1": "Specify the details of the Client you want to add.",
@@ -990,6 +1050,7 @@
       "subsystemExists": "Subsystem already exists"
     },
     "subsystemCode": "Subsystem Code",
+    "subsystemName": "Subsystem Name",
     "token": {
       "info": "Please select the token where you want to add the SIGN key for the new Client. Note: the token must be in Logged in state.",
       "loggedIn": "Logged in",

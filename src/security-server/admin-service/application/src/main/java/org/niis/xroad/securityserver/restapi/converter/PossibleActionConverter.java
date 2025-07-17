@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,7 +27,7 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 import org.springframework.stereotype.Component;
 
@@ -39,14 +40,14 @@ import java.util.stream.Collectors;
 @Component
 public class PossibleActionConverter {
 
-    public List<PossibleAction> convert(
+    public List<PossibleActionDto> convert(
             Iterable<PossibleActionEnum> actionEnums) {
         return Streams.stream(actionEnums)
                 .map(this::convert)
                 .collect(Collectors.toList());
     }
 
-    public PossibleAction convert(PossibleActionEnum possibleActionEnum) {
+    public PossibleActionDto convert(PossibleActionEnum possibleActionEnum) {
         return PossibleActionMapping.map(possibleActionEnum).get();
     }
 }

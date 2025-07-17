@@ -49,10 +49,12 @@ mkdir -p %{buildroot}/usr/share/xroad/bin
 ln -s /usr/share/xroad/jlib/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/configuration-client.jar
 
 cp -p %{_sourcedir}/confclient/xroad-confclient.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../configuration-client/application/build/libs/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../service/configuration-client/configuration-client-application/build/libs/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/confclient-logback.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/confclient-logback-service.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/common/confclient/etc/xroad/backup.d/??_xroad-confclient %{buildroot}/etc/xroad/backup.d/
+cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
+cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 
 %clean
 rm -rf %{buildroot}
@@ -75,6 +77,8 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/configuration-client-*.jar
 %attr(550,root,xroad) /usr/share/xroad/bin/xroad-confclient
 %attr(644,root,root) %{_unitdir}/xroad-confclient.service
+%doc /usr/share/doc/%{name}/LICENSE.txt
+%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
 %upgrade_check

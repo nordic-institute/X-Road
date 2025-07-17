@@ -25,13 +25,13 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServer;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerDto;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -50,28 +50,28 @@ public class SecurityServerConverter {
     private SecurityServerIdConverter securityServerIdConverter = new SecurityServerIdConverter();
 
     /**
-     * Convert SecurityServerId into SecurityServer
+     * Convert SecurityServerId into SecurityServerDto
      * @param securityServerId
-     * @return
+     * @return securityServerDto
      */
-    public SecurityServer convert(SecurityServerId securityServerId) {
-        SecurityServer securityServer = new SecurityServer();
-        securityServer.setId(securityServerIdConverter.convertId(securityServerId));
-        securityServer.setInstanceId(securityServerId.getXRoadInstance());
-        securityServer.setMemberClass(securityServerId.getMemberClass());
-        securityServer.setMemberCode(securityServerId.getMemberCode());
-        securityServer.setServerCode(securityServerId.getServerCode());
+    public SecurityServerDto convert(SecurityServerId securityServerId) {
+        SecurityServerDto securityServerDto = new SecurityServerDto();
+        securityServerDto.setId(securityServerIdConverter.convertId(securityServerId));
+        securityServerDto.setInstanceId(securityServerId.getXRoadInstance());
+        securityServerDto.setMemberClass(securityServerId.getMemberClass());
+        securityServerDto.setMemberCode(securityServerId.getMemberCode());
+        securityServerDto.setServerCode(securityServerId.getServerCode());
         String securityServerAddress = globalConfProvider.getSecurityServerAddress(securityServerId);
-        securityServer.setServerAddress(securityServerAddress);
-        return securityServer;
+        securityServerDto.setServerAddress(securityServerAddress);
+        return securityServerDto;
     }
 
     /**
-     * Convert a group of {@link SecurityServerId SecurityServerIds} into {@link SecurityServer SecurityServers}
+     * Convert a group of {@link SecurityServerId SecurityServerIds} into {@link SecurityServerDto SecurityServers}
      * @param securityServerIds
      * @return
      */
-    public Set<SecurityServer> convert(Iterable<? extends SecurityServerId> securityServerIds) {
+    public Set<SecurityServerDto> convert(Iterable<? extends SecurityServerId> securityServerIds) {
         return Streams.stream(securityServerIds)
                 .map(this::convert)
                 .collect(Collectors.toSet());

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,51 +26,50 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthorityOcspResponse;
+import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthorityOcspResponseDto;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between {@link CertificateAuthorityOcspResponse} in api (enum) and model {@link CertificateInfo}
+ * Mapping between {@link CertificateAuthorityOcspResponseDto} in api (enum) and model {@link CertificateInfo}
  * ocsp response string or CertificateAuthorityService.OCSP_RESPONSE_NOT_AVAILABLE string
  */
 @Getter
 @RequiredArgsConstructor
 public enum CertificateAuthorityOcspResponseMapping {
     NOT_AVAILABLE(
-            CertificateAuthorityService.OCSP_RESPONSE_NOT_AVAILABLE, CertificateAuthorityOcspResponse.NOT_AVAILABLE),
+            CertificateAuthorityService.OCSP_RESPONSE_NOT_AVAILABLE, CertificateAuthorityOcspResponseDto.NOT_AVAILABLE),
     OCSP_RESPONSE_GOOD(
-            CertificateInfo.OCSP_RESPONSE_GOOD, CertificateAuthorityOcspResponse.OCSP_RESPONSE_GOOD),
+            CertificateInfo.OCSP_RESPONSE_GOOD, CertificateAuthorityOcspResponseDto.OCSP_RESPONSE_GOOD),
     OCSP_RESPONSE_REVOKED(
-            CertificateInfo.OCSP_RESPONSE_REVOKED, CertificateAuthorityOcspResponse.OCSP_RESPONSE_REVOKED),
+            CertificateInfo.OCSP_RESPONSE_REVOKED, CertificateAuthorityOcspResponseDto.OCSP_RESPONSE_REVOKED),
     OCSP_RESPONSE_SUSPENDED(
-            CertificateInfo.OCSP_RESPONSE_SUSPENDED, CertificateAuthorityOcspResponse.OCSP_RESPONSE_SUSPENDED),
+            CertificateInfo.OCSP_RESPONSE_SUSPENDED, CertificateAuthorityOcspResponseDto.OCSP_RESPONSE_SUSPENDED),
     OCSP_RESPONSE_UNKNOWN(
-            CertificateInfo.OCSP_RESPONSE_UNKNOWN, CertificateAuthorityOcspResponse.OCSP_RESPONSE_UNKNOWN);
+            CertificateInfo.OCSP_RESPONSE_UNKNOWN, CertificateAuthorityOcspResponseDto.OCSP_RESPONSE_UNKNOWN);
 
     private final String ocspResponse;
-    private final CertificateAuthorityOcspResponse certificateAuthorityOcspResponse;
+    private final CertificateAuthorityOcspResponseDto certificateAuthorityOcspResponseDto;
 
     /**
      * Return matching ocspResponse string, if any
      * @param certificateAuthorityOcspResponse
      */
-    public static Optional<String> map(CertificateAuthorityOcspResponse certificateAuthorityOcspResponse) {
+    public static Optional<String> map(CertificateAuthorityOcspResponseDto certificateAuthorityOcspResponse) {
         return getFor(certificateAuthorityOcspResponse).map(CertificateAuthorityOcspResponseMapping::getOcspResponse);
     }
 
     /**
-     * Return matching {@link CertificateAuthorityOcspResponse}, if any
+     * Return matching {@link CertificateAuthorityOcspResponseDto}, if any
      * @param ocspResponse
      */
-    public static Optional<CertificateAuthorityOcspResponse> map(String ocspResponse) {
-        return getFor(ocspResponse).map(CertificateAuthorityOcspResponseMapping::getCertificateAuthorityOcspResponse);
+    public static Optional<CertificateAuthorityOcspResponseDto> map(String ocspResponse) {
+        return getFor(ocspResponse).map(CertificateAuthorityOcspResponseMapping::getCertificateAuthorityOcspResponseDto);
     }
 
     /**
@@ -84,12 +84,12 @@ public enum CertificateAuthorityOcspResponseMapping {
 
     /**
      * Return matching {@link CertificateAuthorityOcspResponseMapping}, if any
-     * @param certificateAuthorityOcspResponse
+     * @param certificateAuthorityOcspResponseDto
      */
     public static Optional<CertificateAuthorityOcspResponseMapping> getFor(
-            CertificateAuthorityOcspResponse certificateAuthorityOcspResponse) {
+            CertificateAuthorityOcspResponseDto certificateAuthorityOcspResponseDto) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.certificateAuthorityOcspResponse.equals(certificateAuthorityOcspResponse))
+                .filter(mapping -> mapping.certificateAuthorityOcspResponseDto.equals(certificateAuthorityOcspResponseDto))
                 .findFirst();
     }
 

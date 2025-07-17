@@ -29,11 +29,7 @@
     <div class="cert-dialog-header">
       <span class="identifier-wrap">{{ title }}</span>
       <v-spacer />
-      <xrd-close-button
-        v-if="showClose"
-        data-test="close-x"
-        @click="$emit('close')"
-      />
+      <xrd-close-button v-if="showClose" data-test="close-x" @click="$emit('close')" />
     </div>
   </div>
 </template>

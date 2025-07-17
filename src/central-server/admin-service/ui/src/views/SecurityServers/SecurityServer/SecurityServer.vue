@@ -26,28 +26,30 @@
  -->
 <template>
   <details-view :back-to="backTo" data-test="security-server-view">
-    <titled-view :title="securityServerCode">
+    <xrd-titled-view :title="securityServerCode">
       <PageNavigation :tabs="securityServerNavigationTabs"></PageNavigation>
       <router-view />
-    </titled-view>
+    </xrd-titled-view>
   </details-view>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PageNavigation, { PageNavigationTab } from '@/components/layout/PageNavigation.vue';
-import { Colors, Permissions, RouteName } from '@/global';
+import PageNavigation, {
+  PageNavigationTab,
+} from '@/layouts/PageNavigation.vue';
+import { Permissions, RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
 import DetailsView from '@/components/ui/DetailsView.vue';
-import TitledView from '@/components/ui/TitledView.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 /**
  * Wrapper component for a security server view
  */
 export default defineComponent({
-  components: { TitledView, DetailsView, PageNavigation },
+  components: { XrdTitledView, DetailsView, PageNavigation },
   props: {
     serverId: {
       type: String,
@@ -56,7 +58,6 @@ export default defineComponent({
   },
   data() {
     return {
-      colors: Colors,
       backTo: {
         name: RouteName.SecurityServers,
       },

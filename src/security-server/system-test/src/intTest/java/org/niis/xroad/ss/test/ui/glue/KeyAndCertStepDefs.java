@@ -33,6 +33,7 @@ import com.codeborne.selenide.files.FileFilters;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.ss.test.ui.glue.mappers.ParameterMappers;
 import org.niis.xroad.ss.test.ui.page.KeyAndCertPageObj;
@@ -46,8 +47,8 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.awaitility.Awaitility.given;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorComboboxOf;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
@@ -88,7 +89,6 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
                 .shouldBe(enabled)
                 .click();
 
-
         keyAndCertPageObj.tokenLogoutDialog.btnLogout()
                 .shouldBe(enabled)
                 .click();
@@ -119,7 +119,16 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
 
     @Step("Token: {} edit page is opened")
     public void tokenIsVisibleAndEdited(String tokenKey) {
-        keyAndCertPageObj.section(tokenKey).tokenEditButton().shouldBe(visible).click();
+        keyAndCertPageObj.section(tokenKey).tokenEditButton(tokenKey).shouldBe(visible).click();
+    }
+
+    @Step("Inactive token {} is successfully deleted")
+    public void tokenDeleted(String tokenKey) {
+        keyAndCertPageObj.section(tokenKey).tokenDeleteButton().shouldBe(visible).click();
+        commonPageObj.dialog.btnCancel().click();
+
+        keyAndCertPageObj.section(tokenKey).tokenDeleteButton().shouldBe(visible).click();
+        commonPageObj.dialog.btnSave().click();
     }
 
     @Step("Token Alert about token policy being enforced is present")
@@ -165,7 +174,7 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
 
         if ("SIGNING".equalsIgnoreCase(usage)) {
             keyAndCertPageObj.addKeyWizardCsrDetails.csrClient().click();
-            selectorOptionOf(client).click();
+            selectorComboboxOf(client).click();
         }
 
         keyAndCertPageObj.addKeyWizardCsrDetails.csrService().click();
@@ -200,7 +209,7 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
 
         vTextField(keyAndCertPageObj.addKeyWizardGenerate.commonName()).setValue(securityServer);
         vTextField(keyAndCertPageObj.addKeyWizardGenerate.subjectAltName()).setValue(securityServer);
-        vTextField(keyAndCertPageObj.addKeyWizardGenerate.organizationName()).setValue(randomAlphabetic(10));
+        vTextField(keyAndCertPageObj.addKeyWizardGenerate.organizationName()).setValue(RandomStringUtils.secure().nextAlphabetic(10));
 
         keyAndCertPageObj.addKeyWizardGenerate.generateButton().click();
         keyAndCertPageObj.addKeyWizardGenerate.doneButton().click();

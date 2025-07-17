@@ -26,7 +26,7 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 
 import java.util.Arrays;
@@ -45,7 +45,7 @@ public class PossibleActionConverterTest {
     @Test
     public void enumsAreInSync() {
         // test to verify openapi and service layer enums contain same number of discreet items
-        Set<String> openApiEnumNames = Arrays.stream(PossibleAction.values())
+        Set<String> openApiEnumNames = Arrays.stream(PossibleActionDto.values())
                 .map(Enum::name)
                 .collect(Collectors.toSet());
         Set<String> serviceEnumNames = Arrays.stream(PossibleActionEnum.values())
@@ -56,21 +56,21 @@ public class PossibleActionConverterTest {
 
     @Test
     public void convertOne() {
-        PossibleAction converted = new PossibleActionConverter()
+        PossibleActionDto converted = new PossibleActionConverter()
                 .convert(PossibleActionEnum.IMPORT_FROM_TOKEN);
-        assertEquals(PossibleAction.IMPORT_FROM_TOKEN, converted);
+        assertEquals(PossibleActionDto.IMPORT_FROM_TOKEN, converted);
     }
 
     @Test
     public void convertAll() {
-        Set<PossibleAction> allItemsConverted = new HashSet<>(
+        Set<PossibleActionDto> allItemsConverted = new HashSet<>(
                 new PossibleActionConverter()
                         .convert(Arrays.asList(PossibleActionEnum.values())));
-        Set<PossibleAction> allOpenApiValues = new HashSet<>(
-                Arrays.asList(PossibleAction.values()));
+        Set<PossibleActionDto> allOpenApiValues = new HashSet<>(
+                Arrays.asList(PossibleActionDto.values()));
         assertTrue(allOpenApiValues.containsAll(allItemsConverted));
         assertTrue(allItemsConverted.containsAll(allOpenApiValues));
-        assertEquals(PossibleAction.values().length, allItemsConverted.size());
+        assertEquals(PossibleActionDto.values().length, allItemsConverted.size());
     }
 
 }

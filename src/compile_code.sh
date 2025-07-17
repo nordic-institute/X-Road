@@ -14,19 +14,24 @@ case "$i" in
     "--skip-tests")
         SKIP_TESTS=1
         ;;
+    "--parallel")
+        PARALLEL=1
+        ;;
 esac
 done
 
 ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace build )
 
 if [[ -n "$SKIP_TESTS" ]]; then
-    ARGUMENTS+=(-xtest -xintegrationTest -xintTest)
-else
-    ARGUMENTS+=(runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
+    ARGUMENTS+=(-xtest -xintTest)
 fi
 
 if [[ -n "$NODAEMON" ]]; then
     ARGUMENTS+=(--no-daemon)
+fi
+
+if [[ -n "$PARALLEL" ]]; then
+    ARGUMENTS+=(--parallel)
 fi
 
 ./gradlew "${ARGUMENTS[@]}"

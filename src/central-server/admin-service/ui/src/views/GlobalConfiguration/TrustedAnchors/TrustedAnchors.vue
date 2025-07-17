@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view title-key="tab.globalConf.trustedAnchors">
+  <xrd-titled-view title-key="tab.globalConf.trustedAnchors">
     <template #header-buttons>
       <upload-trusted-anchor-button @uploaded="fetchTrustedAnchors" />
     </template>
@@ -51,7 +51,7 @@
         />
       </configuration-anchor-item>
     </div>
-  </titled-view>
+  </xrd-titled-view>
 </template>
 
 <script lang="ts">
@@ -70,7 +70,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import UploadTrustedAnchorButton from '@/components/trustedAnchors/UploadTrustedAnchorButton.vue';
 import DownloadTrustedAnchorButton from '@/components/trustedAnchors/DownloadTrustedAnchorButton.vue';
 import DeleteTrustedAnchorButton from '@/components/trustedAnchors/DeleteTrustedAnchorButton.vue';
-import TitledView from '@/components/ui/TitledView.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 function convert(source: TrustedAnchor): Anchor {
   return {
@@ -82,7 +82,7 @@ function convert(source: TrustedAnchor): Anchor {
 
 export default defineComponent({
   components: {
-    TitledView,
+    XrdTitledView,
     DeleteTrustedAnchorButton,
     DownloadTrustedAnchorButton,
     UploadTrustedAnchorButton,
@@ -116,55 +116,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
-
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: colors.$Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.card-corner-button {
-  display: flex;
-}
-
-.card-top {
-  padding-top: 15px;
-  margin-bottom: 10px;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-main-title {
-  color: colors.$Black100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
-  margin-left: 16px;
-}
-
-.hash-cell {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.cert-icon {
-  margin-right: 10px;
-  color: colors.$Purple100;
-}
-
-.icon-column-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

@@ -26,7 +26,7 @@
  -->
 <template>
   <article>
-    <div class="navigation-back" data-test="navigation-back">
+    <div class="navigation-back mt-1 mb-0" data-test="navigation-back">
       <router-link to="" @click="goBack">
         <v-icon :color="colors.Purple100" icon="mdi-chevron-left" />
         {{ $t('global.navigation.back') }}
@@ -39,7 +39,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { Colors } from '@/global';
+import { Colors } from '@niis/shared-ui';
 import { RouteLocationRaw } from 'vue-router';
 
 export default defineComponent({
@@ -67,12 +67,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .navigation-back {
   color: colors.$Link;
   cursor: pointer;
-  margin-bottom: 20px;
 
   a {
     text-decoration: none;

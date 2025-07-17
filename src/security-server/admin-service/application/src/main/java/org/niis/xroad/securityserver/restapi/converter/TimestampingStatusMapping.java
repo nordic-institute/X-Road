@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,40 +30,40 @@ import ee.ria.xroad.common.DiagnosticsErrorCodes;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatusDto;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between TimestampingStatus in api (enum) and model (DiagnosticsErrorCode)
+ * Mapping between TimestampingStatusDto in api (enum) and model (DiagnosticsErrorCode)
  */
 @Getter
 @RequiredArgsConstructor
 public enum TimestampingStatusMapping {
     SUCCESS(DiagnosticsErrorCodes.RETURN_SUCCESS,
-            TimestampingStatus.SUCCESS),
+            TimestampingStatusDto.SUCCESS),
     ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT,
-            TimestampingStatus.ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT),
+            TimestampingStatusDto.ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT),
     ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL(DiagnosticsErrorCodes.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL,
-            TimestampingStatus.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL),
+            TimestampingStatusDto.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL),
     ERROR_CODE_TIMESTAMP_UNINITIALIZED(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED,
-            TimestampingStatus.ERROR_CODE_TIMESTAMP_UNINITIALIZED),
+            TimestampingStatusDto.ERROR_CODE_TIMESTAMP_UNINITIALIZED),
     ERROR_CODE_INTERNAL(DiagnosticsErrorCodes.ERROR_CODE_INTERNAL,
-            TimestampingStatus.ERROR_CODE_INTERNAL),
-    UNKNOWN(-1, TimestampingStatus.UNKNOWN);
+            TimestampingStatusDto.ERROR_CODE_INTERNAL),
+    UNKNOWN(-1, TimestampingStatusDto.UNKNOWN);
 
     private static final int DIAGNOSTICS_ERROR_CODE_UNKNOWN = -1;
     private final Integer diagnosticsErrorCode;
-    private final TimestampingStatus timestampingStatus;
+    private final TimestampingStatusDto timestampingStatusDto;
 
     /**
      * Return matching TimestampingStatus, if any
      * @param diagnosticsErrorCode
      * @return
      */
-    public static Optional<TimestampingStatus> map(Integer diagnosticsErrorCode) {
-        return getFor(diagnosticsErrorCode).map(TimestampingStatusMapping::getTimestampingStatus);
+    public static Optional<TimestampingStatusDto> map(Integer diagnosticsErrorCode) {
+        return getFor(diagnosticsErrorCode).map(TimestampingStatusMapping::getTimestampingStatusDto);
     }
 
     /**

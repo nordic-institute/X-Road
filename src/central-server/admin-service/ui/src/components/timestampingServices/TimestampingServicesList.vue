@@ -26,7 +26,7 @@
  -->
 <template>
   <div data-test="timestamping-services">
-    <titled-view title-key="trustServices.timestampingServices">
+    <xrd-titled-view title-key="trustServices.timestampingServices">
       <template #header-buttons>
         <xrd-button
           v-if="showAddTsaButton"
@@ -99,10 +99,10 @@
         </template>
 
         <template #bottom>
-          <custom-data-table-footer />
+          <XrdDataTableFooter />
         </template>
       </v-data-table>
-    </titled-view>
+    </xrd-titled-view>
 
     <!-- Confirm delete dialog -->
     <xrd-confirm-dialog
@@ -141,14 +141,13 @@ import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
-import TitledView from '@/components/ui/TitledView.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { DataTableHeader } from '@/ui-types';
+import { XrdTitledView, XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
-    CustomDataTableFooter,
-    TitledView,
+    XrdTitledView,
+    XrdDataTableFooter,
     AddTimestampingServiceDialog,
     EditTimestampingServiceDialog,
   },
@@ -271,5 +270,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="certificate-details-wrapper xrd-default-shadow">
+  <div class="certificate-details-wrapper xrd-default-shadow mx-auto">
     <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
     <div class="pl-4">
       <div v-if="$slots.tools" class="detail-view-tools">
@@ -53,7 +53,7 @@ defineProps({
   },
 });
 
-const slots = useSlots()
+const slots = useSlots();
 
 const router = useRouter();
 
@@ -63,5 +63,5 @@ function close() {
 </script>
 <style lang="scss" scoped>
 @use '@/assets/detail-views';
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

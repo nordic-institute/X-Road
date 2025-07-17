@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-
 import org.junit.Assert;
 import org.junit.Test;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.net.URL;
 
@@ -47,7 +46,7 @@ public class OpenApiParserTest {
         URL url = getClass().getResource("/openapiparser/valid.yaml");
         final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
         assertFalse(result.hasWarnings());
-        assertEquals("https://example.org/api", result.getBaseUrl());
+        assertEquals("https://example.org/api", result.baseUrl());
     }
 
     @Test
@@ -55,8 +54,8 @@ public class OpenApiParserTest {
         URL url = getClass().getResource("/openapiparser/v310.yaml");
         final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
         assertFalse(result.hasWarnings());
-        assertEquals("https://example.org/api", result.getBaseUrl());
-        assertEquals(3, result.getOperations().size());
+        assertEquals("https://example.org/api", result.baseUrl());
+        assertEquals(3, result.operations().size());
     }
 
     @Test
@@ -64,7 +63,7 @@ public class OpenApiParserTest {
         URL url = getClass().getResource("/openapiparser/warnings.yml");
         final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
         Assert.assertTrue(result.hasWarnings());
-        assertEquals("https://{securityserver}/r1", result.getBaseUrl());
+        assertEquals("https://{securityserver}/r1", result.baseUrl());
     }
 
     @Test
@@ -72,7 +71,7 @@ public class OpenApiParserTest {
         URL url = getClass().getResource("/openapiparser/valid.json");
         final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
         assertFalse(result.hasWarnings());
-        assertEquals("https://example.org/api", result.getBaseUrl());
+        assertEquals("https://example.org/api", result.baseUrl());
     }
 
     @Test
@@ -80,8 +79,8 @@ public class OpenApiParserTest {
         URL url = getClass().getResource("/openapiparser/v310.json");
         final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
         assertFalse(result.hasWarnings());
-        assertEquals("https://example.org/api", result.getBaseUrl());
-        assertEquals(3, result.getOperations().size());
+        assertEquals("https://example.org/api", result.baseUrl());
+        assertEquals(3, result.operations().size());
     }
 
     @Test(expected = OpenApiParser.ParsingException.class)

@@ -24,14 +24,15 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="backup-restore-view" class="xrd-view-common">
-    <div class="xrd-table-toolbar mt-0 pl-0">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title">
-          {{ $t('tab.settings.backupAndRestore') }}
-        </div>
-        <xrd-search v-model="search" />
-      </div>
+  <XrdTitledView
+    data-test="backup-restore-view"
+    class="xrd-view-common"
+    title-key="tab.settings.backupAndRestore"
+  >
+    <template #append-title>
+      <xrd-search v-model="search" class="ml-5 mb-1" />
+    </template>
+    <template #header-buttons>
       <xrd-backups-toolbar
         accepts=".gpg"
         :can-backup="canBackup"
@@ -39,7 +40,7 @@
         @create-backup="fetchData"
         @upload-backup="fetchData"
       />
-    </div>
+    </template>
     <xrd-backups-data-table
       :can-backup="canBackup"
       :backups="backups"
@@ -48,7 +49,7 @@
       :backup-handler="backupHandler()"
       @delete="fetchData"
     />
-  </div>
+  </XrdTitledView>
 </template>
 
 <script lang="ts">
@@ -58,17 +59,17 @@
 import { defineComponent } from 'vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 import { Backup, BackupExt } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { encodePathParameter } from '@/util/api';
 import { saveResponseAsFile } from '@/util/helpers';
 import {
   BackupHandler,
   BackupItem,
-  XrdBackupsToolbar,
   XrdBackupsDataTable,
+  XrdBackupsToolbar,
 } from '@niis/shared-ui';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
@@ -172,5 +173,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/tables';
 </style>

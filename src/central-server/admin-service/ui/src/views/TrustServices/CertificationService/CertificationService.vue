@@ -26,7 +26,7 @@
  -->
 <template>
   <details-view id="certification-service-view" :back-to="backTo">
-    <titled-view
+    <xrd-titled-view
       :title="certificationServiceStore.currentCertificationService?.name"
     >
       <template #header-buttons>
@@ -42,25 +42,27 @@
         :tabs="certificationServiceNavigationTabs"
       ></PageNavigation>
       <router-view />
-    </titled-view>
+    </xrd-titled-view>
   </details-view>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PageNavigation, { PageNavigationTab } from '@/components/layout/PageNavigation.vue';
-import { Colors, Permissions, RouteName } from '@/global';
+import PageNavigation, {
+  PageNavigationTab,
+} from '@/layouts/PageNavigation.vue';
+import { Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
 import DetailsView from '@/components/ui/DetailsView.vue';
-import TitledView from '@/components/ui/TitledView.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 /**
  * Wrapper component for a certification service view
  */
 export default defineComponent({
   name: 'CertificationService',
-  components: { TitledView, DetailsView, PageNavigation },
+  components: { XrdTitledView, DetailsView, PageNavigation },
   props: {
     certificationServiceId: {
       type: Number,
@@ -69,7 +71,6 @@ export default defineComponent({
   },
   data() {
     return {
-      colors: Colors,
       backTo: {
         name: RouteName.TrustServices,
       },
@@ -141,5 +142,5 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

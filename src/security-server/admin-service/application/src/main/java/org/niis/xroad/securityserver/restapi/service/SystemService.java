@@ -28,8 +28,6 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
@@ -40,18 +38,24 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
-import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
+import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
+import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -69,13 +73,21 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_EXISTS;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_UPLOAD_FAILED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERIC_INTERNAL_ERROR;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MALFORMED_ANCHOR;
-import static org.niis.xroad.restapi.exceptions.ErrorDeviation.newError;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.MALFORMED_ANCHOR;
+import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.DISABLED;
+import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.DISABLING;
+import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.ENABLED;
+import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.ENABLING;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ALREADY_DISABLED_MAINTENANCE_MODE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ALREADY_ENABLED_MAINTENANCE_MODE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ANCHOR_EXISTS;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ANCHOR_UPLOAD_FAILED;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_ADDRESS_CHANGE_REQUEST;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_MAINTENANCE_MODE_CHANGE_REQUEST;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.FORBIDDEN_ENABLE_MAINTENANCE_MODE_FOR_MANAGEMENT_SERVICE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SAME_ADDRESS_CHANGE_REQUEST;
 
 /**
  * Service that handles system services
@@ -95,6 +107,8 @@ public class SystemService {
     private final ManagementRequestSenderService managementRequestSenderService;
     private final AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
+    private final MaintenanceModeStatus maintenanceModeStatus;
+    private final GlobalConfProvider globalConfProvider;
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
@@ -112,68 +126,69 @@ public class SystemService {
      * Return a list of configured timestamping services
      * @return
      */
-    public List<TspType> getConfiguredTimestampingServices() {
-        return serverConfService.getConfiguredTimestampingServices();
+    public List<TimestampingService> getConfiguredTimestampingServices() {
+        return TimestampingServiceMapper.get().toTargets(serverConfService.getConfiguredTimestampingServiceEntities());
     }
 
     /**
      * Audit log tsp name and url
-     * @param tspType
+     * @param timestampingService
      */
-    private void auditLog(TspType tspType) {
-        auditDataHelper.put(RestApiAuditProperty.TSP_NAME, tspType.getName());
-        auditDataHelper.put(RestApiAuditProperty.TSP_URL, tspType.getUrl());
+    private void auditLog(TimestampingService timestampingService) {
+        auditDataHelper.put(RestApiAuditProperty.TSP_NAME, timestampingService.getName());
+        auditDataHelper.put(RestApiAuditProperty.TSP_URL, timestampingService.getUrl());
     }
 
-    public void addConfiguredTimestampingService(TspType tspTypeToAdd)
+    public void addConfiguredTimestampingService(TimestampingService timestampingServiceToAdd)
             throws TimestampingServiceNotFoundException, DuplicateConfiguredTimestampingServiceException {
-        auditLog(tspTypeToAdd);
+        auditLog(timestampingServiceToAdd);
 
         // Check that the timestamping service is an approved timestamping service
-        Optional<TspType> match = globalConfService.getApprovedTspsForThisInstance().stream()
-                .filter(tsp -> tspTypeToAdd.getName().equals(tsp.getName())
-                        && tspTypeToAdd.getUrl().equals(tsp.getUrl()))
+        Optional<TimestampingService> match = globalConfService.getApprovedTspsForThisInstance().stream()
+                .filter(tsp -> timestampingServiceToAdd.getName().equals(tsp.getName())
+                        && timestampingServiceToAdd.getUrl().equals(tsp.getUrl()))
                 .findFirst();
 
-        if (!match.isPresent()) {
-            throw new TimestampingServiceNotFoundException(getExceptionMessage(tspTypeToAdd.getName(),
-                    tspTypeToAdd.getUrl(), "not found"));
+        if (match.isEmpty()) {
+            throw new TimestampingServiceNotFoundException(getExceptionMessage(timestampingServiceToAdd.getName(),
+                    timestampingServiceToAdd.getUrl(), "not found"));
         }
 
         // Check that the timestamping service is not already configured
-        Optional<TspType> existingTsp = getConfiguredTimestampingServices().stream()
-                .filter(tsp -> tspTypeToAdd.getName().equals(tsp.getName())
-                        && tspTypeToAdd.getUrl().equals(tsp.getUrl()))
+        Optional<TimestampingService> existingTsp = getConfiguredTimestampingServices().stream()
+                .filter(tsp -> timestampingServiceToAdd.getName().equals(tsp.getName())
+                        && timestampingServiceToAdd.getUrl().equals(tsp.getUrl()))
                 .findFirst();
 
         if (existingTsp.isPresent()) {
             throw new DuplicateConfiguredTimestampingServiceException(
-                    getExceptionMessage(tspTypeToAdd.getName(), tspTypeToAdd.getUrl(),
+                    getExceptionMessage(timestampingServiceToAdd.getName(), timestampingServiceToAdd.getUrl(),
                             "is already configured")
             );
         }
-        serverConfService.getConfiguredTimestampingServices().add(tspTypeToAdd);
+        serverConfService.getConfiguredTimestampingServiceEntities()
+                .add(TimestampingServiceMapper.get().toEntity(timestampingServiceToAdd));
     }
 
     /**
      * Deletes a configured timestamping service from serverconf
-     * @param tspTypeToDelete
+     * @param timestampingServiceToDelete
      * @throws TimestampingServiceNotFoundException
      */
-    public void deleteConfiguredTimestampingService(TspType tspTypeToDelete)
+    public void deleteConfiguredTimestampingService(TimestampingService timestampingServiceToDelete)
             throws TimestampingServiceNotFoundException {
-        auditLog(tspTypeToDelete);
+        auditLog(timestampingServiceToDelete);
 
-        List<TspType> configuredTimestampingServices = getConfiguredTimestampingServices();
+        List<TimestampingServiceEntity> configuredTimestampingServices = serverConfService.getConfiguredTimestampingServiceEntities();
 
-        Optional<TspType> delete = configuredTimestampingServices.stream()
-                .filter(tsp -> tspTypeToDelete.getName().equals(tsp.getName())
-                        && tspTypeToDelete.getUrl().equals(tsp.getUrl()))
+        Optional<TimestampingServiceEntity> delete = configuredTimestampingServices.stream()
+                .filter(tsp -> timestampingServiceToDelete.getName().equals(tsp.getName())
+                        && timestampingServiceToDelete.getUrl().equals(tsp.getUrl()))
                 .findFirst();
 
-        if (!delete.isPresent()) {
-            throw new TimestampingServiceNotFoundException(getExceptionMessage(tspTypeToDelete.getName(),
-                    tspTypeToDelete.getUrl(), "not found")
+        if (delete.isEmpty()) {
+            throw new TimestampingServiceNotFoundException(getExceptionMessage(timestampingServiceToDelete.getName(),
+                    timestampingServiceToDelete.getUrl(), "not found")
             );
         }
 
@@ -192,29 +207,27 @@ public class SystemService {
      * @param distinguishedName
      * @return
      * @throws InvalidDistinguishedNameException if {@code distinguishedName} does not conform to
-     * <a href="http://www.ietf.org/rfc/rfc1779.txt">RFC 1779</a> or
-     * <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>
+     *                                           <a href="http://www.ietf.org/rfc/rfc1779.txt">RFC 1779</a> or
+     *                                           <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>
      */
     public byte[] generateInternalCsr(String distinguishedName) throws InvalidDistinguishedNameException {
         auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, distinguishedName);
-        byte[] csrBytes = null;
         try {
             KeyPair keyPair = CertUtils.readKeyPairFromPemFile(internalKeyPath);
-            csrBytes = CertUtils.generateCertRequest(keyPair.getPrivate(), keyPair.getPublic(), distinguishedName);
+            return CertUtils.generateCertRequest(keyPair.getPrivate(), keyPair.getPublic(), distinguishedName);
         } catch (IllegalArgumentException e) {
             throw new InvalidDistinguishedNameException(e);
         } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | OperatorCreationException e) {
-            throw new DeviationAwareRuntimeException(e, newError(ERROR_GENERIC_INTERNAL_ERROR));
+            throw new InternalServerErrorException(e);
         }
-        return csrBytes;
     }
 
     /**
      * Get configuration anchor file
      * @return
-     * @throws AnchorNotFoundException if anchor file is not found
+     * @throws AnchorFileNotFoundException if anchor file is not found
      */
-    public AnchorFile getAnchorFile() throws AnchorNotFoundException {
+    public AnchorFile getAnchorFile() throws AnchorFileNotFoundException {
         AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(readAnchorFile()));
         ConfigurationAnchor anchor = anchorRepository.loadAnchorFromFile();
         anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
@@ -228,7 +241,7 @@ public class SystemService {
      * @param shouldVerifyAnchorInstance if the anchor instance should be verified
      * @return
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
-     * @throws MalformedAnchorException if the Anchor content is wrong
+     * @throws MalformedAnchorException       if the Anchor content is wrong
      */
     public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
             throws InvalidAnchorInstanceException, MalformedAnchorException {
@@ -246,19 +259,8 @@ public class SystemService {
      * This method will throw {@link AnchorAlreadyExistsException} if an anchor already exists. When updating an
      * existing anchor one should use {@link #replaceAnchor(byte[])} instead.
      * @param anchorBytes
-     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
-     * @throws AnchorUploadException in case of external process exceptions
-     * @throws MalformedAnchorException if the Anchor content is wrong
-     * @throws ConfigurationDownloadException if the configuration download request succeeds but configuration-client
-     * returns an error
-     * @throws ConfigurationVerifier.ConfigurationVerificationException when a known exception happens during
-     * @throws AnchorAlreadyExistsException if there already is an anchor -> a new one cannot be uploaded. Instead the
-     * old anchor should be updated by using {@link #uploadAnchor(byte[], boolean)}
-     * verification
      */
-    public void uploadInitialAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
-            MalformedAnchorException, ConfigurationDownloadException,
-            ConfigurationVerifier.ConfigurationVerificationException, AnchorAlreadyExistsException {
+    public void uploadInitialAnchor(byte[] anchorBytes) {
         if (isAnchorImported()) {
             throw new AnchorAlreadyExistsException("Anchor already exists - cannot upload a second one");
         }
@@ -269,17 +271,8 @@ public class SystemService {
      * Replace the current configuration anchor with a new one. When uploading the first anchor (in Security Server
      * init phase) one should use {@link #uploadInitialAnchor(byte[])};
      * @param anchorBytes
-     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
-     * @throws AnchorUploadException in case of external process exceptions
-     * @throws MalformedAnchorException if the Anchor content is wrong
-     * @throws ConfigurationDownloadException if the configuration download request succeeds but configuration-client
-     * returns an error
-     * @throws ConfigurationVerifier.ConfigurationVerificationException when a known exception happens during
-     * verification
      */
-    public void replaceAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
-            MalformedAnchorException, ConfigurationDownloadException,
-            ConfigurationVerifier.ConfigurationVerificationException {
+    public void replaceAnchor(byte[] anchorBytes) {
         uploadAnchor(anchorBytes, true);
     }
 
@@ -288,21 +281,20 @@ public class SystemService {
      * the verification process with configuration-client module (via external script).
      * @param anchorBytes
      * @param shouldVerifyAnchorInstance whether the anchor instance should be verified or not. Usually it should
-     * always be verified (and this parameter should be true) but e.g. when initializing a new Security Server it
-     * cannot be verified (and this parameter should be set to false)
+     *                                   always be verified (and this parameter should be true)
+     *                                   but e.g. when initializing a new Security Server it    cannot be verified
+     *                                   (and this parameter should be set to false)
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
-     * @throws AnchorUploadException in case of external process exceptions
-     * @throws MalformedAnchorException if the Anchor content is wrong
-     * @throws ConfigurationDownloadException if the configuration download request succeeds but configuration-client
-     * returns an error
-     * @throws ConfigurationVerifier.ConfigurationVerificationException when a known exception happens during
-     * verification
+     * @throws AnchorUploadException          in case of external process exceptions
+     * @throws MalformedAnchorException       if the Anchor content is wrong
+     * @throws ConfigurationDownloadException if the configuration download request succeeds
+     *                                        but configuration-client returns an error
      */
     // SonarQube: "InterruptedException" should not be ignored -> it has already been handled at this point
     @SuppressWarnings("squid:S2142")
     private void uploadAnchor(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
             throws InvalidAnchorInstanceException, AnchorUploadException, MalformedAnchorException,
-            ConfigurationDownloadException, ConfigurationVerifier.ConfigurationVerificationException {
+                   ConfigurationDownloadException {
         auditDataHelper.calculateAndPutAnchorHash(anchorBytes);
         ConfigurationAnchor anchor = createAnchorFromBytes(anchorBytes);
         auditDataHelper.putDate(RestApiAuditProperty.GENERATED_AT, anchor.getGeneratedAt());
@@ -323,7 +315,7 @@ public class SystemService {
             if (tempAnchor != null) {
                 boolean deleted = tempAnchor.delete();
                 if (!deleted) {
-                    log.error("Temporary anchor could not be deleted: " + tempAnchor.getAbsolutePath());
+                    log.error("Temporary anchor could not be deleted: {}", tempAnchor.getAbsolutePath());
                 }
             }
         }
@@ -334,16 +326,15 @@ public class SystemService {
      * @return
      */
     public boolean isAnchorImported() {
-        boolean isGlobalConfInitialized = false;
         try {
             AnchorFile anchorFile = getAnchorFile();
             if (anchorFile != null) {
-                isGlobalConfInitialized = true;
+                return true;
             }
-        } catch (AnchorNotFoundException e) {
+        } catch (AnchorFileNotFoundException e) {
             // global conf does not exist
         }
-        return isGlobalConfInitialized;
+        return false;
     }
 
     /**
@@ -354,13 +345,13 @@ public class SystemService {
      * @throws ManagementRequestSendingFailedException
      */
     public Integer changeSecurityServerAddress(String newAddress) throws GlobalConfOutdatedException,
-            ManagementRequestSendingFailedException {
+                                                                         ManagementRequestSendingFailedException {
         auditDataHelper.put(RestApiAuditProperty.ADDRESS, newAddress);
         if (addressChangeStatus.getAddressChangeRequest().isPresent()) {
-            throw new ConflictException("Address change request already submitted.");
+            throw new ConflictException(DUPLICATE_ADDRESS_CHANGE_REQUEST.build());
         }
         if (globalConfService.getSecurityServerAddress(currentSecurityServerId.getServerId()).equals(newAddress)) {
-            throw new ConflictException("Can not change to the same address.");
+            throw new ConflictException(SAME_ADDRESS_CHANGE_REQUEST.build());
         }
         Integer requestId = managementRequestSenderService.sendAddressChangeRequest(newAddress);
         addressChangeStatus.setAddress(newAddress);
@@ -428,13 +419,13 @@ public class SystemService {
     /**
      * Read anchor file's content
      * @return
-     * @throws AnchorNotFoundException if anchor file is not found
+     * @throws AnchorFileNotFoundException if anchor file is not found
      */
-    public byte[] readAnchorFile() throws AnchorNotFoundException {
+    public byte[] readAnchorFile() throws AnchorFileNotFoundException {
         try {
             return anchorRepository.readAnchorFile();
         } catch (NoSuchFileException e) {
-            throw new AnchorNotFoundException("Anchor file not found");
+            throw new AnchorFileNotFoundException("Anchor file not found", e);
         }
     }
 
@@ -474,48 +465,105 @@ public class SystemService {
         return SystemProperties.getServerNodeType();
     }
 
+    public boolean isManagementServiceProvider() {
+        var managementRequestService = globalConfProvider.getManagementRequestService();
+        return globalConfService.isSecurityServerClientForThisInstance(managementRequestService);
+    }
+
+    public void enableMaintenanceMode(String message) {
+        auditDataHelper.put(RestApiAuditProperty.MESSAGE, message);
+
+        var mode = getMaintenanceMode();
+
+        if (isManagementServiceProvider()) {
+            throw new ConflictException(FORBIDDEN_ENABLE_MAINTENANCE_MODE_FOR_MANAGEMENT_SERVICE.build());
+        }
+
+        if (mode.status() == DISABLING || mode.status() == ENABLING) {
+            throw new ConflictException(DUPLICATE_MAINTENANCE_MODE_CHANGE_REQUEST.build());
+        }
+
+        if (mode.status() == ENABLED) {
+            throw new ConflictException(ALREADY_ENABLED_MAINTENANCE_MODE.build());
+        }
+
+        Integer requestId = managementRequestSenderService.sendMaintenanceModeEnableRequest(message);
+        maintenanceModeStatus.enableRequested(message);
+        auditDataHelper.putManagementRequestId(requestId);
+    }
+
+    public void disableMaintenanceMode() {
+        var mode = getMaintenanceMode();
+
+        if (mode.status() == DISABLING || mode.status() == ENABLING) {
+            throw new ConflictException(DUPLICATE_MAINTENANCE_MODE_CHANGE_REQUEST.build());
+        }
+
+        if (mode.status() == DISABLED) {
+            throw new ConflictException(ALREADY_DISABLED_MAINTENANCE_MODE.build());
+        }
+
+        Integer requestId = managementRequestSenderService.sendMaintenanceModeDisableRequest();
+        maintenanceModeStatus.disableRequested();
+        auditDataHelper.putManagementRequestId(requestId);
+    }
+
+    public MaintenanceMode getMaintenanceMode() {
+        return switch (maintenanceModeStatus.getStatus()) {
+            case MaintenanceModeStatus.EnableRequested enableRequested -> new MaintenanceMode(ENABLING, enableRequested.message());
+            case MaintenanceModeStatus.DisableRequested ignore -> new MaintenanceMode(DISABLING, null);
+            case null -> {
+                var securityServerId = serverConfService.getSecurityServerId();
+
+                yield globalConfProvider.getMaintenanceMode(securityServerId)
+                        .map(mode -> new MaintenanceMode(mode.enabled() ? ENABLED : DISABLED, mode.message()))
+                        .orElseGet(() -> new MaintenanceMode(DISABLED, null));
+            }
+        };
+    }
+
     /**
      * Thrown when attempt to add timestamping service that is already configured
      */
-    public static class DuplicateConfiguredTimestampingServiceException extends ServiceException {
+    public static class DuplicateConfiguredTimestampingServiceException extends ConflictException {
         public DuplicateConfiguredTimestampingServiceException(String s) {
-            super(s, new ErrorDeviation(ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE));
+            super(s, DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE.build());
         }
     }
 
     /**
      * Thrown when attempting to upload an anchor from a wrong instance
      */
-    public static class InvalidAnchorInstanceException extends ServiceException {
+    public static class InvalidAnchorInstanceException extends BadRequestException {
         public InvalidAnchorInstanceException(String s) {
-            super(s, new ErrorDeviation(ERROR_INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID));
+            super(s, INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID.build());
         }
     }
 
     /**
      * Thrown when uploading a conf anchor fails
      */
-    public static class AnchorUploadException extends ServiceException {
+    public static class AnchorUploadException extends InternalServerErrorException {
         public AnchorUploadException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_ANCHOR_UPLOAD_FAILED));
+            super(t, ANCHOR_UPLOAD_FAILED.build());
         }
     }
 
     /**
      * Thrown e.g. if Anchor upload or preview fails because of invalid content
      */
-    public static class MalformedAnchorException extends ServiceException {
+    public static class MalformedAnchorException extends BadRequestException {
         public MalformedAnchorException(String s) {
-            super(s, new ErrorDeviation(ERROR_MALFORMED_ANCHOR));
+            super(s, MALFORMED_ANCHOR.build());
         }
     }
 
     /**
      * Thrown if user tries to upload a new anchor instead of updating the old
      */
-    public static class AnchorAlreadyExistsException extends ServiceException {
+    public static class AnchorAlreadyExistsException extends ConflictException {
         public AnchorAlreadyExistsException(String s) {
-            super(s, new ErrorDeviation(ERROR_ANCHOR_EXISTS));
+            super(s, ANCHOR_EXISTS.build());
         }
     }
 }

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,18 +26,17 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.Key;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyValuePair;
-import org.niis.xroad.securityserver.restapi.openapi.model.Token;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenType;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyValuePairDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenTypeDto;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
@@ -54,7 +54,7 @@ public class TokenConverterTest extends AbstractConverterTestContext {
 
     @Before
     public void setup() {
-        doReturn(Collections.singletonList(new Key())).when(keyConverter).convert(any(Iterable.class));
+        doReturn(Collections.singletonList(new KeyDto())).when(keyConverter).convert(any(Iterable.class));
     }
 
     @Test
@@ -71,7 +71,7 @@ public class TokenConverterTest extends AbstractConverterTestContext {
                 .tokenInfo("key2", "value2")
                 .build();
 
-        Token token = tokenConverter.convert(tokenInfo);
+        TokenDto token = tokenConverter.convert(tokenInfo);
 
         assertEquals(true, token.getLoggedIn());
         assertEquals(true, token.getAvailable());
@@ -82,12 +82,12 @@ public class TokenConverterTest extends AbstractConverterTestContext {
         assertEquals(false, token.getReadOnly());
         assertEquals(false, token.getSavedToConfiguration());
         assertEquals("serial-number", token.getSerialNumber());
-        assertEquals(TokenStatus.OK, token.getStatus());
-        assertEquals(TokenType.SOFTWARE, token.getType());
+        assertEquals(TokenStatusDto.OK, token.getStatus());
+        assertEquals(TokenTypeDto.SOFTWARE, token.getType());
         assertNotNull(token.getTokenInfos());
         assertEquals(2, token.getTokenInfos().size());
-        assertTrue(token.getTokenInfos().contains(new KeyValuePair().key("key1").value("value1")));
-        assertTrue(token.getTokenInfos().contains(new KeyValuePair().key("key2").value("value2")));
+        assertTrue(token.getTokenInfos().contains(new KeyValuePairDto().key("key1").value("value1")));
+        assertTrue(token.getTokenInfos().contains(new KeyValuePairDto().key("key2").value("value2")));
 
         // hsm
         tokenInfo = new TokenTestUtils.TokenInfoBuilder()
@@ -102,8 +102,8 @@ public class TokenConverterTest extends AbstractConverterTestContext {
                 .build();
 
         token = tokenConverter.convert(tokenInfo);
-        assertEquals(TokenType.HARDWARE, token.getType());
-        assertEquals(TokenStatus.USER_PIN_COUNT_LOW, token.getStatus());
+        assertEquals(TokenTypeDto.HARDWARE, token.getType());
+        assertEquals(TokenStatusDto.USER_PIN_COUNT_LOW, token.getStatus());
     }
 
     @Test

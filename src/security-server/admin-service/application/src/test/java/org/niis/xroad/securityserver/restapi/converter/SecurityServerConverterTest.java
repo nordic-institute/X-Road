@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,7 +30,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServer;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerDto;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
@@ -55,7 +56,7 @@ public class SecurityServerConverterTest extends AbstractConverterTestContext {
     public void convertSecurityServerObject() {
         SecurityServerId.Conf securityServerId = SecurityServerId.Conf.create(
                 "XRD2", "GOV", "M4", "server1");
-        SecurityServer converted = securityServerConverter.convert(securityServerId);
+        SecurityServerDto converted = securityServerConverter.convert(securityServerId);
         assertEquals("XRD2:GOV:M4:server1", converted.getId());
         assertEquals("XRD2", converted.getInstanceId());
         assertEquals("GOV", converted.getMemberClass());

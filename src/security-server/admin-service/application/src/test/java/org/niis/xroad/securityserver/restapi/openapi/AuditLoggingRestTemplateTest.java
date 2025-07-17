@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,16 +26,15 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionType;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeWrapper;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeWrapperDto;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
+import org.niis.xroad.serverconf.model.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -43,6 +43,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.Map;
 
 import static junit.framework.TestCase.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -76,11 +77,11 @@ public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestConte
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void testSuccessAuditLog() {
-        ConnectionTypeWrapper connectionTypeWrapper = new ConnectionTypeWrapper();
-        connectionTypeWrapper.setConnectionType(ConnectionType.HTTP);
+        ConnectionTypeWrapperDto connectionTypeWrapper = new ConnectionTypeWrapperDto();
+        connectionTypeWrapper.setConnectionType(ConnectionTypeDto.HTTP);
         restTemplate.patchForObject("/api/v1/clients/" + CLIENT_ID_SS1, connectionTypeWrapper, Object.class);
-        ClientType clientType = clientService.getLocalClient(getClientId(CLIENT_ID_SS1));
-        assertEquals("NOSSL", clientType.getIsAuthentication());
+        Client client = clientService.getLocalClient(getClientId(CLIENT_ID_SS1));
+        assertEquals("NOSSL", client.getIsAuthentication());
 
         // verify mock audit log
         verify(auditEventLoggingFacade, times(1)).auditLogSuccess();
@@ -120,8 +121,8 @@ public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestConte
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void testFailureAuditLog() {
-        ConnectionTypeWrapper connectionTypeWrapper = new ConnectionTypeWrapper();
-        connectionTypeWrapper.setConnectionType(ConnectionType.HTTP);
+        ConnectionTypeWrapperDto connectionTypeWrapper = new ConnectionTypeWrapperDto();
+        connectionTypeWrapper.setConnectionType(ConnectionTypeDto.HTTP);
         String missingClientId = "FI:GOV:MFOOBAR:SS555";
 
         restTemplate.patchForObject("/api/v1/clients/" + missingClientId, connectionTypeWrapper, Object.class);
@@ -144,8 +145,8 @@ public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestConte
                 authCaptor.capture(), urlCaptor.capture());
         Assert.assertEquals(RestApiAuditEvent.SET_CONNECTION_TYPE, eventCaptor.getValue());
         assertEquals("api-key-1", userNameCaptor.getValue());
-        assertTrue(reasonCaptor.getValue().startsWith(
-                "org.niis.xroad.securityserver.restapi.service.ClientNotFoundException"));
+        assertThat(reasonCaptor.getValue())
+                .isEqualTo("client with id SUBSYSTEM:FI/GOV/MFOOBAR/SS555 not found");
         // in 7.x this has to be, for some reason:
         //        assertTrue(reasonCaptor.getValue().startsWith("ClientNotFoundException"));
         Map<String, Object> data = dataCaptor.getValue();

@@ -25,17 +25,20 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-
 import org.junit.runner.RunWith;
 import org.niis.xroad.common.acme.AcmeService;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
+import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,15 +56,20 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @WithMockUser
 public abstract class AbstractFacadeMockingTestContext {
-    @MockBean
+    @MockitoBean
     protected GlobalConfProvider globalConfProvider;
-    @MockBean
+    @MockitoBean
     protected ServerConfProvider serverConfProvider;
-    @MockBean
+    @MockitoBean
     protected ManagementRequestSenderService managementRequestSenderService;
-    @MockBean
-    protected SignerProxyFacade signerProxyFacade;
-    @MockBean
+    @MockitoBean
+    protected SignerRpcClient signerRpcClient;
+    @MockitoBean
+    protected OpMonitorClient opMonitorClient;
+    @MockitoBean
     protected AcmeService acmeService;
-
+    @MockitoSpyBean
+    protected SubsystemNameStatus subsystemNameStatus;
+    @MockitoBean
+    MonitorClient monitorClient;
 }

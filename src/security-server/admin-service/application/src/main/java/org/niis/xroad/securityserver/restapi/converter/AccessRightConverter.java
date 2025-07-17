@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,7 +27,7 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.AccessRight;
+import org.niis.xroad.securityserver.restapi.openapi.model.AccessRightDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -36,15 +37,15 @@ import java.util.stream.Collectors;
 @Component
 public class AccessRightConverter {
 
-    public AccessRight convert(ServiceClientAccessRightDto dto) {
-        AccessRight accessRight = new AccessRight();
-        accessRight.setServiceCode(dto.getServiceCode());
-        accessRight.setRightsGivenAt(dto.getRightsGiven());
-        accessRight.setServiceTitle(dto.getTitle());
-        return accessRight;
+    public AccessRightDto convert(ServiceClientAccessRightDto dto) {
+        AccessRightDto accessRightDto = new AccessRightDto();
+        accessRightDto.setServiceCode(dto.getServiceCode());
+        accessRightDto.setRightsGivenAt(dto.getRightsGiven());
+        accessRightDto.setServiceTitle(dto.getTitle());
+        return accessRightDto;
     }
 
-    public Set<AccessRight> convert(List<ServiceClientAccessRightDto> dtos) {
+    public Set<AccessRightDto> convert(List<ServiceClientAccessRightDto> dtos) {
         return dtos.stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());

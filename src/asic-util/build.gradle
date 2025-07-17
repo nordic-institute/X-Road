@@ -1,8 +1,0 @@
-dependencies {
-    implementation project(':common:common-message')
-    implementation project(':common:common-verifier')
-    implementation libs.xerces.impl
-
-    testImplementation project(':common:common-test')
-}
-

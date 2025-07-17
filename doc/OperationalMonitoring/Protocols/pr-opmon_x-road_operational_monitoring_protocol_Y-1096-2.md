@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.6 
+Version: 1.7  
 Doc. ID: PR-OPMON
 
 | Date       | Version | Description                                                          | Author           |
@@ -20,6 +20,7 @@ Doc. ID: PR-OPMON
 | 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                      | Eneli Reimets    |
 | 09.01.2025 | 1.5     | Restructure heading levels for the documentation platform            | Raido Kaju       |
 | 19.03.2025 | 1.6     | Added new optional field: xRoadVersion                               | Eneli Reimets    |
+| 26.03.2025 | 1.7     | Syntax and styling                                                   | Pauline Dimmek   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -1282,7 +1283,6 @@ content-id: <operational-monitoring-data.json.gz>
 ```
 
 <a name="AnnexC.3"/>
-
 ### C.3 getSecurityServerHealthData Request
 
 ```xml

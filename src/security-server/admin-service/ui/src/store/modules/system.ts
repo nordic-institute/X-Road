@@ -25,23 +25,27 @@
  */
 
 import {
+  MaintenanceMode,
   NodeType,
   NodeTypeResponse,
-  VersionInfo
-} from "@/openapi-types";
+  SecurityServer,
+  VersionInfo,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
 export interface SystemState {
-  securityServerVersion: VersionInfo,
-  securityServerNodeType: undefined | NodeType,
+  securityServerVersion: VersionInfo;
+  securityServerNodeType: undefined | NodeType;
+  currentSecurityServer: SecurityServer;
 }
 
 export const useSystem = defineStore('system', {
   state: (): SystemState => {
     return {
       securityServerVersion: {} as VersionInfo,
-      securityServerNodeType: undefined as undefined | NodeType,
+      securityServerNodeType: undefined,
+      currentSecurityServer: {} as SecurityServer,
     };
   },
   persist: {
@@ -50,6 +54,15 @@ export const useSystem = defineStore('system', {
   getters: {
     isSecondaryNode(state) {
       return state.securityServerNodeType === NodeType.SECONDARY;
+    },
+    globalConfigurationVersion(state): number | undefined {
+      return state.securityServerVersion.global_configuration_version;
+    },
+    doesSupportSubsystemNames(): boolean {
+      return (
+        !!this.globalConfigurationVersion &&
+        this.globalConfigurationVersion >= 5
+      );
     },
   },
 
@@ -68,6 +81,17 @@ export const useSystem = defineStore('system', {
       return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
         this.securityServerNodeType = res.data.node_type;
       });
+    },
+    async enableMaintenanceMode(message?: string) {
+      return api.put('/system/maintenance-mode/enable', { message });
+    },
+    async disableMaintenanceMode() {
+      return api.put('/system/maintenance-mode/disable', {});
+    },
+    async fetchMaintenanceModeState() {
+      return api
+        .get<MaintenanceMode>('/system/maintenance-mode')
+        .then((resp) => resp.data);
     },
   },
 });

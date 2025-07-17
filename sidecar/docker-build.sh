@@ -12,7 +12,7 @@ for i in "$@" ; do
 done
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >&/dev/null && pwd)"
-version="${1:-7.6.2}"
+version="${1:-7.7.0}"
 tag="${2:-xroad-security-server-sidecar}"
 repo="${3-}"
 dist="${4-}"
@@ -47,7 +47,7 @@ build_variant() {
     -t "$tag:$version$1-$2" "$dir"
 }
 
-docker pull ubuntu:20.04 # Ensure latest ubuntu image is used as base
+docker pull ubuntu:24.04 # Ensure latest ubuntu image is used as base
 
 build "$dir/slim/Dockerfile" "-slim"
 build_variant "-slim" "fi"

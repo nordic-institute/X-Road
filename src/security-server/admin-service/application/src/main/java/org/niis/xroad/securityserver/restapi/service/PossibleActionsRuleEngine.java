@@ -28,18 +28,19 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.api.dto.CertRequestInfo;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 
+import static org.niis.xroad.signer.client.SignerRpcClient.SSL_TOKEN_ID;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
@@ -60,14 +61,13 @@ public class PossibleActionsRuleEngine {
 
         if (tokenInfo.isActive()) {
             actions.add(PossibleActionEnum.GENERATE_KEY);
-        }
-
-        if (tokenInfo.isActive()) {
             actions.add(PossibleActionEnum.TOKEN_DEACTIVATE);
             actions.add(PossibleActionEnum.TOKEN_CHANGE_PIN);
         } else {
             if (tokenInfo.isAvailable()) {
                 actions.add(PossibleActionEnum.TOKEN_ACTIVATE);
+            } else if (!isSslTokenId(tokenInfo)) { // we can't delete initialized software token id
+                actions.add(PossibleActionEnum.TOKEN_DELETE);
             }
         }
 
@@ -76,6 +76,10 @@ public class PossibleActionsRuleEngine {
         }
 
         return actions;
+    }
+
+    private static boolean isSslTokenId(TokenInfo tokenInfo) {
+        return SSL_TOKEN_ID.equals(tokenInfo.getId());
     }
 
     /**

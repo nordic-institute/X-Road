@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.conf.globalconf.CertHash;
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
@@ -51,6 +49,8 @@ import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
+import org.niis.xroad.globalconf.model.CertHash;
+import org.niis.xroad.globalconf.model.SharedParameters;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -177,6 +177,7 @@ class SharedParametersLoader {
         result.setAddress(ss.getAddress());
         result.setServerCode(ss.getServerCode());
         result.setClients(getSecurityServerClients(ss.getId()));
+        result.setMaintenanceMode(new SharedParameters.MaintenanceMode(ss.isInMaintenanceMode(), ss.getMaintenanceModeMessage()));
         result.setAuthCertHashes(ss.getAuthCerts().stream()
                 .map(AuthCert::getCert)
                 .map(CertHash::new)
@@ -244,7 +245,8 @@ class SharedParametersLoader {
 
         private void addSubSystem(FlattenedSecurityServerClientView client) {
             var clientId = toClientId(client);
-            getSubsystemList(toMemberId(clientId)).add(new SharedParameters.Subsystem(client.getSubsystemCode(), clientId));
+            getSubsystemList(toMemberId(clientId))
+                    .add(new SharedParameters.Subsystem(client.getSubsystemCode(), client.getSubsystemName(), clientId));
         }
 
         private SharedParameters.Member toMember(FlattenedSecurityServerClientView client) {

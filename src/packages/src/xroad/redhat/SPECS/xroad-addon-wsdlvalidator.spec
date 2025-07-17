@@ -27,7 +27,10 @@ Addon for wsdl validation
 %install
 cp -a %{srcdir}/common/addon/wsdlvalidator/usr %{buildroot}
 mkdir -p %{buildroot}/usr/share/xroad/wsdlvalidator/jlib/
+mkdir -p %{buildroot}/usr/share/doc/%{name}
 cp %{srcdir}/../../../addons/wsdlvalidator/build/libs/wsdlvalidator-1.0.jar %{buildroot}/usr/share/xroad/wsdlvalidator/jlib/
+cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
+cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 
 %clean
 rm -rf %{buildroot}
@@ -36,6 +39,8 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %attr(750,root,xroad) /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
 /usr/share/xroad/wsdlvalidator
+%doc /usr/share/doc/%{name}/LICENSE.txt
+%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
 %upgrade_check

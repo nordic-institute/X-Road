@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,16 +30,16 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKAuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKSignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.util.EncoderUtils;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 
@@ -54,8 +55,8 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -137,8 +138,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                 })
                 .toList()
                 .toArray(new String[]{});
-        doReturn(ocspResponses).when(signerProxyFacade).getOcspResponses(any());
-        when(clientRepository.getClient(any())).thenReturn(new ClientType());
+        doReturn(ocspResponses).when(signerRpcClient).getOcspResponses(any());
+        when(clientRepository.getClient(any())).thenReturn(new ClientEntity());
     }
 
     @Test
@@ -147,11 +148,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals("ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",
                 caInfo.getCertificateProfileInfo());
 
-        try {
-            certificateAuthorityService.getCertificateAuthorityInfo("does-not-exist");
-            fail("should have thrown exception");
-        } catch (CertificateAuthorityNotFoundException expected) {
-        }
+        assertThrows(CertificateAuthorityNotFoundException.class, () ->
+                certificateAuthorityService.getCertificateAuthorityInfo("does-not-exist"));
     }
 
     @Test
@@ -256,7 +254,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
         caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING);
         assertEquals(2, caDtos.size());
-        ApprovedCaDto ca = caDtos.get(0);
+        ApprovedCaDto ca = caDtos.getFirst();
         assertEquals("fi-not-auth-only", ca.getName());
         assertFalse(ca.isAuthenticationOnly());
         assertEquals("CN=N/A", ca.getIssuerDistinguishedName());
@@ -282,7 +280,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
         evictCache();
         when(globalConfProvider.getAllCaCerts(any())).thenReturn(new ArrayList<>());
-        when(signerProxyFacade.getOcspResponses(any())).thenReturn(new String[]{});
+        when(signerRpcClient.getOcspResponses(any())).thenReturn(new String[]{});
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING).size());
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(null).size());
     }
@@ -316,14 +314,9 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
     @Test
     public void getCertificateProfile() throws Exception {
-        ClientType client = new ClientType();
+        ClientEntity client = new ClientEntity();
         client.setIdentifier(COMMON_OWNER_ID);
         when(clientRepository.getAllLocalClients()).thenReturn(Collections.singletonList(client));
-
-        // test handling of profile info parameters:
-        //        private final SecurityServerId serverId;
-        //        private final ClientId clientId; (sign only)
-        //        private final String memberName;
 
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
                 KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);
@@ -345,19 +338,12 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals(0, profile.getSubjectFields().length);
 
         // exceptions
-        try {
-            certificateAuthorityService.getCertificateProfile("est-auth-only",
-                    KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);
-            fail("should have thrown exception");
-        } catch (WrongKeyUsageException expected) {
-        }
+        assertThrows(WrongKeyUsageException.class, () -> certificateAuthorityService.getCertificateProfile("est-auth-only",
+                KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false));
 
-        try {
-            certificateAuthorityService.getCertificateProfile("this-does-not-exist",
-                    KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);
-            fail("should have thrown exception");
-        } catch (CertificateAuthorityNotFoundException expected) {
-        }
+        assertThrows(CertificateAuthorityNotFoundException.class, () ->
+                certificateAuthorityService.getCertificateProfile("this-does-not-exist",
+                        KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false));
 
         // cant instantiate
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
@@ -365,12 +351,9 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                 "ee.ria.xroad.common.certificateprofile.impl.NonExistentProvider", null, null, null, null));
         when(globalConfProvider.getApprovedCAs(any())).thenReturn(approvedCAInfos);
 
-        try {
-            certificateAuthorityService.getCertificateProfile("provider-class-does-not-exist",
-                    KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);
-            fail("should have thrown exception");
-        } catch (CertificateProfileInstantiationException expected) {
-        }
+        assertThrows(CertificateProfileInstantiationException.class, () ->
+                certificateAuthorityService.getCertificateProfile("provider-class-does-not-exist",
+                        KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false));
     }
 
 }

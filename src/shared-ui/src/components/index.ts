@@ -40,11 +40,20 @@ import XrdHelpIcon from './XrdHelpIcon.vue';
 import XrdSearch from './XrdSearch.vue';
 import XrdSimpleDialog from './XrdSimpleDialog.vue';
 import XrdStatusIcon from './XrdStatusIcon.vue';
-import XrdSubViewContainer from './XrdSubViewContainer.vue';
 import XrdSubViewTitle from './XrdSubViewTitle.vue';
 import XrdTable from './XrdTable.vue';
+import XrdTitledView from './XrdTitledView.vue';
+import XrdAppIcon from './XrdAppIcon.vue';
+import XrdLanguageDropdown from './XrdLanguageDropdown.vue';
+import XrdAppDropMenu from './XrdAppDropMenu.vue';
+import XrdSubTabs from './XrdSubTabs.vue';
+import XrdTabsBase from './XrdTabsBase.vue';
+import XrdDataTableFooter from './XrdDataTableFooter.vue';
+import XrdSnackBar from './XrdSnackBar.vue';
+import XrdErrorNotification from './XrdErrorNotification.vue';
 
 export {
+  XrdAppIcon,
   XrdAlert,
   XrdButton,
   XrdCloseButton,
@@ -60,7 +69,14 @@ export {
   XrdSearch,
   XrdSimpleDialog,
   XrdStatusIcon,
-  XrdSubViewContainer,
   XrdSubViewTitle,
-  XrdTable
+  XrdTable,
+  XrdTitledView,
+  XrdLanguageDropdown,
+  XrdAppDropMenu,
+  XrdSubTabs,
+  XrdTabsBase,
+  XrdDataTableFooter,
+  XrdSnackBar,
+  XrdErrorNotification,
 };

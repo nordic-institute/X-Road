@@ -1,9 +1,9 @@
-# X-Road: Central Server User Guide <!-- omit in toc --> 
+# X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.46  
+Version: 2.49  
 Doc. ID: UG-CS
 
-## Version history <!-- omit in toc --> 
+## Version history <!-- omit in toc -->
 
 | Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                                                                                             | Author               |
 |------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------|
@@ -63,7 +63,7 @@ Doc. ID: UG-CS
 | 09.12.2023 | 2.35    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki     |
 | 09.12.2023 | 2.36    | Management service TLS certificate                                                                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets        |
 | 12.12.2023 | 2.37    | Add a reference to LDAP configuration in Security Server guide                                                                                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas    |
-| 12.12.2023 | 2.38    | Client subsystem disabling and enabling management requests                                                                                                                                                                                                                                                                                                                                                                             | Madis Loitmaa        | 
+| 12.12.2023 | 2.38    | Client subsystem disabling and enabling management requests                                                                                                                                                                                                                                                                                                                                                                             | Madis Loitmaa        |
 | 15.12.2023 | 2.39    | Publishing global configuration over HTTPS                                                                                                                                                                                                                                                                                                                                                                                              | Eneli Reimets        |
 | 20.12.2023 | 2.40    | Automatic configuration signing key rotation                                                                                                                                                                                                                                                                                                                                                                                            | Andres Rosenthal     |
 | 19.01.2024 | 2.41    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Eneli Reimets        |
@@ -72,8 +72,11 @@ Doc. ID: UG-CS
 | 09.06.2024 | 2.44    | Added ACME information for Approved CAs                                                                                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann   |
 | 01.08.2024 | 2.45    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki     |
 | 08.01.2025 | 2.46    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Raido Kaju           |
+| 15.01.2025 | 2.47    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki     |
+| 09.03.2025 | 2.48    | Naming/Renaming subsystems                                                                                                                                                                                                                                                                                                                                                                                                              | Ovidijus Narkevicius |
+| 21.03.2025 | 2.49    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                                                      | Pauline Dimmek       |
 
-## Table of Contents <!-- omit in toc --> 
+## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 - [License](#license)
@@ -101,7 +104,7 @@ Doc. ID: UG-CS
     - [4.3.2 Changing the Central Server Address](#432-changing-the-central-server-address)
   - [4.4 Managing the TLS certificates](#44-managing-the-tls-certificates)
     - [4.4.1 Registration and Management Service TLS certificate](#441-registration-and-management-service-tls-certificate)
-      - [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate) 
+      - [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
 - [5. Configuration Management](#5-configuration-management)
   - [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
   - [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
@@ -130,8 +133,9 @@ Doc. ID: UG-CS
   - [7.5 Registering a Client to a Security Server](#75-registering-a-client-to-a-security-server)
   - [7.6 Removing a Client from a Security Server](#76-removing-a-client-from-a-security-server)
   - [7.7 Changing the Owner of Security Server](#77-changing-the-owner-of-security-server)
-  - [7.8 Deleting a Subsystem](#78-deleting-a-subsystem)
-  - [7.9 Deleting an X-Road Member](#79-deleting-an-x-road-member)
+  - [7.8 Renaming a Subsystem](#78-renaming-a-subsystem)
+  - [7.9 Deleting a Subsystem](#79-deleting-a-subsystem)
+  - [7.10 Deleting an X-Road Member](#710-deleting-an-x-road-member)
 - [8. Managing the Security Servers](#8-managing-the-security-servers)
   - [8.1 Viewing the Security Server Details](#81-viewing-the-security-server-details)
   - [8.2 Changing the Security Server Address](#82-changing-the-security-server-address)
@@ -262,7 +266,7 @@ To remove a user, enter:
 X-Road leverages PAM (Pluggable Authentication Modules) for user authentication, which facilitates LDAP integration.
 
 A detailed setup guide can be found under security server user guide [2.3 LDAP user authentication](ug-ss_x-road_6_security_server_user_guide.md#23-ldap-user-authentication).
-Please note that x-road property path will be different in case of Central Server. Refer to [ug-syspar_x-road_v6_system_parameters.md](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service) for relevant properties.
+Please note that X-Road property path will be different in case of Central Server. Refer to [ug-syspar_x-road_v6_system_parameters.md](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service) for relevant properties.
 
 ### 2.4 Managing API Keys
 
@@ -289,7 +293,7 @@ To edit API key related roles, follow these steps.
 To revoke API key from roles, follow these steps.
 
 1. In the Navigation tabs, select Settings --> API Keys.
-2. Select a API key and click Revoke key. 
+2. Select a API key and click Revoke key.
 3. Confirm the revoking by clicking Yes.
 
 ## 3. Standalone and High-Availability Systems
@@ -491,7 +495,7 @@ To upload Management Service certificate, follow these steps.
 
 When the key and certificate are rotated, and mTLS is enabled between the management Security Server and the management services, the new certificate must be updated to the management Security Server. To add new certificate follow Security Server User Guide [UG-SS](#13-references) instruction in section "Managing Information System TLS Certificates".
 
-**ATTENTION!** 
+**ATTENTION!**
 - The changed TLS certificate is added in the global configuration `private-params.xml` part. The global configuration generation interval on the Central Server and the global configuration fetching interval on the Security Server depend on the system parameters. The system parameters are specified in the [UG-SYSPAR](#13-references) section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]". With the default values, a new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
 - The changed TLS certificate is automatically detected by Nginx within five minutes after the change.
 
@@ -658,7 +662,7 @@ There are three types of registration requests:
 - Security Server owner change request (see Section 7.7)
 
 It is possible to streamline the registration process of authentication certificates and Security Server clients by enabling automatic approval.
- 
+
 - authentication certificate registration requests
   - When automatic approval is enabled, it is enough to submit an authentication certificate registration request to the X-Road Central Server through the Security Server, and the request will be automatically approved immediately.
   - Automatic approval is applied to existing members only.
@@ -671,7 +675,7 @@ It is possible to streamline the registration process of authentication certific
   - When automatic approval is enabled, it is enough to submit a Security Server owner change request to the X-Road Central Server through the Security Server, and the request will be automatically approved immediately.
   - Automatic approval is applied to existing members only.
   - By default, automatic approval of Security Server owner change requests is disabled. It can be enabled by setting the `auto-approve-owner-change-requests` property value to `true` on Central Server.
-    
+
 #### 6.1.1 State Model for Registration Requests
 
 A registration request can be in one of the following states. See Figure 1 for the state diagram.
@@ -775,7 +779,7 @@ Access rights: Registration Officer
 To add a subsystem to an X-Road member, follow these steps.
 1. In the Members tab, select the member to whom you wish to add a subsystem and click members name.
 2. In the view that opens, locate the Subsystems tab and click Add new subsystem to database.
-3. Enter the code of the subsystem and click Add.
+3. Enter the subsystem code, name (optional) and click Add.
 
 ### 7.4 Registering a Member's Security Server
 
@@ -797,9 +801,11 @@ On the approval of the request
 - the registered Security Server appears both in the "Owned Servers" section of its owner’s detail view and in the list of Security Servers (in the Security Servers tab);
 - the Security Server's owner is added to the global "security-server-owners" group.
 
-To decline a request, it can be done either through in the Management request view list or in the Management request details view.
+Declining a request can be done either in the Management request view list or in the Management request details view.
 On the decline of the request
 - the request moves to the "Rejected" state.
+
+**Note:** The Security Server administrator is not automatically notified about the rejection of the request. Therefore, they must be notified about the rejection through an external channel, e.g., email. Otherwise, the request remains pending in the "Registration in progress" state on the Security Server.
 
 ### 7.5 Registering a Client to a Security Server
 
@@ -823,6 +829,8 @@ On the approval of the request, follow these steps.
 To decline a request, it can be done either through in the Management request view list or in the Management request details view.
 On the decline of the request
 - the request moves to the "Rejected" state.
+
+**Note:** The Security Server administrator is not automatically notified about the rejection of the request. Therefore, they must be notified about the rejection through an external channel, e.g., email. Otherwise, the request remains pending in the "Registration in progress" state on the Security Server.
 
 ### 7.6 Removing a Client from a Security Server
 
@@ -854,7 +862,18 @@ Automatic approval of Security Server owner change requests is disabled by defau
 
 To approve/decline a request, it can be done either through in the Management request view list or in the Management request details view.
 
-### 7.8 Deleting a Subsystem
+### 7.8 Renaming a Subsystem
+
+Access rights: Registration Officer
+
+In the Central Server, the X-Road member's subsystem can be renamed if needed.
+
+To rename an X-Road member's subsystem, follow these steps.
+1. In the Members tab, select the member whose subsystem you wish to rename and click member's name.
+2. In the window that opens, select Subsystems tab and select the client subsystem, and click Rename button next to its name, in case subsystem doesn't have name, click Add subsystem name.
+
+
+### 7.9 Deleting a Subsystem
 
 Access rights: Registration Officer
 
@@ -864,7 +883,7 @@ To delete an X-Road member's subsystem, follow these steps.
 1. In the Members tab, select the member whose subsystem you wish to delete and click members name.
 2. In the window that opens, select Subsystems tab and select the client subsystem, and click Delete. Note: The "Delete" button is displayed only if the subsystem is not a client of any Security Servers.
 
-### 7.9 Deleting an X-Road Member
+### 7.10 Deleting an X-Road Member
 
 Access rights: Registration Officer
 
@@ -1278,7 +1297,7 @@ An audit log record contains:
   - `Session` – session based authentication (web application)
   - `ApiKey` - direct API call using API key authentication
   - `HttpBasicPam` – HTTP basic authentication with PAM login (for api key management API operations),
-- the API url for this request, 
+- the API url for this request,
 - the IP address of the user, and
 - the data related to the event.
 
@@ -1631,7 +1650,7 @@ Warning example when trying to upload backup file which already exist produces n
 ```
 POST https://cs:4000/api/v1/backups/upload?ignore_warnings=false
 
-Response: 
+Response:
 {
   "status": 400,
   "error": {

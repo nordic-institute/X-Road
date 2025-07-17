@@ -53,7 +53,15 @@ public class AuthStepDefs extends BaseUiStepDefs {
 
     @Step("User {} logs in to {} with password {}")
     public void doLogin(final String username, final String target, final String password) {
+        doLogin(username, password, true);
+    }
 
+    @Step("User {} tries to log in to {} with password {}")
+    public void doLoginError(final String username, final String target, final String password) {
+        doLogin(username, password, false);
+    }
+
+    private void doLogin(final String username, final String password, boolean verifySuccess) {
         loginPageObj.inputUsername().shouldBe(visible);
         vTextField(loginPageObj.inputUsername()).setValue(username);
         loginPageObj.inputPassword().shouldBe(visible);
@@ -63,6 +71,10 @@ public class AuthStepDefs extends BaseUiStepDefs {
                 .shouldBe(visible)
                 .shouldBe(enabled)
                 .click();
+
+        if (verifySuccess) {
+            loginPageObj.inputUsername().shouldNotBe(visible);
+        }
     }
 
     @Step("Error message for incorrect credentials is shown")
