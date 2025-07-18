@@ -32,7 +32,7 @@
     single-line
     density="compact"
     variant="underlined"
-    prepend-inner-icon="mdi-magnify"
+    prepend-inner-icon="msr-search"
     hide-details
     :label="label"
     :class="{ closed }"

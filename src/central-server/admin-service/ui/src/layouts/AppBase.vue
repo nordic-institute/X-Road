@@ -26,18 +26,13 @@
  -->
 
 <template>
-  <xrd-app-base>
-    <template #top>
-      <router-view name="top" />
-    </template>
-    <template #subTabs>
-      <router-view name="subTabs" />
-    </template>
-    <template #alerts>
-      <router-view name="alerts" />
-    </template>
+  <AppToolbar />
+  <router-view name="navigation" />
+
+  <v-main class="bg-surface">
     <router-view />
-  </xrd-app-base>
+    <XrdAppFooter class="mt-6 mb-6 pa-0" />
+  </v-main>
 </template>
 
 <script lang="ts" setup>
@@ -45,7 +40,8 @@ import { Timeouts } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
 import { useAlerts } from '@/store/modules/alerts';
-import { XrdAppBase } from '@niis/shared-ui';
+import AppToolbar from '@/layouts/AppToolbar.vue';
+import { XrdAppFooter } from '@niis/shared-ui';
 
 const userStore = useUser();
 const { checkAlerts } = useAlerts();
