@@ -28,7 +28,7 @@
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
-    "node": ">=18 <=20",
-    "pnpm": ">=9"
+    "node": ">=22 <=24",
+    "pnpm": ">=10"
   }
 }
