@@ -84,7 +84,8 @@ import { DataTableHeader, PagingOptions } from '@/ui-types';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { debounce } from '@/util/helpers';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
-import { useBasicForm } from '@/util/composables';
+import { useBasicForm } from '@niis/shared-ui';
+import { useI18n } from 'vue-i18n';
 
 // To provide the Vue instance to debounce
 
@@ -97,9 +98,11 @@ const props = defineProps({
 
 const emit = defineEmits(['save', 'cancel']);
 
-const { t, loading, showError, showSuccess } = useBasicForm();
+const { loading, addError, addSuccessMessage } = useBasicForm();
 const { getByExcludingGroup } = useClient();
 const { addGroupMembers } = useGlobalGroups();
+
+const { t } = useI18n();
 
 const fetchingClients = ref(false);
 const pagingOptions = ref({ itemsPerPage: 10, page: 1 } as PagingOptions);
@@ -168,7 +171,7 @@ function fetchClients() {
   fetchingClients.value = true;
   getByExcludingGroup(props.groupCode, search.value, pagingOptions.value)
     .then((resp) => (clients.value = resp))
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (fetchingClients.value = false));
 }
 
@@ -183,16 +186,14 @@ function addMembers() {
   addGroupMembers(props.groupCode, selectedClients.value)
     .then((resp) => emit('save', resp.data.items))
     .then(() => showSuccessMessage(selectedClients.value))
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 }
 
 function showSuccessMessage(identifiers: string[]) {
-  showSuccess(
-    t('globalGroup.dialog.addMembers.success', {
-      identifiers: identifiers.join(', '),
-    }),
-  );
+  addSuccessMessage('globalGroup.dialog.addMembers.success', {
+    identifiers: identifiers.join(', '),
+  });
 }
 </script>
 

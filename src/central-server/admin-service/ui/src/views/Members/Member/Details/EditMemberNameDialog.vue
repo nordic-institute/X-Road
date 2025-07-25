@@ -30,6 +30,7 @@
     :loading="loading"
     title="members.member.details.editMemberName"
     save-button-text="action.save"
+    save-button-icon="check"
     cancel-button-text="action.cancel"
     submittable
     :disable-save="!meta.valid || !meta.dirty"
@@ -37,15 +38,18 @@
     @save="saveNewMemberName"
   >
     <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-bind="memberName"
-          variant="outlined"
-          data-test="edit-member-name"
-          autofocus
-          :error-messages="errors.memberName"
-        ></v-text-field>
-      </div>
+      <XrdDialogSubView>
+        <XrdDialogSubViewRow>
+          <v-text-field
+            v-bind="memberName"
+            data-test="edit-member-name"
+            class="xrd-text-field"
+            autofocus
+            :label="$t('global.memberName')"
+            :error-messages="errors.memberName"
+          />
+        </XrdDialogSubViewRow>
+      </XrdDialogSubView>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -58,6 +62,7 @@ import { toIdentifier } from '@/util/helpers';
 import { PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
+import { XrdDialogSubView, XrdDialogSubViewRow } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {

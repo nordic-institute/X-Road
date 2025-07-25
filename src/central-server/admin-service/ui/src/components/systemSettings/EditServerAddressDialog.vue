@@ -54,7 +54,7 @@
 <script lang="ts" setup>
 import { useForm } from 'vee-validate';
 import { useSystem } from '@/store/modules/system';
-import { useBasicForm } from '@/util/composables';
+import { useBasicForm } from '@niis/shared-ui';
 
 const props = defineProps({
   serviceAddress: {
@@ -74,7 +74,7 @@ const { meta, setFieldError, defineField, handleSubmit } = useForm({
 const [address, addressAttrs] = defineField('serviceAddress', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
-const { showOrTranslateErrors, showSuccess, t, loading } = useBasicForm(
+const { showOrTranslateErrors, addSuccessMessage, loading } = useBasicForm(
   setFieldError,
   { serviceAddress: 'centralServerAddressDto.centralServerAddress' },
 );
@@ -85,7 +85,7 @@ const onServerAddressSave = handleSubmit((values) => {
     central_server_address: values.serviceAddress,
   })
     .then(() => {
-      showSuccess(t('systemSettings.editCentralServerAddressSuccess'));
+      addSuccessMessage('systemSettings.editCentralServerAddressSuccess');
       emit('save');
     })
     .catch((error) => showOrTranslateErrors(error))

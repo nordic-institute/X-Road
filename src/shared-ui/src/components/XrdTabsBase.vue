@@ -40,18 +40,18 @@
     >
       <template #default="{ isActive }">
         <v-list-item-title class="text-center mb-1">
-          <v-chip variant="flat" :color="isActive ? 'accent-container' : 'surface-variant'">
+          <v-chip :to="tab.to" variant="flat" :color="isActive ? 'accent-container' : 'surface-variant'">
             <v-icon size="x-large" :icon="tab.icon" :filled="isActive" />
           </v-chip>
         </v-list-item-title>
 
-        <div :class="[isActive ? 'text-accent' : 'text-primary']">
+        <div :class="[isActive ? 'text-accent' : 'text-primary', 'font-weight-medium']">
           {{ $t(tab.name) }}
         </div>
       </template>
     </v-list-item>
 
-    <v-divider color="border-strong" class="ma-2"></v-divider>
+    <v-divider color="border-strong opacity-20" class="ma-2"></v-divider>
 
     <v-list-item
       :active="userOptions"
@@ -63,7 +63,7 @@
     >
       <v-list-item-title class="text-center mb-1">
         <v-chip variant="flat" :color="userOptions ? 'accent-container' : 'surface-variant'">
-          <v-icon size="x-large" icon="msr-account-box" />
+          <v-icon size="x-large" icon="account_box" />
         </v-chip>
       </v-list-item-title>
       <v-list-item-subtitle class="body-small text-center font-weight-bold" :class="[userOptions ? 'text-accent' : 'text-primary']">
@@ -82,7 +82,7 @@
       <v-list-group>
         <template #activator="{ props }">
           <v-list-item
-            prepend-icon="msr-language"
+            prepend-icon="language"
             v-bind="props"
             rounded="xl"
             class="xrd-rail-item-lang-select"
@@ -90,7 +90,7 @@
             color="primary"
           >
             <template #prepend>
-              <v-icon icon="msr-language"></v-icon>
+              <v-icon icon="language"></v-icon>
             </template>
             <v-list-item-title class="body-small font-weight-bold">{{ displayNames.of(currentLanguage) }}</v-list-item-title>
           </v-list-item>
@@ -110,7 +110,7 @@
       </v-list-group>
       <v-list-item class="xrd-rail-item-logout" rounded="xl" base-color="primary" @click="logoutApp">
         <template #prepend>
-          <v-icon icon="msr-logout"></v-icon>
+          <v-icon icon="logout"></v-icon>
         </template>
         <v-list-item-title class="body-small font-weight-bold">{{ $t('login.logOut') }}</v-list-item-title>
       </v-list-item>

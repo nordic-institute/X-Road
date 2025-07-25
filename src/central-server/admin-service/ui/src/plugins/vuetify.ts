@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-import '@niis/shared-ui/src/assets/xrd8/material-symbols-rounded.css';
+import '@niis/shared-ui/src/assets/xrd8/fonts.css';
 import 'vuetify/styles';
 import '@/assets/styles.css';
 import { createVuetify } from 'vuetify';
@@ -35,11 +35,15 @@ import { i18n, themes, msr, msrAliases } from '@niis/shared-ui';
 
 export default createVuetify({
   defaults: {
-    global: {
-      ripple: false,
+    global: {},
+    VTextField: {
+      variant: 'underlined',
     },
-    VCard: {
-
+    VSelect: {
+      variant: 'underlined',
+      listProps: {
+        class: 'xrd-select-list',
+      },
     },
   },
   icons: {

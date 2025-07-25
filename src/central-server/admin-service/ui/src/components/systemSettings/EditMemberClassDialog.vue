@@ -67,7 +67,7 @@ import { computed, PropType } from 'vue';
 import { useForm } from 'vee-validate';
 import { MemberClass } from '@/openapi-types';
 import { useMemberClass } from '@/store/modules/member-class';
-import { useBasicForm } from '@/util/composables';
+import { useBasicForm } from '@niis/shared-ui';
 
 const props = defineProps({
   memberClass: {
@@ -95,7 +95,7 @@ const [description, descriptionAttrs] = defineField('description', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { loading, showSuccess, showOrTranslateErrors, t } = useBasicForm(
+const { loading, addSuccessMessage, showOrTranslateErrors } = useBasicForm(
   setFieldError,
   {
     code: 'memberClassDto.code',
@@ -129,7 +129,7 @@ const onSaveMemberClass = handleSubmit((values) => {
   loading.value = true;
   _save(values, props.memberClass?.code)
     .then(() => {
-      showSuccess(t('systemSettings.memberClassSaved'));
+      addSuccessMessage('systemSettings.memberClassSaved');
       emit('save');
     })
     .catch((error) => showOrTranslateErrors(error))

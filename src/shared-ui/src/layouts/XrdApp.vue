@@ -28,13 +28,15 @@
 <template>
   <v-app theme="light">
     <slot />
-
     <XrdLogoutDialog v-if="!loginView" />
+    <XrdSnackBar />
   </v-app>
 </template>
 
 <script lang="ts" setup>
 import XrdLogoutDialog from '../components/XrdLogoutDialog.vue';
+import XrdSnackBar from '../components/XrdSnackBar.vue';
+import XrdErrorNotifications from '../components/XrdErrorNotifications.vue';
 
 defineProps({
   loginView: {

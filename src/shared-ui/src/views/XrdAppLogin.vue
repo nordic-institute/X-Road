@@ -41,68 +41,78 @@
           :items="supportedLanguages"
           :item-props="langProps"
           class="text-primary"
-          prepend-icon="msr-language"
+          prepend-icon="language"
           variant="plain"
           @update:model-value="changeLanguage"
         >
         </v-select>
       </template>
     </v-app-bar>
-    <v-main class="fill-height d-flex align-center justify-center">
-      <v-card variant="text" :hover="false" class="login-form">
-        <v-card-title class="font-weight-bold title-page opacity-100">
-          {{ $t('login.logIn') }}
-        </v-card-title>
-        <v-card-subtitle class="body-regular opacity-100">
-          {{ $t('global.appTitle') }}
-        </v-card-subtitle>
-        <v-form>
-          <v-text-field
-            id="username"
-            v-model="username"
-            v-bind="usernameAttrs"
-            name="username"
-            data-test="login-username-input"
-            variant="underlined"
-            color="primary"
-            type="text"
-            :label="$t('fields.username')"
-            :error-messages="errors.username"
-            @keyup.enter="submit"
-          />
 
-          <v-text-field
-            id="password"
-            v-model="password"
-            v-bind="passwordAttrs"
-            data-test="login-password-input"
-            name="password"
-            variant="underlined"
-            color="primary"
-            :label="$t('fields.password')"
-            :type="passwordType"
-            :error-messages="errors.password"
-            :append-inner-icon="passwordIcon"
-            @keyup.enter="submit"
-            @click:append-inner="changePasswordType"
-          />
-        </v-form>
-        <v-card-actions class="pl-0 pr-0">
-          <v-btn
-            id="submit-button"
-            class="body-large font-weight-medium"
-            variant="flat"
-            color="special"
-            rounded="xl"
-            block
-            :disabled="isDisabled"
-            :loading="loading"
-            @click="submit"
-          >
-            {{ $t('login.logIn') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
+    <v-main>
+      <v-row v-if="notifications.hasContextErrors" align-content="center" justify="center">
+        <v-col cols="11">
+          <XrdErrorNotifications />
+        </v-col>
+      </v-row>
+      <v-row class="fill-height" align-content="center" justify="center">
+        <v-col cols="auto">
+          <v-card variant="text" :hover="false" class="login-form">
+            <v-card-title class="font-weight-bold title-page opacity-100">
+              {{ $t('login.logIn') }}
+            </v-card-title>
+            <v-card-subtitle class="body-regular opacity-100">
+              {{ $t('global.appTitle') }}
+            </v-card-subtitle>
+            <v-form>
+              <v-text-field
+                id="username"
+                v-model="username"
+                v-bind="usernameAttrs"
+                name="username"
+                data-test="login-username-input"
+                variant="underlined"
+                color="primary"
+                type="text"
+                :label="$t('fields.username')"
+                :error-messages="errors.username"
+                @keyup.enter="submit"
+              />
+
+              <v-text-field
+                id="password"
+                v-model="password"
+                v-bind="passwordAttrs"
+                data-test="login-password-input"
+                name="password"
+                variant="underlined"
+                color="primary"
+                :label="$t('fields.password')"
+                :type="passwordType"
+                :error-messages="errors.password"
+                :append-inner-icon="passwordIcon"
+                @keyup.enter="submit"
+                @click:append-inner="changePasswordType"
+              />
+            </v-form>
+            <v-card-actions class="pl-0 pr-0">
+              <v-btn
+                id="submit-button"
+                class="body-large font-weight-medium"
+                variant="flat"
+                color="special"
+                rounded="xl"
+                block
+                :disabled="isDisabled"
+                :loading="loading"
+                @click="submit"
+              >
+                {{ $t('login.logIn') }}
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
     </v-main>
   </v-layout>
 </template>
@@ -115,6 +125,8 @@ import _rocket from '../assets/xrd8/Rocket-trail.png';
 import _trail1 from '../assets/xrd8/Trail-1.png';
 import _trail2 from '../assets/xrd8/Trail-2.png';
 import { useLanguageHelper } from '../plugins/i18n';
+import XrdErrorNotifications from '../components/XrdErrorNotifications.vue';
+import { useNotifications } from '../stores';
 
 const logo = _logoLight;
 const rocket = _rocket;
@@ -134,6 +146,7 @@ const emit = defineEmits<{
 
 defineExpose({ clearForm, addErrors });
 
+const notifications = useNotifications();
 const { currentLanguage, supportedLanguages, selectLanguage, displayNames } = useLanguageHelper();
 const { meta, resetForm, setFieldError, errors, defineField } = useForm({
   validationSchema: {
@@ -144,7 +157,7 @@ const { meta, resetForm, setFieldError, errors, defineField } = useForm({
 
 const PASSWORD = 'password';
 const passwordType = ref(PASSWORD);
-const passwordIcon = computed(() => (passwordType.value === PASSWORD ? 'msr-visibility-off' : 'msr-visibility'));
+const passwordIcon = computed(() => (passwordType.value === PASSWORD ? 'visibility_off' : 'visibility'));
 
 const isDisabled = computed(() => !meta.value.valid || props.loading);
 const [username, usernameAttrs] = defineField('username');
@@ -181,8 +194,6 @@ async function changeLanguage(lang: string) {
 </script>
 
 <style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/xrd8/colors';
-
 .login-form {
   width: 434px;
   margin: 0 80px;
@@ -194,7 +205,7 @@ async function changeLanguage(lang: string) {
   }
 
   .logo-bg {
-    background: radial-gradient(colors.$Maroon600, colors.$Maroon800);
+    background: radial-gradient(rgb(var(--v-theme-login-start)), rgb(var(--v-theme-login)));
     max-width: 600px;
 
     .rocket {

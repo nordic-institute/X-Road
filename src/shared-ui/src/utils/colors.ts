@@ -52,11 +52,13 @@ export enum Colors {
   Warning = '#f5a623',
 
   //TODO #XRD8
+  White = '#FFFFFF',
+  Blue10 = '#F7FCFF',
   Blue50 = '#EAF3F9',
   Blue100 = '#DDE8F0',
   Blue400 = '#55ACEE',
   Blue500 = '#1B4361',
-  White = '#FFFFFF',
+  Blue700 = '#0B283E',
   Maroon100 = '#E3E0E9',
   Maroon400 = '#583F8B',
   Maroon600 = '#220066',
@@ -65,7 +67,10 @@ export enum Colors {
   Maroon900 = '#000428',
   Magenta600 = '#99006B',
   Magenta900 = '#470233',
+  Green400 = '#9CE100',
   Green700 = '#567C00',
+  Yellow400 = '#F9E100',
   Yellow700 = '#736800',
+  Red400 = '#FF0503',
   Red600 = '#B50402',
 }

@@ -24,54 +24,37 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-
 <template>
-  <v-layout>
-    <AppToolbar />
-    <router-view name="navigation" />
-
-    <v-main class="bg-surface pr-10">
-      <router-view />
-      <XrdAppFooter :app-version="appVersion" class="mt-6 mb-6 pa-0" />
-    </v-main>
-  </v-layout>
+  <v-row no-gutters>
+    <v-col>
+      <slot />
+    </v-col>
+    <v-col v-if="description || $slots.description">
+      <slot name="description">
+        <span v-if="description">
+          {{ translated ? description : $(description) }}
+        </span>
+      </slot>
+    </v-col>
+    <v-spacer v-else-if="!fullLength" class="ml-8" />
+  </v-row>
 </template>
 
 <script lang="ts" setup>
-import { Timeouts } from '@/global';
-import { useUser } from '@/store/modules/user';
-import { useSystem } from '@/store/modules/system';
-import { useAlerts } from '@/store/modules/alerts';
-import AppToolbar from '@/layouts/AppToolbar.vue';
-import { XrdAppFooter } from '@niis/shared-ui';
-import { computed } from 'vue';
-
-const userStore = useUser();
-const { checkAlerts } = useAlerts();
-const systemStore = useSystem();
-
-const appVersion = computed(() => systemStore.serverVersion?.info || '');
-
-const sessionPollInterval = setInterval(
-  () => pollSessionStatus(),
-  Timeouts.POLL_SESSION_TIMEOUT,
-);
-pollSessionStatus();
-systemStore.fetchSystemStatus();
-checkAlerts();
-
-async function pollSessionStatus() {
-  return userStore
-    .fetchSessionStatus()
-    .then(() => {
-      // Fetch any statuses from backend that are
-      // needed with POLL_SESSION_TIMEOUT periods
-      checkAlerts();
-    })
-    .finally(() => {
-      if (!userStore.isSessionAlive) {
-        clearInterval(sessionPollInterval);
-      }
-    });
-}
+defineProps({
+  description: {
+    type: String,
+    default: undefined,
+  },
+  translated: {
+    type: Boolean,
+    default: false,
+  },
+  fullLength: {
+    type: Boolean,
+    default: false,
+  },
+});
 </script>
+
+<style lang="scss" scoped></style>

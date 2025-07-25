@@ -30,4 +30,5 @@ export * from './keys';
 export * from './types';
 export * from './colors';
 export * from './themes';
-export * from './mdr-icon-set';
+export * from './msr-icon-set';
+export * from './axios-utils';

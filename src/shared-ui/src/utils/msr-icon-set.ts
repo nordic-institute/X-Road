@@ -25,87 +25,68 @@
  * THE SOFTWARE.
  */
 
-@font-face {
-  font-family: 'Material Symbols Rounded';
-  src: url('./MaterialSymbolsRounded.woff2') format('woff2'),
-  url('./MaterialSymbolsRounded.ttf') format('truetype');
+import { h } from 'vue';
+import type { IconSet, IconAliases, IconProps } from 'vuetify';
+import { VClassIcon } from 'vuetify/lib/composables/icons';
+
+const msrAliases: IconAliases = {
+  collapse: 'arrow_drop_up',
+  complete: '...',
+  cancel: 'cancel',
+  close: 'close',
+  delete: 'delete_forever',
+  clear: '...',
+  success: '...',
+  info: '...',
+  warning: 'warning',
+  error: 'error',
+  prev: 'chevron_left',
+  next: 'chevron_right',
+  checkboxOn: '...',
+  checkboxOff: '...',
+  checkboxIndeterminate: '...',
+  delimiter: '...',
+  sortAsc: 'arrow_upward',
+  sortDesc: 'arrow_downward',
+  sort: '...',
+  expand: 'arrow_drop_down',
+  menu: '...',
+  subgroup: '...',
+  dropdown: 'arrow_drop_down',
+  radioOn: '...',
+  radioOff: '...',
+  edit: '...',
+  ratingEmpty: '...',
+  ratingFull: '...',
+  ratingHalf: '...',
+  loading: '...',
+  first: '...',
+  last: '...',
+  unfold: '...',
+  file: '...',
+  plus: '...',
+  minus: '...',
+  calendar: '...',
+  treeviewCollapse: '...',
+  treeviewExpand: '...',
+  eyeDropper: '...',
+  upload: '...',
+  color: '...',
+};
+
+interface ExtendedIconProps extends IconProps {
+  filled?: boolean | '';
 }
 
-.msr:before {
-  font-family: 'Material Symbols Rounded';
-  font-weight: 400;
-  font-style: normal;
-  display: inline-block;
-  text-transform: none;
-  letter-spacing: normal;
-  word-wrap: normal;
-  white-space: nowrap;
-  direction: ltr;
+const msr: IconSet = {
+  component: (props: ExtendedIconProps) => {
+    const classes = ['msr'];
+    if (props.filled === '' || props.filled) {
+      classes.push('filled');
+    }
 
-  font-size: inherit;
-  text-rendering: auto;
-  line-height: inherit;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-variation-settings: 'GRAD' 0, 'FILL' 0, 'opsz' 24, 'wght' 400;
-}
+    return h(VClassIcon, { ...props, class: classes });
+  },
+};
 
-.msr-filled:before {
-  font-variation-settings: 'GRAD' 0, 'FILL' 1, 'opsz' 24, 'wght' 400;
-}
-
-.msr-settings::before {
-  content: "\e8b8";
-}
-
-.msr-shield-lock::before {
-  content: "\f686";
-}
-
-.msr-rule-settings::before {
-  content: "\f64c";
-}
-
-.msr-dns::before {
-  content: "\e875";
-}
-
-.msr-search::before {
-  content: "\e8b6";
-}
-
-.msr-folder::before {
-  content: "\e2c7";
-}
-
-.msr-visibility::before {
-  content: "\e8f4";
-}
-
-.msr-visibility-off::before {
-  content: "\e8f5";
-}
-
-.msr-page-info::before {
-  content: "\f614";
-}
-
-.msr-account-box::before {
-  content: "\e851";
-}
-
-.msr-language::before {
-  content: "\e894";
-}
-
-.msr-arrow-drop-down::before {
-  content: "\e5c5";
-}
-
-.msr-arrow-drop-up::before {
-  content: "\e5c7";
-}
-
-.msr-logout::before {
-  content: "\e9ba";
-}
+export { msrAliases, msr };

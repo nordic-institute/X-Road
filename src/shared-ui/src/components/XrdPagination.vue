@@ -25,83 +25,55 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-text-field
-    :model-value="modelValue"
-    data-test="search-input"
-    class="expanding-search"
-    single-line
-    density="compact"
-    variant="underlined"
-    prepend-inner-icon="msr-search"
-    hide-details
-    :label="label"
-    :class="{ closed }"
-    @click:prepend-inner="hide = false"
-    @focus="hide = false"
-    @blur="hide = true"
-    @update:model-value="$emit('update:model-value', $event)"
-  />
+  <div class="xrd-pagination pt-2 pb-2 pr-2">
+    <div class="xrd-pagination--label text-right body-small">{{ $t('dataTables.paginator.rowsPerPage') }}</div>
+    <div class="xrd-pagination--options mr-6 ml-6 pb-1">
+      <v-select
+        v-model="itemsPerPage"
+        class="per-page-options"
+        variant="underlined"
+        density="compact"
+        max-width="48px"
+        hide-details
+        :items="perPageOptions"
+      />
+    </div>
+    <div class="xrd-pagination--info text-center body-small">{{ $t('dataTables.paginator.info', info) }}</div>
+    <div class="xrd-pagination--paginator">
+      <v-pagination v-model="page" :length="pageCount" total-visible="0" size="20" />
+    </div>
+  </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { PropType, computed } from 'vue';
+import { usePagination } from 'vuetify/lib/components/VDataTable/composables/paginate';
 
-/**
- * Wrapper for vuetify button with x-road look
- * */
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: String,
-      required: true,
-    },
-    label: {
-      type: String,
-      default: '',
-    },
+const { page, itemsPerPage, pageCount, itemsLength } = usePagination();
+defineProps({
+  perPageOptions: {
+    type: Array as PropType<number[]>,
+    default: () => [1, 10, 15, 20],
   },
-  emits: ['update:model-value'],
-  data() {
-    return {
-      hide: true,
-    };
-  },
-  computed: {
-    closed() {
-      return this.hide && !this.modelValue;
-    },
-  },
-  methods: {},
 });
+const info = computed(() => ({
+  total: itemsLength.value,
+  start: 1 + (page.value - 1) * itemsPerPage.value,
+  end: Math.min(page.value * itemsPerPage.value, itemsLength.value),
+}));
 </script>
 
 <style lang="scss" scoped>
-@use '../assets/colors';
-
-.expanding-search {
-  transition: 0.4s;
-  min-width: 220px;
-  max-width: 220px;
-
-  :deep(.v-field__input) {
-    margin-bottom: 0;
-  }
+.xrd-pagination {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.closed {
-  min-width: 10px;
-
-  :deep(.v-field__outline:before) {
-    border-color: colors.$WarmGrey30;
-  }
-
-  :deep(.v-field__input) {
-    width: 5px;
-  }
-
-  :deep(.v-field__prepend-inner > i) {
-    color: colors.$Purple100;
-    opacity: 1;
+.xrd-pagination--options {
+  :deep(.v-field) {
+    font-size: 12px;
   }
 }
 </style>

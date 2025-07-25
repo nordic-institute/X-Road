@@ -93,7 +93,9 @@ import ManagementRequestsList from '@/views/ManagementRequests/ManagementRequest
 import ManagementServiceTlsKey from '@/views/Settings/TlsCertificates/ManagementServiceTlsCertificate.vue';
 import ManagementServiceCertificate from '@/components/tlsCertificates/ManagementServiceCertificate.vue';
 import { useSettingsTabs } from '@/store/modules/settings-tabs';
-import { XrdRoute } from '@/router/types';
+import { XrdRoute } from '@niis/shared-ui';
+import { useMember } from '@/store/modules/members';
+import { useSecurityServer } from '@/store/modules/security-servers';
 
 const routes: XrdRoute[] = [
   {
@@ -216,7 +218,10 @@ const routes: XrdRoute[] = [
             name: RouteName.Members,
             path: '',
             component: MemberList,
-            meta: { permissions: [Permissions.VIEW_MEMBERS] },
+            meta: {
+              permissions: [Permissions.VIEW_MEMBERS],
+              title: 'members.header',
+            },
           },
           {
             path: ':memberid',
@@ -224,7 +229,12 @@ const routes: XrdRoute[] = [
               default: MemberView,
               pageNavigation: PageNavigation,
             },
-            meta: { permissions: [Permissions.VIEW_MEMBER_DETAILS] },
+            meta: {
+              permissions: [Permissions.VIEW_MEMBER_DETAILS],
+              listView: RouteName.Members,
+              allowBackTo: [RouteName.SecurityServerClients],
+              title: () => useMember().currentMember?.member_name,
+            },
             props: { default: true },
             redirect: { name: RouteName.MemberDetails },
             children: [
@@ -260,7 +270,10 @@ const routes: XrdRoute[] = [
             name: RouteName.SecurityServers,
             path: '',
             component: SecurityServersList,
-            meta: { permissions: [Permissions.VIEW_SECURITY_SERVERS] },
+            meta: {
+              permissions: [Permissions.VIEW_SECURITY_SERVERS],
+              title: 'tab.main.securityServers',
+            },
           },
           {
             path: ':serverId',
@@ -272,7 +285,13 @@ const routes: XrdRoute[] = [
             redirect: {
               name: RouteName.SecurityServerDetails,
             },
-            meta: { permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS] },
+            meta: {
+              permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
+              listView: RouteName.SecurityServers,
+              title: () =>
+                useSecurityServer().currentSecurityServer?.server_id
+                  .server_code,
+            },
             children: [
               {
                 name: RouteName.SecurityServerDetails,

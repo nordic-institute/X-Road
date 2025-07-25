@@ -55,7 +55,7 @@ import { PropType } from 'vue';
 import { useToken } from '@/store/modules/tokens';
 import { Token } from '@/openapi-types';
 import { useForm } from 'vee-validate';
-import { useBasicForm } from '@/util/composables';
+import { useBasicForm } from '@niis/shared-ui';
 
 const props = defineProps({
   token: {
@@ -75,13 +75,13 @@ const [tokenPin, tokenPinAttrs] = defineField('tokenPin', {
 });
 
 const { loginToken } = useToken();
-const { showSuccess, showError, t, loading } = useBasicForm();
+const { addSuccessMessage, addError, loading } = useBasicForm();
 
 const login = handleSubmit((values) => {
   loading.value = true;
   loginToken(props.token.id, { password: values.tokenPin })
     .then(() => {
-      showSuccess(t('tokens.loginDialog.success'));
+      addSuccessMessage('tokens.loginDialog.success');
       emit('token-login');
     })
     .catch((error) => {
@@ -92,7 +92,7 @@ const login = handleSubmit((values) => {
           metadata.map((code) => t('tokens.errors.' + code) as string),
         );
       }
-      showError(error);
+      addError(error);
     })
     .finally(() => (loading.value = false));
 });
