@@ -25,15 +25,4 @@
  * THE SOFTWARE.
  */
 
-// New UI colors
-@use "colors";
-
-
-
-$Primary: colors.$Maroon400;
-$PrimaryHover: rgba(colors.$Blue400, .1);
-
-$Accent: colors.$Magenta600;
-$AccentOnContainer: colors.$White;
-$OnAccentContainer: colors.$Magenta600;
-$OnAccentContainerHover: rgba(colors.$Maroon700, .08);
+export * from './notifications';

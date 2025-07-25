@@ -24,54 +24,16 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-
 <template>
-  <v-layout>
-    <AppToolbar />
-    <router-view name="navigation" />
-
-    <v-main class="bg-surface pr-10">
-      <router-view />
-      <XrdAppFooter :app-version="appVersion" class="mt-6 mb-6 pa-0" />
-    </v-main>
-  </v-layout>
+  <v-sheet color="surface-dim" class="xrd-rounded-16 bg-surface-dim pa-6" tag="section">
+    <header v-if="$slots['header']" class="view-header d-flex flex-row align-end mb-6">
+      <slot name="header" />
+    </header>
+    <slot />
+  </v-sheet>
 </template>
 
 <script lang="ts" setup>
-import { Timeouts } from '@/global';
-import { useUser } from '@/store/modules/user';
-import { useSystem } from '@/store/modules/system';
-import { useAlerts } from '@/store/modules/alerts';
-import AppToolbar from '@/layouts/AppToolbar.vue';
-import { XrdAppFooter } from '@niis/shared-ui';
-import { computed } from 'vue';
-
-const userStore = useUser();
-const { checkAlerts } = useAlerts();
-const systemStore = useSystem();
-
-const appVersion = computed(() => systemStore.serverVersion?.info || '');
-
-const sessionPollInterval = setInterval(
-  () => pollSessionStatus(),
-  Timeouts.POLL_SESSION_TIMEOUT,
-);
-pollSessionStatus();
-systemStore.fetchSystemStatus();
-checkAlerts();
-
-async function pollSessionStatus() {
-  return userStore
-    .fetchSessionStatus()
-    .then(() => {
-      // Fetch any statuses from backend that are
-      // needed with POLL_SESSION_TIMEOUT periods
-      checkAlerts();
-    })
-    .finally(() => {
-      if (!userStore.isSessionAlive) {
-        clearInterval(sessionPollInterval);
-      }
-    });
-}
 </script>
+
+<style lang="scss" scoped></style>

@@ -58,7 +58,7 @@
 <script lang="ts" setup>
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useForm } from 'vee-validate';
-import { useBasicForm } from '@/util/composables';
+import { useBasicForm } from '@niis/shared-ui';
 
 /**
  * Component for a Security server details view
@@ -91,7 +91,7 @@ const [securityServerAddress, securityServerAddressAttrs] = defineField(
 );
 
 const { updateAddress } = useSecurityServer();
-const { showOrTranslateErrors, showSuccess, loading, t } = useBasicForm(
+const { showOrTranslateErrors, addSuccessMessage, loading} = useBasicForm(
   setFieldError,
   { securityServerAddress: 'securityServerAddressDto.serverAddress' },
 );
@@ -105,7 +105,7 @@ const saveAddress = handleSubmit((values) => {
   loading.value = true;
   updateAddress(props.securityServerId, values.securityServerAddress)
     .then(() => {
-      showSuccess(t('securityServers.dialogs.editAddress.success'));
+      addSuccessMessage('securityServers.dialogs.editAddress.success');
       emits('save');
     })
     .catch((error) => showOrTranslateErrors(error))

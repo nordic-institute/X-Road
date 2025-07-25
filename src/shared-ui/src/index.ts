@@ -38,3 +38,5 @@ export * from './views';
 
 export * from './plugins/i18n';
 export * from './utils';
+export * from './stores';
+export * from './composables';

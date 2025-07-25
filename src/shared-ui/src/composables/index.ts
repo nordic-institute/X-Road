@@ -25,16 +25,4 @@
  * THE SOFTWARE.
  */
 
-// New UI colors
-$White: #FFF;
-
-$Blue400: #55ACEE;
-
-$Magenta600: #99006B;
-
-$Maroon100: #E3E0E9;
-$Maroon400: #583F8B;
-$Maroon600: #220066;
-$Maroon700: #16094E;
-$Maroon800: #0B0633;
-
+export * from './basic-form';

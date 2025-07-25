@@ -25,12 +25,48 @@
  * THE SOFTWARE.
  */
 
-@use 'vuetify/settings' with (
-  $layers: false,
+import { AxiosError } from 'axios';
+import { i18n } from '../plugins/i18n';
 
-  $table-row-height: 56px,
-  $button-text-transform: none,
-  $field-outline-opacity: .4,
-  $ripple-animation-visible-opacity: .24,
-  $body-font-family: ('Open Sans', sans-serif)
-);
+type CodeWithDetails = {
+  code: string;
+  metadata?: string[];
+  validation_errors?: Record<string, string[]>;
+};
+
+export type ErrorInfo = {
+  status: number;
+  error?: CodeWithDetails;
+  warnings?: CodeWithDetails[];
+};
+
+function getErrorInfo(axiosError: AxiosError): ErrorInfo {
+  return (axiosError?.response?.data as ErrorInfo) || { status: 0 };
+}
+
+/*
+ * isFieldError  -- checks if ErrorInfo contains Spring  Validation failure data
+ * @params:
+ *    errorInfo:  ErrorInfo  returned from Spring backend
+ */
+function isFieldValidationError(errorInfo: ErrorInfo): boolean {
+  const errorStatus = errorInfo?.status;
+  return 400 === errorStatus && 'validation_failure' === errorInfo?.error?.code;
+}
+
+function getTranslatedFieldErrors(fieldName: string, fieldError: Record<string, string[]>): string[] {
+  const errors: string[] = fieldError[fieldName];
+  if (errors) {
+    return errors.map((errorKey: string) => {
+      return i18n.global.t(`validationError.${errorKey}Field`).toString();
+    });
+  } else {
+    return [];
+  }
+}
+
+export const axiosHelpers = {
+  isFieldValidationError,
+  getErrorInfo,
+  getTranslatedFieldErrors,
+};

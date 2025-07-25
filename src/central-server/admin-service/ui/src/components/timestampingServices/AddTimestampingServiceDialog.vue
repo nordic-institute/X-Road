@@ -64,7 +64,7 @@ import { computed } from 'vue';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
-import { useBasicForm, useFileRef } from '@/util/composables';
+import { useBasicForm, useFileRef } from '@niis/shared-ui';
 
 const emits = defineEmits(['save', 'cancel']);
 
@@ -75,7 +75,7 @@ const [tasUrl, tasUrlAttrs] = defineField('url', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { showSuccess, showError, t, loading } = useBasicForm();
+const { addSuccessMessage, addError, loading } = useBasicForm();
 const { addTimestampingService } = useTimestampingServicesStore();
 
 const certFile = useFileRef();
@@ -89,10 +89,10 @@ const save = handleSubmit((values) => {
   loading.value = true;
   addTimestampingService(values.url, certFile.value)
     .then(() => {
-      showSuccess(t('trustServices.timestampingService.dialog.add.success'));
+      addSuccessMessage('trustServices.timestampingService.dialog.add.success');
       emits('save');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 });
 </script>

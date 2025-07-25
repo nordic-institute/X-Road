@@ -25,63 +25,54 @@
  * THE SOFTWARE.
  */
 
-import { h } from 'vue';
-import type { IconSet, IconAliases, IconProps } from 'vuetify';
-import { VClassIcon } from 'vuetify/lib/composables/icons';
-
-const msrAliases: IconAliases = {
-  collapse: 'msr-arrow-drop-up',
-  complete: '...',
-  cancel: '...',
-  close: '...',
-  delete: '...',
-  clear: '...',
-  success: '...',
-  info: '...',
-  warning: '...',
-  error: '...',
-  prev: '...',
-  next: '...',
-  checkboxOn: '...',
-  checkboxOff: '...',
-  checkboxIndeterminate: '...',
-  delimiter: '...',
-  sortAsc: '...',
-  sortDesc: '...',
-  sort: '...',
-  expand: 'msr-arrow-drop-down',
-  menu: '...',
-  subgroup: '...',
-  dropdown: '...',
-  radioOn: '...',
-  radioOff: '...',
-  edit: '...',
-  ratingEmpty: '...',
-  ratingFull: '...',
-  ratingHalf: '...',
-  loading: '...',
-  first: '...',
-  last: '...',
-  unfold: '...',
-  file: '...',
-  plus: '...',
-  minus: '...',
-  calendar: '...',
-};
-
-interface ExtendedIconProps extends IconProps {
-  filled?: boolean | '';
+.title-page {
+  font-size: 40px;
+  line-height: 48px;
+  letter-spacing: 0.2px;
 }
 
-const msr: IconSet = {
-  component: (props: ExtendedIconProps) => {
-    const classes = ['msr'];
-    if (props.filled === '' || props.filled) {
-      classes.push('msr-filled');
-    }
+.title-view {
+  font-size: 28px;
+  line-height: 32px;
+  letter-spacing: 0.4px;
+}
 
-    return h(VClassIcon, { ...props, class: classes });
-  },
-};
+.title-container {
+  font-size: 20px;
+  line-height: 24px;
+  letter-spacing: 0.3px;
+}
 
-export { msrAliases, msr };
+.title-component {
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0.3px;
+}
+
+.body-large {
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.3px;
+}
+
+.body-regular {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.2px;
+}
+
+.body-small {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.2px;
+}
+
+.body-x-small {
+  font-size: 10px;
+  line-height: 12px;
+  letter-spacing: 0;
+}
+
+.font-weight-medium {
+  font-weight: 600 !important;
+}

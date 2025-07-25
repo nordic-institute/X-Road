@@ -141,16 +141,12 @@ import {
   InitialServerConf,
   TokenInitStatus,
 } from '@/openapi-types';
-import {
-  getTranslatedFieldErrors,
-  isFieldError,
-  swallowRedirectedNavigationError,
-} from '@/util/helpers';
+import { swallowRedirectedNavigationError } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSystem } from '@/store/modules/system';
 import { defineRule, useForm, useIsFieldValid } from 'vee-validate';
-import { XrdFormLabel, Colors } from '@niis/shared-ui';
+import { XrdFormLabel, Colors, axiosHelpers } from '@niis/shared-ui';
 import { confirmed } from '@vee-validate/rules';
 
 defineRule('confirmed', confirmed);
@@ -256,17 +252,19 @@ export default defineComponent({
         })
         .catch((error) => {
           const errorInfo: ErrorInfo = error.response?.data || { status: 0 };
-          if (isFieldError(errorInfo)) {
+          if (axiosHelpers.isFieldValidationError(errorInfo)) {
             const fieldErrors = errorInfo.error?.validation_errors;
             if (fieldErrors) {
-              const identifierErrors: string[] = getTranslatedFieldErrors(
-                'initialServerConfDto.instanceIdentifier',
-                fieldErrors,
-              );
-              const addressErrors: string[] = getTranslatedFieldErrors(
-                'initialServerConfDto.centralServerAddress',
-                fieldErrors,
-              );
+              const identifierErrors: string[] =
+                axiosHelpers.getTranslatedFieldErrors(
+                  'initialServerConfDto.instanceIdentifier',
+                  fieldErrors,
+                );
+              const addressErrors: string[] =
+                axiosHelpers.getTranslatedFieldErrors(
+                  'initialServerConfDto.centralServerAddress',
+                  fieldErrors,
+                );
               this.setFieldError('init.identifier', identifierErrors);
               this.setFieldError('init.address', addressErrors);
               this.showError(error);

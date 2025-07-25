@@ -35,25 +35,27 @@
     @save="add"
   >
     <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="subsystemCode"
-          v-bind="subsystemCodeAttrs"
-          :label="$t('members.member.subsystems.subsystemcode')"
-          variant="outlined"
-          autofocus
-          data-test="add-subsystem-input"
-        />
-
-        <v-text-field
-          v-model="subsystemName"
-          class="mt-2"
-          v-bind="subsystemNameAttrs"
-          :label="$t('members.member.subsystems.subsystemname')"
-          variant="outlined"
-          data-test="add-subsystem-name-input"
-        />
-      </div>
+      <XrdDialogSubView>
+        <XrdDialogSubViewRow>
+          <v-text-field
+            v-model="subsystemCode"
+            v-bind="subsystemCodeAttrs"
+            data-test="add-subsystem-input"
+            class="xrd-text-field"
+            autofocus
+            :label="$t('members.member.subsystems.subsystemcode')"
+          />
+        </XrdDialogSubViewRow>
+        <XrdDialogSubViewRow>
+          <v-text-field
+            v-model="subsystemName"
+            v-bind="subsystemNameAttrs"
+            data-test="add-subsystem-name-input"
+            class="xrd-text-field"
+            :label="$t('members.member.subsystems.subsystemname')"
+          />
+        </XrdDialogSubViewRow>
+      </XrdDialogSubView>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -65,6 +67,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
+import { XrdDialogSubView, XrdDialogSubViewRow } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {
@@ -84,11 +87,15 @@ const { addSubsystem } = useSubsystem();
 const { showError, showSuccess } = useNotifications();
 
 const [subsystemCode, subsystemCodeAttrs] = defineField('subsystemCode', {
-  props: (state) => ({ 'error-messages': state.errors }),
+  props: (state) => ({
+    'error-messages': state.errors,
+  }),
 });
 
 const [subsystemName, subsystemNameAttrs] = defineField('subsystemName', {
-  props: (state) => ({ 'error-messages': state.errors }),
+  props: (state) => ({
+    'error-messages': state.errors,
+  }),
 });
 
 const loading = ref(false);

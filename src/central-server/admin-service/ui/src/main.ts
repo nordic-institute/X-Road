@@ -55,7 +55,6 @@ import {
   XrdIconCopy,
   XrdIconEdit,
   XrdIconFolderOutline,
-  XrdSearch,
   XrdSimpleDialog,
   XrdSubViewContainer,
   XrdSubViewTitle,
@@ -93,7 +92,6 @@ app.component('XrdIconCopy', XrdIconCopy);
 app.component('XrdIconEdit', XrdIconEdit);
 //components
 app.component('XrdButton', XrdButton);
-app.component('XrdSearch', XrdSearch);
 app.component('XrdCloseButton', XrdCloseButton);
 app.component('XrdSubViewContainer', XrdSubViewContainer);
 app.component('XrdSimpleDialog', XrdSimpleDialog);

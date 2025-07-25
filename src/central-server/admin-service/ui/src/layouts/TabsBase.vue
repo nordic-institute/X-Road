@@ -36,5 +36,4 @@ import { XrdTabsBase } from '@niis/shared-ui';
 
 const { getAllowedTabs, username } = useUser();
 const allowedTabs = computed(() => getAllowedTabs(mainTabs));
-
 </script>

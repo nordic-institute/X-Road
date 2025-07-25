@@ -24,54 +24,48 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-
 <template>
-  <v-layout>
-    <AppToolbar />
-    <router-view name="navigation" />
-
-    <v-main class="bg-surface pr-10">
-      <router-view />
-      <XrdAppFooter :app-version="appVersion" class="mt-6 mb-6 pa-0" />
-    </v-main>
-  </v-layout>
+  <v-card variant="flat" class="xrd-rounded-12 border" :class="classes">
+    <v-card-title
+      v-if="titleKey || $slots['append-title'] || $slots['title-actions']"
+      class="d-flex flex-row align-center pt-2 pl-4 pb-6 pr-0"
+    >
+      <div v-if="titleKey" class="font-weight-medium title-component">
+        {{ $t(titleKey) }}
+      </div>
+      <div v-if="$slots['append-title']" class="ml-6">
+        <slot name="append-title" />
+      </div>
+      <div v-if="$slots['title-actions']" class="ml-auto">
+        <slot name="title-actions" />
+      </div>
+    </v-card-title>
+    <v-card-text class="pa-0">
+      <slot />
+    </v-card-text>
+  </v-card>
 </template>
 
 <script lang="ts" setup>
-import { Timeouts } from '@/global';
-import { useUser } from '@/store/modules/user';
-import { useSystem } from '@/store/modules/system';
-import { useAlerts } from '@/store/modules/alerts';
-import AppToolbar from '@/layouts/AppToolbar.vue';
-import { XrdAppFooter } from '@niis/shared-ui';
-import { computed } from 'vue';
+import { PropType, computed } from 'vue';
 
-const userStore = useUser();
-const { checkAlerts } = useAlerts();
-const systemStore = useSystem();
+const props = defineProps({
+  variant: {
+    type: String as PropType<'flat'>,
+    default: 'flat',
+  },
+  titleKey: {
+    type: String,
+    default: undefined,
+  },
+  bgColor: {
+    type: String,
+    default: 'surface-container',
+  },
+});
 
-const appVersion = computed(() => systemStore.serverVersion?.info || '');
+const classes = computed(() => ['bg-' + props.bgColor]);
 
-const sessionPollInterval = setInterval(
-  () => pollSessionStatus(),
-  Timeouts.POLL_SESSION_TIMEOUT,
-);
-pollSessionStatus();
-systemStore.fetchSystemStatus();
-checkAlerts();
-
-async function pollSessionStatus() {
-  return userStore
-    .fetchSessionStatus()
-    .then(() => {
-      // Fetch any statuses from backend that are
-      // needed with POLL_SESSION_TIMEOUT periods
-      checkAlerts();
-    })
-    .finally(() => {
-      if (!userStore.isSessionAlive) {
-        clearInterval(sessionPollInterval);
-      }
-    });
-}
 </script>
+
+<style lang="scss" scoped></style>

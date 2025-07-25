@@ -25,68 +25,99 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :model-value="true" class="xrd-confirm-dialog" width="400">
-    <v-card class="xrd-rounded-12 bg-surface-container-lowest">
-      <v-card-title class="font-weight-bold title-container pa-6">
-        {{ $t(title) }}
-      </v-card-title>
-      <v-card-text class="pt-0 pr-6 pl-6 pb-2">
-        <slot name="text">{{ $t(text, data) }}</slot>
-      </v-card-text>
-      <v-card-actions>
-        <XrdBtn variant="text" :text-key="cancelButtonText" @click="$emit('cancel')" />
-        <XrdBtn variant="text" :text-key="acceptButtonText" :loading="loading" @click="$emit('accept')" />
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <v-btn
+    rounded="xl"
+    height="40"
+    :color="color"
+    :variant="variant"
+    :slim="false"
+    :prepend-icon="prependIcon"
+    :disabled="disabled"
+    :loading="loading"
+    :type="submit ? 'submit' : 'button'"
+    @click="emit('click', $event)"
+  >
+    <template v-if="prependIcon || $slots.prepend" #prepend>
+      <slot name="prepend">
+        <v-icon v-if="prependIcon" :icon="prependIcon" :size="prependIconSize" />
+      </slot>
+    </template>
+    <slot>
+      <span v-if="btnText" class="body-regular font-weight-medium">
+        {{ btnText }}
+      </span>
+    </slot>
+  </v-btn>
 </template>
 
 <script lang="ts" setup>
-/**
- * A dialog for simple "accept or cancel" functions
- */
+import { ref, onMounted, PropType, computed } from 'vue';
+import { VBtn } from 'vuetify/components';
+import { useI18n } from 'vue-i18n';
 
-import type { PropType } from 'vue';
-import XrdBtn from './XrdBtn.vue';
-
-defineProps({
-  modelValue: {
+const props = defineProps({
+  text: {
+    type: String,
+    default: undefined,
+  },
+  textKey: {
+    type: String,
+    default: undefined,
+  },
+  prependIcon: {
+    type: String,
+    default: undefined,
+  },
+  disabled: {
     type: Boolean,
     default: false,
   },
-  title: {
-    type: String,
-    required: true,
+  submit: {
+    type: Boolean,
+    default: false,
   },
-  text: {
-    type: String,
-    default: '',
-  },
-  cancelButtonText: {
-    type: String,
-    default: 'action.cancel',
-  },
-  acceptButtonText: {
-    type: String,
-    default: 'action.yes',
-  },
-  // Set save button loading spinner
   loading: {
     type: Boolean,
     default: false,
   },
-  // In case the confirmation text requires additional data
-  data: {
-    type: Object as PropType<Record<string, unknown>>,
-    required: false,
-    default: {} as Record<string, unknown>,
-  },
-  focusOnAccept: {
+  autofocus: {
     type: Boolean,
     default: false,
   },
+  prependIconSize: {
+    type: Number,
+    default: 20,
+  },
+  variant: {
+    type: String as PropType<'flat' | 'text' | 'outlined' | 'plain'>,
+    default: 'flat',
+  },
+  color: {
+    type: String,
+    default: 'secondary',
+  },
+});
+const emit = defineEmits(['click']);
+
+const { t } = useI18n();
+
+const btnText = computed(() => (props.text ? props.text : props.textKey ? t(props.textKey) : undefined));
+
+const button = ref<VBtn>();
+
+function focus() {
+  if (button.value && button.value.$el) {
+    (button.value.$el as HTMLButtonElement).focus();
+  }
+}
+
+onMounted(() => {
+  if (props.autofocus) {
+    focus();
+  }
 });
 
-defineEmits(['accept', 'cancel']);
+defineExpose({ focus });
 </script>
+
 <style lang="scss" scoped></style>

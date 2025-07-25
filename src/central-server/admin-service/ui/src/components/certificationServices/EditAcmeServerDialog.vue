@@ -96,7 +96,7 @@ import { computed, PropType, ref } from 'vue';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
 import { useForm } from 'vee-validate';
-import { useBasicForm } from '@/util/composables';
+import { useBasicForm } from '@niis/shared-ui';
 
 const props = defineProps({
   certificationService: {
@@ -106,7 +106,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['cancel', 'tls-auth-changed']);
-const { loading, t, showSuccess, showError } = useBasicForm();
+const { loading, addSuccessMessage, addError } = useBasicForm();
 const isAcme = ref(!!props.certificationService.acme_server_directory_url);
 const validationSchema = computed(() => {
   return isAcme.value
@@ -170,10 +170,10 @@ const updateCertificationServiceSettings = handleSubmit((values) => {
       : '',
   })
     .then(() => {
-      showSuccess(t('trustServices.trustService.settings.saveSuccess'));
+      addSuccessMessage('trustServices.trustService.settings.saveSuccess');
       emit('tls-auth-changed');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 });
 </script>

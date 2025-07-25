@@ -24,19 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+@font-face {
+  font-family: 'Material Symbols Rounded';
+  src: url('./MaterialSymbolsRounded.woff2') format('woff2'),
+  url('./MaterialSymbolsRounded.ttf') format('truetype');
+}
 
-import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
+@font-face {
+  font-family: 'Open Sans';
+  src: url('./OpenSans-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: 300 800;
+}
 
-type XrdMeta = {
-  permissions?: string[];
-  backOnEscape?: boolean;
-};
 
-export type XrdLocation = RouteLocationNormalized & {
-  meta?: XrdMeta;
-};
-
-export type XrdRoute = RouteRecordRaw & {
-  meta?: XrdMeta | undefined;
-  children?: XrdRoute[];
-};
+body {
+}

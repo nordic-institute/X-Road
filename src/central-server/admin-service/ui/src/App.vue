@@ -32,30 +32,18 @@
       </transition>
     </router-view>
   </XrdApp>
-
-  <XrdSnackBar
-    :success-notifications="notificationStore.successNotifications"
-    @close="notificationStore.deleteSuccessNotification($event.timeAdded)"
-  />
 </template>
 
 <script lang="ts" setup>
 // The root component of the Vue app
 import { computed } from 'vue';
-import { XrdSnackBar, XrdApp } from '@niis/shared-ui';
+import { XrdApp } from '@niis/shared-ui';
 import { RouteName } from '@/global';
 import { useRoute } from 'vue-router';
-import { useNotifications } from '@/store/modules/notifications';
 
 const route = useRoute();
-const notificationStore = useNotifications();
 
 const loginView = computed(() => {
   return route.name === RouteName.Login;
 });
 </script>
-
-<style lang="scss">
-
-</style>
-<style lang="scss" scoped></style>

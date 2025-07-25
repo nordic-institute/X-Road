@@ -59,8 +59,8 @@
 <script lang="ts" setup>
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { useForm } from 'vee-validate';
-import { useBasicForm } from '@/util/composables';
 import { AxiosError } from 'axios';
+import { useBasicForm } from '@niis/shared-ui';
 
 const emit = defineEmits(['save', 'cancel']);
 const { defineField, meta, handleSubmit, setFieldError } = useForm({
@@ -77,7 +77,7 @@ const [description, descriptionAttrs] = defineField('description', {
 });
 
 const { add } = useGlobalGroups();
-const { loading, showSuccess, t, showOrTranslateErrors } = useBasicForm(
+const { loading, addSuccessMessage, showOrTranslateErrors } = useBasicForm(
   setFieldError,
   {
     code: 'globalGroupCodeAndDescriptionDto.code',
@@ -88,7 +88,7 @@ const save = handleSubmit((values) => {
   loading.value = true;
   add({ code: values.code, description: values.description })
     .then(() => {
-      showSuccess(t('globalResources.globalGroupSuccessfullyAdded'));
+      addSuccessMessage('globalResources.globalGroupSuccessfullyAdded');
       emit('save');
     })
     .catch((error) => showOrTranslateErrors(error as AxiosError))

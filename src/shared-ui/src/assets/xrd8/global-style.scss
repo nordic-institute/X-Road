@@ -25,62 +25,12 @@
  * THE SOFTWARE.
  */
 
-@use 'colors';
-
-.title-page {
-  font-size: 40px;
-  line-height: 48px;
-  letter-spacing: 0.2px;
-}
-
-.title-view {
-  font-size: 28px;
-  line-height: 32px;
-  letter-spacing: 0.4px;
-}
-
-.title-container {
-  font-size: 20px;
-  line-height: 24px;
-  letter-spacing: 0.3px;
-}
-
-.title-component {
-  font-size: 18px;
-  line-height: 24px;
-  letter-spacing: 0.3px;
-}
-
-.body-large {
-  font-size: 16px;
-  line-height: 24px;
-  letter-spacing: 0.3px;
-}
-
-.body-regular {
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 0.2px;
-}
-
-.body-small {
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: 0.2px;
-}
-
-.body-x-small {
-  font-size: 10px;
-  line-height: 12px;
-  letter-spacing: 0;
-}
+@import "material-symbols-rounded";
+@import "text-styles";
+@import "vuetify-overrides";
 
 %special-bh-gradient {
   background: radial-gradient(rgb(var(--v-theme-special-start)) 12%, rgb(var(--v-theme-special)) 100%);
-}
-
-.font-weight-medium {
-  font-weight: 600 !important;
 }
 
 .bg-special {
@@ -91,3 +41,25 @@
   }
 }
 
+.xrd-rounded-16 {
+  border-radius: 16px !important;
+}
+
+.xrd-rounded-12 {
+  border-radius: 12px !important;
+}
+
+.xrd {
+  &.bg-success-container {
+    background-color: rgba(var(--v-theme-success-container), 0.15) !important;
+  }
+  &.bg-info-container {
+    background-color: rgba(var(--v-theme-info-container), 0.15) !important;
+  }
+  &.bg-warning-container {
+    background-color: rgba(var(--v-theme-warning-container), 0.15) !important;
+  }
+  &.bg-error-container {
+    background-color: rgba(var(--v-theme-error-container), 0.10) !important;
+  }
+}
