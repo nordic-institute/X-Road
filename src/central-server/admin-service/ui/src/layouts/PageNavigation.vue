@@ -25,19 +25,22 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <v-tabs>
-      <v-tab
-        v-for="tab in allowedTabs"
-        :key="tab.key"
-        :to="tab.to"
-        :data-test="tab.key"
-        exact
-        >{{ $t(tab.name) }}
-        <span v-if="tab.showAttention" class="dot mb-3"></span>
-      </v-tab>
-    </v-tabs>
-  </div>
+  <v-tabs grow class="bg-tab rounded-xl">
+    <v-tab
+      v-for="tab in allowedTabs"
+      :key="tab.key"
+      class="body-regular font-weight-medium"
+      variant="flat"
+      rounded="xl"
+      base-color="tab"
+      color="active-tab"
+      hide-slider
+      :to="tab.to"
+      :data-test="tab.key"
+      :text="$t(tab.name)"
+      :prepend-icon="tab.icon"
+    />
+  </v-tabs>
 </template>
 
 <script lang="ts">
@@ -67,9 +70,7 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-:deep(.v-tab) {
-  text-transform: none;
-  font-weight: 600;
-  color: rgb(0 0 0 / 54%);
+.v-tab-item--selected {
+  background-color: red;
 }
 </style>

@@ -34,18 +34,13 @@
     fluid
     class="alerts-container px-3"
   >
-    <XrdErrorNotification
-      v-for="notification in notifications.errorNotifications"
-      :key="notification.timeAdded"
-      :notification="notification"
-      @close="notifications.deleteNotification($event.timeAdded)"
-    />
+    <XrdErrorNotifications />
   </v-container>
 </template>
 
 <script lang="ts" setup>
 import { useNotifications } from '@/store/modules/notifications';
-import { XrdErrorNotification } from '@niis/shared-ui';
+import { XrdErrorNotifications } from '@niis/shared-ui';
 
 const notifications = useNotifications();
 </script>

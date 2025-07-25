@@ -25,18 +25,30 @@
    THE SOFTWARE.
  -->
 <template>
-  <searchable-titled-view v-model="search" :title-key="titleKey">
+  <XrdCard :title-key="titleKey" class="bg-surface-container" variant="flat">
+    <template #append-title>
+      <v-text-field
+        v-model="search"
+        data-test="search-query-field"
+        class="xrd-text-field"
+        width="360"
+        prepend-inner-icon="search"
+        single-line
+        :label="$t('action.search')"
+      />
+    </template>
     <v-data-table
+      data-test="servers-table"
+      class="xrd-data-table bg-surface-container"
+      item-key="id"
+      hide-default-footer
       :loading="loading"
       :headers="headers"
       :items="servers"
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
       :loader-height="2"
-      data-test="servers-table"
     >
       <template #[`item.server_id.server_code`]="{ item }">
         <div
@@ -50,15 +62,11 @@
       <template #[`item.action`]="{ item }">
         <slot name="actions" :server="item"></slot>
       </template>
-      <template #bottom>
-        <XrdDataTableFooter />
-      </template>
     </v-data-table>
-  </searchable-titled-view>
+  </XrdCard>
 </template>
 <script setup lang="ts">
-import { XrdDataTableFooter } from '@niis/shared-ui';
-import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
+import { XrdCard } from '@niis/shared-ui';
 import { ref } from 'vue';
 import { DataTableHeader } from '@/ui-types';
 import { SecurityServer } from '@/openapi-types';

@@ -37,7 +37,6 @@ import XrdFileUploadField from './XrdFileUploadField.vue';
 import XrdFormLabel from './XrdFormLabel.vue';
 import XrdHelpDialog from './XrdHelpDialog.vue';
 import XrdHelpIcon from './XrdHelpIcon.vue';
-import XrdSearch from './XrdSearch.vue';
 import XrdSimpleDialog from './XrdSimpleDialog.vue';
 import XrdStatusIcon from './XrdStatusIcon.vue';
 import XrdSubViewTitle from './XrdSubViewTitle.vue';
@@ -49,8 +48,11 @@ import XrdAppDropMenu from './XrdAppDropMenu.vue';
 import XrdSubTabs from './XrdSubTabs.vue';
 import XrdTabsBase from './XrdTabsBase.vue';
 import XrdDataTableFooter from './XrdDataTableFooter.vue';
-import XrdSnackBar from './XrdSnackBar.vue';
-import XrdErrorNotification from './XrdErrorNotification.vue';
+import XrdErrorNotifications from './XrdErrorNotifications.vue';
+import XrdBtn from './XrdBtn.vue';
+import XrdPagination from './XrdPagination.vue';
+import XrdCard from './XrdCard.vue';
+import XrdStatusChip from './XrdStatusChip.vue';
 
 export {
   XrdAppIcon,
@@ -66,7 +68,6 @@ export {
   XrdFormLabel,
   XrdHelpDialog,
   XrdHelpIcon,
-  XrdSearch,
   XrdSimpleDialog,
   XrdStatusIcon,
   XrdSubViewTitle,
@@ -77,6 +78,9 @@ export {
   XrdSubTabs,
   XrdTabsBase,
   XrdDataTableFooter,
-  XrdSnackBar,
-  XrdErrorNotification,
+  XrdErrorNotifications,
+  XrdBtn,
+  XrdPagination,
+  XrdCard,
+  XrdStatusChip,
 };

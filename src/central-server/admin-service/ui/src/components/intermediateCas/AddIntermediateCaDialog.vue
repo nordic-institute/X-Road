@@ -51,12 +51,12 @@
 <script lang="ts" setup>
 import { useIntermediateCasService } from '@/store/modules/trust-services';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
-import { useBasicForm, useFileRef } from '@/util/composables';
+import { useBasicForm, useFileRef } from '@niis/shared-ui';
 
 const emits = defineEmits(['save', 'cancel']);
 
 const { addIntermediateCa } = useIntermediateCasService();
-const { showSuccess, showError, t, loading } = useBasicForm();
+const { addSuccessMessage, addError, loading } = useBasicForm();
 
 const certFile = useFileRef();
 
@@ -67,10 +67,10 @@ function uploadCertificate() {
   }
   addIntermediateCa(certFile.value)
     .then(() => {
-      showSuccess(t('trustServices.trustService.intermediateCas.add.success'));
+      addSuccessMessage('trustServices.trustService.intermediateCas.add.success');
       emits('save');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 }
 </script>

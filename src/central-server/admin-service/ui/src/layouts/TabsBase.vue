@@ -25,30 +25,15 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTabsBase :tabs="allowedTabs" />
+  <XrdTabsBase :tabs="allowedTabs" :user-name="username" />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { computed } from 'vue';
 import { mainTabs } from '@/global';
-import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { Tab, XrdTabsBase } from '@niis/shared-ui';
+import { XrdTabsBase } from '@niis/shared-ui';
 
-export default defineComponent({
-  components: {
-    XrdTabsBase,
-  },
-  data() {
-    return {
-      currentTab: undefined as undefined | Tab,
-    };
-  },
-  computed: {
-    ...mapState(useUser, ['getAllowedTabs']),
-    allowedTabs(): Tab[] {
-      return this.getAllowedTabs(mainTabs);
-    },
-  },
-});
+const { getAllowedTabs, username } = useUser();
+const allowedTabs = computed(() => getAllowedTabs(mainTabs));
 </script>

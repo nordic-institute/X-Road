@@ -63,7 +63,7 @@
 import { useOcspResponderService } from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
-import { useBasicForm, useFileRef } from '@/util/composables';
+import { useBasicForm, useFileRef } from '@niis/shared-ui';
 
 const emits = defineEmits(['save', 'cancel']);
 
@@ -76,7 +76,7 @@ const [ocspUrl, ocspUrlAttrs] = defineField('url', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { showSuccess, showError, t, loading } = useBasicForm();
+const { addSuccessMessage, addError, loading } = useBasicForm();
 const { addOcspResponder } = useOcspResponderService();
 
 const certFile = useFileRef();
@@ -85,10 +85,10 @@ const add = handleSubmit((values) => {
   loading.value = true;
   addOcspResponder(values.url, certFile.value)
     .then(() => {
-      showSuccess(t('trustServices.trustService.ocspResponders.add.success'));
+      addSuccessMessage('trustServices.trustService.ocspResponders.add.success');
       emits('save');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 });
 

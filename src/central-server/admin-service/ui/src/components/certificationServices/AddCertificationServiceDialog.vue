@@ -131,9 +131,9 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { useForm } from 'vee-validate';
-import { useBasicForm, useFileRef } from '@/util/composables';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
 import { useCertificationService } from '@/store/modules/trust-services';
+import { useBasicForm, useFileRef } from '@niis/shared-ui';
 
 const emit = defineEmits(['save', 'cancel']);
 
@@ -188,7 +188,7 @@ const [signingCertificateProfileId, signingCertificateProfileIdAttrs] =
     props: (state) => ({ 'error-messages': state.errors }),
   });
 
-const { loading, showSuccess, showError, t } = useBasicForm();
+const { loading, addSuccessMessage, addError} = useBasicForm();
 const { add } = useCertificationService();
 
 const showCASettingsDialog = ref(false);
@@ -214,9 +214,9 @@ const onSave = handleSubmit((values) => {
       signing_certificate_profile_id: values.signingCertificateProfileId,
     };
     add(certService)
-      .then(() => showSuccess(t('trustServices.certImportedSuccessfully')))
+      .then(() => addSuccessMessage('trustServices.certImportedSuccessfully'))
       .then(() => emit('save'))
-      .catch((error) => showError(error))
+      .catch((error) => addError(error))
       .finally(() => (loading.value = false));
   }
 });

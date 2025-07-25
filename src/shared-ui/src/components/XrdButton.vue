@@ -50,6 +50,7 @@
  * Wrapper for vuetify button with x-road look
  * */
 import { computed, onMounted, ref } from 'vue';
+import { VBtn } from 'vuetify/components';
 
 const props = defineProps({
   // Button color
