@@ -25,8 +25,8 @@
   },
   "devDependencies": {
     "@pinia/testing": "^1.0.2",
-    "@typescript-eslint/eslint-plugin": "~8.35.1",
-    "@typescript-eslint/parser": "~8.35.1",
+    "@typescript-eslint/eslint-plugin": "~8.38.0",
+    "@typescript-eslint/parser": "~8.38.0",
     "@vue/test-utils": "^2.4.6",
     "eslint-plugin-vue-scoped-css": "^2.11.0",
     "resize-observer-polyfill": "^1.5.1"
@@ -34,7 +34,7 @@
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
-    "node": ">=18 <=20",
-    "pnpm": ">=9"
+    "node": ">=22 <=24",
+    "pnpm": ">=10"
   }
 }

@@ -16,21 +16,21 @@
     "@mdi/font": "^7.4.47",
     "@vee-validate/i18n": "~4.15.1",
     "@vee-validate/rules": "~4.15.1",
-    "axios": "~1.10.0",
+    "axios": "~1.11.0",
     "dayjs": "^1.11.13",
     "deepmerge": "^4.3.1",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.4.1",
     "vee-validate": "^4.15.1",
-    "vue": "^3.5.17",
-    "vue-i18n": "^11.1.9",
+    "vue": "^3.5.18",
+    "vue-i18n": "^11.1.11",
     "vue-router": "^4.5.1",
     "vuetify": "3.8.12"
   },
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
-    "node": ">=18 <=20",
-    "pnpm": ">=9"
+    "node": ">=22 <=24",
+    "pnpm": ">=10"
   }
 }
