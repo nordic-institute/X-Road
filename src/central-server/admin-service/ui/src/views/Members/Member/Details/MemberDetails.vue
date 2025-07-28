@@ -34,26 +34,38 @@
       <v-table class="bg-surface-container xrd-rounded-12">
         <tbody>
           <tr>
-            <td class="on-surface-variant font-weight-medium">{{ $t('global.memberName') }}</td>
-            <td data-test="member-name-card">{{ memberStore.currentMember.member_name }}</td>
+            <td class="on-surface-variant font-weight-medium">
+              {{ $t('global.memberName') }}
+            </td>
+            <td data-test="member-name-card">
+              {{ memberStore.currentMember.member_name }}
+            </td>
             <td class="text-end">
               <XrdBtn
                 v-if="allowMemberRename"
                 variant="text"
                 color="tertiary"
-                text-key="action.edit"
+                text="action.edit"
                 @click="showEditNameDialog = true"
               />
             </td>
           </tr>
           <tr>
-            <td class="on-surface-variant font-weight-medium">{{ $t('global.memberClass') }}</td>
-            <td data-test="member-class-card">{{ memberStore.currentMember.client_id.member_class }}</td>
+            <td class="on-surface-variant font-weight-medium">
+              {{ $t('global.memberClass') }}
+            </td>
+            <td data-test="member-class-card">
+              {{ memberStore.currentMember.client_id.member_class }}
+            </td>
             <td></td>
           </tr>
           <tr>
-            <td class="on-surface-variant font-weight-medium">{{ $t('global.memberCode') }}</td>
-            <td data-test="member-code-card">{{ memberStore.currentMember.client_id.member_code }}</td>
+            <td class="on-surface-variant font-weight-medium">
+              {{ $t('global.memberCode') }}
+            </td>
+            <td data-test="member-code-card">
+              {{ memberStore.currentMember.client_id.member_code }}
+            </td>
             <td></td>
           </tr>
         </tbody>
@@ -79,15 +91,14 @@
         data-test="used-servers-table"
       >
         <template #actions="{ server }">
-          <xrd-button
+          <XrdBtn
             v-if="allowUnregisterMember"
-            text
+            variant="text"
+            color="tertiary"
+            text="action.unregister"
             :data-test="`unregister-${server.server_id.server_code}`"
-            :outlined="false"
             @click="unregisterFromServer = server"
-          >
-            {{ $t('action.unregister') }}
-          </xrd-button>
+          />
         </template>
       </ServersList>
 

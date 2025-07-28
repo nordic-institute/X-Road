@@ -36,17 +36,18 @@
     @save="rename"
   >
     <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="name"
-          class="mt-2"
-          v-bind="nameAttrs"
-          :label="$t('members.member.subsystems.subsystemname')"
-          variant="outlined"
-          autofocus
-          data-test="subsystem-name-input"
-        />
-      </div>
+      <XrdDialogSubView>
+        <XrdDialogSubViewRow>
+          <v-text-field
+            v-model="name"
+            v-bind="nameAttrs"
+            data-test="subsystem-name-input"
+            class="xrd-text-field"
+            autofocus
+            :label="$t('members.member.subsystems.subsystemname')"
+          />
+        </XrdDialogSubViewRow>
+      </XrdDialogSubView>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -58,6 +59,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
+import { XrdDialogSubView, XrdDialogSubViewRow } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {

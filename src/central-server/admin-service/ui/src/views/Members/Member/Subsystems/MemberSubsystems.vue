@@ -32,7 +32,7 @@
         prepend-icon="add_circle"
         data-test="add-subsystem"
         class="ml-auto"
-        text-key="members.member.subsystems.addClient"
+        text="members.member.subsystems.addClient"
         @click="showAddSubsystemDialog = true"
       />
     </template>
@@ -96,7 +96,7 @@
                   data-test="delete-subsystem"
                   variant="text"
                   color="tertiary"
-                  text-key="action.delete"
+                  text="action.delete"
                   @click="deleteClicked(item)"
                 />
               </div>
@@ -215,7 +215,7 @@
                   "
                   variant="text"
                   color="tertiary"
-                  text-key="action.unregister"
+                  text="action.unregister"
                   @click="unregisterClicked(item, subitem)"
                 />
 
@@ -223,14 +223,14 @@
                   v-if="subitem.status === 'WAITING'"
                   variant="text"
                   color="tertiary"
-                  text-key="action.approve"
+                  text="action.approve"
                 />
 
                 <XrdBtn
                   v-if="subitem.status === 'WAITING'"
                   variant="text"
                   color="tertiary"
-                  text-key="action.decline"
+                  text="action.decline"
                 />
               </div>
             </td>

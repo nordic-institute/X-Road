@@ -33,7 +33,7 @@
         class="ml-auto"
         prepend-icon="delete_forever"
         variant="outlined"
-        text-key="action.delete"
+        text="action.delete"
         @click="showDeleteDialog = true"
       />
     </template>

@@ -42,10 +42,9 @@
     color="tertiary"
     class="pl-0 font-weight-medium body-regular"
     data-test="rename-subsystem"
+    text="action.addName"
     @click="emits('click')"
-  >
-    {{ $t('action.addName') }}
-  </XrdBtn>
+  />
 </template>
 
 <script lang="ts" setup>

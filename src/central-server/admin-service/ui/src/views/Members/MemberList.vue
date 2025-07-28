@@ -44,7 +44,7 @@
         data-test="add-member-button"
         class="ml-auto"
         prepend-icon="create_new_folder"
-        text-key="members.addMember"
+        text="members.addMember"
         @click="showAddMemberDialog = true"
       />
     </template>

@@ -53,7 +53,6 @@ import {
   XrdIconFolderOutline,
   XrdIconSortingArrow,
   XrdIconTooltip,
-  XrdSearch,
   XrdSimpleDialog,
   XrdStatusIcon,
   XrdSubViewContainer,
@@ -108,7 +107,6 @@ app.component('XrdStatusIcon', XrdStatusIcon);
 app.component('XrdIconEdit', XrdIconEdit);
 //components
 app.component('XrdButton', XrdButton);
-app.component('XrdSearch', XrdSearch);
 app.component('XrdSubViewContainer', XrdSubViewContainer);
 app.component('XrdSimpleDialog', XrdSimpleDialog);
 app.component('XrdConfirmDialog', XrdConfirmDialog);

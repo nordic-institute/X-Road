@@ -33,19 +33,22 @@
     @accept="deleteSubsystem"
   >
     <template #text>
-      <div data-test="delete-subsystem">
+      <span
+        data-test="delete-subsystem"
+        class="font-weight-regular body-regular"
+      >
         <i18n-t
           scope="global"
           keypath="members.member.subsystems.areYouSureDelete"
         >
           <template #subsystemCode>
-            <b>{{ subsystemCode }}</b>
+            <span class="font-weight-bold">{{ subsystemCode }}</span>
           </template>
           <template #memberId>
-            <b>{{ shortMemberId }}</b>
+            <span class="font-weight-bold">{{ shortMemberId }}</span>
           </template>
         </i18n-t>
-      </div>
+      </span>
     </template>
   </xrd-confirm-dialog>
 </template>

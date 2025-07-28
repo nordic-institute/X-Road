@@ -33,17 +33,23 @@
     @accept="unregister"
   >
     <template #text>
-      <i18n-t
-        scope="global"
-        keypath="members.member.details.areYouSureUnregister"
-      >
-        <template #memberCode>
-          <b>{{ member.client_id.member_code }}</b>
-        </template>
-        <template #serverCode>
-          <b>{{ server.server_id.server_code }}</b>
-        </template>
-      </i18n-t>
+      <span class="font-weight-regular body-regular">
+        <i18n-t
+          scope="global"
+          keypath="members.member.details.areYouSureUnregister"
+        >
+          <template #memberCode>
+            <span class="font-weight-bold">{{
+              member.client_id.member_code
+            }}</span>
+          </template>
+          <template #serverCode>
+            <span class="font-weight-bold">{{
+              server.server_id.server_code
+            }}</span>
+          </template>
+        </i18n-t>
+      </span>
     </template>
   </xrd-confirm-dialog>
 </template>

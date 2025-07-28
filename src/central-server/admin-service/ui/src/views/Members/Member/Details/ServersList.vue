@@ -52,7 +52,7 @@
     >
       <template #[`item.server_id.server_code`]="{ item }">
         <div
-          class="server-code xrd-clickable"
+          class="server-code cursor-pointer"
           :data-test="`server-${item.server_id.server_code}`"
           @click="toSecurityServerDetails(item)"
         >

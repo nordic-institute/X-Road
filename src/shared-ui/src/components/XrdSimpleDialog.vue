@@ -27,14 +27,14 @@
 <template>
   <v-dialog
     v-model="showDialog"
-    class="xrd-dialog-simple xrd-rounded-12"
+    class="xrd-rounded-12"
     :width="width"
     :persistent="canEscape"
     :scrollable="scrollable"
     @update:model-value="modelValueUpdated"
   >
     <v-form @submit.prevent="submit">
-      <v-card class="xrd-card bg-surface-container-lowest xrd-rounded-12" data-test="dialog-simple">
+      <v-card class="bg-surface-container-lowest xrd-rounded-12" data-test="dialog-simple">
         <template #title>
           <slot name="title">
             <span class="dialog-title font-weight-bold" data-test="dialog-title">{{ $t(title) }}</span>
@@ -47,19 +47,19 @@
         <div class="alert-slot">
           <slot name="alert" />
         </div>
-        <v-card-text v-if="hasText" class="content-wrapper xrd-card-text" :class="{ 'no-content': !hasContent }">
+        <v-card-text v-if="hasText" class="pt-0 pb-2" :class="{ 'no-content': !hasContent }">
           <slot name="text" />
         </v-card-text>
-        <v-card-item v-if="hasContent" class="content-wrapper xrd-card-content">
+        <v-card-item v-if="hasContent" class="pt-0 pb-2">
           <slot name="content" />
         </v-card-item>
-        <v-card-actions class="xrd-card-actions bg-surface-container-low border-t">
+        <v-card-actions class="pa-4 bg-surface-container-low border-t">
           <XrdBtn
             data-test="dialog-cancel-button"
             class="font-weight-medium"
             variant="text"
             :disabled="cancelDisabled"
-            :text-key="cancelButtonText"
+            :text="cancelButtonText"
             @click="cancel"
           />
           <v-spacer />
@@ -72,7 +72,7 @@
             :loading="loading"
             :submit="submittable"
             :prepend-icon="saveButtonIcon"
-            :text-key="saveButtonText"
+            :text="saveButtonText"
             @click="save"
           />
         </v-card-actions>
@@ -226,49 +226,4 @@ onBeforeMount(() => blur());
 </script>
 
 <style lang="scss" scoped>
-@use '../assets/colors';
-
-.xrd-dialog-simple {
-  .xrd-card {
-    .xrd-card-actions {
-      background-color: colors.$WarmGrey10;
-      height: 72px;
-      padding-right: 24px;
-      padding-left: 24px;
-    }
-
-    .dialog-title {
-      font-size: 20px;
-      font-weight: 500;
-      letter-spacing: normal;
-    }
-
-    /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
-    .v-card-text.xrd-card-text {
-      font-size: 14px;
-      letter-spacing: normal;
-      color: rgba(0, 0, 0, 0.6);
-      padding: 16px 24px 8px;
-
-      &.no-content {
-        padding-bottom: 16px;
-      }
-    }
-
-    /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
-    .v-card-item.xrd-card-content {
-      padding: 0 24px 0;
-
-      :deep(.v-card-item__content) {
-        padding-top: 16px;
-        padding-bottom: 16px;
-      }
-    }
-  }
-}
-
-.alert-slot {
-  margin-left: 20px;
-  margin-right: 20px;
-}
 </style>

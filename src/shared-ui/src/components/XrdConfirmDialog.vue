@@ -31,11 +31,15 @@
         {{ $t(title) }}
       </v-card-title>
       <v-card-text class="pt-0 pr-6 pl-6 pb-2">
-        <slot name="text">{{ $t(text, data) }}</slot>
+        <slot name="text">
+          <span class="font-weight-regular body-regular">
+            {{ $t(text, data) }}
+          </span>
+        </slot>
       </v-card-text>
-      <v-card-actions>
-        <XrdBtn variant="text" :text-key="cancelButtonText" @click="$emit('cancel')" />
-        <XrdBtn variant="text" :text-key="acceptButtonText" :loading="loading" @click="$emit('accept')" />
+      <v-card-actions class="pa-4">
+        <XrdBtn variant="text" :text="cancelButtonText" @click="$emit('cancel')" />
+        <XrdBtn variant="text" :text="acceptButtonText" :loading="loading" @click="$emit('accept')" />
       </v-card-actions>
     </v-card>
   </v-dialog>

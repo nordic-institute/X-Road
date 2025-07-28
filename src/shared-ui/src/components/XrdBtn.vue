@@ -43,8 +43,8 @@
       </slot>
     </template>
     <slot>
-      <span v-if="btnText" class="body-regular font-weight-medium">
-        {{ btnText }}
+      <span v-if="text" class="body-regular font-weight-medium">
+        {{ translated ? text : $t(text) }}
       </span>
     </slot>
   </v-btn>
@@ -60,9 +60,9 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
-  textKey: {
-    type: String,
-    default: undefined,
+  translated: {
+    type: Boolean,
+    default: false,
   },
   prependIcon: {
     type: String,
@@ -98,10 +98,6 @@ const props = defineProps({
   },
 });
 const emit = defineEmits(['click']);
-
-const { t } = useI18n();
-
-const btnText = computed(() => (props.text ? props.text : props.textKey ? t(props.textKey) : undefined));
 
 const button = ref<VBtn>();
 

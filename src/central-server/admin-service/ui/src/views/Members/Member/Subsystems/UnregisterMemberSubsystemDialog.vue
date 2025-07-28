@@ -33,17 +33,19 @@
     @accept="unregisterSubsystem"
   >
     <template #text>
-      <i18n-t
-        scope="global"
-        keypath="members.member.subsystems.areYouSureUnregister"
-      >
-        <template #subsystemCode>
-          <b>{{ subsystemCode }}</b>
-        </template>
-        <template #serverCode>
-          <b>{{ serverCode }}</b>
-        </template>
-      </i18n-t>
+      <span class="font-weight-regular body-regular">
+        <i18n-t
+          scope="global"
+          keypath="members.member.subsystems.areYouSureUnregister"
+        >
+          <template #subsystemCode>
+            <span class="font-weight-bold">{{ subsystemCode }}</span>
+          </template>
+          <template #serverCode>
+            <span class="font-weight-bold">{{ serverCode }}</span>
+          </template>
+        </i18n-t>
+      </span>
     </template>
   </xrd-confirm-dialog>
 </template>

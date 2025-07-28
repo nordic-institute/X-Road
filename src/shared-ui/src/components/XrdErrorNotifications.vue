@@ -78,13 +78,10 @@
         data-test="copy-id-button"
         variant="text"
         prepend-icon="content_copy"
+        text="action.copyId"
         @click.prevent="copyId(notification.error.correlationId)"
-      >
-        {{ $t('action.copyId') }}
-      </XrdBtn>
-      <XrdBtn data-test="close-alert" variant="text" @click="notifications.remove(notification.id)">
-        {{ $t('action.close') }}
-      </XrdBtn>
+      />
+      <XrdBtn data-test="close-alert" variant="text" text="action.close" @click="notifications.remove(notification.id)" />
     </template>
   </v-banner>
 </template>
