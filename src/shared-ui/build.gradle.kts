@@ -8,7 +8,7 @@ frontend {
   nodeVersion.set(project.property("frontendNodeVersion").toString())
   nodeInstallDirectory.set(file("${rootDir}/.gradle/pnpm-node/${project.property("frontendNodeVersion")}"))
   cacheDirectory.set(file("${projectDir}/.gradle/pnpm-cache"))
-  //nodeDistributionUrlRoot.set("https://artifactory.niis.org/artifactory/nodejs-dist-remote/")
+  nodeDistributionUrlRoot.set("https://artifactory.niis.org/artifactory/nodejs-dist-remote/")
   maxDownloadAttempts.set(3)
 
   corepackVersion.set("0.34.0")
