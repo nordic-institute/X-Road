@@ -47,10 +47,12 @@
         <div class="alert-slot">
           <slot name="alert" />
         </div>
-        <v-card-text v-if="hasText" class="pt-0 pb-2" :class="{ 'no-content': !hasContent }">
-          <slot name="text" />
+        <v-card-text v-if="hasText" class="mt-0 mb-6 pb-0" :class="{ 'no-content': !hasContent }">
+          <span class="body-regular">
+            <slot name="text" />
+          </span>
         </v-card-text>
-        <v-card-item v-if="hasContent" class="pt-0 pb-2">
+        <v-card-item v-if="hasContent" class="mt-0 mb-6">
           <slot name="content" />
         </v-card-item>
         <v-card-actions class="pa-4 bg-surface-container-low border-t">
@@ -225,5 +227,4 @@ onMounted(() => {
 onBeforeMount(() => blur());
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

@@ -39,7 +39,7 @@
     <template #text>
       <i18n-t scope="global" keypath="members.member.details.confirmDelete">
         <template #member>
-          <b>{{ member.member_name }}</b>
+          <span class="font-weight-bold">{{ member.member_name }}</span>
         </template>
       </i18n-t>
     </template>
@@ -66,11 +66,9 @@ import { useRouter } from 'vue-router';
 import { Client } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
-import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
-import { useI18n } from 'vue-i18n';
-import { XrdDialogSubView, XrdDialogSubViewRow } from '@niis/shared-ui';
+import { XrdDialogSubView, XrdDialogSubViewRow, useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {
@@ -92,7 +90,7 @@ const [memberCode, memberCodeAttrs] = defineField('memberCode', {
 });
 
 const { deleteById: deleteMember } = useMember();
-const { showError, showSuccess } = useNotifications();
+const { addError, addSuccessMessage } = useNotifications();
 
 function cancelDelete() {
   resetForm();
@@ -100,16 +98,15 @@ function cancelDelete() {
 }
 
 const loading = ref(false);
-const { t } = useI18n();
 const router = useRouter();
 const proceedDelete = handleSubmit(() => {
   loading.value = true;
   deleteMember(toIdentifier(props.member.client_id))
     .then(() => {
-      showSuccess(t('members.member.details.memberDeleted'), true);
+      addSuccessMessage('members.member.details.memberDeleted', {}, true);
       router.replace({ name: RouteName.Members });
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 });
 </script>

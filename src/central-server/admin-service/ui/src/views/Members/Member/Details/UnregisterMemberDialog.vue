@@ -40,13 +40,13 @@
         >
           <template #memberCode>
             <span class="font-weight-bold">{{
-              member.client_id.member_code
-            }}</span>
+                member.client_id.member_code
+              }}</span>
           </template>
           <template #serverCode>
             <span class="font-weight-bold">{{
-              server.server_id.server_code
-            }}</span>
+                server.server_id.server_code
+              }}</span>
           </template>
         </i18n-t>
       </span>
@@ -58,8 +58,7 @@
 import { PropType, ref } from 'vue';
 import { Client, SecurityServer } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
-import { useI18n } from 'vue-i18n';
-import { useNotifications } from '@/store/modules/notifications';
+import { useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   server: {
@@ -72,8 +71,7 @@ const props = defineProps({
   },
 });
 
-const { t } = useI18n<{ message: MessageSchema }>({ useScope: 'global' });
-const { showSuccess, showError } = useNotifications();
+const { addSuccessMessage, addError } = useNotifications();
 
 const memberStore = useMember();
 
@@ -89,15 +87,16 @@ function unregister() {
       props.server.server_id.encoded_id,
     )
     .then(() => {
-      showSuccess(
-        t('members.member.details.memberSuccessfullyUnregistered', {
+      addSuccessMessage(
+        'members.member.details.memberSuccessfullyUnregistered',
+        {
           memberCode: props.member.client_id.member_code,
           serverCode: props.server.server_id.server_code,
-        }),
+        },
       );
       emit('unregister');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 }
 </script>

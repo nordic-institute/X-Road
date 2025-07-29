@@ -57,12 +57,10 @@
 <script lang="ts" setup>
 import { useMember } from '@/store/modules/members';
 import { Client } from '@/openapi-types';
-import { useNotifications } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
 import { PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
-import { useI18n } from 'vue-i18n';
-import { XrdDialogSubView, XrdDialogSubViewRow } from '@niis/shared-ui';
+import { XrdDialogSubView, XrdDialogSubViewRow, useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {
@@ -80,24 +78,23 @@ const { defineComponentBinds, errors, meta, handleSubmit } = useForm({
 const memberName = defineComponentBinds('memberName');
 
 const { editMemberName } = useMember();
-const { showError, showSuccess } = useNotifications();
+const { addError, addSuccessMessage } = useNotifications();
 const loading = ref(false);
 
 function cancelEdit() {
   emits('cancel');
 }
 
-const { t } = useI18n();
 const saveNewMemberName = handleSubmit((values) => {
   loading.value = true;
   editMemberName(toIdentifier(props.member.client_id), {
     member_name: values.memberName,
   })
     .then(() => {
-      showSuccess(t('members.member.details.memberNameSaved'));
+      addSuccessMessage('members.member.details.memberNameSaved');
       emits('save');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 });
 </script>

@@ -55,11 +55,11 @@ import { defineComponent, PropType } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useSystem } from '@/store/modules/system';
-import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { ClientId } from '@/openapi-types';
+import { useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
   name: 'UnregisterMemberSubsystemDialog',
@@ -92,7 +92,7 @@ export default defineComponent({
     ...mapState(useSystem, ['getSystemStatus']),
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['addError', 'addSuccessMessage']),
     cancel(): void {
       this.$emit('cancel');
     },
@@ -104,19 +104,17 @@ export default defineComponent({
           this.serverId,
         )
         .then(() => {
-          this.showSuccess(
-            this.$t(
-              'members.member.subsystems.subsystemSuccessfullyUnregistered',
-              {
-                subsystemCode: this.subsystemCode,
-                serverCode: this.serverCode,
-              },
-            ),
+          this.addSuccessMessage(
+            'members.member.subsystems.subsystemSuccessfullyUnregistered',
+            {
+              subsystemCode: this.subsystemCode,
+              serverCode: this.serverCode,
+            },
           );
           this.$emit('unregistered-subsystem');
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
           this.$emit('cancel');
         })
         .finally(() => {

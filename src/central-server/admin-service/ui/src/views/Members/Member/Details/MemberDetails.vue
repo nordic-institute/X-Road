@@ -31,45 +31,31 @@
   <XrdSubView>
     <!-- Member Details -->
     <XrdCard id="member-details">
-      <v-table class="bg-surface-container xrd-rounded-12">
-        <tbody>
-          <tr>
-            <td class="on-surface-variant font-weight-medium">
-              {{ $t('global.memberName') }}
-            </td>
-            <td data-test="member-name-card">
-              {{ memberStore.currentMember.member_name }}
-            </td>
-            <td class="text-end">
-              <XrdBtn
-                v-if="allowMemberRename"
-                variant="text"
-                color="tertiary"
-                text="action.edit"
-                @click="showEditNameDialog = true"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td class="on-surface-variant font-weight-medium">
-              {{ $t('global.memberClass') }}
-            </td>
-            <td data-test="member-class-card">
-              {{ memberStore.currentMember.client_id.member_class }}
-            </td>
-            <td></td>
-          </tr>
-          <tr>
-            <td class="on-surface-variant font-weight-medium">
-              {{ $t('global.memberCode') }}
-            </td>
-            <td data-test="member-code-card">
-              {{ memberStore.currentMember.client_id.member_code }}
-            </td>
-            <td></td>
-          </tr>
-        </tbody>
-      </v-table>
+      <XrdCardTable>
+        <XrdCardTableRow
+          data-test="member-name"
+          label="global.memberName"
+          :value="memberStore.currentMember.member_name"
+        >
+          <XrdBtn
+            v-if="allowMemberRename"
+            variant="text"
+            color="tertiary"
+            text="action.edit"
+            @click="showEditNameDialog = true"
+          />
+        </XrdCardTableRow>
+        <XrdCardTableRow
+          data-test="member-class"
+          label="global.memberClass"
+          :value="memberStore.currentMember.client_id.member_class"
+        />
+        <XrdCardTableRow
+          data-test="member-code"
+          label="global.memberCode"
+          :value="memberStore.currentMember.client_id.member_code"
+        />
+      </XrdCardTable>
     </XrdCard>
 
     <!-- Owned Servers -->
@@ -141,6 +127,14 @@
           :items-per-page="-1"
           :loader-height="2"
         >
+          <template #[`item.group_code`]="{ item }">
+            <div class="d-flex flex-row align-center">
+              <v-icon icon="group" color="tertiary" size="24" />
+              <span class="text-primary font-weight-medium ml-3">{{
+                  item.group_code
+                }}</span>
+            </div>
+          </template>
           <template #[`item.added_to_group`]="{ item }">
             <date-time :value="item.added_to_group" />
           </template>
@@ -164,11 +158,10 @@ import { Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import { MemberGlobalGroup, SecurityServer } from '@/openapi-types';
-import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import EditMemberNameDialog from './EditMemberNameDialog.vue';
 import DateTime from '@/components/ui/DateTime.vue';
-import { Colors, XrdBtn, XrdCard, XrdSubView } from '@niis/shared-ui';
+import { XrdBtn, XrdCard, XrdCardTable, XrdCardTableRow, XrdSubView, useNotifications } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 import ServersList from './ServersList.vue';
 import UnregisterMemberDialog from './UnregisterMemberDialog.vue';
@@ -189,6 +182,8 @@ export default defineComponent({
     UnregisterMemberDialog,
     XrdBtn,
     XrdCard,
+    XrdCardTable,
+    XrdCardTableRow,
     XrdSubView,
   },
   props: {
@@ -199,8 +194,6 @@ export default defineComponent({
   },
   data() {
     return {
-      colors: Colors,
-
       showEditNameDialog: false,
 
       loadingOwnedServers: false,
@@ -253,7 +246,7 @@ export default defineComponent({
         this.globalGroups = resp;
       })
       .catch((error) => {
-        this.showError(error);
+        this.addError(error);
       })
       .finally(() => {
         this.loadingGroups = false;
@@ -263,13 +256,13 @@ export default defineComponent({
     this.memberStore
       .getMemberOwnedServers(this.memberid)
       .then((resp) => (this.ownedServers = resp))
-      .catch((error) => this.showError(error))
+      .catch((error) => this.addError(error))
       .finally(() => (this.loadingOwnedServers = false));
 
     this.loadClientServers();
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['addError']),
     cancelEditMemberName() {
       this.showEditNameDialog = false;
     },
@@ -281,7 +274,7 @@ export default defineComponent({
       this.memberStore
         .getUsedServers(this.memberid)
         .then((resp) => (this.usedServers = resp))
-        .catch((error) => this.showError(error))
+        .catch((error) => this.addError(error))
         .finally(() => (this.loadingUsedServers = false));
     },
   },

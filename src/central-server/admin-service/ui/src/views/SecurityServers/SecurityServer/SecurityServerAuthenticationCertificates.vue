@@ -25,28 +25,28 @@
    THE SOFTWARE.
  -->
 <template>
-  <main
-    data-test="security-server-authentication-certificates-view"
-    class="mt-5"
-  >
+  <XrdSubView data-test="security-server-authentication-certificates-view">
+
     <!-- Table -->
     <v-data-table
+      class="xrd-data-table bg-surface-container xrd-rounded-12"
+      item-key="id"
+      hide-default-footer
       :loading="loading"
       :headers="headers"
       :items="authenticationCertificates"
       :must-sort="true"
       :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
       :loader-height="2"
     >
       <template #[`item.issuer_common_name`]="{ item }">
-        <div class="icon-cell" @click="navigateToCertificateDetails(item.id)">
-          <xrd-icon-base icon-name="certificate" class="mr-4">
-            <xrd-icon-certificate />
-          </xrd-icon-base>
-          {{ item.issuer_common_name }}
-        </div>
+        <XrdIconWithLabel
+          icon="assured_workload"
+          clickable
+          semi-bold
+          :label="item.issuer_common_name"
+          @click="navigateToCertificateDetails(item.id)"
+        />
       </template>
       <template #[`item.not_after`]="{ item }">
         <date-time :value="item.not_after" />
@@ -54,20 +54,15 @@
 
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
-          <xrd-button
+          <XrdBtn
             v-if="hasDeletePermission"
             data-test="delete-AC-button"
-            text
-            :outlined="false"
+            variant="text"
+            text="action.delete"
+            color="tertiary"
             @click="openDeleteConfirmationDialog(item.id)"
-          >
-            {{ $t('action.delete') }}
-          </xrd-button>
+          />
         </div>
-      </template>
-
-      <template #bottom>
-        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -81,9 +76,8 @@
       :security-server-id="securityServerId"
       @cancel="cancelDeletion"
       @delete="finishDeletion"
-    >
-    </delete-authentication-certificate-dialog>
-  </main>
+    />
+  </XrdSubView>
 </template>
 
 <script lang="ts">
@@ -92,22 +86,20 @@ import DeleteAuthenticationCertificateDialog from '@/components/securityServers/
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { mapState, mapStores } from 'pinia';
-import {
-  SecurityServerAuthenticationCertificateDetails,
-  SecurityServerId,
-} from '@/openapi-types';
+import { SecurityServerAuthenticationCertificateDetails, SecurityServerId } from '@/openapi-types';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import DateTime from '@/components/ui/DateTime.vue';
-import { XrdIconCertificate, XrdDataTableFooter } from '@niis/shared-ui';
+import { XrdSubView, XrdIconWithLabel, XrdBtn } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {
-    XrdDataTableFooter,
+    XrdSubView,
     DateTime,
     DeleteAuthenticationCertificateDialog,
-    XrdIconCertificate,
+    XrdIconWithLabel,
+    XrdBtn,
   },
   props: {
     serverId: {
@@ -204,14 +196,4 @@ export default defineComponent({
   },
 });
 </script>
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables' as *;
-@use '@niis/shared-ui/src/assets/colors';
-
-.icon-cell {
-  color: colors.$Purple100;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-}
-</style>
+<style lang="scss" scoped></style>

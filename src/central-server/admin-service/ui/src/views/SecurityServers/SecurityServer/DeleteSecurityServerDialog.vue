@@ -32,6 +32,7 @@
     title="securityServers.dialogs.deleteAddress.title"
     data-test="security-server-delete-dialog"
     save-button-text="action.delete"
+    save-button-icon="delete_forever"
     submittable
     :scrollable="false"
     :show-close="true"
@@ -46,20 +47,24 @@
         keypath="securityServers.dialogs.deleteAddress.areYouSure"
       >
         <template #securityServer>
-          <b>{{ serverCode }}</b>
+          <span class="font-weight-bold">{{ serverCode }}</span>
         </template>
       </i18n-t>
     </template>
     <template #content>
-      <v-text-field
-        v-model="enteredCode"
-        v-bind="enteredCodeAttrs"
-        name="serverCode"
-        variant="outlined"
-        :label="$t('securityServers.dialogs.deleteAddress.enterCode')"
-        autofocus
-        data-test="verify-server-code"
-      />
+      <XrdDialogSubView>
+        <XrdDialogSubViewRow full-length>
+          <v-text-field
+            v-model="enteredCode"
+            v-bind="enteredCodeAttrs"
+            data-test="verify-server-code"
+            name="serverCode"
+            class="xrd-text-field"
+            autofocus
+            :label="$t('securityServers.dialogs.deleteAddress.enterCode')"
+          />
+        </XrdDialogSubViewRow>
+      </XrdDialogSubView>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -68,10 +73,10 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSecurityServer } from '@/store/modules/security-servers';
-import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
-import { useI18n } from 'vue-i18n';
+import { XrdDialogSubViewRow, XrdDialogSubView, useNotifications } from '@niis/shared-ui';
+
 /**
  * Component for a Security server details view
  */
@@ -98,25 +103,28 @@ const [enteredCode, enteredCodeAttrs] = defineField('serverCode', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 const { delete: deleteSS } = useSecurityServer();
-const { showError, showSuccess } = useNotifications();
+const { addError, addSuccessMessage } = useNotifications();
 
 function close() {
   emits('cancel');
 }
 
 const loading = ref(false);
-const { t } = useI18n();
 const router = useRouter();
 const deleteSecurityServer = handleSubmit(() => {
   loading.value = true;
   deleteSS(props.securityServerId)
     .then(() => {
-      showSuccess(t('securityServers.dialogs.deleteAddress.success'), true);
+      addSuccessMessage(
+        'securityServers.dialogs.deleteAddress.success',
+        {},
+        true,
+      );
       router.replace({
         name: RouteName.SecurityServers,
       });
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 });
 </script>

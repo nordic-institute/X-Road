@@ -111,6 +111,5 @@ const memberNavigationTabs = computed(() => {
 
 const showDeleteDialog = ref(false);
 
-
 memberStore.loadById(props.memberid);
 </script>

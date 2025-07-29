@@ -55,11 +55,10 @@
 <script lang="ts" setup>
 import { computed, PropType, ref } from 'vue';
 import { ClientId } from '@/openapi-types';
-import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
-import { XrdDialogSubView, XrdDialogSubViewRow } from '@niis/shared-ui';
+import { XrdDialogSubView, XrdDialogSubViewRow, useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {
@@ -84,7 +83,7 @@ const { defineField, meta, handleSubmit, resetForm } = useForm({
 });
 
 const { renameSubsystem } = useSubsystem();
-const { showError, showSuccess } = useNotifications();
+const { addError, addSuccessMessage } = useNotifications();
 
 const [name, nameAttrs] = defineField('subsystemName', {
   props: (state) => ({ 'error-messages': state.errors }),
@@ -115,16 +114,17 @@ const rename = handleSubmit((values) => {
     },
   )
     .then(() => {
-      showSuccess(
-        t('members.member.subsystems.subsystemSuccessfullyRenamed', {
+      addSuccessMessage(
+        'members.member.subsystems.subsystemSuccessfullyRenamed',
+        {
           subsystemCode: values.subsystemCode,
-        }),
+        },
       );
       emits('save');
       resetForm();
     })
     .catch((error) => {
-      showError(error);
+      addError(error);
       emits('cancel');
     })
     .finally(() => (loading.value = false));

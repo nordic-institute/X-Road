@@ -52,7 +52,10 @@ import XrdErrorNotifications from './XrdErrorNotifications.vue';
 import XrdBtn from './XrdBtn.vue';
 import XrdPagination from './XrdPagination.vue';
 import XrdCard from './XrdCard.vue';
+import XrdCardTable from './XrdCardTable.vue';
+import XrdCardTableRow from './XrdCardTableRow.vue';
 import XrdStatusChip from './XrdStatusChip.vue';
+import XrdIconWithLabel from './XrdIconWithLabel.vue';
 
 export {
   XrdAppIcon,
@@ -82,5 +85,8 @@ export {
   XrdBtn,
   XrdPagination,
   XrdCard,
+  XrdCardTable,
+  XrdCardTableRow,
   XrdStatusChip,
+  XrdIconWithLabel,
 };

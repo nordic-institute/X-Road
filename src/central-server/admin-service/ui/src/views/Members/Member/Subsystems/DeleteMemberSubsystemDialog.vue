@@ -59,10 +59,10 @@ import { mapActions, mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useMember } from '@/store/modules/members';
 import { useSystem } from '@/store/modules/system';
-import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { ClientId } from '@/openapi-types';
 import { toIdentifier, toShortMemberId } from '@/util/helpers';
+import { useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
   props: {
@@ -89,7 +89,7 @@ export default defineComponent({
     },
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['addError', 'addSuccessMessage']),
     cancel(): void {
       this.$emit('cancel');
     },
@@ -100,15 +100,16 @@ export default defineComponent({
           toIdentifier(this.member.client_id) + ':' + this.subsystemCode,
         )
         .then(() => {
-          this.showSuccess(
-            this.$t('members.member.subsystems.subsystemSuccessfullyDeleted', {
+          this.addSuccessMessage(
+            'members.member.subsystems.subsystemSuccessfullyDeleted',
+            {
               subsystemCode: this.subsystemCode,
-            }),
+            },
           );
           this.$emit('delete');
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
           this.$emit('cancel');
         })
         .finally(() => {

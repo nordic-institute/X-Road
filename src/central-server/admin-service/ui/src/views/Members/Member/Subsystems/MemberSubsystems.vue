@@ -64,10 +64,12 @@
             class="bg-unregistered"
           >
             <td class="unregistered-subsystem">
-              <span class="opacity-60">
-                <v-icon icon="folder_copy" />
-                {{ item.subsystem_id.subsystem_code }}
-              </span>
+              <XrdIconWithLabel
+                class="opacity-60"
+                icon="folder_copy"
+                no-default-colors
+                :label="item.subsystem_id.subsystem_code"
+              />
             </td>
             <td class="unregistered-subsystem">
               {{ item.subsystem_name }}
@@ -111,10 +113,12 @@
                 'border-0': item.used_security_servers.length - 1 > iSub,
               }"
             >
-              <span v-if="iSub === 0">
-                <v-icon icon="folder_copy" />
-                {{ item.subsystem_id.subsystem_code }}
-              </span>
+              <XrdIconWithLabel
+                v-if="iSub === 0"
+                icon="folder_copy"
+                no-default-colors
+                :label="item.subsystem_id.subsystem_code"
+              />
             </td>
             <td
               :class="{
@@ -285,11 +289,10 @@ import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useMember } from '@/store/modules/members';
 import { useSubsystem } from '@/store/modules/subsystems';
-import { useNotifications } from '@/store/modules/notifications';
 import AddMemberSubsystemDialog from '@/views/Members/Member/Subsystems/AddMemberSubsystemDialog.vue';
 import DeleteMemberSubsystemDialog from '@/views/Members/Member/Subsystems/DeleteMemberSubsystemDialog.vue';
 import UnregisterMemberSubsystemDialog from '@/views/Members/Member/Subsystems/UnregisterMemberSubsystemDialog.vue';
-import { Colors, XrdSubView, XrdBtn } from '@niis/shared-ui';
+import { XrdSubView, XrdBtn, XrdIconWithLabel, useNotifications } from '@niis/shared-ui';
 import { ManagementRequestStatus, Subsystem, UsedSecurityServers } from '@/openapi-types';
 import RenameMemberSubsystemDialog from '@/views/Members/Member/Subsystems/RenameMemberSubsystemDialog.vue';
 import RenameSubsystemBtn from '@/components/members/RenameSubsystemBtn.vue';
@@ -311,6 +314,7 @@ export default defineComponent({
     UnregisterMemberSubsystemDialog,
     XrdSubView,
     XrdBtn,
+    XrdIconWithLabel,
   },
   props: {
     memberid: {
@@ -320,8 +324,6 @@ export default defineComponent({
   },
   data() {
     return {
-      colors: Colors,
-
       showAddSubsystemDialog: false,
       showDeleteDialog: false,
       showRenameDialog: false,
@@ -364,14 +366,14 @@ export default defineComponent({
         this.subsystems = resp;
       })
       .catch((error) => {
-        this.showError(error);
+        this.addError(error);
       })
       .finally(() => {
         this.loading = false;
       });
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['addError']),
     deleteClicked(subsystem: Subsystem) {
       this.clickedSubsystemCode = subsystem.subsystem_id
         ?.subsystem_code as string;
@@ -428,7 +430,7 @@ export default defineComponent({
           this.subsystems = resp;
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
         })
         .finally(() => {
           this.loading = false;

@@ -25,6 +25,8 @@
  * THE SOFTWARE.
  */
 
+// Material Symbols Outlined
+// https://fonts.google.com/icons?selected=Material+Symbols+Outlined:id_card:FILL@0;wght@400;GRAD@0;opsz@24&icon.size=24&icon.color=%23e3e3e3
 $icons: (
   create_new_folder: "\e2cc",
   settings: "\e8b8",
@@ -60,6 +62,9 @@ $icons: (
   cancel: "\e5c9",
   list_alt: "\e0ee",
   edit_square: "\f88d",
+  group: "\e7ef",
+  id_card: "\f4ca",
+  assured_workload: "\eb6f",
 );
 
 @mixin msr-icons {

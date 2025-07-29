@@ -63,11 +63,10 @@
 <script lang="ts" setup>
 import { PropType, ref } from 'vue';
 import { ClientId } from '@/openapi-types';
-import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
-import { XrdDialogSubView, XrdDialogSubViewRow } from '@niis/shared-ui';
+import { XrdDialogSubView, XrdDialogSubViewRow, useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {
@@ -84,7 +83,7 @@ const { defineField, meta, handleSubmit, resetForm } = useForm({
 });
 
 const { addSubsystem } = useSubsystem();
-const { showError, showSuccess } = useNotifications();
+const { addError, addSuccessMessage } = useNotifications();
 
 const [subsystemCode, subsystemCodeAttrs] = defineField('subsystemCode', {
   props: (state) => ({
@@ -105,7 +104,6 @@ function cancel() {
   resetForm();
 }
 
-const { t } = useI18n();
 const add = handleSubmit((values) => {
   loading.value = true;
   addSubsystem({
@@ -117,16 +115,17 @@ const add = handleSubmit((values) => {
     },
   })
     .then(() => {
-      showSuccess(
-        t('members.member.subsystems.subsystemSuccessfullyAdded', {
+      addSuccessMessage(
+        'members.member.subsystems.subsystemSuccessfullyAdded',
+        {
           subsystemCode: values.subsystemCode,
-        }),
+        },
       );
       emits('save');
       resetForm();
     })
     .catch((error) => {
-      showError(error);
+      addError(error);
       emits('cancel');
     })
     .finally(() => (loading.value = false));

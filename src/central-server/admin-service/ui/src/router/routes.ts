@@ -52,11 +52,11 @@ import ApiKeys from '@/views/Settings/ApiKeys/ApiKeys.vue';
 import CreateApiKeyStepper from '@/views/Settings/ApiKeys/CreateApiKeyStepper.vue';
 
 import SystemSettings from '@/views/Settings/SystemSettings/SystemSettings.vue';
-import SecurityServers from '@/views/SecurityServers/SecurityServers.vue';
+import SecurityServersView from '@/views/SecurityServers/SecurityServersView.vue';
 import TrustServices from '@/views/TrustServices/TrustServices.vue';
 
 import SecurityServersList from '@/views/SecurityServers/SecurityServersList.vue';
-import SecurityServer from '@/views/SecurityServers/SecurityServer/SecurityServer.vue';
+import SecurityServerView from '@/views/SecurityServers/SecurityServer/SecurityServerView.vue';
 import SecurityServerDetails from '@/views/SecurityServers/SecurityServer/SecurityServerDetails.vue';
 import SecurityServerClients from '@/views/SecurityServers/SecurityServer/SecurityServerClients.vue';
 import SecurityServerAuthenticationCertificates from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
@@ -260,7 +260,7 @@ const routes: XrdRoute[] = [
       {
         path: '/security-servers',
         components: {
-          default: SecurityServers,
+          default: SecurityServersView,
           navigation: TabsBase,
           alerts: AlertsContainer,
         },
@@ -278,7 +278,7 @@ const routes: XrdRoute[] = [
           {
             path: ':serverId',
             components: {
-              default: SecurityServer,
+              default: SecurityServerView,
               pageNavigation: PageNavigation,
             },
             props: { default: true },
@@ -288,6 +288,7 @@ const routes: XrdRoute[] = [
             meta: {
               permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
               listView: RouteName.SecurityServers,
+              allowBackTo: [RouteName.MemberDetails],
               title: () =>
                 useSecurityServer().currentSecurityServer?.server_id
                   .server_code,

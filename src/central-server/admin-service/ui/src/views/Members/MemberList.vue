@@ -63,23 +63,13 @@
     >
       <template #top></template>
       <template #[`item.member_name`]="{ item, internalItem }">
-        <div
-          v-if="hasPermissionToMemberDetails"
-          class="members-table-cell-name-action font-weight-medium body-regular text-primary"
-          @click="toDetails(item)"
-        >
-          <v-icon class="mr-3" icon="folder" size="24" color="tertiary" />
-
-          {{ internalItem.columns.member_name }}
-        </div>
-
-        <div v-else class="members-table-cell-name">
-          <xrd-icon-base class="mr-4">
-            <xrd-icon-folder-outline />
-          </xrd-icon-base>
-
-          {{ internalItem.columns.member_name }}
-        </div>
+        <XrdIconWithLabel
+          icon="folder"
+          :label="internalItem.columns.member_name"
+          :clickable="hasPermissionToMemberDetails"
+          semi-bold
+          @click="hasPermissionToMemberDetails && toDetails(item)"
+        />
       </template>
       <template #bottom>
         <XrdPagination />
@@ -100,11 +90,10 @@ import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/clients';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { debounce, toIdentifier } from '@/util/helpers';
-import { useNotifications } from '@/store/modules/notifications';
 import { Client } from '@/openapi-types';
 import { DataQuery, DataTableHeader } from '@/ui-types';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
-import { XrdBtn, XrdPagination, XrdView } from '@niis/shared-ui';
+import { XrdBtn, XrdPagination, XrdView, XrdIconWithLabel, useNotifications } from '@niis/shared-ui';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -116,6 +105,7 @@ export default defineComponent({
     AddMemberDialog,
     XrdBtn,
     XrdPagination,
+    XrdIconWithLabel,
   },
   data() {
     return {
@@ -164,7 +154,7 @@ export default defineComponent({
     that = this;
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['addError']),
     hideAddMemberDialog(): void {
       this.showAddMemberDialog = false;
     },
@@ -197,7 +187,7 @@ export default defineComponent({
       try {
         await this.clientStore.find(this.dataQuery);
       } catch (error: unknown) {
-        this.showError(error);
+        this.addError(error);
       } finally {
         this.loading = false;
       }
