@@ -166,6 +166,7 @@
       "Signer": {
         "CertNotFound": "Sertifikaati ei leitud",
         "KeyNotFound": "Võtit ei leitud",
+        "NetworkError": "Signer ei ole hetkel kättesaadav",
         "PinIncorrect": "Vale PIN-kood",
         "TokenNotAvailable": "Krüptomoodul pole saadaval",
         "TokenNotFound": " Krüptomoodulit ei leitud",
@@ -173,12 +174,14 @@
       }
     },
     "generate_backup_interrupted": "Varukoopia loomine katkestatud",
+    "internal_error": "Sisemine viga. Vaata serveri logisid, et leida detailsemat infot",    
     "invalid_backup_file": "Kehtetu varundusfail",
     "invalid_certificate": "Vale X.509 sertifikaat",
     "invalid_distinguished_name": "Eristusnimi on kehtetu",
     "invalid_filename": "Kehtetu failinimi",
     "resource_read_failed": "Ressursi lugemine ebaõnnestus",
     "restore_process_failed": "Taastamise protsess ebaõnnestus",
+    "token_fetch_failed": "Krüptomooduli kättesaamisel esines tõrge",
     "token_not_found": "Krüptomoodulit ei leitud",
     "token_weak_pin": "Nõrk PIN",
     "tr": {
@@ -196,6 +199,7 @@
     "password": "Parool",
     "securityServerCode": "Turvaserveri kood",
     "shared": "ühisteek",
+    "subsystemName": "Alamsüsteemi Nimi",
     "username": "LIB-Kasutajanimi"
   },
   "footer": {
