@@ -492,7 +492,7 @@
       "memberClass": "Liikmeklass",
       "memberCode": "Liikmekood",
       "subsystemCode": "Alamsüsteemi kood",
-      "subsystemName": "Subsystem Name"
+      "subsystemName": "Alamsüsteemi nimi"
     },
     "certificationService": "Sertifitseerimisteenus",
     "clientAdd": {
@@ -513,7 +513,7 @@
     "keys": {
       "name": "Nimi"
     },
-    "maintenanceModeMessage": "Maintenance mode message",
+    "maintenanceModeMessage": "Hooldusrežiimi teade",
     "memberCode": "Liikmekood",
     "path": "asukoht",
     "pin": "PIN",
