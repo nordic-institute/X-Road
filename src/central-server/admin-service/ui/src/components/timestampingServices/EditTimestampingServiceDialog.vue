@@ -94,7 +94,7 @@ import { useForm } from 'vee-validate';
 import { useNotifications } from '@/store/modules/notifications';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
 import { useI18n } from 'vue-i18n';
-import { useFileRef } from '@/util/composables';
+import { useFileRef } from '@niis/shared-ui';
 
 const props = defineProps({
   tsaService: {

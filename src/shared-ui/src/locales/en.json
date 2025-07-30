@@ -157,6 +157,12 @@
     "rsaExp": "RSA Public Key Exponent",
     "rsaModulus": "RSA Public Key Modulus"
   },
+  "dataTables": {
+    "paginator": {
+      "rowsPerPage": "Rows per page:",
+      "info": "{start}-{end} of {total}"
+    }
+  },
   "error_code": {
     "api_key_not_found": "API key not found",
     "backup_file_not_found": "Backup was not found",
@@ -205,7 +211,7 @@
   "footer": {
     "copyright": {
       "company": "Nordic Institute for Interoperability Solutions (NIIS)",
-      "licenceInfo": "Licence info",
+      "domain": "niis.org",
       "title": "Copyright"
     },
     "software": {

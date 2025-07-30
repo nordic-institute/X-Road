@@ -114,11 +114,6 @@ axios.interceptors.response.use(
 userStore.fetchSessionStatus();
 </script>
 
-<!-- eslint-disable-next-line  vue-scoped-css/enforce-style-type -->
-<style lang="scss">
-@use '@niis/shared-ui/src/assets/global-style';
-</style>
-
 <style lang="scss" scoped>
 @use '@niis/shared-ui/src/assets/colors';
 

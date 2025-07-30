@@ -65,7 +65,7 @@ import { useGlobalGroups } from '@/store/modules/global-groups';
 import { GroupMemberListView } from '@/openapi-types';
 import { toIdentifier } from '@/util/helpers';
 import { useForm } from 'vee-validate';
-import { useBasicForm } from '@/util/composables';
+import { useBasicForm } from '@niis/shared-ui';
 
 const props = defineProps({
   groupCode: {
@@ -89,7 +89,7 @@ const [memberCode, memberCodeAttrs] = defineField('memberCode', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { loading, showSuccess, t, showError } = useBasicForm();
+const { loading, addSuccessMessage, addError } = useBasicForm();
 const { deleteGroupMember } = useGlobalGroups();
 const identifier = computed(() => toIdentifier(props.groupMember.client_id));
 
@@ -101,13 +101,11 @@ const deleteMember = handleSubmit(() => {
   )
     .then(() => emit('delete'))
     .then(() =>
-      showSuccess(
-        t('globalGroup.dialog.deleteMember.success', {
-          identifier: identifier.value,
-        }),
-      ),
+      addSuccessMessage('globalGroup.dialog.deleteMember.success', {
+        identifier: identifier.value,
+      }),
     )
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 });
 </script>

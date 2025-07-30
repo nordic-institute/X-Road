@@ -32,23 +32,25 @@
     variant="plain"
     color="primary"
     density="compact"
-    icon="icon-Edit"
+    icon="edit_square"
+    size="small"
     @click="emits('click')"
   />
-  <xrd-button
+  <XrdBtn
     v-else
-    class="pl-0"
-    plain
-    :outlined="false"
+    variant="plain"
+    color="tertiary"
+    class="pl-0 font-weight-medium body-regular"
     data-test="rename-subsystem"
     @click="emits('click')"
   >
     {{ $t('action.addName') }}
-  </xrd-button>
+  </XrdBtn>
 </template>
 
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n';
+import { XrdBtn } from '@niis/shared-ui';
 
 defineProps({
   subsystemName: {

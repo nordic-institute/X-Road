@@ -32,10 +32,9 @@ import {
 } from 'vue-router';
 import routes from './routes';
 import { RouteName } from '@/global';
-import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
-import { XrdLocation } from '@/router/types';
+import { useNotifications, XrdLocation } from '@niis/shared-ui';
 
 // Create the router
 const router = createRouter({
@@ -88,17 +87,27 @@ router.beforeEach(
       } else {
         // Clear success, error and continue init notifications when the route changed, except when coming from Initialization.
         if (from.name !== RouteName.Initialisation) {
-          notifications.resetNotifications();
+          notifications.clearNotifications();
         }
         /*
     Check permissions here
     */
+        const fromName = from.meta.from?.name || from.name;
+
+        if (to.meta.allowBackTo) {
+          for (const routeName of to.meta.allowBackTo) {
+            if (routeName == from.name) {
+              to.meta.from = from;
+            } else if (routeName == from.meta.from?.name) {
+              to.meta.from = from.meta.from;
+            }
+          }
+        }
+
         if (!to?.meta?.permissions) {
-          to.meta.backTo = true;
           next();
         } else if (user.hasAnyOfPermissions(to.meta.permissions)) {
           // This route is allowed
-          to.meta.backTo = from.matched.length > 0;
           next();
         } else {
           // This route is not allowed

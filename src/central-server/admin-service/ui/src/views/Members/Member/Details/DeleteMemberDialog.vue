@@ -28,6 +28,7 @@
 <template>
   <xrd-simple-dialog
     save-button-text="action.delete"
+    save-button-icon="delete_forever"
     title="members.member.details.deleteMember"
     submittable
     :loading="loading"
@@ -43,14 +44,18 @@
       </i18n-t>
     </template>
     <template #content>
-      <v-text-field
-        v-model="memberCode"
-        v-bind="memberCodeAttrs"
-        variant="outlined"
-        :label="$t('members.member.details.enterCode')"
-        autofocus
-        data-test="member-code"
-      />
+      <XrdDialogSubView>
+        <XrdDialogSubViewRow full-length>
+          <v-text-field
+            v-model="memberCode"
+            v-bind="memberCodeAttrs"
+            data-test="member-code"
+            class="xrd-text-field"
+            autofocus
+            :label="$t('members.member.details.enterCode')"
+          />
+        </XrdDialogSubViewRow>
+      </XrdDialogSubView>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -65,6 +70,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
 import { useI18n } from 'vue-i18n';
+import { XrdDialogSubView, XrdDialogSubViewRow } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {

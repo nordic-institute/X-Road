@@ -25,34 +25,32 @@
  * THE SOFTWARE.
  */
 
+import '@niis/shared-ui/src/assets/xrd8/fonts.css';
 import 'vuetify/styles';
-import '@mdi/font/css/materialdesignicons.css';
+import '@/assets/styles.css';
 import { createVuetify } from 'vuetify';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 import { useI18n } from 'vue-i18n';
-import { aliases, mdi } from 'vuetify/iconsets/mdi';
-import { i18n, Colors } from '@niis/shared-ui';
+import { i18n, themes, msr, msrAliases } from '@niis/shared-ui';
 
 export default createVuetify({
   defaults: {
-    VProgressLinear: {
-      color: 'primary',
-    },
-    VCheckbox: {
-      color: 'primary',
-    },
+    global: {},
     VTextField: {
-      color: 'primary',
+      variant: 'underlined',
     },
-    VTabs: {
-      color: 'primary',
+    VSelect: {
+      variant: 'underlined',
+      listProps: {
+        class: 'xrd-select-list',
+      },
     },
   },
   icons: {
-    defaultSet: 'mdi',
-    aliases,
+    defaultSet: 'msr',
+    aliases: msrAliases,
     sets: {
-      mdi,
+      msr,
     },
   },
   locale: {
@@ -60,15 +58,7 @@ export default createVuetify({
   },
   theme: {
     themes: {
-      light: {
-        dark: false,
-        colors: {
-          primary: Colors.Purple100,
-          secondary: Colors.Purple70,
-          error: Colors.Error,
-          success: Colors.Success10,
-        },
-      },
+      light: themes.light,
     },
   },
 });
