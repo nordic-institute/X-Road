@@ -51,9 +51,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, PropType, computed } from 'vue';
+import { ref, onMounted, PropType } from 'vue';
 import { VBtn } from 'vuetify/components';
-import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   text: {

@@ -189,7 +189,7 @@ export default defineComponent({
       this.$router.push({
         name: RouteName.SecurityServerAuthenticationCertificate,
         params: {
-          authenticationCertificateId: authCertId.toString(),
+          certificateId: authCertId.toString(),
         },
       });
     },

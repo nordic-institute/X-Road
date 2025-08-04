@@ -50,6 +50,7 @@ import { useRouter } from 'vue-router';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import { CertificateDetails } from '@/openapi-types';
+import { XrdCertificate } from '@niis/shared-ui';
 
 defineProps({
   certificateDetails: {

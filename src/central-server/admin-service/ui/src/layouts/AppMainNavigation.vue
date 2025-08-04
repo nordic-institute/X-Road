@@ -25,14 +25,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTabsBase :tabs="allowedTabs" :user-name="username" />
+  <XrdMainNavigation :tabs="allowedTabs" :user-name="username" />
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
 import { mainTabs } from '@/global';
 import { useUser } from '@/store/modules/user';
-import { XrdTabsBase } from '@niis/shared-ui';
+import { XrdMainNavigation } from '@niis/shared-ui';
 
 const { getAllowedTabs, username } = useUser();
 const allowedTabs = computed(() => getAllowedTabs(mainTabs));

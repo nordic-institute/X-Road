@@ -29,12 +29,13 @@ import {
   createWebHashHistory,
   NavigationGuardNext,
   RouteLocationNormalized,
+  RouteLocationNormalizedLoaded,
 } from 'vue-router';
 import routes from './routes';
 import { RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
-import { useNotifications, XrdLocation } from '@niis/shared-ui';
+import { useNotifications, XrdLocation, useHistory } from '@niis/shared-ui';
 
 // Create the router
 const router = createRouter({
@@ -42,11 +43,13 @@ const router = createRouter({
   routes: routes,
 });
 
-function backOnEscape(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    router.go(-1);
-  }
-}
+router.afterEach(
+  (to: RouteLocationNormalized, from: RouteLocationNormalizedLoaded) => {
+    const { push } = useHistory();
+
+    push(to);
+  },
+);
 
 router.beforeEach(
   async (
@@ -64,12 +67,6 @@ router.beforeEach(
     const user = useUser();
     const notifications = useNotifications();
     const system = useSystem();
-
-    if (to.meta.backOnEscape) {
-      window.addEventListener('keyup', backOnEscape);
-    } else {
-      window.removeEventListener('keyup', backOnEscape);
-    }
 
     // User is allowed to access any other view than login only after authenticated information has been fetched
     // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
@@ -92,17 +89,6 @@ router.beforeEach(
         /*
     Check permissions here
     */
-        const fromName = from.meta.from?.name || from.name;
-
-        if (to.meta.allowBackTo) {
-          for (const routeName of to.meta.allowBackTo) {
-            if (routeName == from.name) {
-              to.meta.from = from;
-            } else if (routeName == from.meta.from?.name) {
-              to.meta.from = from.meta.from;
-            }
-          }
-        }
 
         if (!to?.meta?.permissions) {
           next();

@@ -30,9 +30,11 @@
     <AppToolbar />
     <router-view name="navigation" />
 
-    <v-main class="bg-surface pr-10">
-      <router-view />
-      <XrdAppFooter :app-version="appVersion" class="mt-6 mb-6 pa-0" />
+    <v-main class="bg-surface pr-10 pb-8">
+      <div class="mb-6">
+        <router-view />
+      </div>
+      <router-view name="footer" />
     </v-main>
   </v-layout>
 </template>
@@ -43,14 +45,10 @@ import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
 import { useAlerts } from '@/store/modules/alerts';
 import AppToolbar from '@/layouts/AppToolbar.vue';
-import { XrdAppFooter } from '@niis/shared-ui';
-import { computed } from 'vue';
 
 const userStore = useUser();
 const { checkAlerts } = useAlerts();
 const systemStore = useSystem();
-
-const appVersion = computed(() => systemStore.serverVersion?.info || '');
 
 const sessionPollInterval = setInterval(
   () => pollSessionStatus(),

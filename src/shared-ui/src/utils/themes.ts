@@ -32,16 +32,11 @@ import { Colors as XrdColors } from './colors';
 import { computed, ComputedRef } from 'vue';
 
 interface CustomColors extends Colors {
-  'surface-variant': string;
   'on-surface-variant': string;
   'surface-container': string;
-  'on-surface-container': string;
   'surface-container-low': string;
-  'on-surface-container-low': string;
   'surface-container-lowest': string;
-  'on-surface-container-lowest': string;
   'surface-dim': string;
-  'on-surface-dim': string;
 
   'inverse-surface': string;
   'on-inverse-surface': string;
@@ -57,6 +52,7 @@ interface CustomColors extends Colors {
   'on-special': string;
 
   accent: string;
+  'on-accent': string;
   'accent-container': string;
   'on-accent-container': string;
 
@@ -78,15 +74,11 @@ interface CustomColors extends Colors {
   'error-container': string;
   'on-error-container': string;
 
+  'elevation-1': string;
+
   //Used for login page side-panel gradient
   login: string;
   'login-start': string;
-
-  tab: string;
-  'on-tab': string;
-
-  'active-tab': string;
-  'on-active-tab': string;
 }
 
 interface CustomTheme extends ThemeDefinition {
@@ -125,16 +117,10 @@ export const themes: Themes = {
       'on-surface-variant': XrdColors.Maroon400,
 
       'surface-container': XrdColors.White,
-      'on-surface-container': XrdColors.Maroon900,
-
       'surface-container-low': XrdColors.Blue50,
-      'on-surface-container-low': XrdColors.Maroon900,
-
       'surface-container-lowest': XrdColors.Blue10,
-      'on-surface-container-lowest': XrdColors.Maroon900,
 
       'surface-dim': XrdColors.Blue50,
-      'on-surface-dim': XrdColors.Maroon900,
 
       'inverse-surface': XrdColors.Blue700,
       'on-inverse-surface': XrdColors.White,
@@ -172,15 +158,11 @@ export const themes: Themes = {
       'error-container': XrdColors.Red400,
       'on-error-container': XrdColors.Maroon700,
 
+      'elevation-1': XrdColors.Blue500,
+
       login: XrdColors.Maroon800,
       'login-start': XrdColors.Maroon600,
-
-      tab: XrdColors.Blue50,
-      'on-tab': XrdColors.Maroon400,
-
-      'active-tab': XrdColors.White,
-      'on-active-tab': XrdColors.Magenta600,
-    },
+    } as CustomColors,
     variables: {
       'high-emphasis-opacity': 1,
       'medium-emphasis-opacity': 1,

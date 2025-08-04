@@ -38,9 +38,13 @@
       />
     </template>
     <template #tabs>
-      <page-navigation :tabs="securityServerNavigationTabs" class="mb-6" />
+      <ViewNavigation :tabs="securityServerNavigationTabs" class="mb-6" />
     </template>
-    <router-view />
+    <router-view v-slot="{ Component, route }">
+      <transition mode="out-in" name="fade">
+        <component :is="Component" :key="route.fullPath"/>
+      </transition>
+    </router-view>
     <delete-security-server-dialog
       v-if="securityServerCode && showDeleteServerDialog"
       :server-code="securityServerCode"
@@ -52,7 +56,7 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import PageNavigation from '@/layouts/PageNavigation.vue';
+import ViewNavigation from '@/layouts/ViewNavigation.vue';
 import { Permissions, RouteName } from '@/global';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { XrdView, XrdBtn, useNotifications } from '@niis/shared-ui';

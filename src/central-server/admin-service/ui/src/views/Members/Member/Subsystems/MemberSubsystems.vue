@@ -83,7 +83,7 @@
             <td class="unregistered-subsystem" />
             <td class="status unregistered-subsystem">
               <v-chip
-                class="xrd border-surface-variant opacity-60 font-weight-medium"
+                class="xrd opacity-60 font-weight-medium"
                 prepend-icon="cancel filled"
                 color="primary"
                 variant="outlined"

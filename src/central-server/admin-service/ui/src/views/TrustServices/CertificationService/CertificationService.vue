@@ -38,9 +38,7 @@
           {{ $t('trustServices.viewCertificate') }}
         </xrd-button>
       </template>
-      <PageNavigation
-        :tabs="certificationServiceNavigationTabs"
-      ></PageNavigation>
+      <ViewNavigation :tabs="certificationServiceNavigationTabs" />
       <router-view />
     </xrd-titled-view>
   </details-view>
@@ -48,9 +46,9 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PageNavigation, {
+import ViewNavigation, {
   PageNavigationTab,
-} from '@/layouts/PageNavigation.vue';
+} from '@/layouts/ViewNavigation.vue';
 import { Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
@@ -62,7 +60,7 @@ import { XrdTitledView } from '@niis/shared-ui';
  */
 export default defineComponent({
   name: 'CertificationService',
-  components: { XrdTitledView, DetailsView, PageNavigation },
+  components: { XrdTitledView, DetailsView, ViewNavigation },
   props: {
     certificationServiceId: {
       type: Number,

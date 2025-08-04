@@ -46,7 +46,8 @@ import XrdAppIcon from './XrdAppIcon.vue';
 import XrdLanguageDropdown from './XrdLanguageDropdown.vue';
 import XrdAppDropMenu from './XrdAppDropMenu.vue';
 import XrdSubTabs from './XrdSubTabs.vue';
-import XrdTabsBase from './XrdTabsBase.vue';
+import XrdMainNavigation from './XrdMainNavigation.vue';
+import XrdEmptyTabsBase from './XrdEmptyTabsBase.vue';
 import XrdDataTableFooter from './XrdDataTableFooter.vue';
 import XrdErrorNotifications from './XrdErrorNotifications.vue';
 import XrdBtn from './XrdBtn.vue';
@@ -56,6 +57,8 @@ import XrdCardTable from './XrdCardTable.vue';
 import XrdCardTableRow from './XrdCardTableRow.vue';
 import XrdStatusChip from './XrdStatusChip.vue';
 import XrdIconWithLabel from './XrdIconWithLabel.vue';
+import XrdFormattedHash from './XrdFormattedHash.vue';
+import XrdMainNavigationContainer from './XrdMainNavigationContainer.vue';
 
 export {
   XrdAppIcon,
@@ -79,7 +82,8 @@ export {
   XrdLanguageDropdown,
   XrdAppDropMenu,
   XrdSubTabs,
-  XrdTabsBase,
+  XrdMainNavigation,
+  XrdEmptyTabsBase,
   XrdDataTableFooter,
   XrdErrorNotifications,
   XrdBtn,
@@ -89,4 +93,6 @@ export {
   XrdCardTableRow,
   XrdStatusChip,
   XrdIconWithLabel,
+  XrdFormattedHash,
+  XrdMainNavigationContainer,
 };

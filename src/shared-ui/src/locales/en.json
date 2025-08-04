@@ -143,6 +143,7 @@
     "ecParameters": "EC Public Key Parameters",
     "ecPoint": "EC Public Key Point",
     "hashInfo": "Hash (SHA-256)",
+    "issuerDistinguishedName": "Issuer Distinguished Name",
     "keyUsage": {
       "CRL_SIGN": "CRL Sign",
       "DATA_ENCIPHERMENT": "Data Encipherment",
@@ -154,8 +155,18 @@
       "KEY_ENCIPHERMENT": "Key Encipherment",
       "NON_REPUDIATION": "Non Repudiation"
     },
+    "keyUsages": "Key Usages",
+    "notAfter": "Not After",
+    "notBefore": "Not Before",
+    "publicKeyAlgorithm": "Public Key Algorithm",
     "rsaExp": "RSA Public Key Exponent",
-    "rsaModulus": "RSA Public Key Modulus"
+    "rsaModulus": "RSA Public Key Modulus",
+    "serial": "Serial",
+    "signature": "Signature",
+    "signatureAlgorithm": "Signature Algorithm",
+    "subjectAlternativeNames": "Subject Alternative Names",
+    "subjectDistinguishedName": "Subject Distinguished Name",
+    "version": "Version"
   },
   "dataTables": {
     "paginator": {

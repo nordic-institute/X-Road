@@ -25,21 +25,31 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdApp :login-view="loginView">
-    <router-view />
-  </XrdApp>
+  <v-navigation-drawer class="xrd-rail-nav" width="96" permanent>
+    <v-list-item class="xrd-rail-item-logo" density="compact">
+      <v-img class="ma-auto mb-3" width="48px" :src="logo" />
+    </v-list-item>
+  </v-navigation-drawer>
+
 </template>
 
 <script lang="ts" setup>
-// The root component of the Vue app
-import { computed } from 'vue';
-import { XrdApp } from '@niis/shared-ui';
-import { RouteName } from '@/global';
-import { useRoute } from 'vue-router';
+import _logo from '../assets/xrd8/Logo-vertical-dark.png';
 
-const route = useRoute();
-
-const loginView = computed(() => {
-  return route.name === RouteName.Login;
-});
+const logo = _logo;
 </script>
+<style lang="scss" scoped>
+.xrd-rail-nav {
+  padding: 24px 0;
+  border-right-width: 0;
+
+  .v-list-item {
+    margin: 0 8px;
+    padding: 8px 0 12px;
+
+    &.xrd-rail-item-logo {
+      padding: 0;
+    }
+  }
+}
+</style>

@@ -25,9 +25,9 @@
  * THE SOFTWARE.
  */
 
-@import "material-symbols-rounded";
-@import "text-styles";
-@import "vuetify-overrides";
+@use "material-symbols-rounded";
+@use "text-styles";
+@use "vuetify-overrides";
 
 %special-bh-gradient {
   background: radial-gradient(rgb(var(--v-theme-special-start)) 12%, rgb(var(--v-theme-special)) 100%);
@@ -47,6 +47,10 @@
 
 .xrd-rounded-12 {
   border-radius: 12px !important;
+}
+
+.xrd-elevation-1 {
+  box-shadow: 0 16px 40px -24px rgb(var(--v-theme-elevation-1));
 }
 
 .xrd {

@@ -25,33 +25,57 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content" align-left>
-    <XrdAppIcon />
-    <div class="tabs-wrap"></div>
-    <XrdLanguageDropdown />
-    <XrdAppDropMenu />
-  </v-layout>
+  <v-tabs bg-color="surface-container-low" grow class="rounded-xl">
+    <v-tab
+      v-for="tab in allowedTabs"
+      :key="tab.key"
+      class="xrd-tab body-regular font-weight-medium"
+      selected-class="xrd-tab--active"
+      variant="text"
+      rounded="xl"
+      base-color="primary"
+      color="tertiary"
+      hide-slider
+      :to="tab.to"
+      :data-test="tab.key"
+      :text="$t(tab.name)"
+      :prepend-icon="tab.icon"
+    />
+  </v-tabs>
 </template>
 
-<script lang="ts" setup>
-import {
-  XrdAppDropMenu,
-  XrdAppIcon,
-  XrdLanguageDropdown,
-} from '@niis/shared-ui';
+<script lang="ts">
+import { defineComponent, PropType } from 'vue';
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { Tab } from '@niis/shared-ui';
+
+export interface PageNavigationTab extends Tab {
+  showAttention?: boolean;
+}
+
+export default defineComponent({
+  name: 'PageNavigation',
+  props: {
+    tabs: {
+      type: Array as PropType<PageNavigationTab[]>,
+      required: true,
+    },
+  },
+  computed: {
+    ...mapState(useUser, ['getAllowedTabs']),
+    allowedTabs(): PageNavigationTab[] {
+      return this.getAllowedTabs(this.tabs);
+    },
+  },
+});
 </script>
-
 <style lang="scss" scoped>
-.main-content {
-  background-color: #ffffff;
-  height: 56px;
-  padding-left: 92px;
-  @media only screen and (max-width: 920px) {
-    padding-left: 0;
-  }
+.xrd-tab {
+  background-color: rgb(var(--v-theme-surface-container-low));
 
-  .tabs-wrap {
-    margin-left: 20px;
+  &.xrd-tab--active {
+    background-color: rgb(var(--v-theme-on-accent));
   }
 }
 </style>

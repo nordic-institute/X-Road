@@ -26,13 +26,11 @@
  -->
 <template>
   <v-container class="pa-0" fluid tag="article">
-    <header v-if="viewTitle || $slots['append-header']" class="view-header d-flex flex-row align-center mt-6 mb-8">
-      <span v-if="parentRoute" class="title-view">{{ parentRouteTitle }}</span>
-      <v-btn v-if="parentRoute" variant="plain" icon="arrow_back" :to="parentRoute" />
-      <span v-if="fromRoute" class="title-view">{{ fromRouteTitle }}</span>
-      <v-btn v-if="fromRoute" variant="plain" icon="arrow_back" :to="fromRoute" />
-      <span v-if="viewTitle" class="title-view font-weight-medium">{{ viewTitle }}</span>
-
+    <header v-if="breadcrumbs.length > 0 || $slots['append-header']" class="view-header d-flex flex-row align-center mt-6 mb-8">
+      <template v-for="(bc, idx) in breadcrumbs" :key="idx">
+        <span class="title-view" :class="{ 'font-weight-medium': !bc.location }">{{ resolveTitle(bc.title) }}</span>
+        <v-btn v-if="bc.location" variant="plain" color="primary" icon="arrow_back" :to="bc.location" />
+      </template>
       <slot name="append-header" />
     </header>
     <XrdErrorNotifications />
@@ -42,50 +40,19 @@
 </template>
 
 <script lang="ts" setup>
-import { useRoute, useRouter } from 'vue-router';
-import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { XrdLocation } from '../utils';
+import { XrdViewTitle } from '../utils';
 import XrdErrorNotifications from '../components/XrdErrorNotifications.vue';
+import { useHistory } from '../stores';
 
-const props = defineProps({
-  title: {
-    type: String,
-    default: undefined,
-  },
-  titleKey: {
-    type: String,
-    default: undefined,
-  },
-});
 const { t } = useI18n();
+const { breadcrumbs } = useHistory();
 
-const router = useRouter();
-const route = useRoute() as XrdLocation;
-
-const viewTitle = computed(() => {
-  if (props.title) {
-    return props.title;
-  } else if (props.titleKey) {
-    return t(props.titleKey);
-  }
-
-  return resolveTitle(route);
-});
-
-const fromRoute = computed(() => route.meta.from);
-const fromRouteTitle = computed(() => (fromRoute.value ? resolveTitle(fromRoute.value) : undefined));
-
-const listViewName = computed(() => fromRoute.value?.meta.listView || route.meta.listView);
-
-const parentRoute = computed(() => (listViewName.value ? router.resolve({ name: listViewName.value }) : undefined));
-const parentRouteTitle = computed(() => (parentRoute.value ? resolveTitle(parentRoute.value) : undefined));
-
-function resolveTitle(route: XrdLocation) {
-  if (typeof route.meta.title === 'function') {
-    return route.meta.title();
-  } else if (typeof route.meta.title === 'string') {
-    return t(route.meta.title);
+function resolveTitle(titleProvider: XrdViewTitle) {
+  if (typeof titleProvider === 'function') {
+    return titleProvider();
+  } else if (typeof titleProvider === 'string') {
+    return t(titleProvider);
   }
   return undefined;
 }

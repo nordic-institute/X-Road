@@ -38,7 +38,7 @@
       />
     </template>
     <template #tabs>
-      <page-navigation :tabs="memberNavigationTabs" class="mb-6" />
+      <ViewNavigation :tabs="memberNavigationTabs" class="mb-6" />
     </template>
 
     <router-view />
@@ -54,9 +54,7 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import PageNavigation, {
-  PageNavigationTab,
-} from '@/layouts/PageNavigation.vue';
+import ViewNavigation, { PageNavigationTab } from '@/layouts/ViewNavigation.vue';
 import { Permissions, RouteName } from '@/global';
 import { useMember } from '@/store/modules/members';
 import { XrdView, XrdBtn } from '@niis/shared-ui';

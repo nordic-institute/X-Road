@@ -26,3 +26,4 @@
  */
 
 export * from './notifications';
+export * from './history';

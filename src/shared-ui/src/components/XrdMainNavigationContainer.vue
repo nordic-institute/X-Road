@@ -25,52 +25,34 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-tabs grow class="bg-tab rounded-xl">
-    <v-tab
-      v-for="tab in allowedTabs"
-      :key="tab.key"
-      class="body-regular font-weight-medium"
-      variant="flat"
-      rounded="xl"
-      base-color="tab"
-      color="active-tab"
-      hide-slider
-      :to="tab.to"
-      :data-test="tab.key"
-      :text="$t(tab.name)"
-      :prepend-icon="tab.icon"
-    />
-  </v-tabs>
+  <v-navigation-drawer class="xrd-rail-nav" width="96" permanent>
+    <v-list-item class="xrd-rail-item-logo" density="compact">
+      <v-img class="ma-auto mb-3" width="48px" :src="logo" />
+    </v-list-item>
+
+    <slot />
+  </v-navigation-drawer>
+  <slot name="sub-nav" />
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
-import { Tab } from '@niis/shared-ui';
+<script lang="ts" setup>
+import _logo from '../assets/xrd8/Logo-vertical-dark.png';
 
-export interface PageNavigationTab extends Tab {
-  showAttention?: boolean;
-}
-
-export default defineComponent({
-  name: 'PageNavigation',
-  props: {
-    tabs: {
-      type: Array as PropType<PageNavigationTab[]>,
-      required: true,
-    },
-  },
-  computed: {
-    ...mapState(useUser, ['getAllowedTabs']),
-    allowedTabs(): PageNavigationTab[] {
-      return this.getAllowedTabs(this.tabs);
-    },
-  },
-});
+const logo = _logo;
 </script>
 <style lang="scss" scoped>
-.v-tab-item--selected {
-  background-color: red;
+.xrd-rail-nav {
+  padding: 24px 8px;
+  border-right-width: 0;
+
+  .v-list-item {
+    margin: 0 8px;
+    padding: 8px 0 12px;
+
+    &.xrd-rail-item-logo {
+      padding: 0;
+    }
+  }
 }
+
 </style>

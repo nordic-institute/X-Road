@@ -25,21 +25,19 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdApp :login-view="loginView">
-    <router-view />
-  </XrdApp>
+  <span class="xrd-formatted-hash">{{ formattedHash }}</span>
 </template>
 
 <script lang="ts" setup>
-// The root component of the Vue app
 import { computed } from 'vue';
-import { XrdApp } from '@niis/shared-ui';
-import { RouteName } from '@/global';
-import { useRoute } from 'vue-router';
+import { helper } from '../utils';
 
-const route = useRoute();
-
-const loginView = computed(() => {
-  return route.name === RouteName.Login;
+const props = defineProps({
+  hash: {
+    type: String,
+    required: true,
+  },
 });
+
+const formattedHash = computed(() => helper.colonize(props.hash));
 </script>

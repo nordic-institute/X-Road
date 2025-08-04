@@ -26,39 +26,66 @@
  -->
 
 <template>
-  <main id="security-server-authentication-certificate" class="mt-8">
-    <CertificateDetails
-      v-if="securityServerAuthenticationCertificate"
-      :certificate-details="securityServerAuthenticationCertificate"
-    />
-  </main>
+  <XrdElevatedView close-on-escape :breadcrumbs="breadcrumbs">
+    <XrdCertificate v-if="certificate" :certificate="certificate" />
+  </XrdElevatedView>
 </template>
 
-<script lang="ts">
-import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
-import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
+<script lang="ts" setup>
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
-import { mapStores } from 'pinia';
-import { defineComponent } from 'vue';
+import { XrdCertificate, XrdElevatedView } from '@niis/shared-ui';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { RouteName } from '@/global';
+import { useSecurityServer } from '@/store/modules/security-servers';
 
-export default defineComponent({
-  name: 'SecurityServerAuthenticationCertificate',
-  components: { CertificateDetails },
-  props: {
-    authenticationCertificateId: {
-      type: Number,
-      required: true,
-    },
-  },
-  computed: {
-    ...mapStores(useSecurityServerAuthCert),
-    securityServerAuthenticationCertificate():
-      | SecurityServerAuthenticationCertificateDetails
-      | undefined {
-      return this.securityServerAuthCertStore.authenticationCertificates.find(
-        (authCert) => authCert.id === this.authenticationCertificateId,
-      );
-    },
+const props = defineProps({
+  certificateId: {
+    type: String,
+    required: true,
   },
 });
+
+const { t } = useI18n();
+const securityServerAuthCertStore = useSecurityServerAuthCert();
+const useSecurityServerStore = useSecurityServer();
+const certId = computed(() => Number(props.certificateId));
+const certificate = computed(() =>
+  securityServerAuthCertStore.authenticationCertificates.find(
+    (authCert) => authCert.id === certId.value,
+  ),
+);
+
+const breadcrumbs = computed(() => [
+  {
+    title: t('tab.main.securityServers'),
+    to: { name: RouteName.SecurityServers },
+  },
+  {
+    title:
+      useSecurityServerStore.currentSecurityServer?.server_id.server_code || '',
+    to: {
+      name: RouteName.SecurityServerDetails,
+      params: {
+        serverId:
+          useSecurityServerStore.currentSecurityServer?.server_id.encoded_id ||
+          '',
+      },
+    },
+  },
+  {
+    title: t('securityServers.securityServer.tabs.authCertificates'),
+    to: {
+      name: RouteName.SecurityServerAuthenticationCertificates,
+      params: {
+        serverId:
+          useSecurityServerStore.currentSecurityServer?.server_id.encoded_id ||
+          '',
+      },
+    },
+  },
+  {
+    title: t('cert.certificate')
+  },
+]);
 </script>

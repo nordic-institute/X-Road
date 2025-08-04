@@ -24,22 +24,16 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
-  <XrdApp :login-view="loginView">
-    <router-view />
-  </XrdApp>
+  <v-table class="bg-surface-container-lowest">
+    <tbody>
+      <slot />
+    </tbody>
+  </v-table>
 </template>
 
 <script lang="ts" setup>
-// The root component of the Vue app
-import { computed } from 'vue';
-import { XrdApp } from '@niis/shared-ui';
-import { RouteName } from '@/global';
-import { useRoute } from 'vue-router';
-
-const route = useRoute();
-
-const loginView = computed(() => {
-  return route.name === RouteName.Login;
-});
 </script>
+
+<style lang="scss" scoped></style>

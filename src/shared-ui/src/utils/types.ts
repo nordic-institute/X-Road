@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { RouteLocationRaw, RouteRecordRaw, RouteLocationGeneric } from 'vue-router';
+import { RouteLocationRaw, RouteRecordRaw, RouteLocationGeneric, RouteMeta, RouteRecordNameGeneric } from 'vue-router';
 
 export type FileUploadResult = {
   /**@deprecated*/
@@ -87,13 +87,14 @@ export interface Tab {
 type Title = string | undefined;
 type TitleProvider = () => Title;
 
-type XrdMeta = {
+export type XrdViewTitle = Title | TitleProvider;
+
+export type XrdMeta = RouteMeta & {
   permissions?: string[];
-  backOnEscape?: boolean;
-  allowBackTo?: string[];
-  listView?: string;
-  from?: XrdLocation;
-  title?: Title | TitleProvider;
+  allowBreadcrumbsTo?: RouteRecordNameGeneric[];
+  listView?: RouteRecordNameGeneric;
+  title?: XrdViewTitle;
+  elevated?: boolean;
 };
 
 export type XrdLocation = RouteLocationGeneric & {
