@@ -25,6 +25,9 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
+import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.core.exception.WarningDeviation;
+
 import java.util.Collection;
 
 /**

@@ -53,9 +53,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ACTION_NOT_POSSIBLE;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_FETCH_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_PIN_INCORRECT;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.ACTION_NOT_POSSIBLE;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.TOKEN_FETCH_FAILED;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.TOKEN_PIN_INCORRECT;
 
 /**
  * Service that handles tokens

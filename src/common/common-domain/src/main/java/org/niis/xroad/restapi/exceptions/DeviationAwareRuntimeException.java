@@ -27,6 +27,8 @@ package org.niis.xroad.restapi.exceptions;
 
 import lombok.Getter;
 import lombok.NonNull;
+import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.core.exception.WarningDeviation;
 
 import java.util.Collection;
 import java.util.List;

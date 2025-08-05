@@ -32,7 +32,7 @@ import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
 
 /**

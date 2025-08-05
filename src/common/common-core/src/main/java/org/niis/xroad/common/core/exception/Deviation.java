@@ -23,32 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.common.core.exception;
 
+import java.io.Serializable;
 import java.util.List;
 
-/**
- * An error that can't be ignored
- * @param code     error code
- * @param metadata metadata
- */
-public record ErrorDeviation(String code, List<String> metadata) implements Deviation {
 
-    private static final String TO_STRING = "Error[code=%s]";
-    private static final String TO_STRING_WITH_META = "Error[code=%s, metadata=%s]";
+@SuppressWarnings("javaarchitecture:S7027")
+public sealed interface Deviation extends Serializable permits ErrorDeviation, WarningDeviation {
+    String code();
 
-    public ErrorDeviation(String code, String metadataItem) {
-        this(code, List.of(metadataItem));
-    }
-
-    public ErrorDeviation(String code) {
-        this(code, List.of());
-    }
-
-    @Override
-    public String toString() {
-        return metadata == null || metadata.isEmpty()
-                ? TO_STRING.formatted(code)
-                : TO_STRING_WITH_META.formatted(code, metadata);
-    }
+    List<String> metadata();
 }

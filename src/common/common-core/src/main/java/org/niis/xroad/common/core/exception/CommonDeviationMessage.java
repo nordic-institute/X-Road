@@ -24,12 +24,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.exception.util;
+package org.niis.xroad.common.core.exception;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.restapi.exceptions.DeviationBuilder;
-
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS;
 
 @RequiredArgsConstructor
 public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBuilder {
@@ -39,6 +36,8 @@ public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBui
     SECURITY_SERVER_NOT_FOUND("security_server_not_found"),
     INVALID_ENCODED_ID("invalid_encoded_id"),
     ERROR_ID_NOT_A_NUMBER("id_not_a_number"),
+
+    SSl_AUTHENTICATION_FAILED("ssl_authentication_failed"),
 
     API_KEY_NOT_FOUND("api_key_not_found"),
     API_KEY_INVALID_ROLE("invalid_role"),
@@ -97,7 +96,7 @@ public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBui
     KEY_CERT_GENERATION_FAILED("key_and_cert_generation_failed"),
     INVALID_CERTIFICATE("invalid_certificate"),
 
-    MEMBER_CLASS_EXISTS(ERROR_METADATA_MEMBER_CLASS_EXISTS);
+    MEMBER_CLASS_EXISTS("member_class_exists");
 
     private final String code;
 

@@ -29,7 +29,7 @@ import org.niis.xroad.common.exception.BadRequestException;
 
 import java.util.List;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_WEAK_PIN;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.TOKEN_WEAK_PIN;
 
 /**
  * If the provided pin code is too weak

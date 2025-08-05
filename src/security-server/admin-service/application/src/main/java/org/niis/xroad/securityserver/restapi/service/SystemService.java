@@ -73,7 +73,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.MALFORMED_ANCHOR;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.MALFORMED_ANCHOR;
 import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.DISABLED;
 import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.DISABLING;
 import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.ENABLED;

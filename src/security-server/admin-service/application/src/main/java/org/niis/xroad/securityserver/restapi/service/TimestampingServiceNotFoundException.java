@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.niis.xroad.common.exception.BadRequestException;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TIMESTAMPING_SERVICE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.TIMESTAMPING_SERVICE_NOT_FOUND;
 
 /**
  * If timestamping service was not found

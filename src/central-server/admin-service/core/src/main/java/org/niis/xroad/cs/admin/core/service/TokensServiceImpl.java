@@ -48,7 +48,7 @@ import java.util.Set;
 
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toSet;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_FETCH_FAILED;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.TOKEN_FETCH_FAILED;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_ACTIVATION_FAILED;

@@ -41,7 +41,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NO
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_NAME;
-import static org.niis.xroad.restapi.exceptions.DeviationBuilder.trMetadata;
+import static org.niis.xroad.common.core.exception.DeviationBuilder.trMetadata;
 
 @Component
 @RequiredArgsConstructor

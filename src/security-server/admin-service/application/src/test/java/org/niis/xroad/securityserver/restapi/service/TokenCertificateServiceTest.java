@@ -44,7 +44,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;

@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.cs.admin.core.util;
 
-import org.niis.xroad.restapi.exceptions.Deviation;
+import org.niis.xroad.common.core.exception.Deviation;
 import org.niis.xroad.restapi.exceptions.DeviationAware;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.common.core.exception.WarningDeviation;
 
 import java.util.Arrays;
 import java.util.Collection;

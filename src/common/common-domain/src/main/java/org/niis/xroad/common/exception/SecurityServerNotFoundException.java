@@ -28,7 +28,7 @@ package org.niis.xroad.common.exception;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.SECURITY_SERVER_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.SECURITY_SERVER_NOT_FOUND;
 
 /**
  * Security Server "NotFound" exception It has an error message which optionally can be thrown to api layer.

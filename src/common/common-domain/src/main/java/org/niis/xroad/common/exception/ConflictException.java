@@ -29,7 +29,7 @@ import ee.ria.xroad.common.HttpStatus;
 
 import lombok.NonNull;
 import org.niis.xroad.restapi.exceptions.DeviationAware;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.common.core.exception.ErrorDeviation;
 
 /**
  * Data integrity exception It has an error message which optionally can be thrown to api layer.

@@ -49,10 +49,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_DELETION_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_BACKUP_FILE;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_FILENAME;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.BACKUP_DELETION_FAILED;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_BACKUP_FILE;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_FILENAME;
 
 /**
  * Backup repository

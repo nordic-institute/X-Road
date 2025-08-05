@@ -39,7 +39,7 @@ import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
@@ -86,7 +86,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CLIENT_NAME;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_CLIENT_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_NAME;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_UNREGISTERED_MEMBER;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ADDITIONAL_MEMBER_ALREADY_EXISTS;

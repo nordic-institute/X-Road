@@ -30,10 +30,10 @@ import ee.ria.xroad.common.HttpStatus;
 
 import lombok.NonNull;
 import org.niis.xroad.restapi.exceptions.DeviationAware;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.HttpStatusAware;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INTERNAL_ERROR;
 
 /**
  * Base exception for any manually thrown exception. It has an error message which optionally can be thrown to api layer.

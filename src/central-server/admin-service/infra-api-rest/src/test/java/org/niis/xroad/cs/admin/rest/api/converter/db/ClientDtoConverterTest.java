@@ -59,7 +59,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
-import static org.niis.xroad.restapi.exceptions.DeviationBuilder.trMetadata;
+import static org.niis.xroad.common.core.exception.DeviationBuilder.trMetadata;
 
 @ExtendWith(MockitoExtension.class)
 public class ClientDtoConverterTest extends AbstractDtoConverterTest implements WithInOrder {

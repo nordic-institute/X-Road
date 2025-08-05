@@ -34,7 +34,7 @@ import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOutDto;
@@ -60,10 +60,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_BACKUP_FILE;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_FILENAME;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_BACKUP_FILE;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_FILENAME;
 
 /**
  * Test BackupsApiController

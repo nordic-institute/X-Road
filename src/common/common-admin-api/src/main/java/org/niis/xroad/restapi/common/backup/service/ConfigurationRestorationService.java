@@ -43,8 +43,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.io.File;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
 
 /**
  * service class for restoring security server configuration from a backup

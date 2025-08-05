@@ -62,7 +62,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_CERT_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.CommonDeviationMessage.KEY_CERT_GENERATION_FAILED;
 
 /**
  * test InternalTlsCertificateService
