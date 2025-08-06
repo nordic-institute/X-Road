@@ -25,48 +25,62 @@
    THE SOFTWARE.
  -->
 <template>
-  <details-view :back-to="backTo">
+  <XrdView>
+    <template v-if="managementRequest?.status === 'WAITING'" #append-header>
+      <v-spacer />
+      <XrdBtn
+        data-test="decline-button"
+        class="mr-4"
+        variant="outlined"
+        text="action.decline"
+        color="primary"
+        @click="showDeclineDialog = true"
+      />
+
+      <XrdBtn
+        data-test="approve-button"
+        class="mr-4"
+        variant="flat"
+        text="action.approve"
+        color="primary"
+        @click="showApproveDialog = true"
+      />
+    </template>
     <XrdEmptyPlaceholder
       :loading="loading"
       :data="managementRequest"
       :no-items-text="$t('noData.noData')"
       skeleton-type="table-heading"
     />
-    <xrd-titled-view v-if="managementRequest && !loading" :title="typeText">
-      <template v-if="managementRequest.status === 'WAITING'" #header-buttons>
-        <xrd-button
-          outlined
-          class="mr-4"
-          data-test="approve-button"
-          @click="showApproveDialog = true"
-        >
-          {{ $t('action.approve') }}
-        </xrd-button>
-        <xrd-button
-          outlined
-          class="mr-4"
-          data-test="decline-button"
-          @click="showDeclineDialog = true"
-        >
-          {{ $t('action.decline') }}
-        </xrd-button>
-      </template>
-      <mr-information :management-request="managementRequest" />
-      <div class="management-request-additional-details">
-        <mr-security-server-information
-          :class="{ 'only-half': onlyServerInfo }"
-          :management-request="managementRequest"
-        />
-        <mr-client-information
-          v-if="hasClientInfo"
-          :management-request="managementRequest"
-        />
-        <mr-certificate-information
-          v-if="hasCertificateInfo"
-          :management-request="managementRequest"
-        />
-      </div>
-      <mr-confirm-dialog
+    <template v-if="managementRequest">
+      <MrInformation :management-request="managementRequest" />
+      <v-container
+        fluid
+        class="management-request-additional-details pa-0 mt-6"
+      >
+        <v-row justify="start">
+          <v-col class="pa-2">
+            <MrSecurityServerInformation
+              class="fill-height"
+              :management-request="managementRequest"
+            />
+          </v-col>
+          <v-col v-if="hasClientInfo" class="pa-2">
+            <MrClientInformation
+              class="fill-height"
+              :management-request="managementRequest"
+            />
+          </v-col>
+          <v-col v-if="hasCertificateInfo" class="pa-2">
+            <MrCertificateInformation
+              class="fill-height"
+              :management-request="managementRequest"
+            />
+          </v-col>
+          <v-spacer v-if="onlyServerInfo" />
+        </v-row>
+      </v-container>
+      <MrConfirmDialog
         v-if="
           showApproveDialog &&
           managementRequest.id &&
@@ -78,7 +92,7 @@
         @approve="approve"
         @cancel="showApproveDialog = false"
       />
-      <mr-decline-dialog
+      <MrDeclineDialog
         v-if="
           showDeclineDialog &&
           managementRequest.id &&
@@ -89,14 +103,13 @@
         @decline="decline"
         @cancel="showDeclineDialog = false"
       />
-    </xrd-titled-view>
-  </details-view>
+    </template>
+  </XrdView>
 </template>
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { useManagementRequests } from '@/store/modules/management-requests';
-import { managementTypeToText } from '@/util/helpers';
 import { ManagementRequestType } from '@/openapi-types';
 import MrDeclineDialog from '@/components/managementRequests/MrDeclineDialog.vue';
 import MrConfirmDialog from '@/components/managementRequests/MrConfirmDialog.vue';
@@ -105,9 +118,7 @@ import MrClientInformation from '@/components/managementRequests/details/MrClien
 import MrSecurityServerInformation from '@/components/managementRequests/details/MrSecurityServerInformation.vue';
 import MrInformation from '@/components/managementRequests/details/MrInformation.vue';
 import { useNotifications } from '@/store/modules/notifications';
-import DetailsView from '@/components/ui/DetailsView.vue';
-import { RouteName } from '@/global';
-import { XrdTitledView } from '@niis/shared-ui';
+import { XrdView, XrdBtn } from '@niis/shared-ui';
 
 /**
  * Wrapper component for a certification service view
@@ -121,9 +132,6 @@ const props = defineProps({
 const loading = ref(false);
 const showApproveDialog = ref(false);
 const showDeclineDialog = ref(false);
-const backTo = {
-  name: RouteName.ManagementRequests,
-};
 
 const managementRequests = useManagementRequests();
 const { showError } = useNotifications();
@@ -131,9 +139,7 @@ const { showError } = useNotifications();
 const managementRequest = computed(
   () => managementRequests.currentManagementRequest,
 );
-const typeText = computed(() =>
-  managementTypeToText(managementRequest.value?.type),
-);
+
 const hasCertificateInfo = computed(() => {
   if (!managementRequest.value) {
     return false;
@@ -204,29 +210,5 @@ function fetchData() {
 fetchData();
 </script>
 <style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables' as *;
-@use '@niis/shared-ui/src/assets/colors';
 
-.management-request-additional-details {
-  margin-top: 24px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-start;
-
-  margin-bottom: 24px;
-
-  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
-  .details-block {
-    width: 100%;
-
-    &:first-child {
-      margin-right: 30px;
-    }
-  }
-}
-
-.only-half {
-  max-width: 50%;
-}
 </style>

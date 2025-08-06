@@ -27,8 +27,8 @@
 
 // Filters an array of objects excluding specified object key
 import { NavigationFailure } from 'vue-router';
-import { ClientId, ErrorInfo, ManagementRequestType } from '@/openapi-types';
-import { AxiosError, AxiosResponse } from 'axios';
+import { ClientId, ManagementRequestType } from '@/openapi-types';
+import { AxiosResponse } from 'axios';
 import { i18n } from '@niis/shared-ui';
 import dayjs from 'dayjs';
 
@@ -125,35 +125,89 @@ export function toShortMemberId(client: ClientId): string {
   return `${client.member_class}:${client.member_code}`;
 }
 
-export function managementTypeToText(
-  type: ManagementRequestType | undefined,
-): string {
+type MrIconColorText = { text: string; color: string; icon: string };
+
+function mrIconColorText(
+  textKey: string,
+  icon: string,
+  color: string,
+): MrIconColorText {
   const { t } = i18n.global;
+  return { text: t(textKey), icon, color };
+}
+
+export function managementTypeToIconTextColor(
+  type: ManagementRequestType | undefined,
+): MrIconColorText | undefined {
   switch (type) {
     case ManagementRequestType.OWNER_CHANGE_REQUEST:
-      return t('managementRequests.changeOwner') as string;
+      return mrIconColorText(
+        'managementRequests.changeOwner',
+        'folder_managed',
+        'border',
+      );
     case ManagementRequestType.AUTH_CERT_DELETION_REQUEST:
-      return t('managementRequests.removeCertificate') as string;
+      return mrIconColorText(
+        'managementRequests.removeCertificate',
+        'scan_delete',
+        'error',
+      );
     case ManagementRequestType.CLIENT_DELETION_REQUEST:
-      return t('managementRequests.removeClient') as string;
+      return mrIconColorText(
+        'managementRequests.removeClient',
+        'person_cancel',
+        'error',
+      );
     case ManagementRequestType.CLIENT_DISABLE_REQUEST:
-      return t('managementRequests.clientDisable') as string;
+      return mrIconColorText(
+        'managementRequests.clientDisable',
+        'rule_settings', //TODO xrd8 change icon
+        'error',
+      );
     case ManagementRequestType.CLIENT_ENABLE_REQUEST:
-      return t('managementRequests.clientEnable') as string;
+      return mrIconColorText(
+        'managementRequests.clientEnable',
+        'rule_settings', //TODO xrd8 change icon
+        'success',
+      );
     case ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST:
-      return t('managementRequests.addCertificate') as string;
+      return mrIconColorText(
+        'managementRequests.addCertificate',
+        'note_add',
+        'success',
+      );
     case ManagementRequestType.CLIENT_REGISTRATION_REQUEST:
-      return t('managementRequests.addClient') as string;
+      return mrIconColorText(
+        'managementRequests.addClient',
+        'person_add',
+        'success',
+      );
     case ManagementRequestType.ADDRESS_CHANGE_REQUEST:
-      return t('managementRequests.changeAddress') as string;
+      return mrIconColorText(
+        'managementRequests.changeAddress',
+        'rule_settings', //TODO xrd8 change icon
+        'success',
+      );
     case ManagementRequestType.CLIENT_RENAME_REQUEST:
-      return t('managementRequests.renameClient') as string;
+      return mrIconColorText(
+        'managementRequests.renameClient',
+        'rule_settings', //TODO xrd8 change icon
+        'success',
+      );
     case ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST:
-      return t('managementRequests.maintenanceModeEnable') as string;
+      return mrIconColorText(
+        'managementRequests.maintenanceModeEnable',
+        'rule_settings', //TODO xrd8 change icon
+        'success',
+      );
     case ManagementRequestType.MAINTENANCE_MODE_DISABLE_REQUEST:
-      return t('managementRequests.maintenanceModeDisable') as string;
+      return mrIconColorText(
+        'managementRequests.maintenanceModeDisable',
+        'rule_settings', //TODO xrd8 change icon
+        'error',
+      );
     default:
-      return '';
+      return undefined;
   }
 }
 

@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard :title-key="titleKey" class="bg-surface-container" variant="flat">
+  <XrdCard :title="titleKey" class="bg-surface-container" variant="flat">
     <template #append-title>
       <v-text-field
         v-model="search"

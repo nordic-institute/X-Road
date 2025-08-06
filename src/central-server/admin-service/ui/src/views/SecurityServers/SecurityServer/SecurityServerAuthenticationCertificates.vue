@@ -45,7 +45,7 @@
           clickable
           semi-bold
           :label="item.issuer_common_name"
-          @click="navigateToCertificateDetails(item.id)"
+          @navigate="navigateToCertificateDetails(item.id)"
         />
       </template>
       <template #[`item.not_after`]="{ item }">

@@ -36,6 +36,7 @@ $icons: (
   search: "\e8b6",
   folder: "\e2c7",
   folder_copy: "\ebbd",
+  folder_managed: "\f775",
   visibility: "\e8f4",
   visibility_off: "\e8f5",
   page_info: "\f614",
@@ -56,7 +57,7 @@ $icons: (
   add_circle: "\e147",
   keyboard_arrow_down: "\e313",
   error: "\e000",
-  warning:2w "\e002",
+  warning: "\e002",
   content_copy: "\e14d",
   delete_forever: "\e92b",
   cancel: "\e5c9",
@@ -65,6 +66,10 @@ $icons: (
   group: "\e7ef",
   id_card: "\f4ca",
   assured_workload: "\eb6f",
+  person_add: "\e7fe",
+  person_cancel: "\f566",
+  scan_delete: "\f74f",
+  note_add: "\e89c",
 );
 
 @mixin msr-icons {

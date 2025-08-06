@@ -25,101 +25,125 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <searchable-titled-view
-      v-model="filterQuery"
-      title-key="tab.main.managementRequests"
+  <XrdView data-test="security-servers-view">
+    <template #append-header>
+      <div class="ml-6">
+        <v-text-field
+          v-model="filterQuery"
+          data-test="search-query-field"
+          class="xrd-text-field"
+          width="320"
+          prepend-inner-icon="search"
+          single-line
+          :label="$t('action.search')"
+        />
+      </div>
+      <v-spacer />
+      <div class="only-pending">
+        <v-switch
+          v-model="showOnlyPending"
+          data-test="show-only-pending-requests"
+          class="xrd-switch"
+          false-icon="close"
+          true-icon="check"
+          hide-details
+          inset
+          :label="$t('managementRequests.showOnlyPending')"
+          @update:model-value="fetchItems"
+        >
+        </v-switch>
+      </div>
+    </template>
+    <v-data-table-server
+      data-test="management-requests-table"
+      class="xrd-data-table bg-surface-container xrd-rounded-16"
+      item-key="id"
+      :sort-by="sortBy"
+      :loading="loading"
+      :headers="headers"
+      :must-sort="true"
+      :items="managementRequests.items"
+      :items-length="managementRequests.pagingOptions.total_items"
+      :items-per-page="10"
+      :loader-height="2"
+      @update:options="changeOptions"
     >
-      <template #header-buttons>
-        <div class="only-pending">
-          <v-checkbox
-            v-model="showOnlyPending"
-            density="compact"
-            :label="$t('managementRequests.showOnlyPending')"
-            class="custom-checkbox"
-            data-test="show-only-pending-requests"
-            hide-details
-            @update:model-value="fetchItems"
-          />
+      <template #[`item.id`]="{ item }">
+        <XrdIconWithLabel
+          icon="rule_settings"
+          semi-bold
+          :clickable="canSeeDetails"
+          :label="item.id"
+          @navigate="item.id && navigateToDetails(item.id)"
+        />
+      </template>
+
+      <template #[`item.created_at`]="{ item }">
+        <div>
+          <date-time :value="item.created_at" />
         </div>
       </template>
-      <v-data-table-server
-        data-test="management-requests-table"
-        class="elevation-0 data-table"
-        item-key="id"
-        :sort-by="sortBy"
-        :loading="loading"
-        :headers="headers"
-        :must-sort="true"
-        :items="managementRequests.items"
-        :items-length="managementRequests.pagingOptions.total_items"
-        :items-per-page="10"
-        :items-per-page-options="itemsPerPageOptions"
-        :loader-height="2"
-        @update:options="changeOptions"
-      >
-        <template #[`item.id`]="{ item }">
-          <management-request-id-cell :management-request="item" />
-        </template>
 
-        <template #[`item.created_at`]="{ item }">
-          <div>
-            <date-time :value="item.created_at" />
-          </div>
-        </template>
+      <template #[`item.type`]="{ item }">
+        <MrTypeCell :type="item.type" />
+      </template>
 
-        <template #[`item.type`]="{ item }">
-          <mr-type-cell :type="item.type" />
-        </template>
+      <template #[`item.security_server_owner`]="{ item }">
+        <div>{{ item.security_server_owner }}</div>
+      </template>
 
-        <template #[`item.security_server_owner`]="{ item }">
-          <div>{{ item.security_server_owner }}</div>
-        </template>
+      <template #[`item.security_server_id`]="{ item }">
+        <div>{{ item.security_server_id.encoded_id }}</div>
+      </template>
 
-        <template #[`item.security_server_id`]="{ item }">
-          <div>{{ item.security_server_id.encoded_id }}</div>
-        </template>
+      <template #[`item.status`]="{ item }">
+        <MrStatusCell :status="item.status" />
+      </template>
 
-        <template #[`item.status`]="{ item }">
-          <mr-status-cell :status="item.status" />
-        </template>
-
-        <template #[`item.button`]="{ item }">
-          <mr-actions-cell
-            :management-request="item"
-            @approve="fetchItems"
-            @decline="fetchItems"
-          />
-        </template>
-      </v-data-table-server>
-    </searchable-titled-view>
-  </div>
+      <template #[`item.button`]="{ item }">
+        <MrActionsCell
+          :management-request="item"
+          @approve="fetchItems"
+          @decline="fetchItems"
+        />
+      </template>
+      <template #bottom>
+        <XrdPagination />
+      </template>
+    </v-data-table-server>
+  </XrdView>
 </template>
 
 <script lang="ts" setup>
-import { useNotifications } from '@/store/modules/notifications';
 import { useManagementRequests } from '@/store/modules/management-requests';
-import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vue';
 import MrActionsCell from '@/components/managementRequests/MrActionsCell.vue';
 import MrStatusCell from '@/components/managementRequests/MrStatusCell.vue';
 import MrTypeCell from '@/components/managementRequests/MrTypeCell.vue';
 import { DataQuery, DataTableHeader, SortItem } from '@/ui-types';
-import { defaultItemsPerPageOptions } from '@/util/defaults';
 import DateTime from '@/components/ui/DateTime.vue';
 import { computed, reactive, ref, watch } from 'vue';
-import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 import { useI18n } from 'vue-i18n';
 import { ManagementRequestStatus } from '@/openapi-types';
 import { debounce } from '@/util/helpers';
+import {
+  XrdView,
+  XrdPagination,
+  XrdIconWithLabel,
+  useNotifications,
+} from '@niis/shared-ui';
+import { RouteName, Permissions } from '@/global';
+import { useRouter } from 'vue-router';
+import { useUser } from '@/store/modules/user';
 
 const sortBy = [{ key: 'id', order: 'desc' }] as SortItem[];
 const loading = ref(false);
 const dataQuery = reactive({} as DataQuery);
-const itemsPerPageOptions = defaultItemsPerPageOptions(50);
 
 const managementRequests = useManagementRequests();
-const { showError } = useNotifications();
+const { addError } = useNotifications();
 const { t } = useI18n();
+const router = useRouter();
+const { hasPermission } = useUser();
 
 const showOnlyPending = computed({
   get(): boolean {
@@ -185,6 +209,10 @@ const headers = computed(
     ] as DataTableHeader[],
 );
 
+const canSeeDetails = computed(() =>
+  hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS),
+);
+
 watch(
   filterQuery,
   debounce(() => {
@@ -192,6 +220,13 @@ watch(
     fetchItems();
   }, 600),
 );
+
+function navigateToDetails(reqId: number): void {
+  router.push({
+    name: RouteName.ManagementRequestDetails,
+    params: { requestId: String(reqId) },
+  });
+}
 
 async function changeOptions({ itemsPerPage, page, sortBy }) {
   dataQuery.itemsPerPage = itemsPerPage;
@@ -207,13 +242,11 @@ async function fetchItems() {
   try {
     await managementRequests.find(dataQuery, managementRequests.currentFilter);
   } catch (error: unknown) {
-    showError(error);
+    addError(error);
   } finally {
     loading.value = false;
   }
 }
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables' as *;
-</style>
+<style lang="scss" scoped></style>

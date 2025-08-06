@@ -103,7 +103,7 @@
 
     <!-- Global Groups -->
     <div id="global-groups" class="mt-4">
-      <XrdCard title-key="members.member.details.globalGroups">
+      <XrdCard title="members.member.details.globalGroups">
         <template #append-title>
           <v-text-field
             v-model="searchGroups"

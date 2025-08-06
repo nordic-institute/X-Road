@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="d-flex flex-row align-center" :class="{ 'cursor-pointer': clickable }">
+  <div class="d-flex flex-row align-center" :class="{ 'cursor-pointer': clickable }" @click="clickable && emit('navigate')">
     <v-icon size="24" :color="noDefaultColors ? undefined : iconColor" :icon="icon" />
     <span class="ml-2" :class="textCss">{{ label }}</span>
   </div>
@@ -36,7 +36,7 @@ import { computed } from 'vue';
 
 const props = defineProps({
   label: {
-    type: String,
+    type: [String, Number],
     default: '',
   },
   labelColor: {
@@ -68,6 +68,8 @@ const props = defineProps({
     default: false,
   },
 });
+
+const emit = defineEmits(['navigate']);
 
 const textCss = computed(() => ({
   ['text-' + props.labelColor]: !props.noDefaultColors,

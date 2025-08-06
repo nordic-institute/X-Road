@@ -27,11 +27,11 @@
 <template>
   <v-card variant="flat" class="xrd-rounded-12 border" :class="classes">
     <v-card-title
-      v-if="titleKey || $slots['append-title'] || $slots['title-actions']"
+      v-if="title || $slots['append-title'] || $slots['title-actions']"
       class="d-flex flex-row align-center pt-2 pl-4 pb-6 pr-0"
     >
-      <div v-if="titleKey" class="font-weight-medium title-component">
-        {{ $t(titleKey) }}
+      <div v-if="title" class="font-weight-medium title-component">
+        {{ translated ? title : $t(title) }}
       </div>
       <div v-if="$slots['append-title']" class="ml-6">
         <slot name="append-title" />
@@ -54,7 +54,7 @@ const props = defineProps({
     type: String as PropType<'flat'>,
     default: 'flat',
   },
-  titleKey: {
+  title: {
     type: String,
     default: undefined,
   },
@@ -62,6 +62,10 @@ const props = defineProps({
     type: String,
     default: 'surface-container',
   },
+  translated: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const classes = computed(() => ['bg-' + props.bgColor]);

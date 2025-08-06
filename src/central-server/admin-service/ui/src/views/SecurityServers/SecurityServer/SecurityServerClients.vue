@@ -65,7 +65,7 @@
           :icon="item.client_id.subsystem_code ? 'id_card' : 'folder filled'"
           :label="item.member_name"
           :clickable="hasPermissionToMemberDetails"
-          @click="hasPermissionToMemberDetails && toMemberDetails(item)"
+          @navigate="toMemberDetails(item)"
         />
       </template>
     </v-data-table>

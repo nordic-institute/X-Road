@@ -152,7 +152,7 @@ export const useNotifications = defineStore('xrd-notifications', {
       this.notifications.push(notification);
     },
 
-    addSuccessMessage(messageKey: string, messageParams: Record<string, string> = {}, preserve = false) {
+    addSuccessMessage(messageKey: string, messageParams: Record<string, string | number> = {}, preserve = false) {
       this.addTranslatedSuccessMessage(i18n.global.t(messageKey, messageParams), preserve);
     },
 

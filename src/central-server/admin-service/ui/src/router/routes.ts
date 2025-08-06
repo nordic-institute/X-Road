@@ -96,6 +96,8 @@ import { useSecurityServer } from '@/store/modules/security-servers';
 import AppMainNavigation from '@/layouts/AppMainNavigation.vue';
 import ViewNavigation from '@/layouts/ViewNavigation.vue';
 import AppFooter from '@/layouts/AppFooter.vue';
+import { managementTypeToIconTextColor } from '@/util/helpers';
+import { useManagementRequests } from '@/store/modules/management-requests';
 
 const routes = [
   {
@@ -331,8 +333,8 @@ const routes = [
         ],
       },
       {
-        name: RouteName.SecurityServerAuthenticationCertificate,
         path: '/security-servers/:serverId/authenticationcertificates/:certificateId',
+        name: RouteName.SecurityServerAuthenticationCertificate,
         components: {
           default: SecurityServerAuthenticationCertificate,
           navigation: XrdMainNavigationContainer,
@@ -515,6 +517,7 @@ const routes = [
             component: ManagementRequestsList,
             meta: {
               permissions: [Permissions.VIEW_MANAGEMENT_REQUESTS],
+              title: 'tab.main.managementRequests',
             },
           },
           {
@@ -527,6 +530,12 @@ const routes = [
             },
             meta: {
               permissions: [Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS],
+              listView: RouteName.ManagementRequests,
+              title() {
+                return managementTypeToIconTextColor(
+                  useManagementRequests().currentManagementRequest?.type,
+                )?.text;
+              },
             },
           },
         ],

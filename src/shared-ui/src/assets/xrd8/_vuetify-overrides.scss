@@ -112,3 +112,40 @@
     color: rgb(var(--v-theme-on-surface)) !important;
   }
 }
+
+
+.v-switch {
+  &.v-switch--inset {
+    &.xrd-switch {
+      .v-switch__track {
+        border: 2px solid rgb(var(--v-theme-secondary));
+      }
+
+      .v-switch__thumb.v-switch__thumb--filled {
+        background: rgb(var(--v-theme-secondary));
+
+        i::before {
+          color: rgb(var(--v-theme-on-secondary));
+          font-size: 16px;
+        }
+      }
+
+
+      &:has(input[checked]) {
+        .v-switch__track {
+          border: none;
+          background: rgb(var(--v-theme-primary));
+          opacity: 1;
+        }
+
+        .v-switch__thumb.v-switch__thumb--filled {
+          background: rgb(var(--v-theme-on-primary));
+
+          i::before {
+            color: rgb(var(--v-theme-primary));
+          }
+        }
+      }
+    }
+  }
+}

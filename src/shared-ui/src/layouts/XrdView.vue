@@ -28,7 +28,7 @@
   <v-container class="pa-0" fluid tag="article">
     <header v-if="breadcrumbs.length > 0 || $slots['append-header']" class="view-header d-flex flex-row align-center mt-6 mb-8">
       <template v-for="(bc, idx) in breadcrumbs" :key="idx">
-        <span class="title-view" :class="{ 'font-weight-medium': !bc.location }">{{ resolveTitle(bc.title) }}</span>
+        <span class="title-view" :class="{ 'font-weight-bold': !bc.location }">{{ resolveTitle(bc.title) }}</span>
         <v-btn v-if="bc.location" variant="plain" color="primary" icon="arrow_back" :to="bc.location" />
       </template>
       <slot name="append-header" />

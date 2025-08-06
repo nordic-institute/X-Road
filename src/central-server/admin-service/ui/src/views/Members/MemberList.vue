@@ -68,7 +68,7 @@
           :label="internalItem.columns.member_name"
           :clickable="hasPermissionToMemberDetails"
           semi-bold
-          @click="hasPermissionToMemberDetails && toDetails(item)"
+          @navigate="toDetails(item)"
         />
       </template>
       <template #bottom>

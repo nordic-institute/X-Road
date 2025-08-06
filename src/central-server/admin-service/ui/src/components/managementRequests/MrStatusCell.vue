@@ -25,85 +25,118 @@
    THE SOFTWARE.
  -->
 <template>
-  <div v-if="hasStatus" class="status-wrapper">
-    <xrd-status-icon :status="statusIconType" />
-    <div class="status-text">{{ getStatusText(status) }}</div>
-  </div>
+  <v-chip
+    v-if="hasStatus && style"
+    class="xrd"
+    size="small"
+    :class="style.chipCls"
+    :variant="style.variant"
+  >
+    <template #prepend>
+      <v-icon class="status-icon" :class="style.iconCls" :icon="style.icon" />
+    </template>
+
+    <span class="font-weight-medium" :class="style.textCls">
+      {{ style.text }}
+    </span>
+  </v-chip>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script lang="ts" setup>
+import { PropType, computed } from 'vue';
 import { ManagementRequestStatus } from '@/openapi-types';
-import { XrdStatusIcon } from '@niis/shared-ui';
+import { useI18n } from 'vue-i18n';
 
-export default defineComponent({
-  components: { XrdStatusIcon },
-  props: {
-    status: {
-      type: String as PropType<ManagementRequestStatus>,
-      default: undefined,
-    },
-  },
+type Variant = 'flat' | 'outlined';
+type Style = {
+  text: string;
+  icon: string;
+  iconCls: string;
+  chipCls: string;
+  textCls: string;
+  variant: Variant;
+};
 
-  computed: {
-    hasStatus(): boolean {
-      return this.status !== undefined;
-    },
-    statusIconType(): string {
-      if (this.status) {
-        switch (this.status) {
-          case ManagementRequestStatus.REVOKED:
-          case ManagementRequestStatus.DECLINED:
-            return 'progress-delete';
-          case ManagementRequestStatus.APPROVED:
-            return 'ok';
-          case ManagementRequestStatus.WAITING:
-          case ManagementRequestStatus.SUBMITTED_FOR_APPROVAL:
-            return 'pending';
-        }
-      }
-      return 'error';
-    },
-  },
+const { t } = useI18n();
 
-  methods: {
-    getStatusText(status?: ManagementRequestStatus): string {
-      if (status) {
-        switch (status) {
-          case ManagementRequestStatus.WAITING:
-            return this.$t('managementRequests.pending') as string;
-          case ManagementRequestStatus.APPROVED:
-            return this.$t('managementRequests.approved') as string;
-          case ManagementRequestStatus.DECLINED:
-            return this.$t('managementRequests.rejected') as string;
-          case ManagementRequestStatus.REVOKED:
-            return this.$t('managementRequests.revoked') as string;
-          case ManagementRequestStatus.SUBMITTED_FOR_APPROVAL:
-            return this.$t('managementRequests.submitted') as string;
-        }
-      }
-      return this.$t('managementRequests.unknown') as string;
-    },
+const props = defineProps({
+  status: {
+    type: String as PropType<ManagementRequestStatus>,
+    default: undefined,
   },
 });
+
+const hasStatus = computed(() => !!props.status);
+const style = computed(() => {
+  if (hasStatus.value) {
+    switch (props.status) {
+      case ManagementRequestStatus.REVOKED:
+        return buildStyle(
+          'managementRequests.revoked',
+          'on-surface',
+          'cancel filled',
+          'on-surface',
+          'xrd-outlined',
+          'outlined',
+        );
+      case ManagementRequestStatus.DECLINED:
+        return buildStyle(
+          'managementRequests.rejected',
+          'on-surface',
+          'cancel filled',
+          'on-surface',
+          'xrd-outlined',
+          'outlined',
+        );
+      case ManagementRequestStatus.APPROVED:
+        return buildStyle(
+          'managementRequests.approved',
+          'success',
+          'check_circle filled',
+          'text-success',
+          'bg-success-container',
+        );
+      case ManagementRequestStatus.WAITING:
+        return buildStyle(
+          'managementRequests.pending',
+          'text-warning',
+          'warning filled',
+          'text-warning',
+          'bg-warning-container',
+        );
+      case ManagementRequestStatus.SUBMITTED_FOR_APPROVAL:
+        return buildStyle(
+          'managementRequests.submitted',
+          'text-warning',
+          'warning filled',
+          'text-warning',
+          'bg-warning-container',
+        );
+    }
+  }
+  return undefined;
+});
+
+function buildStyle(
+  textKey: string,
+  textCls: string,
+  icon: string,
+  iconCls: string,
+  chipCls: string,
+  variant: Variant = 'flat',
+): Style {
+  return { text: t(textKey), textCls, icon, iconCls, chipCls, variant };
+}
 </script>
 
 <style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-
-.status-wrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+.status-icon {
+  margin: 0 4px 0 -4px;
 }
-
-.status-text {
-  font-style: normal;
-  font-weight: bold;
-  font-size: 12px;
-  line-height: 16px;
-  color: colors.$WarmGrey100;
-  margin-left: 5px;
-  text-transform: uppercase;
+.xrd-outlined {
+  &.v-chip--variant-outlined {
+    border: thin solid rgb(var(--v-theme-on-surface-variant));
+    opacity: 0.6;
+  }
 }
 </style>

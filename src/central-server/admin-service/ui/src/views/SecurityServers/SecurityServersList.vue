@@ -47,7 +47,6 @@
       :loading="loading"
       :headers="headers"
       :items="securityServerStore.securityServers"
-      :items-per-page-options="itemsPerPageOptions"
       :items-length="
         securityServerStore.securityServerPagingOptions.total_items
       "
@@ -63,7 +62,7 @@
           semi-bold
           clickable
           :label="item.server_id.server_code"
-          @click="toDetails(item)"
+          @navigate="toDetails(item)"
         />
       </template>
       <template #[`item.in_maintenance_mode`]="{ item }">
@@ -94,7 +93,12 @@ import { mapActions, mapStores } from 'pinia';
 import { debounce } from '@/util/helpers';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { DataQuery, DataTableHeader } from '@/ui-types';
-import { XrdView, XrdPagination,XrdIconWithLabel, useNotifications } from '@niis/shared-ui';
+import {
+  XrdView,
+  XrdPagination,
+  XrdIconWithLabel,
+  useNotifications,
+} from '@niis/shared-ui';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

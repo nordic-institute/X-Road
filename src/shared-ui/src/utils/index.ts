@@ -29,6 +29,6 @@ export * from './helpers';
 export * from './keys';
 export * from './types';
 export * from './colors';
-export * from './themes';
+export * from './light-theme';
 export * from './msr-icon-set';
 export * from './axios-utils';

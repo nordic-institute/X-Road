@@ -31,7 +31,7 @@ import '@/assets/styles.css';
 import { createVuetify } from 'vuetify';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 import { useI18n } from 'vue-i18n';
-import { i18n, themes, msr, msrAliases } from '@niis/shared-ui';
+import { i18n, lightTheme, msr, msrAliases } from '@niis/shared-ui';
 
 export default createVuetify({
   defaults: {
@@ -58,7 +58,7 @@ export default createVuetify({
   },
   theme: {
     themes: {
-      light: themes.light,
+      light: lightTheme,
     },
   },
 });
