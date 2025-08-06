@@ -25,23 +25,24 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetTokenByCertHashReq;
 import org.niis.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for TokenInfo + key id based on certificate hashes.
  */
-@Component
-public class GetTokenInfoAndKeyIdForCertHashReqHandler
-        extends AbstractRpcHandler<GetTokenByCertHashReq, TokenInfoAndKeyIdProto> {
-
+@ApplicationScoped
+@RequiredArgsConstructor
+public class GetTokenInfoAndKeyIdForCertHashReqHandler extends AbstractRpcHandler<GetTokenByCertHashReq, TokenInfoAndKeyIdProto> {
+    private final TokenLookup tokenLookup;
 
     @Override
     protected TokenInfoAndKeyIdProto handle(GetTokenByCertHashReq request) throws Exception {
-        var token = TokenManager.findTokenAndKeyIdForCertHash(request.getCertHash());
+        var token = tokenLookup.findTokenAndKeyIdForCertHash(request.getCertHash());
         return token.asMessage();
     }
 }

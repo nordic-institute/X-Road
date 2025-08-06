@@ -47,9 +47,9 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     private ValidatableResponseOptions<?, ?> response;
 
-    @Step("SOAP request is sent to {string} proxy")
-    public void requestSoapIsSentToProxy(String targetProxy, DocString docString) {
-        var mapping = envSetup.getContainerMapping(targetProxy, Port.PROXY);
+    @Step("SOAP request is sent to {string} {string}")
+    public void requestSoapIsSentToProxy(String env, String service, DocString docString) {
+        var mapping = envSetup.getContainerMapping(env, service, Port.PROXY);
 
         response = given()
                 .config(RestAssured.config()
@@ -76,9 +76,9 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                 .body(path, notNullValue());
     }
 
-    @Step("REST request is sent to {string} proxy")
-    public void requestRestIsSentToProxy(String targetProxy, DocString docString) {
-        var mapping = envSetup.getContainerMapping(targetProxy, Port.PROXY);
+    @Step("REST request is sent to {string} {string}")
+    public void requestRestIsSentToProxy(String env, String service, DocString docString) {
+        var mapping = envSetup.getContainerMapping(env, service, Port.PROXY);
 
         response = given()
                 .body(docString.getContent())
@@ -88,9 +88,9 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                 .then();
     }
 
-    @Step("REST request targeted at {string} API endpoint is sent to {string} proxy")
-    public void requestOpenapiRestIsSentToProxy(String apiEndpoint, String targetProxy) {
-        var mapping = envSetup.getContainerMapping(targetProxy, Port.PROXY);
+    @Step("REST request targeted at {string} API endpoint is sent to {string} {string}")
+    public void requestOpenapiRestIsSentToProxy(String apiEndpoint, String env, String service) {
+        var mapping = envSetup.getContainerMapping(env, service, Port.PROXY);
 
         response = given()
                 .header(HttpHeaders.CONTENT_TYPE, "application/json")

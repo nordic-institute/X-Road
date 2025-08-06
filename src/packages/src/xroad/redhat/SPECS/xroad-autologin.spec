@@ -28,11 +28,8 @@ Optional utility that automatically enters the software token pin code on xroad-
 %install
 mkdir -p %{buildroot}/usr/share/xroad/autologin
 mkdir -p %{buildroot}%{_unitdir}
-mkdir -p %{buildroot}/usr/share/doc/%{name}
 cp -a %{src}/common/* %{buildroot}/usr/share/xroad/autologin
 cp -a %{src}/redhat/%{name}.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
-cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 
 %clean
 rm -rf %{buildroot}
@@ -41,8 +38,6 @@ rm -rf %{buildroot}
 %defattr(750,root,xroad,751)
 /usr/share/xroad/autologin
 %attr(664,root,root) %{_unitdir}/%{name}.service
-%doc /usr/share/doc/%{name}/LICENSE.txt
-%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
 %upgrade_check

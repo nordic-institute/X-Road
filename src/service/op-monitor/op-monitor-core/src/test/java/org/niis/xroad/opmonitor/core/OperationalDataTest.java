@@ -34,7 +34,7 @@ import org.hibernate.internal.util.config.ConfigurationHelper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
+import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
 
 import static org.junit.Assert.assertEquals;
@@ -56,7 +56,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
      */
     @Before
     public void beginTransaction() {
-        session = OpMonitorDaemonDatabaseCtx.get().beginTransaction();
+        session = DATABASE_CTX.beginTransaction();
     }
 
     /**
@@ -65,7 +65,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
      */
     @After
     public void rollbackTransaction() {
-        OpMonitorDaemonDatabaseCtx.get().rollbackTransaction();
+        DATABASE_CTX.rollbackTransaction();
     }
 
     @SuppressWarnings("squid:S2699")

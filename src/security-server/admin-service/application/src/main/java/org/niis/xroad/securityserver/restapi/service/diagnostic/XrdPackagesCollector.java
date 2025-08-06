@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.service.diagnostic;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.monitor.common.Metrics;
 import org.niis.xroad.monitor.common.MetricsGroup;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class XrdPackagesCollector implements DiagnosticCollector<List<XrdPackage
     public static final String PACKAGES = "Packages";
     public static final String XRD_PKG_PREFIX = "xroad-";
 
-    private final MonitorClient monitorClient;
+    private final MonitorRpcClient monitorClient;
 
     @Override
     public String name() {

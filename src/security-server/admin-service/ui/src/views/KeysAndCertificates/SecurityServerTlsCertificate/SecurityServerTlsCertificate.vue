@@ -54,7 +54,7 @@
         <xrd-button
           class="button-spacing"
           outlined
-          data-test="security-server-tls-certificate-import-certificate-key"
+          data-test="security-server-tls-certificate-import-certificate"
           @click="upload"
           >{{ $t('ssTlsCertificate.importCertificate') }}
         </xrd-button>
@@ -105,6 +105,7 @@
         </div>
         <div
           v-if="certificate"
+          data-test="internal-tls-certificate"
           class="clickable-link"
           @click="certificateClick()"
         >

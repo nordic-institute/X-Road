@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.testsuite;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 
 import org.apache.http.config.Registry;
@@ -44,6 +43,7 @@ import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.ssl.SSLContexts;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -100,7 +100,7 @@ public class SslMessageTestCase extends MessageTestCase {
 
     @Override
     protected URI getClientUri() throws URISyntaxException {
-        return new URI("https://localhost:" + SystemProperties.getClientProxyHttpsPort());
+        return new URI("https://localhost:" + ProxyTestSuiteHelper.proxyProperties.clientProxy().clientHttpsPort());
     }
 
     public KeyStore getKeyStore() {
