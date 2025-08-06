@@ -63,9 +63,9 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collection;
 
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_CERTIFICATE;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_DISTINGUISHED_NAME;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.KEY_CERT_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_DISTINGUISHED_NAME;
+import static org.niis.xroad.common.core.exception.ErrorCodes.KEY_CERT_GENERATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.BYTES_TO_CERTIFICATE_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_IMPORT_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_READ_FAILED;

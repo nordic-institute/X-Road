@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.niis.xroad.common.exception.NotFoundException;
 
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.TOKEN_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCodes.TOKEN_NOT_FOUND;
 
 /**
  * If token was not found

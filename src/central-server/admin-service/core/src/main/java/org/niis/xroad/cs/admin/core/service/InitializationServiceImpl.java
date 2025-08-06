@@ -61,8 +61,8 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.GPG_KEY_GENERATION_FAILED;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INITIALIZATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.GPG_KEY_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INITIALIZATION_INTERRUPTED;
 import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.INITIALIZED;
 import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.NOT_INITIALIZED;
 import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.UNKNOWN;

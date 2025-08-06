@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.MEMBER_CLASS_EXISTS;
+import static org.niis.xroad.common.core.exception.ErrorCodes.MEMBER_CLASS_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_IS_IN_USE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CODE;

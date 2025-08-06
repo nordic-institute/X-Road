@@ -38,7 +38,7 @@ import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Date;
 
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.ERROR_ID_NOT_A_NUMBER;
+import static org.niis.xroad.common.core.exception.ErrorCodes.ERROR_ID_NOT_A_NUMBER;
 
 /**
  * Format utils

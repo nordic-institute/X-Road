@@ -55,7 +55,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INTERNAL_ERROR;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED;
 
 /**

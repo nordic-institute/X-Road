@@ -40,7 +40,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_CERTIFICATE;
 
 @Component
 @RequiredArgsConstructor

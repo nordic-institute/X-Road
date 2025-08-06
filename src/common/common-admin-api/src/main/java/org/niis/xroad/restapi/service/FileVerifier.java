@@ -45,9 +45,9 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.function.Predicate.not;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.DOUBLE_FILE_EXTENSION;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_FILE_CONTENT_TYPE;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_FILE_EXTENSION;
+import static org.niis.xroad.common.core.exception.ErrorCodes.DOUBLE_FILE_EXTENSION;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_FILE_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_FILE_EXTENSION;
 
 @RequiredArgsConstructor
 public class FileVerifier {

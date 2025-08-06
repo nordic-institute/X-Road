@@ -58,7 +58,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.KEY_CERT_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.KEY_CERT_GENERATION_FAILED;
 
 /**
  * Operations related to internal tls certificates

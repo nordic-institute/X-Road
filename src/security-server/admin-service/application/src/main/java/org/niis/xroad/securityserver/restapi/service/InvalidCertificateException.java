@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.niis.xroad.common.exception.BadRequestException;
 
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_CERTIFICATE;
 
 
 /**

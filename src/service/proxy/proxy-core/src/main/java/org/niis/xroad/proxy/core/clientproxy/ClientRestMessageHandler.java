@@ -59,7 +59,7 @@ import java.util.List;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.SSl_AUTHENTICATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.SSl_AUTHENTICATION_FAILED;
 
 /**
  * Handles client messages. This handler must be the last handler in the

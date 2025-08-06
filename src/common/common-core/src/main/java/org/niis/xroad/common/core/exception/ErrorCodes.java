@@ -29,7 +29,7 @@ package org.niis.xroad.common.core.exception;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBuilder {
+public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
     INTERNAL_ERROR("internal_error"),
     ACTION_NOT_POSSIBLE("action_not_possible"),
     GENERIC_VALIDATION_FAILURE("invalid_parameters"),

@@ -36,7 +36,7 @@ class XrdRuntimeExceptionTest {
     void shouldCreateWellFormedErrorMessage() {
         String identifier = "test-identifier";
         ExceptionCategory category = ExceptionCategory.SYSTEM;
-        var errorDeviation = CommonDeviationMessage.INTERNAL_ERROR;
+        var errorDeviation = ErrorCodes.INTERNAL_ERROR;
         String details = "This is a test error message.";
         boolean thrownRemotely = false;
 

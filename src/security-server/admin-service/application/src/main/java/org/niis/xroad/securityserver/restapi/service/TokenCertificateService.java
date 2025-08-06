@@ -76,7 +76,7 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CertUtils.getCommonName;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INTERNAL_ERROR;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.AUTH_CERT_NOT_SUPPORTED;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CERTIFICATE_NOT_FOUND_WITH_ID;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CERTIFICATE_WRONG_USAGE;

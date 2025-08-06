@@ -64,7 +64,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_I
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.INVALID_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_CERTIFICATE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ACME_DIRECTORY_URL;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ACME_IP_ADDRESSES;

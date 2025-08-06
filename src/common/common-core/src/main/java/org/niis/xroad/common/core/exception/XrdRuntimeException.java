@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.Getter;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -45,18 +46,21 @@ public final class XrdRuntimeException extends CodedException {
     private final ErrorDeviation errorDeviation;
     private final String details;
     private final boolean thrownRemotely;
+    private final Integer httpStatus;
 
     XrdRuntimeException(String identifier,
                         ExceptionCategory category,
                         boolean thrownRemotely,
                         ErrorDeviation errorDeviation,
-                        String details) {
+                        String details,
+                        Integer httpStatus) {
         super(errorDeviation.code(), details);
         this.identifier = identifier;
         this.category = category;
         this.thrownRemotely = thrownRemotely;
         this.errorDeviation = errorDeviation;
         this.details = details;
+        this.httpStatus = httpStatus;
     }
 
 
@@ -77,6 +81,10 @@ public final class XrdRuntimeException extends CodedException {
         return toString();
     }
 
+    public Optional<Integer> getHttpStatus() {
+        return Optional.ofNullable(httpStatus);
+    }
+
     public static Builder systemException(DeviationBuilder.ErrorDeviationBuilder error) {
         return new Builder(ExceptionCategory.SYSTEM, error);
     }
@@ -94,6 +102,7 @@ public final class XrdRuntimeException extends CodedException {
 
         private String details;
         private boolean thrownRemotely = false;
+        private Integer httpStatus;
 
         public Builder(ExceptionCategory category, DeviationBuilder.ErrorDeviationBuilder errorDeviation) {
             this.category = category;
@@ -120,6 +129,11 @@ public final class XrdRuntimeException extends CodedException {
             return this;
         }
 
+        public Builder httpStatus(Integer httpStatus) {
+            this.httpStatus = httpStatus;
+            return this;
+        }
+
         public XrdRuntimeException build() {
             if (identifier == null) {
                 identifier = UUID.randomUUID().toString();
@@ -130,7 +144,8 @@ public final class XrdRuntimeException extends CodedException {
                     category,
                     thrownRemotely,
                     errorDeviation.build(metadataItems),
-                    details);
+                    details,
+                    httpStatus);
         }
     }
 }

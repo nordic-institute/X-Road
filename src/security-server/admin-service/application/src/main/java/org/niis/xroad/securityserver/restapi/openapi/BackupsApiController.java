@@ -57,8 +57,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.BACKUP_GENERATION_INTERRUPTED;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.BACKUP_RESTORATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_GENERATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_RESTORATION_INTERRUPTED;
 
 /**
  * Backups controller

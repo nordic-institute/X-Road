@@ -41,8 +41,8 @@ import java.time.OffsetDateTime;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
-import static org.niis.xroad.common.core.exception.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_RESTORATION_FAILED;
 
 public class SecurityServerConfigurationRestorationServiceTest extends AbstractServiceTestContext {
     private static final String MOCK_SUCCESS_SCRIPT = "src/test/resources/script/success.sh";
