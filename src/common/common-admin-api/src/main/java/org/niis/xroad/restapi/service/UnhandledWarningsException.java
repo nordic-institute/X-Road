@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.WarningDeviation;
+import org.niis.xroad.common.core.exception.XrdException;
 
 import java.util.Collection;
 import java.util.List;
@@ -37,7 +37,8 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WARNINGS_DE
 /**
  * If warnings were detected and they were not ignored
  */
-public class UnhandledWarningsException extends DeviationAwareException {
+public class UnhandledWarningsException extends XrdException {
+
     public UnhandledWarningsException(Collection<WarningDeviation> warningDeviations) {
         super("Warnings detected", new ErrorDeviation(ERROR_WARNINGS_DETECTED), warningDeviations);
     }

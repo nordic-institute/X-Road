@@ -26,9 +26,20 @@
 package org.niis.xroad.common.core.exception;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.HttpStatus;
 
+import jakarta.xml.bind.UnmarshalException;
+import jakarta.xml.soap.SOAPException;
 import lombok.Getter;
+import org.xml.sax.SAXException;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.net.UnknownServiceException;
+import java.nio.channels.UnresolvedAddressException;
+import java.security.cert.CertificateException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,21 +50,21 @@ import java.util.UUID;
  *       extends CodedException. In the future, it will be a standalone.
  */
 @Getter
-public final class XrdRuntimeException extends CodedException {
+public final class XrdRuntimeException extends CodedException implements HttpStatusAware {
 
     private final String identifier;
     private final ExceptionCategory category;
     private final ErrorDeviation errorDeviation;
     private final String details;
     private final boolean thrownRemotely;
-    private final Integer httpStatus;
+    private final HttpStatus httpStatus;
 
     XrdRuntimeException(String identifier,
                         ExceptionCategory category,
                         boolean thrownRemotely,
                         ErrorDeviation errorDeviation,
                         String details,
-                        Integer httpStatus) {
+                        HttpStatus httpStatus) {
         super(errorDeviation.code(), details);
         this.identifier = identifier;
         this.category = category;
@@ -63,6 +74,21 @@ public final class XrdRuntimeException extends CodedException {
         this.httpStatus = httpStatus;
     }
 
+    XrdRuntimeException(Throwable cause,
+                        String identifier,
+                        ExceptionCategory category,
+                        boolean thrownRemotely,
+                        ErrorDeviation errorDeviation,
+                        String details,
+                        HttpStatus httpStatus) {
+        super(errorDeviation.code(), cause, details);
+        this.identifier = identifier;
+        this.category = category;
+        this.thrownRemotely = thrownRemotely;
+        this.errorDeviation = errorDeviation;
+        this.details = details;
+        this.httpStatus = httpStatus;
+    }
 
     @Override
     public String toString() {
@@ -81,7 +107,7 @@ public final class XrdRuntimeException extends CodedException {
         return toString();
     }
 
-    public Optional<Integer> getHttpStatus() {
+    public Optional<HttpStatus> getHttpStatus() {
         return Optional.ofNullable(httpStatus);
     }
 
@@ -93,7 +119,55 @@ public final class XrdRuntimeException extends CodedException {
         return new Builder(ExceptionCategory.BUSINESS, error);
     }
 
+    public static Builder validationException(DeviationBuilder.ErrorDeviationBuilder error) {
+        return new Builder(ExceptionCategory.VALIDATION, error);
+    }
+
+    /**
+     * Translates technical exceptions to proxy exceptions with
+     * the appropriate error code.
+     *
+     * @param ex the exception
+     * @return translated CodedException
+     */
+    @SuppressWarnings("squid:S1872")
+    public static XrdRuntimeException systemException(Throwable ex) {
+        return new Builder(ExceptionCategory.SYSTEM, resolveExceptionCode(ex))
+                .cause(ex)
+                .build();
+    }
+
+    private static ErrorCodes resolveExceptionCode(Throwable ex) {
+        return switch (ex) {
+            case CodedException cex -> ErrorCodes.fromCode(cex.getFaultCode());
+            case UnknownHostException ignored -> ErrorCodes.NETWORK_ERROR;
+            case MalformedURLException ignored -> ErrorCodes.NETWORK_ERROR;
+            case SocketException ignored -> ErrorCodes.NETWORK_ERROR;
+            case UnknownServiceException ignored -> ErrorCodes.NETWORK_ERROR;
+            case UnresolvedAddressException ignored -> ErrorCodes.NETWORK_ERROR;
+            case IOException ignored -> ErrorCodes.IO_ERROR;
+            case CertificateException ignored -> ErrorCodes.INCORRECT_CERTIFICATE;
+            case SOAPException ignored -> ErrorCodes.INVALID_SOAP;
+            case SAXException ignored -> ErrorCodes.INVALID_XML;
+            case UnmarshalException ue when isAccessorException(ue.getCause()) -> resolveExceptionCode(ue.getCause());
+            case Exception me when isMimeException(me) -> ErrorCodes.MIME_PARSING_FAILED;
+            case Exception ae when isAccessorException(ae) && ae.getCause() instanceof CodedException cex ->
+                    ErrorCodes.fromCode(cex.getFaultCode());
+            default -> ErrorCodes.INTERNAL_ERROR;
+        };
+    }
+
+    private static boolean isAccessorException(Throwable ex) {
+        return ex != null && ex.getClass().getName().equals("org.glassfish.jaxb.runtime.api.AccessorException");
+    }
+
+    private static boolean isMimeException(Throwable ex) {
+        return ex != null && ex.getClass().getName().equals("org.apache.james.mime4j.MimeException");
+    }
+
+
     public static class Builder {
+        private Throwable cause;
         private String identifier;
         private final ExceptionCategory category;
 
@@ -102,11 +176,16 @@ public final class XrdRuntimeException extends CodedException {
 
         private String details;
         private boolean thrownRemotely = false;
-        private Integer httpStatus;
+        private HttpStatus httpStatus;
 
         public Builder(ExceptionCategory category, DeviationBuilder.ErrorDeviationBuilder errorDeviation) {
             this.category = category;
             this.errorDeviation = errorDeviation;
+        }
+
+        public Builder cause(Throwable cause) {
+            this.cause = cause;
+            return this;
         }
 
         public Builder identifier(String identifier) {
@@ -129,7 +208,15 @@ public final class XrdRuntimeException extends CodedException {
             return this;
         }
 
-        public Builder httpStatus(Integer httpStatus) {
+        /**
+         * Set the HTTP status for this exception.
+         * This is optional and can be used to indicate the HTTP status code
+         * that should be returned in a web context.
+         *
+         * @param httpStatus the HTTP status to set
+         * @return this builder instance
+         */
+        public Builder httpStatus(HttpStatus httpStatus) {
             this.httpStatus = httpStatus;
             return this;
         }
@@ -139,6 +226,16 @@ public final class XrdRuntimeException extends CodedException {
                 identifier = UUID.randomUUID().toString();
             }
 
+            if (cause != null) {
+                return new XrdRuntimeException(
+                        cause,
+                        identifier,
+                        category,
+                        thrownRemotely,
+                        errorDeviation.build(metadataItems),
+                        details,
+                        httpStatus);
+            }
             return new XrdRuntimeException(
                     identifier,
                     category,

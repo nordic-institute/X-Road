@@ -59,7 +59,7 @@ import java.util.List;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
-import static org.niis.xroad.common.core.exception.ErrorCodes.SSl_AUTHENTICATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.SSL_AUTH_FAILED;
 
 /**
  * Handles client messages. This handler must be the last handler in the
@@ -101,7 +101,7 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
         AuthKey authKey = commonBeanProxy.keyConfProvider.getAuthKey();
         if (authKey.certChain() == null) {
-            throw XrdRuntimeException.systemException(SSl_AUTHENTICATION_FAILED)
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED)
                     .details("Security server has no authentication certificate")
                     .build();
         }

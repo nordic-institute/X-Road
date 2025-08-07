@@ -25,9 +25,11 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.HttpStatus;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.inject.Named;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 
@@ -74,7 +76,9 @@ public class ClientIdConverter extends DtoConverter<ClientId, String> {
      */
     public ClientId.Conf convertId(String encodedId) throws BadRequestException {
         if (!isEncodedClientId(encodedId)) {
-            throw new BadRequestException(INVALID_ENCODED_ID.build(encodedId));
+            throw XrdRuntimeException.businessException(INVALID_ENCODED_ID)
+                    .metadataItems(encodedId)
+                    .httpStatus(HttpStatus.BAD_REQUEST).build();
         }
         List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
@@ -83,7 +87,9 @@ public class ClientIdConverter extends DtoConverter<ClientId, String> {
         String subsystemCode = null;
         if (parts.size() != (MEMBER_CODE_INDEX + 1)
                 && parts.size() != (SUBSYSTEM_CODE_INDEX + 1)) {
-            throw new BadRequestException(INVALID_ENCODED_ID.build(encodedId));
+            throw XrdRuntimeException.businessException(INVALID_ENCODED_ID)
+                    .metadataItems(encodedId)
+                    .httpStatus(HttpStatus.BAD_REQUEST).build();
         }
         if (parts.size() == (SUBSYSTEM_CODE_INDEX + 1)) {
             subsystemCode = parts.get(SUBSYSTEM_CODE_INDEX);

@@ -29,8 +29,10 @@ package org.niis.xroad.common.exception;
 import ee.ria.xroad.common.HttpStatus;
 
 import lombok.NonNull;
-import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.common.core.exception.DeviationAware;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
+
+import java.util.Optional;
 
 /**
  * Generic "NotFound" exception It has an error message which optionally can be thrown to api layer.
@@ -54,7 +56,7 @@ public class NotFoundException extends ClientErrorException {
     }
 
     @Override
-    public int getHttpStatus() {
-        return HttpStatus.SC_NOT_FOUND;
+    public Optional<HttpStatus> getHttpStatus() {
+        return Optional.of(HttpStatus.NOT_FOUND);
     }
 }

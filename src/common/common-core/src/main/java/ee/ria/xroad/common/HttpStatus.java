@@ -1,21 +1,20 @@
 /*
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,60 +25,198 @@
  */
 package ee.ria.xroad.common;
 
-import lombok.experimental.UtilityClass;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-/**
- * A convenience class for HTTP status codes. Avoids the need to use 3rd party libraries.
- */
-@UtilityClass
-public class HttpStatus {
-    public static final int SC_CONTINUE = 100;
-    public static final int SC_SWITCHING_PROTOCOLS = 101;
-    public static final int SC_PROCESSING = 102;
-    public static final int SC_OK = 200;
-    public static final int SC_CREATED = 201;
-    public static final int SC_ACCEPTED = 202;
-    public static final int SC_NON_AUTHORITATIVE_INFORMATION = 203;
-    public static final int SC_NO_CONTENT = 204;
-    public static final int SC_RESET_CONTENT = 205;
-    public static final int SC_PARTIAL_CONTENT = 206;
-    public static final int SC_MULTI_STATUS = 207;
-    public static final int SC_MULTIPLE_CHOICES = 300;
-    public static final int SC_MOVED_PERMANENTLY = 301;
-    public static final int SC_MOVED_TEMPORARILY = 302;
-    public static final int SC_SEE_OTHER = 303;
-    public static final int SC_NOT_MODIFIED = 304;
-    public static final int SC_USE_PROXY = 305;
-    public static final int SC_TEMPORARY_REDIRECT = 307;
-    public static final int SC_BAD_REQUEST = 400;
-    public static final int SC_UNAUTHORIZED = 401;
-    public static final int SC_PAYMENT_REQUIRED = 402;
-    public static final int SC_FORBIDDEN = 403;
-    public static final int SC_NOT_FOUND = 404;
-    public static final int SC_METHOD_NOT_ALLOWED = 405;
-    public static final int SC_NOT_ACCEPTABLE = 406;
-    public static final int SC_PROXY_AUTHENTICATION_REQUIRED = 407;
-    public static final int SC_REQUEST_TIMEOUT = 408;
-    public static final int SC_CONFLICT = 409;
-    public static final int SC_GONE = 410;
-    public static final int SC_LENGTH_REQUIRED = 411;
-    public static final int SC_PRECONDITION_FAILED = 412;
-    public static final int SC_REQUEST_TOO_LONG = 413;
-    public static final int SC_REQUEST_URI_TOO_LONG = 414;
-    public static final int SC_UNSUPPORTED_MEDIA_TYPE = 415;
-    public static final int SC_REQUESTED_RANGE_NOT_SATISFIABLE = 416;
-    public static final int SC_EXPECTATION_FAILED = 417;
-    public static final int SC_INSUFFICIENT_SPACE_ON_RESOURCE = 419;
-    public static final int SC_METHOD_FAILURE = 420;
-    public static final int SC_UNPROCESSABLE_ENTITY = 422;
-    public static final int SC_LOCKED = 423;
-    public static final int SC_FAILED_DEPENDENCY = 424;
-    public static final int SC_TOO_MANY_REQUESTS = 429;
-    public static final int SC_INTERNAL_SERVER_ERROR = 500;
-    public static final int SC_NOT_IMPLEMENTED = 501;
-    public static final int SC_BAD_GATEWAY = 502;
-    public static final int SC_SERVICE_UNAVAILABLE = 503;
-    public static final int SC_GATEWAY_TIMEOUT = 504;
-    public static final int SC_HTTP_VERSION_NOT_SUPPORTED = 505;
-    public static final int SC_INSUFFICIENT_STORAGE = 507;
+@Getter
+@RequiredArgsConstructor
+public enum HttpStatus {
+
+    // ===== 1XX INFORMATIONAL =====
+    CONTINUE(100, "Continue"),
+    SWITCHING_PROTOCOLS(101, "Switching Protocols"),
+    PROCESSING(102, "Processing"),
+
+    // ===== 2XX SUCCESS =====
+    OK(200, "OK"),
+    CREATED(201, "Created"),
+    ACCEPTED(202, "Accepted"),
+    NON_AUTHORITATIVE_INFORMATION(203, "Non-Authoritative Information"),
+    NO_CONTENT(204, "No Content"),
+    RESET_CONTENT(205, "Reset Content"),
+    PARTIAL_CONTENT(206, "Partial Content"),
+    MULTI_STATUS(207, "Multi-Status"),
+
+    // ===== 3XX REDIRECTION =====
+    MULTIPLE_CHOICES(300, "Multiple Choices"),
+    MOVED_PERMANENTLY(301, "Moved Permanently"),
+    MOVED_TEMPORARILY(302, "Moved Temporarily"),
+    SEE_OTHER(303, "See Other"),
+    NOT_MODIFIED(304, "Not Modified"),
+    USE_PROXY(305, "Use Proxy"),
+    TEMPORARY_REDIRECT(307, "Temporary Redirect"),
+
+    // ===== 4XX CLIENT ERRORS =====
+    BAD_REQUEST(400, "Bad Request"),
+    UNAUTHORIZED(401, "Unauthorized"),
+    PAYMENT_REQUIRED(402, "Payment Required"),
+    FORBIDDEN(403, "Forbidden"),
+    NOT_FOUND(404, "Not Found"),
+    METHOD_NOT_ALLOWED(405, "Method Not Allowed"),
+    NOT_ACCEPTABLE(406, "Not Acceptable"),
+    PROXY_AUTHENTICATION_REQUIRED(407, "Proxy Authentication Required"),
+    REQUEST_TIMEOUT(408, "Request Timeout"),
+    CONFLICT(409, "Conflict"),
+    GONE(410, "Gone"),
+    LENGTH_REQUIRED(411, "Length Required"),
+    PRECONDITION_FAILED(412, "Precondition Failed"),
+    REQUEST_TOO_LONG(413, "Request Too Long"),
+    REQUEST_URI_TOO_LONG(414, "Request-URI Too Long"),
+    UNSUPPORTED_MEDIA_TYPE(415, "Unsupported Media Type"),
+    REQUESTED_RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"),
+    EXPECTATION_FAILED(417, "Expectation Failed"),
+    INSUFFICIENT_SPACE_ON_RESOURCE(419, "Insufficient Space On Resource"),
+    METHOD_FAILURE(420, "Method Failure"),
+    UNPROCESSABLE_ENTITY(422, "Unprocessable Entity"),
+    LOCKED(423, "Locked"),
+    FAILED_DEPENDENCY(424, "Failed Dependency"),
+    TOO_MANY_REQUESTS(429, "Too Many Requests"),
+
+    // ===== 5XX SERVER ERRORS =====
+    INTERNAL_SERVER_ERROR(500, "Internal Server Error"),
+    NOT_IMPLEMENTED(501, "Not Implemented"),
+    BAD_GATEWAY(502, "Bad Gateway"),
+    SERVICE_UNAVAILABLE(503, "Service Unavailable"),
+    GATEWAY_TIMEOUT(504, "Gateway Timeout"),
+    HTTP_VERSION_NOT_SUPPORTED(505, "HTTP Version Not Supported"),
+    INSUFFICIENT_STORAGE(507, "Insufficient Storage");
+
+    private final int code;
+    private final String reasonPhrase;
+
+    /**
+     * Check if this status code represents a successful response (2xx).
+     *
+     * @return true if the status code is in the 2xx range
+     */
+    public boolean isSuccess() {
+        return code >= 200 && code < 300;
+    }
+
+    /**
+     * Check if this status code represents a client error (4xx).
+     *
+     * @return true if the status code is in the 4xx range
+     */
+    public boolean isClientError() {
+        return code >= 400 && code < 500;
+    }
+
+    /**
+     * Check if this status code represents a server error (5xx).
+     *
+     * @return true if the status code is in the 5xx range
+     */
+    public boolean isServerError() {
+        return code >= 500 && code < 600;
+    }
+
+    /**
+     * Check if this status code represents an error (4xx or 5xx).
+     *
+     * @return true if the status code is in the 4xx or 5xx range
+     */
+    public boolean isError() {
+        return isClientError() || isServerError();
+    }
+
+    /**
+     * Check if this status code represents a redirection (3xx).
+     *
+     * @return true if the status code is in the 3xx range
+     */
+    public boolean isRedirection() {
+        return code >= 300 && code < 400;
+    }
+
+    /**
+     * Check if this status code represents an informational response (1xx).
+     *
+     * @return true if the status code is in the 1xx range
+     */
+    public boolean isInformational() {
+        return code >= 100 && code < 200;
+    }
+
+    /**
+     * Get HttpStatus from numeric code.
+     *
+     * @param code the numeric status code
+     * @return the HttpStatus enum value, or null if not found
+     */
+    public static HttpStatus fromCode(int code) {
+        for (HttpStatus status : values()) {
+            if (status.code == code) {
+                return status;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get HttpStatus from numeric code with fallback.
+     *
+     * @param code     the numeric status code
+     * @param fallback the fallback status to return if code not found
+     * @return the HttpStatus enum value, or fallback if not found
+     */
+    public static HttpStatus fromCode(int code, HttpStatus fallback) {
+        HttpStatus status = fromCode(code);
+        return status != null ? status : fallback;
+    }
+
+    /**
+     * Check if a numeric code represents a successful response (2xx).
+     *
+     * @param code the numeric status code
+     * @return true if the status code is in the 2xx range
+     */
+    public static boolean isSuccess(int code) {
+        return code >= 200 && code < 300;
+    }
+
+    /**
+     * Check if a numeric code represents a client error (4xx).
+     *
+     * @param code the numeric status code
+     * @return true if the status code is in the 4xx range
+     */
+    public static boolean isClientError(int code) {
+        return code >= 400 && code < 500;
+    }
+
+    /**
+     * Check if a numeric code represents a server error (5xx).
+     *
+     * @param code the numeric status code
+     * @return true if the status code is in the 5xx range
+     */
+    public static boolean isServerError(int code) {
+        return code >= 500 && code < 600;
+    }
+
+    /**
+     * Check if a numeric code represents an error (4xx or 5xx).
+     *
+     * @param code the numeric status code
+     * @return true if the status code is in the 4xx or 5xx range
+     */
+    public static boolean isError(int code) {
+        return isClientError(code) || isServerError(code);
+    }
+
+    @Override
+    public String toString() {
+        return code + " " + reasonPhrase;
+    }
 }

@@ -25,7 +25,7 @@
 package org.niis.xroad.common.exception;
 
 import lombok.NonNull;
-import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.common.core.exception.DeviationAware;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 

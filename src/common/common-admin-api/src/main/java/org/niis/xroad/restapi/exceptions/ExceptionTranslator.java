@@ -29,7 +29,9 @@ import ee.ria.xroad.common.CodedException;
 
 import jakarta.validation.ConstraintViolationException;
 import org.niis.xroad.common.core.exception.Deviation;
+import org.niis.xroad.common.core.exception.DeviationAware;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.core.exception.HttpStatusAware;
 import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.signer.api.exception.SignerException;
@@ -141,7 +143,10 @@ public class ExceptionTranslator {
 
     public HttpStatusCode resolveHttpStatus(Exception e, HttpStatus defaultStatus) {
         if (e instanceof HttpStatusAware hsa) {
-            return HttpStatus.resolve(hsa.getHttpStatus());
+            return hsa.getHttpStatus()
+                    .map(ee.ria.xroad.common.HttpStatus::getCode)
+                    .map(code ->(HttpStatusCode) HttpStatus.resolve(code))
+                    .orElseGet(()->getAnnotatedResponseStatus(e, defaultStatus));
         }
         return getAnnotatedResponseStatus(e, defaultStatus);
     }

@@ -29,8 +29,10 @@ package org.niis.xroad.common.exception;
 import ee.ria.xroad.common.HttpStatus;
 
 import lombok.NonNull;
-import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.common.core.exception.DeviationAware;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
+
+import java.util.Optional;
 
 /**
  * Validation exception that usually happens due to user input. It has an error message which optionally can be thrown to api layer.
@@ -62,7 +64,7 @@ public class BadRequestException extends ClientErrorException {
     }
 
     @Override
-    public int getHttpStatus() {
-        return HttpStatus.SC_BAD_REQUEST;
+    public Optional<HttpStatus> getHttpStatus() {
+        return Optional.of(HttpStatus.BAD_REQUEST);
     }
 }

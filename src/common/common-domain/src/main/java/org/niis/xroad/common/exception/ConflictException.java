@@ -28,8 +28,10 @@ package org.niis.xroad.common.exception;
 import ee.ria.xroad.common.HttpStatus;
 
 import lombok.NonNull;
-import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.common.core.exception.DeviationAware;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
+
+import java.util.Optional;
 
 /**
  * Data integrity exception It has an error message which optionally can be thrown to api layer.
@@ -53,7 +55,7 @@ public class ConflictException extends ClientErrorException {
     }
 
     @Override
-    public int getHttpStatus() {
-        return HttpStatus.SC_CONFLICT;
+    public Optional<HttpStatus> getHttpStatus() {
+        return Optional.of(HttpStatus.CONFLICT);
     }
 }

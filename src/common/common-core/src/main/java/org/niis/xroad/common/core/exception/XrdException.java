@@ -23,28 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.common.core.exception;
 
-import org.niis.xroad.common.core.exception.ErrorDeviation;
-import org.niis.xroad.common.core.exception.WarningDeviation;
+import lombok.Getter;
 
 import java.util.Collection;
 
 /**
- * A thing (an Exception) which (possibly) knows the detailed error code & metadata,
- * and warning codes & metadata, to send in REST API response body
+ * Checked exception that (possibly) carries error code.
+ * Root of all checked deviation aware exceptions
  */
-public interface DeviationAware {
-    /**
-     * Return the error details, if any
-     * @return
-     */
-    ErrorDeviation getErrorDeviation();
+@Getter
+public class XrdException extends Exception implements DeviationAware {
 
-    /**
-     * Return warningDeviations, if any
-     * @return
-     */
-    Collection<WarningDeviation> getWarningDeviations();
+    private final ErrorDeviation errorDeviation;
+    private final Collection<WarningDeviation> warningDeviations;
+
+    public XrdException(String msg, ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
+        super(msg);
+        this.errorDeviation = errorDeviation;
+        this.warningDeviations = warningDeviations;
+    }
 
 }
