@@ -25,87 +25,82 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="timestamping-services">
-    <xrd-titled-view title-key="trustServices.timestampingServices">
-      <template #header-buttons>
-        <xrd-button
-          v-if="showAddTsaButton"
-          data-test="add-timestamping-service"
-          @click="showAddDialog = true"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <XrdIconAdd />
-          </xrd-icon-base>
-          {{ $t('trustServices.timestampingService.dialog.add.title') }}
-        </xrd-button>
-      </template>
-      <v-data-table
-        v-if="showTsaList"
-        data-test="timestamping-services-table"
-        class="elevation-0 data-table"
-        item-value="id"
-        :loading="loading"
-        :headers="headers"
-        :items="timestampingServices"
-        :must-sort="true"
-        :items-per-page="-1"
-        :loader-height="2"
-      >
-        <template #[`item.timestamping_interval`]="{ item }">
-          {{
-            $t(
-              'trustServices.trustService.timestampingService.timestampingIntervalMinutes',
-              { min: toMinutes(item.timestamping_interval) },
-            )
-          }}
-        </template>
-        <template #[`item.cost`]="{ item }">
-          {{
-            $t(
-              'trustServices.trustService.timestampingService.costValues.' +
-                item.cost,
-            )
-          }}
-        </template>
-        <template #[`item.button`]="{ item }">
-          <div class="cs-table-actions-wrap">
-            <xrd-button
-              text
-              :outlined="false"
-              data-test="view-timestamping-service-certificate"
-              @click="navigateToCertificateDetails(item)"
-            >
-              {{ $t('trustServices.viewCertificate') }}
-            </xrd-button>
-            <xrd-button
-              v-if="showEditTsaButton"
-              text
-              :outlined="false"
-              data-test="edit-timestamping-service"
-              @click="openEditDialog(item)"
-            >
-              {{ $t('action.edit') }}
-            </xrd-button>
-            <xrd-button
-              v-if="showDeleteTsaButton"
-              text
-              :outlined="false"
-              data-test="delete-timestamping-service"
-              @click="showDeleteDialog(item)"
-            >
-              {{ $t('action.delete') }}
-            </xrd-button>
-          </div>
-        </template>
+  <XrdCard
+    data-test="timestamping-services"
+    title="trustServices.timestampingServices"
+  >
+    <template #title-actions>
+      <XrdBtn
+        v-if="showAddTsaButton"
+        data-test="add-timestamping-service"
+        class="mr-4"
+        text="action.add"
+        prepend-icon="add_circle"
+        variant="outlined"
+        @click="showAddDialog = true"
+      />
+    </template>
 
-        <template #bottom>
-          <XrdDataTableFooter />
-        </template>
-      </v-data-table>
-    </xrd-titled-view>
+    <v-data-table
+      data-test="timestamping-services-table"
+      class="xrd-data-table bg-surface-container"
+      color="surface-container"
+      item-value="id"
+      hide-default-footer
+      must-sort
+      :loading="loading"
+      :headers="headers"
+      :items="timestampingServices"
+      :items-per-page="-1"
+    >
+      <template #[`item.url`]="{ item }">
+        <XrdIconWithLabel icon="link" :label="item.url" />
+      </template>
+      <template #[`item.timestamping_interval`]="{ item }">
+        {{
+          $t(
+            'trustServices.trustService.timestampingService.timestampingIntervalMinutes',
+            { min: toMinutes(item.timestamping_interval) },
+          )
+        }}
+      </template>
+      <template #[`item.cost`]="{ item }">
+        {{
+          $t(
+            'trustServices.trustService.timestampingService.costValues.' +
+            item.cost,
+          )
+        }}
+      </template>
+      <template #[`item.button`]="{ item }">
+        <XrdBtn
+          data-test="view-timestamping-service-certificate"
+          text="trustServices.viewCertificate"
+          variant="text"
+          color="tertiary"
+          @click="navigateToCertificateDetails(item)"
+        />
+        <XrdBtn
+          v-if="showEditTsaButton"
+          data-test="edit-timestamping-service"
+          text="action.edit"
+          variant="text"
+          color="tertiary"
+          @click="openEditDialog(item)"
+        />
+        <XrdBtn
+          v-if="showDeleteTsaButton"
+          data-test="delete-timestamping-service"
+          text="action.delete"
+          variant="text"
+          color="tertiary"
+          @click="showDeleteDialog(item)"
+        />
+      </template>
+    </v-data-table>
 
     <!-- Confirm delete dialog -->
-    <xrd-confirm-dialog
+    <XrdConfirmDialog
       v-if="selectedTimestampingService && confirmDelete"
       title="trustServices.trustService.timestampingService.delete.dialog.title"
       text="trustServices.trustService.timestampingService.delete.dialog.message"
@@ -116,38 +111,38 @@
       @accept="deleteTimestampingService"
     />
 
-    <add-timestamping-service-dialog
+    <AddTimestampingServiceDialog
       v-if="showAddDialog"
       :show-dialog="showAddDialog"
       @save="hideAddDialog"
       @cancel="hideAddDialog"
     />
-    <edit-timestamping-service-dialog
+    <EditTimestampingServiceDialog
       v-if="selectedTimestampingService && showEditDialog"
       :tsa-service="selectedTimestampingService"
       @save="hideEditDialog"
       @cancel="hideEditDialog"
     />
-  </div>
+  </XrdCard>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import AddTimestampingServiceDialog from '@/components/timestampingServices/AddTimestampingServiceDialog.vue';
-import EditTimestampingServiceDialog from '@/components/timestampingServices/EditTimestampingServiceDialog.vue';
+import AddTimestampingServiceDialog from './dialogs/AddTimestampingServiceDialog.vue';
+import EditTimestampingServiceDialog from './dialogs/EditTimestampingServiceDialog.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
-import { useTimestampingServicesStore } from '@/store/modules/trust-services';
+import { useTimestampingServices } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
 import { DataTableHeader } from '@/ui-types';
-import { XrdTitledView, XrdDataTableFooter } from '@niis/shared-ui';
+import { XrdCard, XrdBtn, XrdIconWithLabel, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
-    XrdTitledView,
-    XrdDataTableFooter,
+    XrdBtn,
+    XrdCard,
+    XrdIconWithLabel,
     AddTimestampingServiceDialog,
     EditTimestampingServiceDialog,
   },
@@ -162,14 +157,11 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapStores(useTimestampingServicesStore),
+    ...mapStores(useTimestampingServices),
     ...mapState(useUser, ['hasPermission']),
 
     timestampingServices(): TimestampingService[] {
       return this.timestampingServicesStore.timestampingServices;
-    },
-    showTsaList(): boolean {
-      return this.hasPermission(Permissions.VIEW_APPROVED_TSAS);
     },
     showAddTsaButton(): boolean {
       return this.hasPermission(Permissions.ADD_APPROVED_TSA);
@@ -205,6 +197,7 @@ export default defineComponent({
         },
         {
           title: '',
+          align: 'end',
           sortable: false,
           key: 'button',
         },
@@ -215,7 +208,7 @@ export default defineComponent({
     this.fetchTimestampingServices();
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['addError', 'addSuccessMessage']),
     fetchTimestampingServices(): void {
       this.loading = true;
       this.timestampingServicesStore
@@ -242,17 +235,15 @@ export default defineComponent({
       this.timestampingServicesStore
         .delete(this.selectedTimestampingService.id)
         .then(() => {
-          this.showSuccess(
-            this.$t(
-              'trustServices.trustService.timestampingService.delete.success',
-            ),
+          this.addSuccessMessage(
+            'trustServices.trustService.timestampingService.delete.success',
           );
           this.confirmDelete = false;
-          this.deletingTimestampingService = false;
         })
         .catch((error) => {
-          this.showError(error);
-        });
+          this.addError(error);
+        })
+        .finally(() => (this.deletingTimestampingService = false));
     },
     toMinutes(seconds: number): string {
       return '' + parseFloat((seconds / 60).toFixed(2));
@@ -269,6 +260,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables' as *;
-</style>
+<style lang="scss" scoped></style>

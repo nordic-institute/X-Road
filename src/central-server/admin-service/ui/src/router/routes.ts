@@ -74,7 +74,7 @@ import ManagementRequests from '@/views/ManagementRequests/ManagementRequests.vu
 import AppForbidden from '@/views/AppForbidden.vue';
 import CertificationService from '@/views/TrustServices/CertificationService/CertificationService.vue';
 import CertificationServiceDetails from '@/views/TrustServices/CertificationService/CertificationServiceDetails.vue';
-import TrustServiceList from '@/views/TrustServices/TrustServiceList.vue';
+import TrustServicesView from '@/views/TrustServices/TrustServicesView.vue';
 import CertificationServiceSettings from '@/views/TrustServices/CertificationService/CertificationServiceSettings.vue';
 import CertificationServiceOcspResponders from '@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue';
 import CertificationServiceIntermediateCas from '@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue';
@@ -84,7 +84,7 @@ import IntermediateCACertificate from '@/views/TrustServices/CertificationServic
 import IntermediateCa from '@/views/TrustServices/CertificationService/IntermediateCa.vue';
 import IntermediateCaDetails from '@/views/TrustServices/CertificationService/IntermediateCaDetails.vue';
 import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationService/IntermediateCaOcspResponders.vue';
-import TimestampingServiceCertificate from '@/components/timestampingServices/TimestampingServiceCertificate.vue';
+import TimestampingServiceCertificate from '@/views/TrustServices/TimestampingServices/TimestampingServiceCertificate.vue';
 import ManagementRequestDetails from '@/views/ManagementRequests/ManagementRequestDetails.vue';
 import ManagementRequestsList from '@/views/ManagementRequests/ManagementRequestsList.vue';
 import ManagementServiceTlsKey from '@/views/Settings/TlsCertificates/ManagementServiceTlsCertificate.vue';
@@ -360,8 +360,11 @@ const routes = [
           {
             name: RouteName.TrustServices,
             path: '',
-            component: TrustServiceList,
-            meta: { permissions: [Permissions.VIEW_APPROVED_CAS] },
+            component: TrustServicesView,
+            meta: {
+              permissions: [Permissions.VIEW_APPROVED_CAS],
+              title: 'tab.main.trustServices',
+            },
           },
           {
             name: RouteName.TimestampingServiceCertificateDetails,
@@ -369,7 +372,7 @@ const routes = [
             component: TimestampingServiceCertificate,
             meta: {
               permissions: [Permissions.VIEW_APPROVED_TSAS],
-              backOnEscape: true,
+              title: 'cert.certificate',
             },
             props(route: RouteLocationNormalized): {
               timestampingServiceId: number;

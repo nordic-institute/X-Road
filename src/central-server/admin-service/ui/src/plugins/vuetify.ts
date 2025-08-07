@@ -36,6 +36,9 @@ import { i18n, lightTheme, msr, msrAliases } from '@niis/shared-ui';
 export default createVuetify({
   defaults: {
     global: {},
+    VDataTable: {
+      loaderHeight: 2,
+    },
     VTextField: {
       variant: 'underlined',
     },

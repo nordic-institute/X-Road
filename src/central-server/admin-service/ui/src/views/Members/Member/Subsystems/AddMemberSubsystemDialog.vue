@@ -25,12 +25,12 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
-    :disable-save="!meta.valid"
-    :loading="loading"
-    cancel-button-text="action.cancel"
+  <XrdSimpleDialog
     title="members.member.subsystems.addClient"
+    cancel-button-text="action.cancel"
     submittable
+    :loading="loading"
+    :disable-save="!meta.valid"
     @cancel="cancel"
     @save="add"
   >
@@ -57,7 +57,7 @@
         </XrdDialogSubViewRow>
       </XrdDialogSubView>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>

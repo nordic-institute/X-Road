@@ -25,45 +25,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <main id="timestamping-service-certificate-details" class="mt-8">
-    <certificate-details
-      v-if="certificateDetails"
-      :certificate-details="certificateDetails"
-    />
-  </main>
+  <XrdView>
+    <CertificationServicesList />
+
+    <TimestampingServicesList v-if="showTsaList" class="mt-4"/>
+  </XrdView>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
-import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
-import { mapStores } from 'pinia';
-import { useTimestampingServicesStore } from '@/store/modules/trust-services';
+<script lang="ts" setup>
+import { computed } from 'vue';
+import { useUser } from '@/store/modules/user';
+import { Permissions } from '@/global';
+import { XrdView } from '@niis/shared-ui';
+import TimestampingServicesList from './TimestampingServices/TimestampingServicesList.vue';
+import CertificationServicesList from '@/views/TrustServices/CertificationServices/CertificationServicesList.vue';
 
-export default defineComponent({
-  name: 'TimestampingServiceCertificate',
-  components: { CertificateDetails },
-  props: {
-    timestampingServiceId: {
-      type: Number,
-      required: true,
-    },
-  },
-  computed: {
-    ...mapStores(useTimestampingServicesStore),
-    certificateDetails(): CertificateDetailsType | null {
-      const find = this.timestampingServicesStore.timestampingServices.find(
-        (tsa) => tsa.id === this.timestampingServiceId,
-      );
-
-      if (find) {
-        return find.certificate;
-      }
-      return null;
-    },
-  },
-  created() {
-    window.scrollTo(0, 0);
-  },
-});
+const { hasPermission } = useUser();
+const showTsaList = computed(() =>
+  hasPermission(Permissions.VIEW_APPROVED_TSAS),
+);
 </script>
+<style lang="scss" scoped></style>

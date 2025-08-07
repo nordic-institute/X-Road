@@ -25,14 +25,57 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-sheet color="surface-dim" class="xrd-rounded-16 bg-surface-dim pa-6" tag="section">
-    <header v-if="$slots['header']" class="view-header d-flex flex-row align-end mb-6">
-      <slot name="header" />
-    </header>
-    <slot />
-  </v-sheet>
+  <XrdElevatedView
+    id="timestamping-service-certificate-details"
+    :breadcrumbs
+    close-on-escape
+  >
+    <XrdCertificate
+      v-if="certificateDetails"
+      :certificate="certificateDetails"
+    />
+  </XrdElevatedView>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { computed, onMounted } from 'vue';
+import { useTimestampingServices } from '@/store/modules/trust-services';
+import { XrdCertificate, XrdElevatedView } from '@niis/shared-ui';
+import { RouteName } from '@/global';
+import { useI18n } from 'vue-i18n';
 
-<style lang="scss" scoped></style>
+const props = defineProps({
+  timestampingServiceId: {
+    type: Number,
+    required: true,
+  },
+});
+
+const { t } = useI18n();
+const timestampingServicesStore = useTimestampingServices();
+
+const timestampingService = computed(() => {
+  return timestampingServicesStore.timestampingServices.find(
+    (tsa) => tsa.id === props.timestampingServiceId,
+  );
+});
+
+const certificateDetails = computed(() => {
+  return timestampingService.value?.certificate;
+});
+
+const breadcrumbs = computed(() => [
+  {
+    title: t('tab.main.trustServices'),
+    to: { name: RouteName.TrustServices },
+  },
+  {
+    title: timestampingService.value?.url || '',
+  },
+  {
+    title: t('cert.certificate'),
+  },
+]);
+
+onMounted(() => window.scrollTo(0, 0));
+</script>

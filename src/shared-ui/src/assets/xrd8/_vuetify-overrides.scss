@@ -38,6 +38,10 @@
 
 .xrd-data-table {
 
+  &.bg-surface-container .v-data-table-progress .v-progress-linear__background {
+    background-color: rgb(var(--v-theme-surface-container))
+  }
+
   .v-data-table__th {
     color: rgb(var(--v-theme-on-surface-variant)) !important;
 
@@ -112,7 +116,6 @@
     color: rgb(var(--v-theme-on-surface)) !important;
   }
 }
-
 
 .v-switch {
   &.v-switch--inset {

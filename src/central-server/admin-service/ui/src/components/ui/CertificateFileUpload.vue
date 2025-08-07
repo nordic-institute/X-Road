@@ -28,7 +28,8 @@
   <XrdFileUploadField
     accept=".der, .crt, .pem, .cer"
     :file="file"
-    :label-key="labelKey"
+    :label="label"
+    :translated-label="translatedLabel"
     :autofocus="autofocus"
     @update:file="$emit('update:file', $event)"
   />
@@ -39,9 +40,13 @@ import { XrdFileUploadField } from '@niis/shared-ui';
 import { ref, PropType } from 'vue';
 
 defineProps({
-  labelKey: {
+  label: {
     type: String,
     required: true,
+  },
+  translatedLabel: {
+    type: Boolean,
+    default: false,
   },
   autofocus: {
     type: Boolean,

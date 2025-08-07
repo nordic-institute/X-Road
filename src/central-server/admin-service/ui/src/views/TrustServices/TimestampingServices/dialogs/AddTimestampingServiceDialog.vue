@@ -25,9 +25,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="trustServices.timestampingService.dialog.add.title"
     save-button-text="action.add"
+    save-button-icon="add_circle"
     cancel-button-text="action.cancel"
     submittable
     :loading="loading"
@@ -36,35 +37,41 @@
     @cancel="$emit('cancel')"
   >
     <template #content>
-      <div class="dlg-input-width space-out-bottom">
-        <v-text-field
-          v-model="tasUrl"
-          v-bind="tasUrlAttrs"
-          variant="outlined"
-          data-test="timestamping-service-url-input"
-          autofocus
-          persistent-hint
-          :label="$t('trustServices.timestampingService.url')"
-        ></v-text-field>
-      </div>
-
-      <div class="dlg-input-width">
-        <CertificateFileUpload
-          v-model:file="certFile"
-          data-test="timestamping-service-file-input"
-          label-key="trustServices.uploadCertificate"
-        />
-      </div>
+      <XrdDialogSubView>
+        <XrdDialogSubViewRow full-length>
+          <v-text-field
+            v-model="tasUrl"
+            v-bind="tasUrlAttrs"
+            data-test="timestamping-service-url-input"
+            class="xrd-text-field"
+            persistent-hint
+            autofocus
+            :label="$t('trustServices.timestampingService.url')"
+          />
+        </XrdDialogSubViewRow>
+        <XrdDialogSubViewRow full-length>
+          <CertificateFileUpload
+            v-model:file="certFile"
+            data-test="timestamping-service-file-input"
+            label="trustServices.uploadCertificate"
+          />
+        </XrdDialogSubViewRow>
+      </XrdDialogSubView>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { useTimestampingServicesStore } from '@/store/modules/trust-services';
+import { useTimestampingServices } from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
-import { useBasicForm, useFileRef } from '@niis/shared-ui';
+import {
+  useBasicForm,
+  useFileRef,
+  XrdDialogSubView,
+  XrdDialogSubViewRow,
+} from '@niis/shared-ui';
 
 const emits = defineEmits(['save', 'cancel']);
 
@@ -76,7 +83,7 @@ const [tasUrl, tasUrlAttrs] = defineField('url', {
 });
 
 const { addSuccessMessage, addError, loading } = useBasicForm();
-const { addTimestampingService } = useTimestampingServicesStore();
+const { addTimestampingService } = useTimestampingServices();
 
 const certFile = useFileRef();
 const canAdd = computed(() => meta.value.valid && certFile.value);

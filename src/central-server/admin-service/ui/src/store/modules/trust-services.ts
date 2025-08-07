@@ -25,14 +25,8 @@
  * THE SOFTWARE.
  */
 import {
-  ApprovedCertificationService,
-  ApprovedCertificationServiceListItem,
-  CertificateAuthority,
-  CertificateDetails,
-  CertificationServiceFileAndSettings,
-  CertificationServiceSettings,
-  OcspResponder,
-  TimestampingService,
+  ApprovedCertificationService, ApprovedCertificationServiceListItem, CertificateAuthority, CertificateDetails,
+  CertificationServiceFileAndSettings, CertificationServiceSettings, OcspResponder, TimestampingService,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
@@ -247,7 +241,7 @@ export interface TimestampingServicesStoreState {
   timestampingServices: TimestampingService[];
 }
 
-export const useTimestampingServicesStore = defineStore(
+export const useTimestampingServices = defineStore(
   'timestampingServices',
   {
     state: (): TimestampingServicesStoreState => ({

@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-row no-gutters>
+  <v-row no-gutters class="mb-3">
     <v-col>
       <slot />
     </v-col>
