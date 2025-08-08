@@ -30,10 +30,14 @@
       <slot name="title">{{ titleValue }}</slot>
     </template>
     <template #append-title>
-      <xrd-search
+      <v-text-field
         :model-value="modelValue"
-        class="search-box"
         data-test="search-query-field"
+        class="pl-4 xrd-text-field"
+        width="320"
+        prepend-inner-icon="search"
+        single-line
+        :label="$t('action.search')"
         @update:model-value="$emit('update:model-value', $event)"
       />
       <slot name="append-search" />
@@ -74,8 +78,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-.search-box {
-  margin: 0 0 5px 20px;
-}
-</style>
+<style lang="scss" scoped></style>

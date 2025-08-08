@@ -26,22 +26,26 @@
  */
 
 // Helper to copy text to clipboard
-function toClipboard(val: string): void {
-  // If a dialog is overlaying the entire page we need to put the textbox inside it, otherwise it doesn't get copied
-  const container = document.getElementsByClassName('v-dialog--active')[0] || document.body;
-  const tempValueContainer = document.createElement('input');
-  tempValueContainer.setAttribute('type', 'text');
-  tempValueContainer.style.zIndex = '300';
-  tempValueContainer.style.opacity = '0';
-  tempValueContainer.style.filter = 'alpha(opacity=0)';
-  tempValueContainer.setAttribute('data-test', 'generated-temp-value-container');
-  tempValueContainer.value = val;
-  container.appendChild(tempValueContainer);
-  tempValueContainer.select();
-  document.execCommand('copy');
-  container.removeChild(tempValueContainer);
+async function toClipboard(val: string): Promise<void> {
+  return navigator.clipboard.writeText(val);
+}
+
+// Add colon for every two characters.  xxxxxx -> xx:xx:xx
+function colonize(value: string): string {
+  if (!value) {
+    return '';
+  }
+
+  const colonized = value.replace(/(.{2})/g, '$1:');
+
+  if (colonized[colonized.length - 1] === ':') {
+    return colonized.slice(0, -1);
+  }
+
+  return colonized;
 }
 
 export const helper = {
   toClipboard,
+  colonize,
 };

@@ -28,7 +28,7 @@
 <template>
   <XrdForbiddenError>
     <template #top>
-      <TabsBase />
+      <AppMainNavigation />
       <AlertsContainer />
     </template>
   </XrdForbiddenError>
@@ -36,13 +36,13 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import TabsBase from '@/layouts/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { XrdForbiddenError } from '@niis/shared-ui';
+import AppMainNavigation from '@/layouts/AppMainNavigation.vue';
 
 export default defineComponent({
   components: {
-    TabsBase,
+    AppMainNavigation,
     AlertsContainer,
     XrdForbiddenError,
   },

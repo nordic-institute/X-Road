@@ -44,12 +44,16 @@
     <slot />
   </v-btn>
 </template>
-
-<script lang="ts" setup>
+<script lang="ts">
 /**
- * Wrapper for vuetify button with x-road look
- * */
+ * This is my well documented component
+ * @deprecated Please use `XrdBtn` instead
+ */
+export default {};
+</script>
+<script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
+import { VBtn } from 'vuetify/components';
 
 const props = defineProps({
   // Button color

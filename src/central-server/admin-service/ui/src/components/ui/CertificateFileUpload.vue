@@ -25,23 +25,35 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdFileUploadField
+  <v-file-input
+    :model-value="file"
+    class="xrd-text-field"
+    variant="underlined"
+    prepend-inner-icon="attach_file"
     accept=".der, .crt, .pem, .cer"
-    :file="file"
-    :label-key="labelKey"
+    prepend-icon=""
+    :readonly="readonly"
+    :label="translatedLabel ? label : $t(label)"
     :autofocus="autofocus"
-    @update:file="$emit('update:file', $event)"
+    @update:model-value="fileChange"
   />
 </template>
 
 <script lang="ts" setup>
-import { XrdFileUploadField } from '@niis/shared-ui';
-import { ref, PropType } from 'vue';
+import { PropType } from 'vue';
 
 defineProps({
-  labelKey: {
+  label: {
     type: String,
     required: true,
+  },
+  translatedLabel: {
+    type: Boolean,
+    default: false,
+  },
+  readonly: {
+    type: Boolean,
+    default: false,
   },
   autofocus: {
     type: Boolean,
@@ -53,7 +65,11 @@ defineProps({
   },
 });
 
-defineEmits<{ (e: 'update:file', file: File): void }>();
+const emit = defineEmits<{ (e: 'update:file', file: File): void }>();
+
+function fileChange(file: File | File[]) {
+  emit('update:file', file as File);
+}
 </script>
 
 <style lang="scss" scoped></style>

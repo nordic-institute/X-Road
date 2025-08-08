@@ -57,8 +57,7 @@ import {
   ConfigurationPartContentIdentifier,
   ConfigurationType,
 } from '@/openapi-types';
-import { XrdFileUploadField } from '@niis/shared-ui';
-import { useBasicForm, useFileRef } from '@/util/composables';
+import { XrdFileUploadField, useBasicForm, useFileRef } from '@niis/shared-ui';
 
 const props = defineProps({
   configurationType: {
@@ -72,7 +71,7 @@ const props = defineProps({
 });
 
 const { uploadConfigurationFile } = useConfigurationSource();
-const { loading, showSuccess, t, showError } = useBasicForm();
+const { loading, addSuccessMessage, addError } = useBasicForm();
 
 const emit = defineEmits(['save', 'cancel']);
 
@@ -90,10 +89,10 @@ function save() {
     partFile.value,
   )
     .then(() => {
-      showSuccess(t('globalConf.cfgParts.dialog.upload.success'));
+      addSuccessMessage('globalConf.cfgParts.dialog.upload.success');
       emit('save');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 }
 </script>

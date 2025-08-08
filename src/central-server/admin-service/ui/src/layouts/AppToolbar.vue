@@ -25,11 +25,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app-bar
-    absolute
-    :color="isInitialized ? colors.Purple100 : colors.Purple70"
-    flat
+  <v-system-bar
     height="32"
+    :color="isInitialized ? 'system-bar' : 'system-bar-init'"
   >
     <div v-if="isAuthenticated" class="auth-container">
       <div class="server-type">
@@ -57,53 +55,36 @@
         {{ `${systemStatus.high_availability_status?.node_name}` }}
       </div>
     </div>
-  </v-app-bar>
+  </v-system-bar>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { Colors } from '@niis/shared-ui';
-import { mapState } from 'pinia';
+<script lang="ts" setup>
+import { computed } from 'vue';
 import { useSystem } from '@/store/modules/system';
 
-export default defineComponent({
-  data() {
-    return {
-      colors: Colors,
-    };
-  },
-  computed: {
-    ...mapState(useSystem, ['getSystemStatus']),
-    ...mapState(useSystem, ['getSystemStatus', 'isServerInitialized']),
-    initializationParameters() {
-      return this.getSystemStatus?.initialization_status;
-    },
-    serverName() {
-      return this.initializationParameters
-        ? `${this.initializationParameters.instance_identifier} : ${this.initializationParameters.central_server_address}`
-        : '';
-    },
-    isInitialized(): boolean {
-      return this.isServerInitialized;
-    },
-    isAuthenticated(): boolean {
-      return true;
-    },
-    systemStatus() {
-      return this.getSystemStatus;
-    },
-    isHighAvailabilityConfigured() {
-      return this.getSystemStatus?.high_availability_status?.is_ha_configured;
-    },
-  },
-});
+const systemStore = useSystem();
+
+const initializationParameters = computed(
+  () => systemStore.getSystemStatus?.initialization_status,
+);
+const serverName = computed(() =>
+  initializationParameters.value
+    ? `${initializationParameters.value.instance_identifier} : ${initializationParameters.value.central_server_address}`
+    : '',
+);
+const isInitialized = computed(() => systemStore.isServerInitialized);
+const isAuthenticated = computed(() => true);
+const systemStatus = computed(() => systemStore.getSystemStatus);
+const isHighAvailabilityConfigured = computed(
+  () => systemStore.getSystemStatus?.high_availability_status?.is_ha_configured,
+);
 </script>
 
 <style lang="scss" scoped>
 .auth-container {
+  padding-left: 88px;
   font-size: 12px;
   line-height: 16px;
-  text-align: center;
   color: #dedce4;
   display: flex;
   height: 100%;
@@ -129,7 +110,6 @@ export default defineComponent({
   .server-type {
     font-style: normal;
     font-weight: bold;
-    margin-left: 64px;
     user-select: none;
 
     @media only screen and (max-width: 920px) {

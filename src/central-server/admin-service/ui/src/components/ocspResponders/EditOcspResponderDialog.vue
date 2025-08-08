@@ -93,7 +93,7 @@ import { OcspResponder } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { useForm } from 'vee-validate';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
-import { useBasicForm, useFileRef } from '@/util/composables';
+import { useBasicForm, useFileRef } from '@niis/shared-ui';
 
 const props = defineProps({
   ocspResponder: {
@@ -121,7 +121,7 @@ const [ocspUrl, ocspUrlAttrs] = defineField('url', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { showSuccess, showError, loading, t } = useBasicForm();
+const { addSuccessMessage, addError, loading } = useBasicForm();
 const { updateOcspResponder } = useOcspResponderService();
 const router = useRouter();
 
@@ -144,10 +144,10 @@ const update = handleSubmit((values) => {
   loading.value = true;
   updateOcspResponder(props.ocspResponder.id, values.url, certFile.value)
     .then(() => {
-      showSuccess(t('trustServices.trustService.ocspResponders.edit.success'));
+      addSuccessMessage('trustServices.trustService.ocspResponders.edit.success');
       emits('save');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 });
 

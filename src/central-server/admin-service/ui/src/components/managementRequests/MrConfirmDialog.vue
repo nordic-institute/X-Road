@@ -34,13 +34,15 @@
     @accept="approve()"
   >
     <template #text>
-      {{ $t('managementRequests.dialog.approve.bodyMessage', messageData) }}
+      <span class="font-weight-regular body-regular">
+        {{ $t('managementRequests.dialog.approve.bodyMessage', messageData) }}
+      </span>
       <v-alert
         v-if="newMember"
         data-test="new-member-warning"
-        class="mt-2"
+        class="mt-2 font-weight-regular body-regular"
         color="warning"
-        icon="$warning"
+        icon="warning"
         density="compact"
         variant="outlined"
         :text="$t('managementRequests.dialog.approve.newMemberWarning')"
@@ -52,8 +54,7 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { useManagementRequests } from '@/store/modules/management-requests';
-import { useNotifications } from '@/store/modules/notifications';
-import { useI18n } from 'vue-i18n';
+import { useNotifications } from '@niis/shared-ui';
 
 /**
  * General component for Management request actions
@@ -76,7 +77,7 @@ const props = defineProps({
 const emits = defineEmits(['approve', 'cancel']);
 
 const { approve: approveManagementRequest } = useManagementRequests();
-const { showSuccess, showError } = useNotifications();
+const { addSuccessMessage, addError } = useNotifications();
 
 const messageData = computed(() => ({
   id: props.requestId,
@@ -84,21 +85,18 @@ const messageData = computed(() => ({
 }));
 
 const loading = ref(false);
-const { t } = useI18n();
 
 function approve() {
   loading.value = true;
   approveManagementRequest(props.requestId)
     .then(() => {
-      showSuccess(
-        t(
-          'managementRequests.dialog.approve.successMessage',
-          messageData.value,
-        ),
+      addSuccessMessage(
+        'managementRequests.dialog.approve.successMessage',
+        messageData.value,
       );
       emits('approve');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 }
 </script>

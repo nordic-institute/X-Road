@@ -25,46 +25,48 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
-    :disable-save="!meta.valid"
-    :loading="loading"
-    cancel-button-text="action.cancel"
+  <XrdSimpleDialog
     title="members.member.subsystems.addClient"
+    cancel-button-text="action.cancel"
     submittable
+    :loading="loading"
+    :disable-save="!meta.valid"
     @cancel="cancel"
     @save="add"
   >
     <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="subsystemCode"
-          v-bind="subsystemCodeAttrs"
-          :label="$t('members.member.subsystems.subsystemcode')"
-          variant="outlined"
-          autofocus
-          data-test="add-subsystem-input"
-        />
-
-        <v-text-field
-          v-model="subsystemName"
-          class="mt-2"
-          v-bind="subsystemNameAttrs"
-          :label="$t('members.member.subsystems.subsystemname')"
-          variant="outlined"
-          data-test="add-subsystem-name-input"
-        />
-      </div>
+      <XrdDialogSubView>
+        <XrdDialogSubViewRow>
+          <v-text-field
+            v-model="subsystemCode"
+            v-bind="subsystemCodeAttrs"
+            data-test="add-subsystem-input"
+            class="xrd-text-field"
+            autofocus
+            :label="$t('members.member.subsystems.subsystemcode')"
+          />
+        </XrdDialogSubViewRow>
+        <XrdDialogSubViewRow>
+          <v-text-field
+            v-model="subsystemName"
+            v-bind="subsystemNameAttrs"
+            data-test="add-subsystem-name-input"
+            class="xrd-text-field"
+            :label="$t('members.member.subsystems.subsystemname')"
+          />
+        </XrdDialogSubViewRow>
+      </XrdDialogSubView>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
 import { PropType, ref } from 'vue';
 import { ClientId } from '@/openapi-types';
-import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
+import { XrdDialogSubView, XrdDialogSubViewRow, useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {
@@ -81,14 +83,18 @@ const { defineField, meta, handleSubmit, resetForm } = useForm({
 });
 
 const { addSubsystem } = useSubsystem();
-const { showError, showSuccess } = useNotifications();
+const { addError, addSuccessMessage } = useNotifications();
 
 const [subsystemCode, subsystemCodeAttrs] = defineField('subsystemCode', {
-  props: (state) => ({ 'error-messages': state.errors }),
+  props: (state) => ({
+    'error-messages': state.errors,
+  }),
 });
 
 const [subsystemName, subsystemNameAttrs] = defineField('subsystemName', {
-  props: (state) => ({ 'error-messages': state.errors }),
+  props: (state) => ({
+    'error-messages': state.errors,
+  }),
 });
 
 const loading = ref(false);
@@ -98,7 +104,6 @@ function cancel() {
   resetForm();
 }
 
-const { t } = useI18n();
 const add = handleSubmit((values) => {
   loading.value = true;
   addSubsystem({
@@ -110,16 +115,17 @@ const add = handleSubmit((values) => {
     },
   })
     .then(() => {
-      showSuccess(
-        t('members.member.subsystems.subsystemSuccessfullyAdded', {
+      addSuccessMessage(
+        'members.member.subsystems.subsystemSuccessfullyAdded',
+        {
           subsystemCode: values.subsystemCode,
-        }),
+        },
       );
       emits('save');
       resetForm();
     })
     .catch((error) => {
-      showError(error);
+      addError(error);
       emits('cancel');
     })
     .finally(() => (loading.value = false));

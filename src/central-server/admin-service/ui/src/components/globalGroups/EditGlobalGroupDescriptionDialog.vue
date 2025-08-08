@@ -51,7 +51,7 @@
 <script lang="ts" setup>
 import { useForm } from 'vee-validate';
 import { useGlobalGroups } from '@/store/modules/global-groups';
-import { useBasicForm } from '@/util/composables';
+import { useBasicForm } from '@niis/shared-ui';
 
 const props = defineProps({
   groupCode: {
@@ -75,7 +75,7 @@ const [description, descriptionAttrs] = defineField('description', {
 });
 
 const { editGroupDescription } = useGlobalGroups();
-const { loading, showSuccess, t, showError } = useBasicForm();
+const { loading, addSuccessMessage, addError } = useBasicForm();
 
 const saveDescription = handleSubmit((values) => {
   loading.value = true;
@@ -83,11 +83,11 @@ const saveDescription = handleSubmit((values) => {
     description: values.description,
   })
     .then((resp) => {
-      showSuccess(t('globalGroup.descriptionSaved'));
+      addSuccessMessage('globalGroup.descriptionSaved');
       emit('save', resp.data);
     })
     .catch((error) => {
-      showError(error);
+      addError(error);
     })
     .finally(() => (loading.value = false));
 });

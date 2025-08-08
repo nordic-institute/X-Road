@@ -27,48 +27,56 @@
 <template>
   <v-dialog
     v-model="showDialog"
+    class="xrd-rounded-12"
     :width="width"
     :persistent="canEscape"
     :scrollable="scrollable"
-    class="xrd-dialog-simple"
     @update:model-value="modelValueUpdated"
   >
     <v-form @submit.prevent="submit">
-      <v-card class="xrd-card" data-test="dialog-simple">
+      <v-card class="bg-surface-container-lowest xrd-rounded-12" data-test="dialog-simple">
         <template #title>
           <slot name="title">
-            <span class="dialog-title" data-test="dialog-title">{{ $t(title) }}</span>
+            <span class="dialog-title font-weight-bold" data-test="dialog-title">{{ $t(title) }}</span>
           </slot>
         </template>
         <template #append>
-          <v-icon v-if="showClose" icon="mdi-close" data-test="dlg-close-x" color="primary" size="default" @click="cancel" />
+          <v-icon v-if="showClose" icon="close" data-test="dlg-close-x" color="primary" size="default" @click="cancel" />
         </template>
         <v-progress-linear v-if="showProgressBar" height="10" :indeterminate="true" />
         <div class="alert-slot">
           <slot name="alert" />
         </div>
-        <v-card-text v-if="hasText" class="content-wrapper xrd-card-text" :class="{ 'no-content': !hasContent }">
-          <slot name="text" />
+        <v-card-text v-if="hasText" class="mt-0 mb-6 pb-0" :class="{ 'no-content': !hasContent }">
+          <span class="body-regular">
+            <slot name="text" />
+          </span>
         </v-card-text>
-        <v-card-item v-if="hasContent" class="content-wrapper xrd-card-content">
+        <v-card-item v-if="hasContent" class="mt-0 mb-6">
           <slot name="content" />
         </v-card-item>
-        <v-card-actions class="xrd-card-actions">
+        <v-card-actions class="pa-4 bg-surface-container-low border-t">
+          <XrdBtn
+            data-test="dialog-cancel-button"
+            class="font-weight-medium"
+            variant="text"
+            :disabled="cancelDisabled"
+            :text="cancelButtonText"
+            @click="cancel"
+          />
           <v-spacer />
-          <xrd-button data-test="dialog-cancel-button" class="mr-3" variant="outlined" :disabled="cancelDisabled" @click="cancel">
-            {{ $t(cancelButtonText) }}
-          </xrd-button>
-          <xrd-button
+          <XrdBtn
             v-if="!hideSaveButton"
             ref="saveButton"
             data-test="dialog-save-button"
+            class="font-weight-medium"
             :disabled="disableSave"
             :loading="loading"
             :submit="submittable"
+            :prepend-icon="saveButtonIcon"
+            :text="saveButtonText"
             @click="save"
-          >
-            {{ $t(saveButtonText) }}
-          </xrd-button>
+          />
         </v-card-actions>
       </v-card>
     </v-form>
@@ -78,7 +86,7 @@
 <script lang="ts" setup>
 /** Base component for simple dialogs */
 
-import XrdButton from './XrdButton.vue';
+import XrdBtn from './XrdBtn.vue';
 import { computed, onBeforeMount, onMounted, ref, useSlots } from 'vue';
 
 const props = defineProps({
@@ -116,9 +124,13 @@ const props = defineProps({
     type: String,
     default: 'action.add',
   },
+  saveButtonIcon: {
+    type: String,
+    default: 'check_circle',
+  },
   width: {
     type: [Number, String],
-    default: 620,
+    default: 840,
   },
   showClose: {
     type: Boolean,
@@ -215,49 +227,4 @@ onMounted(() => {
 onBeforeMount(() => blur());
 </script>
 
-<style lang="scss" scoped>
-@use '../assets/colors';
-
-.xrd-dialog-simple {
-  .xrd-card {
-    .xrd-card-actions {
-      background-color: colors.$WarmGrey10;
-      height: 72px;
-      padding-right: 24px;
-    }
-
-    .dialog-title {
-      font-size: 20px;
-      font-weight: 500;
-      letter-spacing: normal;
-    }
-
-    /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
-    .v-card-text.xrd-card-text {
-      font-size: 14px;
-      letter-spacing: normal;
-      color: rgba(0, 0, 0, 0.6);
-      padding: 16px 24px 8px;
-
-      &.no-content {
-        padding-bottom: 16px;
-      }
-    }
-
-    /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
-    .v-card-item.xrd-card-content {
-      padding: 0 24px 0;
-
-      :deep(.v-card-item__content) {
-        padding-top: 16px;
-        padding-bottom: 16px;
-      }
-    }
-  }
-}
-
-.alert-slot {
-  margin-left: 20px;
-  margin-right: 20px;
-}
-</style>
+<style lang="scss" scoped></style>

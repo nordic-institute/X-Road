@@ -50,13 +50,13 @@
 
 <script lang="ts" setup>
 import { useManagementServices } from '@/store/modules/management-services';
-import { useBasicForm, useFileRef } from '@/util/composables';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
+import { useBasicForm, useFileRef } from '@niis/shared-ui';
 
 const emit = defineEmits(['cancel', 'upload']);
 
 const { uploadCertificate } = useManagementServices();
-const { loading, showError, showSuccess, t } = useBasicForm();
+const { loading, addError, addSuccessMessage } = useBasicForm();
 const certFile = useFileRef();
 
 function upload(): void {
@@ -66,13 +66,13 @@ function upload(): void {
   loading.value = true;
   uploadCertificate(certFile.value)
     .then(() => {
-      showSuccess(
-        t('tlsCertificates.managementService.uploadCertificate.success'),
+      addSuccessMessage(
+        'tlsCertificates.managementService.uploadCertificate.success',
       );
       emit('upload');
     })
     .catch((error) => {
-      showError(error);
+      addError(error);
       emit('cancel');
     })
     .finally(() => (loading.value = false));

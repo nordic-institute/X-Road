@@ -29,13 +29,13 @@ import {
   createWebHashHistory,
   NavigationGuardNext,
   RouteLocationNormalized,
+  RouteLocationNormalizedLoaded,
 } from 'vue-router';
 import routes from './routes';
 import { RouteName } from '@/global';
-import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
-import { XrdLocation } from '@/router/types';
+import { useNotifications, XrdLocation, useHistory } from '@niis/shared-ui';
 
 // Create the router
 const router = createRouter({
@@ -43,11 +43,13 @@ const router = createRouter({
   routes: routes,
 });
 
-function backOnEscape(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    router.go(-1);
-  }
-}
+router.afterEach(
+  (to: RouteLocationNormalized, from: RouteLocationNormalizedLoaded) => {
+    const { push } = useHistory();
+
+    push(to);
+  },
+);
 
 router.beforeEach(
   async (
@@ -66,12 +68,6 @@ router.beforeEach(
     const notifications = useNotifications();
     const system = useSystem();
 
-    if (to.meta.backOnEscape) {
-      window.addEventListener('keyup', backOnEscape);
-    } else {
-      window.removeEventListener('keyup', backOnEscape);
-    }
-
     // User is allowed to access any other view than login only after authenticated information has been fetched
     // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
     // user to be redirected to a view that contains api calls (s)he is not allowed.
@@ -88,17 +84,16 @@ router.beforeEach(
       } else {
         // Clear success, error and continue init notifications when the route changed, except when coming from Initialization.
         if (from.name !== RouteName.Initialisation) {
-          notifications.resetNotifications();
+          notifications.clearNotifications();
         }
         /*
     Check permissions here
     */
+
         if (!to?.meta?.permissions) {
-          to.meta.backTo = true;
           next();
         } else if (user.hasAnyOfPermissions(to.meta.permissions)) {
           // This route is allowed
-          to.meta.backTo = from.matched.length > 0;
           next();
         } else {
           // This route is not allowed
