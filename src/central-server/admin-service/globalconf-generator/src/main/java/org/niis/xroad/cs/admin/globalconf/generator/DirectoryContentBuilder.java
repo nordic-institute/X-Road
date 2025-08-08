@@ -56,6 +56,7 @@ public class DirectoryContentBuilder {
     private final List<ConfigurationPart> configurationParts = new ArrayList<>();
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public DirectoryContentBuilder(
             @NonNull DigestAlgorithm hashAlgorithmId,
             @NonNull Instant expireDate,
@@ -107,6 +108,7 @@ public class DirectoryContentBuilder {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private String calculateHash(byte[] data) {
         return hashCalculator.calculateFromBytes(data);
     }

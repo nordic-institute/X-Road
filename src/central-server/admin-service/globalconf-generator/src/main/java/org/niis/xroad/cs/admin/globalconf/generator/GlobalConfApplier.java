@@ -43,6 +43,7 @@ import static org.niis.xroad.cs.admin.globalconf.generator.FileUtils.delete;
 
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
 public class GlobalConfApplier {
     private static final int OLD_CONF_PRESERVING_SECONDS = 600;
 

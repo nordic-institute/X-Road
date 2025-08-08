@@ -33,7 +33,6 @@ import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import com.nortal.test.testcontainers.images.builder.ReusableImageFromDockerfile;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
@@ -91,7 +90,6 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
                 .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(192 * 1024 * 1024L));
     }
 
-    @SneakyThrows
     private ImageFromDockerfile imageDefinition() {
         log.info("Initializing test-ca..");
 

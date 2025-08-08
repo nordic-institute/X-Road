@@ -85,6 +85,7 @@ import static ee.ria.xroad.common.util.MimeUtils.UTF8;
  * SOAP message parser that does not construct a DOM tree of the message.
  */
 @Slf4j
+@SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
 public class SaxSoapParserImpl implements SoapParser {
     private static final String LEXICAL_HANDLER_PROPERTY = "http://xml.org/sax/properties/lexical-handler";
 

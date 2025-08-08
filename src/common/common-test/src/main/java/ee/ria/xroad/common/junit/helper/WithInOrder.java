@@ -51,6 +51,7 @@ public interface WithInOrder {
     }
 
     @NoCoverage
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
     final class InOrder implements org.mockito.InOrder {
 
         protected final org.mockito.InOrder inOrder;
@@ -130,6 +131,7 @@ public interface WithInOrder {
 
     @SneakyThrows
     @NoCoverage
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
     default InOrder inOrder(Object... additionalMocks) {
         Object thiz = this;
         Class<?> aClass = this.getClass();

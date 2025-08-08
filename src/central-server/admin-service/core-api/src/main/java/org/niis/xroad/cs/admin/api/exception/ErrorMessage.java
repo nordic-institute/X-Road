@@ -27,7 +27,7 @@
 package org.niis.xroad.cs.admin.api.exception;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.restapi.exceptions.DeviationBuilder;
+import org.niis.xroad.common.core.exception.DeviationBuilder;
 
 @RequiredArgsConstructor
 public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {

@@ -35,7 +35,7 @@ import org.springframework.core.io.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ERROR_RESOURCE_READ;
+import static org.niis.xroad.common.core.exception.ErrorCodes.ERROR_RESOURCE_READ;
 
 
 /**

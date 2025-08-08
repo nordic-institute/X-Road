@@ -64,6 +64,7 @@ class LocalCopyWriter {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public void write(Collection<ConfigurationPart> configurationParts) {
         FileUtils.createDirectories(getTargetDir());
 
@@ -76,6 +77,7 @@ class LocalCopyWriter {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private void writePart(ConfigurationPart configurationPart) {
         var filePath = getFilePath(configurationPart);
         var metadataFilePath = metadataFilePath(filePath);
@@ -97,6 +99,7 @@ class LocalCopyWriter {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private void writeFileList(Collection<ConfigurationPart> configurationParts) {
         var fileList = configurationParts.stream()
                 .map(this::getFilePath)
@@ -139,6 +142,7 @@ class LocalCopyWriter {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private void deleteStaleConfigFile(Path path) {
         log.trace("Deleting stale config file {}", path);
         Files.delete(path);

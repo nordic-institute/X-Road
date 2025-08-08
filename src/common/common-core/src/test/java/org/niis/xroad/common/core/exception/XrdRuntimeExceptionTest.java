@@ -23,25 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.common.core.exception;
 
-import java.util.Collection;
+import org.junit.jupiter.api.Test;
 
-/**
- * A thing (an Exception) which (possibly) knows the detailed error code & metadata,
- * and warning codes & metadata, to send in REST API response body
- */
-public interface DeviationAware {
-    /**
-     * Return the error details, if any
-     * @return
-     */
-    ErrorDeviation getErrorDeviation();
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-    /**
-     * Return warningDeviations, if any
-     * @return
-     */
-    Collection<WarningDeviation> getWarningDeviations();
+class XrdRuntimeExceptionTest {
 
+    @Test
+    void shouldCreateWellFormedErrorMessage() {
+        String identifier = "test-identifier";
+        ExceptionCategory category = ExceptionCategory.SYSTEM;
+        var errorDeviation = ErrorCodes.INTERNAL_ERROR;
+        String details = "This is a test error message.";
+        boolean thrownRemotely = false;
+
+        XrdRuntimeException exception = XrdRuntimeException.systemException(errorDeviation)
+                .identifier(identifier)
+                .thrownRemotely(thrownRemotely)
+                .details(details)
+                .build();
+
+        assertEquals(identifier, exception.getIdentifier());
+        assertEquals(category, exception.getCategory());
+        assertEquals(errorDeviation.build(), exception.getErrorDeviation());
+        assertEquals(details, exception.getDetails());
+        assertFalse(exception.isThrownRemotely());
+
+        String expectedMessage = "[test-identifier] [SYSTEM] Error[code=internal_error] Details: This is a test error message.";
+        assertEquals(expectedMessage, exception.toString());
+    }
 }

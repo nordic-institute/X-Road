@@ -5,6 +5,7 @@ plugins {
 dependencies {
   implementation(platform(libs.springBoot.bom))
 
+  implementation(project(":common:common-core"))
   implementation(libs.jakarta.annotationApi)
   implementation("org.springframework:spring-context")
 
@@ -12,5 +13,5 @@ dependencies {
 }
 
 archUnit {
-  setSkip(true) // do not self-test
+  isSkip = true // do not self-test
 }

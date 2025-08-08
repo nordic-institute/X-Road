@@ -55,6 +55,7 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
      * @return hash of the message
      */
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public byte[] getHash() {
         if (hash == null) {
             hash = calculateDigest(SoapUtils.getHashAlgoId(), getBytes());

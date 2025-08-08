@@ -176,6 +176,7 @@ final class Utils {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     static String getOcspStatus(byte[] ocspBytes) {
         if (ocspBytes == null) {
             return "<not available>";
@@ -198,6 +199,7 @@ final class Utils {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     static String hash(CertificateInfo cert) {
         return calculateCertHexHash(cert.getCertificateBytes());
     }

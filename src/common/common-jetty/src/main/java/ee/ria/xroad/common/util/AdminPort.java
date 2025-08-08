@@ -122,7 +122,7 @@ public class AdminPort {
         @Override
         public boolean handle(Request request, Response response, Callback callback) {
             if (!CONNECTOR_HOST.equals(Request.getRemoteAddr(request))) {
-                response.setStatus(HttpStatus.SC_FORBIDDEN);
+                response.setStatus(HttpStatus.FORBIDDEN.getCode());
                 callback.succeeded();
             } else {
                 final var target = request.getHttpURI().getPath();
@@ -136,12 +136,12 @@ public class AdminPort {
                             LOG.warn("Unknown handler detected for target '{}', skipping handling delegation", target);
                         }
                     } else {
-                        response.setStatus(HttpStatus.SC_NOT_FOUND);
+                        response.setStatus(HttpStatus.NOT_FOUND.getCode());
                     }
                     callback.succeeded();
                 } catch (Exception e) {
                     LOG.error("Handler got error", e);
-                    response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                    response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.getCode());
                     Content.Sink.write(response, true, e.toString(), callback);
                 }
             }

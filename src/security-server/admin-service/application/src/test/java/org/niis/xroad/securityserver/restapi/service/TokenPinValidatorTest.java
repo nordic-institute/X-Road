@@ -34,7 +34,7 @@ import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_WEAK_PIN;
+import static org.niis.xroad.common.core.exception.ErrorCodes.TOKEN_WEAK_PIN;
 
 /**
  * test token pin validator

@@ -62,6 +62,7 @@ public final class OcspTestUtils {
      * @throws Exception in case of any errors
      */
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
     public static OCSPResp createOCSPResponse(X509Certificate subject,
                                               X509Certificate issuer,
                                               X509Certificate signer, PrivateKey signerKey,

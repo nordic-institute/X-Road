@@ -127,6 +127,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private static ServerConnector createDaemonSslConnector(Server server) {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);

@@ -371,7 +371,7 @@ public final class TestCertUtil {
     }
 
     @SneakyThrows
-    @SuppressWarnings({"checkstyle:MagicNumber", "java:S4426"})
+    @SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:SneakyThrowsCheck", "java:S4426"})
     public static KeyPairGenerator getKeyPairGenerator() {
         var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(1024);
@@ -401,7 +401,7 @@ public final class TestCertUtil {
 
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
+    @SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:SneakyThrowsCheck"})
     @SneakyThrows
     public static X509Certificate generateSignCert(PublicKey subjectKey, ClientId id) {
 

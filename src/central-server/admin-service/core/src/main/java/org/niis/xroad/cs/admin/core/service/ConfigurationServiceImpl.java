@@ -261,6 +261,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private String getFileHash(byte[] data) {
         return Digests.hexDigest(DEFAULT_UPLOAD_FILE_HASH_ALGORITHM, data);
     }

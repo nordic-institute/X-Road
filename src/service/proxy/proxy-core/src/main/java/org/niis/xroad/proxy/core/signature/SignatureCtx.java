@@ -75,6 +75,7 @@ public class SignatureCtx {
     private SignatureXmlBuilder builder;
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public SignatureCtx(SignAlgorithm signatureAlgorithmId) {
         this.signatureAlgorithmId = signatureAlgorithmId;
     }

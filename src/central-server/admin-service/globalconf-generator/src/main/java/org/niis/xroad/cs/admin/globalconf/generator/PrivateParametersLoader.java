@@ -62,6 +62,7 @@ class PrivateParametersLoader {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private PrivateParameters.ManagementService getManagementService() {
         var managementService = new PrivateParameters.ManagementService();
 

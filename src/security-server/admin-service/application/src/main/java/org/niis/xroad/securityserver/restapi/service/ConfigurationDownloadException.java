@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.niis.xroad.common.exception.InternalServerErrorException;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_DOWNLOAD_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.CONF_DOWNLOAD_FAILED;
 
 /**
  * Thrown if downloading configuration from the anchor fails. Usually caused by erroneous response (500) from

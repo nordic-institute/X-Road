@@ -138,6 +138,7 @@ abstract class SharedParametersV5ToXmlConverter {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private byte[] toAuthCertHash(CertHash authCert) {
         return authCert.getHash(DigestAlgorithm.SHA256);
     }

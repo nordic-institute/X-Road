@@ -37,6 +37,7 @@ import javax.xml.validation.Schema;
 import java.io.OutputStream;
 import java.io.StringWriter;
 
+@SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
 abstract class AbstractParametersMarshaller<P, T> {
     abstract JAXBContext getJaxbContext();
 

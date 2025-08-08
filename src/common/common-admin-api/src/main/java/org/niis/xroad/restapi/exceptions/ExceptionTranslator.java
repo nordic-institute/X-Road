@@ -28,6 +28,10 @@ package org.niis.xroad.restapi.exceptions;
 import ee.ria.xroad.common.CodedException;
 
 import jakarta.validation.ConstraintViolationException;
+import org.niis.xroad.common.core.exception.Deviation;
+import org.niis.xroad.common.core.exception.DeviationAware;
+import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.core.exception.HttpStatusAware;
 import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.signer.api.exception.SignerException;
@@ -44,7 +48,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static org.niis.xroad.restapi.exceptions.DeviationBuilder.TRANSLATABLE_PREFIX;
+import static org.niis.xroad.common.core.exception.DeviationBuilder.TRANSLATABLE_PREFIX;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_VALIDATION_FAILURE;
 import static org.niis.xroad.restapi.exceptions.ResponseStatusUtil.getAnnotatedResponseStatus;
 
@@ -67,6 +71,7 @@ public class ExceptionTranslator {
      * Create ResponseEntity<ErrorInfo> from an Exception.
      * Use provided status or override it with value from
      * Exception's ResponseStatus annotation if one exists
+     *
      * @param e             exception to convert
      * @param defaultStatus status to be used if not specified with method annotation
      * @return ResponseEntity with properly filled ErrorInfo
@@ -139,7 +144,10 @@ public class ExceptionTranslator {
 
     public HttpStatusCode resolveHttpStatus(Exception e, HttpStatus defaultStatus) {
         if (e instanceof HttpStatusAware hsa) {
-            return HttpStatus.resolve(hsa.getHttpStatus());
+            return hsa.getHttpStatus()
+                    .map(ee.ria.xroad.common.HttpStatus::getCode)
+                    .map(code -> (HttpStatusCode) HttpStatus.resolve(code))
+                    .orElseGet(() -> getAnnotatedResponseStatus(e, defaultStatus));
         }
         return getAnnotatedResponseStatus(e, defaultStatus);
     }

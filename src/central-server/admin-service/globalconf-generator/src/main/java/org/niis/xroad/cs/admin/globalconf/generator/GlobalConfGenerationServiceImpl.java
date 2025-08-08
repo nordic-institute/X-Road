@@ -86,6 +86,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private final List<ConfigurationPartsGenerator> configurationPartsGenerators;
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     @Override
     @Transactional
     @Scheduled(fixedRateString = "${xroad.admin-service.global-configuration-generation-rate-in-seconds}", timeUnit = SECONDS)
@@ -208,12 +209,10 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
                 .build();
     }
 
-    @SneakyThrows
     private DigestAlgorithm getConfSignCertHashAlgoId() {
         return systemParameterService.getConfSignCertHashAlgoUri();
     }
 
-    @SneakyThrows
     private DigestAlgorithm getConfHashAlgoId() {
         return systemParameterService.getConfHashAlgoUri();
     }

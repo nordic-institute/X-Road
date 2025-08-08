@@ -123,6 +123,7 @@ public class TestGenericClientRequestBuilder {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
     public TestGenericClientRequest build() {
         return requestAssembler.assemble(KEY_PAIR_GENERATOR, requestBuilder, soapMessageBuilder,
                 senderClientId, receiverClientId, serverId, clientId, clientOcspStatus);

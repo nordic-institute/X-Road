@@ -404,6 +404,7 @@ public class ConfProxyProperties {
      * @return raw bytes for the provided certificate
      */
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private static byte[] certBytes(final X509Certificate cert) {
         return cert.getEncoded();
     }
