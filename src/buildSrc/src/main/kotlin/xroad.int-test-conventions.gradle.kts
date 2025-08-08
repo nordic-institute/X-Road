@@ -22,3 +22,8 @@ dependencies {
   "intTestCompileOnly"(libs.findLibrary("lombok").get())
   "intTestAnnotationProcessor"(libs.findLibrary("lombok").get())
 }
+
+tasks.named<Checkstyle>("checkstyleIntTest") {
+  source = fileTree("src/intTest/java")
+  configFile = file("${project.rootDir}/config/checkstyle/checkstyle-test.xml")
+}

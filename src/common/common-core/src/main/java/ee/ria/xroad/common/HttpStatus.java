@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
+@SuppressWarnings("checkstyle:MagicNumber")
 public enum HttpStatus {
 
     // ===== 1XX INFORMATIONAL =====

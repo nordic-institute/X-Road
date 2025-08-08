@@ -74,7 +74,7 @@ public class ClientIdConverter extends DtoConverter<ClientId, String> {
      * @return ClientId
      * @throws BadRequestException if encoded id could not be decoded
      */
-    public ClientId.Conf convertId(String encodedId) throws BadRequestException {
+    public ClientId.Conf convertId(String encodedId) throws XrdRuntimeException {
         if (!isEncodedClientId(encodedId)) {
             throw XrdRuntimeException.businessException(INVALID_ENCODED_ID)
                     .metadataItems(encodedId)

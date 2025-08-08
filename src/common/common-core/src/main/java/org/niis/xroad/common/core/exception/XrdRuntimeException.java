@@ -46,7 +46,7 @@ import java.util.UUID;
 /**
  * A highly customizable exception class for X-Road use cases.
  * <p>
- * TODO: Until migration from CodedException is complete, this class
+ * TODO Until migration from CodedException is complete, this class
  *       extends CodedException. In the future, it will be a standalone.
  */
 @Getter
@@ -165,7 +165,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         return ex != null && ex.getClass().getName().equals("org.apache.james.mime4j.MimeException");
     }
 
-
+    @SuppressWarnings("checkstyle:HiddenField")
     public static class Builder {
         private Throwable cause;
         private String identifier;

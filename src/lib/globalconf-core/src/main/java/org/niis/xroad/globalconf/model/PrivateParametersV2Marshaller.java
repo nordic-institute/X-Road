@@ -55,6 +55,7 @@ public class PrivateParametersV2Marshaller extends AbstractParametersMarshaller<
 
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private static JAXBContext createJaxbContext() {
         return JAXBContext.newInstance(ObjectFactory.class);
     }
