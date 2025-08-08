@@ -27,8 +27,8 @@
 
 package org.niis.xroad.cs.admin.core.exception;
 
-import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 
 public class SigningKeyException extends InternalServerErrorException {
 

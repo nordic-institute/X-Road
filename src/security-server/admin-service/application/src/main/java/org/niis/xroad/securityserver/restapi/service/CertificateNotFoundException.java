@@ -26,8 +26,8 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.NonNull;
-import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
 
 public class CertificateNotFoundException extends NotFoundException {

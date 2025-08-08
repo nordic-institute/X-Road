@@ -25,8 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 
 /**
  * If anchor file was not found

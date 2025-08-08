@@ -27,12 +27,12 @@ package org.niis.xroad.restapi.common.backup.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;

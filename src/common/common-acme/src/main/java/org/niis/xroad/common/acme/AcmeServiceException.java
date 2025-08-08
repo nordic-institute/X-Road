@@ -26,8 +26,8 @@
 package org.niis.xroad.common.acme;
 
 import lombok.NonNull;
-import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 
 public class AcmeServiceException extends InternalServerErrorException {
 

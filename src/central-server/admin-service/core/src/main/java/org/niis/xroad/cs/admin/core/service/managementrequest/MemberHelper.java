@@ -37,11 +37,11 @@ import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Component;
 
+import static org.niis.xroad.common.core.exception.DeviationBuilder.trMetadata;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_NAME;
-import static org.niis.xroad.common.core.exception.DeviationBuilder.trMetadata;
 
 @Component
 @RequiredArgsConstructor

@@ -31,9 +31,9 @@ import ee.ria.xroad.common.util.TokenPinPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.DeviationBuilder;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
-import org.niis.xroad.common.core.exception.DeviationBuilder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 

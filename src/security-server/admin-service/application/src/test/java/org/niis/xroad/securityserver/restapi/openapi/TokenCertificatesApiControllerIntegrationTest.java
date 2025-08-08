@@ -31,12 +31,12 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
-import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;

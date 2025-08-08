@@ -71,6 +71,7 @@ public class ExceptionTranslator {
      * Create ResponseEntity<ErrorInfo> from an Exception.
      * Use provided status or override it with value from
      * Exception's ResponseStatus annotation if one exists
+     *
      * @param e             exception to convert
      * @param defaultStatus status to be used if not specified with method annotation
      * @return ResponseEntity with properly filled ErrorInfo
@@ -145,8 +146,8 @@ public class ExceptionTranslator {
         if (e instanceof HttpStatusAware hsa) {
             return hsa.getHttpStatus()
                     .map(ee.ria.xroad.common.HttpStatus::getCode)
-                    .map(code ->(HttpStatusCode) HttpStatus.resolve(code))
-                    .orElseGet(()->getAnnotatedResponseStatus(e, defaultStatus));
+                    .map(code -> (HttpStatusCode) HttpStatus.resolve(code))
+                    .orElseGet(() -> getAnnotatedResponseStatus(e, defaultStatus));
         }
         return getAnnotatedResponseStatus(e, defaultStatus);
     }
