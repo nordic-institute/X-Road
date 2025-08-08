@@ -24,45 +24,17 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<!--
-  Certification Service settings view
--->
 <template>
-  <main id="ocsp-responder-certificate-details" class="mt-8">
-    <certificate-details
-      v-if="certificateDetails"
-      :certificate-details="certificateDetails"
-    />
-  </main>
+  <OcspRespondersList
+    v-if="certificationServiceStore.currentCertificationService"
+    id="certification-service-ocsp-responders"
+    :ca="certificationServiceStore.currentCertificationService"
+  />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapStores } from 'pinia';
-import { useOcspResponderService } from '@/store/modules/trust-services';
-import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
-import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
+<script lang="ts" setup>
+import { useCertificationService } from '@/store/modules/trust-services';
+import OcspRespondersList from '@/components/ocspResponders/OcspRespondersList.vue';
 
-export default defineComponent({
-  components: { CertificateDetails },
-  props: {
-    ocspResponderId: {
-      type: Number,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      certificateDetails: null as CertificateDetailsType | null,
-    };
-  },
-  computed: {
-    ...mapStores(useOcspResponderService),
-  },
-  created() {
-    this.ocspResponderServiceStore
-      .getOcspResponderCertificate(this.ocspResponderId)
-      .then((resp) => (this.certificateDetails = resp.data));
-  },
-});
+const certificationServiceStore = useCertificationService();
 </script>

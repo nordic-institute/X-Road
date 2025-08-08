@@ -24,12 +24,11 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+<!--
+  Certification Service settings view
+-->
 <template>
-  <XrdElevatedView
-    id="timestamping-service-certificate-details"
-    :breadcrumbs
-    close-on-escape
-  >
+  <XrdElevatedView id="ocsp-responder-certificate-details" close-on-escape :breadcrumbs>
     <XrdCertificate
       v-if="certificateDetails"
       :certificate="certificateDetails"
@@ -38,32 +37,27 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted } from 'vue';
-import { useTimestampingServices } from '@/store/modules/trust-services';
+import { ref, computed } from 'vue';
+import { useOcspResponderService, useCertificationService } from '@/store/modules/trust-services';
 import { XrdCertificate, XrdElevatedView } from '@niis/shared-ui';
+import { CertificateDetails } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
-  timestampingServiceId: {
+  ocspResponderId: {
     type: String,
     required: true,
   },
 });
 
+type Cert = CertificateDetails | null;
+
 const { t } = useI18n();
-const timestampingServicesStore = useTimestampingServices();
+const { getOcspResponderCertificate } = useOcspResponderService();
+const certificationServiceStore = useCertificationService();
 
-const timestampingService = computed(() => {
-  const tsaId = Number(props.timestampingServiceId);
-  return timestampingServicesStore.timestampingServices.find(
-    (tsa) => tsa.id === tsaId,
-  );
-});
-
-const certificateDetails = computed(() => {
-  return timestampingService.value?.certificate;
-});
+const certificateDetails = ref(null as Cert);
 
 const breadcrumbs = computed(() => [
   {
@@ -71,12 +65,31 @@ const breadcrumbs = computed(() => [
     to: { name: RouteName.TrustServices },
   },
   {
-    title: t('trustServices.timestampingServices'),
+    title: certificationServiceStore.currentCertificationService?.name || '',
+    to: {
+      name: RouteName.CertificationServiceDetails,
+      params: {
+        certificationServiceId:
+          certificationServiceStore.currentCertificationService?.id,
+      },
+    },
+  },
+  {
+    title: t('trustServices.trustService.pagenavigation.ocspResponders'),
+    to: {
+      name: RouteName.CertificationServiceOcspResponders,
+      params: {
+        certificationServiceId:
+          certificationServiceStore.currentCertificationService?.id,
+      },
+    },
   },
   {
     title: t('cert.certificate'),
   },
 ]);
 
-onMounted(() => window.scrollTo(0, 0));
+getOcspResponderCertificate(Number(props.ocspResponderId)).then(
+  (resp) => (certificateDetails.value = resp.data),
+);
 </script>

@@ -54,7 +54,8 @@ const props = defineProps({
 const certificate = ref(null as Certificate);
 
 const { t } = useI18n();
-const { getCertificate, currentCertificationService } = useCertificationService();
+const { getCertificate, currentCertificationService } =
+  useCertificationService();
 
 const breadcrumbs = computed(() => [
   {

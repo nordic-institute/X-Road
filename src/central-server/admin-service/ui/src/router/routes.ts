@@ -75,10 +75,12 @@ import AppForbidden from '@/views/AppForbidden.vue';
 import CertificationServiceView from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceView.vue';
 import CertificationServiceDetails from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceDetails.vue';
 import TrustServicesView from '@/views/TrustServices/TrustServicesView.vue';
-import CertificationServiceSettings from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceSettings.vue';
-import CertificationServiceOcspResponders from '@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue';
+import CertificationServiceSettings
+  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceSettings.vue';
+import CertificationServiceOcspResponders
+  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceOcspResponders.vue';
 import CertificationServiceIntermediateCas from '@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue';
-import OcspResponderCertificate from '@/views/TrustServices/CertificationService/OcspResponderCertificate.vue';
+import OcspResponderCertificate from '@/views/TrustServices/CertificationServices/CertificationService/OcspResponderCertificate.vue';
 import CertificationServiceCertificate
   from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceCertificate.vue';
 import IntermediateCACertificate from '@/views/TrustServices/CertificationService/IntermediateCACertificate.vue';
@@ -390,11 +392,9 @@ const routes = [
                   ?.name;
               },
             },
-            props(route: RouteLocationNormalized) {
-              return {
-                certificationServiceId: route.params.certificationServiceId,
-              };
-            },
+            props: (route: RouteLocationNormalized) => ({
+              certificationServiceId: route.params.certificationServiceId,
+            }),
             redirect: '/certification-services/:certificationServiceId/details',
             children: [
               {
@@ -457,11 +457,9 @@ const routes = [
               permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
               title: 'cert.certificate',
             },
-            props(route: RouteLocationNormalized) {
-              return {
-                certificationServiceId: route.params.certificationServiceId,
-              };
-            },
+            props: (route: RouteLocationNormalized) => ({
+              certificationServiceId: route.params.certificationServiceId,
+            }),
           },
           {
             name: RouteName.OcspResponderCertificateDetails,
@@ -469,14 +467,11 @@ const routes = [
             component: OcspResponderCertificate,
             meta: {
               permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
-              backOnEscape: true,
+              title: 'cert.certificate',
             },
-            props: (
-              route: RouteLocationNormalized,
-            ): { ocspResponderId: number } => {
-              const ocspResponderId = Number(route.params.ocspResponderId);
-              return { ocspResponderId };
-            },
+            props: (route: RouteLocationNormalized) => ({
+              ocspResponderId: route.params.ocspResponderId,
+            }),
           },
           {
             name: RouteName.IntermediateCACertificateDetails,
