@@ -72,14 +72,15 @@ import InternalConfiguration from '@/views/GlobalConfiguration/InternalConfigura
 import TrustedAnchors from '@/views/GlobalConfiguration/TrustedAnchors/TrustedAnchors.vue';
 import ManagementRequests from '@/views/ManagementRequests/ManagementRequests.vue';
 import AppForbidden from '@/views/AppForbidden.vue';
-import CertificationService from '@/views/TrustServices/CertificationService/CertificationService.vue';
-import CertificationServiceDetails from '@/views/TrustServices/CertificationService/CertificationServiceDetails.vue';
+import CertificationServiceView from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceView.vue';
+import CertificationServiceDetails from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceDetails.vue';
 import TrustServicesView from '@/views/TrustServices/TrustServicesView.vue';
-import CertificationServiceSettings from '@/views/TrustServices/CertificationService/CertificationServiceSettings.vue';
+import CertificationServiceSettings from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceSettings.vue';
 import CertificationServiceOcspResponders from '@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue';
 import CertificationServiceIntermediateCas from '@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue';
 import OcspResponderCertificate from '@/views/TrustServices/CertificationService/OcspResponderCertificate.vue';
-import CertificationServiceCertificate from '@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue';
+import CertificationServiceCertificate
+  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceCertificate.vue';
 import IntermediateCACertificate from '@/views/TrustServices/CertificationService/IntermediateCACertificate.vue';
 import IntermediateCa from '@/views/TrustServices/CertificationService/IntermediateCa.vue';
 import IntermediateCaDetails from '@/views/TrustServices/CertificationService/IntermediateCaDetails.vue';
@@ -98,6 +99,7 @@ import ViewNavigation from '@/layouts/ViewNavigation.vue';
 import AppFooter from '@/layouts/AppFooter.vue';
 import { managementTypeToIconTextColor } from '@/util/helpers';
 import { useManagementRequests } from '@/store/modules/management-requests';
+import { useCertificationService } from '@/store/modules/trust-services';
 
 const routes = [
   {
@@ -343,9 +345,6 @@ const routes = [
         props: { default: true },
         meta: {
           permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
-          backOnEscape: true,
-          elevated: true,
-          allowBackTo: undefined,
           title: 'cert.certificate',
         },
       },
@@ -374,26 +373,27 @@ const routes = [
               permissions: [Permissions.VIEW_APPROVED_TSAS],
               title: 'cert.certificate',
             },
-            props(route: RouteLocationNormalized): {
-              timestampingServiceId: number;
-            } {
-              const timestampingServiceId = Number(
-                route.params.timestampingServiceId,
-              );
-              return { timestampingServiceId };
+            props(route: RouteLocationNormalized) {
+              return {
+                timestampingServiceId: route.params.timestampingServiceId,
+              };
             },
           },
           {
             path: '/certification-services/:certificationServiceId',
-            component: CertificationService,
-            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props(route: RouteLocationNormalized): {
-              certificationServiceId: number;
-            } {
-              const certificationServiceId = Number(
-                route.params.certificationServiceId,
-              );
-              return { certificationServiceId };
+            component: CertificationServiceView,
+            meta: {
+              permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
+              listView: RouteName.TrustServices,
+              title() {
+                return useCertificationService().currentCertificationService
+                  ?.name;
+              },
+            },
+            props(route: RouteLocationNormalized) {
+              return {
+                certificationServiceId: route.params.certificationServiceId,
+              };
             },
             redirect: '/certification-services/:certificationServiceId/details',
             children: [
@@ -455,15 +455,12 @@ const routes = [
             component: CertificationServiceCertificate,
             meta: {
               permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
-              backOnEscape: true,
+              title: 'cert.certificate',
             },
-            props: (
-              route: RouteLocationNormalized,
-            ): { certificationServiceId: number } => {
-              const certificationServiceId = Number(
-                route.params.certificationServiceId,
-              );
-              return { certificationServiceId };
+            props(route: RouteLocationNormalized) {
+              return {
+                certificationServiceId: route.params.certificationServiceId,
+              };
             },
           },
           {

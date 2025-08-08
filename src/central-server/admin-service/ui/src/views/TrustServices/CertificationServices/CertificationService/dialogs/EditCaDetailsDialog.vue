@@ -28,6 +28,7 @@
   <xrd-simple-dialog
     title="trustServices.caSettings"
     save-button-text="action.save"
+    save-button-icon="check"
     cancel-button-text="action.cancel"
     submittable
     :loading="loading"
@@ -36,18 +37,29 @@
     @save="updateCertificationServiceSettings"
   >
     <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="certProfile"
-          v-bind="certProfileAttrs"
-          variant="outlined"
-          data-test="cert-profile-input"
-          persistent-hint
-          autofocus
-          :label="$t('trustServices.certProfileInput')"
-          :hint="$t('trustServices.certProfileInputExplanation')"
-        ></v-text-field>
-      </div>
+      <XrdDialogSubView>
+        <XrdDialogSubViewRow full-length>
+          <v-checkbox
+            v-model="tlsAuth"
+            v-bind="tlsAuthAttrs"
+            data-test="tls-auth-checkbox"
+            class="xrd-checkbox"
+            autofocus
+            :label="$t('trustServices.addCASettingsCheckbox')"
+          />
+        </XrdDialogSubViewRow>
+        <XrdDialogSubViewRow full-length>
+          <v-text-field
+            v-model="certProfile"
+            v-bind="certProfileAttrs"
+            data-test="cert-profile-input"
+            class="xrd-text-field"
+            persistent-hint
+            :label="$t('trustServices.certProfileInput')"
+            :hint="$t('trustServices.certProfileInputExplanation')"
+          ></v-text-field>
+        </XrdDialogSubViewRow>
+      </XrdDialogSubView>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -57,8 +69,7 @@ import { ref, PropType } from 'vue';
 import { useForm } from 'vee-validate';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
-import { useNotifications } from '@/store/modules/notifications';
-import { useI18n } from 'vue-i18n';
+import { XrdDialogSubViewRow, XrdDialogSubView, useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   certificationService: {
@@ -72,9 +83,11 @@ const emits = defineEmits(['save', 'cancel']);
 const { handleSubmit, meta, defineField } = useForm({
   validationSchema: {
     certProfile: { required: true },
+    tlsAuth: {},
   },
   initialValues: {
     certProfile: props.certificationService.certificate_profile_info,
+    tlsAuth: props.certificationService.tls_auth,
   },
 });
 
@@ -82,7 +95,9 @@ const [certProfile, certProfileAttrs] = defineField('certProfile', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { showSuccess, showError } = useNotifications();
+const [tlsAuth, tlsAuthAttrs] = defineField('tlsAuth');
+
+const { addSuccessMessage, addError } = useNotifications();
 
 const { update: updateCertificationService } = useCertificationService();
 
@@ -91,18 +106,17 @@ function cancelEdit() {
 }
 
 const loading = ref(false);
-const { t } = useI18n();
 const updateCertificationServiceSettings = handleSubmit((values) => {
   loading.value = true;
   updateCertificationService(props.certificationService.id, {
     certificate_profile_info: values.certProfile,
-    tls_auth: `${props.certificationService.tls_auth}`,
+    tls_auth: values.tlsAuth.toString(),
   })
     .then(() => {
-      showSuccess(t('trustServices.trustService.settings.saveSuccess'));
+      addSuccessMessage('trustServices.trustService.settings.saveSuccess');
       emits('save');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 });
 </script>

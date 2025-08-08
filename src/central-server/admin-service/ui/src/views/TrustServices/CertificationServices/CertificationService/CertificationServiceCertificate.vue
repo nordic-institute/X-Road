@@ -25,40 +25,57 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-row no-gutters class="XrdDialogSubViewRow">
-    <v-col>
-      <slot />
-    </v-col>
-    <v-col v-if="description || $slots.description">
-      <slot name="description">
-        <span v-if="description">
-          {{ translated ? description : $t(description) }}
-        </span>
-      </slot>
-    </v-col>
-    <v-spacer v-else-if="!fullLength" class="ml-8" />
-  </v-row>
+  <XrdElevatedView
+    id="certification-service-certificate-details"
+    close-on-escape
+    :breadcrumbs
+  >
+    <XrdCertificate v-if="certificate" :certificate="certificate" />
+  </XrdElevatedView>
 </template>
 
 <script lang="ts" setup>
-defineProps({
-  description: {
+import { ref, computed } from 'vue';
+import { useCertificationService } from '@/store/modules/trust-services';
+import { XrdCertificate, XrdElevatedView } from '@niis/shared-ui';
+import { CertificateDetails } from '@/openapi-types';
+import { RouteName } from '@/global';
+import { useI18n } from 'vue-i18n';
+
+type Certificate = CertificateDetails | null;
+
+const props = defineProps({
+  certificationServiceId: {
     type: String,
-    default: undefined,
-  },
-  translated: {
-    type: Boolean,
-    default: false,
-  },
-  fullLength: {
-    type: Boolean,
-    default: false,
+    required: true,
   },
 });
-</script>
 
-<style lang="scss" scoped>
-.XrdDialogSubViewRow:not(:first-child) {
-  margin-top: 16px;
-}
-</style>
+const certificate = ref(null as Certificate);
+
+const { t } = useI18n();
+const { getCertificate, currentCertificationService } = useCertificationService();
+
+const breadcrumbs = computed(() => [
+  {
+    title: t('tab.main.trustServices'),
+    to: { name: RouteName.TrustServices },
+  },
+  {
+    title: currentCertificationService?.name || '',
+    to: {
+      name: RouteName.CertificationServiceDetails,
+      params: {
+        certificationServiceId: props.certificationServiceId,
+      },
+    },
+  },
+  {
+    title: t('cert.certificate'),
+  },
+]);
+
+getCertificate(Number(props.certificationServiceId)).then(
+  (resp) => (certificate.value = resp.data),
+);
+</script>

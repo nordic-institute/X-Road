@@ -168,6 +168,12 @@
     "subjectDistinguishedName": "Subject Distinguished Name",
     "version": "Version"
   },
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "true": "True",
+    "false": "False"
+  },
   "dataTables": {
     "paginator": {
       "rowsPerPage": "Rows per page:",

@@ -46,7 +46,7 @@ import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   timestampingServiceId: {
-    type: Number,
+    type: String,
     required: true,
   },
 });
@@ -55,8 +55,9 @@ const { t } = useI18n();
 const timestampingServicesStore = useTimestampingServices();
 
 const timestampingService = computed(() => {
+  const tsaId = Number(props.timestampingServiceId);
   return timestampingServicesStore.timestampingServices.find(
-    (tsa) => tsa.id === props.timestampingServiceId,
+    (tsa) => tsa.id === tsaId,
   );
 });
 

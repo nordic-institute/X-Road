@@ -24,43 +24,56 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+<!--
+  Certification Service details view
+-->
 <template>
-  <main id="certification-service-certificate-details" class="mt-8">
-    <CertificateDetails
-      v-if="certificateDetails"
-      :certificate-details="certificateDetails"
-    />
-  </main>
+  <XrdSubView id="certification-service-details">
+    <XrdCard>
+      <XrdCardTable>
+        <XrdCardTableRow
+          data-test="subject-distinguished-name-card"
+          label="trustServices.trustService.details.subjectDistinguishedName"
+          :value="currentCertificationService?.subject_distinguished_name || ''"
+        />
+        <XrdCardTableRow
+          data-test="issuer-distinguished-name-card"
+          label="trustServices.trustService.details.issuerDistinguishedName"
+          :value="currentCertificationService?.issuer_distinguished_name || ''"
+        />
+        <XrdCardTableRow
+          data-test="valid-from-card"
+          label="trustServices.validFrom"
+        >
+          <DateTime :value="currentCertificationService?.not_before" />
+        </XrdCardTableRow>
+        <XrdCardTableRow
+          data-test="valid-to-card"
+          label="trustServices.validTo"
+        >
+          <DateTime :value="currentCertificationService?.not_after" />
+        </XrdCardTableRow>
+      </XrdCardTable>
+    </XrdCard>
+  </XrdSubView>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapStores } from 'pinia';
+<script lang="ts" setup>
 import { useCertificationService } from '@/store/modules/trust-services';
-import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
-import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
+import {
+  XrdSubView,
+  XrdCard,
+  XrdCardTableRow,
+  XrdCardTable,
+} from '@niis/shared-ui';
+import DateTime from '@/components/ui/DateTime.vue';
+import { computed } from 'vue';
 
-export default defineComponent({
-  name: 'CertificationServiceCertificate',
-  components: { CertificateDetails },
-  props: {
-    certificationServiceId: {
-      type: Number,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      certificateDetails: null as CertificateDetailsType | null,
-    };
-  },
-  computed: {
-    ...mapStores(useCertificationService),
-  },
-  created() {
-    this.certificationServiceStore
-      .getCertificate(this.certificationServiceId)
-      .then((resp) => (this.certificateDetails = resp.data));
-  },
-});
+const certificationServiceStore = useCertificationService();
+
+const currentCertificationService = computed(
+  () => certificationServiceStore.currentCertificationService,
+);
 </script>
+
+<style lang="scss" scoped></style>

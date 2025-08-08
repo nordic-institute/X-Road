@@ -42,6 +42,9 @@ import { defineComponent, PropType } from 'vue';
 import { Colors } from '@niis/shared-ui';
 import { RouteLocationRaw } from 'vue-router';
 
+/**
+ * @deprecated please use `XrdView`
+ */
 export default defineComponent({
   props: {
     backTo: {

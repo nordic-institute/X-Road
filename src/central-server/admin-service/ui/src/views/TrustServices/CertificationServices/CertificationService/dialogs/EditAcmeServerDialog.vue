@@ -28,6 +28,7 @@
   <xrd-simple-dialog
     title="trustServices.caSettings"
     save-button-text="action.save"
+    save-button-icon="check"
     cancel-button-text="action.cancel"
     submittable
     :loading="loading"
@@ -36,57 +37,66 @@
     @save="updateCertificationServiceSettings"
   >
     <template #content>
-      <div class="dlg-input-width">
-        <v-checkbox
-          v-model="isAcme"
-          :label="$t('trustServices.trustService.settings.acmeCapable')"
-          hide-details
-          class="mt-4"
-          data-test="acme-checkbox"
-        />
-        <v-sheet v-show="isAcme">
-          <v-text-field
-            v-model="acmeServerDirectoryUrl"
-            v-bind="acmeServerDirectoryUrlAttrs"
-            class="py-4"
-            data-test="acme-server-directory-url-input"
-            variant="outlined"
-            autofocus
-            persistent-hint
-            :label="$t('fields.acmeServerDirectoryUrl')"
-            :hint="$t('trustServices.acmeServerDirectoryUrlExplanation')"
+      <XrdDialogSubView>
+        <XrdDialogSubViewRow full-length>
+          <v-checkbox
+            v-model="isAcme"
+            data-test="acme-checkbox"
+            class="xrd-checkbox"
+            hide-details
+            :label="$t('trustServices.trustService.settings.acmeCapable')"
           />
-          <v-text-field
-            v-model="acmeServerIpAddress"
-            v-bind="acmeServerIpAddressAttrs"
-            variant="outlined"
-            :label="$t('fields.acmeServerIpAddress')"
-            :hint="$t('trustServices.acmeServerIpAddressExplanation')"
-            persistent-hint
-            data-test="acme-server-ip-address-input"
-          />
-          <v-text-field
-            v-model="authenticationCertificateProfileId"
-            v-bind="authenticationCertificateProfileIdAttrs"
-            variant="outlined"
-            :label="$t('fields.authenticationCertificateProfileId')"
-            :hint="$t('trustServices.acmeServerAuthProfileIdExplanation')"
-            persistent-hint
-            data-test="auth-cert-profile-id-input"
-            class="pt-4"
-          />
-          <v-text-field
-            v-model="signingCertificateProfileId"
-            v-bind="signingCertificateProfileIdAttrs"
-            variant="outlined"
-            :label="$t('fields.signingCertificateProfileId')"
-            :hint="$t('trustServices.acmeServerSignProfileIdExplanation')"
-            persistent-hint
-            data-test="sign-cert-profile-id-input"
-            class="pt-4"
-          />
-        </v-sheet>
-      </div>
+        </XrdDialogSubViewRow>
+        <v-expand-transition>
+          <div v-show="isAcme">
+            <XrdDialogSubViewRow full-length>
+              <v-text-field
+                v-model="acmeServerDirectoryUrl"
+                v-bind="acmeServerDirectoryUrlAttrs"
+                data-test="acme-server-directory-url-input"
+                class="xrd-text-field"
+                autofocus
+                persistent-hint
+                :label="$t('fields.acmeServerDirectoryUrl')"
+                :hint="$t('trustServices.acmeServerDirectoryUrlExplanation')"
+              />
+            </XrdDialogSubViewRow>
+            <XrdDialogSubViewRow full-length>
+              <v-text-field
+                v-model="acmeServerIpAddress"
+                v-bind="acmeServerIpAddressAttrs"
+                data-test="acme-server-ip-address-input"
+                class="xrd-text-field"
+                persistent-hint
+                :label="$t('fields.acmeServerIpAddress')"
+                :hint="$t('trustServices.acmeServerIpAddressExplanation')"
+              />
+            </XrdDialogSubViewRow>
+            <XrdDialogSubViewRow full-length>
+              <v-text-field
+                v-model="authenticationCertificateProfileId"
+                v-bind="authenticationCertificateProfileIdAttrs"
+                data-test="auth-cert-profile-id-input"
+                class="xrd-text-field"
+                persistent-hint
+                :label="$t('fields.authenticationCertificateProfileId')"
+                :hint="$t('trustServices.acmeServerAuthProfileIdExplanation')"
+              />
+            </XrdDialogSubViewRow>
+            <XrdDialogSubViewRow full-length>
+              <v-text-field
+                v-model="signingCertificateProfileId"
+                v-bind="signingCertificateProfileIdAttrs"
+                data-test="sign-cert-profile-id-input"
+                class="xrd-text-field"
+                persistent-hint
+                :label="$t('fields.signingCertificateProfileId')"
+                :hint="$t('trustServices.acmeServerSignProfileIdExplanation')"
+              />
+            </XrdDialogSubViewRow>
+          </div>
+        </v-expand-transition>
+      </XrdDialogSubView>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -96,7 +106,11 @@ import { computed, PropType, ref } from 'vue';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
 import { useForm } from 'vee-validate';
-import { useBasicForm } from '@niis/shared-ui';
+import {
+  useBasicForm,
+  XrdDialogSubViewRow,
+  XrdDialogSubView,
+} from '@niis/shared-ui';
 
 const props = defineProps({
   certificationService: {
