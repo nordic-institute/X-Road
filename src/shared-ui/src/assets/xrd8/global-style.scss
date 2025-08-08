@@ -29,6 +29,10 @@
 @use "text-styles";
 @use "vuetify-overrides";
 
+body {
+  color: rgb(var(--v-theme-on-surface));
+}
+
 %special-bh-gradient {
   background: radial-gradient(rgb(var(--v-theme-special-start)) 12%, rgb(var(--v-theme-special)) 100%);
 }
@@ -57,12 +61,15 @@
   &.bg-success-container {
     background-color: rgba(var(--v-theme-success-container), 0.15) !important;
   }
+
   &.bg-info-container {
     background-color: rgba(var(--v-theme-info-container), 0.15) !important;
   }
+
   &.bg-warning-container {
     background-color: rgba(var(--v-theme-warning-container), 0.15) !important;
   }
+
   &.bg-error-container {
     background-color: rgba(var(--v-theme-error-container), 0.10) !important;
   }

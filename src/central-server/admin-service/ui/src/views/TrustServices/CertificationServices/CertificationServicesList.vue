@@ -42,7 +42,7 @@
     </template>
     <v-data-table
       item-key="id"
-      class="xrd-data-table bg-surface-container"
+      class="xrd-data-table"
       hide-default-footer
       must-sort
       :loading="loading"
@@ -52,16 +52,13 @@
       :items-per-page="-1"
     >
       <template #[`item.name`]="{ item }">
-        <div
-          v-if="hasPermissionToDetails"
-          class="xrd-clickable"
-          @click="toDetails(item)"
-        >
-          {{ item.name }}
-        </div>
-        <div v-else>
-          {{ item.name }}
-        </div>
+        <XrdIconWithLabel
+          icon="shield_lock"
+          semi-bold
+          :label="item.name"
+          :clickable="hasPermissionToDetails"
+          @navigate="toDetails(item)"
+        />
       </template>
       <template #[`item.not_before`]="{ item }">
         <div>
@@ -74,15 +71,12 @@
         </div>
       </template>
     </v-data-table>
-
-
     <!-- Dialogs -->
-    <add-certification-service-dialog
+    <AddCertificationServiceDialog
       v-if="showAddCSDialog"
       @save="hideAddCSDialog"
       @cancel="hideAddCSDialog"
     />
-
   </XrdCard>
 </template>
 
@@ -94,9 +88,10 @@ import { ApprovedCertificationServiceListItem } from '@/openapi-types';
 import { useRouter } from 'vue-router';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { useI18n } from 'vue-i18n';
-import { XrdCard, XrdBtn } from '@niis/shared-ui';
+import { XrdCard, XrdBtn, XrdIconWithLabel } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import DateTime from '@/components/ui/DateTime.vue';
+import AddCertificationServiceDialog from './dialogs/AddCertificationServiceDialog.vue';
 
 const router = useRouter();
 const { t } = useI18n();

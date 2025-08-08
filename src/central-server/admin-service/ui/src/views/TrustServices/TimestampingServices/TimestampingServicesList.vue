@@ -43,8 +43,7 @@
 
     <v-data-table
       data-test="timestamping-services-table"
-      class="xrd-data-table bg-surface-container"
-      color="surface-container"
+      class="xrd-data-table"
       item-value="id"
       hide-default-footer
       must-sort
@@ -54,7 +53,11 @@
       :items-per-page="-1"
     >
       <template #[`item.url`]="{ item }">
-        <XrdIconWithLabel icon="link" :label="item.url" />
+        <XrdIconWithLabel
+          icon="link"
+          label-color="on-surface"
+          :label="item.url"
+        />
       </template>
       <template #[`item.timestamping_interval`]="{ item }">
         {{
@@ -67,8 +70,7 @@
       <template #[`item.cost`]="{ item }">
         {{
           $t(
-            'trustServices.trustService.timestampingService.costValues.' +
-            item.cost,
+            `trustServices.trustService.timestampingService.costValues.${item.cost}`,
           )
         }}
       </template>

@@ -37,28 +37,31 @@
 }
 
 .xrd-data-table {
+  background-color: rgb(var(--v-theme-surface-container)) !important;
 
   &.bg-surface-container .v-data-table-progress .v-progress-linear__background {
     background-color: rgb(var(--v-theme-surface-container))
   }
 
-  .v-data-table__th {
-    color: rgb(var(--v-theme-on-surface-variant)) !important;
+  thead {
+    .v-data-table__th {
+      color: rgb(var(--v-theme-on-surface-variant)) !important;
 
-    &.v-data-table__th--sorted {
-      color: rgb(var(--v-theme-on-surface)) !important;
+      &.v-data-table__th--sorted {
+        color: rgb(var(--v-theme-on-surface)) !important;
+      }
+
+      .v-data-table-header__sort-icon {
+        margin-left: 4px;
+      }
     }
 
-    .v-data-table-header__sort-icon {
-      margin-left: 4px;
-    }
-  }
+    .v-data-table__th:hover {
+      @extend .v-data-table__th;
 
-  .v-data-table__th:hover {
-    @extend .v-data-table__th;
-
-    .v-data-table-header__sort-icon {
-      opacity: 1 !important;
+      .v-data-table-header__sort-icon {
+        opacity: 1 !important;
+      }
     }
   }
 
@@ -67,6 +70,12 @@
       .v-field__outline {
         border: none;
       }
+    }
+  }
+
+  tbody {
+    .v-data-table__td {
+      color: rgb(var(--v-theme-on-surface)) !important;
     }
   }
 }
@@ -88,6 +97,11 @@
     .v-field__outline__start,
     .v-field__outline__end {
       border-color: rgb(var(--v-theme-border-bright));
+    }
+
+    .v-messages__message {
+        color: rgb(var(--v-theme-on-surface));
+        opacity: 0.6;
     }
   }
 }
@@ -149,6 +163,17 @@
           }
         }
       }
+    }
+  }
+}
+
+.v-checkbox {
+  &.xrd-checkbox {
+    i {
+      color: rgb(var(--v-theme-on-surface-variant));
+    }
+    .v-label {
+      color: rgb(var(--v-theme-on-surface));
     }
   }
 }

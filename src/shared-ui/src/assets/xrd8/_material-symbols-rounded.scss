@@ -55,6 +55,9 @@ $icons: (
   check_circle: "\e86c",
   check: "\e5ca",
   add_circle: "\e147",
+  check_box: "\e834",
+  indeterminate_check_box: "\e909",
+  check_box_outline_blank: "\e835",
   keyboard_arrow_down: "\e313",
   error: "\e000",
   warning: "\e002",
@@ -72,6 +75,7 @@ $icons: (
   note_add: "\e89c",
   link: "\e157",
   attach_file: "\e226",
+  upload: "\f09b",
 );
 
 @mixin msr-icons {

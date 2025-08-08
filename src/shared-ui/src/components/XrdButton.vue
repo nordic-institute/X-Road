@@ -44,7 +44,7 @@
     <slot />
   </v-btn>
 </template>
-<script>
+<script lang="ts">
 /**
  * This is my well documented component
  * @deprecated Please use `XrdBtn` instead

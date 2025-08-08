@@ -26,7 +26,7 @@
  -->
 <template>
   <div class="d-flex flex-row align-center" :class="{ 'cursor-pointer': clickable }" @click="clickable && emit('navigate')">
-    <v-icon size="24" :color="noDefaultColors ? undefined : iconColor" :icon="icon" />
+    <v-icon size="24" :color="iconColor" :icon="icon" />
     <span class="ml-2" :class="textCss">{{ label }}</span>
   </div>
 </template>
@@ -63,16 +63,22 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  noDefaultColors: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 const emit = defineEmits(['navigate']);
 
+const labelColorClass = computed(() => {
+  if (!props.labelColor) {
+    return '';
+  }
+
+  const prefix = props.labelColor.startsWith('on-') ? '' : 'text-';
+
+  return prefix + props.labelColor;
+});
+
 const textCss = computed(() => ({
-  ['text-' + props.labelColor]: !props.noDefaultColors,
+  [labelColorClass.value]: !!labelColorClass.value,
   'font-weight-regular': !props.semiBold && !props.bold,
   'font-weight-medium': props.semiBold && !props.bold,
   'font-weight-bold': props.bold,

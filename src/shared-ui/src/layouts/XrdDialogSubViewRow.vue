@@ -25,14 +25,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-row no-gutters class="mb-3">
+  <v-row no-gutters class="">
     <v-col>
       <slot />
     </v-col>
     <v-col v-if="description || $slots.description">
       <slot name="description">
         <span v-if="description">
-          {{ translated ? description : $(description) }}
+          {{ translated ? description : $t(description) }}
         </span>
       </slot>
     </v-col>

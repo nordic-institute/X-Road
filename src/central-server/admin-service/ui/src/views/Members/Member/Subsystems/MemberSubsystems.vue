@@ -67,7 +67,6 @@
               <XrdIconWithLabel
                 class="opacity-60"
                 icon="folder_copy"
-                no-default-colors
                 :label="item.subsystem_id.subsystem_code"
               />
             </td>
@@ -116,7 +115,6 @@
               <XrdIconWithLabel
                 v-if="iSub === 0"
                 icon="folder_copy"
-                no-default-colors
                 :label="item.subsystem_id.subsystem_code"
               />
             </td>
