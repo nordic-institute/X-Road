@@ -78,12 +78,14 @@ public class CertificateConverter {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private void populateCertificateDetails(final CertificateDetails certificateDetails, final X509Certificate certificate) {
 
         populateCertificateDetails(certificateDetails, certificate, certificate.getEncoded());
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private void populateCertificateDetails(final CertificateDetails certificateDetails, byte[] cert) {
         final X509Certificate[] certificates = CertUtils.readCertificateChain(cert);
         final X509Certificate certificate = certificates[0];
@@ -92,6 +94,7 @@ public class CertificateConverter {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private void populateCertificateDetails(final CertificateDetails certificateDetails, final X509Certificate certificate, byte[] cert) {
         certificateDetails
                 .setHash(CryptoUtils.calculateCertHexHash(certificate.getEncoded()).toUpperCase())

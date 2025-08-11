@@ -9,4 +9,7 @@
     <suppress checks="[a-zA-Z0-9]*" files="[\\/]src[\\/]main[\\/]resources[\\/]"/>
     <suppress checks="EmptyBlock" files=".LogArchiver.java"/>
     <suppress checks="FileLength" files="SystemProperties.java"/>
+    <suppress checks="SneakyThrowsCheck" files="[\\/]src[\\/]test[\\/]java[\\/]"/>
+    <suppress checks="SneakyThrowsCheck" files="[\\/]src[\\/]intTest[\\/]java[\\/]"/>
+
 </suppressions>

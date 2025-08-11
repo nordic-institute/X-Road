@@ -86,6 +86,7 @@ public final class OcspClient {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     SignAlgorithm getSignAlgorithmId() {
         return SignAlgorithm.ofDigestAndMechanism(DIGEST_ALGORITHM_ID, SIGN_MECHANISM);
     }

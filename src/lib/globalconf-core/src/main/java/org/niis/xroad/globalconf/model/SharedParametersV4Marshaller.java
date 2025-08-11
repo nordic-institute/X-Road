@@ -38,6 +38,7 @@ public class SharedParametersV4Marshaller extends AbstractSharedParametersMarsha
     private static final JAXBContext JAXB_CONTEXT = createJaxbContext();
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private static JAXBContext createJaxbContext() {
         return JAXBContext.newInstance(ObjectFactory.class);
     }
