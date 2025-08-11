@@ -52,11 +52,11 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_INTERRUPTED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_INTERRUPTED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.GPG_KEY_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_GENERATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_RESTORATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_RESTORATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.GPG_KEY_GENERATION_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_INTERRUPTED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
 

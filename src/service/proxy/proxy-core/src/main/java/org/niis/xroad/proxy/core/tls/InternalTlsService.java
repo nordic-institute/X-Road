@@ -62,14 +62,14 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collection;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CERTIFICATE_ALREADY_EXISTS;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.IMPORT_INTERNAL_CERT_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_KEY_CERT_INTERRUPTED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CERTIFICATE;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_DISTINGUISHED_NAME;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_CERT_GENERATION_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCodes.CERTIFICATE_ALREADY_EXISTS;
+import static org.niis.xroad.common.core.exception.ErrorCodes.IMPORT_INTERNAL_CERT_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INTERNAL_KEY_CERT_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_DISTINGUISHED_NAME;
+import static org.niis.xroad.common.core.exception.ErrorCodes.KEY_CERT_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.KEY_NOT_FOUND;
 
 @Slf4j
 @ApplicationScoped
