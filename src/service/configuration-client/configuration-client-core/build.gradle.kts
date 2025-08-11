@@ -15,4 +15,6 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.wiremock.standalone)
+
+  testRuntimeOnly(libs.junit.platform.launcher)
 }

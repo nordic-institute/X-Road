@@ -18,6 +18,8 @@ dependencies {
   testImplementation(project(":common:common-message"))
   testImplementation(project(":common:common-test"))
 
+  testRuntimeOnly(libs.junit.platform.launcher)
+
   xjc(libs.bundles.jaxb)
 }
 

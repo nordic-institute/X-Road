@@ -27,6 +27,8 @@ dependencies {
   testImplementation(project(":service:message-log-archiver:message-log-archiver-application"))
   testImplementation(libs.hsqldb)
   testImplementation(libs.bouncyCastle.bcpg)
+
+  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.register<Copy>("copyGpg") {

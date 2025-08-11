@@ -15,6 +15,8 @@ dependencies {
   implementation(libs.apache.cxfToolsValidator)
   implementation(libs.apache.cxfRtTransportsHttp)
   implementation(libs.javax.annotationApi)
+
+  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.shadowJar {

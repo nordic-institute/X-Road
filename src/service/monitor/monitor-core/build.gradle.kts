@@ -17,4 +17,6 @@ dependencies {
   implementation(libs.bundles.metrics)
 
   testImplementation(project(":common:common-test"))
+
+  testRuntimeOnly(libs.junit.platform.launcher)
 }

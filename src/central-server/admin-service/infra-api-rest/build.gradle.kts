@@ -22,6 +22,8 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
+
+  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 sourceSets {

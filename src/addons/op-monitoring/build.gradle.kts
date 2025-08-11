@@ -13,4 +13,6 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.commons.cli)
+
+  testRuntimeOnly(libs.junit.platform.launcher)
 }

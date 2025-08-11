@@ -16,4 +16,6 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
 
   testImplementation(project(":common:common-test"))
+
+  testRuntimeOnly(libs.junit.platform.launcher)
 }

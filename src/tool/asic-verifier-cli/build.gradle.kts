@@ -9,6 +9,8 @@ dependencies {
   implementation(project(":lib:asic-core"))
 
   testImplementation(project(":common:common-test"))
+
+  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.jar {
