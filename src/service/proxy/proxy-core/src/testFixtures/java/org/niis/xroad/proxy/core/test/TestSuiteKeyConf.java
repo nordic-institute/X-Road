@@ -72,6 +72,7 @@ public class TestSuiteKeyConf extends EmptyKeyConf {
 
     @Override
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public AuthKey getAuthKey() {
         PKCS12 consumer = TestCertUtil.getConsumer();
         return new AuthKey(CertChainFactory.create("EE",

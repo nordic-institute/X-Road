@@ -35,10 +35,6 @@ import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOutDto;
@@ -69,7 +65,6 @@ import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_FILE_NOT_FO
 import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_RESTORATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_BACKUP_FILE;
 import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_FILENAME;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WARNINGS_DETECTED;
 
 /**
  * Test BackupsApiController
@@ -258,8 +253,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void uploadBackupFileAlreadyExists() throws Exception {
-        doThrow(new BadRequestException(new DeviationAwareException("Warnings detected",
-                new ErrorDeviation(ERROR_WARNINGS_DETECTED), List.of(new WarningDeviation(""))))).when(backupService)
+        doThrow(new BadRequestException(new UnhandledWarningsException(List.of(new WarningDeviation(""))))).when(backupService)
                 .uploadBackup(anyString(), any(byte[].class), anyBoolean());
 
         try {
