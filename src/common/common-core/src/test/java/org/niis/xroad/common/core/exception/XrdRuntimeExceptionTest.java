@@ -25,9 +25,13 @@
  */
 package org.niis.xroad.common.core.exception;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.HttpStatus;
 
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.net.UnknownHostException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.niis.xroad.common.core.exception.ErrorCodes.HTTP_ERROR;
 
 class XrdRuntimeExceptionTest {
 
@@ -358,6 +363,84 @@ class XrdRuntimeExceptionTest {
         assertThrows(IllegalArgumentException.class, () -> {
             throw XrdRuntimeException.systemException((Throwable) null);
         });
+    }
+
+    @Test
+    void shouldTranslateIOExceptionToIoError() {
+        IOException ioException = new IOException("File not found");
+
+        XrdRuntimeException result = XrdRuntimeException.systemException(ioException);
+
+        assertNotNull(result);
+        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
+        assertEquals(ErrorCodes.IO_ERROR.code(), result.getErrorDeviation().code());
+        assertEquals(ioException, result.getCause());
+        assertTrue(result.toString().contains("io_error"));
+    }
+
+    @Test
+    void shouldTranslateNetworkExceptionToNetworkError() {
+        UnknownHostException networkException = new UnknownHostException("host not found");
+
+        XrdRuntimeException result = XrdRuntimeException.systemException(networkException);
+
+        assertNotNull(result);
+        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
+        assertEquals(ErrorCodes.NETWORK_ERROR.code(), result.getErrorDeviation().code());
+        assertEquals(networkException, result.getCause());
+        assertTrue(result.toString().contains("network_error"));
+    }
+
+    @Test
+    void shouldTranslateCodedExceptionUsingFaultCode() {
+        // Mock a CodedException with a specific fault code
+        CodedException codedException = new CodedException(HTTP_ERROR.code(), "Test error message") {
+        };
+
+        XrdRuntimeException result = XrdRuntimeException.systemException(codedException);
+
+        assertNotNull(result);
+        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
+        assertEquals(HTTP_ERROR.code(), result.getErrorDeviation().code());
+        assertEquals(codedException, result.getCause());
+        assertTrue(result.toString().contains(HTTP_ERROR.code()));
+    }
+
+    @Test
+    void shouldTranslateUnknownExceptionToInternalError() {
+        RuntimeException unknownException = new RuntimeException("Unknown error");
+
+        XrdRuntimeException result = XrdRuntimeException.systemException(unknownException);
+
+        assertNotNull(result);
+        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
+        assertEquals(ErrorCodes.INTERNAL_ERROR.code(), result.getErrorDeviation().code());
+        assertEquals(unknownException, result.getCause());
+        assertTrue(result.toString().contains("internal_error"));
+    }
+
+    @Test
+    void shouldGenerateRandomIdentifierForTranslatedException() {
+        IOException ioException = new IOException("Test error");
+
+        XrdRuntimeException result = XrdRuntimeException.systemException(ioException);
+
+        assertNotNull(result.getIdentifier());
+        assertFalse(result.getIdentifier().isEmpty());
+        // Should be a UUID format
+        assertTrue(result.getIdentifier().matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"));
+    }
+
+    @Test
+    void shouldPreserveExceptionMessageInDetails() {
+        String errorMessage = "Custom error message";
+        IOException ioException = new IOException(errorMessage);
+
+        XrdRuntimeException result = XrdRuntimeException.systemException(ioException);
+
+        assertNotNull(result);
+        assertEquals(errorMessage, result.getDetails());
+        assertTrue(result.toString().contains(errorMessage));
     }
 
     @Test

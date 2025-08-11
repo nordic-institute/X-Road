@@ -90,6 +90,21 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         this.httpStatus = httpStatus;
     }
 
+    XrdRuntimeException(Throwable cause,
+                        String identifier,
+                        ExceptionCategory category,
+                        boolean thrownRemotely,
+                        ErrorDeviation errorDeviation,
+                        HttpStatus httpStatus) {
+        super(errorDeviation.code(), cause);
+        this.identifier = identifier;
+        this.category = category;
+        this.thrownRemotely = thrownRemotely;
+        this.errorDeviation = errorDeviation;
+        this.details = null;
+        this.httpStatus = httpStatus;
+    }
+
     @Override
     public String toString() {
         // Defensive programming - ensure we don't get NPEs
@@ -183,6 +198,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         }
         return new Builder(ExceptionCategory.SYSTEM, resolveExceptionCode(ex))
                 .cause(ex)
+                .details(ex.getMessage())
                 .build();
     }
 
@@ -344,13 +360,22 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
             }
 
             if (cause != null) {
+                if (details != null) {
+                    return new XrdRuntimeException(
+                            cause,
+                            identifier,
+                            category,
+                            thrownRemotely,
+                            errorDeviation.build(metadataItems),
+                            details,
+                            httpStatus);
+                }
                 return new XrdRuntimeException(
                         cause,
                         identifier,
                         category,
                         thrownRemotely,
-                        errorDeviation.build(metadataItems),
-                        details,
+                        errorDeviation.build(),
                         httpStatus);
             }
             return new XrdRuntimeException(
