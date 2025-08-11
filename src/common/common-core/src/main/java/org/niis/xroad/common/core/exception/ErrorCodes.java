@@ -29,10 +29,6 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Enumeration of all X-Road error codes.
- * Migrated from the old ErrorCodes.java file with the following changes:
- * - Dropped X_ prefix
- * - Converted to snake_case
- * - Organized by category
  */
 @RequiredArgsConstructor
 public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {

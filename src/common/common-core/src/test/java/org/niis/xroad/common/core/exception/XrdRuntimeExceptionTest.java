@@ -83,7 +83,8 @@ class XrdRuntimeExceptionTest {
         assertEquals(details, exception.getDetails());
         assertFalse(exception.isThrownRemotely());
 
-        String expectedMessage = "[metadata-test] [VALIDATION] invalid_certificate (certificate, expired, 2024-01-01): Certificate validation failed";
+        String expectedMessage =
+                "[metadata-test] [VALIDATION] invalid_certificate (certificate, expired, 2024-01-01): Certificate validation failed";
         assertEquals(expectedMessage, exception.toString());
     }
 
