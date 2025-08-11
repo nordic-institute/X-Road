@@ -25,11 +25,13 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.HttpStatusAware;
-import org.springframework.http.HttpStatus;
+import ee.ria.xroad.common.HttpStatus;
+
+import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.core.exception.HttpStatusAware;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_WSDL;
 
@@ -53,7 +55,7 @@ public class InvalidWsdlException extends WsdlValidationException implements Htt
     }
 
     @Override
-    public int getHttpStatus() {
-        return HttpStatus.CONFLICT.value();
+    public Optional<ee.ria.xroad.common.HttpStatus> getHttpStatus() {
+        return Optional.of(HttpStatus.CONFLICT);
     }
 }

@@ -169,6 +169,7 @@ public class TestManagementRequestBuilder {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
     SoapMessageImpl buildMessage(final JAXBElement<?> bodyJaxbElement) {
         String serviceCode = bodyJaxbElement.getName().getLocalPart();
         ServiceId.Conf service = ServiceId.Conf.create(receiver, serviceCode);

@@ -47,6 +47,7 @@ public final class AsicUtils {
      * @return resulting string with unsuitable characters escaped
      */
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static String escapeString(String str) {
         String urlEncoded =
                 URLEncoder.encode(str, StandardCharsets.UTF_8);

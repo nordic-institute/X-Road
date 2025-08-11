@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.niis.xroad.common.exception.InternalServerErrorException;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.MANAGEMENT_REQUEST_SENDING_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.MANAGEMENT_REQUEST_SENDING_FAILED;
 
 /**
  * Management request failed

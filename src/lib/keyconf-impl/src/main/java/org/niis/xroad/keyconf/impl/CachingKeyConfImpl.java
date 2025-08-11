@@ -162,6 +162,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static FileWatcherRunner createChangeWatcher(FileWatchListener onChange) {
         return createChangeWatcher(() -> { }, onChange, new FileContentChangeChecker(SystemProperties.getKeyConfFile()));
     }

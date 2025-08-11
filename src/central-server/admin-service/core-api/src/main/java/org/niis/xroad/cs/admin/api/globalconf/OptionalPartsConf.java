@@ -86,6 +86,7 @@ public class OptionalPartsConf {
     private final Set<String> existingPartFileNames = new HashSet<>();
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static OptionalPartsConf getOptionalPartsConf() {
         return new OptionalPartsConf(SystemProperties.getConfPath() + "/configuration-parts");
     }
@@ -163,6 +164,7 @@ public class OptionalPartsConf {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private void processFile(File confFile) {
         try (InputStream is = new FileInputStream(confFile)) {
             Properties props = new Properties();
