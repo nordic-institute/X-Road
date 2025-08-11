@@ -50,8 +50,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ACTION_NOT_POSSIBLE;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.PASSWORD_INCORRECT;
+import static org.niis.xroad.common.core.exception.ErrorCodes.ACTION_NOT_POSSIBLE;
+import static org.niis.xroad.common.core.exception.ErrorCodes.PASSWORD_INCORRECT;
 import static org.niis.xroad.restapi.auth.PasswordEncoderConfig.PASSWORD_ENCODER;
 import static org.niis.xroad.restapi.domain.Role.XROAD_SYSTEM_ADMINISTRATOR;
 

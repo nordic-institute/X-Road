@@ -23,26 +23,10 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.wsdl;
+package org.niis.xroad.common.core.exception;
 
-import org.niis.xroad.common.core.exception.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-
-/**
- * Thrown if something went wrong in WSDL validation.
- * Root class for all WSDL validation exceptions.
- */
-public class WsdlValidationException extends DeviationAwareRuntimeException {
-
-    public WsdlValidationException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-
-    public WsdlValidationException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
-    }
-
-    public WsdlValidationException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
+public enum ExceptionCategory {
+    SYSTEM,
+    BUSINESS,
+    VALIDATION
 }

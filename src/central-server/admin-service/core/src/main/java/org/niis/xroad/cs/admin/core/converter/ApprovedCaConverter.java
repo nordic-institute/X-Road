@@ -48,6 +48,7 @@ public class ApprovedCaConverter {
     private final CaInfoConverter caInfoConverter;
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public CertificationService convert(ApprovedCaEntity entity) {
         final X509Certificate[] certificates = CertUtils.readCertificateChain(entity.getCaInfo().getCert());
         final X509Certificate certificate = certificates[0];

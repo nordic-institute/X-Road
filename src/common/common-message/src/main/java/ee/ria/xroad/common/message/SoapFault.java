@@ -126,6 +126,7 @@ public class SoapFault implements Soap {
      * @return CodedException
      */
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public CodedException toCodedException() {
         return CodedException.fromFault(faultCode, faultString, faultActor,
                 faultDetail, new String(rawXml, charset));

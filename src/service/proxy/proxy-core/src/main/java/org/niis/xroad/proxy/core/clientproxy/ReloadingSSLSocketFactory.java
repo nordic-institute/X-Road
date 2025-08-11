@@ -53,6 +53,7 @@ public class ReloadingSSLSocketFactory extends SSLSocketFactory {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public void reload() {
         lock.writeLock().lock();
         try {

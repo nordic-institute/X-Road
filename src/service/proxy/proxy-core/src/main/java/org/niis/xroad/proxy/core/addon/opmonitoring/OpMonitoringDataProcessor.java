@@ -90,6 +90,7 @@ public class OpMonitoringDataProcessor {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private static boolean isNonLoopback(NetworkInterface ni) {
         return !ni.isLoopback() && ni.isUp();
     }

@@ -73,6 +73,7 @@ public class ParallelMockMvcExecutor implements AutoCloseable {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
     private MvcResult fromFuture(Future<MvcResult> future) {
         return future.get();
     }

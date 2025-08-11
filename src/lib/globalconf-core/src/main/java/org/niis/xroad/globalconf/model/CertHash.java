@@ -55,6 +55,7 @@ public class CertHash {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public byte[] getHash(@NonNull DigestAlgorithm algorithmId) {
         if (cert != null) {
             return Digests.calculateDigest(algorithmId, cert);

@@ -95,6 +95,7 @@ public class InternalTlsCertificateService {
      * two files:
      * - cert.pem PEM encoded certificate
      * - cert.cer DER encoded certificate
+     *
      * @return byte array that contains the exported certs.tar.gz
      */
     public byte[] exportInternalTlsCertificate() {
@@ -136,6 +137,7 @@ public class InternalTlsCertificateService {
     /**
      * Generates a new TLS key and certificate for internal use for the current Security Server. A runtime
      * exception will be thrown if the generation is interrupted or otherwise unable to be executed.
+     *
      * @throws InterruptedException if the thread running the key generator is interrupted. <b>The interrupted thread
      *                              has already been handled with so you can choose to ignore this exception if you so please.</b>
      */
@@ -153,6 +155,7 @@ public class InternalTlsCertificateService {
 
     /**
      * Imports a new internal TLS certificate.
+     *
      * @param certificateBytes
      * @return X509Certificate
      * @throws InvalidCertificateException
@@ -172,6 +175,7 @@ public class InternalTlsCertificateService {
 
     /**
      * Generate internal auth cert CSR
+     *
      * @param distinguishedName
      * @return
      * @throws InvalidDistinguishedNameException if {@code distinguishedName} does not conform to

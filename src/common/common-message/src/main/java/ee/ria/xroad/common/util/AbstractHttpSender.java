@@ -89,6 +89,7 @@ public abstract class AbstractHttpSender implements Closeable {
 
     /**
      * Sets the connection timeout in milliseconds.
+     *
      * @param newTimeout the new timeout value
      */
     public void setConnectionTimeout(int newTimeout) {
@@ -97,6 +98,7 @@ public abstract class AbstractHttpSender implements Closeable {
 
     /**
      * Sets the socket timeout in milliseconds.
+     *
      * @param newTimeout the new timeout value
      */
     public void setSocketTimeout(int newTimeout) {
@@ -105,7 +107,8 @@ public abstract class AbstractHttpSender implements Closeable {
 
     /**
      * Sets the value of an attribute.
-     * @param name attribute name
+     *
+     * @param name  attribute name
      * @param value attribute value
      */
     public void setAttribute(String name, Object value) {
@@ -114,7 +117,8 @@ public abstract class AbstractHttpSender implements Closeable {
 
     /**
      * Adds an additional header to the request.
-     * @param name header name
+     *
+     * @param name  header name
      * @param value header value
      */
     public void addHeader(String name, String value) {
@@ -157,6 +161,7 @@ public abstract class AbstractHttpSender implements Closeable {
 
     /**
      * Perform a GET request to the given address.
+     *
      * @param address URI of the address for the GET request
      * @throws Exception if any errors occur
      */
@@ -164,8 +169,9 @@ public abstract class AbstractHttpSender implements Closeable {
 
     /**
      * Sends data using POST method to the given address.
-     * @param address the address to send
-     * @param content the content to send
+     *
+     * @param address     the address to send
+     * @param content     the content to send
      * @param contentType the content type of the input data
      * @throws Exception if an error occurs
      */
@@ -173,10 +179,11 @@ public abstract class AbstractHttpSender implements Closeable {
 
     /**
      * Sends data using POST method to the given address.
-     * @param address the address to send
-     * @param content the content to send
+     *
+     * @param address       the address to send
+     * @param content       the content to send
      * @param contentLength length of the content in bytes
-     * @param contentType the content type of the input data
+     * @param contentType   the content type of the input data
      * @throws Exception if an error occurs
      */
     public abstract void doPost(URI address, InputStream content, long contentLength, String contentType)
@@ -234,16 +241,15 @@ public abstract class AbstractHttpSender implements Closeable {
     }
 
     protected void checkResponseStatus(HttpResponse response) {
-        switch (response.getStatusLine().getStatusCode()) {
-            case HttpStatus.SC_OK: // FALL THROUGH
-                // R1126 An INSTANCE MUST return a "500 Internal Server Error"
-                // HTTP status code if the response envelope is a Fault.
-            case HttpStatus.SC_INTERNAL_SERVER_ERROR:
-                return;
-            default:
-                throw new CodedException(X_HTTP_ERROR, "Server responded with error %s: %s",
-                        response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+        var httpStatus = HttpStatus.fromCode(response.getStatusLine().getStatusCode());
+        if ((httpStatus == HttpStatus.OK)
+                || httpStatus == HttpStatus.INTERNAL_SERVER_ERROR) {
+            // R1126 An INSTANCE MUST return a "500 Internal Server Error"
+            // HTTP status code if the response envelope is a Fault.
+            return;
         }
+        throw new CodedException(X_HTTP_ERROR, "Server responded with error %s: %s",
+                response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
     }
 
     protected static Map<String, String> getResponseHeaders(HttpResponse response) {

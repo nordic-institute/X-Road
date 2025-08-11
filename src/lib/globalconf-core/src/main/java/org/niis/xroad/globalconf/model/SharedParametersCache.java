@@ -73,6 +73,7 @@ public class SharedParametersCache {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public SharedParametersCache(@NonNull SharedParameters sharedParameters) {
         this.sharedParameters = sharedParameters;
 

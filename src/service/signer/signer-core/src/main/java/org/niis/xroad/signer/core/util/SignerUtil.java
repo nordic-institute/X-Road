@@ -153,6 +153,7 @@ public final class SignerUtil {
      * @return formatted token ID
      */
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static String getFormattedTokenId(String tokenIdFormat, String moduleType,
                                              Token token) {
         iaik.pkcs.pkcs11.TokenInfo tokenInfo = token.getTokenInfo();
