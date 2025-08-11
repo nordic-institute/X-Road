@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,6 @@ import org.bouncycastle.cert.ocsp.OCSPReqBuilder;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.ContentSigner;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.springframework.stereotype.Component;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -62,7 +62,7 @@ import java.util.List;
  * OCSP client downloads OCSP responses for specified certificates using responders defined in the Global Configuration.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public final class OcspClient {
     private final GlobalConfProvider globalConfProvider;

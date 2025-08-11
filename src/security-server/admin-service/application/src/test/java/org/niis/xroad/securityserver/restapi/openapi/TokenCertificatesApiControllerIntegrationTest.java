@@ -35,6 +35,7 @@ import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.util.CommonDeviationMessage;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
@@ -217,7 +218,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         var e = assertThrows(ConflictException.class, () -> tokenCertificatesApiController.importCertificate(body));
         ErrorDeviation error = e.getErrorDeviation();
-        assertEquals(DeviationCodes.ERROR_CERTIFICATE_ALREADY_EXISTS, error.code());
+        assertEquals(CommonDeviationMessage.CERTIFICATE_ALREADY_EXISTS.code(), error.code());
     }
 
     @Test
@@ -267,7 +268,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         var e = assertThrows(BadRequestException.class, () -> tokenCertificatesApiController.importCertificate(body));
         ErrorDeviation error = e.getErrorDeviation();
-        assertEquals(DeviationCodes.ERROR_KEY_NOT_FOUND, error.code());
+        assertEquals(CommonDeviationMessage.KEY_NOT_FOUND.code(), error.code());
 
     }
 

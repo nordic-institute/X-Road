@@ -183,7 +183,6 @@ public class ClientPageObj {
 
     }
 
-
     public static class AddClientToken {
 
         public SelenideElement radioByTokenName(String name) {

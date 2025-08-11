@@ -29,11 +29,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 public class ClientEnableRequest extends GenericClientRequest {
 
-    public ClientEnableRequest(SignerRpcClient signerRpcClient, ClientId client, SoapMessageImpl request) {
-        super(signerRpcClient, client, request);
+    public ClientEnableRequest(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
+                               ClientId client, SoapMessageImpl request) {
+        super(signerRpcClient, signerSignClient, client, request);
     }
 
 }

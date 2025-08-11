@@ -238,10 +238,4 @@ if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
   sed -i -e "s/XROAD_ROOT_LOG_LEVEL=.*/XROAD_ROOT_LOG_LEVEL=${XROAD_ROOT_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
 fi
 
-log "Generating internal gRPC TLS keys and certificate"
-rm -rf /var/run/xroad
-mkdir -p -m0750 /var/run/xroad
-chown xroad:xroad /var/run/xroad
-su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
-
 create_backup_dir_if_not_exists
