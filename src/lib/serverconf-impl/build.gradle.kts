@@ -19,7 +19,5 @@ dependencies {
   testImplementation(libs.hsqldb)
   testImplementation(libs.hibernate.hikaricp)
 
-  testRuntimeOnly(libs.junit.platform.launcher)
-
   testFixturesImplementation(project(":common:common-test"))
 }

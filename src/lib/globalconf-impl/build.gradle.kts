@@ -12,8 +12,6 @@ dependencies {
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.julOverSlf4j)
 
-  testRuntimeOnly(libs.junit.platform.launcher)
-
   testFixturesImplementation(project(":common:common-test"))
 }
 

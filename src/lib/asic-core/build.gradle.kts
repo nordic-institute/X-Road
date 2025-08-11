@@ -8,6 +8,4 @@ dependencies {
   implementation(libs.xerces.impl)
 
   testImplementation(project(":common:common-test"))
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }

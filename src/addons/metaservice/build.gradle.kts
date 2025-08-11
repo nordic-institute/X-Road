@@ -22,8 +22,6 @@ dependencies {
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
   testImplementation(testFixtures(project(":service:proxy:proxy-core")))
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 val runMetaserviceTest by tasks.registering(JavaExec::class) {

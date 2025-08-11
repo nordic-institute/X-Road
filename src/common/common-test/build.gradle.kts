@@ -7,8 +7,6 @@ dependencies {
   implementation(project(":lib:globalconf-impl"))
   implementation(libs.antlrST4)
 
-  testRuntimeOnly(libs.junit.platform.launcher)
-
   api(libs.apache.httpasyncclient)
   api(libs.mockito.jupiter)
   api(libs.awaitility)

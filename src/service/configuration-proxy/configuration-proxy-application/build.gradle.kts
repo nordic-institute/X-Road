@@ -14,8 +14,6 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.assertj.core)
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 val mainClassName = "org.niis.xroad.confproxy.ConfProxyMain"

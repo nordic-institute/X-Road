@@ -13,8 +13,6 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation(libs.springBoot.starterTest)
 
-  testRuntimeOnly(libs.junit.platform.launcher)
-
   testFixturesApi(project(":common:common-message"))
   testFixturesApi(project(":common:common-test"))
   testFixturesApi(project(":service:signer:signer-client"))

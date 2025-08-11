@@ -31,8 +31,6 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.junit.jupiter.params)
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.register("createDirs") {

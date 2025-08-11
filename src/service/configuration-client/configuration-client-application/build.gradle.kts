@@ -42,8 +42,6 @@ dependencies {
   implementation("org.springframework:spring-context")
   implementation(libs.logback.classic)
   testImplementation(project(":common:common-test"))
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.jar {

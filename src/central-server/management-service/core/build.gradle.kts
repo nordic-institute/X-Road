@@ -15,6 +15,4 @@ dependencies {
   }
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }

@@ -30,8 +30,6 @@ dependencies {
   testImplementation(libs.wsdl4j)
   testImplementation(libs.restAssured)
 
-  testRuntimeOnly(libs.junit.platform.launcher)
-
   testFixturesImplementation(project(":common:common-test"))
   testFixturesImplementation(project(":common:common-jetty"))
   testFixturesImplementation(project(":common:common-messagelog"))

@@ -33,8 +33,6 @@ dependencies {
   testImplementation("org.liquibase:liquibase-core")
   testImplementation(libs.xmlunit.core)
   testImplementation(libs.xmlunit.assertj3)
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 sourceSets {

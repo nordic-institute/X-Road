@@ -29,8 +29,6 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":service:proxy:proxy-core")))
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.register("createDirs") {

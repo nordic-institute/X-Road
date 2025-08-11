@@ -12,6 +12,4 @@ dependencies {
   implementation(libs.jakarta.validationApi)
 
   testImplementation(project(":common:common-test"))
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }

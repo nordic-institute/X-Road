@@ -18,8 +18,6 @@ sourceSets {
 dependencies {
   implementation(project(":common:common-domain"))
   api(project(":common:common-rpc"))
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 protobuf {

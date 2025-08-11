@@ -5,8 +5,6 @@ plugins {
 
 dependencies {
   implementation(project(":common:common-core"))
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 val mainClassName = "org.niis.xroad.cli.ArchiveHashChainVerifier"

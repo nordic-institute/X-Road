@@ -13,6 +13,4 @@ dependencies {
   // DB layer tests use HSQLDB with in-memory tables
   testImplementation(libs.hsqldb)
   testImplementation(project(":common:common-test"))
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }

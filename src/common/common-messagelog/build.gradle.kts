@@ -11,8 +11,6 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.bouncyCastle.bcpg)
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.register<Copy>("copyGpg") {

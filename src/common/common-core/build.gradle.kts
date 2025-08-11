@@ -34,8 +34,6 @@ dependencies {
   api(libs.opentelemetry.instrumentation.annotations)
 
   testImplementation(project(":common:common-test"))
-
-  testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 fun gitCommitHash(): String? {
