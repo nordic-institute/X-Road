@@ -28,10 +28,13 @@ package ee.ria.xroad.common.util;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.ChangeChecker;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Objects;
 
 import static ee.ria.xroad.common.crypto.Digests.hexDigest;
 import static org.apache.commons.io.IOUtils.toByteArray;
@@ -39,16 +42,19 @@ import static org.apache.commons.io.IOUtils.toByteArray;
 /**
  * A checksum based file modification checker.
  */
-public class FileContentChangeChecker {
+@Slf4j
+public class FileContentChangeChecker implements ChangeChecker {
 
     @Getter
     private final String fileName;
 
+    @Getter
     private String checksum;
     private String previousChecksum;
 
     /**
      * Calculates hash of the input file.
+     *
      * @param fileName the input file
      * @throws Exception if an error occurs
      */
@@ -63,6 +69,7 @@ public class FileContentChangeChecker {
      * @return true, if the file has changed
      * @throws Exception if an error occurs
      */
+    @Override
     public boolean hasChanged() throws Exception {
         File file = getFile();
 
@@ -71,7 +78,7 @@ public class FileContentChangeChecker {
         synchronized (this) {
             previousChecksum = checksum;
             checksum = newCheckSum;
-            return !checksum.equals(previousChecksum);
+            return !Objects.equals(checksum, previousChecksum);
         }
     }
 
@@ -84,6 +91,11 @@ public class FileContentChangeChecker {
     }
 
     protected String calculateConfFileChecksum(File file) throws Exception {
+        if (!file.exists()) {
+            log.warn("File {} does not exist", file);
+            return null;
+        }
+
         try (InputStream in = getInputStream(file)) {
             return hexDigest(DigestAlgorithm.MD5, toByteArray(in));
         }

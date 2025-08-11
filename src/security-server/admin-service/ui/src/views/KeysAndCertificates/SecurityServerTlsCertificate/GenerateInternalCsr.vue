@@ -47,7 +47,7 @@
             v-model="distinguishedName"
             autofocus
             variant="outlined"
-            data-text="generate-internal-csr-distinguished-name-field"
+            data-test="generate-internal-csr-distinguished-name-field"
             :placeholder="
               $t('ssTlsCertificate.generateInternalCsr.step1.placeholder')
             "
@@ -61,7 +61,7 @@
         <v-col cols="4" class="text-right">
           <xrd-button
             outlined
-            data-text="generate-internal-csr-generate-csr-button"
+            data-test="generate-internal-csr-generate-csr-button"
             :disabled="distinguishedName.length === 0 || csrGenerated"
             :loading="generatingCsr"
             @click="generateCsr"

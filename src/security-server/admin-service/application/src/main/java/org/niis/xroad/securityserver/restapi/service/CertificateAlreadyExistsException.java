@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.niis.xroad.common.exception.ConflictException;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CERTIFICATE_ALREADY_EXISTS;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CERTIFICATE_ALREADY_EXISTS;
 
 /**
  * If trying to add certificate which already exists

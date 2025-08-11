@@ -28,8 +28,6 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import org.junit.After;
 import org.junit.Before;
 import org.niis.xroad.common.mail.MailService;
-import org.niis.xroad.restapi.common.backup.service.BackupService;
-import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
@@ -38,17 +36,17 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
-import org.niis.xroad.securityserver.restapi.repository.InternalTlsCertificateRepository;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.service.InternalServerTestService;
+import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
 import org.niis.xroad.securityserver.restapi.service.NotificationService;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
-import org.niis.xroad.securityserver.restapi.service.SecurityServerConfigurationBackupGenerator;
+import org.niis.xroad.securityserver.restapi.service.SecurityServerBackupService;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
@@ -59,6 +57,7 @@ import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidator;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -70,37 +69,34 @@ import org.springframework.web.context.request.RequestContextHolder;
  * <p>
  * Service layer mocking strategy varies
  * - real implementations are used for services not defined as @MockitoBean or @MockitoSpyBean here
- * (example: {@link ClientService}
+ * (example: {@link ClientService})
  * - mocks are always used for services defined as @MockitoBeans
- * (example: {@link BackupService}
+ * (example: {@link CertificateAuthorityService})
  * - mocking depends on a case by case basis when @MockitoSpyBean is used. Some tests use 100% real implementation, others
  * mock some parts
  * (example: {@link KeyService}
  * <p>
- * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
+ * Mocks the usual untestable facades (such as SignerRpcClient) via {@link AbstractFacadeMockingTestContext}
  */
+@ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class AbstractApiControllerTestContext extends AbstractFacadeMockingTestContext {
     @MockitoBean
     CertificateAuthorityService certificateAuthorityService;
     @MockitoBean
-    BackupService backupService;
-    @MockitoBean
-    SecurityServerConfigurationBackupGenerator backupGenerator;
-    @MockitoBean
-    ConfigurationRestorationService configurationRestorationService;
+    SecurityServerBackupService backupService;
     @MockitoBean
     UrlValidator urlValidator;
     @MockitoBean
     SystemService systemService;
+    @MockitoBean
+    InternalTlsCertificateService internalTlsCertificateService;
     @MockitoBean
     CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
     @MockitoBean
     CurrentSecurityServerId currentSecurityServerId;
     @MockitoBean
     InitializationService initializationService;
-    @MockitoBean
-    InternalTlsCertificateRepository mockRepository;
     @MockitoBean
     VersionService versionService;
     @MockitoBean

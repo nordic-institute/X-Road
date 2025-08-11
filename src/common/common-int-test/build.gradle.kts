@@ -6,7 +6,6 @@ dependencies {
     api(project(":common:common-message"))
     api(project(":lib:globalconf-core"))
     api(project(":service:signer:signer-client"))
-    api(project(":addons:hwtoken"))
 
     api(libs.bundles.testAutomation)
     api(libs.testAutomation.selenide) {

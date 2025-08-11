@@ -28,16 +28,18 @@ package org.niis.xroad.serverconf.impl;
 
 import lombok.NoArgsConstructor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class ServerConfFactory {
 
-    public static ServerConfProvider create(GlobalConfProvider globalConfProvider, int expireSeconds) {
-        if (expireSeconds > 0) {
-            return new CachingServerConfImpl(globalConfProvider, expireSeconds);
+    public static ServerConfProvider create(ServerConfDatabaseCtx databaseCtx, GlobalConfProvider globalConfProvider,
+                                            ServerConfCommonProperties serverConfProperties) {
+        if (serverConfProperties.cachePeriod() > 0) {
+            return new CachingServerConfImpl(databaseCtx, globalConfProvider, serverConfProperties);
         }
-        return new ServerConfImpl(globalConfProvider);
+        return new ServerConfImpl(databaseCtx, globalConfProvider);
 
     }
 }

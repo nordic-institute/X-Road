@@ -23,6 +23,7 @@ AddOn for secure message log
 
 %install
 mkdir -p %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+mkdir -p %{buildroot}/usr/share/xroad/jlib/addon/proxy/messagelog-archiver
 mkdir -p %{buildroot}/usr/share/xroad/scripts
 mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/etc/xroad/conf.d/addons
@@ -33,19 +34,15 @@ mkdir -p %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-ver
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}%{_unitdir}
 
-cp -p %{srcdir}/common/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/
-ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/messagelog.conf
 cp -p %{_sourcedir}/messagelog/xroad-addon-messagelog.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/default-configuration/addons/message-log.ini %{buildroot}/etc/xroad/conf.d/addons/
-cp -p %{srcdir}/default-configuration/addons/messagelog-archiver-logback.xml %{buildroot}/etc/xroad/conf.d/addons/
-cp -p %{srcdir}/common/addon/proxy/messagelog-changelog.xml %{buildroot}/usr/share/xroad/db/
-cp -p %{srcdir}/common/addon/proxy/messagelog/* %{buildroot}/usr/share/xroad/db/messagelog
+cp -p %{srcdir}/../../../addons/messagelog/messagelog-db/src/main/resources/liquibase/messagelog-changelog.xml %{buildroot}/usr/share/xroad/db/
+cp -p %{srcdir}/../../../addons/messagelog/messagelog-db/src/main/resources/liquibase//messagelog/* %{buildroot}/usr/share/xroad/db/messagelog
 cp -p %{srcdir}/common/addon/proxy/setup_messagelog_db.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{srcdir}/common/addon/proxy/xroad-messagelog-archiver %{buildroot}/usr/share/xroad/bin/
 cp -p %{srcdir}/common/addon/proxy/messagelog-archiver.conf %{buildroot}/etc/xroad/services/
 
-cp -p %{srcdir}/../../../service/message-log-archiver/message-log-archiver-application/build/libs/messagelog-archiver.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+cp -p -r %{srcdir}/../../../service/message-log-archiver/message-log-archiver-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/addon/proxy/messagelog-archiver/
 cp -p %{srcdir}/../../../service/message-log-archiver/message-log-archiver-application/scripts/archive-http-transporter.sh %{buildroot}/usr/share/xroad/scripts
 cp -p %{srcdir}/../../../service/message-log-archiver/message-log-archiver-application/scripts/demo-upload.pl %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-server/
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archive-verifier/build/libs/messagelog-archive-verifier.jar %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
@@ -55,13 +52,14 @@ cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/
 
+ln -s /usr/share/xroad/jlib/addon/proxy/messagelog-archiver/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/messagelog-archiver.jar
+
 %clean
 rm -rf %{buildroot}
 
 %files
 %defattr(-,xroad,xroad,-)
 %config /etc/xroad/conf.d/addons/message-log.ini
-%config /etc/xroad/conf.d/addons/messagelog-archiver-logback.xml
 %config /etc/xroad/services/messagelog-archiver.conf
 %defattr(-,root,root,-)
 %{_unitdir}/%{name}.service
@@ -70,10 +68,8 @@ rm -rf %{buildroot}
 /usr/share/doc/xroad-addon-messagelog/archive-server/demo-upload.pl
 /usr/share/xroad/db/messagelog-changelog.xml
 /usr/share/xroad/db/messagelog
-/usr/share/xroad/jlib/addon/proxy/messagelog-addon.jar
+/usr/share/xroad/jlib/addon/proxy/messagelog-archiver/
 /usr/share/xroad/jlib/addon/proxy/messagelog-archiver.jar
-/usr/share/xroad/jlib/addon/proxy/messagelog.conf.default
-%config /usr/share/xroad/jlib/addon/proxy/messagelog.conf
 /usr/share/xroad/scripts/archive-http-transporter.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/setup_messagelog_db.sh
 %attr(554,root,xroad) /usr/share/xroad/bin/xroad-messagelog-archiver

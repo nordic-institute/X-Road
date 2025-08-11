@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.messagelog;
 
+import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
@@ -39,14 +40,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.String.valueOf;
+
 /**
  * Contains constants for messagelog properties.
  */
+@Deprecated(forRemoval = true)
 public final class MessageLogProperties {
 
     private static final int DEFAULT_ARCHIVE_MAX_FILESIZE = 33554432;
-
-    private static final int DEFAULT_KEEP_RECORDS_FOR = 30;
 
     private static final int DEFAULT_ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD = 14400;
 
@@ -58,10 +60,7 @@ public final class MessageLogProperties {
 
     private static final int DEFAULT_TIMESTAMP_RETRY_DELAY = 60;
 
-    private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
-    private static final int DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE = 10000;
-
-    private static final long DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE = 10 * 1024 * 1024;
+    private static final String DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE = valueOf(10 * 1024 * 1024);
     private static final long MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT = 1024 * 1024 * 1024;
 
     private static final String PREFIX = "xroad.message-log.";
@@ -87,23 +86,9 @@ public final class MessageLogProperties {
 
     public static final String ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD = PREFIX + "acceptable-timestamp-failure-period";
 
-    public static final String KEEP_RECORDS_FOR = PREFIX + "keep-records-for";
-
     public static final String ARCHIVE_MAX_FILESIZE = PREFIX + "archive-max-filesize";
 
-    public static final String ARCHIVE_INTERVAL = PREFIX + "archive-interval";
-
-    public static final String ARCHIVE_PATH = PREFIX + "archive-path";
-
-    public static final String ARCHIVE_TRANSACTION_BATCH = PREFIX + "archive-transaction-batch";
-
-    public static final String CLEAN_INTERVAL = PREFIX + "clean-interval";
-
-    private static final String CLEAN_TRANSACTION_BATCH = "clean-transaction-batch";
-
     public static final String HASH_ALGO_ID = PREFIX + "hash-algo-id";
-
-    public static final String ARCHIVE_TRANSFER_COMMAND = PREFIX + "archive-transfer-command";
 
     /**
      * log archive grouping strategy, one of
@@ -185,7 +170,7 @@ public final class MessageLogProperties {
      * interpreted as an infinite timeout. '20000' by default.
      */
     public static int getTimestamperClientConnectTimeout() {
-        return getInt(System.getProperty(TIMESTAMPER_CLIENT_CONNECT_TIMEOUT),
+        return getInt(getProperty(TIMESTAMPER_CLIENT_CONNECT_TIMEOUT),
                 DEFAULT_TIMESTAMPER_CLIENT_CONNECT_TIMEOUT);
     }
 
@@ -194,7 +179,7 @@ public final class MessageLogProperties {
      * interpreted as an infinite timeout. '60000' by default.
      */
     public static int getTimestamperClientReadTimeout() {
-        return getInt(System.getProperty(TIMESTAMPER_CLIENT_READ_TIMEOUT),
+        return getInt(getProperty(TIMESTAMPER_CLIENT_READ_TIMEOUT),
                 DEFAULT_TIMESTAMPER_CLIENT_READ_TIMEOUT);
     }
 
@@ -203,7 +188,7 @@ public final class MessageLogProperties {
      * interpreted as retry delay is disabled. '60' by default.
      */
     public static int getTimestampRetryDelay() {
-        return getInt(System.getProperty(TIMESTAMP_RETRY_DELAY),
+        return getInt(getProperty(TIMESTAMP_RETRY_DELAY),
                 DEFAULT_TIMESTAMP_RETRY_DELAY);
     }
 
@@ -212,14 +197,14 @@ public final class MessageLogProperties {
      * guarantee the time-stamp at the time of logging the message.
      */
     public static boolean shouldTimestampImmediately() {
-        return "true".equalsIgnoreCase(System.getProperty(TIMESTAMP_IMMEDIATELY, "false"));
+        return "true".equalsIgnoreCase(getProperty(TIMESTAMP_IMMEDIATELY, "false"));
     }
 
     /**
      * @return the maximum number of records to time-stamp in one batch.
      */
     public static int getTimestampRecordsLimit() {
-        return getInt(System.getProperty(TIMESTAMP_RECORDS_LIMIT), DEFAULT_TIMESTAMP_RECORDS_LIMIT);
+        return getInt(getProperty(TIMESTAMP_RECORDS_LIMIT), DEFAULT_TIMESTAMP_RECORDS_LIMIT);
     }
 
     /**
@@ -227,71 +212,29 @@ public final class MessageLogProperties {
      * accepting any more messages.
      */
     public static int getAcceptableTimestampFailurePeriodSeconds() {
-        return getInt(System.getProperty(ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD),
+        return getInt(getProperty(ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD),
                 DEFAULT_ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD);
-    }
-
-    /**
-     * @return the time interval as Cron expression for archiving time-stamped records.
-     */
-    public static String getArchiveInterval() {
-        return System.getProperty(ARCHIVE_INTERVAL, "0 0 0/6 1/1 * ? *");
-    }
-
-    /**
-     * @return number of archived item in one transaction.
-     */
-    public static int getArchiveTransactionBatchSize() {
-        return getInt(System.getProperty(ARCHIVE_TRANSACTION_BATCH), DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE);
-    }
-
-    /**
-     * @return the time interval as Cron expression for cleaning archived records from online database.
-     */
-    public static String getCleanInterval() {
-        return System.getProperty(CLEAN_INTERVAL, "0 0 0/12 1/1 * ? *");
-    }
-
-    /**
-     * @return the time in days to keep time-stamped and archived records in the database.
-     */
-    public static int getKeepRecordsForDays() {
-        return getInt(System.getProperty(KEEP_RECORDS_FOR), DEFAULT_KEEP_RECORDS_FOR);
     }
 
     /**
      * @return the maximum size for archived files in bytes. Defaults to 32 MB.
      */
     public static long getArchiveMaxFilesize() {
-        return getInt(System.getProperty(ARCHIVE_MAX_FILESIZE), DEFAULT_ARCHIVE_MAX_FILESIZE);
-    }
-
-    /**
-     * @return the path where timestamped log records are archived.
-     */
-    public static String getArchivePath() {
-        return System.getProperty(ARCHIVE_PATH, "/var/lib/xroad");
+        return getInt(getProperty(ARCHIVE_MAX_FILESIZE), DEFAULT_ARCHIVE_MAX_FILESIZE);
     }
 
     /**
      * @return the hash algorithm that is used for hashing in message log.
      */
     public static DigestAlgorithm getHashAlg() {
-        return Optional.ofNullable(System.getProperty(HASH_ALGO_ID))
+        return Optional.ofNullable(getProperty(HASH_ALGO_ID))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
     }
 
-    /**
-     * @return the archive files transfer command. Defaults to null.
-     */
-    public static String getArchiveTransferCommand() {
-        return System.getProperty(ARCHIVE_TRANSFER_COMMAND, null);
-    }
-
     public static GroupingStrategy getArchiveGrouping() {
         return GroupingStrategy.valueOf(
-                System.getProperty(ARCHIVE_GROUPING, GroupingStrategy.NONE.name()).toUpperCase());
+                getProperty(ARCHIVE_GROUPING, GroupingStrategy.NONE.name()).toUpperCase());
     }
 
     private static int getInt(String value, int defaultValue) {
@@ -309,11 +252,11 @@ public final class MessageLogProperties {
      */
     public static boolean isMessageBodyLoggingEnabled() {
         // for backwards compatibility
-        final String enabled = System.getProperty(SOAP_BODY_LOGGING_ENABLED);
+        final String enabled = getProperty(SOAP_BODY_LOGGING_ENABLED);
         if (enabled != null) {
             return "true".equalsIgnoreCase(enabled);
         }
-        return "true".equalsIgnoreCase(System.getProperty(MESSAGE_BODY_LOGGING_ENABLED, "true"));
+        return "true".equalsIgnoreCase(getProperty(MESSAGE_BODY_LOGGING_ENABLED, "true"));
     }
 
     /**
@@ -338,7 +281,7 @@ public final class MessageLogProperties {
      * Returns maximum loggable REST body size
      */
     public static long getMaxLoggableBodySize() {
-        final Long value = Long.getLong(MAX_LOGGABLE_MESSAGE_BODY_SIZE, DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE);
+        final Long value = Long.parseLong(getProperty(MAX_LOGGABLE_MESSAGE_BODY_SIZE, DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE));
         if (value < 0 || value > MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT) {
             throw new IllegalArgumentException(String.format("%s must be between 0 and %d",
                     MAX_LOGGABLE_MESSAGE_BODY_SIZE, MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT));
@@ -350,43 +293,41 @@ public final class MessageLogProperties {
         return Boolean.getBoolean(REST_TRUNCATED_BODY_ALLOWED);
     }
 
-    public static int getCleanTransactionBatchSize() {
-        return Integer.getInteger(CLEAN_TRANSACTION_BATCH, DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE);
-    }
-
     public static boolean isArchiveEncryptionEnabled() {
-        return Boolean.getBoolean(ARCHIVE_ENCRYPTION_ENABLED);
+        return "true".equalsIgnoreCase(getProperty(ARCHIVE_ENCRYPTION_ENABLED));
     }
 
     public static Path getArchiveGPGHome() {
-        return Paths.get(System.getProperty(ARCHIVE_GPG_HOME_DIRECTORY, "/etc/xroad/gpghome"));
+        return Paths.get(getProperty(ARCHIVE_GPG_HOME_DIRECTORY, "/etc/xroad/gpghome"));
     }
 
     public static Path getArchiveEncryptionKeysConfig() {
-        final String property = System.getProperty(ARCHIVE_ENCRYPTION_KEYS_CONFIG);
+        final String property = getProperty(ARCHIVE_ENCRYPTION_KEYS_CONFIG);
         return property == null ? null : Paths.get(property);
     }
 
     public static String getArchiveDefaultEncryptionKey() {
-        return System.getProperty(ARCHIVE_DEFAULT_ENCRYPTION_KEY);
+        return getProperty(ARCHIVE_DEFAULT_ENCRYPTION_KEY);
     }
 
-    /** @return keystore path for messagelog encryption keys or null if one is not defined */
+    /**
+     * @return keystore path for messagelog encryption keys or null if one is not defined
+     */
     public static Path getMessageLogKeyStore() {
-        final String property = System.getProperty(MESSAGELOG_KEYSTORE);
+        final String property = getProperty(MESSAGELOG_KEYSTORE);
         return property == null ? null : Paths.get(property);
     }
 
     public static String getMessageLogKeyId() {
-        return System.getProperty(MESSAGELOG_KEY_ID);
+        return getProperty(MESSAGELOG_KEY_ID);
     }
 
     public static boolean isMessageLogEncryptionEnabled() {
-        return Boolean.getBoolean(MESSAGELOG_ENCRYPTION_ENABLED);
+        return "true".equalsIgnoreCase(getProperty(MESSAGELOG_ENCRYPTION_ENABLED));
     }
 
     public static char[] getMessageLogKeyStorePassword() {
-        final String property = System.getProperty(MESSAGELOG_KEYSTORE_PASSWORD,
+        final String property = getProperty(MESSAGELOG_KEYSTORE_PASSWORD,
                 System.getenv().get(MESSAGELOG_KEYSTORE_PASSWORD_ENV));
         return property == null ? null : property.toCharArray();
     }
@@ -399,7 +340,7 @@ public final class MessageLogProperties {
     }
 
     private static String getMessageBodyLoggingOverrideParameter(boolean enable, boolean local) {
-        return System.getProperty(getMessageBodyLoggingOverrideParameterName(enable, local), "");
+        return getProperty(getMessageBodyLoggingOverrideParameterName(enable, local), "");
     }
 
     /**
@@ -463,6 +404,14 @@ public final class MessageLogProperties {
         }
 
         return toReturn;
+    }
+
+    private static String getProperty(String key) {
+        return SystemPropertySource.getPropertyResolver().getProperty(key);
+    }
+
+    private static String getProperty(String key, String defaultValue) {
+        return SystemPropertySource.getPropertyResolver().getProperty(key, defaultValue);
     }
 
 }
