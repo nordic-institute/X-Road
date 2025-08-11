@@ -92,13 +92,28 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
 
     @Override
     public String toString() {
-        var message = "[%s] [%s] %s".formatted(identifier, category, errorDeviation);
-        if (details != null && !details.isBlank()) {
-            message += " Details: %s".formatted(details);
+        // Defensive programming - ensure we don't get NPEs
+        String id = identifier != null ? identifier : "unknown";
+        String cat = category != null ? category.toString() : "UNKNOWN";
+        String code = errorDeviation != null ? errorDeviation.code() : "unknown_error";
+
+        var message = "[%s] [%s] %s".formatted(id, cat, code);
+
+        // Add metadata if present
+        if (errorDeviation != null && errorDeviation.metadata() != null && !errorDeviation.metadata().isEmpty()) {
+            message += " (%s)".formatted(String.join(", ", errorDeviation.metadata()));
         }
+
+        // Add details if present
+        if (details != null && !details.isBlank()) {
+            message += ": %s".formatted(details);
+        }
+
+        // Add remote indicator if applicable
         if (thrownRemotely) {
             message += " (thrown remotely)";
         }
+
         return message;
     }
 
@@ -111,15 +126,45 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         return Optional.ofNullable(httpStatus);
     }
 
+    /**
+     * Creates a system exception builder for system-level errors.
+     *
+     * @param error the error deviation builder
+     * @return a new builder instance
+     * @throws IllegalArgumentException if error is null
+     */
     public static Builder systemException(DeviationBuilder.ErrorDeviationBuilder error) {
+        if (error == null) {
+            throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
+        }
         return new Builder(ExceptionCategory.SYSTEM, error);
     }
 
+    /**
+     * Creates a business exception builder for business logic errors.
+     *
+     * @param error the error deviation builder
+     * @return a new builder instance
+     * @throws IllegalArgumentException if error is null
+     */
     public static Builder businessException(DeviationBuilder.ErrorDeviationBuilder error) {
+        if (error == null) {
+            throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
+        }
         return new Builder(ExceptionCategory.BUSINESS, error);
     }
 
+    /**
+     * Creates a validation exception builder for validation errors.
+     *
+     * @param error the error deviation builder
+     * @return a new builder instance
+     * @throws IllegalArgumentException if error is null
+     */
     public static Builder validationException(DeviationBuilder.ErrorDeviationBuilder error) {
+        if (error == null) {
+            throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
+        }
         return new Builder(ExceptionCategory.VALIDATION, error);
     }
 
@@ -128,15 +173,26 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
      * the appropriate error code.
      *
      * @param ex the exception
-     * @return translated CodedException
+     * @return translated XrdRuntimeException
+     * @throws IllegalArgumentException if ex is null
      */
     @SuppressWarnings("squid:S1872")
     public static XrdRuntimeException systemException(Throwable ex) {
+        if (ex == null) {
+            throw new IllegalArgumentException("Exception cannot be null");
+        }
         return new Builder(ExceptionCategory.SYSTEM, resolveExceptionCode(ex))
                 .cause(ex)
                 .build();
     }
 
+    /**
+     * Resolves the appropriate error code based on the exception type.
+     * Maps common technical exceptions to X-Road error codes.
+     *
+     * @param ex the exception to analyze
+     * @return the appropriate ErrorCodes enum value
+     */
     private static ErrorCodes resolveExceptionCode(Throwable ex) {
         return switch (ex) {
             case CodedException cex -> ErrorCodes.fromCode(cex.getFaultCode());
@@ -157,14 +213,30 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         };
     }
 
+    /**
+     * Checks if the exception is an AccessorException from JAXB runtime.
+     *
+     * @param ex the exception to check
+     * @return true if it's an AccessorException
+     */
     private static boolean isAccessorException(Throwable ex) {
         return ex != null && ex.getClass().getName().equals("org.glassfish.jaxb.runtime.api.AccessorException");
     }
 
+    /**
+     * Checks if the exception is a MimeException from Apache James.
+     *
+     * @param ex the exception to check
+     * @return true if it's a MimeException
+     */
     private static boolean isMimeException(Throwable ex) {
         return ex != null && ex.getClass().getName().equals("org.apache.james.mime4j.MimeException");
     }
 
+    /**
+     * Builder class for constructing XrdRuntimeException instances.
+     * Provides a fluent API for setting exception properties.
+     */
     @SuppressWarnings("checkstyle:HiddenField")
     public static class Builder {
         private Throwable cause;
@@ -179,30 +251,68 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         private HttpStatus httpStatus;
 
         public Builder(ExceptionCategory category, DeviationBuilder.ErrorDeviationBuilder errorDeviation) {
+            if (category == null) {
+                throw new IllegalArgumentException("ExceptionCategory cannot be null");
+            }
+            if (errorDeviation == null) {
+                throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
+            }
+
             this.category = category;
             this.errorDeviation = errorDeviation;
         }
 
+        /**
+         * Sets the cause of this exception.
+         *
+         * @param cause the underlying cause
+         * @return this builder instance
+         */
         public Builder cause(Throwable cause) {
             this.cause = cause;
             return this;
         }
 
+        /**
+         * Sets a custom identifier for this exception.
+         *
+         * @param identifier the unique identifier
+         * @return this builder instance
+         * @throws IllegalArgumentException if identifier is null or blank
+         */
         public Builder identifier(String identifier) {
             this.identifier = identifier;
             return this;
         }
 
+        /**
+         * Marks whether this exception was thrown remotely.
+         *
+         * @param thrownRemotely true if thrown remotely
+         * @return this builder instance
+         */
         public Builder thrownRemotely(boolean thrownRemotely) {
             this.thrownRemotely = thrownRemotely;
             return this;
         }
 
+        /**
+         * Sets metadata items for error deviation formatting.
+         *
+         * @param metadataItems variable arguments for metadata
+         * @return this builder instance
+         */
         public Builder metadataItems(Object... metadataItems) {
             this.metadataItems = metadataItems;
             return this;
         }
 
+        /**
+         * Sets additional details for this exception.
+         *
+         * @param details the detailed description
+         * @return this builder instance
+         */
         public Builder details(String details) {
             this.details = details;
             return this;
@@ -221,6 +331,13 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
             return this;
         }
 
+        /**
+         * Builds the XrdRuntimeException with all configured properties.
+         * Generates a random UUID identifier if none was specified.
+         *
+         * @return the constructed exception
+         * @throws IllegalStateException if required parameters are missing
+         */
         public XrdRuntimeException build() {
             if (identifier == null) {
                 identifier = UUID.randomUUID().toString();
