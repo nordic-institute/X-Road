@@ -8,7 +8,7 @@ dependencies {
   implementation(project(":common:common-core"))
   implementation(libs.jakarta.annotationApi)
   implementation("org.springframework:spring-context")
-
+  implementation(libs.quarkus.arc)
   implementation(libs.archUnit.plugin.core)
 }
 

@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  alias(libs.plugins.jandex)
 }
 
 val schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -14,27 +15,25 @@ sourceSets {
 }
 
 dependencies {
-  api(platform(libs.springBoot.bom))
-
   annotationProcessor(libs.mapstructProcessor)
   annotationProcessor(libs.lombokMapstructBinding)
 
   implementation(libs.jakarta.validationApi)
   implementation(libs.bundles.metrics)
   implementation(libs.mapstruct)
+  implementation(libs.quarkus.scheduler)
 
   implementation(project(":common:common-domain"))
-  implementation(project(":common:common-scheduler"))
   implementation(project(":common:common-jetty"))
   implementation(project(":common:common-db"))
-  implementation(project(":lib:globalconf-spring"))
+  implementation(project(":lib:globalconf-impl"))
   implementation(project(":service:op-monitor:op-monitor-api"))
-
-  api("org.springframework:spring-context-support")
+  implementation(project(":common:common-rpc-quarkus"))
 
   testImplementation(libs.hsqldb)
   testImplementation(project(":common:common-test"))
   testImplementation(libs.commons.cli)
+  testImplementation(testFixtures(project(":common:common-properties")))
 
   xjc(libs.bundles.jaxb)
 }

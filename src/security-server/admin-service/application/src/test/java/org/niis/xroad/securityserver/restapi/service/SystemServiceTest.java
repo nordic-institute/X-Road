@@ -37,22 +37,19 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
-import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
@@ -67,7 +64,6 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,6 +72,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCodes.MISSING_PRIVATE_PARAMS;
+import static org.niis.xroad.restapi.service.ConfigurationVerifier.EXIT_STATUS_MISSING_PRIVATE_PARAMS;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SystemServiceTest {
@@ -92,13 +89,11 @@ public class SystemServiceTest {
     @Mock
     private GlobalConfProvider globalConfProvider;
     @Mock
-    private AnchorRepository anchorRepository;
-    @Mock
-    private ConfigurationVerifier configurationVerifier;
-    @Mock
     private CurrentSecurityServerId currentSecurityServerId;
     @Mock
     private ManagementRequestSenderService managementRequestSenderService;
+    @Mock
+    private ConfClientRpcClient confClientRpcClient;
     @Mock
     private AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus = new SecurityServerAddressChangeStatus();
@@ -119,22 +114,10 @@ public class SystemServiceTest {
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
 
-        systemService = new SystemService(globalConfService, serverConfService, anchorRepository,
-                configurationVerifier, currentSecurityServerId, managementRequestSenderService, auditDataHelper,
-                addressChangeStatus, maintenanceModeStatus, globalConfProvider);
+        systemService = new SystemService(globalConfService, serverConfService,
+                currentSecurityServerId, managementRequestSenderService, auditDataHelper,
+                addressChangeStatus, confClientRpcClient, maintenanceModeStatus, globalConfProvider);
         systemService.setInternalKeyPath("src/test/resources/internal.key");
-        systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
-    }
-
-    @Test
-    public void generateInternalCsr() throws Exception {
-        byte[] csrBytes = systemService.generateInternalCsr("C=FI, serialNumber=123");
-        assertTrue(csrBytes.length > 0);
-    }
-
-    @Test(expected = InvalidDistinguishedNameException.class)
-    public void generateInternalCsrFail() throws Exception {
-        systemService.generateInternalCsr("this is wrong");
     }
 
     @Test
@@ -218,8 +201,7 @@ public class SystemServiceTest {
 
     @Test
     public void replaceAnchorFailVerification() throws Exception {
-        Mockito.doThrow(new InternalServerErrorException(MISSING_PRIVATE_PARAMS.build()))
-                .when(configurationVerifier).verifyConfiguration(any(), any());
+        when(confClientRpcClient.verifyAndSaveConfigurationAnchor(any())).thenReturn(EXIT_STATUS_MISSING_PRIVATE_PARAMS);
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         try {
             systemService.replaceAnchor(anchorBytes);
@@ -239,16 +221,14 @@ public class SystemServiceTest {
     @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
     public void uploadInitialAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
-        when(anchorRepository.readAnchorFile()).thenThrow(new NoSuchFileException(""));
+        when(confClientRpcClient.getConfigurationAnchor()).thenThrow(new NoSuchFileException(""));
         systemService.uploadInitialAnchor(anchorBytes);
     }
 
     @Test(expected = SystemService.AnchorAlreadyExistsException.class)
     public void uploadInitialAnchorAgain() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
-        when(anchorRepository.readAnchorFile()).thenReturn(anchorBytes);
-        when(anchorRepository.loadAnchorFromFile())
-                .thenReturn(new ConfigurationAnchor("src/test/resources/internal-configuration-anchor.xml"));
+        when(confClientRpcClient.getConfigurationAnchor()).thenReturn(anchorBytes);
         systemService.uploadInitialAnchor(anchorBytes);
     }
 

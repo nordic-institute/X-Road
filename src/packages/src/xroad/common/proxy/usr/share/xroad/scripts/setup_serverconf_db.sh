@@ -41,12 +41,12 @@ setup_database() {
   local db_master_user=${db_master_conn_user%%@*}
   local suffix="${db_master_conn_user##$db_master_user}"
 
-  local db_conn_user=$(get_prop ${db_properties} "${db_name}.hibernate.connection.username" "${db_name}$suffix")
+  local db_conn_user=$(get_prop ${db_properties} "xroad.db.${db_name}.hibernate.connection.username" "${db_name}$suffix")
   local db_user=${db_conn_user%%@*}
-  local db_schema=$(get_prop ${db_properties} "${db_name}.hibernate.hikari.dataSource.currentSchema" "${db_user},public")
+  local db_schema=$(get_prop ${db_properties} "xroad.db.${db_name}.hibernate.hikari.dataSource.currentSchema" "${db_user},public")
   db_schema=${db_schema%%,*}
-  local db_password=$(get_prop ${db_properties} "${db_name}.hibernate.connection.password" "$(gen_pw)")
-  local db_url=$(get_prop ${db_properties} "${db_name}.hibernate.connection.url" "jdbc:postgresql://$db_host/${db_name}")
+  local db_password=$(get_prop ${db_properties} "xroad.db.${db_name}.hibernate.connection.password" "$(gen_pw)")
+  local db_url=$(get_prop ${db_properties} "xroad.db.${db_name}.hibernate.connection.url" "jdbc:postgresql://$db_host/${db_name}")
   local db_database=${db_name}
   local db_options
 
@@ -173,13 +173,13 @@ EOF
   fi
 
   if [ -w "$db_properties" ]; then
-    crudini --set ${db_properties} '' ${db_name}.hibernate.jdbc.use_streams_for_binary true
-    crudini --set ${db_properties} '' ${db_name}.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
-    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.driver_class org.postgresql.Driver
-    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.url "jdbc:postgresql://$db_host/$db_database$db_options"
-    crudini --set ${db_properties} '' ${db_name}.hibernate.hikari.dataSource.currentSchema "${db_schema},public"
-    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.username "${db_conn_user}"
-    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.password "${db_password}"
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.jdbc.use_streams_for_binary true
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.dialect org.hibernate.dialect.PostgreSQLDialect
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.connection.driver_class org.postgresql.Driver
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.connection.url "jdbc:postgresql://$db_host/$db_database$db_options"
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.hikari.dataSource.currentSchema "${db_schema},public"
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.connection.username "${db_conn_user}"
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.connection.password "${db_password}"
   else
     log "$db_properties is not writable, not updating database properties"
   fi

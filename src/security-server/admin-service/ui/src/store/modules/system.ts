@@ -30,6 +30,8 @@ import {
   NodeTypeResponse,
   SecurityServer,
   VersionInfo,
+  AuthProviderType,
+  AuthProviderTypeResponse,
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
@@ -38,6 +40,7 @@ export interface SystemState {
   securityServerVersion: VersionInfo;
   securityServerNodeType: undefined | NodeType;
   currentSecurityServer: SecurityServer;
+  securityServerAuthProviderType: undefined | AuthProviderType;
 }
 
 export const useSystem = defineStore('system', {
@@ -46,6 +49,7 @@ export const useSystem = defineStore('system', {
       securityServerVersion: {} as VersionInfo,
       securityServerNodeType: undefined,
       currentSecurityServer: {} as SecurityServer,
+      securityServerAuthProviderType: undefined,
     };
   },
   persist: {
@@ -64,6 +68,9 @@ export const useSystem = defineStore('system', {
         this.globalConfigurationVersion >= 5
       );
     },
+    isDatabaseBasedAuthentication(): boolean {
+      return this.securityServerAuthProviderType === AuthProviderType.DATABASE;
+    },
   },
 
   actions: {
@@ -81,6 +88,13 @@ export const useSystem = defineStore('system', {
       return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
         this.securityServerNodeType = res.data.node_type;
       });
+    },
+    async fetchAuthenticationProviderType() {
+      return api
+        .get<AuthProviderTypeResponse>('/system/auth-provider-type')
+        .then((res) => {
+          this.securityServerAuthProviderType = res.data.auth_provider_type;
+        });
     },
     async enableMaintenanceMode(message?: string) {
       return api.put('/system/maintenance-mode/enable', { message });

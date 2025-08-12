@@ -45,7 +45,6 @@ public class KeyAndCertPageObj {
     public final TokenLoginDialog tokenLoginDialog = new TokenLoginDialog();
     public final TokenLogoutDialog tokenLogoutDialog = new TokenLogoutDialog();
     public final TokenEdit tokenEdit = new TokenEdit();
-    public final TlsKey tlsKey = new TlsKey();
     public final AddKeyWizardDetails addKeyWizardDetails = new AddKeyWizardDetails();
     public final AddKeyWizardCsrDetails addKeyWizardCsrDetails = new AddKeyWizardCsrDetails();
     public final AddKeyWizardGenerate addKeyWizardGenerate = new AddKeyWizardGenerate();
@@ -91,17 +90,6 @@ public class KeyAndCertPageObj {
     public static class TokenLogoutDialog {
         public SelenideElement btnLogout() {
             return $x("//button[@data-test='dialog-save-button']");
-        }
-    }
-
-    public static class TlsKey {
-
-        public SelenideElement buttonGenerateKey() {
-            return $x("//*[contains(@data-test, 'security-server-tls-certificate-generate-key-button')]");
-        }
-
-        public SelenideElement buttonExportCert() {
-            return $x("//*[contains(@data-test, 'security-server-tls-certificate-export-certificate-button')]");
         }
     }
 

@@ -46,7 +46,7 @@ public class JmxStepDefs extends BaseStepDefs {
     }
 
     @Step("JMX returned valid numeric value")
-    public void validMumericJmxSecurityServerMetric() {
+    public void validNumericJmxSecurityServerMetric() {
         Object attrValue = getStepData(XROAD_JMX_RESPONSE).orElseThrow();
         assertThat(attrValue)
                 .isNotNull()

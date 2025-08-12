@@ -1,37 +1,26 @@
 plugins {
   id("xroad.java-conventions")
-  alias(libs.plugins.shadow)
+  id("xroad.quarkus-application-conventions")
+}
+
+quarkus {
+  quarkusBuildProperties.putAll(
+    buildMap {
+      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-message-log-archiver")
+    }
+  )
 }
 
 dependencies {
-  implementation(platform(libs.springBoot.bom))
+  implementation(platform(libs.quarkus.bom))
 
-  implementation(project(":common:common-scheduler"))
-  implementation(project(":common:common-db"))
-  implementation(project(":common:common-messagelog"))
-  implementation(project(":addons:messagelog:messagelog-db"))
-  implementation(project(":lib:globalconf-spring"))
-  implementation(project(":lib:asic-core"))
+  implementation(project(":lib:bootstrap-quarkus"))
+  implementation(project(":common:common-rpc-quarkus"))
 
-  implementation("org.springframework:spring-context-support")
-  implementation(libs.logback.classic)
-}
+  implementation(libs.bundles.quarkus.containerized)
+  implementation(libs.quarkus.extension.systemd.notify)
 
-tasks.jar {
-  manifest {
-    attributes("Main-Class" to "org.niis.xroad.messagelog.archiver.application.LogArchiverMain")
-  }
-}
+  implementation(project(":service:message-log-archiver:message-log-archiver-core"))
 
-tasks.shadowJar {
-  archiveBaseName.set("messagelog-archiver")
-  archiveVersion.set("")
-  archiveClassifier.set("")
-  exclude("**/module-info.class")
-  from(rootProject.file("LICENSE.txt"))
-  mergeServiceFiles()
-}
-
-tasks.assemble {
-  dependsOn(tasks.shadowJar)
+  testImplementation(libs.quarkus.junit5)
 }

@@ -277,7 +277,6 @@ class ConfigurationSigningKeysServiceImplTest {
                 .setActive(true)
                 .setSerialNumber("serialNumber")
                 .setLabel("tokenLabel")
-                .setSlotIndex(1)
                 .setStatus(OK);
         if (!keys.isEmpty()) {
             builder.addAllKeyInfo(keys.stream().map(KeyInfo::getMessage).collect(toList()));
@@ -370,7 +369,6 @@ class ConfigurationSigningKeysServiceImplTest {
                 .setActive(active)
                 .setSerialNumber("TOKEN_SERIAL_NUMBER")
                 .setLabel("label")
-                .setSlotIndex(13)
                 .setStatus(OK);
         if (!keyInfos.isEmpty()) {
             builder.addAllKeyInfo(keyInfos.stream().map(KeyInfo::getMessage).collect(toList()));

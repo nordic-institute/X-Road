@@ -27,7 +27,6 @@ package org.niis.xroad.globalconf.impl.signature;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -42,14 +41,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -84,6 +82,7 @@ class SignatureVerifierTest {
     private static final ClientId CONSUMER_ID = createClientId("consumer");
 
     private GlobalConfProvider globalConfProvider;
+
     @BeforeAll
     public static void init() {
         TestSecurityUtil.initSecurity();
@@ -97,8 +96,7 @@ class SignatureVerifierTest {
      */
     @BeforeEach
     void setUp() {
-        loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good_v4",
-                "../globalconf-core/src/test/resources/configuration-anchor1.xml", true);
+        loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good_v4", true);
     }
 
     /**
@@ -334,8 +332,7 @@ class SignatureVerifierTest {
 
         @BeforeEach
         void before() {
-            loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good2_v3",
-                    "../globalconf-core/src/test/resources/configuration-anchor1.xml", false);
+            loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good2_v3", false);
         }
 
         @Test
@@ -452,19 +449,9 @@ class SignatureVerifierTest {
         }
     }
 
-    void loadGlobalConf(String globalConfPath, String configurationAnchorFile, boolean useTestCaCert) {
+    void loadGlobalConf(String globalConfPath, boolean useTestCaCert) {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, globalConfPath);
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
 
-        globalConfProvider = new TestGlobalConfImpl() {
-            @Override
-            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
-                if (useTestCaCert) {
-                    return TestCertUtil.getCaCert();
-                } else {
-                    return super.getCaCert(instanceIdentifier, memberCert);
-                }
-            }
-        };
+        globalConfProvider = TestGlobalConfFactory.create(useTestCaCert);
     }
 }
