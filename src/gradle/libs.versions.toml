@@ -8,12 +8,13 @@
 metrics = "4.2.33"
 jetty = "12.0.16"
 jaxb = "4.0.5"
-hibernate = "6.6.17.Final"
+hibernate = "7.0.9.Final"
 mapstruct = "1.6.3"
 jackson = "2.19.1"
 mockito = "5.18.0"
-springBoot = "3.4.4"
-junitJupiter = "5.11.4"
+springBoot = "3.5.4"
+junitJupiter = "5.12.2"
+junitPlatform = "1.12.2"
 xmlUnit = "2.10.3"
 bouncyCastle = "1.81"
 slf4j = "2.0.17"
@@ -50,7 +51,7 @@ springBoot-bom = { module = "org.springframework.boot:spring-boot-dependencies",
 springBoot-starterTest = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
 springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 
-springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2024.0.1" }
+springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2025.0.0" }
 
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
 quarkus-core = { group = "io.quarkus", name = "quarkus-core", version.ref = "quarkus" }
@@ -79,6 +80,7 @@ resilience4j-retry = { module = "io.github.resilience4j:resilience4j-retry", ver
 junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junitJupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitPlatform" }
 
 xmlunit-core = { module = "org.xmlunit:xmlunit-core", version.ref = "xmlUnit" }
 xmlunit-matchers = { module = "org.xmlunit:xmlunit-matchers", version.ref = "xmlUnit" }
@@ -180,7 +182,7 @@ wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
 
 hamcrest = { module = "org.hamcrest:hamcrest", version = "3.0" }
 javax-annotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
-hikariCP = { module = "com.zaxxer:HikariCP", version = "6.3.0" }
+hikariCP = { module = "com.zaxxer:HikariCP", version = "7.0.0" }
 saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.4" }
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
@@ -191,7 +193,7 @@ restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.5" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.1" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.15.0" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.18.1" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
