@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.Assertions;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
@@ -972,12 +973,10 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .hasValidLocalSignCert(true).build();
         List<ClientEntity> clients = clientService.findLocalClientEntities(searchParams);
         assertEquals(2, clients.size());
-        assertEquals("GOV", clients.getFirst().getIdentifier().getMemberClass());
-        assertEquals("M1", clients.getFirst().getIdentifier().getMemberCode());
-        assertEquals("SS1", clients.getFirst().getIdentifier().getSubsystemCode());
-        assertEquals("GOV", clients.get(1).getIdentifier().getMemberClass());
-        assertEquals("M1", clients.get(1).getIdentifier().getMemberCode());
-        assertEquals("SS2", clients.get(1).getIdentifier().getSubsystemCode());
+
+        Assertions.assertThat(clients).hasSize(2)
+                .map(client -> client.getIdentifier().toShortString())
+                .containsExactlyInAnyOrder("FI/GOV/M1/SS1", "FI/GOV/M1/SS2");
     }
 
     /**
