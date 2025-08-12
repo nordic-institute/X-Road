@@ -73,13 +73,13 @@ public class ServerConfService {
 
     /**
      * Get a server conf; an existing server conf will be returned if one exists. Otherwise
-     * a new transient instance is returned.
+     * a new managed instance is returned.
      * @return ServerConfEntity
      */
     ServerConfEntity getOrCreateServerConfEntity() {
         ServerConfEntity serverConfEntity = getServerConfGracefully();
         if (serverConfEntity == null) {
-            return new ServerConfEntity();
+            return serverConfRepository.saveOrUpdate(new ServerConfEntity());
         }
         return serverConfEntity;
     }
@@ -140,13 +140,6 @@ public class ServerConfService {
             return serverConfEntity.getOwner() != null;
         }
         return false;
-    }
-
-    /**
-     * Save or update ServerConf
-     */
-    public void saveOrUpdate(ServerConfEntity serverConfEntity) {
-        serverConfRepository.saveOrUpdate(serverConfEntity);
     }
 
     /**

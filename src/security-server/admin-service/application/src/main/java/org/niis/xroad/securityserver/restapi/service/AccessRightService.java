@@ -71,6 +71,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ACCESS_RIGHT_NOT_FOUND;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_ACCESS_RIGHT;
 
@@ -93,6 +94,8 @@ public class AccessRightService {
     private final AuditDataHelper auditDataHelper;
     private final ServiceDescriptionService serviceDescriptionService;
     private final ClientService clientService;
+    private final GlobalConfService globalConfService;
+    private final LocalGroupService localGroupService;
 
     /**
      * Remove AccessRights from a Service
@@ -277,7 +280,7 @@ public class AccessRightService {
         subjectIds.forEach(this::validateServiceClientObjectType);
 
         // verify that all subject ids exist
-        identifierService.verifyServiceClientObjectsExist(clientEntity, subjectIds);
+        verifyServiceClientObjectsExist(clientEntity, subjectIds);
 
         // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
         Set<XRoadIdEntity> managedIds = identifierService.getOrPersistXroadIdEntities(subjectIds);
@@ -322,7 +325,7 @@ public class AccessRightService {
         XRoadIdEntity subjectIdEntity = XRoadIdMapper.get().toEntity(subjectId);
 
         // verify that given service client objects exist, otherwise access cannot be added
-        identifierService.verifyServiceClientObjectsExist(clientEntity, Set.of(subjectIdEntity));
+        verifyServiceClientObjectsExist(clientEntity, Set.of(subjectIdEntity));
 
         // prepare params for addAccessRightsInternal
         List<EndpointEntity> baseEndpoints = null;
@@ -824,5 +827,41 @@ public class AccessRightService {
                     || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription)
                     || StringUtils.containsIgnoreCase(globalGroupDescription, memberNameOrGroupDescription);
         };
+    }
+
+    /**
+     * Verify that service client objects identified by given XRoadIds do exist.
+     * Criteria in detail:
+     * - subsystem is registered in global configuration
+     * - global group exists in global configuration
+     * - local group exists and belongs to given client
+     * @param clientEntity owner of (possible) local groups
+     * @param serviceClientIds service client ids to check
+     * @throws ServiceClientNotFoundException if some service client objects could not be found
+     */
+    private void verifyServiceClientObjectsExist(ClientEntity clientEntity, Set<XRoadIdEntity> serviceClientIds)
+            throws ServiceClientNotFoundException {
+        Map<XRoadObjectType, List<XRoadIdEntity>> idsPerType = serviceClientIds.stream()
+                .collect(groupingBy(XRoadIdEntity::getObjectType));
+        for (XRoadObjectType type : idsPerType.keySet()) {
+            if (!isValidServiceClientType(type)) {
+                throw new ServiceClientNotFoundException("Invalid service client subject object type " + type);
+            }
+        }
+        if (idsPerType.containsKey(XRoadObjectType.GLOBALGROUP)) {
+            if (!globalConfService.globalGroupsExist(idsPerType.get(XRoadObjectType.GLOBALGROUP))) {
+                throw new ServiceClientNotFoundException();
+            }
+        }
+        if (idsPerType.containsKey(XRoadObjectType.SUBSYSTEM)) {
+            if (!globalConfService.clientsExist(idsPerType.get(XRoadObjectType.SUBSYSTEM))) {
+                throw new ServiceClientNotFoundException();
+            }
+        }
+        if (idsPerType.containsKey(XRoadObjectType.LOCALGROUP)) {
+            if (!localGroupService.localGroupsExist(clientEntity, idsPerType.get(XRoadObjectType.LOCALGROUP))) {
+                throw new ServiceClientNotFoundException();
+            }
+        }
     }
 }
