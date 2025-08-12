@@ -23,14 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.db;
+package org.niis.xroad.common.core.annotation;
 
-import org.hibernate.Session;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Callback that can be called during a transaction.
- * @param <R> the type of the callback result
+ * Annotation to suppress ArchUnit rules with RUNTIME retention.
+ * This ensures the annotation is available when ArchUnit analyzes the code.
+ * <p>
+ * Use this instead of @SuppressWarnings for ArchUnit rules to avoid
+ * retention policy issues.
  */
-public interface TransactionCallback<R> {
-    R apply(Session session);
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ArchUnitSuppressed {
+    /**
+     * Array of rule names to suppress.
+     * If empty, suppresses all ArchUnit rules.
+     */
+    String[] value() default {};
+
+    /**
+     * Reason for suppression. Should document why this class/method is suppressed.
+     */
+    String reason() default "";
 }

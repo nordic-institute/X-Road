@@ -36,6 +36,7 @@ import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.ContentVerifierProvider;
@@ -80,19 +81,27 @@ public final class CryptoUtils {
         }
     }
 
-    /** SSL protocol name. */
+    /**
+     * SSL protocol name.
+     */
     public static final String SSL_PROTOCOL = "TLSv1.2";
 
-    /** Default digest algorithm id used for calculating certificate hashes. */
+    /**
+     * Default digest algorithm id used for calculating certificate hashes.
+     */
     public static final DigestAlgorithm DEFAULT_CERT_HASH_ALGORITHM_ID = DigestAlgorithm.SHA256;
 
-    /** Verification builder instance. */
+    /**
+     * Verification builder instance.
+     */
     public static final JcaContentVerifierProviderBuilder BC_VERIFICATION_BUILDER =
             new JcaContentVerifierProviderBuilder().setProvider(BOUNCY_CASTLE);
     public static final JcaContentVerifierProviderBuilder SUN_VERIFICATION_BUILDER =
             new JcaContentVerifierProviderBuilder().setProvider(SUN_RSA_SIGN);
 
-    /** Holds the certificate factory instance. */
+    /**
+     * Holds the certificate factory instance.
+     */
     public static final CertificateFactory CERT_FACTORY;
 
 
@@ -101,8 +110,9 @@ public final class CryptoUtils {
 
     /**
      * Creates a new content signer with specified algorithm and private key.
+     *
      * @param algorithm the algorithm
-     * @param key the private key
+     * @param key       the private key
      * @return a new content signer instance
      * @throws OperatorCreationException if the content signer cannot be created
      */
@@ -114,6 +124,7 @@ public final class CryptoUtils {
 
     /**
      * Creates a new content verifier using default algorithm.
+     *
      * @param key the private key
      * @return a new content verifier
      * @throws OperatorCreationException if the content signer cannot be created
@@ -132,8 +143,9 @@ public final class CryptoUtils {
     /**
      * Creates a new certificate ID instance (using SHA-1 digest calculator)
      * for the specified subject and issuer certificates.
+     *
      * @param subject the subject certificate
-     * @param issuer the issuer certificate
+     * @param issuer  the issuer certificate
      * @return the certificate id
      * @throws Exception if the certificate if cannot be created
      */
@@ -146,13 +158,15 @@ public final class CryptoUtils {
      * Creates a new certificate ID instance (using SHA-1 digest calculator)
      * for the specified subject certificate serial number
      * and issuer certificate.
+     *
      * @param subjectSerialNumber the subject certificate serial number
-     * @param issuer the issuer certificate
+     * @param issuer              the issuer certificate
      * @return the certificate id
      * @throws Exception if the certificate id cannot be created
      */
     public static CertificateID createCertId(BigInteger subjectSerialNumber,
-                                             X509Certificate issuer) throws Exception {
+                                             X509Certificate issuer)
+            throws OCSPException, OperatorCreationException, CertificateEncodingException, IOException {
         return new CertificateID(Digests.createDigestCalculator(DigestAlgorithm.SHA1),
                 new X509CertificateHolder(issuer.getEncoded()),
                 subjectSerialNumber);
@@ -160,6 +174,7 @@ public final class CryptoUtils {
 
     /**
      * Attempts to create an ASN1 primitive object from given byte array.
+     *
      * @param data the byte array
      * @return ASN1Primitive object
      * @throws IOException if an error occurs
@@ -172,10 +187,11 @@ public final class CryptoUtils {
 
     /**
      * Reads X509Certificate object from given base64 data.
+     *
      * @param base64data the certificate in base64
      * @return the read certificate
      * @throws CertificateException if certificate could not be read
-     * @throws IOException if an I/O error occurred
+     * @throws IOException          if an I/O error occurred
      */
     public static X509Certificate readCertificate(String base64data)
             throws CertificateException, IOException {
@@ -184,6 +200,7 @@ public final class CryptoUtils {
 
     /**
      * Reads X509Certificate object from given certificate bytes.
+     *
      * @param certBytes the certificate bytes
      * @return the read certificate
      */
@@ -197,6 +214,7 @@ public final class CryptoUtils {
 
     /**
      * Reads X509Certificate chain from given certificate bytes.
+     *
      * @param certBytes the certificate chain bytes
      * @return the read certificate collection
      */
@@ -210,6 +228,7 @@ public final class CryptoUtils {
 
     /**
      * Reads X509Certificate object from given input stream.
+     *
      * @param is Input stream containing certificate bytes.
      * @return the read certificate
      */
@@ -221,6 +240,7 @@ public final class CryptoUtils {
 
     /**
      * Reads X509Certificate chain from given input stream.
+     *
      * @param is Input stream containing certificate bytes.
      * @return the read certificate chain
      */
@@ -234,11 +254,12 @@ public final class CryptoUtils {
 
     /**
      * Calculates digest of the certificate and encodes it as lowercase hex.
+     *
      * @param cert the certificate
      * @return calculated certificate hex hash String
      * @throws CertificateEncodingException if a certificate encoding error occurs
-     * @throws OperatorCreationException if digest calculator cannot be created
-     * @throws IOException if an I/O error occurred
+     * @throws OperatorCreationException    if digest calculator cannot be created
+     * @throws IOException                  if an I/O error occurred
      */
     public static String calculateCertHexHash(X509Certificate cert)
             throws CertificateEncodingException, IOException, OperatorCreationException {
@@ -247,12 +268,13 @@ public final class CryptoUtils {
 
     /**
      * Calculates digest of the certificate and encodes it as uppercase hex with the given delimiter every 2 characters.
-     * @param cert the certificate
+     *
+     * @param cert      the certificate
      * @param delimiter the delimiter to use
      * @return calculated certificate hex hash String
      * @throws CertificateEncodingException if a certificate encoding error occurs
-     * @throws OperatorCreationException if digest calculator cannot be created
-     * @throws IOException if an I/O error occurred
+     * @throws OperatorCreationException    if digest calculator cannot be created
+     * @throws IOException                  if an I/O error occurred
      */
     public static String calculateDelimitedCertHexHash(X509Certificate cert, String delimiter)
             throws CertificateEncodingException, IOException, OperatorCreationException {
@@ -262,10 +284,11 @@ public final class CryptoUtils {
     /**
      * Calculates a sha-256 digest of the given bytes and encodes it
      * as lowercase hex.
-     * @return calculated certificate hex hash String
+     *
      * @param bytes the bytes
+     * @return calculated certificate hex hash String
      * @throws OperatorCreationException if digest calculator cannot be created
-     * @throws IOException if an I/O error occurred
+     * @throws IOException               if an I/O error occurred
      */
     public static String calculateCertHexHash(byte[] bytes) throws IOException, OperatorCreationException {
         return Digests.hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, bytes);
@@ -274,13 +297,14 @@ public final class CryptoUtils {
     /**
      * Calculates a sha-1 digest of the given bytes and encodes it
      * as lowercase hex.
+     *
+     * @param cert the certificate
+     * @return calculated certificate hex hash String
+     * @throws OperatorCreationException    if digest calculator cannot be created
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws IOException                  if an I/O error occurred
      * @deprecated This method should be applicable until 7.3.x is no longer supported
      * <p> From that point onward its usages should be replaced with {@link #calculateCertHexHash(X509Certificate)} instead.
-     * @return calculated certificate hex hash String
-     * @param cert the certificate
-     * @throws OperatorCreationException if digest calculator cannot be created
-     * @throws CertificateEncodingException if a certificate encoding error occurs
-     * @throws IOException if an I/O error occurred
      */
     @Deprecated
     public static String calculateCertSha1HexHash(X509Certificate cert)
@@ -291,12 +315,13 @@ public final class CryptoUtils {
     /**
      * Calculates a sha-1 digest of the given bytes and encodes it
      * as lowercase hex.
+     *
+     * @param bytes the bytes
+     * @return calculated certificate hex hash String
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException               if an I/O error occurred
      * @deprecated This method should be applicable until 7.3.x is no longer supported
      * <p> From that point onward its usages should be replaced with {@link #calculateCertHexHash(byte[])} instead.
-     * @return calculated certificate hex hash String
-     * @param bytes the bytes
-     * @throws OperatorCreationException if digest calculator cannot be created
-     * @throws IOException if an I/O error occurred
      */
     @Deprecated
     public static String calculateCertSha1HexHash(byte[] bytes) throws IOException, OperatorCreationException {
@@ -306,8 +331,9 @@ public final class CryptoUtils {
     /**
      * Calculates a sha-256 digest of the given bytes and encodes it in
      * format 92:62:34:C5:39:1B:95:1F:BF:AF:8D:D6:23:24:AE:56:83:DC...
-     * @return calculated certificate hex hash uppercase and separated by semicolons String
+     *
      * @param bytes the bytes
+     * @return calculated certificate hex hash uppercase and separated by semicolons String
      * @throws HexCalculationException if any errors occur
      */
     public static String calculateCertHexHashDelimited(byte[] bytes) {
@@ -320,11 +346,12 @@ public final class CryptoUtils {
 
     /**
      * Calculates a digest of the given certificate.
+     *
      * @param cert the certificate
      * @return digest byte array of the certificate
      * @throws CertificateEncodingException if a certificate encoding error occurs
-     * @throws OperatorCreationException if digest calculator cannot be created
-     * @throws IOException if an I/O error occurred
+     * @throws OperatorCreationException    if digest calculator cannot be created
+     * @throws IOException                  if an I/O error occurred
      */
     public static byte[] certHash(X509Certificate cert) throws CertificateEncodingException, IOException, OperatorCreationException {
         return certHash(cert.getEncoded());
@@ -332,10 +359,11 @@ public final class CryptoUtils {
 
     /**
      * Calculates a digest of the given certificate bytes.
+     *
      * @param bytes the bytes
      * @return digest byte array of the certificate
      * @throws OperatorCreationException if digest calculator cannot be created
-     * @throws IOException if an I/O error occurred
+     * @throws IOException               if an I/O error occurred
      */
     public static byte[] certHash(byte[] bytes) throws IOException, OperatorCreationException {
         return Digests.calculateDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, bytes);
@@ -343,12 +371,13 @@ public final class CryptoUtils {
 
     /**
      * Calculates sha-1 digest of the given certificate bytes.
+     *
      * @param bytes the bytes
-     * @deprecated This method should be applicable until 7.3.x is no longer supported
-     * <p> From that point onward its usages should be replaced with {@link #certHash(byte[])} instead.
      * @return digest byte array of the certificate
      * @throws OperatorCreationException if digest calculator cannot be created
-     * @throws IOException if an I/O error occurred
+     * @throws IOException               if an I/O error occurred
+     * @deprecated This method should be applicable until 7.3.x is no longer supported
+     * <p> From that point onward its usages should be replaced with {@link #certHash(byte[])} instead.
      */
     @Deprecated
     public static byte[] certSha1Hash(byte[] bytes) throws IOException, OperatorCreationException {
@@ -357,7 +386,8 @@ public final class CryptoUtils {
 
     /**
      * Loads a pkcs12 keystore from a file.
-     * @param file the file to load
+     *
+     * @param file     the file to load
      * @param password the password for the key store
      * @return the loaded keystore
      * @throws Exception if any errors occur
@@ -369,8 +399,9 @@ public final class CryptoUtils {
 
     /**
      * Loads a key store from a file.
-     * @param type the type of key store to load ("pkcs12" for PKCS12 type)
-     * @param file the file to load
+     *
+     * @param type     the type of key store to load ("pkcs12" for PKCS12 type)
+     * @param file     the file to load
      * @param password the password for the key store
      * @return the loaded keystore
      * @throws Exception if any errors occur
@@ -387,8 +418,9 @@ public final class CryptoUtils {
 
     /**
      * Writes the given certificate bytes into the provided output stream in PEM format.
+     *
      * @param certBytes bytes content of the certificate
-     * @param out output stream for writing the PEM formatted certificate
+     * @param out       output stream for writing the PEM formatted certificate
      * @throws IOException if an I/O error occurred
      */
     public static void writeCertificatePem(byte[] certBytes, OutputStream out)

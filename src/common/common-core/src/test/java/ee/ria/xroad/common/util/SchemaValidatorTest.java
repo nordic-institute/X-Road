@@ -74,7 +74,7 @@ public class SchemaValidatorTest {
 
     private static final class TestValidator extends SchemaValidator {
 
-        private static Schema schema;
+        private static final Schema schema;
 
         static {
             schema = createSchema("test-conf.xsd");

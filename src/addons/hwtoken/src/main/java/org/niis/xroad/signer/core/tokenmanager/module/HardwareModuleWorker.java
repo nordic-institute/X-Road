@@ -170,7 +170,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
         return new ArrayList<>(tokens.values());
     }
 
-    private TokenType createToken(Slot[] slots, int slotIndex) throws Exception {
+    private TokenType createToken(Slot[] slots, int slotIndex) throws TokenException {
         Slot slot = slots[slotIndex];
 
         iaik.pkcs.pkcs11.Token pkcs11Token = slot.getToken();
