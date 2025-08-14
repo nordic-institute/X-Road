@@ -93,7 +93,7 @@ class TokensServiceImplTest {
     private TokensServiceImpl tokensService;
 
     @Test
-    void getTokens() throws Exception {
+    void getTokens() {
         org.niis.xroad.signer.api.dto.TokenInfo signerTokenInfo = mockTokenInfo(OK);
         when(signerProxyFacade.getTokens()).thenReturn(List.of(signerTokenInfo));
         when(tokenInfoMapper.toTarget(signerTokenInfo)).thenReturn(tokenInfo);
@@ -105,7 +105,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void getTokensShouldThrowException() throws Exception {
+    void getTokensShouldThrowException() {
         doThrow(new SignerException("Error")).when(signerProxyFacade).getTokens();
 
         assertThatThrownBy(() -> tokensService.getTokens())
@@ -114,8 +114,8 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void loginShouldThrowWhenTokenNotFound() throws Exception {
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.TokenNotFound"));
+    void loginShouldThrowWhenTokenNotFound() {
+        when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.token_not_found"));
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(NotFoundException.class)
@@ -123,7 +123,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void loginShouldThrowPinLocked() throws Exception {
+    void loginShouldThrowPinLocked() {
         final org.niis.xroad.signer.api.dto.TokenInfo signerTokenInfo = mockTokenInfo(USER_PIN_LOCKED);
 
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
@@ -136,7 +136,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void loginShouldThrowFinalTryException() throws Exception {
+    void loginShouldThrowFinalTryException() {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK), mockTokenInfo(USER_PIN_FINAL_TRY));
         doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
@@ -148,7 +148,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void loginShouldThrowUserPinLockedOnActivation() throws Exception {
+    void loginShouldThrowUserPinLockedOnActivation() {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK), mockTokenInfo(USER_PIN_LOCKED));
         doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
@@ -160,7 +160,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void loginShouldThrowOtherException() throws Exception {
+    void loginShouldThrowOtherException() {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK));
         doThrow(new SignerException("Error")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
@@ -171,7 +171,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void loginShouldThrowIncorrectPinFormatWhenTooShort() throws Exception {
+    void loginShouldThrowIncorrectPinFormatWhenTooShort() {
         Map<String, String> tokenParams = Map.of("Min PIN length", "42");
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(tokenParams));
 
@@ -183,7 +183,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void loginShouldThrowIncorrectPinFormatWhenTooLong() throws Exception {
+    void loginShouldThrowIncorrectPinFormatWhenTooLong() {
         Map<String, String> tokenParams = Map.of("Max PIN length", "7");
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(tokenParams));
 
@@ -195,7 +195,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void login() throws Exception {
+    void login() {
         final org.niis.xroad.signer.api.dto.TokenInfo signerTokenInfo = mockTokenInfo(OK);
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
         when(tokenInfoMapper.toTarget(signerTokenInfo)).thenReturn(tokenInfo);
@@ -211,7 +211,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void logout() throws Exception {
+    void logout() {
         final org.niis.xroad.signer.api.dto.TokenInfo signerTokenInfo = mockTokenInfo(OK);
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
         when(tokenInfoMapper.toTarget(signerTokenInfo)).thenReturn(tokenInfo);
@@ -227,8 +227,8 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void logoutShouldThrowNotFound() throws Exception {
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.TokenNotFound"));
+    void logoutShouldThrowNotFound() {
+        when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.token_not_found"));
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(NotFoundException.class)
@@ -236,7 +236,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void logoutShouldThrowOtherExceptionWhenGetTokenFails() throws Exception {
+    void logoutShouldThrowOtherExceptionWhenGetTokenFails() {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new SignerException("Error"));
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
@@ -245,7 +245,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void logoutShouldThrowExceptionWhenDeactivateFails() throws Exception {
+    void logoutShouldThrowExceptionWhenDeactivateFails() {
         final org.niis.xroad.signer.api.dto.TokenInfo signerTokenInfo = mockTokenInfo(OK);
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
         doThrow(new RuntimeException()).when(signerProxyFacade).deactivateToken(TOKEN_ID);
@@ -257,7 +257,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void hasHardwareTokensReturnsTrue() throws Exception {
+    void hasHardwareTokensReturnsTrue() {
         org.niis.xroad.signer.api.dto.TokenInfo signerTokenInfo = mockTokenInfo("1");
         when(signerProxyFacade.getTokens()).thenReturn(List.of(signerTokenInfo));
 
@@ -267,7 +267,7 @@ class TokensServiceImplTest {
     }
 
     @Test
-    void hasHardwareTokensReturnsFalse() throws Exception {
+    void hasHardwareTokensReturnsFalse() {
         org.niis.xroad.signer.api.dto.TokenInfo signerTokenInfo = mockTokenInfo(SOFTWARE_TOKEN_ID);
         when(signerProxyFacade.getTokens()).thenReturn(List.of(signerTokenInfo));
 

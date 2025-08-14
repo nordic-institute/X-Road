@@ -30,6 +30,7 @@ import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.apache.commons.io.IOUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.openapi.model.ConfigurationAnchorContainerDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationPartDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
@@ -62,9 +63,6 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_XML;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
