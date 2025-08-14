@@ -27,7 +27,6 @@
 
 import SecurityServerAuthenticationCertificate from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
 import { RouteLocationNormalized } from 'vue-router';
-import TabsBase from '@/layouts/TabsBase.vue';
 
 import AppLogin from '@/views/AppLogin.vue';
 import AppBase from '@/layouts/AppBase.vue';
@@ -45,18 +44,17 @@ import MembersView from '@/views/Members/MembersView.vue';
 import MemberView from '@/views/Members/Member/MemberView.vue';
 
 import MemberDetails from '@/views/Members/Member/Details/MemberDetails.vue';
-import PageNavigation from '@/layouts/PageNavigation.vue';
 import MemberSubsystems from '@/views/Members/Member/Subsystems/MemberSubsystems.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 import ApiKeys from '@/views/Settings/ApiKeys/ApiKeys.vue';
 import CreateApiKeyStepper from '@/views/Settings/ApiKeys/CreateApiKeyStepper.vue';
 
 import SystemSettings from '@/views/Settings/SystemSettings/SystemSettings.vue';
-import SecurityServers from '@/views/SecurityServers/SecurityServers.vue';
+import SecurityServersView from '@/views/SecurityServers/SecurityServersView.vue';
 import TrustServices from '@/views/TrustServices/TrustServices.vue';
 
 import SecurityServersList from '@/views/SecurityServers/SecurityServersList.vue';
-import SecurityServer from '@/views/SecurityServers/SecurityServer/SecurityServer.vue';
+import SecurityServerView from '@/views/SecurityServers/SecurityServer/SecurityServerView.vue';
 import SecurityServerDetails from '@/views/SecurityServers/SecurityServer/SecurityServerDetails.vue';
 import SecurityServerClients from '@/views/SecurityServers/SecurityServer/SecurityServerClients.vue';
 import SecurityServerAuthenticationCertificates from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
@@ -73,29 +71,39 @@ import ExternalConfiguration from '@/views/GlobalConfiguration/ExternalConfigura
 import InternalConfiguration from '@/views/GlobalConfiguration/InternalConfiguration/InternalConfiguration.vue';
 import TrustedAnchors from '@/views/GlobalConfiguration/TrustedAnchors/TrustedAnchors.vue';
 import ManagementRequests from '@/views/ManagementRequests/ManagementRequests.vue';
-import TabsBaseEmpty from '@/layouts/TabsBaseEmpty.vue';
 import AppForbidden from '@/views/AppForbidden.vue';
-import CertificationService from '@/views/TrustServices/CertificationService/CertificationService.vue';
-import CertificationServiceDetails from '@/views/TrustServices/CertificationService/CertificationServiceDetails.vue';
-import TrustServiceList from '@/views/TrustServices/TrustServiceList.vue';
-import CertificationServiceSettings from '@/views/TrustServices/CertificationService/CertificationServiceSettings.vue';
-import CertificationServiceOcspResponders from '@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue';
+import CertificationServiceView from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceView.vue';
+import CertificationServiceDetails from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceDetails.vue';
+import TrustServicesView from '@/views/TrustServices/TrustServicesView.vue';
+import CertificationServiceSettings
+  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceSettings.vue';
+import CertificationServiceOcspResponders
+  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceOcspResponders.vue';
 import CertificationServiceIntermediateCas from '@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue';
-import OcspResponderCertificate from '@/views/TrustServices/CertificationService/OcspResponderCertificate.vue';
-import CertificationServiceCertificate from '@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue';
+import OcspResponderCertificate from '@/views/TrustServices/CertificationServices/CertificationService/OcspResponderCertificate.vue';
+import CertificationServiceCertificate
+  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceCertificate.vue';
 import IntermediateCACertificate from '@/views/TrustServices/CertificationService/IntermediateCACertificate.vue';
 import IntermediateCa from '@/views/TrustServices/CertificationService/IntermediateCa.vue';
 import IntermediateCaDetails from '@/views/TrustServices/CertificationService/IntermediateCaDetails.vue';
 import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationService/IntermediateCaOcspResponders.vue';
-import TimestampingServiceCertificate from '@/components/timestampingServices/TimestampingServiceCertificate.vue';
+import TimestampingServiceCertificate from '@/views/TrustServices/TimestampingServices/TimestampingServiceCertificate.vue';
 import ManagementRequestDetails from '@/views/ManagementRequests/ManagementRequestDetails.vue';
 import ManagementRequestsList from '@/views/ManagementRequests/ManagementRequestsList.vue';
 import ManagementServiceTlsKey from '@/views/Settings/TlsCertificates/ManagementServiceTlsCertificate.vue';
 import ManagementServiceCertificate from '@/components/tlsCertificates/ManagementServiceCertificate.vue';
 import { useSettingsTabs } from '@/store/modules/settings-tabs';
-import { XrdRoute } from '@/router/types';
+import { XrdRoute, XrdMainNavigationContainer } from '@niis/shared-ui';
+import { useMember } from '@/store/modules/members';
+import { useSecurityServer } from '@/store/modules/security-servers';
+import AppMainNavigation from '@/layouts/AppMainNavigation.vue';
+import ViewNavigation from '@/layouts/ViewNavigation.vue';
+import AppFooter from '@/layouts/AppFooter.vue';
+import { managementTypeToIconTextColor } from '@/util/helpers';
+import { useManagementRequests } from '@/store/modules/management-requests';
+import { useCertificationService } from '@/store/modules/trust-services';
 
-const routes: XrdRoute[] = [
+const routes = [
   {
     path: '/',
     component: AppBase,
@@ -116,7 +124,7 @@ const routes: XrdRoute[] = [
         },
         components: {
           default: SettingsView,
-          top: TabsBase,
+          navigation: AppMainNavigation,
           subTabs: SettingsTabs,
           alerts: AlertsContainer,
         },
@@ -196,7 +204,6 @@ const routes: XrdRoute[] = [
         components: {
           default: CreateApiKeyStepper,
           alerts: AlertsContainer,
-          top: TabsBaseEmpty,
         },
         props: {
           default: true,
@@ -208,7 +215,8 @@ const routes: XrdRoute[] = [
         path: '/members',
         components: {
           default: MembersView,
-          top: TabsBase,
+          navigation: AppMainNavigation,
+          footer: AppFooter,
           alerts: AlertsContainer,
         },
         children: [
@@ -216,15 +224,23 @@ const routes: XrdRoute[] = [
             name: RouteName.Members,
             path: '',
             component: MemberList,
-            meta: { permissions: [Permissions.VIEW_MEMBERS] },
+            meta: {
+              permissions: [Permissions.VIEW_MEMBERS],
+              title: 'members.header',
+            },
           },
           {
             path: ':memberid',
             components: {
               default: MemberView,
-              pageNavigation: PageNavigation,
+              pageNavigation: ViewNavigation,
             },
-            meta: { permissions: [Permissions.VIEW_MEMBER_DETAILS] },
+            meta: {
+              permissions: [Permissions.VIEW_MEMBER_DETAILS],
+              listView: RouteName.Members,
+              allowBreadcrumbsTo: [RouteName.SecurityServerClients],
+              title: () => useMember().currentMember?.member_name,
+            },
             props: { default: true },
             redirect: { name: RouteName.MemberDetails },
             children: [
@@ -250,8 +266,9 @@ const routes: XrdRoute[] = [
       {
         path: '/security-servers',
         components: {
-          default: SecurityServers,
-          top: TabsBase,
+          default: SecurityServersView,
+          navigation: AppMainNavigation,
+          footer: AppFooter,
           alerts: AlertsContainer,
         },
         meta: { permissions: [Permissions.VIEW_SECURITY_SERVERS] },
@@ -260,19 +277,28 @@ const routes: XrdRoute[] = [
             name: RouteName.SecurityServers,
             path: '',
             component: SecurityServersList,
-            meta: { permissions: [Permissions.VIEW_SECURITY_SERVERS] },
+            meta: {
+              permissions: [Permissions.VIEW_SECURITY_SERVERS],
+              title: 'tab.main.securityServers',
+            },
           },
           {
             path: ':serverId',
             components: {
-              default: SecurityServer,
-              pageNavigation: PageNavigation,
+              default: SecurityServerView,
             },
             props: { default: true },
             redirect: {
               name: RouteName.SecurityServerDetails,
             },
-            meta: { permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS] },
+            meta: {
+              permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
+              listView: RouteName.SecurityServers,
+              allowBreadcrumbsTo: [RouteName.MemberDetails],
+              title: () =>
+                useSecurityServer().currentSecurityServer?.server_id
+                  .server_code,
+            },
             children: [
               {
                 name: RouteName.SecurityServerDetails,
@@ -296,23 +322,7 @@ const routes: XrdRoute[] = [
                   return { serverId: route.params.serverId as string };
                 },
               },
-              {
-                name: RouteName.SecurityServerAuthenticationCertificate,
-                path: 'authenticationcertificates/:authenticationCertificateId',
-                component: SecurityServerAuthenticationCertificate,
-                props(route: RouteLocationNormalized): {
-                  authenticationCertificateId: number;
-                } {
-                  const authenticationCertificateId = Number(
-                    route.params.authenticationCertificateId,
-                  );
-                  return { authenticationCertificateId };
-                },
-                meta: {
-                  permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
-                  backOnEscape: true,
-                },
-              },
+
               {
                 name: RouteName.SecurityServerClients,
                 path: 'clients',
@@ -326,20 +336,36 @@ const routes: XrdRoute[] = [
           },
         ],
       },
-
+      {
+        path: '/security-servers/:serverId/authenticationcertificates/:certificateId',
+        name: RouteName.SecurityServerAuthenticationCertificate,
+        components: {
+          default: SecurityServerAuthenticationCertificate,
+          navigation: XrdMainNavigationContainer,
+          alerts: AlertsContainer,
+        },
+        props: { default: true },
+        meta: {
+          permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
+          title: 'cert.certificate',
+        },
+      },
       {
         path: '/trust-services',
         components: {
           default: TrustServices,
-          top: TabsBase,
+          navigation: AppMainNavigation,
           alerts: AlertsContainer,
         },
         children: [
           {
             name: RouteName.TrustServices,
             path: '',
-            component: TrustServiceList,
-            meta: { permissions: [Permissions.VIEW_APPROVED_CAS] },
+            component: TrustServicesView,
+            meta: {
+              permissions: [Permissions.VIEW_APPROVED_CAS],
+              title: 'tab.main.trustServices',
+            },
           },
           {
             name: RouteName.TimestampingServiceCertificateDetails,
@@ -347,29 +373,28 @@ const routes: XrdRoute[] = [
             component: TimestampingServiceCertificate,
             meta: {
               permissions: [Permissions.VIEW_APPROVED_TSAS],
-              backOnEscape: true,
+              title: 'cert.certificate',
             },
-            props(route: RouteLocationNormalized): {
-              timestampingServiceId: number;
-            } {
-              const timestampingServiceId = Number(
-                route.params.timestampingServiceId,
-              );
-              return { timestampingServiceId };
+            props(route: RouteLocationNormalized) {
+              return {
+                timestampingServiceId: route.params.timestampingServiceId,
+              };
             },
           },
           {
             path: '/certification-services/:certificationServiceId',
-            component: CertificationService,
-            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props(route: RouteLocationNormalized): {
-              certificationServiceId: number;
-            } {
-              const certificationServiceId = Number(
-                route.params.certificationServiceId,
-              );
-              return { certificationServiceId };
+            component: CertificationServiceView,
+            meta: {
+              permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
+              listView: RouteName.TrustServices,
+              title() {
+                return useCertificationService().currentCertificationService
+                  ?.name;
+              },
             },
+            props: (route: RouteLocationNormalized) => ({
+              certificationServiceId: route.params.certificationServiceId,
+            }),
             redirect: '/certification-services/:certificationServiceId/details',
             children: [
               {
@@ -430,16 +455,11 @@ const routes: XrdRoute[] = [
             component: CertificationServiceCertificate,
             meta: {
               permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
-              backOnEscape: true,
+              title: 'cert.certificate',
             },
-            props: (
-              route: RouteLocationNormalized,
-            ): { certificationServiceId: number } => {
-              const certificationServiceId = Number(
-                route.params.certificationServiceId,
-              );
-              return { certificationServiceId };
-            },
+            props: (route: RouteLocationNormalized) => ({
+              certificationServiceId: route.params.certificationServiceId,
+            }),
           },
           {
             name: RouteName.OcspResponderCertificateDetails,
@@ -447,14 +467,11 @@ const routes: XrdRoute[] = [
             component: OcspResponderCertificate,
             meta: {
               permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
-              backOnEscape: true,
+              title: 'cert.certificate',
             },
-            props: (
-              route: RouteLocationNormalized,
-            ): { ocspResponderId: number } => {
-              const ocspResponderId = Number(route.params.ocspResponderId);
-              return { ocspResponderId };
-            },
+            props: (route: RouteLocationNormalized) => ({
+              ocspResponderId: route.params.ocspResponderId,
+            }),
           },
           {
             name: RouteName.IntermediateCACertificateDetails,
@@ -476,7 +493,6 @@ const routes: XrdRoute[] = [
         path: '/init',
         components: {
           default: InitialConfiguration,
-          top: TabsBaseEmpty,
           alerts: AlertsContainer,
         },
         meta: { permissions: [Permissions.INIT_CONFIG] },
@@ -486,7 +502,7 @@ const routes: XrdRoute[] = [
         path: '/management-requests',
         components: {
           default: ManagementRequests,
-          top: TabsBase,
+          navigation: AppMainNavigation,
           alerts: AlertsContainer,
         },
         children: [
@@ -496,6 +512,7 @@ const routes: XrdRoute[] = [
             component: ManagementRequestsList,
             meta: {
               permissions: [Permissions.VIEW_MANAGEMENT_REQUESTS],
+              title: 'tab.main.managementRequests',
             },
           },
           {
@@ -508,6 +525,12 @@ const routes: XrdRoute[] = [
             },
             meta: {
               permissions: [Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS],
+              listView: RouteName.ManagementRequests,
+              title() {
+                return managementTypeToIconTextColor(
+                  useManagementRequests().currentManagementRequest?.type,
+                )?.text;
+              },
             },
           },
         ],
@@ -517,7 +540,7 @@ const routes: XrdRoute[] = [
         path: '/global-configuration',
         components: {
           default: GlobalConfiguration,
-          top: TabsBase,
+          navigation: AppMainNavigation,
           subTabs: GlobalConfigurationTabs,
           alerts: AlertsContainer,
         },
@@ -574,6 +597,6 @@ const routes: XrdRoute[] = [
     path: '/:pathMatch(.*)',
     component: AppError,
   },
-];
+] as XrdRoute[];
 
 export default routes;

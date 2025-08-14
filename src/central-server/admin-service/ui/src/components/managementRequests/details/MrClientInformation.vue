@@ -25,77 +25,72 @@
    THE SOFTWARE.
  -->
 <template>
-  <data-block :block-title-key="clientInfoTitle">
-    <data-line
-      label-text-key="managementRequestDetails.ownerName"
-      :value="managementRequest.client_owner_name"
-    />
-    <data-line
-      label-text-key="managementRequestDetails.ownerClass"
-      :value="managementRequest.client_id?.member_class"
-    />
-    <data-line
-      label-text-key="managementRequestDetails.ownerCode"
-      :value="managementRequest.client_id?.member_code"
-    />
-    <data-line
-      v-if="!isOwnerChange"
-      label-text-key="managementRequestDetails.subsystemCode"
-      :value="managementRequest.client_id?.subsystem_code"
-    />
-    <data-line
-      v-if="!isOwnerChange"
-      label-text-key="managementRequestDetails.subsystemName"
-      :value="managementRequest.client_subsystem_name"
-    />
-  </data-block>
+  <XrdCard :title="clientInfoTitle">
+    <XrdCardTable>
+      <XrdCardTableRow
+        label="managementRequestDetails.ownerName"
+        :value="managementRequest.client_owner_name"
+      />
+      <XrdCardTableRow
+        label="managementRequestDetails.ownerClass"
+        :value="managementRequest.client_id?.member_class"
+      />
+      <XrdCardTableRow
+        label="managementRequestDetails.ownerCode"
+        :value="managementRequest.client_id?.member_code"
+      />
+      <XrdCardTableRow
+        v-if="!isOwnerChange"
+        label="managementRequestDetails.subsystemCode"
+        :value="managementRequest.client_id?.subsystem_code"
+      />
+      <XrdCardTableRow
+        v-if="!isOwnerChange"
+        label="managementRequestDetails.subsystemName"
+        :value="managementRequest.client_subsystem_name"
+      />
+    </XrdCardTable>
+  </XrdCard>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script lang="ts" setup>
+import { PropType, computed } from 'vue';
 import {
   ManagementRequestDetailedView,
   ManagementRequestType,
 } from '@/openapi-types';
-import DataLine from './DetailsLine.vue';
+import { XrdCard, XrdCardTable, XrdCardTableRow } from '@niis/shared-ui';
 import DataBlock from './DetailsBlock.vue';
 
-export default defineComponent({
-  components: { DataBlock, DataLine },
-  props: {
-    managementRequest: {
-      type: Object as PropType<ManagementRequestDetailedView>,
-      required: true,
-    },
+const props = defineProps({
+  managementRequest: {
+    type: Object as PropType<ManagementRequestDetailedView>,
+    required: true,
   },
-  computed: {
-    isOwnerChange(): boolean {
-      return (
-        this.managementRequest.type ===
-        ManagementRequestType.OWNER_CHANGE_REQUEST
-      );
-    },
-    clientInfoTitle(): string {
-      if (this.isOwnerChange) {
-        return 'managementRequestDetails.ownerChangeInformation';
-      } else if (
-        this.managementRequest.type ===
-        ManagementRequestType.CLIENT_DISABLE_REQUEST
-      ) {
-        return 'managementRequestDetails.clientDisableInformation';
-      } else if (
-        this.managementRequest.type ===
-        ManagementRequestType.CLIENT_ENABLE_REQUEST
-      ) {
-        return 'managementRequestDetails.clientEnableInformation';
-      } else if (
-        this.managementRequest.type ===
-        ManagementRequestType.CLIENT_RENAME_REQUEST
-      ) {
-        return 'managementRequestDetails.clientRenameInformation';
-      }
-      return 'managementRequestDetails.clientInformation';
-    },
-  },
+});
+
+const isOwnerChange = computed(
+  () =>
+    props.managementRequest.type === ManagementRequestType.OWNER_CHANGE_REQUEST,
+);
+
+const clientInfoTitle = computed(() => {
+  if (isOwnerChange.value) {
+    return 'managementRequestDetails.ownerChangeInformation';
+  } else if (
+    props.managementRequest.type ===
+    ManagementRequestType.CLIENT_DISABLE_REQUEST
+  ) {
+    return 'managementRequestDetails.clientDisableInformation';
+  } else if (
+    props.managementRequest.type === ManagementRequestType.CLIENT_ENABLE_REQUEST
+  ) {
+    return 'managementRequestDetails.clientEnableInformation';
+  } else if (
+    props.managementRequest.type === ManagementRequestType.CLIENT_RENAME_REQUEST
+  ) {
+    return 'managementRequestDetails.clientRenameInformation';
+  }
+  return 'managementRequestDetails.clientInformation';
 });
 </script>

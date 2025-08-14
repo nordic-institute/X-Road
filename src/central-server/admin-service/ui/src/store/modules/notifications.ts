@@ -89,6 +89,9 @@ function createEmptyNotification(timeout: number): Notification {
   };
 }
 
+/**
+ * @deprecated Please use one from shared-ui
+ */
 export const useNotifications = defineStore('notifications', {
   state: () => {
     return {

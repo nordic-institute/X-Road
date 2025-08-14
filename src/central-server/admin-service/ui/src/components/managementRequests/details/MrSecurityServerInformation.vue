@@ -25,45 +25,37 @@
    THE SOFTWARE.
  -->
 <template>
-  <data-block
-    block-title-key="managementRequestDetails.securityServerInformation"
-  >
-    <data-line
-      label-text-key="managementRequestDetails.ownerName"
-      :value="managementRequest.security_server_owner"
-    />
-    <data-line
-      label-text-key="managementRequestDetails.ownerClass"
-      :value="managementRequest.security_server_id.member_class"
-    />
-    <data-line
-      label-text-key="managementRequestDetails.ownerCode"
-      :value="managementRequest.security_server_id.member_code"
-    />
-    <data-line
-      label-text-key="managementRequestDetails.serverCode"
-      :value="managementRequest.security_server_id.server_code"
-    />
-    <data-line
-      label-text-key="managementRequestDetails.address"
-      :value="managementRequest.address"
-    />
-  </data-block>
+  <XrdCard title="managementRequestDetails.securityServerInformation">
+    <XrdCardTable>
+      <XrdCardTableRow
+        label="managementRequestDetails.ownerName"
+        :value="managementRequest.security_server_owner"
+      />
+      <XrdCardTableRow
+        label="managementRequestDetails.ownerClass"
+        :value="managementRequest.security_server_id.member_class"
+      />
+      <XrdCardTableRow
+        label="managementRequestDetails.serverCode"
+        :value="managementRequest.security_server_id.server_code"
+      />
+      <XrdCardTableRow
+        label="managementRequestDetails.address"
+        :value="managementRequest.address"
+      />
+    </XrdCardTable>
+  </XrdCard>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script lang="ts" setup>
+import { PropType } from 'vue';
 import { ManagementRequestDetailedView } from '@/openapi-types';
-import DataLine from './DetailsLine.vue';
-import DataBlock from './DetailsBlock.vue';
+import { XrdCard, XrdCardTable, XrdCardTableRow } from '@niis/shared-ui';
 
-export default defineComponent({
-  components: { DataBlock, DataLine },
-  props: {
-    managementRequest: {
-      type: Object as PropType<ManagementRequestDetailedView>,
-      required: true,
-    },
+defineProps({
+  managementRequest: {
+    type: Object as PropType<ManagementRequestDetailedView>,
+    required: true,
   },
 });
 </script>

@@ -25,47 +25,49 @@
    THE SOFTWARE.
  -->
 <template>
-  <data-block block-title-key="managementRequestDetails.requestInformation">
-    <data-line
-      label-text-key="managementRequestDetails.requestId"
-      :value="managementRequest.id"
-    />
-    <data-line label-text-key="managementRequestDetails.received">
-      <date-time
-        v-if="managementRequest.created_at"
-        :value="managementRequest.created_at"
-        with-seconds
+  <XrdCard title="managementRequestDetails.requestInformation">
+    <XrdCardTable>
+      <XrdCardTableRow
+        label="managementRequestDetails.requestId"
+        :value="managementRequest.id"
       />
-    </data-line>
-    <data-line
-      label-text-key="managementRequestDetails.source"
-      :value="managementRequest.origin"
-    />
-    <data-line label-text-key="managementRequestDetails.status">
-      <management-request-status-cell :status="managementRequest.status" />
-    </data-line>
-    <data-line
-      label-text-key="managementRequestDetails.comments"
-      :value="managementRequest.comments"
-    />
-  </data-block>
+      <XrdCardTableRow label="managementRequestDetails.received">
+        <template #value>
+          <date-time
+            v-if="managementRequest.created_at"
+            :value="managementRequest.created_at"
+            with-seconds
+          />
+        </template>
+      </XrdCardTableRow>
+      <XrdCardTableRow
+        label="managementRequestDetails.source"
+        :value="managementRequest.origin"
+      />
+      <XrdCardTableRow label="managementRequestDetails.status">
+        <template #value>
+          <MrStatusCell :status="managementRequest.status" />
+        </template>
+      </XrdCardTableRow>
+      <XrdCardTableRow
+        label="managementRequestDetails.comments"
+        :value="managementRequest.comments"
+      />
+    </XrdCardTable>
+  </XrdCard>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script lang="ts" setup>
+import { PropType } from 'vue';
 import { ManagementRequestDetailedView } from '@/openapi-types';
-import ManagementRequestStatusCell from '../MrStatusCell.vue';
-import DataLine from './DetailsLine.vue';
-import DataBlock from './DetailsBlock.vue';
+import MrStatusCell from '../MrStatusCell.vue';
 import DateTime from '@/components/ui/DateTime.vue';
+import { XrdCardTableRow, XrdCardTable, XrdCard } from '@niis/shared-ui';
 
-export default defineComponent({
-  components: { DateTime, DataBlock, DataLine, ManagementRequestStatusCell },
-  props: {
-    managementRequest: {
-      type: Object as PropType<ManagementRequestDetailedView>,
-      required: true,
-    },
+defineProps({
+  managementRequest: {
+    type: Object as PropType<ManagementRequestDetailedView>,
+    required: true,
   },
 });
 </script>

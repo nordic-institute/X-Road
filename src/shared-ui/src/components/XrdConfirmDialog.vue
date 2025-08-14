@@ -25,20 +25,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
-    :title="title"
-    :cancel-button-text="cancelButtonText"
-    :save-button-text="acceptButtonText"
-    :show-close="false"
-    :loading="loading"
-    :focus-on-save="focusOnAccept"
-    @save="$emit('accept')"
-    @cancel="$emit('cancel')"
-  >
-    <template #text>
-      <slot name="text">{{ $t(text, data) }}</slot>
-    </template>
-  </xrd-simple-dialog>
+  <v-dialog :model-value="true" class="xrd-confirm-dialog" width="400">
+    <v-card class="xrd-rounded-12 bg-surface-container-lowest">
+      <v-card-title class="font-weight-bold title-container pa-6">
+        {{ $t(title) }}
+      </v-card-title>
+      <v-card-text class="pt-0 pr-6 pl-6 pb-2">
+        <slot name="text">
+          <span class="font-weight-regular body-regular">
+            {{ $t(text, data) }}
+          </span>
+        </slot>
+      </v-card-text>
+      <v-card-actions class="pa-4">
+        <XrdBtn variant="text" :text="cancelButtonText" @click="$emit('cancel')" />
+        <XrdBtn variant="text" :text="acceptButtonText" :loading="loading" @click="$emit('accept')" />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -47,7 +51,7 @@
  */
 
 import type { PropType } from 'vue';
-import XrdSimpleDialog from './XrdSimpleDialog.vue';
+import XrdBtn from './XrdBtn.vue';
 
 defineProps({
   modelValue: {

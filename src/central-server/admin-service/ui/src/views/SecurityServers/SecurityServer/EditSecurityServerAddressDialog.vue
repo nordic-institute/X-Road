@@ -41,16 +41,19 @@
     @cancel="close"
   >
     <template #content>
-      <v-text-field
-        v-model="securityServerAddress"
-        v-bind="securityServerAddressAttrs"
-        data-test="security-server-address-edit-field"
-        autofocus
-        variant="outlined"
-        class="dlg-row-input"
-        name="securityServerAddress"
-        :label="$t('securityServers.dialogs.editAddress.addressField')"
-      />
+      <XrdDialogSubView>
+        <XrdDialogSubViewRow full-length>
+          <v-text-field
+            v-model="securityServerAddress"
+            v-bind="securityServerAddressAttrs"
+            data-test="security-server-address-edit-field"
+            name="securityServerAddress"
+            class="xrd-text-field"
+            autofocus
+            :label="$t('securityServers.dialogs.editAddress.addressField')"
+          />
+        </XrdDialogSubViewRow>
+      </XrdDialogSubView>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -58,7 +61,11 @@
 <script lang="ts" setup>
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useForm } from 'vee-validate';
-import { useBasicForm } from '@/util/composables';
+import {
+  useBasicForm,
+  XrdDialogSubView,
+  XrdDialogSubViewRow,
+} from '@niis/shared-ui';
 
 /**
  * Component for a Security server details view
@@ -91,7 +98,7 @@ const [securityServerAddress, securityServerAddressAttrs] = defineField(
 );
 
 const { updateAddress } = useSecurityServer();
-const { showOrTranslateErrors, showSuccess, loading, t } = useBasicForm(
+const { showOrTranslateErrors, addSuccessMessage, loading } = useBasicForm(
   setFieldError,
   { securityServerAddress: 'securityServerAddressDto.serverAddress' },
 );
@@ -105,7 +112,7 @@ const saveAddress = handleSubmit((values) => {
   loading.value = true;
   updateAddress(props.securityServerId, values.securityServerAddress)
     .then(() => {
-      showSuccess(t('securityServers.dialogs.editAddress.success'));
+      addSuccessMessage('securityServers.dialogs.editAddress.success');
       emits('save');
     })
     .catch((error) => showOrTranslateErrors(error))

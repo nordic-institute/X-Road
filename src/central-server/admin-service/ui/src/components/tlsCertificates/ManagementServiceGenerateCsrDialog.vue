@@ -13,7 +13,7 @@
    copies of the Software, and to permit persons to whom the Software is
    furnished to do so, subject to the following conditions:
 
-   The above copyright notice and this permission notice shall be included in
+   The above copyright notice and this permission notice shall be included
    all copies or substantial portions of the Software.
 
    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -59,8 +59,8 @@
 
 <script lang="ts" setup>
 import { useManagementServices } from '@/store/modules/management-services';
-import { useBasicForm } from '@/util/composables';
 import { useForm } from 'vee-validate';
+import { useBasicForm } from '@niis/shared-ui';
 
 const emit = defineEmits(['cancel', 'generate']);
 
@@ -76,14 +76,14 @@ const [distinguishedName, distinguishedNameAttrs] = defineField(
 );
 
 const { generateCsr } = useManagementServices();
-const { loading, showError } = useBasicForm();
+const { loading, addError } = useBasicForm();
 
 const submit = handleSubmit((values) => {
   loading.value = true;
   generateCsr(values.distinguishedName)
     .then(() => emit('generate'))
     .catch((error) => {
-      showError(error);
+      addError(error);
       emit('cancel');
     })
     .finally(() => (loading.value = false));

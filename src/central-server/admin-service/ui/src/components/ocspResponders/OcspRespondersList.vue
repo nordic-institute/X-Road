@@ -25,71 +25,64 @@
    THE SOFTWARE.
  -->
 <template>
-  <main id="ocsp-responders" class="mt-8">
+  <XrdSubView id="ocsp-responders" class="mt-8">
+    <template #header>
+      <v-spacer />
+      <XrdBtn
+        data-test="add-ocsp-responder-button"
+        variant="flat"
+        prepend-icon="add_circle"
+        text="action.add"
+        @click="showAddOcspResponderDialog = true"
+      />
+    </template>
     <!-- Table -->
     <v-data-table
+      item-value="id"
+      data-test="ocsp-responders-table"
+      class="xrd-data-table"
+      hide-default-footer
+      must-sort
       :loading="loading"
       :headers="headers"
       :header-props="{ showHeaderBorder: false }"
       :items="ocspResponders"
-      :must-sort="true"
       :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-value="id"
-      :loader-height="2"
-      data-test="ocsp-responders-table"
     >
-      <template #top>
-        <data-table-toolbar>
-          <xrd-button
-            variant="outlined"
-            data-test="add-ocsp-responder-button"
-            @click="showAddOcspResponderDialog = true"
-          >
-            <v-icon class="xrd-large-button-icon" icon="icon-Add" />
-            {{ $t('action.add') }}
-          </xrd-button>
-        </data-table-toolbar>
-      </template>
-
       <template #[`item.url`]="{ item }">
-        <div class="xrd-clickable">
-          {{ item.url }}
-        </div>
+        <XrdIconWithLabel
+          icon="database"
+          clickable
+          semi-bold
+          :label="item.url"
+        />
       </template>
 
       <template #[`item.button`]="{ item }">
-        <div class="cs-table-actions-wrap">
-          <xrd-button
-            v-if="item.has_certificate"
-            text
-            :outlined="false"
-            data-test="view-ocsp-responder-certificate"
-            @click="navigateToCertificateDetails(item)"
-          >
-            {{ $t('trustServices.viewCertificate') }}
-          </xrd-button>
-          <xrd-button
-            text
-            :outlined="false"
-            data-test="edit-ocsp-responder"
-            @click="openEditOcspResponderDialog(item)"
-          >
-            {{ $t('action.edit') }}
-          </xrd-button>
-          <xrd-button
-            text
-            :outlined="false"
-            data-test="delete-ocsp-responder"
-            @click="openDeleteConfirmationDialog(item)"
-          >
-            {{ $t('action.delete') }}
-          </xrd-button>
-        </div>
-      </template>
-
-      <template #bottom>
-        <XrdDataTableFooter />
+        <XrdBtn
+          v-if="item.has_certificate"
+          data-test="view-ocsp-responder-certificate"
+          text="trustServices.viewCertificate"
+          variant="text"
+          color="tertiary"
+          @click="navigateToCertificateDetails(item)"
+        />
+        <XrdBtn
+          data-test="edit-ocsp-responder"
+          class="ml-4"
+          text="action.edit"
+          variant="text"
+          color="tertiary"
+          @click="openEditOcspResponderDialog(item)"
+        />
+        <XrdBtn
+          data-test="delete-ocsp-responder"
+          class="ml-4"
+          text="action.delete"
+          variant="text"
+          color="tertiary"
+          @click="openDeleteConfirmationDialog(item)"
+        />
       </template>
     </v-data-table>
 
@@ -111,7 +104,7 @@
     />
 
     <!-- Confirm delete dialog -->
-    <xrd-confirm-dialog
+    <XrdConfirmDialog
       v-if="confirmDelete"
       title="trustServices.trustService.ocspResponders.delete.confirmationDialog.title"
       text="trustServices.trustService.ocspResponders.delete.confirmationDialog.message"
@@ -121,14 +114,13 @@
       @cancel="confirmDelete = false"
       @accept="deleteOcspResponder"
     />
-  </main>
+  </XrdSubView>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { mapActions } from 'pinia';
 import { useOcspResponderService } from '@/store/modules/trust-services';
-import { useNotifications } from '@/store/modules/notifications';
 import AddOcspResponderDialog from '@/components/ocspResponders/AddOcspResponderDialog.vue';
 import {
   ApprovedCertificationService,
@@ -137,14 +129,19 @@ import {
 } from '@/openapi-types';
 import EditOcspResponderDialog from '@/components/ocspResponders/EditOcspResponderDialog.vue';
 import { RouteName } from '@/global';
-import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
-import { XrdDataTableFooter } from '@niis/shared-ui';
+import {
+  XrdSubView,
+  XrdBtn,
+  XrdIconWithLabel,
+  useNotifications,
+} from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {
-    XrdDataTableFooter,
-    DataTableToolbar,
+    XrdSubView,
+    XrdBtn,
+    XrdIconWithLabel,
     EditOcspResponderDialog,
     AddOcspResponderDialog,
   },
@@ -186,6 +183,7 @@ export default defineComponent({
         {
           title: '',
           key: 'button',
+          align: 'end',
           sortable: false,
         },
       ];
@@ -195,7 +193,7 @@ export default defineComponent({
     this.ocspResponderServiceStore.loadByCa(this.ca);
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['addError', 'addSuccessMessage']),
     hideAddOcspResponderDialog() {
       this.showAddOcspResponderDialog = false;
     },
@@ -232,20 +230,18 @@ export default defineComponent({
       this.ocspResponderServiceStore
         .deleteOcspResponder(this.selectedOcspResponder.id)
         .then(() => {
-          this.showSuccess(
-            this.$t('trustServices.trustService.ocspResponders.delete.success'),
+          this.addSuccessMessage(
+            'trustServices.trustService.ocspResponders.delete.success',
           );
           this.confirmDelete = false;
           this.deletingOcspResponder = false;
           this.fetchOcspResponders();
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
         });
     },
   },
 });
 </script>
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables' as *;
-</style>
+<style lang="scss" scoped></style>

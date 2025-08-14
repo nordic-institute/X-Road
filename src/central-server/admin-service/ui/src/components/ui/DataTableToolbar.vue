@@ -48,6 +48,9 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
+/**
+ * @deprecated Use XrdSubView instead or similar.
+ */
 export default defineComponent({
   props: {
     titleKey: {

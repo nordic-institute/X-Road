@@ -25,42 +25,44 @@
    THE SOFTWARE.
  -->
 <template>
-  <data-block block-title-key="managementRequestDetails.certificateformation">
-    <data-line
-      label-text-key="managementRequestDetails.ca"
-      :value="managementRequest.certificate_details?.subject_common_name"
-    />
-    <data-line
-      label-text-key="managementRequestDetails.serialNumber"
-      :value="managementRequest.certificate_details?.serial"
-    />
-    <data-line
-      label-text-key="managementRequestDetails.subject"
-      :value="managementRequest.certificate_details?.subject_distinguished_name"
-    />
-    <data-line label-text-key="managementRequestDetails.expires">
-      <date-time
-        :value="managementRequest.certificate_details?.not_after"
-        with-seconds
+  <XrdCard title="managementRequestDetails.certificateformation">
+    <XrdCardTable>
+      <XrdCardTableRow
+        label="managementRequestDetails.ca"
+        :value="managementRequest.certificate_details?.subject_common_name"
       />
-    </data-line>
-  </data-block>
+      <XrdCardTableRow
+        label="managementRequestDetails.serialNumber"
+        :value="managementRequest.certificate_details?.serial"
+      />
+      <XrdCardTableRow
+        label="managementRequestDetails.subject"
+        :value="
+          managementRequest.certificate_details?.subject_distinguished_name
+        "
+      />
+      <XrdCardTableRow label="managementRequestDetails.expires">
+        <template #value>
+          <DateTime
+            :value="managementRequest.certificate_details?.not_after"
+            with-seconds
+          />
+        </template>
+      </XrdCardTableRow>
+    </XrdCardTable>
+  </XrdCard>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script lang="ts" setup>
+import { PropType } from 'vue';
 import { ManagementRequestDetailedView } from '@/openapi-types';
-import DataLine from './DetailsLine.vue';
-import DataBlock from './DetailsBlock.vue';
 import DateTime from '@/components/ui/DateTime.vue';
+import { XrdCardTableRow, XrdCardTable, XrdCard } from '@niis/shared-ui';
 
-export default defineComponent({
-  components: { DateTime, DataBlock, DataLine },
-  props: {
-    managementRequest: {
-      type: Object as PropType<ManagementRequestDetailedView>,
-      required: true,
-    },
+defineProps({
+  managementRequest: {
+    type: Object as PropType<ManagementRequestDetailedView>,
+    required: true,
   },
 });
 </script>

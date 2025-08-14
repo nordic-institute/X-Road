@@ -55,13 +55,6 @@
         </template>
       </xrd-expandable>
       <xrd-expandable>
-        <template #link> xrd-search </template>
-        <template #content>
-          <xrd-search v-model="search" label="search-label" />
-          <xrd-search v-model="search" label="search-label" />
-        </template>
-      </xrd-expandable>
-      <xrd-expandable>
         <template #link> xrd-sub-view-title/container </template>
         <template #content>
           <xrd-sub-view-container>
@@ -191,7 +184,6 @@ const loading = ref(false);
 const simpleDialog = ref(false);
 const confirmDialog = ref(false);
 const helpDialog = ref(false);
-const search = ref('');
 const backups = ref([{ filename: 'safafaf.gpg' }]);
 const backupsHandler = ref({
   download(filename: string): Promise<unknown> {

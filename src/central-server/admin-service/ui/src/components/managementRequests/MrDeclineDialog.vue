@@ -39,8 +39,8 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { useManagementRequests } from '@/store/modules/management-requests';
-import { useNotifications } from '@/store/modules/notifications';
 import { useI18n } from 'vue-i18n';
+import { useNotifications } from '@niis/shared-ui';
 
 /**
  * General component for Management request actions
@@ -59,28 +59,25 @@ const props = defineProps({
 const emits = defineEmits(['decline', 'cancel']);
 
 const { decline: declineManagementRequest } = useManagementRequests();
-const { showSuccess, showError } = useNotifications();
+const { addSuccessMessage, addError } = useNotifications();
 
 const messageData = computed(() => ({
   id: props.requestId,
   serverId: props.securityServerId,
 }));
 const loading = ref(false);
-const { t } = useI18n();
 
 function decline(): void {
   loading.value = true;
   declineManagementRequest(props.requestId)
     .then(() => {
-      showSuccess(
-        t(
-          'managementRequests.dialog.decline.successMessage',
-          messageData.value,
-        ),
+      addSuccessMessage(
+        'managementRequests.dialog.decline.successMessage',
+        messageData.value,
       );
       emits('decline');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = true));
 }
 </script>

@@ -28,5 +28,21 @@
 import XrdAppBase from './XrdAppBase.vue';
 import XrdSubViewContainer from './XrdSubViewContainer.vue';
 import XrdAppFooter from './XrdAppFooter.vue';
+import XrdApp from './XrdApp.vue';
+import XrdView from './XrdView.vue';
+import XrdElevatedView from './XrdElevatedView.vue';
+import XrdSubView from './XrdSubView.vue';
+import XrdDialogSubView from './XrdDialogSubView.vue';
+import XrdDialogSubViewRow from './XrdDialogSubViewRow.vue';
 
-export { XrdAppBase, XrdSubViewContainer, XrdAppFooter };
+export {
+  XrdAppBase,
+  XrdSubViewContainer,
+  XrdAppFooter,
+  XrdApp,
+  XrdView,
+  XrdElevatedView,
+  XrdSubView,
+  XrdDialogSubView,
+  XrdDialogSubViewRow,
+};

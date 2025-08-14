@@ -37,7 +37,6 @@ import XrdFileUploadField from './XrdFileUploadField.vue';
 import XrdFormLabel from './XrdFormLabel.vue';
 import XrdHelpDialog from './XrdHelpDialog.vue';
 import XrdHelpIcon from './XrdHelpIcon.vue';
-import XrdSearch from './XrdSearch.vue';
 import XrdSimpleDialog from './XrdSimpleDialog.vue';
 import XrdStatusIcon from './XrdStatusIcon.vue';
 import XrdSubViewTitle from './XrdSubViewTitle.vue';
@@ -47,10 +46,19 @@ import XrdAppIcon from './XrdAppIcon.vue';
 import XrdLanguageDropdown from './XrdLanguageDropdown.vue';
 import XrdAppDropMenu from './XrdAppDropMenu.vue';
 import XrdSubTabs from './XrdSubTabs.vue';
-import XrdTabsBase from './XrdTabsBase.vue';
+import XrdMainNavigation from './XrdMainNavigation.vue';
+import XrdEmptyTabsBase from './XrdEmptyTabsBase.vue';
 import XrdDataTableFooter from './XrdDataTableFooter.vue';
-import XrdSnackBar from './XrdSnackBar.vue';
-import XrdErrorNotification from './XrdErrorNotification.vue';
+import XrdErrorNotifications from './XrdErrorNotifications.vue';
+import XrdBtn from './XrdBtn.vue';
+import XrdPagination from './XrdPagination.vue';
+import XrdCard from './XrdCard.vue';
+import XrdCardTable from './XrdCardTable.vue';
+import XrdCardTableRow from './XrdCardTableRow.vue';
+import XrdStatusChip from './XrdStatusChip.vue';
+import XrdIconWithLabel from './XrdIconWithLabel.vue';
+import XrdFormattedHash from './XrdFormattedHash.vue';
+import XrdMainNavigationContainer from './XrdMainNavigationContainer.vue';
 
 export {
   XrdAppIcon,
@@ -66,7 +74,6 @@ export {
   XrdFormLabel,
   XrdHelpDialog,
   XrdHelpIcon,
-  XrdSearch,
   XrdSimpleDialog,
   XrdStatusIcon,
   XrdSubViewTitle,
@@ -75,8 +82,17 @@ export {
   XrdLanguageDropdown,
   XrdAppDropMenu,
   XrdSubTabs,
-  XrdTabsBase,
+  XrdMainNavigation,
+  XrdEmptyTabsBase,
   XrdDataTableFooter,
-  XrdSnackBar,
-  XrdErrorNotification,
+  XrdErrorNotifications,
+  XrdBtn,
+  XrdPagination,
+  XrdCard,
+  XrdCardTable,
+  XrdCardTableRow,
+  XrdStatusChip,
+  XrdIconWithLabel,
+  XrdFormattedHash,
+  XrdMainNavigationContainer,
 };

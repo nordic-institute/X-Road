@@ -44,20 +44,24 @@
       }}
     </template>
     <template #content>
-      <v-text-field
-        v-model="securityServerCode"
-        v-bind="securityServerCodeAttrs"
-        data-test="verify-server-code"
-        variant="outlined"
-        autofocus
-        :placeholder="
-          $t(
-            'securityServers.securityServer.dialog.deleteAuthCertificate.securityServerCode',
-          )
-        "
-        :label="$t('fields.securityServerCode')"
-      >
-      </v-text-field>
+      <XrdDialogSubView>
+        <XrdDialogSubViewRow full-length>
+          <v-text-field
+            v-model="securityServerCode"
+            v-bind="securityServerCodeAttrs"
+            data-test="verify-server-code"
+            class="xrd-text-field"
+            autofocus
+            :placeholder="
+              $t(
+                'securityServers.securityServer.dialog.deleteAuthCertificate.securityServerCode',
+              )
+            "
+            :label="$t('fields.securityServerCode')"
+          >
+          </v-text-field>
+        </XrdDialogSubViewRow>
+      </XrdDialogSubView>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -69,6 +73,7 @@ import { useSecurityServerAuthCert } from '@/store/modules/security-servers-auth
 import { ref, PropType } from 'vue';
 import { useForm } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
+import { XrdDialogSubViewRow, XrdDialogSubView } from '@niis/shared-ui';
 
 const props = defineProps({
   authenticationCertificateId: {

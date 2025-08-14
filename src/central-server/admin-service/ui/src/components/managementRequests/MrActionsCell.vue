@@ -30,27 +30,25 @@
       v-if="managementRequest.status === 'WAITING'"
       :data-test="`actions-for-MR-${managementRequest.id}`"
     >
-      <xrd-button
+      <XrdBtn
         v-if="showApproveButton"
-        :outlined="false"
         data-test="approve-button"
-        text
+        variant="text"
+        text="action.approve"
+        color="tertiary"
         @click="showApproveDialog = true"
-      >
-        {{ $t('action.approve') }}
-      </xrd-button>
+      />
 
-      <xrd-button
+      <XrdBtn
         v-if="showDeclineButton"
-        :outlined="false"
         data-test="decline-button"
-        text
+        variant="text"
+        text="action.decline"
+        color="tertiary"
         @click="showDeclineDialog = true"
-      >
-        {{ $t('action.decline') }}
-      </xrd-button>
+      />
     </div>
-    <mr-confirm-dialog
+    <MrConfirmDialog
       v-if="
         showApproveDialog &&
         managementRequest.id &&
@@ -62,7 +60,7 @@
       @approve="approve"
       @cancel="showApproveDialog = false"
     />
-    <mr-decline-dialog
+    <MrDeclineDialog
       v-if="
         showDeclineDialog &&
         managementRequest.id &&
@@ -87,12 +85,14 @@ import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import MrConfirmDialog from '@/components/managementRequests/MrConfirmDialog.vue';
 import MrDeclineDialog from '@/components/managementRequests/MrDeclineDialog.vue';
+import { XrdBtn } from '@niis/shared-ui';
 
 /**
  * General component for Management request actions
  */
 export default defineComponent({
   components: {
+    XrdBtn,
     MrDeclineDialog,
     MrConfirmDialog,
   },

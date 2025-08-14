@@ -25,12 +25,31 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="security-server-clients-view">
-    <div id="clients-filter">
-      <xrd-search v-model="search" class="mb-4" />
-    </div>
+  <XrdSubView data-test="security-server-clients-view">
+    <template #header>
+      <div>
+        <v-text-field
+          v-model="search"
+          data-test="search-query-field"
+          class="xrd-text-field"
+          bg-color="surface-container"
+          variant="outlined"
+          rounded="pill"
+          density="compact"
+          width="320"
+          prepend-inner-icon="search"
+          single-line
+          hide-details
+          :label="$t('action.search')"
+        />
+      </div>
+    </template>
+
     <!-- Table -->
     <v-data-table
+      class="xrd-data-table bg-surface-container xrd-rounded-12"
+      item-key="id"
+      hide-default-footer
       :loading="loading"
       :headers="headers"
       :items="clients"
@@ -38,35 +57,19 @@
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
       :loader-height="2"
     >
       <template #[`item.member_name`]="{ item }">
-        <div
-          v-if="hasPermissionToMemberDetails"
-          class="table-cell-member-name-action"
-          @click="toMemberDetails(item)"
-        >
-          <xrd-icon-base class="xrd-clickable mr-4">
-            <xrd-icon-folder-outline />
-          </xrd-icon-base>
-          {{ item.member_name }}
-        </div>
-
-        <div v-else class="table-cell-member-name">
-          <xrd-icon-base class="mr-4">
-            <xrd-icon-folder-outline />
-          </xrd-icon-base>
-          {{ item.member_name }}
-        </div>
-      </template>
-
-      <template #bottom>
-        <XrdDataTableFooter />
+        <XrdIconWithLabel
+          semi-bold
+          :icon="item.client_id.subsystem_code ? 'id_card' : 'folder filled'"
+          :label="item.member_name"
+          :clickable="hasPermissionToMemberDetails"
+          @navigate="toMemberDetails(item)"
+        />
       </template>
     </v-data-table>
-  </div>
+  </XrdSubView>
 </template>
 
 <script lang="ts">
@@ -77,15 +80,15 @@ import { defineComponent } from 'vue';
 import { Client } from '@/openapi-types';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
-import { useNotifications } from '@/store/modules/notifications';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { toMemberId } from '@/util/helpers';
 import { DataTableHeader } from '@/ui-types';
-import { XrdDataTableFooter } from '@niis/shared-ui';
+import { XrdSubView, XrdIconWithLabel, useNotifications } from '@niis/shared-ui';
+import { useSecurityServer } from '@/store/modules/security-servers';
 
 export default defineComponent({
-  components: { XrdDataTableFooter },
+  components: { XrdSubView, XrdIconWithLabel },
   props: {
     serverId: {
       type: String,
@@ -100,7 +103,7 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapStores(useClient),
+    ...mapStores(useClient, useSecurityServer),
     ...mapState(useUser, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
@@ -138,14 +141,14 @@ export default defineComponent({
         this.clients = resp;
       })
       .catch((error) => {
-        this.showError(error);
+        this.addError(error);
       })
       .finally(() => {
         this.loading = false;
       });
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['addError']),
     toMemberDetails(client: Client): void {
       this.$router.push({
         name: RouteName.MemberDetails,
@@ -158,24 +161,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables' as *;
-
-.table-cell-member-name-action {
-  color: colors.$Purple100;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.table-cell-member-name {
-  font-weight: 600;
-  font-size: 14px;
-}
-
-#clients-filter {
-  display: flex;
-  justify-content: space-between;
-}
-</style>
+<style lang="scss" scoped></style>

@@ -38,16 +38,16 @@
         {{ $t('trustServices.viewCertificate') }}
       </xrd-button>
     </div>
-    <PageNavigation :tabs="intermediateCaNavigationTabs" />
+    <ViewNavigation :tabs="intermediateCaNavigationTabs" />
     <router-view />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PageNavigation, {
+import ViewNavigation, {
   PageNavigationTab,
-} from '@/layouts/PageNavigation.vue';
+} from '@/layouts/ViewNavigation.vue';
 import { Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useIntermediateCasService } from '@/store/modules/trust-services';
@@ -57,7 +57,7 @@ import { useIntermediateCasService } from '@/store/modules/trust-services';
  */
 export default defineComponent({
   name: 'IntermediateCa',
-  components: { PageNavigation },
+  components: { ViewNavigation },
   props: {
     intermediateCaId: {
       type: Number,
