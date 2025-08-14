@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 
 import java.io.IOException;
@@ -40,6 +41,7 @@ import java.net.URL;
 
 @RequiredArgsConstructor
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 abstract class LocationVersionResolver {
     private static final String VERSION_QUERY_PARAMETER = "version";
 

@@ -40,7 +40,7 @@ public interface KeyManager {
      * Generates X509 encoded public key bytes from a given key spec.
      * @param keySPec the key spec
      * @return generated public key bytes
-     * @throws Exception if any errors occur
+     * @throws InvalidKeySpecException if any errors occur
      */
     byte[] generateX509PublicKey(KeySpec keySPec) throws InvalidKeySpecException;
 
@@ -48,7 +48,7 @@ public interface KeyManager {
      * Generates X509 encoded public key bytes from a given public key.
      * @param publicKey the public key
      * @return generated public key bytes
-     * @throws Exception if any errors occur
+     * @throws InvalidKeySpecException if any errors occur
      */
     byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException;
 
@@ -56,21 +56,26 @@ public interface KeyManager {
      * Reads a public key from X509 encoded bytes.
      * @param encoded the data
      * @return public key read from the bytes
-     * @throws Exception if any errors occur
+     * @throws InvalidKeySpecException if any errors occur
      */
-    PublicKey readX509PublicKey(byte[] encoded) throws Exception;
+    PublicKey readX509PublicKey(byte[] encoded) throws InvalidKeySpecException;
 
     /**
      * Reads a public key from X509 encoded bytes.
      * @param encodedBase64 the data as base64 encoded string
      * @return public key read from the bytes
-     * @throws Exception if any errors occur
+     * @throws InvalidKeySpecException if any errors occur
      */
-    PublicKey readX509PublicKey(String encodedBase64) throws Exception;
+    PublicKey readX509PublicKey(String encodedBase64) throws InvalidKeySpecException;
 
     SignAlgorithm getSoftwareTokenSignAlgorithm();
 
     SignAlgorithm getSoftwareTokenKeySignAlgorithm();
 
-    KeyPair generateKeyPair() throws Exception;
+    /**
+     * Generates a key pair for the specified key algorithm.
+     * @return generated key pair
+     * @throws org.niis.xroad.common.core.exception.XrdRuntimeException if an error occurs during key pair generation
+     */
+    KeyPair generateKeyPair();
 }

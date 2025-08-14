@@ -31,6 +31,7 @@ import ee.ria.xroad.common.HttpStatus;
 import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.soap.SOAPException;
 import lombok.Getter;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -202,6 +203,19 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
                 .build();
     }
 
+    public static XrdRuntimeException systemInternalError(String details) {
+        return new Builder(ExceptionCategory.SYSTEM, ErrorCodes.INTERNAL_ERROR)
+                .details(details)
+                .build();
+    }
+
+    public static XrdRuntimeException systemInternalError(String details, Throwable ex) {
+        return new Builder(ExceptionCategory.SYSTEM, ErrorCodes.INTERNAL_ERROR)
+                .details(details)
+                .cause(ex)
+                .build();
+    }
+
     /**
      * Resolves the appropriate error code based on the exception type.
      * Maps common technical exceptions to X-Road error codes.
@@ -209,6 +223,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
      * @param ex the exception to analyze
      * @return the appropriate ErrorCodes enum value
      */
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private static ErrorCodes resolveExceptionCode(Throwable ex) {
         return switch (ex) {
             case CodedException cex -> ErrorCodes.fromCode(cex.getFaultCode());

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.monitoringparameters.MonitoringClientType;
 import org.niis.xroad.globalconf.schema.monitoringparameters.MonitoringParametersType;
 import org.niis.xroad.globalconf.schema.monitoringparameters.ObjectFactory;
@@ -61,7 +62,7 @@ public class MonitoringParameters extends AbstractXmlConf<MonitoringParametersTy
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 }

@@ -89,12 +89,13 @@ public class SignatureBuilder {
 
     /**
      * Builds signature data using the given signing key and signature digest algorithm.
-     * @param signingKey the signing key
+     *
+     * @param signingKey                 the signing key
      * @param signatureDigestAlgorithmId ID of the signature digest algorithm
      * @return the signature data
      * @throws Exception in case of any errors
      */
-    public SignatureData build(SigningKey signingKey, DigestAlgorithm signatureDigestAlgorithmId) throws Exception {
+    public SignatureData build(SigningKey signingKey, DigestAlgorithm signatureDigestAlgorithmId) {
         log.trace("Sign, {} part(s)", parts.size());
 
         SigningRequest request = new SigningRequest(signingCert, parts);

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -41,6 +42,7 @@ import static org.niis.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
 /**
  * Utility tool for adding new signing keys to a configuration proxy instance.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
 
     /**

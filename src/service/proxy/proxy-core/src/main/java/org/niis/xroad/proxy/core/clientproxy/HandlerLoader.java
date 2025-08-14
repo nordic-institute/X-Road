@@ -28,11 +28,14 @@ package org.niis.xroad.proxy.core.clientproxy;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Handler;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 
 import java.lang.reflect.Constructor;
 
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 final class HandlerLoader {
     private final CommonBeanProxy commonBeanProxy;
 
@@ -43,8 +46,7 @@ final class HandlerLoader {
             Class<? extends Handler> handlerClass = getHandlerClass(className);
             return instantiate(handlerClass, client);
         } catch (Exception e) {
-            throw new RuntimeException("Cannot load handler for name '"
-                    + className + "'", e);
+            throw XrdRuntimeException.systemInternalError("Cannot load handler for name '" + className + "'", e);
         }
     }
 

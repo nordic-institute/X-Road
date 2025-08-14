@@ -178,7 +178,7 @@ public class CertificateInfoSensor extends AbstractSensor {
 
         @FunctionalInterface
         interface Lister {
-            List<TokenInfo> listTokens() throws Exception;
+            List<TokenInfo> listTokens();
         }
 
         private final Lister tokenInfoLister;

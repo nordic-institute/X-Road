@@ -31,6 +31,7 @@ import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MessageFileNames;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.signature.SignatureBuilder;
 
@@ -81,6 +82,7 @@ public class Signer {
      * @param ctx signing context used for signing
      * @throws Exception in case of any errors
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void sign(SigningCtx ctx) throws Exception {
         signature = ctx.buildSignature(builder);
     }

@@ -42,6 +42,8 @@ import ee.ria.xroad.common.util.TimeUtils;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -72,6 +74,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * The logging system consists of a task queue, timestamper, archiver and log cleaner.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class LogManager extends AbstractLogManager {
 
     static final long MAX_LOGGABLE_BODY_SIZE = MessageLogProperties.getMaxLoggableBodySize();
@@ -120,39 +123,47 @@ public class LogManager extends AbstractLogManager {
     // ------------------------------------------------------------------------
 
     @Override
-    public void log(LogMessage message) throws Exception {
-        boolean shouldTimestampImmediately = shouldTimestampImmediately();
+    public void log(LogMessage message) {
+        try {
+            boolean shouldTimestampImmediately = shouldTimestampImmediately();
 
-        verifyCanLogMessage(shouldTimestampImmediately);
+            verifyCanLogMessage(shouldTimestampImmediately);
 
-        MessageRecord logRecord = switch (message) {
-            case SoapLogMessage sm -> createMessageRecord(sm);
-            case RestLogMessage rm -> createMessageRecord(rm);
-        };
+            MessageRecord logRecord = switch (message) {
+                case SoapLogMessage sm -> createMessageRecord(sm);
+                case RestLogMessage rm -> createMessageRecord(rm);
+            };
 
-        logRecord = saveMessageRecord(logRecord);
+            logRecord = saveMessageRecord(logRecord);
 
-        if (shouldTimestampImmediately) {
-            timestampImmediately(logRecord);
+            if (shouldTimestampImmediately) {
+                timestampImmediately(logRecord);
+            }
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
     @Override
-    public TimestampRecord timestamp(Long messageRecordId) throws Exception {
+    public TimestampRecord timestamp(Long messageRecordId) {
         log.trace("timestamp({})", messageRecordId);
 
-        MessageRecord record = (MessageRecord) LogRecordManager.get(messageRecordId);
+        try {
+            var messageRecord = (MessageRecord) LogRecordManager.get(messageRecordId);
 
-        if (record.getTimestampRecord() != null) {
-            return record.getTimestampRecord();
-        } else {
-            TimestampRecord timestampRecord = timestampImmediately(record);
-            // Avoid blocking the message logging (in non-timestamp-immediately mode) in case the last periodical
-            // timestamping task failed and currently the task queue got empty, but no more messages are logged until
-            // the acceptable timestamp failure period is reached.
-            setTimestampSucceeded();
+            if (messageRecord.getTimestampRecord() != null) {
+                return messageRecord.getTimestampRecord();
+            } else {
+                TimestampRecord timestampRecord = timestampImmediately(messageRecord);
+                // Avoid blocking the message logging (in non-timestamp-immediately mode) in case the last periodical
+                // timestamping task failed and currently the task queue got empty, but no more messages are logged until
+                // the acceptable timestamp failure period is reached.
+                setTimestampSucceeded();
 
-            return timestampRecord;
+                return timestampRecord;
+            }
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

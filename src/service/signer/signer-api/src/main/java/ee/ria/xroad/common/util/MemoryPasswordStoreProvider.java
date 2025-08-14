@@ -25,9 +25,12 @@
  */
 package ee.ria.xroad.common.util;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
 /**
  * Manages passwords stored in the shared memory segment.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class MemoryPasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
 
     static {

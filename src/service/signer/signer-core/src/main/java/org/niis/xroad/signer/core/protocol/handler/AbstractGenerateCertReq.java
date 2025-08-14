@@ -56,9 +56,12 @@ import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -77,7 +80,8 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         RespT extends AbstractMessage> extends AbstractRpcHandler<ReqT, RespT> {
 
     PKCS10CertificationRequest buildSignedCertRequest(TokenAndKey tokenAndKey, String subjectName,
-                                                      String subjectAltName, KeyUsageInfo keyUsage) throws Exception {
+                                                      String subjectAltName, KeyUsageInfo keyUsage)
+            throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 
         if (tokenAndKey.key().getPublicKey() == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", tokenAndKey.getKeyId());
@@ -113,8 +117,7 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         return certRequestBuilder.build(signer);
     }
 
-    static byte[] convert(PKCS10CertificationRequest request, CertificateRequestFormat format)
-            throws Exception {
+    static byte[] convert(PKCS10CertificationRequest request, CertificateRequestFormat format) throws IOException {
         if (CertificateRequestFormat.PEM == format) {
             return toPem(request);
         } else {
@@ -122,7 +125,7 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         }
     }
 
-    private static byte[] toPem(PKCS10CertificationRequest req) throws Exception {
+    private static byte[] toPem(PKCS10CertificationRequest req) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         try (var pw = new JcaPEMWriter(new OutputStreamWriter(out))) {

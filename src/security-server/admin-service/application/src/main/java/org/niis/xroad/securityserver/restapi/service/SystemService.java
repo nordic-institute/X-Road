@@ -38,6 +38,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -124,6 +125,7 @@ public class SystemService {
 
     /**
      * Return a list of configured timestamping services
+     *
      * @return
      */
     public List<TimestampingService> getConfiguredTimestampingServices() {
@@ -132,6 +134,7 @@ public class SystemService {
 
     /**
      * Audit log tsp name and url
+     *
      * @param timestampingService
      */
     private void auditLog(TimestampingService timestampingService) {
@@ -172,6 +175,7 @@ public class SystemService {
 
     /**
      * Deletes a configured timestamping service from serverconf
+     *
      * @param timestampingServiceToDelete
      * @throws TimestampingServiceNotFoundException
      */
@@ -204,6 +208,7 @@ public class SystemService {
 
     /**
      * Generate internal auth cert CSR
+     *
      * @param distinguishedName
      * @return
      * @throws InvalidDistinguishedNameException if {@code distinguishedName} does not conform to
@@ -224,6 +229,7 @@ public class SystemService {
 
     /**
      * Get configuration anchor file
+     *
      * @return
      * @throws AnchorFileNotFoundException if anchor file is not found
      */
@@ -237,6 +243,7 @@ public class SystemService {
     /**
      * Calculate the hex hash of the given anchor file. Used to verify/preview an anchor file before
      * uploading it
+     *
      * @param anchorBytes
      * @param shouldVerifyAnchorInstance if the anchor instance should be verified
      * @return
@@ -258,6 +265,7 @@ public class SystemService {
      * Upload a new configuration anchor. This method should be used when initializing a new Security Server.
      * This method will throw {@link AnchorAlreadyExistsException} if an anchor already exists. When updating an
      * existing anchor one should use {@link #replaceAnchor(byte[])} instead.
+     *
      * @param anchorBytes
      */
     public void uploadInitialAnchor(byte[] anchorBytes) {
@@ -270,6 +278,7 @@ public class SystemService {
     /**
      * Replace the current configuration anchor with a new one. When uploading the first anchor (in Security Server
      * init phase) one should use {@link #uploadInitialAnchor(byte[])};
+     *
      * @param anchorBytes
      */
     public void replaceAnchor(byte[] anchorBytes) {
@@ -279,6 +288,7 @@ public class SystemService {
     /**
      * Upload a new configuration anchor. A temporary anchor file is created on the filesystem in order to run
      * the verification process with configuration-client module (via external script).
+     *
      * @param anchorBytes
      * @param shouldVerifyAnchorInstance whether the anchor instance should be verified or not. Usually it should
      *                                   always be verified (and this parameter should be true)
@@ -294,7 +304,7 @@ public class SystemService {
     @SuppressWarnings("squid:S2142")
     private void uploadAnchor(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
             throws InvalidAnchorInstanceException, AnchorUploadException, MalformedAnchorException,
-                   ConfigurationDownloadException {
+            ConfigurationDownloadException {
         auditDataHelper.calculateAndPutAnchorHash(anchorBytes);
         ConfigurationAnchor anchor = createAnchorFromBytes(anchorBytes);
         auditDataHelper.putDate(RestApiAuditProperty.GENERATED_AT, anchor.getGeneratedAt());
@@ -310,7 +320,7 @@ public class SystemService {
         } catch (InterruptedException | ProcessNotExecutableException | ProcessFailedException e) {
             throw new AnchorUploadException(e);
         } catch (IOException e) {
-            throw new RuntimeException("Cannot upload a new anchor", e);
+            throw XrdRuntimeException.systemInternalError("Cannot upload a new anchor", e);
         } finally {
             if (tempAnchor != null) {
                 boolean deleted = tempAnchor.delete();
@@ -323,6 +333,7 @@ public class SystemService {
 
     /**
      * Is global conf initialized -> it is if whe can find a Configuration anchor
+     *
      * @return
      */
     public boolean isAnchorImported() {
@@ -339,13 +350,14 @@ public class SystemService {
 
     /**
      * Sends a management request to change Security Server address
+     *
      * @param newAddress new address
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException
      */
     public Integer changeSecurityServerAddress(String newAddress) throws GlobalConfOutdatedException,
-                                                                         ManagementRequestSendingFailedException {
+            ManagementRequestSendingFailedException {
         auditDataHelper.put(RestApiAuditProperty.ADDRESS, newAddress);
         if (addressChangeStatus.getAddressChangeRequest().isPresent()) {
             throw new ConflictException(DUPLICATE_ADDRESS_CHANGE_REQUEST.build());
@@ -361,6 +373,7 @@ public class SystemService {
 
     /**
      * Simple helper to create a ConfigurationAnchorV2 instance from bytes
+     *
      * @param anchorBytes
      * @return
      * @throws MalformedAnchorException if the anchor is malformed or somehow invalid
@@ -383,6 +396,7 @@ public class SystemService {
      * Create a temporary anchor file on the filesystem. This is needed for verifying the anchor with
      * configuration-client module (this might be changed in the future). This method does not delete the created
      * temporary file. Remember to delete the file after it is no longer needed.
+     *
      * @param anchorBytes
      * @return temporary anchor file
      * @throws IOException if temp file creation fails
@@ -403,6 +417,7 @@ public class SystemService {
 
     /**
      * Verify that the anchor has been generated in the current instance
+     *
      * @param anchor
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
      */
@@ -418,6 +433,7 @@ public class SystemService {
 
     /**
      * Read anchor file's content
+     *
      * @return
      * @throws AnchorFileNotFoundException if anchor file is not found
      */
@@ -432,6 +448,7 @@ public class SystemService {
     /**
      * Generate anchor file download name with the anchor file created at date/time. The name format is:
      * "configuration_anchor_UTC_yyyy-MM-dd_HH_mm_ss.xml".
+     *
      * @return
      */
     public String getAnchorFilenameForDownload() {
@@ -442,14 +459,14 @@ public class SystemService {
 
     /**
      * Return anchor file's hash as a hex string
+     *
      * @return
      */
     private String calculateAnchorHexHash(byte[] anchor) {
         try {
             return Digests.hexDigest(Digests.DEFAULT_ANCHOR_HASH_ALGORITHM_ID, anchor).toUpperCase();
         } catch (Exception e) {
-            log.error("can't create hex digest for anchor file");
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemInternalError("can't create hex digest for anchor file", e);
         }
     }
 
@@ -459,6 +476,7 @@ public class SystemService {
 
     /**
      * Return the node type of the server
+     *
      * @return server node type
      */
     public SystemProperties.NodeType getServerNodeType() {

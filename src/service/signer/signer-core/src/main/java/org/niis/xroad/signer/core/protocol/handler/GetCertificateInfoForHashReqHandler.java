@@ -43,7 +43,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 public class GetCertificateInfoForHashReqHandler extends AbstractRpcHandler<GetCertificateInfoForHashReq, GetCertificateInfoResp> {
 
     @Override
-    protected GetCertificateInfoResp handle(GetCertificateInfoForHashReq request) throws Exception {
+    protected GetCertificateInfoResp handle(GetCertificateInfoForHashReq request) {
         CertificateInfo certificateInfo = TokenManager.getCertificateInfoForCertHash(request.getCertHash());
 
         if (certificateInfo == null) {

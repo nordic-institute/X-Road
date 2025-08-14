@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.protocol.HttpContext;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
@@ -68,6 +69,7 @@ import static org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient.ge
  */
 @Slf4j
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AuthTrustVerifier {
 
     public static final String ID_PROVIDERNAME = "request.providerName";

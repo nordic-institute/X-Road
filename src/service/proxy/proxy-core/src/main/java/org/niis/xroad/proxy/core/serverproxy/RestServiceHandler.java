@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.RequestWrapper;
 
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
@@ -39,6 +40,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 /**
  * Rest service handler interface
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface RestServiceHandler {
     boolean shouldVerifyAccess();
 

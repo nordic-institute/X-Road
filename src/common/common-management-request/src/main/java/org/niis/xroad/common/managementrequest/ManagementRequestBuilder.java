@@ -45,8 +45,11 @@ import ee.ria.xroad.common.request.ObjectFactory;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
 import javax.xml.namespace.QName;
@@ -66,6 +69,7 @@ import static org.niis.xroad.common.managementrequest.model.ManagementRequestTyp
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.OWNER_CHANGE_REQUEST;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 final class ManagementRequestBuilder {
     private static final ObjectFactory FACTORY = new ObjectFactory();
     private static final JAXBContext JAXB_CTX = initJaxbContext();
@@ -198,7 +202,6 @@ final class ManagementRequestBuilder {
     }
 
     // -- Private helper methods ----------------------------------------------
-
     SoapMessageImpl buildMessage(final JAXBElement<?> bodyJaxbElement) throws Exception {
         String serviceCode = bodyJaxbElement.getName().getLocalPart();
         ServiceId.Conf service = ServiceId.Conf.create(receiver, serviceCode);
@@ -224,7 +227,7 @@ final class ManagementRequestBuilder {
         return UUID.randomUUID().toString();
     }
 
-    private static Marshaller getMarshaller() throws Exception {
+    private static Marshaller getMarshaller() throws JAXBException {
         return JAXB_CTX.createMarshaller();
     }
 
@@ -236,7 +239,7 @@ final class ManagementRequestBuilder {
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 }

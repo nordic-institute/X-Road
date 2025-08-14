@@ -52,7 +52,7 @@ public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT ext
     @Autowired
     protected TokenWorkerProvider tokenWorkerProvider;
 
-    protected abstract RespT handle(ReqT request) throws Exception;
+    protected abstract RespT handle(ReqT request);
 
     public void processSingle(ReqT request, StreamObserver<RespT> responseObserver) {
         try {

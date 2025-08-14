@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import lombok.ToString;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.ocspfetchintervalparameters.ObjectFactory;
 import org.niis.xroad.globalconf.schema.ocspfetchintervalparameters.OcspFetchIntervalType;
 
@@ -74,7 +75,7 @@ public class OcspFetchInterval extends AbstractXmlConf<OcspFetchIntervalType> {
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 }

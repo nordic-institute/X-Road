@@ -33,6 +33,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -42,6 +43,7 @@ import java.net.URI;
  * method synchronously.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class HttpSender extends AbstractHttpSender {
     private final HttpClient client;
     private static final String DO_POST_LOG = "doPost(address = {}, connectionTimeout = {}, socketTimeout = {})";

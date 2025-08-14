@@ -39,7 +39,7 @@ public class GetTokenInfoAndKeyIdForCertRequestIdReqHandler
         extends AbstractRpcHandler<GetTokenByCertRequestIdReq, TokenInfoAndKeyIdProto> {
 
     @Override
-    protected TokenInfoAndKeyIdProto handle(GetTokenByCertRequestIdReq request) throws Exception {
+    protected TokenInfoAndKeyIdProto handle(GetTokenByCertRequestIdReq request) {
         var token = TokenManager.findTokenAndKeyIdForCertRequestId(request.getCertRequestId());
         return token.asMessage();
     }

@@ -28,6 +28,7 @@ package org.niis.xroad.signer.core;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
@@ -76,7 +77,7 @@ public class SignerConfig {
             var clazz = Class.forName(moduleManagerImplClassName);
             return (AbstractModuleManager) clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            throw new RuntimeException("Could not load module manager impl: " + moduleManagerImplClassName, e);
+            throw XrdRuntimeException.systemInternalError("Could not load module manager impl: " + moduleManagerImplClassName, e);
         }
     }
 

@@ -31,8 +31,11 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.Value;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.util.HashCalculator;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -107,10 +110,12 @@ public class DirectoryContentBuilder {
                 .build();
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private String calculateHash(byte[] data) {
-        return hashCalculator.calculateFromBytes(data);
+        try {
+            return hashCalculator.calculateFromBytes(data);
+        } catch (IOException | OperatorCreationException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Value

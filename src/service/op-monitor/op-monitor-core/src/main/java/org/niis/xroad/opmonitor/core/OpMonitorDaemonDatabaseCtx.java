@@ -53,13 +53,12 @@ final class OpMonitorDaemonDatabaseCtx {
 
     /**
      * Convenience method for executing a database operation in a transaction.
-     * @param <T> the type of result
+     *
+     * @param <T>      the type of result
      * @param callback the callback
      * @return the result
-     * @throws Exception if an error occurs
      */
-    static <T> T doInTransaction(TransactionCallback<T> callback)
-            throws Exception {
+    static <T> T doInTransaction(TransactionCallback<T> callback) {
         return CTX.doInTransaction(callback);
     }
 

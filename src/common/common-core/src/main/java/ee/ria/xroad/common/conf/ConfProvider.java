@@ -25,11 +25,14 @@
  */
 package ee.ria.xroad.common.conf;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
 import java.io.OutputStream;
 
 /**
  * File based configuration.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface ConfProvider {
 
     /**

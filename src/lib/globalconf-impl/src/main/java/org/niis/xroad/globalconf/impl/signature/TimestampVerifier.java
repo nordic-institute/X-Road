@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.SignerId;
 import org.bouncycastle.cms.SignerInformation;
 import org.bouncycastle.cms.SignerInformationVerifier;
@@ -36,6 +37,8 @@ import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.tsp.TimeStampToken;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
@@ -59,14 +62,15 @@ public final class TimestampVerifier {
     /**
      * Verifies that time-stamp applies to <code>stampedData</code>
      * and that it is signed by a trusted time-stamping authority
-     * @param tsToken the time-stamp token
+     *
+     * @param tsToken     the time-stamp token
      * @param stampedData the allegedly time-stamped data
-     * @param tspCerts list of TSP certificates
+     * @param tspCerts    list of TSP certificates
      * @throws Exception if the verification failed
      */
     public static void verify(TimeStampToken tsToken,
                               byte[] stampedData, List<X509Certificate> tspCerts)
-            throws Exception {
+            throws IOException, OperatorCreationException, CertificateEncodingException, CMSException {
         String thatHash = encodeBase64(calculateDigest(
                 tsToken.getTimeStampInfo().getHashAlgorithm(), stampedData));
         String thisHash = encodeBase64(
@@ -82,12 +86,14 @@ public final class TimestampVerifier {
     /**
      * Verifies that the time-stamp token is signed by a trusted
      * time-stamping authority.
-     * @param tsToken the time-stamp token
+     *
+     * @param tsToken  the time-stamp token
      * @param tspCerts list of TSP certificates
      * @throws Exception if the verification failed
      */
     public static void verify(TimeStampToken tsToken,
-                              List<X509Certificate> tspCerts) throws Exception {
+                              List<X509Certificate> tspCerts)
+            throws CertificateEncodingException, IOException, OperatorCreationException, CMSException {
         if (tspCerts.isEmpty()) {
             throw new CodedException(
                     X_INTERNAL_ERROR,
@@ -119,21 +125,21 @@ public final class TimestampVerifier {
 
     /**
      * Retrieves the time-stamp signer certificate.
-     * @param tsToken the time-stamp token
+     *
+     * @param tsToken  the time-stamp token
      * @param tspCerts list of TSP certificates
      * @return X509Certificate
      * @throws Exception in case of any errors
      */
     public static X509Certificate getSignerCertificate(
-            TimeStampToken tsToken, List<X509Certificate> tspCerts)
-            throws Exception {
+            TimeStampToken tsToken, List<X509Certificate> tspCerts) throws CertificateEncodingException, IOException {
         SignerId signerId = tsToken.getSID();
 
         return getTspCertificate(signerId, tspCerts);
     }
 
     private static X509Certificate getTspCertificate(SignerId signerId,
-                                                     List<X509Certificate> tspCerts) throws Exception {
+                                                     List<X509Certificate> tspCerts) throws IOException, CertificateEncodingException {
         log.trace("getTspCertificate({}, {}, {})",
                 new Object[]{signerId.getIssuer(), signerId.getSerialNumber(),
                         Arrays.toString(signerId.getSubjectKeyIdentifier())});

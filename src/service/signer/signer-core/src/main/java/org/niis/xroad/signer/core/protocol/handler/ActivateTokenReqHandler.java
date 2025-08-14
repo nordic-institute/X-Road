@@ -38,7 +38,7 @@ public class ActivateTokenReqHandler
         extends AbstractRpcHandler<ActivateTokenReq, Empty> {
 
     @Override
-    protected Empty handle(ActivateTokenReq request) throws Exception {
+    protected Empty handle(ActivateTokenReq request) {
         getTokenWorker(request.getTokenId())
                 .handleActivateToken(request);
 

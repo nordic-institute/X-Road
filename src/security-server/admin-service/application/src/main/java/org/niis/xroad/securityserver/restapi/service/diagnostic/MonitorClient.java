@@ -28,11 +28,15 @@ import ee.ria.xroad.common.SystemProperties;
 
 import io.grpc.Channel;
 import lombok.Getter;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.common.MetricsServiceGrpc;
 import org.niis.xroad.monitor.common.SystemMetricsReq;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,7 +44,7 @@ public class MonitorClient {
     private static final int TIMEOUT_AWAIT = 10 * 1000;
     private final RpcClient<MetricsRpcExecutionContext> metricsRpcClient;
 
-    public MonitorClient() throws Exception {
+    public MonitorClient() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         this.metricsRpcClient = RpcClient.newClient(SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getEnvMonitorPort(), TIMEOUT_AWAIT, MetricsRpcExecutionContext::new);
     }
@@ -54,7 +58,7 @@ public class MonitorClient {
 
             return response.getMetrics();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get metrics for: " + Arrays.toString(metricNames), e);
+            throw XrdRuntimeException.systemInternalError("Failed to get metrics for: " + Arrays.toString(metricNames), e);
         }
     }
 

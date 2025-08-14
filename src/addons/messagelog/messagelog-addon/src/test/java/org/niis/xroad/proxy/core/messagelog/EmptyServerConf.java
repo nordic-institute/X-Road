@@ -96,7 +96,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
+    public List<X509Certificate> getIsCerts(ClientId client) {
         return emptyList();
     }
 
@@ -106,7 +106,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public InternalSSLKey getSSLKey() throws Exception {
+    public InternalSSLKey getSSLKey() {
         return null;
     }
 
@@ -141,7 +141,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ClientId.Conf> getMembers() throws Exception {
+    public List<ClientId.Conf> getMembers() {
         return emptyList();
     }
 

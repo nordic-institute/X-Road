@@ -37,6 +37,7 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 
 import com.google.common.collect.Iterables;
 import lombok.Setter;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
@@ -90,6 +91,7 @@ public class MessageBodyManipulator {
      * @return the string that should be logged
      * @throws Exception when error occurs
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public String getLoggableMessageText(SoapLogMessage message) throws Exception {
         if (isBodyLogged(message)) {
             return message.getMessage().getXml();
@@ -110,6 +112,7 @@ public class MessageBodyManipulator {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private String buildBodyRemovedMessage(SoapLogMessage message) throws Exception {
         // build a new empty message with SoapBuilder and
         // set old SoapHeader to it

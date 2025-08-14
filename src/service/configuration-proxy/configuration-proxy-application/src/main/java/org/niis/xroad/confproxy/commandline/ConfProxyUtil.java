@@ -33,6 +33,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -66,6 +67,7 @@ public abstract class ConfProxyUtil {
      * @param commandLine holds arguments for the utility program
      * @throws Exception in case of any errors
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     abstract void execute(CommandLine commandLine)
             throws Exception;
 

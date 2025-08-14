@@ -35,7 +35,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
@@ -72,28 +71,28 @@ public class TestGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public X509Certificate getCaCert(String instanceIdentifier, X509Certificate org) throws Exception {
+    public X509Certificate getCaCert(String instanceIdentifier, X509Certificate org) {
         return TestCertUtil.getCaCert();
     }
 
     @Override
-    public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) throws Exception {
+    public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) {
         return new CertChainFactory(this).create(instanceIdentifier, subject, null);
     }
 
     @Override
-    public List<X509Certificate> getTspCertificates() throws CertificateException {
+    public List<X509Certificate> getTspCertificates() {
         return Collections.singletonList(TestCertUtil.getTspCert());
     }
 
     @Override
-    public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId) throws Exception {
+    public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId) {
         return true;
     }
 
     @Override
     public SignCertificateProfileInfo getSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters parameters,
-                                                                    X509Certificate cert) throws Exception {
+                                                                    X509Certificate cert) {
         return new EjbcaSignCertificateProfileInfo(parameters) {
             @Override
             public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
@@ -112,19 +111,19 @@ public class TestGlobalConf extends EmptyGlobalConf {
 
     @Override
     public AuthCertificateProfileInfo getAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters parameters,
-                                                                    X509Certificate cert) throws Exception {
+                                                                    X509Certificate cert) {
         return null;
     }
 
     @Override
-    public SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception {
+    public SecurityServerId.Conf getServerId(X509Certificate cert) {
         // For SSL connections AuthTrustManager checks that client certificate
         // belongs to some X-Road member
         return SecurityServerId.Conf.create("FI", "COM", "1111", "SS1");
     }
 
     @Override
-    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) {
         return getSignCertificateProfileInfo(parameters, cert)
                 .getSubjectIdentifier(cert);
     }

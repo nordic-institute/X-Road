@@ -29,6 +29,7 @@ import ee.ria.xroad.common.hashchain.HashChainBuilder;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
@@ -36,7 +37,7 @@ import static ee.ria.xroad.common.util.MessageFileNames.SIGNATURE;
 import static ee.ria.xroad.common.util.MessageFileNames.TS_HASH_CHAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class BatchTimestampRequest extends AbstractTimestampRequest {
 
     private final String[] signatureHashes;

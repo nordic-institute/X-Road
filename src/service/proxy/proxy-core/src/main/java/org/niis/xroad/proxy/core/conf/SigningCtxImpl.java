@@ -32,6 +32,7 @@ import ee.ria.xroad.common.signature.SignatureData;
 
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -49,6 +50,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
  * such as currently used signing key and cert.
  */
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SigningCtxImpl implements SigningCtx {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;

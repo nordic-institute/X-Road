@@ -55,6 +55,7 @@ import org.apache.james.mime4j.stream.MimeConfig;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.http.HttpField;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.signedmessage.Verifier;
 import org.slf4j.Logger;
@@ -82,6 +83,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * Decodes proxy SOAP messages from an input stream.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ProxyMessageDecoder {
 
     private static final Logger LOG =
@@ -209,7 +211,7 @@ public class ProxyMessageDecoder {
         callback.fault((SoapFault) soap);
     }
 
-    private void parseMultipart(InputStream is) throws Exception {
+    private void parseMultipart(InputStream is) throws IOException, MimeException {
         // Multipart content type requires boundary!
         if (!HeaderValueUtils.hasBoundary(contentType.toLowerCase())) {
             throw new CodedException(X_INVALID_CONTENT_TYPE,

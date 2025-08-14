@@ -36,6 +36,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import java.io.IOException;
 import java.net.URL;
 
 /**
@@ -57,7 +58,7 @@ public abstract class SchemaValidator {
         }
     }
 
-    public static void validate(Schema schema, Source source, String errorCode) throws Exception {
+    public static void validate(Schema schema, Source source, String errorCode) throws IOException {
         if (schema == null) {
             throw new IllegalStateException("Schema is not initialized");
         }

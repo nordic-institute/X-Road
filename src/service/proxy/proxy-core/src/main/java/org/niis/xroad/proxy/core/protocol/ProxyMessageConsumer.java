@@ -32,6 +32,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -42,6 +43,7 @@ import java.util.Map;
  * optional attachments and the signature. The OCSP response is only used
  * in SSL mode to send the OCSP response of the client proxy SSL certificate.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface ProxyMessageConsumer {
 
     /**

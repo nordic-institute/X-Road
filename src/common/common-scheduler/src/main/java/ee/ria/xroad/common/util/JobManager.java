@@ -29,6 +29,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.quartz.CronExpression;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -53,6 +54,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
  * Service to manage periodic jobs.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class JobManager {
 
     static {

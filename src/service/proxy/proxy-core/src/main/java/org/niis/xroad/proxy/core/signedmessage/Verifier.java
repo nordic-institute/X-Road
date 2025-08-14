@@ -99,8 +99,7 @@ public class Verifier {
      * @param signature signature data
      * @throws Exception in case of any errors
      */
-    public void verify(ClientId sender, SignatureData signature)
-            throws Exception {
+    public void verify(ClientId sender, SignatureData signature) {
         log.trace("Verify, {} parts. Signature: {}", parts.size(), signature);
 
         if (SystemProperties.IGNORE_SIGNATURE_VERIFICATION) {

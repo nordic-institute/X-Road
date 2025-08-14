@@ -32,8 +32,10 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -64,13 +66,15 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotInitialize
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class GetAuthKeyReqHandler
         extends AbstractRpcHandler<GetAuthKeyReq, AuthKeyInfoProto> {
     private final GlobalConfProvider globalConfProvider;
 
     @Override
-    @SuppressWarnings("squid:S3776")
-    protected AuthKeyInfoProto handle(GetAuthKeyReq request) throws Exception {
+    @SuppressWarnings({"squid:S3776", "checkstyle:SneakyThrowsCheck"})//TODO XRDDEV-2390 will be refactored in the future
+    @SneakyThrows
+    protected AuthKeyInfoProto handle(GetAuthKeyReq request) {
         var securityServer = SecurityServerIdMapper.fromDto(request.getSecurityServer());
         log.trace("Selecting authentication key for security server {}", securityServer);
 

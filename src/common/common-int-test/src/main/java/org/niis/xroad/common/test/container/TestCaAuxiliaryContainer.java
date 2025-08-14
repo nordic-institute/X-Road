@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -71,6 +72,7 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
 
     @NotNull
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public TestCaContainer configure() {
         var logDirPath = Paths.get("build/ca-container-logs/");
         var logDir = logDirPath.toFile();

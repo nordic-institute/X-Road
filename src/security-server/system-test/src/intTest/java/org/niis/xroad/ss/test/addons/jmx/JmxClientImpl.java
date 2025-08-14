@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.ss.test.addons.jmx;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
@@ -57,7 +59,7 @@ public class JmxClientImpl implements JmxClient {
                     .map(name -> readAttribute(connection, name, attribute))
                     .orElse(null);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to get JMX Object", e);
+            throw XrdRuntimeException.systemInternalError("Failed to get JMX Object", e);
         }
     }
 
@@ -67,7 +69,7 @@ public class JmxClientImpl implements JmxClient {
             return connection.getAttribute(objectName, attribute);
         } catch (InstanceNotFoundException | ReflectionException | IOException | MBeanException
                  | AttributeNotFoundException e) {
-            throw new RuntimeException("Failed to read JMX Object attribute", e);
+            throw XrdRuntimeException.systemInternalError("Failed to read JMX Object attribute", e);
         }
     }
 }

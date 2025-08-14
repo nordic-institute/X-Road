@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
@@ -45,6 +46,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * the next handler (i.e. throws exception instead), if it cannot process
  * the request itself.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class ClientMessageHandler extends AbstractClientProxyHandler {
 
     ClientMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {

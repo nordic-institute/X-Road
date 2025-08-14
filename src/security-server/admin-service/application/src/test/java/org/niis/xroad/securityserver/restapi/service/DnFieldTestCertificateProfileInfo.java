@@ -60,7 +60,7 @@ public class DnFieldTestCertificateProfileInfo implements CertificateProfileInfo
     }
 
     @Override
-    public void validateSubjectField(DnFieldValue field) throws Exception {
+    public void validateSubjectField(DnFieldValue field) {
         if (!valid) {
             throw new RuntimeException("not valid");
         }

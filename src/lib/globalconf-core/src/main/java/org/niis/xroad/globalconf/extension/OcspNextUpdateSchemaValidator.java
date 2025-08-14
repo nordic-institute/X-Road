@@ -29,6 +29,7 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.SchemaValidator;
 
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -41,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Validator for Ocsp next update
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class OcspNextUpdateSchemaValidator extends SchemaValidator {
 
     private static Schema schema;

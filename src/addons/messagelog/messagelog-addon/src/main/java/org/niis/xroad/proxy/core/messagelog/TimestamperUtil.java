@@ -34,10 +34,15 @@ import org.bouncycastle.asn1.cmp.PKIStatus;
 import org.bouncycastle.asn1.tsp.TimeStampResp;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
+import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,11 +50,13 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 final class TimestamperUtil {
 
     private TimestamperUtil() {
@@ -57,7 +64,8 @@ final class TimestamperUtil {
 
     @SuppressWarnings("unchecked")
     static TimeStampToken addSignerCertificate(TimeStampResponse tsResponse,
-                                               X509Certificate signerCertificate) throws Exception {
+                                               X509Certificate signerCertificate)
+            throws CertificateEncodingException, IOException, CMSException, TSPException {
         CMSSignedData cms = tsResponse.getTimeStampToken().toCMSSignedData();
 
         List<X509CertificateHolder> collection = new ArrayList<>();
@@ -68,7 +76,7 @@ final class TimestamperUtil {
                 new JcaCertStore(collection), cms.getAttributeCertificates(), cms.getCRLs()));
     }
 
-    static InputStream makeTsRequest(TimeStampRequest req, String tspUrl) throws Exception {
+    static InputStream makeTsRequest(TimeStampRequest req, String tspUrl) throws IOException {
         byte[] request = req.getEncoded();
 
         URL url = new URL(tspUrl);
@@ -88,8 +96,9 @@ final class TimestamperUtil {
 
         if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
             con.disconnect();
-            throw new RuntimeException("Received HTTP error: " + con.getResponseCode() + " - "
-                    + con.getResponseMessage());
+            throw XrdRuntimeException.systemException(ErrorCodes.INTERNAL_ERROR)
+                    .details("Received HTTP error: " + con.getResponseCode() + " - " + con.getResponseMessage())
+                    .build();
         } else if (con.getInputStream() == null) {
             con.disconnect();
             throw new IOException("Could not get response from TSP");

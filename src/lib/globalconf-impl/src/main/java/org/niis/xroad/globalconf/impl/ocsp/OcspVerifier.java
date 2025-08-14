@@ -49,6 +49,7 @@ import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.security.GeneralSecurityException;
@@ -71,6 +72,7 @@ import static ee.ria.xroad.common.util.TimeUtils.toOffsetDateTime;
  * Helper class for verifying OCSP responses.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class OcspVerifier {
 
     private static final String ID_KP_OCSPSIGNING = "1.3.6.1.5.5.7.3.9";

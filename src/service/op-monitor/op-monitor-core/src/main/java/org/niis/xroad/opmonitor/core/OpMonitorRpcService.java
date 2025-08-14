@@ -28,6 +28,7 @@ package org.niis.xroad.opmonitor.core;
 import com.google.protobuf.Timestamp;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsReq;
@@ -55,6 +56,7 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private GetOperationalDataIntervalsResp handleGetMonitoringDataRequest(GetOperationalDataIntervalsReq request) throws Exception {
         log.debug("Getting operational data in {} minute intervals, between {} and {}",
                 request.getIntervalInMinutes(),

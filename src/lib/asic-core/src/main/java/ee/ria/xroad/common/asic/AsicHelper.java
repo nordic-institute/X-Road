@@ -31,6 +31,7 @@ import ee.ria.xroad.common.signature.Signature;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.operator.DigestCalculator;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,6 +73,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 /**
  * Utility methods for dealing wit ASiC containers.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 final class AsicHelper {
 
     private AsicHelper() {

@@ -27,6 +27,7 @@ package org.niis.xroad.proxy.core.messagelog;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.messagelog.Timestamper.TimestampTask;
 
@@ -38,6 +39,7 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class TimestamperWorker {
     private final GlobalConfProvider globalConfProvider;
     private final List<String> tspUrls;

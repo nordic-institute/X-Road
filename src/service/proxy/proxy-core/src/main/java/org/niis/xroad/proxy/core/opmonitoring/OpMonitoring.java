@@ -30,6 +30,8 @@ import ee.ria.xroad.common.SystemProperties;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -39,6 +41,7 @@ import org.niis.xroad.serverconf.ServerConfProvider;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class OpMonitoring {
 
     private static final String OP_MONITORING_BUFFER_IMPL_CLASS =
@@ -83,8 +86,8 @@ public final class OpMonitoring {
 
             return (Class<? extends AbstractOpMonitoringBuffer>) clazz;
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Unable to load operational monitoring buffer impl: "
-                    + opMonitoringBufferImplClassName, e);
+            throw XrdRuntimeException.systemInternalError(
+                    "Unable to load operational monitoring buffer impl: " + opMonitoringBufferImplClassName, e);
         }
     }
 

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
@@ -44,6 +45,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 public class ManagementRequestCertVerifier {
     private final GlobalConfProvider globalConfProvider;
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void verifyCertificate(X509Certificate memberCert, OCSPResp memberCertOcsp) throws Exception {
 
         X509Certificate issuer = globalConfProvider.getCaCert(globalConfProvider.getInstanceIdentifier(), memberCert);

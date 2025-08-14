@@ -42,6 +42,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jaxb.runtime.api.AccessorException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import javax.xml.namespace.QName;
 
@@ -70,6 +71,7 @@ import static ee.ria.xroad.common.util.MimeUtils.UTF8;
  * input stream.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SoapParserImpl implements SoapParser {
 
     @Override

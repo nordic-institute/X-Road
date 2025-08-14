@@ -29,6 +29,8 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.RequiredArgsConstructor;
 
+import java.lang.reflect.InvocationTargetException;
+
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
@@ -43,15 +45,14 @@ public class GetCertificateProfile {
      * Returns the instance of the certificate profile provider class name.
      * Checks that the class is in classpath and that the class implements
      * the {@link ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider} interface.
+     *
      * @return the instance of the certificate profile
-     * @throws Exception if an error occurs while instantiating
      */
-    public CertificateProfileInfoProvider instance() throws Exception {
+    public CertificateProfileInfoProvider instance() {
         try {
             return klass().getDeclaredConstructor().newInstance();
-        } catch (InstantiationException e) {
-            throw new CodedException(X_INTERNAL_ERROR, e,
-                    "Could not instantiate %s: %s", className, e.getMessage());
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {
+            throw new CodedException(X_INTERNAL_ERROR, e, "Could not instantiate %s: %s", className, e.getMessage());
         } catch (IllegalAccessException e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
@@ -60,6 +61,7 @@ public class GetCertificateProfile {
     /**
      * Returns the class that implements the
      * {@link ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider} interface.
+     *
      * @return the class
      * if the class does not implement the interface
      */

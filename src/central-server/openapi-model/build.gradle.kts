@@ -3,6 +3,8 @@ plugins {
   alias(libs.plugins.openapi.generator)
 }
 
+
+
 dependencies {
   compileOnly(libs.springBoot.starterWeb)
   compileOnly(libs.swagger.parserV3)
@@ -73,4 +75,8 @@ tasks.openApiGenerate {
 
 tasks.compileJava {
   dependsOn(tasks.openApiGenerate)
+}
+
+archUnit {
+  isSkip = true
 }

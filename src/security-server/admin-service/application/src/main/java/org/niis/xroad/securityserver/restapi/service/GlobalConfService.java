@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
@@ -144,6 +145,7 @@ public class GlobalConfService {
 
     /**
      * Check the validity of the GlobalConf
+     *
      * @throws GlobalConfOutdatedException if conf is outdated
      */
     public void verifyGlobalConfValidity() throws GlobalConfOutdatedException {
@@ -156,7 +158,7 @@ public class GlobalConfService {
                 throw e;
             }
         } catch (Exception e) {
-            throw new RuntimeException("global conf validity check failed", e);
+            throw XrdRuntimeException.systemInternalError("global conf validity check failed", e);
         }
     }
 
@@ -217,6 +219,7 @@ public class GlobalConfService {
 
     /**
      * Sends an http request to configuration-client in order to trigger the downloading of the global conf
+     *
      * @throws ConfigurationDownloadException if the request succeeds but configuration-client returns an error
      * @throws DeviationAwareRuntimeException if the request fails
      */
@@ -235,6 +238,7 @@ public class GlobalConfService {
 
     /**
      * Find member's name in the global conf
+     *
      * @param memberClass
      * @param memberCode
      * @return

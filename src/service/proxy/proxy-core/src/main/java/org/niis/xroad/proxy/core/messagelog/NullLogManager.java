@@ -30,6 +30,7 @@ import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.JobManager;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -58,7 +59,7 @@ public class NullLogManager extends AbstractLogManager {
 
     @Override
     public Map<String, DiagnosticsStatus> getDiagnosticStatus() {
-        throw new RuntimeException("Status not available while using NullLogManager");
+        throw XrdRuntimeException.systemInternalError("Status not available while using NullLogManager");
     }
 
 }

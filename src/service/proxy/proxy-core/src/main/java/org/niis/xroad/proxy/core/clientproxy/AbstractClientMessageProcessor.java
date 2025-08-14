@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
@@ -107,8 +108,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         return DUMMY_SERVICE_ADDRESS;
     }
 
-    URI[] prepareRequest(HttpSender httpSender, ServiceId requestServiceId, SecurityServerId securityServerId)
-            throws Exception {
+    URI[] prepareRequest(HttpSender httpSender, ServiceId requestServiceId, SecurityServerId securityServerId) {
         // If we're using SSL, we need to include the provider name in
         // the HTTP request so that server proxy could verify the SSL
         // certificate properly.
@@ -284,6 +284,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected void verifyClientAuthentication(ClientId sender) throws Exception {
         if (!SystemProperties.shouldVerifyClientCert()) {
             return;

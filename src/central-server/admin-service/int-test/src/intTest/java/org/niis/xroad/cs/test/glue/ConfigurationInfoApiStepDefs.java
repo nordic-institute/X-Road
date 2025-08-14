@@ -30,6 +30,7 @@ import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.apache.commons.io.IOUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.openapi.model.ConfigurationAnchorContainerDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationPartDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
@@ -227,7 +228,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
         return switch (contentIdentifier) {
             case "SHARED-PARAMETERS" -> "shared-params";
             case "PRIVATE-PARAMETERS" -> "private-params";
-            default -> throw new RuntimeException();
+            default -> throw XrdRuntimeException.systemInternalError("Unknown content identifier: " + contentIdentifier);
         };
     }
 

@@ -31,12 +31,17 @@ import ee.ria.xroad.common.SystemProperties;
 import lombok.Getter;
 import lombok.Value;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -63,9 +68,9 @@ public final class InternalSSLKey {
      * Loads the SSL key (the 'internal' key by default) from the pkcs11 file.
      *
      * @return the internal ssl key
-     * @throws Exception if an error occurs while loading
      */
-    public static InternalSSLKey load() throws Exception {
+    public static InternalSSLKey load()
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         return load(KEY_FILE_NAME, KEY_ALIAS, KEY_PASSWORD);
     }
 
@@ -74,14 +79,15 @@ public final class InternalSSLKey {
      *
      * @param keyName the name of the key to load
      * @return the internal ssl key
-     * @throws Exception if an error occurs while loading
      */
-    public static InternalSSLKey load(String keyName) throws Exception {
+    public static InternalSSLKey load(String keyName)
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         String filename = String.format("ssl/%s.p12", keyName);
         return load(filename, keyName, keyName.toCharArray());
     }
 
-    private static InternalSSLKey load(String filename, String keyAlias, char[] keyPassword) throws Exception {
+    private static InternalSSLKey load(String filename, String keyAlias, char[] keyPassword)
+            throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
         Path file = Paths.get(SystemProperties.getConfPath(), filename);
         if (Files.exists(file)) {
             KeyStore ks = loadPkcs12KeyStore(file.toFile(), keyPassword);

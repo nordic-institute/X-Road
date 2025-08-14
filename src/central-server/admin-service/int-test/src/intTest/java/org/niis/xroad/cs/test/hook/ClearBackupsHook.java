@@ -31,6 +31,7 @@ import com.nortal.test.core.services.hooks.AfterScenarioHook;
 import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -63,7 +64,7 @@ public class ClearBackupsHook implements AfterScenarioHook {
         try {
             containerProvider.getContainer().execInContainer("rm", "-rf", "/var/lib/xroad/backup/");
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Failed to clear up backups dir", e);
+            throw XrdRuntimeException.systemInternalError("Failed to clear up backups dir", e);
         }
     }
 }

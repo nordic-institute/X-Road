@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 /**
@@ -40,8 +41,7 @@ public final class RestServiceHandlerLoader {
             Class<?> clazz = Class.forName(className);
             return (RestServiceHandler) clazz.getDeclaredConstructor(ServerConfProvider.class).newInstance(serverConfProvider);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load rest service handler: "
-                    + className, e);
+            throw XrdRuntimeException.systemInternalError("Failed to load rest service handler: " + className, e);
         }
     }
 }

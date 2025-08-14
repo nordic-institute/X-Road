@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
@@ -74,6 +75,7 @@ import static java.util.function.Predicate.not;
 @Component
 @Slf4j
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class GlobalConfChecker {
     public static final int JOB_REPEAT_INTERVAL_MS = 30000;
     public static final int INITIAL_DELAY_MS = 30000;

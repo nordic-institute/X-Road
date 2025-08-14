@@ -57,7 +57,7 @@ public class ActivateCertReqHandler
     private final OcspResponseManager ocspResponseManager;
 
     @Override
-    protected Empty handle(ActivateCertReq request) throws Exception {
+    protected Empty handle(ActivateCertReq request) {
         if (request.getActive()) {
             CertificateInfo certificateInfo = TokenManager.getCertificateInfo(request.getCertIdOrHash());
             if (certificateInfo == null) {

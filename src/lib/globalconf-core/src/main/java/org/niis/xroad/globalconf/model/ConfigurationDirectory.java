@@ -27,6 +27,7 @@ package org.niis.xroad.globalconf.model;
 
 import ee.ria.xroad.common.util.AtomicSave;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ import java.util.Set;
 /**
  * Configuration directory interface.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface ConfigurationDirectory {
     String FILES = "files";
     String METADATA_SUFFIX = ".metadata";

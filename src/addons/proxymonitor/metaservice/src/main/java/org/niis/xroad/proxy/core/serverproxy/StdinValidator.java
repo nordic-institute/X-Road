@@ -26,6 +26,7 @@
 package org.niis.xroad.proxy.core.serverproxy;
 
 import org.apache.commons.io.IOUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.monitoringconf.MonitoringParametersSchemaValidator;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -39,6 +40,7 @@ public final class StdinValidator {
     /**
      * Program entry point
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public static void main(String[] args) throws Exception {
         String string = IOUtils.toString(System.in, UTF_8);
         System.out.println(string);

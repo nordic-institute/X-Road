@@ -30,6 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.util.Arrays;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.File;
 
@@ -41,6 +42,7 @@ import static java.lang.String.format;
  */
 @Slf4j
 @SuppressWarnings("squid:S2068")
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class FilePasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
     private static final String CFG_FILE_PASSWORD_STORE_PATH = SystemProperties.PREFIX + "internal.passwordstore-file-path";
 

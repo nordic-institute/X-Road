@@ -43,6 +43,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -64,6 +65,7 @@ import java.security.cert.X509Certificate;
  * Operational monitoring daemon HTTP client.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class OpMonitoringDaemonHttpClient {
 
     // HttpClient configuration parameters.

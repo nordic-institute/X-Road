@@ -41,6 +41,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
@@ -93,7 +94,10 @@ import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
@@ -121,11 +125,12 @@ public final class SignerRpcClient {
     private RpcClient<SignerRpcExecutionContext> client;
 
     @PostConstruct
-    public void init() throws Exception {
+    public void init() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         init(getGrpcInternalHost(), getGrpcSignerPort(), getSignerClientTimeout());
     }
 
-    public void init(String host, int port, int clientTimeoutMillis) throws Exception {
+    public void init(String host, int port, int clientTimeoutMillis)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         client = RpcClient.newClient(host, port, clientTimeoutMillis, SignerRpcExecutionContext::new);
     }
 
@@ -223,6 +228,7 @@ public final class SignerRpcClient {
         tryToRun(() -> internalActivateToken(tokenId, password));
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void internalActivateToken(String tokenId, char[] password) throws Exception {
         log.trace("Activating token '{}'", tokenId);
 
@@ -266,6 +272,7 @@ public final class SignerRpcClient {
         tryToRun(() -> internalDeactivateToken(tokenId));
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void internalDeactivateToken(String tokenId) throws Exception {
         log.trace("Deactivating token '{}'", tokenId);
 
@@ -346,7 +353,7 @@ public final class SignerRpcClient {
         return tryToRun(() -> internalGenerateKey(tokenId, keyLabel, algorithm));
     }
 
-    private KeyInfo internalGenerateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws Exception {
+    private KeyInfo internalGenerateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) {
         log.trace("Generating key for token '{}'", tokenId);
 
         var builder = GenerateKeyReq.newBuilder()
@@ -383,7 +390,7 @@ public final class SignerRpcClient {
     }
 
     private byte[] internalGenerateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                                         String commonName, Date notBefore, Date notAfter) throws Exception {
+                                                         String commonName, Date notBefore, Date notAfter) {
         log.trace("Generate self-signed cert for key '{}'", keyId);
 
         var builder = GenerateSelfSignedCertReq.newBuilder()
@@ -421,8 +428,7 @@ public final class SignerRpcClient {
         return tryToRun(() -> internalImportCert(certBytes, initialStatus, clientId, activate));
     }
 
-    private String internalImportCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId, boolean activate)
-            throws Exception {
+    private String internalImportCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId, boolean activate) {
         log.trace("Importing cert from file with length of '{}' bytes", certBytes.length);
 
         final ImportCertReq.Builder builder = ImportCertReq.newBuilder()
@@ -525,8 +531,7 @@ public final class SignerRpcClient {
 
     private GeneratedCertRequestInfo internalGenerateCertRequest(String keyId, ClientId.Conf memberId,
                                                                         KeyUsageInfo keyUsage, String subjectName, String subjectAltName,
-                                                                        CertificateRequestFormat format, String certificateProfile)
-            throws Exception {
+                                                                        CertificateRequestFormat format, String certificateProfile) {
 
         var reqBuilder = GenerateCertRequestReq.newBuilder()
                 .setKeyId(keyId)
@@ -575,7 +580,7 @@ public final class SignerRpcClient {
     }
 
     private GeneratedCertRequestInfo internalRegenerateCertRequest(String certRequestId,
-                                                                          CertificateRequestFormat format) throws Exception {
+                                                                          CertificateRequestFormat format) {
 
         var response = client.execute(ctx -> ctx.getBlockingCertificateService()
                 .regenerateCertRequest(RegenerateCertRequestReq.newBuilder()
@@ -738,7 +743,7 @@ public final class SignerRpcClient {
         return tryToRun(() -> internalGetCertForHash(hash));
     }
 
-    private CertificateInfo internalGetCertForHash(String hash) throws Exception {
+    private CertificateInfo internalGetCertForHash(String hash) {
         final String finalHash = hash.toLowerCase();
         log.trace("Getting cert by hash '{}'", hash);
 
@@ -763,7 +768,7 @@ public final class SignerRpcClient {
         return tryToRun(() -> internalGetKeyIdForCertHash(hash));
     }
 
-    private KeyIdInfo internalGetKeyIdForCertHash(String hash) throws Exception {
+    private KeyIdInfo internalGetKeyIdForCertHash(String hash) {
         final String finalHash = hash.toLowerCase();
         log.trace("Getting cert by hash '{}'", finalHash);
 
@@ -788,7 +793,7 @@ public final class SignerRpcClient {
         return tryToRun(() -> internalGetTokenAndKeyIdForCertHash(hash));
     }
 
-    private TokenInfoAndKeyId internalGetTokenAndKeyIdForCertHash(String hash) throws Exception {
+    private TokenInfoAndKeyId internalGetTokenAndKeyIdForCertHash(String hash) {
         String hashLowercase = hash.toLowerCase();
         log.trace("Getting token and key id by cert hash '{}'", hashLowercase);
 
@@ -813,7 +818,7 @@ public final class SignerRpcClient {
         return tryToRun(() -> internalGetOcspResponses(certHashes));
     }
 
-    private String[] internalGetOcspResponses(String[] certHashes) throws Exception {
+    private String[] internalGetOcspResponses(String[] certHashes) {
 
         var response = client.execute(ctx -> ctx.getBlockingOcspService()
                 .getOcspResponses(GetOcspResponsesReq.newBuilder()
@@ -831,7 +836,7 @@ public final class SignerRpcClient {
         return result;
     }
 
-    public void setOcspResponses(String[] certHashes, String[] base64EncodedResponses) throws Exception {
+    public void setOcspResponses(String[] certHashes, String[] base64EncodedResponses) {
         tryToRun(
                 () -> client.execute(ctx -> ctx.getBlockingOcspService()
                         .setOcspResponses(SetOcspResponsesReq.newBuilder()
@@ -999,10 +1004,12 @@ public final class SignerRpcClient {
     public record KeyIdInfo(String keyId, SignMechanism signMechanismName) {
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private interface ActionWithResult<T> {
         T run() throws Exception;
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private interface Action {
         void run() throws Exception;
     }

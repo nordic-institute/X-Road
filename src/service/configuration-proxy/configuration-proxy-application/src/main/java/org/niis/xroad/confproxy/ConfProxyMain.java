@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -41,6 +42,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
  * Main program for the configuration proxy.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class ConfProxyMain {
 
     private static final String APP_NAME = "xroad-confproxy";

@@ -40,7 +40,7 @@ public class NullOpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     @Override
-    public void store(OpMonitoringData data) throws Exception {
+    public void store(OpMonitoringData data) {
         //No-OP
     }
 

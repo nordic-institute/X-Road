@@ -28,6 +28,8 @@ package org.niis.xroad.globalconf.model;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.SchemaValidator;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -37,6 +39,7 @@ import java.io.StringReader;
 /**
  * Schema validator of shared parameters.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SharedParametersSchemaValidatorV2 extends SchemaValidator {
     private static final Schema SCHEMA = createSchema("globalconf/v2/shared-parameters.xsd");
 

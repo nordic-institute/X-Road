@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -41,6 +42,7 @@ import java.security.cert.X509Certificate;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public abstract class BaseClientRequestCallback<T> extends BaseServerRequestCallback<T> {
     private static final String DUMMY_CLIENT_ID = "dummy";
 
@@ -53,7 +55,7 @@ public abstract class BaseClientRequestCallback<T> extends BaseServerRequestCall
     protected abstract ClientId getClient();
 
     @Override
-    protected void verifyMessage() throws Exception {
+    protected void verifyMessage() {
         super.verifyMessage();
 
         // Verify that the subject id from the certificate matches the one
@@ -79,7 +81,7 @@ public abstract class BaseClientRequestCallback<T> extends BaseServerRequestCall
         }
     }
 
-    private ClientId getClientIdFromCert(X509Certificate cert) throws Exception {
+    private ClientId getClientIdFromCert(X509Certificate cert) {
         return globalConfProvider.getSubjectName(
                 new SignCertificateProfileInfoParameters(
                         ClientId.Conf.create(

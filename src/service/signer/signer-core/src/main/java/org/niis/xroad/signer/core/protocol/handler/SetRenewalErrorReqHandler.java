@@ -39,7 +39,7 @@ public class SetRenewalErrorReqHandler
         extends AbstractRpcHandler<SetRenewalErrorReq, Empty> {
 
     @Override
-    protected Empty handle(SetRenewalErrorReq request) throws Exception {
+    protected Empty handle(SetRenewalErrorReq request) {
         TokenManager.setRenewalError(request.getCertId(), request.getErrorMessage());
 
         return Empty.getDefaultInstance();

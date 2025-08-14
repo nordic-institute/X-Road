@@ -40,6 +40,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
@@ -118,6 +119,7 @@ public class InternalTlsCertificateService {
      * two files:
      * - cert.pem PEM encoded certificate
      * - cert.cer DER encoded certificate
+     *
      * @return byte array that contains the exported certs.tar.gz
      */
     public byte[] exportInternalTlsCertificate() {
@@ -139,7 +141,7 @@ public class InternalTlsCertificateService {
 
         } catch (IOException | CertificateEncodingException e) {
             log.error("writing certificate file failed", e);
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
         return byteArrayOutputStream.toByteArray();
     }
@@ -159,6 +161,7 @@ public class InternalTlsCertificateService {
     /**
      * Generates a new TLS key and certificate for internal use for the current Security Server. A runtime
      * exception will be thrown if the generation is interrupted or otherwise unable to be executed.
+     *
      * @throws InterruptedException if the thread running the key generator is interrupted. <b>The interrupted thread
      *                              has already been handled with so you can choose to ignore this exception if you so please.</b>
      */
@@ -180,6 +183,7 @@ public class InternalTlsCertificateService {
 
     /**
      * Imports a new internal TLS certificate.
+     *
      * @param certificateBytes
      * @return X509Certificate
      * @throws InvalidCertificateException
@@ -215,6 +219,7 @@ public class InternalTlsCertificateService {
 
     /**
      * Verifies that the chain matches the internal TLS key
+     *
      * @param newCertChain the cert chain to be imported
      * @throws KeyNotFoundException              if the public key of the cert does not match
      * @throws CertificateAlreadyExistsException if the certificate has already been imported

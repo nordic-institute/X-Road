@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 
 import lombok.Getter;
 import lombok.NonNull;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -64,6 +65,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * Encapsulates the creation of the ASiC-container, which is essentially a
  * ZIP file containing the message and signature.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AsicContainer {
 
     /** Holds the entries in the container. */

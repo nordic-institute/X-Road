@@ -27,6 +27,9 @@ package org.niis.xroad.common.managementrequest.model;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
+import org.bouncycastle.operator.OperatorCreationException;
+
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -43,7 +46,7 @@ public interface ManagementRequest {
      * @return the request content
      * @throws Exception if an error occurs
      */
-    InputStream getRequestContent() throws Exception;
+    InputStream getRequestContent() throws IOException, OperatorCreationException;
 
     /**
      * @return the request content type (such as text/xml)

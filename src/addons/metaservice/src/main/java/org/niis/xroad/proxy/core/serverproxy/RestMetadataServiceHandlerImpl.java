@@ -49,6 +49,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
@@ -125,6 +126,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void startHandling(RequestWrapper servletRequest, ProxyMessage requestProxyMessage,
                               ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                               HttpClient restClient, HttpClient opMonitorClient,

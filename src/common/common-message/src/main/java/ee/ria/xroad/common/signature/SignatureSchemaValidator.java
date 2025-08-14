@@ -31,6 +31,8 @@ import ee.ria.xroad.common.util.SchemaValidator;
 import javax.xml.transform.Source;
 import javax.xml.validation.Schema;
 
+import java.io.IOException;
+
 /**
  * Validates signature XML according to schema.
  */
@@ -47,9 +49,9 @@ public class SignatureSchemaValidator extends SchemaValidator {
     /**
      * Validates the provided XML signature source.
      * @param source source of the XML signature to be validated
-     * @throws Exception if validation is unsuccessful
+     * @throws IOException if validation is unsuccessful
      */
-    public static void validate(Source source) throws Exception {
+    public static void validate(Source source) throws IOException {
         validate(schema, source, ErrorCodes.X_MALFORMED_SIGNATURE);
     }
 }

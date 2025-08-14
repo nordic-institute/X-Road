@@ -34,6 +34,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import javax.net.ssl.HostnameVerifier;
@@ -50,6 +51,7 @@ import java.util.List;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
     private final ServerConfProvider serverConfProvider;
 

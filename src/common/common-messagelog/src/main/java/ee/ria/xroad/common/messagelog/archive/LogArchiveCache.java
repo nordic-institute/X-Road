@@ -32,6 +32,7 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 import com.google.common.io.CountingOutputStream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
@@ -87,6 +88,7 @@ class LogArchiveCache implements Closeable {
         resetCacheState();
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     void add(MessageRecord messageRecord) throws Exception {
         try {
             validateMessageRecord(messageRecord);
@@ -114,6 +116,7 @@ class LogArchiveCache implements Closeable {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private <T extends Exception> void handleCacheError(T e) throws T {
         deleteArchiveArtifacts(e);
         throw e;
@@ -164,6 +167,7 @@ class LogArchiveCache implements Closeable {
     }
 
     @SuppressWarnings("checkstyle:InnerAssignment")
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void cacheRecord(MessageRecord messageRecord) throws Exception {
         final Date creationTime = new Date(messageRecord.getTime());
 
@@ -185,6 +189,7 @@ class LogArchiveCache implements Closeable {
         return archivesTotalSize > getArchiveMaxFilesize();
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void addContainerToArchive(MessageRecord record) throws Exception {
         String archiveFilename = nameGenerator.getArchiveFilename(record.getQueryId(), record.isResponse(),
                 record.getId());
@@ -219,6 +224,7 @@ class LogArchiveCache implements Closeable {
         archiveTmp.setLevel(0);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private void deleteArchiveArtifacts(Exception cause) {
         if (archiveTmp != null) {
             try {

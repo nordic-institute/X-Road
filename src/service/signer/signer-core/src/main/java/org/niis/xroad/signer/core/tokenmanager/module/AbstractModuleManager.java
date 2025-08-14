@@ -30,6 +30,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.message.GetOcspResponses;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.model.Cert;
@@ -71,7 +73,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
     private FileWatcherRunner keyConfFileWatcherRunner;
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         start();
     }
 
@@ -104,7 +106,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
             try {
                 TokenManager.saveToConf();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw XrdRuntimeException.systemException(e);
             }
         }
 
@@ -146,6 +148,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
         return Optional.empty();
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected abstract AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception;
 
     /**

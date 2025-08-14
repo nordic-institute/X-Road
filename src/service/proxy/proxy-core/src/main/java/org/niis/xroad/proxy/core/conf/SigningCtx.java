@@ -27,6 +27,7 @@ package org.niis.xroad.proxy.core.conf;
 
 import ee.ria.xroad.common.signature.SignatureData;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.proxy.core.signature.SignatureBuilder;
 
 /**
@@ -40,5 +41,6 @@ public interface SigningCtx {
      * @return the signature data
      * @throws Exception in case of any errors
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     SignatureData buildSignature(SignatureBuilder builder) throws Exception;
 }

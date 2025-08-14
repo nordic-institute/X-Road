@@ -38,7 +38,7 @@ import static org.niis.xroad.signer.core.tokenmanager.TokenManager.findTokenIdFo
 public class SignCertificateReqHandler extends AbstractRpcHandler<SignCertificateReq, SignCertificateResp> {
 
     @Override
-    protected SignCertificateResp handle(SignCertificateReq request) throws Exception {
+    protected SignCertificateResp handle(SignCertificateReq request) {
         final byte[] signedCertificate = getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
                 .handleSignCertificate(request);
 

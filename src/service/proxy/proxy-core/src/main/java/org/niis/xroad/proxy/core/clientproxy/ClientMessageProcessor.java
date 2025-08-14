@@ -48,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -88,6 +89,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
     /**
@@ -455,6 +457,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private final class SoapMessageHandler implements SoapMessageDecoder.Callback {
 
         @Override

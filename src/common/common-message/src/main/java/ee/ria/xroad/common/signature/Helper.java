@@ -36,6 +36,7 @@ import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.utils.Constants;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -56,6 +57,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 /**
  * Local helper class for constructing Xades signatures.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class Helper {
 
     public static final String BASE_URI = null;

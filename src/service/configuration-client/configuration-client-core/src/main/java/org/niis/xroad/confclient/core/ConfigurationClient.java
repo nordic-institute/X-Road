@@ -30,6 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.ConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
@@ -55,6 +56,7 @@ import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.ge
  * Configuration client downloads the configuration from sources found in the configuration anchor.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfigurationClient {
     private final String globalConfigurationDir;
 

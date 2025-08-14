@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationAnchorType;
 import org.niis.xroad.globalconf.schema.privateparameters.v2.ObjectFactory;
 
@@ -59,6 +60,7 @@ public class ConfigurationAnchor
      * A special constructor for creating a ConfigurationAnchorV2 from bytes instead of a file on the filesystem.
      * <b>Does not set <code>confFileChecker</code>. This constructor is used e.g. for creating a preview of an
      * anchor.</b> {@link ConfigurationAnchor#ConfigurationAnchor(String)} should usually be preferred!
+     *
      * @param fileBytes the configuration anchor file bytes
      */
     public ConfigurationAnchor(byte[] fileBytes) {
@@ -128,7 +130,7 @@ public class ConfigurationAnchor
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

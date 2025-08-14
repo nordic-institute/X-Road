@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.message;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
 import java.io.InputStream;
 import java.util.Map;
 
@@ -32,6 +34,7 @@ import java.util.Map;
  * Describes the SOAP message callback. The message consists of a XML message
  * and optional attachments.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface SoapMessageConsumer {
 
     /**

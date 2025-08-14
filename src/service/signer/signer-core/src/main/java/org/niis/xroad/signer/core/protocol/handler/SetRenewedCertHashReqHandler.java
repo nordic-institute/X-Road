@@ -39,7 +39,7 @@ public class SetRenewedCertHashReqHandler
         extends AbstractRpcHandler<SetRenewedCertHashReq, Empty> {
 
     @Override
-    protected Empty handle(SetRenewedCertHashReq request) throws Exception {
+    protected Empty handle(SetRenewedCertHashReq request) {
         TokenManager.setRenewedCertHash(request.getCertId(), request.getHash());
 
         return Empty.getDefaultInstance();

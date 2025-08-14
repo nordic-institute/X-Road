@@ -41,6 +41,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.ErrorCodes;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -49,6 +50,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -59,7 +61,6 @@ import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
@@ -84,6 +85,7 @@ class SignatureVerifierTest {
     private static final ClientId CONSUMER_ID = createClientId("consumer");
 
     private GlobalConfProvider globalConfProvider;
+
     @BeforeAll
     public static void init() {
         TestSecurityUtil.initSecurity();
@@ -167,7 +169,7 @@ class SignatureVerifierTest {
     void emptySignature() {
         assertThatThrownBy(() -> createSignatureVerifier("src/test/signatures/empty.xml"))
                 .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_INVALID_XML);
+                .hasMessageContaining(ErrorCodes.INVALID_XML.code());
     }
 
     /**
@@ -197,7 +199,7 @@ class SignatureVerifierTest {
     void malformedXml() {
         assertThatThrownBy(() -> createSignatureVerifier("src/test/signatures/sign-0-malformed-xml.xml"))
                 .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_INVALID_XML);
+                .hasMessageContaining(ErrorCodes.INVALID_XML.code());
     }
 
     /**
@@ -458,7 +460,8 @@ class SignatureVerifierTest {
 
         globalConfProvider = new TestGlobalConfImpl() {
             @Override
-            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
+            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert)
+                    throws CertificateEncodingException, IOException {
                 if (useTestCaCert) {
                     return TestCertUtil.getCaCert();
                 } else {

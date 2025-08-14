@@ -41,7 +41,7 @@ public class SetNextPlannedRenewalReqHandler
         extends AbstractRpcHandler<SetNextPlannedRenewalReq, Empty> {
 
     @Override
-    protected Empty handle(SetNextPlannedRenewalReq request) throws Exception {
+    protected Empty handle(SetNextPlannedRenewalReq request) {
         Instant nextRenewalTime = Instant.ofEpochSecond(request.getNextRenewalTime().getSeconds(), request.getNextRenewalTime().getNanos());
         TokenManager.setNextPlannedRenewal(request.getCertId(), nextRenewalTime);
 

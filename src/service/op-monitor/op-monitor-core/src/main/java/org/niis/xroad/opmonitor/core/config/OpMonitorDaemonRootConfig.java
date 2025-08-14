@@ -27,6 +27,7 @@ package org.niis.xroad.opmonitor.core.config;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
@@ -38,6 +39,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.List;
 
 @Slf4j
@@ -49,12 +53,14 @@ import java.util.List;
 public class OpMonitorDaemonRootConfig {
 
     @Bean
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
         return new OpMonitorDaemon(globalConfProvider);
     }
 
     @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
+    RpcServer rpcServer(final List<BindableService> bindableServices)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         return RpcServer.newServer(
                 OpMonitoringSystemProperties.getOpMonitorHost(),
                 OpMonitoringSystemProperties.getOpMonitorGrpcPort(),

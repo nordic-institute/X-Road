@@ -61,6 +61,8 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -269,7 +271,9 @@ public final class CertUtils {
         boolean[] keyUsage = cert.getKeyUsage();
 
         if (keyUsage == null) {
-            throw new RuntimeException("Certificate does not contain keyUsage extension");
+            throw XrdRuntimeException.systemException(org.niis.xroad.common.core.exception.ErrorCodes.INTERNAL_ERROR)
+                    .details("Certificate does not contain keyUsage extension")
+                    .build();
         }
 
         return keyUsage[1]; // nonRepudiation
@@ -415,7 +419,7 @@ public final class CertUtils {
      * @return byte content of the certificate request
      */
     public static byte[] generateCertRequest(PrivateKey privateKey, PublicKey publicKey, String principal)
-            throws NoSuchAlgorithmException, OperatorCreationException, IOException {
+            throws OperatorCreationException, IOException {
         X500Principal subject = new X500Principal(principal);
 
         ContentSigner signGen = new JcaContentSignerBuilder(SHA256_WITH_RSA.name()).build(privateKey);
@@ -499,6 +503,7 @@ public final class CertUtils {
      * @param filenameP12 output filename of the .p12 keystore
      * @throws Exception when error occurs
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public static void createPkcs12(String filenameKey, byte[] certBytes, String filenameP12) throws Exception {
         KeyPair keyPair = readKeyPairFromPemFile(filenameKey);
         PrivateKey privateKey = keyPair.getPrivate();

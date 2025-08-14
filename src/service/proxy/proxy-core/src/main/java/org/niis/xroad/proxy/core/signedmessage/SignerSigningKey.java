@@ -72,7 +72,7 @@ public class SignerSigningKey implements SigningKey {
     }
 
     @Override
-    public SignatureData calculateSignature(SigningRequest request, DigestAlgorithm digestAlgoId) throws Exception {
+    public SignatureData calculateSignature(SigningRequest request, DigestAlgorithm digestAlgoId) {
         SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(digestAlgoId, signMechanismName);
 
         log.trace("Calculating signature using algorithm {}", signAlgoId);

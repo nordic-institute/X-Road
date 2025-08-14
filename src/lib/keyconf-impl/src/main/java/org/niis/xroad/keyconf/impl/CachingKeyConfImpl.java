@@ -40,6 +40,7 @@ import com.google.common.cache.CacheBuilder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
@@ -59,6 +60,7 @@ import java.util.concurrent.TimeUnit;
  * Encapsulates KeyConf related functionality.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class CachingKeyConfImpl extends KeyConfImpl {
 
     // Specifies how long data is cached

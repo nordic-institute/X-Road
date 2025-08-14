@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -83,7 +84,7 @@ public class FSGlobalConfValidator {
         return globalConfPath.toFile().isDirectory();
     }
 
-    private boolean isDirEmpty(Path globalConfPath) throws Exception {
+    private boolean isDirEmpty(Path globalConfPath) throws IOException {
         try (var fileStream = Files.list(globalConfPath)) {
             return fileStream.filter(file -> file.toFile().isDirectory()).findAny().isEmpty();
         }

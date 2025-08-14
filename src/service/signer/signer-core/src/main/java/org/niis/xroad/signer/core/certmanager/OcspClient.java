@@ -44,6 +44,7 @@ import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPReqBuilder;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.ContentSigner;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.stereotype.Component;
 
@@ -64,6 +65,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class OcspClient {
     private final GlobalConfProvider globalConfProvider;
 

@@ -34,6 +34,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
@@ -52,6 +53,7 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.MONI
  * operational_data table, mapped by the OperationalDataRecord class.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 final class OperationalDataRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;

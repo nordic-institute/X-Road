@@ -28,6 +28,7 @@ package ee.ria.xroad.common.util;
 import ee.ria.xroad.common.DefaultFilepaths;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -60,21 +61,25 @@ public final class AtomicSave {
     public interface Callback {
         /**
          * Called when data is being atomically saved.
+         *
          * @param out output stream where data is written during the atomic save
          * @throws Exception if any errors occur
          */
+        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
         void save(OutputStream out) throws Exception;
     }
 
     /**
      * Atomically executes the given callback as part of the atomic save to the provided filename.
      * If an error occurs no changes to the file will be made.
-     * @param fileName filename where data should be atomically saved
+     *
+     * @param fileName  filename where data should be atomically saved
      * @param tmpPrefix prefix of the temporary file used in the process
-     * @param callback callback that should be executed when data is atomically saved
-     * @param options options specifying how the move should be done
+     * @param callback  callback that should be executed when data is atomically saved
+     * @param options   options specifying how the move should be done
      * @throws Exception if any errors occur
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public static void execute(String fileName, String tmpPrefix, Callback callback, CopyOption... options)
             throws Exception {
         Path target = Paths.get(fileName);
@@ -103,12 +108,14 @@ public final class AtomicSave {
     /**
      * Atomically writes the given byte array to the file with the provided filename.
      * If an error occurs no changes to the file will be made.
-     * @param fileName filename where data should be atomically saved
+     *
+     * @param fileName  filename where data should be atomically saved
      * @param tmpPrefix prefix of the temporary file used in the process
-     * @param data byte array that should be atomically saved in the file
-     * @param options options specifying how the move should be done
+     * @param data      byte array that should be atomically saved in the file
+     * @param options   options specifying how the move should be done
      * @throws Exception if any errors occur
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public static void execute(String fileName, String tmpPrefix, final byte[] data, CopyOption... options)
             throws Exception {
         execute(fileName, tmpPrefix, out -> out.write(data), options);
@@ -121,6 +128,7 @@ public final class AtomicSave {
      * 3. renames file in target directory to target name
      * The last step is the part which is done atomically, it is still possible for example that
      * step 1 succeeds but step 2 fails
+     *
      * @param sourceFileName source
      * @param targetFileName target
      * @throws IOException when file operation fails

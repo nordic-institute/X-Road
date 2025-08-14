@@ -82,7 +82,7 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     @Override
     MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                OpMonitoringData opMonitoringData) throws Exception {
+                                                OpMonitoringData opMonitoringData) {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();

@@ -37,6 +37,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import javax.crypto.Cipher;
 
@@ -154,6 +155,7 @@ public class MessageRecord extends AbstractLogRecord {
                 memberClass, memberCode, subsystemCode};
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public AsicContainer toAsicContainer() throws Exception {
         final boolean encrypted = keyId != null;
         final SignatureData signatureData = new SignatureData(signature, hashChainResult, hashChain);

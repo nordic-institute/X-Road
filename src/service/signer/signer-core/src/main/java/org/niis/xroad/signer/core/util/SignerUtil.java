@@ -39,6 +39,7 @@ import org.niis.xroad.signer.api.dto.TokenInfo;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
@@ -95,8 +96,7 @@ public final class SignerUtil {
      * @return the certificate
      * @throws Exception if an error occurs
      */
-    public static X509Certificate createCertificate(String commonName, KeyPair keyPair, ContentSigner signer)
-            throws Exception {
+    public static X509Certificate createCertificate(String commonName, KeyPair keyPair, ContentSigner signer) throws CertificateException {
         Calendar cal = GregorianCalendar.getInstance();
 
         cal.add(Calendar.YEAR, -1);

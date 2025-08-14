@@ -28,10 +28,15 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
+import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 
 public final class RsaKeyManager extends AbstractKeyManager {
@@ -47,12 +52,13 @@ public final class RsaKeyManager extends AbstractKeyManager {
     /**
      * Generates X509 encoded public key bytes from a given modulus and
      * public exponent.
-     * @param modulus the modulus
+     *
+     * @param modulus        the modulus
      * @param publicExponent the public exponent
      * @return generated public key bytes
      * @throws Exception if any errors occur
      */
-    public byte[] generateX509PublicKey(BigInteger modulus, BigInteger publicExponent) throws Exception {
+    public byte[] generateX509PublicKey(BigInteger modulus, BigInteger publicExponent) throws InvalidKeySpecException {
         RSAPublicKeySpec rsaPublicKeySpec = new RSAPublicKeySpec(modulus, publicExponent);
         return generateX509PublicKey(rsaPublicKeySpec);
     }
@@ -68,10 +74,18 @@ public final class RsaKeyManager extends AbstractKeyManager {
     }
 
     @Override
-    public KeyPair generateKeyPair() throws Exception {
-        KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(cryptoAlgorithm().name());
-        keyPairGen.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
+    public KeyPair generateKeyPair() {
+        try {
+            KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(cryptoAlgorithm().name());
+            keyPairGen.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
 
-        return keyPairGen.generateKeyPair();
+            return keyPairGen.generateKeyPair();
+        } catch (NoSuchAlgorithmException e) {
+            throw XrdRuntimeException.systemException(ErrorCodes.CRYPTO_ERROR)
+                    .cause(e)
+                    .details("Algorithm isn't supported in current environment")
+                    .metadataItems(cryptoAlgorithm())
+                    .build();
+        }
     }
 }

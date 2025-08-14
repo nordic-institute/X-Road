@@ -28,9 +28,12 @@ package ee.ria.xroad.common.util;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Getter;
+import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 
 import static ee.ria.xroad.common.crypto.Digests.hexDigest;
@@ -49,10 +52,11 @@ public class FileContentChangeChecker {
 
     /**
      * Calculates hash of the input file.
+     *
      * @param fileName the input file
      * @throws Exception if an error occurs
      */
-    public FileContentChangeChecker(String fileName) throws Exception {
+    public FileContentChangeChecker(String fileName) throws IOException, OperatorCreationException {
         this.fileName = fileName;
 
         File file = getFile();
@@ -63,7 +67,7 @@ public class FileContentChangeChecker {
      * @return true, if the file has changed
      * @throws Exception if an error occurs
      */
-    public boolean hasChanged() throws Exception {
+    public boolean hasChanged() throws IOException, OperatorCreationException {
         File file = getFile();
 
         String newCheckSum = calculateConfFileChecksum(file);
@@ -79,11 +83,11 @@ public class FileContentChangeChecker {
         return new File(fileName);
     }
 
-    protected InputStream getInputStream(File file) throws Exception {
+    protected InputStream getInputStream(File file) throws FileNotFoundException {
         return new FileInputStream(file);
     }
 
-    protected String calculateConfFileChecksum(File file) throws Exception {
+    protected String calculateConfFileChecksum(File file) throws IOException, OperatorCreationException {
         try (InputStream in = getInputStream(file)) {
             return hexDigest(DigestAlgorithm.MD5, toByteArray(in));
         }

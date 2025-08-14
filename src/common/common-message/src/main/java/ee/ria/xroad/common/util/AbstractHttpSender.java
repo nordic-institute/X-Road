@@ -44,6 +44,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -66,6 +67,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
  and then remove older apache http client lib if possible
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public abstract class AbstractHttpSender implements Closeable {
     public static final int CHUNKED_LENGTH = -1;
 
@@ -146,7 +148,7 @@ public abstract class AbstractHttpSender implements Closeable {
         return responseHeaders;
     }
 
-    protected void handleResponse(HttpResponse response) throws Exception {
+    protected void handleResponse(HttpResponse response) throws IOException {
         log.trace("handleResponse()");
 
         checkResponseStatus(response);

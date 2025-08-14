@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.core.opmonitoring;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
@@ -88,6 +89,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         return new OpMonitoringDataProcessor();
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
         return new OpMonitoringDaemonSender(serverConfProvider, this);
     }

@@ -38,6 +38,7 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.springframework.beans.factory.DisposableBean;
@@ -79,7 +80,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
      *
      * @throws Exception in case of any errors
      */
-    public OpMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
+    public OpMonitorDaemon(GlobalConfProvider globalConfProvider) {
         this.globalConfProvider = globalConfProvider;
 
         createConnector();
@@ -88,6 +89,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void afterPropertiesSet() throws Exception {
         startTimestamp = getEpochMillisecond();
 
@@ -96,6 +98,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void destroy() throws Exception {
         server.stop();
         reporter.stop();

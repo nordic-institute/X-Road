@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
@@ -41,6 +42,7 @@ import java.nio.file.Paths;
  * Defines a configuration proxy instance and carries out it's main operations.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfProxy {
     private final SignerRpcClient signerRpcClient;
     protected ConfProxyProperties conf;

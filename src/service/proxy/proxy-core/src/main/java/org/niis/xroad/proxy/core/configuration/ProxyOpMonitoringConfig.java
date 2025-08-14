@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
@@ -37,6 +38,7 @@ import org.springframework.context.annotation.Configuration;
 public class ProxyOpMonitoringConfig {
 
     @Bean
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
         return OpMonitoring.init(serverConfProvider);
     }
