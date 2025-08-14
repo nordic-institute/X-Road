@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.ss.test.addons.jmx;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
@@ -38,7 +40,6 @@ import javax.management.remote.JMXServiceURL;
 
 import java.io.IOException;
 import java.util.function.Supplier;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 public class JmxClientImpl implements JmxClient {
 
