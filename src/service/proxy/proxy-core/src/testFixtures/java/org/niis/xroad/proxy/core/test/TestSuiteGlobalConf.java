@@ -39,9 +39,7 @@ import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -78,7 +76,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     @Override
     public List<X509Certificate> getOcspResponderCertificates() {
         try {
-            return Arrays.asList(TestCertUtil.getOcspSigner().certChain[0]);
+            return Collections.singletonList(TestCertUtil.getOcspSigner().certChain[0]);
         } catch (Exception e) {
             return Collections.emptyList();
         }
@@ -94,28 +92,28 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public X509Certificate getCaCert(String instanceIdentifier, X509Certificate org) throws Exception {
+    public X509Certificate getCaCert(String instanceIdentifier, X509Certificate org) {
         return TestCertUtil.getCaCert();
     }
 
     @Override
-    public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) throws Exception {
+    public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) {
         return new CertChainFactory(this).create(instanceIdentifier, subject, null);
     }
 
     @Override
-    public List<X509Certificate> getTspCertificates() throws CertificateException {
-        return Arrays.asList(TestCertUtil.getTspCert());
+    public List<X509Certificate> getTspCertificates() {
+        return Collections.singletonList(TestCertUtil.getTspCert());
     }
 
     @Override
-    public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId) throws Exception {
+    public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId) {
         return true;
     }
 
     @Override
     public SignCertificateProfileInfo getSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters parameters,
-                                                                    X509Certificate cert) throws Exception {
+                                                                    X509Certificate cert) {
         return new EjbcaSignCertificateProfileInfo(parameters) {
             @Override
             public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
@@ -134,7 +132,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
 
     @Override
     public AuthCertificateProfileInfo getAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters parameters,
-                                                                    X509Certificate cert) throws Exception {
+                                                                    X509Certificate cert) {
         return null;
     }
 
@@ -146,7 +144,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) {
         return getSignCertificateProfileInfo(parameters, cert)
                 .getSubjectIdentifier(cert);
     }

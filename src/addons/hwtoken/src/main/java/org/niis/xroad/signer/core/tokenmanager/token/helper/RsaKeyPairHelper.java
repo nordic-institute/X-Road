@@ -38,6 +38,7 @@ import iaik.pkcs.pkcs11.objects.RSAPublicKey;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
 import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.core.util.SignerUtil;
 
 import java.math.BigInteger;
@@ -68,6 +69,7 @@ public final class RsaKeyPairHelper extends AbstractKeyPairBuilder<RSAPublicKey,
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public byte[] generateX509PublicKey(PublicKey publicKey) throws Exception {
         if (!(publicKey instanceof RSAPublicKey rsaPublicKey)) {
             throw new CryptoException("Invalid type of public key: " + publicKey.getClass());

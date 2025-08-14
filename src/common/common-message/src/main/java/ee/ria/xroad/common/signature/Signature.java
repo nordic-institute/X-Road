@@ -37,6 +37,7 @@ import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.utils.Constants;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -78,6 +79,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 /**
  * Container class for the XML signature specific objects.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class Signature {
 
     static {

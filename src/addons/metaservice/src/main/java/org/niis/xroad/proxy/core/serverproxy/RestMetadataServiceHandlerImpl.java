@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
@@ -125,6 +126,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void startHandling(RequestWrapper servletRequest, ProxyMessage requestProxyMessage,
                               ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                               HttpClient restClient, HttpClient opMonitorClient,

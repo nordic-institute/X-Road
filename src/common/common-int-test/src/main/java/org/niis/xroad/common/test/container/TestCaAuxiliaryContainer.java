@@ -31,6 +31,7 @@ import com.nortal.test.testcontainers.AbstractAuxiliaryContainer;
 import com.nortal.test.testcontainers.configuration.ContainerProperties;
 import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import com.nortal.test.testcontainers.images.builder.ReusableImageFromDockerfile;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +72,7 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
 
     @NotNull
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public TestCaContainer configure() {
         var logDirPath = Paths.get("build/ca-container-logs/");
         var logDir = logDirPath.toFile();

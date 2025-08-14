@@ -112,7 +112,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
                     }
 
                     @Override
-                    public void validateSubjectField(DnFieldValue field) throws Exception {
+                    public void validateSubjectField(DnFieldValue field) {
                     }
                 });
         doNothing().when(tokenCertificateService).orderAcmeCertificate(any(), any(), any());

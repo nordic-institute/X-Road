@@ -44,6 +44,8 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -57,12 +59,17 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
@@ -109,17 +116,20 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
             createCentralHttpClient();
             createProxyHttpClient();
         } catch (Exception e) {
-            throw new RuntimeException("Unable to initialize management request client", e);
+            throw XrdRuntimeException.systemException(ErrorCodes.INTERNAL_ERROR)
+                    .cause(e)
+                    .details("Unable to initialize management request client")
+                    .build();
         }
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         log.info("Starting ManagementRequestClient...");
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         log.info("Stopping ManagementRequestClient...");
 
         IOUtils.closeQuietly(proxyHttpClient);
@@ -129,12 +139,12 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
     // -- Helper methods ------------------------------------------------------
 
     @SuppressWarnings("java:S4830")
-    private void createCentralHttpClient() throws Exception {
+    private void createCentralHttpClient() throws NoSuchAlgorithmException, KeyManagementException {
         log.trace("createCentralHttpClient()");
 
         TrustManager tm = new X509TrustManager() {
             @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] chain, String authType) {
                 // As manager of the client the method gets never called
             }
 
@@ -144,7 +154,7 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
                     throw new CertificateException("Central server did not send TLS certificate");
                 }
 
-                X509Certificate centralServerSslCert = null;
+                X509Certificate centralServerSslCert;
 
                 try {
                     centralServerSslCert = globalConfProvider.getCentralServerSslCertificate();
@@ -170,7 +180,8 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         centralHttpClient = createHttpClient(null, new TrustManager[]{tm});
     }
 
-    private void createProxyHttpClient() throws Exception {
+    private void createProxyHttpClient()
+            throws NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException, CertificateException, IOException, KeyStoreException {
         log.trace("createProxyHttpClient()");
 
         String keyStore = SystemProperties.getManagementRequestSenderClientKeystore();
@@ -185,15 +196,15 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
     }
 
     @SuppressWarnings("java:S4830") // Won't fix: Works as designed ("Server certificates should be verified")
-    private CloseableHttpClient createProxyHttpClientWithInternalKey() throws Exception {
+    private CloseableHttpClient createProxyHttpClientWithInternalKey() throws NoSuchAlgorithmException, KeyManagementException {
         TrustManager tm = new X509TrustManager() {
             @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] chain, String authType) {
                 // never called as this is trustmanager of a client
             }
 
             @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            public void checkServerTrusted(X509Certificate[] chain, String authType) {
                 // localhost called so server is trusted
             }
 
@@ -263,7 +274,9 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
     }
 
     private CloseableHttpClient createProxyHttpClient(String keyStorePath, char[] keyStorePassword, String trustStorePath,
-                                                      char[] trustStorePassword) throws Exception {
+                                                      char[] trustStorePassword)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException,
+            UnrecoverableKeyException, KeyManagementException {
 
         Objects.requireNonNull(keyStorePath, "Management request client key store path is not provided.");
         Objects.requireNonNull(trustStorePath, "Management request client trust store path is not provided.");
@@ -279,7 +292,8 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         return createHttpClient(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers());
     }
 
-    private static CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers) throws Exception {
+    private static CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers)
+            throws NoSuchAlgorithmException, KeyManagementException {
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create();
 
         sfr.register("http", PlainConnectionSocketFactory.INSTANCE);

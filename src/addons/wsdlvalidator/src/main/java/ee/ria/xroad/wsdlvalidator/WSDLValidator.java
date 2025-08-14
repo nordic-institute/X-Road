@@ -29,6 +29,7 @@ import org.apache.cxf.tools.common.ToolConstants;
 import org.apache.cxf.tools.common.ToolContext;
 import org.apache.cxf.tools.common.ToolException;
 import org.apache.cxf.tools.validator.internal.WSDL11Validator;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
@@ -65,6 +66,7 @@ public final class WSDLValidator {
     private WSDLValidator() {
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     static int executeValidator(String wsdlUrl, PrintStream msg) {
         try {
             ToolContext env = new ToolContext();
@@ -87,6 +89,7 @@ public final class WSDLValidator {
     /**
      * WSDLValidator wrapper.
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             System.err.println("WSDLValidator Error : Missing argument: wsdlUrl");

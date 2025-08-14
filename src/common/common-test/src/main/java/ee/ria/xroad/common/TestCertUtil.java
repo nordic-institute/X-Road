@@ -36,6 +36,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -63,6 +64,7 @@ import java.util.Date;
  * Whenever you need to use a certificate in a test class, use this class. Add
  * necessary convenience methods if needed.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class TestCertUtil {
 
     /**

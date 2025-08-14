@@ -27,6 +27,7 @@ package ee.ria.xroad.common;
 
 import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.soap.SOAPException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -199,6 +200,7 @@ public final class ErrorCodes {
      * @return translated CodedException
      */
     @SuppressWarnings("squid:S1872")
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public static CodedException translateException(Throwable ex) {
         return switch (ex) {
             case CodedException cex -> cex;

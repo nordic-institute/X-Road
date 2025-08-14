@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import org.apache.commons.io.IOUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -37,6 +38,7 @@ import java.io.FileInputStream;
 /**
  * Utility class providing helper functionality for SOAP messages.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class SoapMessageTestUtil {
 
     public static final String QUERY_DIR = "../../service/proxy/proxy-core/src/test/queries/";

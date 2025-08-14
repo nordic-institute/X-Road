@@ -30,6 +30,7 @@ import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Request;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,7 @@ import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.Optional;
 
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface RequestWrapper {
     InputStream getInputStream();
 
@@ -66,53 +68,64 @@ public interface RequestWrapper {
             }
         };
 
-        return new RequestWrapper() {
-            @Override
-            public InputStream getInputStream() {
-                return in;
-            }
+        return new RequestWrapperImpl(request, in);
+    }
 
-            @Override
-            public HttpURI getHttpURI() {
-                return request.getHttpURI();
-            }
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    static class RequestWrapperImpl implements RequestWrapper {
+        private final Request request;
+        private final InputStream inputStream;
 
-            @Override
-            public String getMethod() {
-                return request.getMethod();
-            }
+        private RequestWrapperImpl(Request request, InputStream inputStream) {
+            this.request = request;
+            this.inputStream = inputStream;
+        }
 
-            @Override
-            public String getContentType() {
-                return JettyUtils.getContentType(request);
-            }
+        @Override
+        public InputStream getInputStream() {
+            return inputStream;
+        }
 
-            @Override
-            public HttpFields getHeaders() {
-                return request.getHeaders();
-            }
+        @Override
+        public HttpURI getHttpURI() {
+            return request.getHttpURI();
+        }
 
-            @Override
-            public Object getAttribute(String attributeName) {
-                return request.getAttribute(attributeName);
-            }
+        @Override
+        public String getMethod() {
+            return request.getMethod();
+        }
 
-            @Override
-            public String getParameter(String name) throws Exception {
-                return Request.getParameters(request).getValue(name);
-            }
+        @Override
+        public String getContentType() {
+            return JettyUtils.getContentType(request);
+        }
 
-            @Override
-            public Map<String, String[]> getParametersMap() throws Exception {
-                return Request.getParameters(request).toStringArrayMap();
-            }
+        @Override
+        public HttpFields getHeaders() {
+            return request.getHeaders();
+        }
 
-            @Override
-            public Optional<X509Certificate[]> getPeerCertificates() {
-                var ssd = (EndPoint.SslSessionData) request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
-                return Optional.ofNullable(ssd)
-                        .map(EndPoint.SslSessionData::peerCertificates);
-            }
-        };
+        @Override
+        public Object getAttribute(String attributeName) {
+            return request.getAttribute(attributeName);
+        }
+
+        @Override
+        public String getParameter(String name) throws Exception {
+            return Request.getParameters(request).getValue(name);
+        }
+
+        @Override
+        public Map<String, String[]> getParametersMap() throws Exception {
+            return Request.getParameters(request).toStringArrayMap();
+        }
+
+        @Override
+        public Optional<X509Certificate[]> getPeerCertificates() {
+            var ssd = (EndPoint.SslSessionData) request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
+            return Optional.ofNullable(ssd)
+                    .map(EndPoint.SslSessionData::peerCertificates);
+        }
     }
 }

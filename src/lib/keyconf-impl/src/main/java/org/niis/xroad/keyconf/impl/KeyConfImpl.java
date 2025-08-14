@@ -39,6 +39,7 @@ import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.SingleResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -62,6 +63,7 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class KeyConfImpl implements KeyConfProvider {
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;

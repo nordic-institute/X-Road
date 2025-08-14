@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
@@ -115,6 +116,7 @@ import static org.niis.xroad.serverconf.model.Client.STATUS_SAVED;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ClientService {
     private static final String INVALID_INSTANCE_IDENTIFIER = "instance identifier is invalid: ";
     private static final String INVALID_MEMBER_CLASS = "member class is invalid: ";

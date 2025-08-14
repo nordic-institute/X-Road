@@ -14,7 +14,8 @@ tasks.jar {
 dependencies {
   implementation(libs.apache.cxfToolsValidator)
   implementation(libs.apache.cxfRtTransportsHttp)
-  implementation(libs.javax.annotationApi)
+  implementation(libs.jakarta.annotationApi)
+  implementation(project(":common:common-core"))
 }
 
 tasks.shadowJar {

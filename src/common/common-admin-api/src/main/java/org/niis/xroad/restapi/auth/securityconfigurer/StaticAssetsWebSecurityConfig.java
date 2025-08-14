@@ -33,6 +33,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerPolicyDirectives;
 
@@ -45,6 +46,7 @@ public class StaticAssetsWebSecurityConfig {
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public SecurityFilterChain staticAssetsSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .securityMatcher(

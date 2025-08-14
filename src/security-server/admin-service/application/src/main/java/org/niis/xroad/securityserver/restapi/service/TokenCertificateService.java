@@ -38,6 +38,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -90,6 +91,7 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SIGN
 @Transactional
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class TokenCertificateService {
 
     private static final String DUMMY_MEMBER = "dummy";

@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
@@ -50,6 +51,7 @@ import java.util.Set;
 /**
  * Global configuration provider.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface GlobalConfProvider {
 
     /**
@@ -138,7 +140,7 @@ public interface GlobalConfProvider {
      */
     ClientId.Conf getSubjectName(
             SignCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception;
+            X509Certificate cert);
 
     /**
      * Returns a list of OCSP responder addresses for the given member

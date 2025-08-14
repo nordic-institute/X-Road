@@ -31,6 +31,7 @@ import com.nortal.test.testcontainers.AbstractAuxiliaryContainer;
 import com.nortal.test.testcontainers.configuration.ContainerProperties;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +70,7 @@ public class TestMailServerAuxiliaryContainer extends AbstractAuxiliaryContainer
 
     @NotNull
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public TestMailServerContainer configure() {
         var dataDirPath = Paths.get("build/mail-server-data/");
         var dataDir = dataDirPath.toFile();

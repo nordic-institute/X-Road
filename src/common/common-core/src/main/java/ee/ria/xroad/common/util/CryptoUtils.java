@@ -150,7 +150,8 @@ public final class CryptoUtils {
      * @throws Exception if the certificate if cannot be created
      */
     public static CertificateID createCertId(X509Certificate subject,
-                                             X509Certificate issuer) throws Exception {
+                                             X509Certificate issuer)
+            throws OCSPException, CertificateEncodingException, IOException, OperatorCreationException {
         return createCertId(subject.getSerialNumber(), issuer);
     }
 

@@ -112,7 +112,7 @@ public class TestGlobalConf extends EmptyGlobalConf {
 
     @Override
     public AuthCertificateProfileInfo getAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters parameters,
-                                                                    X509Certificate cert) throws Exception {
+                                                                    X509Certificate cert) {
         return null;
     }
 

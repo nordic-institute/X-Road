@@ -51,7 +51,7 @@ public interface CertificateProfileInfo {
      * validation logic is implementation specific. Should throw an exception
      * if the field is invalid.
      * @param field the field value
-     * @throws Exception if validation fails
+     * @throws org.niis.xroad.common.core.exception.XrdRuntimeException if validation fails
      */
-    void validateSubjectField(DnFieldValue field) throws Exception;
+    void validateSubjectField(DnFieldValue field) ;
 }

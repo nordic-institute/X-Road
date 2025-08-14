@@ -51,10 +51,10 @@ public final class JaxbUtils {
      * @param clazz class for which the marshaller is to be created
      * @param mpr namespace prefix mapper to use with the marshaller
      * @return Marshaller
-     * @throws Exception if an error was encountered while creating the Marshaller object
+     * @throws JAXBException if an error was encountered while creating the Marshaller object
      */
     public static Marshaller createMarshaller(Class<?> clazz,
-                                              NamespacePrefixMapper mpr) throws Exception {
+                                              NamespacePrefixMapper mpr) throws JAXBException {
         Marshaller marshaller = createMarshaller(clazz);
         marshaller.setProperty("org.glassfish.jaxb.namespacePrefixMapper", mpr);
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
@@ -65,10 +65,10 @@ public final class JaxbUtils {
      * Creates a marshaller for the given class.
      * @param clazz class for which the marshaller is to be created
      * @return Marshaller
-     * @throws Exception if an error was encountered while creating the Marshaller object
+     * @throws JAXBException if an error was encountered while creating the Marshaller object
      */
     public static Marshaller createMarshaller(Class<?> clazz)
-            throws Exception {
+            throws JAXBException {
         return getJAXBContext(clazz).createMarshaller();
     }
 
@@ -76,10 +76,10 @@ public final class JaxbUtils {
      * Creates a unmarshaller for the given class.
      * @param clazz class for which the unmarshaller is to be created
      * @return Marshaller
-     * @throws Exception if an error was encountered while creating the Unmarshaller object
+     * @throws JAXBException if an error was encountered while creating the Unmarshaller object
      */
     public static Unmarshaller createUnmarshaller(Class<?> clazz)
-            throws Exception {
+            throws JAXBException {
         return getJAXBContext(clazz).createUnmarshaller();
     }
 
@@ -96,7 +96,7 @@ public final class JaxbUtils {
         }
     }
 
-    private static JAXBContext getJAXBContext(Class<?> clazz) throws Exception {
+    private static JAXBContext getJAXBContext(Class<?> clazz) throws JAXBException {
         if (CTX_CACHE.containsKey(clazz)) {
             return CTX_CACHE.get(clazz);
         } else {

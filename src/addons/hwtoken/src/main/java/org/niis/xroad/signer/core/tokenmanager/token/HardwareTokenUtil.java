@@ -44,6 +44,7 @@ import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleConf;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleInstanceProvider;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -71,6 +72,7 @@ public final class HardwareTokenUtil {
      * @return the module instance
      * @throws Exception if an error occurs
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public static Module moduleGetInstance(String libraryPath) throws Exception {
         String providerClass = System.getProperty(SystemProperties.SIGNER_MODULE_INSTANCE_PROVIDER);
         if (providerClass != null) {

@@ -31,6 +31,7 @@ import com.societegenerale.commons.plugin.utils.ArchUtils;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
@@ -77,9 +78,14 @@ public class NoVanillaExceptions implements ArchRuleTest {
         private void checkMethodBodyForVanillaExceptions(JavaMethod javaMethod, ConditionEvents events) {
             // Check for constructor calls that create vanilla exceptions
             for (JavaCall<?> call : javaMethod.getCallsFromSelf()) {
+                if (call instanceof JavaMethodCall) {
+                    continue;
+                }
+
                 JavaClass targetType = call.getTarget().getOwner();
 
                 if (isVanillaException(targetType)) {
+
                     String message = "Class '%s' method '%s' creates vanilla exception '%s' at line %d. " +
                             "Use custom exceptions with meaningful context instead.";
                     events.add(SimpleConditionEvent.violated(javaMethod,
@@ -105,7 +111,28 @@ public class NoVanillaExceptions implements ArchRuleTest {
         }
 
         private boolean isExcluded(JavaMethod javaMethod) {
-            return ArchUnitSuppressionHelper.isSuppressed(javaMethod, RULE_NAME);
+            // Skip methods that are excluded from this rule
+            if (ArchUnitSuppressionHelper.isSuppressed(javaMethod, RULE_NAME)) {
+                return true;
+            }
+
+            // Skip generated code (JAXB, OpenAPI, etc.)
+            if (isGeneratedCode(javaMethod.getOwner())) {
+                return true;
+            }
+
+            return false;
+        }
+
+        private boolean isGeneratedCode(JavaClass javaClass) {
+
+            // Exclude all JAXB adapter classes (both generated and hand-written)
+            // since they are required to throw Exception by the JAXB API contract
+            if (javaClass.isAssignableTo(jakarta.xml.bind.annotation.adapters.XmlAdapter.class)) {
+                return true;
+            }
+
+            return false;
         }
 
         private boolean isVanillaException(JavaClass javaClass) {

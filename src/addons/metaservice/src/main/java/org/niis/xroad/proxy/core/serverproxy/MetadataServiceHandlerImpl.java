@@ -51,6 +51,7 @@ import jakarta.xml.soap.SOAPMessage;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
@@ -128,6 +129,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         wsdlHttpClientCreator = new HttpClientCreator(serverConfProvider);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private static SAXTransformerFactory createSaxTransformerFactory() {
         try {
             SAXTransformerFactory factory = (SAXTransformerFactory) TransformerFactory.newInstance();
@@ -156,6 +158,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     @Override
     @SneakyThrows
     @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public boolean canHandle(ServiceId requestServiceId,
                              ProxyMessage requestProxyMessage) {
 
@@ -182,6 +185,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void startHandling(RequestWrapper servletRequest,
                               ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
                               OpMonitoringData opMonitoringData) throws Exception {
@@ -210,6 +214,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void finishHandling() throws Exception {
         // nothing to do
     }
@@ -220,12 +225,14 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public InputStream getResponseContent() throws Exception {
         return new ByteArrayInputStream(responseOut.toByteArray());
     }
 
 // ------------------------------------------------------------------------
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void handleListMethods(SoapMessageImpl request) throws Exception {
         log.trace("handleListMethods()");
 
@@ -238,6 +245,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         responseEncoder.soap(result, new HashMap<>());
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void handleAllowedMethods(SoapMessageImpl request)
             throws Exception {
         log.trace("handleAllowedMethods()");
@@ -253,6 +261,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         responseEncoder.soap(result, new HashMap<>());
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void handleGetWsdl(SoapMessageImpl request) throws Exception {
         log.trace("handleGetWsdl()");
 
@@ -288,6 +297,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
 // ------------------------------------------------------------------------
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private String getWsdlUrl(ServiceId service) throws Exception {
         ServiceDescription wsdl = ServerConfDatabaseCtx.doInTransaction(
                 session -> ServiceDescriptionMapper.get().toTarget(
@@ -301,6 +311,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         return wsdl != null ? wsdl.getUrl() : null;
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private static SoapMessageImpl createMethodListResponse(
             SoapMessageImpl requestMessage,
             final JAXBElement<MethodListType> methodList) throws Exception {
@@ -308,6 +319,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         return SoapUtils.toResponse(requestMessage,
                 new SOAPCallback() {
                     @Override
+                    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
                     public void call(SOAPMessage soap) throws Exception {
                         soap.getSOAPBody().removeContents();
                         marshal(methodList, soap.getSOAPBody());
@@ -315,6 +327,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
                 });
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private static void marshal(Object object, Node out) throws Exception {
         Marshaller marshaller = JAXB_CTX.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
@@ -322,6 +335,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         marshaller.marshal(object, out);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private static JAXBContext initJaxbCtx() {
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
@@ -354,6 +368,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
      * @param wsdl
      * @return
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private InputStream modifyWsdl(InputStream wsdl) {
         try {
             TransformerHandler serializer = TRANSFORMER_FACTORY.newTransformerHandler();
@@ -386,6 +401,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         return OverwriteAttributeFilter.createOverwriteSoapAddressFilter(WSDL_ENDPOINT_ADDRESS);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private InputStream getWsdl(String url, ServiceId serviceId)
             throws HttpClientCreator.HttpClientCreatorException, URISyntaxException, IOException {
 

@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
@@ -77,6 +78,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     @Override
     @WithSpan
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
         boolean handled = false;
 

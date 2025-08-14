@@ -42,6 +42,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.cert.CertChain;
@@ -81,6 +83,7 @@ import static java.util.stream.Collectors.toSet;
  */
 @Slf4j
 @Singleton
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class GlobalConfImpl implements GlobalConfProvider {
 
     private final GlobalConfSource globalConfSource;
@@ -270,13 +273,15 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public ClientId.Conf getSubjectName(
-            SignCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception {
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) {
         log.trace("getSubjectName({})", parameters.getClientId());
 
-        return getSignCertificateProfileInfo(parameters, cert)
-                .getSubjectIdentifier(cert);
+        try {
+            return getSignCertificateProfileInfo(parameters, cert)
+                    .getSubjectIdentifier(cert);
+        } catch (CertificateEncodingException | IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Override
@@ -347,7 +352,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public X509Certificate getCaCert(String instanceIdentifier,
-                                     X509Certificate memberCert) throws Exception {
+                                     X509Certificate memberCert) throws CertificateEncodingException, IOException {
         if (memberCert == null) {
             throw new IllegalArgumentException(
                     "Member certificate must be present to find CA cert!");
@@ -528,7 +533,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public SignCertificateProfileInfo getSignCertificateProfileInfo(
             SignCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception {
+            X509Certificate cert) throws CertificateEncodingException, IOException {
         if (!CertUtils.isSigningCert(cert)) {
             throw new IllegalArgumentException(
                     "Certificate must be signing certificate");
@@ -704,7 +709,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     private CertificateProfileInfoProvider getCertProfile(
-            String instanceIdentifier, X509Certificate cert) throws Exception {
+            String instanceIdentifier, X509Certificate cert) throws CertificateEncodingException, IOException {
         X509Certificate caCert = getCaCert(instanceIdentifier, cert);
         SharedParametersCache p = getSharedParametersCache(instanceIdentifier);
 
