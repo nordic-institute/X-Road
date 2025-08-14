@@ -50,6 +50,11 @@ public class NoVanillaExceptions implements ArchRuleTest {
             RuntimeException.class
     );
 
+    private static final Set<String> EXCLUDED_PACKAGES = Set.of(
+            "org.niis.xroad.signer.proto",
+            "org.niis.xroad.signer.protocol.dto"
+    );
+
     @Override
     public void execute(String packagePath, ScopePathProvider scopePathProvider, Collection<String> excludedPaths) {
         methods().should(new NoVanillaExceptionsCondition())
@@ -86,8 +91,8 @@ public class NoVanillaExceptions implements ArchRuleTest {
 
                 if (isVanillaException(targetType)) {
 
-                    String message = "Class '%s' method '%s' creates vanilla exception '%s' at line %d. " +
-                            "Use custom exceptions with meaningful context instead.";
+                    String message = "Class '%s' method '%s' creates vanilla exception '%s' at line %d. "
+                            + "Use custom exceptions with meaningful context instead.";
                     events.add(SimpleConditionEvent.violated(javaMethod,
                             message.formatted(javaMethod.getOwner().getFullName(), javaMethod.getName(), targetType.getFullName(),
                                     call.getLineNumber())));
@@ -102,8 +107,8 @@ public class NoVanillaExceptions implements ArchRuleTest {
             // Fallback: Check if the method declares vanilla exceptions in throws clause
             for (JavaClass exceptionType : javaMethod.getExceptionTypes()) {
                 if (isVanillaException(exceptionType)) {
-                    String message = "Class '%s' method '%s' declares vanilla exception '%s' in throws clause. " +
-                            "Use custom exceptions with meaningful context instead.";
+                    String message = "Class '%s' method '%s' declares vanilla exception '%s' in throws clause. "
+                            + "Use custom exceptions with meaningful context instead.";
                     events.add(SimpleConditionEvent.violated(javaMethod,
                             message.formatted(javaMethod.getOwner().getFullName(), javaMethod.getName(), exceptionType.getFullName())));
                 }
@@ -131,7 +136,9 @@ public class NoVanillaExceptions implements ArchRuleTest {
             if (javaClass.isAssignableTo(jakarta.xml.bind.annotation.adapters.XmlAdapter.class)) {
                 return true;
             }
-
+            if (EXCLUDED_PACKAGES.contains(javaClass.getPackageName())) {
+                return true;
+            }
             return false;
         }
 

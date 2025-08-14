@@ -62,6 +62,9 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_XML;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
@@ -227,7 +230,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
         return switch (contentIdentifier) {
             case "SHARED-PARAMETERS" -> "shared-params";
             case "PRIVATE-PARAMETERS" -> "private-params";
-            default -> throw new RuntimeException();
+            default -> throw XrdRuntimeException.systemInternalError("Unknown content identifier: " + contentIdentifier);
         };
     }
 

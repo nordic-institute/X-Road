@@ -67,6 +67,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.bouncycastle.operator.DigestCalculator;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
@@ -105,6 +106,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private static final String SERVERPROXY_REST_SERVICE_HANDLERS = SystemProperties.PREFIX
@@ -263,6 +265,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
+            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
             public void rest(RestRequest message) throws Exception {
                 super.rest(message);
                 requestServiceId = message.getServiceId();
@@ -474,6 +477,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
+        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
         public void startHandling(RequestWrapper request, ProxyMessage requestProxyMessage,
                                   ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                                   HttpClient restClient, HttpClient opMonitorClient,
@@ -572,7 +576,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        public void finishHandling() throws Exception {
+        public void finishHandling() {
             // NOP
         }
     }

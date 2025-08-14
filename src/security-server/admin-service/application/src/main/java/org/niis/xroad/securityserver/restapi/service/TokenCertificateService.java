@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -417,7 +418,7 @@ public class TokenCertificateService {
             throw e;
         } catch (Exception e) {
             // something went really wrong
-            throw new RuntimeException("error importing certificate", e);
+            throw XrdRuntimeException.systemInternalError("error importing certificate", e);
         }
         auditDataHelper.put(RestApiAuditProperty.KEY_USAGE, keyUsageInfo);
         return certificateInfo;
@@ -502,7 +503,7 @@ public class TokenCertificateService {
             verifyActivateDisableAuthority(certificateInfo.getCertificateBytes());
         } catch (InvalidCertificateException e) {
             // cert from signer proxy was invalid, should not be possible
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
 
         // verify possible actions

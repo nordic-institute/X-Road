@@ -181,7 +181,8 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
     }
 
     private void createProxyHttpClient()
-            throws NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException, CertificateException, IOException, KeyStoreException {
+            throws NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException, CertificateException,
+            IOException, KeyStoreException {
         log.trace("createProxyHttpClient()");
 
         String keyStore = SystemProperties.getManagementRequestSenderClientKeystore();

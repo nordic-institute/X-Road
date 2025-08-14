@@ -49,6 +49,7 @@ import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
 import javax.xml.namespace.QName;
@@ -207,7 +208,7 @@ public class TestManagementRequestBuilder {
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 }

@@ -31,6 +31,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.output.WriterOutputStream;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
@@ -45,6 +46,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Slf4j
 @SuppressWarnings("squid:S2068")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class PasswordStore {
     private static final String CFG_PASSWORD_STORE_PROVIDER = SystemProperties.PREFIX + "internal.passwordstore-provider";
     private static final String CFG_PASSWORD_STORE_FILE = "file";
@@ -129,6 +131,7 @@ public final class PasswordStore {
         return SystemProperties.getSignerPasswordStoreIPCKeyPathname();
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public interface PasswordStoreProvider {
         byte[] read(String pathnameForFtok, String id) throws Exception;
 

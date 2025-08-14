@@ -39,6 +39,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -279,8 +280,8 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
                 throw translateException(e.getCause());
             }
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException("SchemaValidator '" + schemaValidator.getName() + "' must implement static "
-                    + "method 'void validate(Source)'");
+            throw XrdRuntimeException.systemInternalError(
+                    "SchemaValidator '" + schemaValidator.getName() + "' must implement static " + "method 'void validate(Source)'");
         }
     }
 }

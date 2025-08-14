@@ -34,6 +34,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
@@ -43,6 +44,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class ConfProxyUtilMain {
 
     static {

@@ -67,7 +67,7 @@ public class SslClientAuthExpiredISCert extends SslMessageTestCase {
             }
 
             @Override
-            public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
+            public List<X509Certificate> getIsCerts(ClientId client) {
                 return Arrays.asList(TestCertUtil.loadPKCS12("expiredClient.p12", "1", "test").certChain[0]);
             }
         });

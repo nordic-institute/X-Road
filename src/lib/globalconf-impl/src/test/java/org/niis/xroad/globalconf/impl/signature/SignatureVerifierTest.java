@@ -49,6 +49,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -84,6 +85,7 @@ class SignatureVerifierTest {
     private static final ClientId CONSUMER_ID = createClientId("consumer");
 
     private GlobalConfProvider globalConfProvider;
+
     @BeforeAll
     public static void init() {
         TestSecurityUtil.initSecurity();
@@ -458,7 +460,8 @@ class SignatureVerifierTest {
 
         globalConfProvider = new TestGlobalConfImpl() {
             @Override
-            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
+            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert)
+                    throws CertificateEncodingException, IOException {
                 if (useTestCaCert) {
                     return TestCertUtil.getCaCert();
                 } else {

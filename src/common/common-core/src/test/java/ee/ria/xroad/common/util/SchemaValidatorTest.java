@@ -74,14 +74,14 @@ public class SchemaValidatorTest {
 
     private static final class TestValidator extends SchemaValidator {
 
-        private static final Schema schema;
+        private static final Schema SCHEMA;
 
         static {
-            schema = createSchema("test-conf.xsd");
+            SCHEMA = createSchema("test-conf.xsd");
         }
 
         static void validate(Source source) throws Exception {
-            validate(schema, source, ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF);
+            validate(SCHEMA, source, ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF);
         }
     }
 }

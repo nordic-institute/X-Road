@@ -38,6 +38,7 @@ import javax.management.remote.JMXServiceURL;
 
 import java.io.IOException;
 import java.util.function.Supplier;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 public class JmxClientImpl implements JmxClient {
 
@@ -57,7 +58,7 @@ public class JmxClientImpl implements JmxClient {
                     .map(name -> readAttribute(connection, name, attribute))
                     .orElse(null);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to get JMX Object", e);
+            throw XrdRuntimeException.systemInternalError("Failed to get JMX Object", e);
         }
     }
 
@@ -67,7 +68,7 @@ public class JmxClientImpl implements JmxClient {
             return connection.getAttribute(objectName, attribute);
         } catch (InstanceNotFoundException | ReflectionException | IOException | MBeanException
                  | AttributeNotFoundException e) {
-            throw new RuntimeException("Failed to read JMX Object attribute", e);
+            throw XrdRuntimeException.systemInternalError("Failed to read JMX Object attribute", e);
         }
     }
 }

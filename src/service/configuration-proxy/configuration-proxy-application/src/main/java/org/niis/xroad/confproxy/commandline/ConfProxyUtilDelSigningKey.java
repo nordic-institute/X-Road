@@ -26,6 +26,7 @@
 package org.niis.xroad.confproxy.commandline;
 
 import org.apache.commons.cli.CommandLine;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -34,6 +35,7 @@ import static org.niis.xroad.confproxy.ConfProxyProperties.CONF_INI;
 /**
  * Utility tool for deleting signing keys from a configuration proxy instance.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfProxyUtilDelSigningKey extends ConfProxyUtil {
 
     /**

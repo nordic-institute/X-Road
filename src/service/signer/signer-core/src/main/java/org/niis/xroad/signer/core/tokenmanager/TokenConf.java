@@ -34,6 +34,7 @@ import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.core.model.Cert;
 import org.niis.xroad.signer.core.model.CertRequest;
 import org.niis.xroad.signer.core.model.Key;
@@ -65,6 +66,7 @@ import static java.util.Objects.requireNonNull;
  * Holds the current keys & certificates in XML.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 

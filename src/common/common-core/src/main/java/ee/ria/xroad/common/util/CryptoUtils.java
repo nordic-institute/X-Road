@@ -43,6 +43,7 @@ import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -77,7 +78,7 @@ public final class CryptoUtils {
             Providers.init();
             CERT_FACTORY = CertificateFactory.getInstance("X.509");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

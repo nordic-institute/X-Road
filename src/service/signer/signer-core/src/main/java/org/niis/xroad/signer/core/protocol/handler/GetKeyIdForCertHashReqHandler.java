@@ -43,7 +43,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 public class GetKeyIdForCertHashReqHandler extends AbstractRpcHandler<GetKeyIdForCertHashReq, GetKeyIdForCertHashResp> {
 
     @Override
-    protected GetKeyIdForCertHashResp handle(GetKeyIdForCertHashReq request) throws Exception {
+    protected GetKeyIdForCertHashResp handle(GetKeyIdForCertHashReq request) {
         KeyInfo keyInfo = TokenManager.getKeyInfoForCertHash(request.getCertHash());
 
         if (keyInfo == null) {

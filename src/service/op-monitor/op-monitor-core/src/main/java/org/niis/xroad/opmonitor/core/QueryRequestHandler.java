@@ -50,6 +50,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jaxb.runtime.api.AccessorException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -75,6 +77,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODIN
  * Base class for operational daemon query request handlers.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 abstract class QueryRequestHandler {
 
     static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
@@ -98,7 +101,7 @@ abstract class QueryRequestHandler {
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -221,7 +224,7 @@ abstract class QueryRequestHandler {
 
         private final Map<String, DataHandler> attachments = new HashMap<>();
 
-        void encodeAttachments() throws Exception {
+        void encodeAttachments() throws IOException {
             for (Map.Entry<String, DataHandler> attach : attachments.entrySet()) {
                 responseEncoder.attachment(attach.getValue().getContentType(),
                         attach.getValue().getInputStream(),

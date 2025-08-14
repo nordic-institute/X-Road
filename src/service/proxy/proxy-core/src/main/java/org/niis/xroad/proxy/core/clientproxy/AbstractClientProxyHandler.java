@@ -35,12 +35,12 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
@@ -72,6 +72,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     protected final boolean storeOpMonitoringData;
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     abstract MessageProcessorBase createRequestProcessor(RequestWrapper request,
                                                          ResponseWrapper response,
                                                          OpMonitoringData opMonitoringData) throws Exception;

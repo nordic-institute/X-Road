@@ -40,6 +40,7 @@ import jakarta.xml.soap.SOAPMessage;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.namespace.QName;
 
@@ -103,7 +104,7 @@ public final class SoapUtils {
         try {
             return MessageFactory.newInstance();
         } catch (SOAPException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

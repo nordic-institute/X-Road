@@ -26,6 +26,7 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
@@ -43,9 +44,13 @@ public class SetOcspResponsesReqHandler
     private final OcspResponseManager ocspResponseManager;
 
     @Override
-    protected Empty handle(SetOcspResponsesReq request) throws Exception {
-        ocspResponseManager.handleSetOcspResponses(request);
+    protected Empty handle(SetOcspResponsesReq request) {
+        try {
+            ocspResponseManager.handleSetOcspResponses(request);
 
-        return Empty.getDefaultInstance();
+            return Empty.getDefaultInstance();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 }

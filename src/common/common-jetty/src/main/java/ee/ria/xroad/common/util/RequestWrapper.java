@@ -68,64 +68,56 @@ public interface RequestWrapper {
             }
         };
 
-        return new RequestWrapperImpl(request, in);
-    }
+        return new RequestWrapper() {
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    static class RequestWrapperImpl implements RequestWrapper {
-        private final Request request;
-        private final InputStream inputStream;
+            @Override
+            public InputStream getInputStream() {
+                return in;
+            }
 
-        private RequestWrapperImpl(Request request, InputStream inputStream) {
-            this.request = request;
-            this.inputStream = inputStream;
-        }
+            @Override
+            public HttpURI getHttpURI() {
+                return request.getHttpURI();
+            }
 
-        @Override
-        public InputStream getInputStream() {
-            return inputStream;
-        }
+            @Override
+            public String getMethod() {
+                return request.getMethod();
+            }
 
-        @Override
-        public HttpURI getHttpURI() {
-            return request.getHttpURI();
-        }
+            @Override
+            public String getContentType() {
+                return JettyUtils.getContentType(request);
+            }
 
-        @Override
-        public String getMethod() {
-            return request.getMethod();
-        }
+            @Override
+            public HttpFields getHeaders() {
+                return request.getHeaders();
+            }
 
-        @Override
-        public String getContentType() {
-            return JettyUtils.getContentType(request);
-        }
+            @Override
+            public Object getAttribute(String attributeName) {
+                return request.getAttribute(attributeName);
+            }
 
-        @Override
-        public HttpFields getHeaders() {
-            return request.getHeaders();
-        }
+            @Override
+            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+            public String getParameter(String name) throws Exception {
+                return Request.getParameters(request).getValue(name);
+            }
 
-        @Override
-        public Object getAttribute(String attributeName) {
-            return request.getAttribute(attributeName);
-        }
+            @Override
+            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+            public Map<String, String[]> getParametersMap() throws Exception {
+                return Request.getParameters(request).toStringArrayMap();
+            }
 
-        @Override
-        public String getParameter(String name) throws Exception {
-            return Request.getParameters(request).getValue(name);
-        }
-
-        @Override
-        public Map<String, String[]> getParametersMap() throws Exception {
-            return Request.getParameters(request).toStringArrayMap();
-        }
-
-        @Override
-        public Optional<X509Certificate[]> getPeerCertificates() {
-            var ssd = (EndPoint.SslSessionData) request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
-            return Optional.ofNullable(ssd)
-                    .map(EndPoint.SslSessionData::peerCertificates);
-        }
+            @Override
+            public Optional<X509Certificate[]> getPeerCertificates() {
+                var ssd = (EndPoint.SslSessionData) request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
+                return Optional.ofNullable(ssd)
+                        .map(EndPoint.SslSessionData::peerCertificates);
+            }
+        };
     }
 }
