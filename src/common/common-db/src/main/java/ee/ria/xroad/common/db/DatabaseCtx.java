@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.db;
 
+import ee.ria.xroad.common.CodedException;
+
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -151,12 +153,14 @@ public class DatabaseCtx {
         }
     }
 
-    private XrdRuntimeException customizeException(Exception e) {
+    private CodedException customizeException(Exception e) {
         if (e instanceof JDBCException) {
             return XrdRuntimeException.systemException(ErrorCodes.DATABASE_ERROR)
                     .details("Error accessing database")
                     .metadataItems(sessionFactoryName)
                     .build();
+        } else if (e instanceof CodedException codedException) {
+            return codedException;
         }
 
         return XrdRuntimeException.systemException(ErrorCodes.DATABASE_ERROR)
