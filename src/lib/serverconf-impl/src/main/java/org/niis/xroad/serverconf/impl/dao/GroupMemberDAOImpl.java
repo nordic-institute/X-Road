@@ -36,4 +36,10 @@ public class GroupMemberDAOImpl {
         query.setParameter("memberId", memberId);
         query.executeUpdate();
     }
+
+    public long countByGroupMemberId(Session session, ClientIdEntity memberId) {
+        var query = session.createQuery("select count(*) from GroupMemberEntity where groupMemberId = :memberId", Long.class);
+        query.setParameter("memberId", memberId);
+        return query.getSingleResult();
+    }
 }

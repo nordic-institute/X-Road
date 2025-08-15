@@ -36,4 +36,10 @@ public class AccessRightDAOImpl {
         query.setParameter("subjectId", subjectId);
         query.executeUpdate();
     }
+
+    public long countBySubjectId(Session session, XRoadIdEntity subjectId) {
+        var query = session.createQuery("select count(*) from AccessRightEntity where subjectId = :subjectId", Long.class);
+        query.setParameter("subjectId", subjectId);
+        return query.getSingleResult();
+    }
 }

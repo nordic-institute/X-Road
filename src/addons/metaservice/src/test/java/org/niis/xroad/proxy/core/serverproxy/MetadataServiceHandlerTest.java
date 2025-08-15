@@ -660,8 +660,6 @@ public class MetadataServiceHandlerTest {
         ClientEntity client = new ClientEntity();
         client.setConf(conf);
 
-        conf.getClients().add(client);
-
         client.setIdentifier(serviceId.getClientId());
 
         ServiceDescriptionEntity wsdl = new ServiceDescriptionEntity();
@@ -683,6 +681,8 @@ public class MetadataServiceHandlerTest {
         client.getServiceDescriptions().add(wsdl);
 
         doInTransaction(session -> {
+            session.persist(client.getIdentifier());
+            session.persist(client);
             session.persist(conf);
             return null;
         });

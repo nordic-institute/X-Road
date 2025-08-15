@@ -24,47 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl.entity;
+package org.niis.xroad.securityserver.restapi.service;
 
-import jakarta.persistence.Access;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 
-import java.util.Date;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static jakarta.persistence.AccessType.FIELD;
+@TestPropertySource(properties = {
+        "spring.sql.init.mode=never"
+})
+class InitializationServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
 
-@Getter
-@Setter
-@Entity
-@Table(name = AccessRightEntity.TABLE_NAME)
-@Access(FIELD)
-public class AccessRightEntity {
+    @Autowired
+    private InitializationService initializationService;
+    @Autowired
+    private ServerConfService serverConfService;
 
-    public static final String TABLE_NAME = "accessright";
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", unique = true, nullable = false)
-    private Long id;
+    @Test
+    void createInitialServerConfToEmptyDatabase() {
+        ClientIdEntity ownerClientId = ClientIdEntity.createMember("INSTANCE", "CLASS", "MEMBER-CODE");
+        String securityServerCode = "SS1";
 
-    @Column(name = "rightsgiven", nullable = false)
-    private Date rightsGiven;
+        initializationService.createInitialServerConf(ownerClientId, securityServerCode);
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "subjectid", nullable = false)
-    private XRoadIdEntity subjectId;
+        ServerConfEntity loadedServerConf = serverConfService.getServerConfEntity();
+        assertThat(loadedServerConf.getServerCode()).isEqualTo(securityServerCode);
+        assertThat(loadedServerConf.getOwner().getIdentifier()).isEqualTo(ownerClientId);
+        assertThat(loadedServerConf.getClients()).size().isEqualTo(1);
+    }
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "endpoint_id", nullable = false)
-    private EndpointEntity endpoint;
+
 }
+
+
+

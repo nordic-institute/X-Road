@@ -196,7 +196,6 @@ public class InitializationService {
                 + ownerClientId.getMemberCode() + "/" + serverConf.getServerCode();
         generateGPGKeyPair(keyRealName);
 
-        serverConfService.saveOrUpdate(serverConf);
     }
 
     /**
@@ -302,7 +301,7 @@ public class InitializationService {
      * @param securityServerCode securityServerCode
      * @return ServerConfEntity
      */
-    private ServerConfEntity createInitialServerConf(ClientIdEntity ownerClientId, String securityServerCode) {
+    ServerConfEntity createInitialServerConf(ClientIdEntity ownerClientId, String securityServerCode) {
         ServerConfEntity serverConfEntity = serverConfService.getOrCreateServerConfEntity();
 
         if (ObjectUtils.isEmpty(serverConfEntity.getServerCode())) {
@@ -310,11 +309,7 @@ public class InitializationService {
         }
 
         if (serverConfEntity.getOwner() == null) {
-            ClientEntity ownerClient = getInitialClient(ownerClientId);
-            ownerClient.setConf(serverConfEntity);
-            if (!serverConfEntity.getClients().contains(ownerClient)) {
-                serverConfEntity.getClients().add(ownerClient);
-            }
+            ClientEntity ownerClient = getInitialClient(ownerClientId, serverConfEntity);
             serverConfEntity.setOwner(ownerClient);
         }
         return serverConfEntity;
@@ -367,16 +362,15 @@ public class InitializationService {
 
     /**
      * Helper to create an initial client
+     *
      * @param clientId
+     * @param serverConf
      * @return
      */
-    private ClientEntity getInitialClient(ClientIdEntity clientId) {
+    private ClientEntity getInitialClient(ClientIdEntity clientId, ServerConfEntity serverConf) {
         ClientEntity localClient = clientService.getLocalClientEntity(clientId);
         if (localClient == null) {
-            localClient = new ClientEntity();
-            localClient.setIdentifier(clientId);
-            localClient.setClientStatus(Client.STATUS_SAVED);
-            localClient.setIsAuthentication(IsAuthentication.SSLAUTH.name());
+            localClient = clientService.addClient(clientId, serverConf, IsAuthentication.SSLAUTH, Client.STATUS_SAVED);
         }
         return localClient;
     }

@@ -44,7 +44,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static jakarta.persistence.AccessType.FIELD;
 
@@ -69,9 +71,9 @@ public class ServerConfEntity {
     @JoinColumn(name = "owner")
     private ClientEntity owner;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "conf", orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "conf")
     @JsonIgnore
-    private List<ClientEntity> clients = new ArrayList<>();
+    private Set<ClientEntity> clients = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @OrderBy("id ASC")

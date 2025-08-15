@@ -388,4 +388,12 @@ public interface GlobalConfProvider {
      */
     Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress);
 
+    /**
+     * Finds all the security servers where client is registered
+     *
+     * @param clientId client id
+     * @return Set of security server identifiers
+     */
+    Set<SecurityServerId> getClientSecurityServers(ClientId clientId);
+
 }

@@ -54,8 +54,10 @@ public class ServerConfRepository {
 
     /**
      * Save or update ServerConfEntity
+     *
+     * @return managed entity instance
      */
-    public void saveOrUpdate(ServerConfEntity serverConfEntity) {
-        persistenceUtils.getCurrentSession().merge(serverConfEntity);
+    public ServerConfEntity saveOrUpdate(ServerConfEntity serverConfEntity) {
+        return persistenceUtils.getCurrentSession().merge(serverConfEntity);
     }
 }

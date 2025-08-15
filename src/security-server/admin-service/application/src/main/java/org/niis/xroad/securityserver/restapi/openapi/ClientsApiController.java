@@ -303,8 +303,8 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
     @AuditEventMethod(event = ADD_LOCAL_GROUP)
     public ResponseEntity<LocalGroupDto> addClientLocalGroup(String id, LocalGroupAddDto localGroupAdd) {
-        Client client = getClientFromDb(id);
-        LocalGroup localGroup = localGroupService.addLocalGroup(client.getIdentifier(),
+        final ClientId clientId = clientIdConverter.convertId(id);
+        LocalGroup localGroup = localGroupService.addLocalGroup(clientId,
                 localGroupConverter.convert(localGroupAdd));
 
         LocalGroupDto createdGroupDto = localGroupConverter.convert(localGroup);
