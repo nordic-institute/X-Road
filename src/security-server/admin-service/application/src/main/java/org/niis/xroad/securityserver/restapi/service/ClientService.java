@@ -866,9 +866,6 @@ public class ClientService {
         if (!allowedStatuses.contains(clientEntity.getClientStatus())) {
             throw new ActionNotPossibleException("cannot delete client with status " + clientEntity.getClientStatus());
         }
-        // we also remove local group members and access rights what is given to this client
-        localGroupRepository.deleteGroupMembersByMemberId(clientEntity.getIdentifier());
-        accessRightRepository.deleteBySubjectId(clientEntity.getIdentifier());
         removeLocalClient(clientEntity);
         subsystemNameStatus.clear(clientId);
     }
@@ -879,7 +876,25 @@ public class ClientService {
             throw new RuntimeException("client to be deleted was somehow missing from server conf");
         }
         clientRepository.remove(clientEntity);
-        identifierRepository.remove(clientEntity.getIdentifier());
+
+        if (!clientRegisteredOnOtherServers(clientEntity.getIdentifier())) {
+            localGroupRepository.deleteGroupMembersByMemberId(clientEntity.getIdentifier());
+            accessRightRepository.deleteBySubjectId(clientEntity.getIdentifier());
+        }
+
+        if (!identifierReferenced(clientEntity.getIdentifier())) {
+            identifierRepository.remove(clientEntity.getIdentifier());
+        }
+    }
+
+    private boolean identifierReferenced(ClientIdEntity clientId) {
+        return localGroupRepository.countGroupMembersByMemberId(clientId) > 0
+                || accessRightRepository.countBySubjectId(clientId) > 0;
+    }
+
+    private boolean clientRegisteredOnOtherServers(ClientId clientId) {
+        return globalConfProvider.getClientSecurityServers(clientId).stream()
+                .anyMatch(serverId -> !serverId.equals(currentSecurityServerId.getServerId()));
     }
 
     public void renameClient(ClientId.Conf clientId, String subsystemName)

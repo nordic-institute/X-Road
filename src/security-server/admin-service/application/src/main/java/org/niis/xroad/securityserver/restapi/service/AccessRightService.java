@@ -256,7 +256,7 @@ public class AccessRightService {
      *                                        subjectId did not exist
      * @throws DuplicateAccessRightException  Trying to add duplicate access rights
      */
-    public List<ServiceClient> addEndpointAccessRights(Long endpointId, Set<XRoadId.Conf> subjectIds)
+    public List<ServiceClient> addEndpointAccessRights(Long endpointId, Set<? extends XRoadId> subjectIds)
             throws EndpointNotFoundException, ClientNotFoundException, ServiceClientNotFoundException, DuplicateAccessRightException {
 
         EndpointEntity endpointEntity = endpointService.getEndpointEntity(endpointId);

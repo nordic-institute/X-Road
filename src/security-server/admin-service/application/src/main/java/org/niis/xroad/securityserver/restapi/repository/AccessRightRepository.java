@@ -44,4 +44,8 @@ public class AccessRightRepository {
     public void deleteBySubjectId(XRoadIdEntity subjectId) {
         accessRightDAO.deleteBySubjectId(persistenceUtils.getCurrentSession(), subjectId);
     }
+
+    public long countBySubjectId(XRoadIdEntity subjectId) {
+        return accessRightDAO.countBySubjectId(persistenceUtils.getCurrentSession(), subjectId);
+    }
 }
