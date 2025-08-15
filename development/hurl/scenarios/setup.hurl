@@ -672,8 +672,42 @@ HTTP 201
 [Captures]
 ss1_auth_key_cert_hash: jsonpath "$.certificate_details.hash"
 
+# Get not available hardware token
+GET https://{{ss1_host}}:4000/api/v1/tokens
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 200
+
+[Captures]
+ss1_token_to_delete_id: jsonpath "$[?(@.available == false)].id" nth 0
+
+# Delete not available hardware token
+DELETE https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_to_delete_id}}
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 204
+
+# Get first hardware token
+GET https://{{ss1_host}}:4000/api/v1/tokens
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 200
+
+[Captures]
+ss1_token_id: jsonpath "$[?(@.type == 'HARDWARE')].id" nth 0
+
+# Log in to the Security Servers token
+PUT https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/login
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+Content-Type: application/json
+{
+  "password": "Secret1234"
+}
+
+HTTP *
+
 # Add sign key to the Security Server token
-POST https://{{ss1_host}}:4000/api/v1/tokens/0/keys-with-csrs
+POST https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/keys-with-csrs
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
 {
@@ -917,7 +951,7 @@ HTTP 201
 ss1_test-consumer_id: jsonpath "$.id"
 
 # Add test-consumer sign key to the SS1 Security Server token
-POST https://{{ss1_host}}:4000/api/v1/tokens/0/keys-with-csrs
+POST https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/keys-with-csrs
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
 {
