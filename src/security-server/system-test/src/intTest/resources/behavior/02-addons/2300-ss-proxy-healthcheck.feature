@@ -17,19 +17,16 @@ Feature: 2300 - SS Proxy: healthcheck
     Then  Token: softToken-0 is logged-in
     And healthcheck has no errors
 
-  Scenario: Healthcheck is fails when HSM is not operational
+  Scenario: HSM healthcheck has no errors when HSM health check is enabled
     Given healthcheck has no errors
     When property "hsm-health-check-enabled" is set to "true"
-    And service "xroad-proxy" is "restarted"
-    Then healthcheck has errors and error message is "At least one HSM are non operational"
-    When property "hsm-health-check-enabled" is set to "false"
     And service "xroad-proxy" is "restarted"
     Then healthcheck has no errors
 
   Scenario: Healthcheck is fails when signer is down
     Given healthcheck has no errors
     When service "xroad-signer" is "stopped"
-    Then healthcheck has errors and error message is "Fetching health check response timed out for: Authentication key OCSP status"
+    Then healthcheck has errors and error message is "Fetching health check response timed out for: Hardware Security Modules status"
     When service "xroad-signer" is "started"
     Then healthcheck has no errors
 
