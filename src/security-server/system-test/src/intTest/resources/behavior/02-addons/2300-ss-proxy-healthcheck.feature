@@ -26,7 +26,7 @@ Feature: 2300 - SS Proxy: healthcheck
   Scenario: Healthcheck is fails when signer is down
     Given healthcheck has no errors
     When service "xroad-signer" is "stopped"
-    Then healthcheck has errors and error message is "Fetching health check response timed out for: Authentication key OCSP status"
+    Then healthcheck has errors and error message is "Fetching health check response timed out for: Hardware Security Modules status"
     When service "xroad-signer" is "started"
     Then healthcheck has no errors
 
