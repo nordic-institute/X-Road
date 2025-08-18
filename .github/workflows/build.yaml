@@ -38,7 +38,7 @@ jobs:
         with:
           task: start-measurement
           label: 'Build, unit tests and packaging'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
       - name: Ensure required packages
@@ -222,7 +222,7 @@ jobs:
         with:
           task: start-measurement
           label: 'Central Server system tests'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -316,7 +316,7 @@ jobs:
         with:
           task: start-measurement
           label: 'Security Server system tests'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -402,7 +402,7 @@ jobs:
           task: start-measurement
           label: 'E2E tests'
       # Setup
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
