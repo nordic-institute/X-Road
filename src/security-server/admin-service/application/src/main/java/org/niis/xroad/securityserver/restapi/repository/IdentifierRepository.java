@@ -54,7 +54,7 @@ public class IdentifierRepository {
      * Executes a Hibernate persist(XRoadId) for multiple group members
      * @param identifiers identifiers
      */
-    public void persist(Collection<XRoadIdEntity> identifiers) {
+    public void persist(Collection<? extends XRoadIdEntity> identifiers) {
         Session session = persistenceUtils.getCurrentSession();
         for (XRoadIdEntity identifier : identifiers) {
             session.persist(identifier);
