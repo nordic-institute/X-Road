@@ -16,4 +16,4 @@ COPY --chown=root:root files/lib /root/lib
 COPY --chown=root:root etc /etc
 COPY --chown=root:root var /var
 
-EXPOSE 5558 5559 5560
+EXPOSE 5588 5559 5560
