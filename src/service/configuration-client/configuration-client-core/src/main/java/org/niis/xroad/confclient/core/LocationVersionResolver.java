@@ -43,17 +43,17 @@ import java.net.URL;
 abstract class LocationVersionResolver {
     private static final String VERSION_QUERY_PARAMETER = "version";
 
-    protected final HttpUrlConnectionConfigurer connectionConfig;
+    protected final HttpUrlConnectionConfigurer connectionConfigurer;
     private final ConfigurationLocation location;
 
-    static LocationVersionResolver fixed(HttpUrlConnectionConfigurer connectionConfig,
+    static LocationVersionResolver fixed(HttpUrlConnectionConfigurer connectionConfigurer,
                                          ConfigurationLocation location, int version) {
-        return new FixedVersionResolver(connectionConfig, location, version);
+        return new FixedVersionResolver(connectionConfigurer, location, version);
     }
 
-    static LocationVersionResolver range(HttpUrlConnectionConfigurer connectionConfig,
+    static LocationVersionResolver range(HttpUrlConnectionConfigurer connectionConfigurer,
                                          ConfigurationLocation location, int minVersion, int maxVersion) {
-        return new VersionRangeResolver(connectionConfig, location, minVersion, maxVersion);
+        return new VersionRangeResolver(connectionConfigurer, location, minVersion, maxVersion);
     }
 
     abstract String chooseVersion(String url) throws Exception;
@@ -98,12 +98,15 @@ abstract class LocationVersionResolver {
             return uriBuilder.toString();
         }
 
-        private boolean checkVersionLocationExists(URL url) throws IOException {
+        private boolean checkVersionLocationExists(URL url) {
             HttpURLConnection connection = null;
             try {
                 connection = (HttpURLConnection) url.openConnection();
-                connectionConfig.apply(connection);
+                connectionConfigurer.apply(connection);
                 return connection.getResponseCode() != HttpStatus.SC_NOT_FOUND;
+            } catch (IOException e) {
+                log.trace("Failed to check if versioned location exists", e);
+                return false;
             } finally {
                 if (connection != null) {
                     connection.disconnect();

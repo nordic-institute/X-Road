@@ -142,7 +142,7 @@ public class TokenCertificateService {
                    WrongKeyUsageException,
                    KeyNotFoundException,
                    DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException,
-                   CertificateAlreadyExistsException, GlobalConfOutdatedException, CsrNotFoundException,
+            CertificateAlreadyExistsException, GlobalConfOutdatedException, CsrNotFoundException,
                    WrongCertificateUsageException, InvalidCertificateException, AuthCertificateNotSupportedException {
 
         // validate key and memberId existence

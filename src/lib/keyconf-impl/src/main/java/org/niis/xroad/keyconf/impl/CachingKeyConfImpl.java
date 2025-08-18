@@ -26,18 +26,13 @@
 package org.niis.xroad.keyconf.impl;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.FileContentChangeChecker;
-import ee.ria.xroad.common.util.filewatcher.FileWatchListener;
-import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
-import ee.ria.xroad.common.util.filewatcher.FileWatcherStartupListener;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import lombok.SneakyThrows;
+import jakarta.annotation.PreDestroy;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -48,17 +43,24 @@ import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
-import java.nio.file.Paths;
+import java.lang.ref.WeakReference;
 import java.security.PrivateKey;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 
 /**
  * Encapsulates KeyConf related functionality.
  */
 @Slf4j
+@Singleton
 public class CachingKeyConfImpl extends KeyConfImpl {
 
     // Specifies how long data is cached
@@ -66,10 +68,16 @@ public class CachingKeyConfImpl extends KeyConfImpl {
 
     private final Cache<ClientId, SigningInfo> signingInfoCache;
     private final Cache<SecurityServerId, AuthKeyInfo> authKeyInfoCache;
-    private FileWatcherRunner keyConfChangeWatcher;
+
+    private final int checkPeriod = 5;
+    private final ScheduledExecutorService taskScheduler;
+
+    private Integer previousChecksum;
+
+    private final List<WeakReference<KeyConfChangeListener>> listeners = new ArrayList<>();
 
     public CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                       SignerRpcClient signerRpcClient) {
+                              SignerRpcClient signerRpcClient) {
         super(globalConfProvider, serverConfProvider, signerRpcClient);
         signingInfoCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
@@ -78,14 +86,14 @@ public class CachingKeyConfImpl extends KeyConfImpl {
                 .maximumSize(1)
                 .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
                 .build();
+        taskScheduler = Executors.newSingleThreadScheduledExecutor();
+        taskScheduler.scheduleAtFixedRate(this::checkForKeyConfChanges, checkPeriod, checkPeriod, TimeUnit.SECONDS);
     }
 
     @Override
+    @PreDestroy
     public void destroy() {
         invalidateCaches();
-        if (keyConfChangeWatcher != null) {
-            keyConfChangeWatcher.stop();
-        }
         super.destroy();
     }
 
@@ -100,7 +108,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
             return signingInfo;
 
         } catch (ExecutionException e) {
-            throw new CodedException(ErrorCodes.X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
+            throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
                     clientId, e);
         }
     }
@@ -139,14 +147,14 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
-        org.niis.xroad.signer.api.dto.AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
+        var keyInfo = signerRpcClient.getAuthKey(serverId);
 
-        CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.getCert().getCertificateBytes());
+        CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.cert().getCertificateBytes());
 
         List<OCSPResp> ocspResponses = getOcspResponses(certChain.getAdditionalCerts());
-        ocspResponses.add(new OCSPResp(keyInfo.getCert().getOcspBytes()));
+        ocspResponses.add(new OCSPResp(keyInfo.cert().getOcspBytes()));
 
-        PrivateKey key = loadAuthPrivateKey(keyInfo);
+        PrivateKey key = keyInfo.key();
 
         // Lower bound for validity is "now", verify validity of the chain at that time.
         final Date notBefore = new Date();
@@ -157,33 +165,35 @@ public class CachingKeyConfImpl extends KeyConfImpl {
         return new AuthKeyInfo(key, certChain, notBefore, notAfter);
     }
 
-    protected void watcherStarted() {
-        //for testability
+    void checkForKeyConfChanges() {
+        try {
+            int checkSum = signerRpcClient.getKeyConfChecksum();
+            if (previousChecksum == null || !previousChecksum.equals(checkSum)) {
+                log.info("Key conf checksum changed ({}->{}), invalidating CachingKeyConf caches.", previousChecksum, checkSum);
+                previousChecksum = checkSum;
+                invalidateCaches();
+                notifyListeners();
+            }
+        } catch (Exception e) {
+            log.error("Failed to get key conf checksum", e);
+            invalidateCaches();
+        }
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    public static FileWatcherRunner createChangeWatcher(FileWatchListener onChange) {
-        return createChangeWatcher(() -> { }, onChange, new FileContentChangeChecker(SystemProperties.getKeyConfFile()));
+    @Override
+    public void addChangeListener(KeyConfChangeListener listener) {
+        listeners.add(new WeakReference<>(listener));
     }
 
-    static FileWatcherRunner createChangeWatcher(FileWatcherStartupListener onStart,
-                                                 FileWatchListener onChange,
-                                                 FileContentChangeChecker changeChecker) {
-        return FileWatcherRunner.create()
-                .watchForChangesIn(Paths.get(changeChecker.getFileName()))
-                .listenToCreate()
-                .listenToModify()
-                .andOnChangeNotify(() -> {
-                    boolean changed = true;
-                    try {
-                        changed = changeChecker.hasChanged();
-                    } catch (Exception e) {
-                        log.error("Failed to check if key conf has changed", e);
-                    }
-                    if (changed) onChange.fileModified();
-                })
-                .andOnStartupNotify(onStart)
-                .buildAndStartWatcher();
+    private void notifyListeners() {
+        Iterator<WeakReference<KeyConfChangeListener>> it = listeners.iterator();
+        while (it.hasNext()) {
+            var listener = it.next().get();
+            if (listener != null) {
+                listener.keyConfChanged();
+            } else {
+                it.remove();
+            }
+        }
     }
 }

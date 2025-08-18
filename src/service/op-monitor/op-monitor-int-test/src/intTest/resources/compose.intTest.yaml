@@ -1,0 +1,70 @@
+services:
+  op-monitor:
+    image: ${OP_MONITOR_IMG}
+    pull_policy: always
+    environment:
+      - XROAD_HOST=op-monitor
+      - XROAD_COMMON_RPC_USE_TLS=false
+      - XROAD_COMMON_GLOBAL_CONF_SOURCE=FILESYSTEM
+      - XROAD_OP_MONITOR_RPC_LISTEN_ADDRESS=0.0.0.0
+      - xroad.db.op-monitor.hibernate.connection.url=jdbc:postgresql://db-opmonitor:5432/op-monitor
+      - xroad.db.op-monitor.hibernate.connection.username=opmonitor
+      - xroad.db.op-monitor.hibernate.connection.password=secret
+      - xroad.db.op-monitor.hibernate.connection.driver_class=org.postgresql.Driver
+    ports:
+      - "0:9999" # debug port
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    depends_on:
+      db-opmonitor-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        reservations:
+          memory: 96M
+        limits:
+          memory: 512M
+    volumes:
+      - ./container-files/etc/xroad:/etc/xroad
+  db-opmonitor:
+    image: postgres:17
+    environment:
+      - POSTGRES_DB=op-monitor
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=opmonitor
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+  db-opmonitor-init:
+    image: ${OP_MONITOR_INIT_IMG}
+    pull_policy: always
+    environment:
+      - LIQUIBASE_COMMAND_USERNAME=opmonitor
+      - LIQUIBASE_COMMAND_PASSWORD=secret
+      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
+      - db_user=opmonitor
+      - db_schema=public
+    volumes:
+      - ./test-data:/liquibase/changelog/test-data
+    command: ["liquibase", "--changeLogFile=changelog/test-data/op-monitor-int-test-changelog.xml", "update"]
+    depends_on:
+      db-opmonitor:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M

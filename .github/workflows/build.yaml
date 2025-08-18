@@ -1,5 +1,5 @@
 name: Build and test
-on: 
+on:
   # Capture this event so that gradle caches are updated when a PR is merged to develop
   # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
   push:
@@ -11,7 +11,7 @@ on:
       - 'ansible/**'
       - 'Docker/**'
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
     paths:
       - 'src/**'
       - '.github/**'
@@ -32,6 +32,11 @@ jobs:
   BuildAndPackageWithUnitTests:
     name: Build, test and package code
     runs-on: ubuntu-22.04
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -42,7 +47,7 @@ jobs:
         with:
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
       - name: Ensure required packages
-        env: 
+        env:
           DEBIAN_FRONTEND: noninteractive # Less output to log
         run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Set up JDK 21
@@ -68,12 +73,24 @@ jobs:
         with:
           task: get-measurement
           label: 'Build environment setup'
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
+      - name: Build base docker images
+        working-directory: ./deployment/security-server/docker/base
+        run: |
+          chmod +x build-base-images.sh
+          ./build-base-images.sh localhost:5000
       - name: Build and test source
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit
+        run: |
+          mv -f ./service/signer/signer-int-test/src/intTest/resources/.env.github ./service/signer/signer-int-test/src/intTest/resources/.env
+          mv -f ./service/op-monitor/op-monitor-int-test/src/intTest/resources/.env.github ./service/op-monitor/op-monitor-int-test/src/intTest/resources/.env
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5000
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -85,6 +102,16 @@ jobs:
           reporter: java-junit
           list-suites: 'failed'
           list-tests: 'failed'
+      - name: Upload intTest reports
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: Integration Test reports
+          path: |
+            src/service/signer/signer-int-test/build/allure-report/
+            src/service/signer/signer-int-test/build/container-logs/
+            src/service/op-monitor/op-monitor-int-test/build/allure-report/
+            src/service/op-monitor/op-monitor-int-test/build/container-logs/
       - name: Build, test and package code execution measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -110,9 +137,15 @@ jobs:
             !**/node_modules/**
             !**/executionHistory/**
       - name: Build RHEL8 packages
-        run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
+        run: |
+          docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/src/packages/build/rhel/8
       - name: Build RHEL9 packages
-        run: docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
+        run: |
+          docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/src/packages/build/rhel/9
       - name: Build 22.04 (Jammy) packages
         env:
           DEBEMAIL: 'info@niis.org'
@@ -122,7 +155,10 @@ jobs:
         env:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh noble -release
+        run: |
+          ./src/packages/build-deb.sh noble -release
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/src/packages/build/ubuntu24.04
       - name: Store deb files for system tests
         uses: actions/upload-artifact@v4
         with:
@@ -139,6 +175,38 @@ jobs:
         with:
           task: display-results
           pr-comment: true
+      - name: Clean up workspace #otherwise might run out of disk space in the next steps
+        working-directory: ./src
+        run: ./gradlew clean
+      - name: Save docker images from registry
+        run: |
+          mkdir -p ${{ runner.temp }}/docker-images
+          docker pull localhost:5000/ss-backup-manager:latest
+          docker pull localhost:5000/ss-configuration-client:latest
+          docker pull localhost:5000/ss-proxy:latest
+          docker pull localhost:5000/ss-signer:latest
+          docker pull localhost:5000/ss-monitor:latest
+          docker pull localhost:5000/ss-op-monitor:latest
+          docker pull localhost:5000/ss-proxy-ui-api:latest
+          docker pull localhost:5000/ss-db-serverconf-init:latest
+          docker pull localhost:5000/ss-db-messagelog-init:latest
+          docker pull localhost:5000/ss-db-opmonitor-init:latest
+
+          docker save -o ${{ runner.temp }}/docker-images/ss-backup-manager.tar localhost:5000/ss-backup-manager:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-configuration-client.tar localhost:5000/ss-configuration-client:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-proxy.tar localhost:5000/ss-proxy:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-signer.tar localhost:5000/ss-signer:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-monitor.tar localhost:5000/ss-monitor:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-op-monitor.tar localhost:5000/ss-op-monitor:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-proxy-ui-api.tar localhost:5000/ss-proxy-ui-api:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-serverconf-init.tar localhost:5000/ss-db-serverconf-init:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-messagelog-init.tar localhost:5000/ss-db-messagelog-init:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-opmonitor-init.tar localhost:5000/ss-db-opmonitor-init:latest
+      - name: Store docker images for other jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: ${{ runner.temp }}/docker-images
   BuildAndPackageOnArm:
     name: Build and package code for arm architecture
     needs: BuildAndPackageWithUnitTests
@@ -174,13 +242,16 @@ jobs:
         with:
           task: get-measurement
           label: 'Set up arm packaging'
-      - name: Build native dependencies
-        working-directory: ./src
-        run: ./gradlew :service:signer:signer-api:make
       - name: Build RHEL8 packages
-        run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
+        run: |
+          docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/src/packages/build/rhel/8
       - name: Build RHEL9 packages
-        run: docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
+        run: |
+          docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/src/packages/build/rhel/9
       - name: Build 22.04 (Jammy) packages
         env:
           DEBEMAIL: 'info@niis.org'
@@ -190,7 +261,10 @@ jobs:
         env:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh noble -release
+        run: |
+          ./src/packages/build-deb.sh noble -release
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/src/packages/build/ubuntu24.04
       - name: Store deb files for Docker dev images
         uses: actions/upload-artifact@v4
         with:
@@ -326,26 +400,18 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: network=host
-      - name: Initialize docker setup
-        working-directory: ./Docker/securityserver
-        run: ./init_context.sh
-      - name: Download debian packages
+      - name: Download SS docker images
         uses: actions/download-artifact@v5
         with:
-          name: debian-packages
-          path: ./Docker/securityserver/build/packages/
-      - name: Build SS docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./Docker/securityserver/
-          push: true
-          build-args: |
-            PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
+          name: docker-images
+          path: ${{ runner.temp }}/docker-images
+      - name: Load SS docker images into registry
+        run: |
+          for tar in ${{ runner.temp }}/docker-images/*.tar; do
+            echo "Processing $tar..."
+            IMAGE_ID=$(docker load -i "$tar" | awk '/Loaded image:/ {print $NF}')
+            docker push "$IMAGE_ID"
+          done
       - name: Security Server test setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -353,7 +419,9 @@ jobs:
           label: 'Set up Security Server tests'
       - name: Run Security Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
+        run: |
+          mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest
       - name: Test Security Server measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -368,19 +436,17 @@ jobs:
           name: Security Server system tests
           path: src/security-server/system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
-      - name: Fix system-test build dir permissions
-        run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/ && sudo chown -R $USER src/security-server/system-test/build/ca-container-logs/
-        if: failure()
       - name: Upload SS report
         uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: SS System Test report
           path: |
+            src/security-server/system-test/build/a2c_logs/
             src/security-server/system-test/build/allure-report/
-            src/security-server/system-test/build/ss-container-logs/
-            src/security-server/system-test/build/ca-container-logs/
+            src/security-server/system-test/build/container-logs/
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
+
       - name: Show Energy Results
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -433,20 +499,18 @@ jobs:
           build-args: |
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-centralserver:${{ github.sha }}
-      # Build Security Server
-      - name: Initialize SS docker setup
-        working-directory: ./Docker/securityserver
-        run: ./init_context.sh
-      - name: Copy debian packages for SS
-        run: cp ./Docker/centralserver/build/packages/* ./Docker/securityserver/build/packages/
-      - name: Build SS docker image
-        uses: docker/build-push-action@v6
+      - name: Download SS docker images
+        uses: actions/download-artifact@v4
         with:
-          context: ./Docker/securityserver/
-          push: true
-          build-args: |
-            PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
+          name: docker-images
+          path: ${{ runner.temp }}/docker-images
+      - name: Load SS docker images into registry
+        run: |
+          for tar in ${{ runner.temp }}/docker-images/*.tar; do
+            echo "Processing $tar..."
+            IMAGE_ID=$(docker load -i "$tar" | awk '/Loaded image:/ {print $NF}')
+            docker push "$IMAGE_ID"
+          done
       - name: E2E test setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -455,10 +519,10 @@ jobs:
       # Execute and report
       - name: Run E2E tests
         working-directory: ./src
-        run: >
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest 
-          -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }} 
-          -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
+        run: |
+          mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
+          docker network create xroad-network
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: E2E test measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
