@@ -764,4 +764,13 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 .map(addr -> getSharedParametersCache(instanceIdentifier).getSecurityServersByAddress().get(addr))
                 .map(SharedParameters.SecurityServer::getMaintenanceMode);
     }
+
+    @Override
+    public Set<SecurityServerId> getClientSecurityServers(ClientId clientId) {
+        return getSharedParametersCache(clientId.getXRoadInstance())
+                .getSecurityServersByClientId().getOrDefault(clientId, Set.of())
+                .stream()
+                .map(securityServer -> SecurityServerId.Conf.create(securityServer.getOwner(), securityServer.getServerCode()))
+                .collect(toSet());
+    }
 }
