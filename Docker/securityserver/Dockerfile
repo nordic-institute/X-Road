@@ -60,13 +60,12 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
     && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-hwtokens xroad-addon-opmonitoring \
     && apt-get -qq clean \
     && pg_ctlcluster 16 main stop \
-    # Clean up \
+    # Clean up
     && rm -f /etc/apt/sources.list.d/xroad.list \
     && rm -rf /tmp/repo \
     && apt-get remove -y -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
     && rm -rf var/lib/apt/lists/*
 
-ARG PACKAGE_SOURCE=internal
 FROM securityserver-${PACKAGE_SOURCE} AS final-base
 RUN mkdir -p /root/etc/xroad \
     && cp -a /etc/xroad /root/etc/ \
