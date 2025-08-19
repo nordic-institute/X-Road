@@ -29,10 +29,6 @@ fi
 docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up -d --build hurl
 
 if [[ -n "$INITIALIZE" ]]; then
-  docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
-    exec ss0 sh -c "apt-get remove --purge -y softhsm2 xroad-addon-hwtokens && apt-get autoremove --purge -y"
-  docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
-    exec ss0 sh -c "supervisorctl restart xroad-signer"
   docker compose $COMPOSE_FILE_ARGS \
     --env-file "$ENV_FILE" \
     run \

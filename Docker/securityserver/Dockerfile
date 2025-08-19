@@ -58,17 +58,16 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
     && pg_ctlcluster 16 main start \
     && apt-get update \
     && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-hwtokens xroad-addon-opmonitoring \
-    && apt-get -y -qq install --no-install-recommends softhsm2 \
     && apt-get -qq clean \
     && pg_ctlcluster 16 main stop \
-    # Clean up
+    # Clean up \
+    && rm -f /etc/apt/sources.list.d/xroad.list \
     && rm -rf /tmp/repo \
     && apt-get remove -y -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
     && rm -rf var/lib/apt/lists/*
 
-# Build final image
-FROM securityserver-${PACKAGE_SOURCE} AS final
-# Back up read-only config (for volume support)
+ARG PACKAGE_SOURCE=internal
+FROM securityserver-${PACKAGE_SOURCE} AS final-base
 RUN mkdir -p /root/etc/xroad \
     && cp -a /etc/xroad /root/etc/ \
     && rm -f /root/etc/xroad/services/local.properties \
@@ -87,13 +86,6 @@ RUN useradd xrd-sec && adduser xrd-sec xroad-security-officer && sh -c "echo 'xr
     && useradd xrd-sys && adduser xrd-sys xroad-system-administrator && sh -c "echo 'xrd-sys:$USER_PASSWD' | chpasswd" \
     && useradd xrd-obs && adduser xrd-obs xroad-securityserver-observer && sh -c "echo 'xrd-obs:$USER_PASSWD' | chpasswd"
 
-# Create token
-RUN adduser xroad softhsm \
-    && printf "\n[softhsm2]\nlibrary = /usr/lib/softhsm/libsofthsm2.so\nos_locking_ok = true\nlibrary_cant_create_os_threads = true\n" >> /etc/xroad/devices.ini \
-    && mkdir -p /var/lib/softhsm/tokens/ \
-    && softhsm2-util --init-token --slot 0 --label 'x-road-softhsm2' --so-pin 1234 --pin 'Secret1234' \
-    && chown -R xroad /var/lib/softhsm/tokens
-
 COPY --chown=xroad:xroad files/etc /etc/
 COPY --chown=xroad:xroad build/libs /usr/share/xroad/jlib/
 
@@ -104,3 +96,19 @@ CMD ["/root/entrypoint.sh"]
 
 VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/16/main/"]
 EXPOSE 8080 8443 4000 5432 5500 5577 5558 80
+
+FROM final-base AS final
+
+FROM final-base AS final-hwtoken
+RUN apt-get update \
+    && apt-get -y -qq install --no-install-recommends softhsm2 \
+    && apt-get -qq clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && adduser xroad softhsm \
+    && printf "\n[softhsm2]\n\
+    library = /usr/lib/softhsm/libsofthsm2.so\n\
+    os_locking_ok = true\n\
+    library_cant_create_os_threads = true\n" >> /etc/xroad/devices.ini \
+    && mkdir -p /var/lib/softhsm/tokens/ \
+    && softhsm2-util --init-token --slot 0 --label 'x-road-softhsm2' --so-pin 1234 --pin 'Secret1234' \
+    && chown -R xroad /var/lib/softhsm/tokens
