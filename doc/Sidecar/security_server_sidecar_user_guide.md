@@ -172,6 +172,8 @@ docker run --detach \
   -e XROAD_TOKEN_PIN=<token pin> \
   -e XROAD_ADMIN_USER=<admin user> \
   -e XROAD_ADMIN_PASSWORD=<admin password> \
+  # Alternatively a password hash for admin can be used
+  # -e XROAD_ADMIN_PWD_HASH=<admin password hash>
   # Optional parameters - BEGIN
   -v <config-volume>:/etc/xroad \
   -v <archive-volume>:/var/lib/xroad \
@@ -183,6 +185,9 @@ docker run --detach \
   # Optional parameters - END
   niis/xroad-security-server-sidecar:<version[-type[-variant]]>
 ```
+
+Hash for admin user can be generated with multiple tools. Note that yescrypt ( `$y$xxxx` ) hash is not supported in older xroad images.
+A SHA512 hash can be generated with `mkpasswd -m SHA-512` or with docker command `docker run --rm -it docker.io/serversideup/mkpasswd -m SHA-512`
 
 Note! This command persists all configuration inside the Sidecar container which means that state is lost when the container is destroyed.
 In production use, either persistent volumes should be used. Using a separate database is recommended.
