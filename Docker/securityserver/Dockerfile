@@ -41,6 +41,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
     && pg_ctlcluster 16 main stop \
     # Clean up
+    && rm -f /etc/apt/sources.list.d/xroad.list \
     && rm -rf /tmp/repo \
     && apt-get remove -y -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
     && rm -rf var/lib/apt/lists/*
@@ -103,11 +104,10 @@ RUN apt-get update \
     && apt-get -y -qq install --no-install-recommends softhsm2 \
     && apt-get -qq clean \
     && rm -rf /var/lib/apt/lists/* \
-    && adduser xroad softhsm \
-    && printf "\n[softhsm2]\n\
-    library = /usr/lib/softhsm/libsofthsm2.so\n\
-    os_locking_ok = true\n\
-    library_cant_create_os_threads = true\n" >> /etc/xroad/devices.ini \
-    && mkdir -p /var/lib/softhsm/tokens/ \
-    && softhsm2-util --init-token --slot 0 --label 'x-road-softhsm2' --so-pin 1234 --pin 'Secret1234' \
-    && chown -R xroad /var/lib/softhsm/tokens
+    && adduser xroad softhsm
+
+COPY files/ss-hwtoken-entrypoint.sh /root/hwtoken-entrypoint.sh
+
+CMD ["/root/hwtoken-entrypoint.sh"]
+
+VOLUME ["/var/lib/softhsm/tokens"]
