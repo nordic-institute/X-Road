@@ -118,8 +118,67 @@ jobs:
           context: ${{ github.workspace }}/Docker/securityserver
           build-args: |
             PACKAGE_SOURCE=internal
+          target: final
           push: true
           tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-security-server:arm-latest' || 'ghcr.io/nordic-institute/xrddev-security-server:amd-latest' }}
+  PublishHwTokenSS:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            architecture: amd64
+          - os: ubuntu-22.04-arm
+            architecture: arm64
+    name: Publish Security Server with Hardware Token image for ${{ matrix.architecture }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize docker setup
+        working-directory: ${{ github.workspace }}/Docker/securityserver
+        run: ./init_context.sh
+      # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
+      - name: Download Debian packages
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == ('${{ matrix.architecture }}' == 'amd64' ? "debian-packages" : "debian-packages-arm")
+            })[0];
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/debian-packages.zip`, Buffer.from(download.data));
+      - name: Unzip Debian packages
+        run: mkdir -p ${{ github.workspace }}/Docker/securityserver/build/packages && unzip -d ${{ github.workspace }}/Docker/securityserver/build/packages debian-packages.zip
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ github.workspace }}/Docker/securityserver
+          build-args: |
+            PACKAGE_SOURCE=internal
+          target: final-hwtoken
+          push: true
+          tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-security-server-hwtoken:arm-latest' || 'ghcr.io/nordic-institute/xrddev-security-server-hwtoken:amd-latest' }}
+
   PublishMultiArchCS:
     runs-on: ubuntu-22.04
     needs: PublishCS
@@ -175,6 +234,37 @@ jobs:
         uses: snok/container-retention-policy@v2
         with:
           image-names: xrddev-security-server
+          cut-off: 1 week ago UTC
+          timestamp-to-use: created_at
+          account-type: org
+          org-name: nordic-institute
+          keep-at-least: 1
+          token-type: github-token
+          token: ${{ secrets.GITHUB_TOKEN }}
+  PublishMultiArchHwTokenSS:
+    runs-on: ubuntu-22.04
+    needs: PublishHwTokenSS
+    name: Publish Security Server with Hardware Token multi-arch manifest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and push manifest
+        run: |
+          docker manifest create ghcr.io/nordic-institute/xrddev-security-server-hwtoken:latest \
+            --amend ghcr.io/nordic-institute/xrddev-security-server-hwtoken:amd-latest \
+            --amend ghcr.io/nordic-institute/xrddev-security-server-hwtoken:arm-latest
+          docker manifest push ghcr.io/nordic-institute/xrddev-security-server-hwtoken:latest
+      - name: Clean old SS with Hardware Token images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: xrddev-security-server-hwtoken
           cut-off: 1 week ago UTC
           timestamp-to-use: created_at
           account-type: org
