@@ -672,21 +672,6 @@ HTTP 201
 [Captures]
 ss1_auth_key_cert_hash: jsonpath "$.certificate_details.hash"
 
-# Get not available hardware token
-GET https://{{ss1_host}}:4000/api/v1/tokens
-X-XSRF-TOKEN: {{ss1_xsrf_token}}
-
-HTTP 200
-
-[Captures]
-ss1_token_to_delete_id: jsonpath "$[?(@.available == false)].id" nth 0
-
-# Delete not available hardware token
-DELETE https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_to_delete_id}}
-X-XSRF-TOKEN: {{ss1_xsrf_token}}
-
-HTTP 204
-
 # Get first hardware token
 GET https://{{ss1_host}}:4000/api/v1/tokens
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
