@@ -82,6 +82,7 @@ public class SkEsteIdCertificateProfileInfoProvider
 
         @Override
         public void validateSubjectField(DnFieldValue field) {
+            // nothing to validate
         }
 
     }
