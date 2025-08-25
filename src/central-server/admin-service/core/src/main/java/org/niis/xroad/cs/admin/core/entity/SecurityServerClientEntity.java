@@ -72,7 +72,7 @@ public abstract class SecurityServerClientEntity extends AuditableEntity {
     @Column(name = "id", unique = true, nullable = false)
     @Access(AccessType.FIELD)
     @Getter
-    private int id;
+    private Long id;
 
     @ManyToOne(fetch = EAGER)
     @JoinColumn(name = "server_client_id", nullable = false, updatable = false)

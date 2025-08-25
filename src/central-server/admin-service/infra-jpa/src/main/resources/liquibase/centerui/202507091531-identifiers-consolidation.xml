@@ -18,28 +18,25 @@
         <dropView viewName="flattened_security_server_client"/>
         <dropView viewName="management_request_view"/>
 
-        <dropForeignKeyConstraint baseTableName="global_group_members" constraintName="global_group_members_group_member_id_fk"/>
-        <dropForeignKeyConstraint baseTableName="security_server_clients" constraintName="security_server_clients_server_client_id_fk"/>
-        <dropForeignKeyConstraint baseTableName="requests" constraintName="requests_sec_serv_user_id_fk"/>
-        <dropForeignKeyConstraint baseTableName="requests" constraintName="requests_security_server_id_fk"/>
+        <modifyDataType tableName="global_group_members" columnName="group_member_id" newDataType="bigint"/>
+        <modifyDataType tableName="requests" columnName="sec_serv_user_id" newDataType="bigint"/>
+        <modifyDataType tableName="requests" columnName="security_server_id" newDataType="bigint"/>
+        <modifyDataType tableName="security_server_clients" columnName="server_client_id" newDataType="bigint"/>
+        <modifyDataType tableName="security_server_clients" columnName="xroad_member_id" newDataType="bigint"/>
+        <modifyDataType tableName="server_clients" columnName="security_server_id" newDataType="bigint"/>
+        <modifyDataType tableName="server_clients" columnName="security_server_client_id" newDataType="bigint"/>
+        <modifyDataType tableName="security_servers" columnName="owner_id" newDataType="bigint"/>
 
-        <sql>ALTER TABLE identifier ALTER COLUMN id DROP IDENTITY IF EXISTS</sql>
+        <sql>ALTER SEQUENCE identifier_id_seq AS BIGINT</sql>
         <modifyDataType tableName="identifier" columnName="id" newDataType="BIGSERIAL"/>
-
-        <addForeignKeyConstraint baseTableName="global_group_members" baseColumnNames="group_member_id"
-                                 referencedTableName="identifier" referencedColumnNames="id" constraintName="global_group_members_group_member_id_fk"/>
-        <addForeignKeyConstraint baseTableName="security_server_clients" baseColumnNames="server_client_id"
-                                 referencedTableName="identifier" referencedColumnNames="id" constraintName="security_server_clients_server_client_id_fk"/>
-        <addForeignKeyConstraint baseTableName="requests" baseColumnNames="sec_serv_user_id"
-                                 referencedTableName="identifier" referencedColumnNames="id" constraintName="requests_sec_serv_user_id_fk"/>
-        <addForeignKeyConstraint baseTableName="requests" baseColumnNames="security_server_id"
-                                 referencedTableName="identifier" referencedColumnNames="id" constraintName="requests_security_server_id_fk"/>
+        <sql>ALTER SEQUENCE security_server_clients_id_seq AS BIGINT</sql>
+        <modifyDataType tableName="security_server_clients" columnName="id" newDataType="BIGSERIAL"/>
 
         <createView fullDefinition="false" viewName="global_group_members_view">
             SELECT gm.id,
                    gm.global_group_id,
                    gm.group_member_id,
-                   ssc.name as member_name,
+                   ssc.name AS member_name,
                    gm.created_at,
                    gm.updated_at
             FROM global_group_members gm
@@ -53,11 +50,11 @@
             (SELECT c.id,
                     c.server_client_id,
                     c.member_code,
-                    c.name as member_name,
+                    c.name AS member_name,
                     c.type,
                     c.member_class_id,
                     c.subsystem_code,
-                    NULL as subsystem_name,
+                    NULL AS subsystem_name,
                     c.created_at,
                     c.updated_at,
                     i.xroad_instance
@@ -65,15 +62,15 @@
                       LEFT JOIN identifier i
                                 ON c.server_client_id = i.id
              WHERE c.type = 'XRoadMember')
-            union
+            UNION
             (SELECT c.id,
                     c.server_client_id,
                     m.member_code,
-                    m.name as member_name,
+                    m.name AS member_name,
                     c.type,
                     m.member_class_id,
                     c.subsystem_code,
-                    c.name as subsystem_name,
+                    c.name AS subsystem_name,
                     c.created_at,
                     c.updated_at,
                     i.xroad_instance
@@ -107,10 +104,8 @@
                    client.member_class   AS client_member_class,
                    client.subsystem_code AS client_subsystem_code,
                    r.subsystem_name AS client_subsystem_name,
-
                    r.auth_cert,
                    r.address,
-
                    r.created_at
             FROM requests r
                      LEFT JOIN request_processings rp ON (rp.id = r.request_processing_id)

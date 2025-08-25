@@ -65,7 +65,7 @@ public class FlattenedSecurityServerClientViewEntity extends AuditableEntity {
 
     @Id
     @Column(name = "id", unique = true, nullable = false)
-    private int id;
+    private Long id;
 
     @Column(name = "xroad_instance")
     private String xroadInstance;

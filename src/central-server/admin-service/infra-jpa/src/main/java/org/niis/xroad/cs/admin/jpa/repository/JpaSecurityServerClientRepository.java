@@ -45,7 +45,7 @@ import java.util.Optional;
 
 @Repository
 public interface JpaSecurityServerClientRepository<T extends SecurityServerClientEntity> extends
-        JpaRepository<T, Integer>,
+        JpaRepository<T, Long>,
         JpaSpecificationExecutor<T>,
         SecurityServerClientRepository<T> {
 
