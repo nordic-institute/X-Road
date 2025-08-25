@@ -3,7 +3,7 @@ on:
   workflow_run:
     workflows: ["Build and test"]
     types: [completed]
-    branches: [develop]
+    branches: [XRDDEV-2727]
 env:
   REGISTRY: ghcr.io
   XROAD_HOME: ${{ github.workspace }}
