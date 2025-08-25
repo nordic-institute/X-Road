@@ -116,7 +116,7 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages apt-get -qq upd
     && adduser xroad softhsm
 
 COPY files/ss-hwtoken-entrypoint.sh /root/hwtoken-entrypoint.sh
-COPY --chown=root:root files/ss-hwtoken-xroad.conf /etc/supervisor/conf.d/xroad.conf
+COPY --chown=root:root files/ss-hwtoken-xroad.conf /etc/supervisor/conf.d/hwtoken-xroad.conf
 COPY --chown=root:root files/ss-hwtoken-login-inactive-token.sh /usr/share/xroad/autologin/login-inactive-token.sh
 RUN chmod 755 /usr/share/xroad/autologin/login-inactive-token.sh
 CMD ["/root/hwtoken-entrypoint.sh"]
