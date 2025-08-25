@@ -68,6 +68,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
                         HttpStatus httpStatus) {
         super(errorDeviation.code(), details);
         this.identifier = identifier;
+        this.translationCode = errorDeviation.code();
         this.category = category;
         this.thrownRemotely = thrownRemotely;
         this.errorDeviation = errorDeviation;
@@ -84,6 +85,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
                         HttpStatus httpStatus) {
         super(errorDeviation.code(), cause, details);
         this.identifier = identifier;
+        this.translationCode = errorDeviation.code();
         this.category = category;
         this.thrownRemotely = thrownRemotely;
         this.errorDeviation = errorDeviation;
@@ -108,24 +110,20 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
 
     @Override
     public String toString() {
-        // Defensive programming - ensure we don't get NPEs
         String id = identifier != null ? identifier : "unknown";
         String cat = category != null ? category.toString() : "UNKNOWN";
         String code = errorDeviation != null ? errorDeviation.code() : "unknown_error";
 
         var message = "[%s] [%s] %s".formatted(id, cat, code);
 
-        // Add metadata if present
         if (errorDeviation != null && errorDeviation.metadata() != null && !errorDeviation.metadata().isEmpty()) {
             message += " (%s)".formatted(String.join(", ", errorDeviation.metadata()));
         }
 
-        // Add details if present
         if (details != null && !details.isBlank()) {
             message += ": %s".formatted(details);
         }
 
-        // Add remote indicator if applicable
         if (thrownRemotely) {
             message += " (thrown remotely)";
         }
@@ -196,6 +194,9 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
     public static XrdRuntimeException systemException(Throwable ex) {
         if (ex == null) {
             throw new IllegalArgumentException("Exception cannot be null");
+        }
+        if (ex instanceof XrdRuntimeException xrdEx) {
+            return xrdEx;
         }
         return new Builder(ExceptionCategory.SYSTEM, resolveExceptionCode(ex))
                 .cause(ex)

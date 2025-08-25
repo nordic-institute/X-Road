@@ -33,6 +33,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.ErrorCodes;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -62,7 +63,6 @@ import java.util.Date;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_IMPORT_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -121,10 +121,9 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
             }
         }
 
-        throw CodedException.tr(X_KEY_NOT_FOUND,
-                "key_not_found_for_certificate",
-                "Could not find key that has public key that matches the "
-                        + "public key of certificate");
+        throw XrdRuntimeException.systemException(ErrorCodes.KEY_NOT_FOUND)
+                .details("Could not find key that has public key that matches the public key of certificate")
+                .build();
     }
     // XXX: #2955 Currently, if the key does not have public key, we also check
     // if the key contains the (unsaved) certificate

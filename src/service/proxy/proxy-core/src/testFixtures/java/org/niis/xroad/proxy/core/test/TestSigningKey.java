@@ -66,6 +66,7 @@ public class TestSigningKey implements SigningKey {
 
     @Override
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
     public SignatureData calculateSignature(SigningRequest request, DigestAlgorithm digestAlgoId) {
         log.debug("calculateSignature({}, {})", request, digestAlgoId);
 
