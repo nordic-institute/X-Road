@@ -27,7 +27,6 @@
 package org.niis.xroad.serverconf.impl.entity;
 
 import jakarta.persistence.Access;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -61,7 +60,7 @@ public class GroupMemberEntity {
     @Column(name = "added", nullable = false)
     private Date added;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "groupmemberid", nullable = false)
     private ClientIdEntity groupMemberId;
 }

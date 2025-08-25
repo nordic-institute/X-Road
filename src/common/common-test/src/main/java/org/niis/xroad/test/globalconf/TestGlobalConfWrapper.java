@@ -302,4 +302,9 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress) {
         return globalConfProvider.getMaintenanceMode(instanceIdentifier, serverAddress);
     }
+
+    @Override
+    public Set<SecurityServerId> getClientSecurityServers(ClientId clientId) {
+        return globalConfProvider.getClientSecurityServers(clientId);
+    }
 }

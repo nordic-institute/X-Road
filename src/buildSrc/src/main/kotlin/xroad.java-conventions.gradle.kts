@@ -31,6 +31,9 @@ dependencies {
 
   testImplementation(libs.findLibrary("mockito-core").get())
   testImplementation(libs.findLibrary("mockito-jupiter").get())
+
+  testRuntimeOnly(libs.findLibrary("junit.platform.launcher").get())
+
   mockitoAgent(libs.findLibrary("mockito-core").get()) { isTransitive = false }
 
   "archUnitExtraLib"(project(":arch-rules"))
