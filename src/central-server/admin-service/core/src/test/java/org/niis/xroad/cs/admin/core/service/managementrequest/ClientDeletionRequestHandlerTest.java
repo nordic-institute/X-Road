@@ -34,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
@@ -108,7 +109,7 @@ class ClientDeletionRequestHandlerTest {
         var mockClientId = mock(ClientIdEntity.class);
 
         when(serverIdRepository.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
-        when(clientIdRepository.findOne(ClientIdEntity.ensure(subsystemId))).thenReturn(mockClientId);
+        when(clientIdRepository.findOne(ClientIdEntityFactory.ensure(subsystemId))).thenReturn(mockClientId);
         when(serverRepository.findBy(mockServerId, mockClientId)).thenReturn(Optional.empty());
 
         var err = assertThrows(NotFoundException.class, () -> handler.add(request));
@@ -125,7 +126,7 @@ class ClientDeletionRequestHandlerTest {
         var mockDeclinedClientRegistrationRequest = mock(ClientRegistrationRequestEntity.class);
 
         when(serverIdRepository.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
-        when(clientIdRepository.findOne(ClientIdEntity.ensure(subsystemId))).thenReturn(mockClientId);
+        when(clientIdRepository.findOne(ClientIdEntityFactory.ensure(subsystemId))).thenReturn(mockClientId);
         when(serverRepository.findBy(mockServerId, mockClientId)).thenReturn(Optional.empty());
         when(registrationRequestRepository.findBy(mockServerId, mockClientId, Set.of(WAITING))).thenReturn(List.of());
         when(registrationRequestRepository.findBy(mockServerId, mockClientId, Set.of(DECLINED)))

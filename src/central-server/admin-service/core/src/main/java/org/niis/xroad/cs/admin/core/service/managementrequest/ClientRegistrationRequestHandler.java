@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
@@ -97,7 +98,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     @Override
     public ClientRegistrationRequest add(ClientRegistrationRequest request) {
         final SecurityServerIdEntity serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
-        ClientIdEntity clientId = ClientIdEntity.ensure(request.getClientId());
+        ClientIdEntity clientId = ClientIdEntityFactory.ensure(request.getClientId());
         final Origin origin = request.getOrigin();
 
         MemberIdEntity ownerId = serverId.getOwner();

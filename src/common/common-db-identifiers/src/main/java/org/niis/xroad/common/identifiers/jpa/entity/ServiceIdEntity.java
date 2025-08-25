@@ -109,7 +109,9 @@ public class ServiceIdEntity extends XRoadIdEntity implements ee.ria.xroad.commo
     @Transient
     @Override
     public ClientIdEntity getClientId() {
-        return ClientIdEntity.create(getXRoadInstance(), getMemberClass(), getMemberCode(), getSubsystemCode());
+        return getSubsystemCode() != null
+                ? SubsystemIdEntity.create(getXRoadInstance(), getMemberClass(), getMemberCode(), getSubsystemCode())
+                : MemberIdEntity.create(getXRoadInstance(), getMemberClass(), getMemberCode());
     }
 
     @Override

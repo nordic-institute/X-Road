@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
@@ -119,7 +120,7 @@ class OwnerChangeRequestHandlerTest {
     private final ClientId clientId = MemberId.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE);
     private final XRoadMemberEntity xRoadMemberEntity =
             new XRoadMemberEntity("name", clientId, new MemberClassEntity(MEMBER_CLASS, "description"));
-    private final ClientIdEntity clientIdEntity = ClientIdEntity.ensure(clientId);
+    private final ClientIdEntity clientIdEntity = ClientIdEntityFactory.ensure(clientId);
     private final SecurityServerId securityServerId = SecurityServerId.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE, "SERVER-CODE");
     private final SecurityServerIdEntity securityServerIdEntity = SecurityServerIdEntity.create(securityServerId);
 

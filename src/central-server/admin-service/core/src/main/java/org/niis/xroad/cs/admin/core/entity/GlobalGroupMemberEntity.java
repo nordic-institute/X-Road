@@ -37,6 +37,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 
 import static jakarta.persistence.FetchType.EAGER;
@@ -74,7 +75,7 @@ public class GlobalGroupMemberEntity extends AuditableEntity {
 
     public GlobalGroupMemberEntity(GlobalGroupEntity globalGroup, ee.ria.xroad.common.identifier.ClientId identifier) {
         this.globalGroup = globalGroup;
-        this.identifier = ClientIdEntity.ensure(identifier);
+        this.identifier = ClientIdEntityFactory.ensure(identifier);
     }
 
     @Override

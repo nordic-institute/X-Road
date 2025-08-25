@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.ClientDisableRequest;
@@ -65,7 +66,7 @@ class ClientDisableRequestHandler implements RequestHandler<ClientDisableRequest
     @Override
     public ClientDisableRequest add(ClientDisableRequest request) {
         final var serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
-        final var clientId = clientIds.findOne(ClientIdEntity.ensure(request.getClientId()));
+        final var clientId = clientIds.findOne(ClientIdEntityFactory.ensure(request.getClientId()));
         var serverClient = findServerClient(serverId, clientId)
                 .orElseThrow(() -> new ConflictException(MR_SERVER_CLIENT_NOT_FOUND.build(
                         request.getSecurityServerId(),

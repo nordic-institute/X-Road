@@ -37,6 +37,7 @@ import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.Origin;
@@ -66,6 +67,6 @@ public class ClientDeletionRequestEntity extends RequestEntity {
                                        ee.ria.xroad.common.identifier.ClientId clientId,
                                        String comments) {
         super(origin, serverId, comments);
-        this.clientId = ClientIdEntity.ensure(clientId);
+        this.clientId = ClientIdEntityFactory.ensure(clientId);
     }
 }

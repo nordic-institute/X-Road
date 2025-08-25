@@ -30,6 +30,7 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
@@ -76,7 +77,7 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     @Override
     public ClientDeletionRequest add(ClientDeletionRequest request) {
         final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
-        final ClientIdEntity clientId = clientIds.findOne(ClientIdEntity.ensure(request.getClientId()));
+        final ClientIdEntity clientId = clientIds.findOne(ClientIdEntityFactory.ensure(request.getClientId()));
 
         final Optional<SecurityServerEntity> securityServerOpt = servers.findBy(serverId, clientId);
 

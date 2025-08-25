@@ -28,11 +28,8 @@ package org.niis.xroad.common.identifiers.jpa.entity;
 
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
-import ee.ria.xroad.common.util.Validation;
 
 import jakarta.persistence.Entity;
-
-import java.util.Optional;
 
 @Entity
 public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.ClientId {
@@ -46,23 +43,6 @@ public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xro
     protected ClientIdEntity() {
     }
 
-    public static ClientIdEntity create(ee.ria.xroad.common.identifier.ClientId identifier) {
-        Validation.validateArgument("identifier", identifier);
-
-        return create(identifier.getXRoadInstance(), identifier.getMemberClass(), identifier.getMemberCode(),
-                identifier.getSubsystemCode());
-    }
-
-    public static ClientIdEntity create(String xRoadInstance,
-                                        String memberClass,
-                                        String memberCode,
-                                        String subsystemCode) {
-
-        return subsystemCode == null
-                ? MemberIdEntity.create(xRoadInstance, memberClass, memberCode)
-                : SubsystemIdEntity.create(xRoadInstance, memberClass, memberCode, subsystemCode);
-    }
-
     @Override
     @NoCoverage
     public boolean equals(Object obj) {
@@ -73,23 +53,6 @@ public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xro
     @NoCoverage
     public int hashCode() {
         return ee.ria.xroad.common.identifier.ClientId.hashCode(this);
-    }
-
-    public static ClientIdEntity ensure(ee.ria.xroad.common.identifier.ClientId identifier) {
-        return Optional.of(identifier)
-                .filter(ClientIdEntity.class::isInstance)
-                .map(ClientIdEntity.class::cast)
-                .orElseGet(() -> {
-                    XRoadObjectType objectType = identifier.getObjectType();
-                    if (objectType != null) {
-                        if (objectType == XRoadObjectType.MEMBER) {
-                            return MemberIdEntity.create(identifier);
-                        } else if (objectType == XRoadObjectType.SUBSYSTEM) {
-                            return SubsystemIdEntity.create(identifier);
-                        }
-                    }
-                    throw new IllegalArgumentException("illegal object type: " + objectType);
-                });
     }
 
 }

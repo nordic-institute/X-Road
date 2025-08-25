@@ -38,6 +38,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
@@ -64,7 +65,7 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadIdEntity> {
     public ClientIdEntity findOrCreateClientId(Session session, ClientId clientId) {
         var domainClientId = findClientId(session, clientId);
         if (domainClientId == null) {
-            domainClientId = ClientIdEntity.create(clientId);
+            domainClientId = ClientIdEntityFactory.create(clientId);
             session.persist(domainClientId);
         }
         return domainClientId;
