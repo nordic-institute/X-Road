@@ -28,6 +28,7 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
@@ -61,7 +62,7 @@ class SecurityServerClientMapperTest {
     private static final String SERVER_CODE = "server-code";
     private static final String OWNER_NAME = "owner-name";
     private static final String CLASS_DESCRIPTION = "class-description";
-    private static final int SUBSYSTEM_ID = 123;
+    private static final long SUBSYSTEM_ID = 123L;
 
     @Autowired
     private SecurityServerClientMapper securityServerClientMapper;
@@ -84,8 +85,8 @@ class SecurityServerClientMapperTest {
         assertThat(identifier.getMemberCode()).isEqualTo(MEMBER_CODE);
         assertThat(identifier.getSubsystemCode()).isEqualTo(SUBSYSTEM_CODE);
         assertThat(identifier.getObjectType()).isEqualTo(SUBSYSTEM);
-//        assertThat(identifier.getCreatedAt()).isNotNull(); //a
-//        assertThat(identifier.getUpdatedAt()).isNotNull();
+        assertThat(identifier.getCreatedAt()).isNotNull();
+        assertThat(identifier.getUpdatedAt()).isNotNull();
 
         assertThat(subsystem.getXroadMember()).isNotNull();
         assertThat(subsystem.getXroadMember().getMemberCode()).isEqualTo(MEMBER_CODE);
@@ -116,8 +117,10 @@ class SecurityServerClientMapperTest {
         final XRoadMemberEntity member = new XRoadMemberEntity(MEMBER_NAME, memberIdEntity, memberClasEntity);
 
         final ClientId identifier = SubsystemIdEntity.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE, SUBSYSTEM_CODE);
+        ReflectionTestUtils.setField(identifier, "createdAt", TimeUtils.now());
+        ReflectionTestUtils.setField(identifier, "updatedAt", TimeUtils.now());
         final SubsystemEntity entity = new SubsystemEntity(member, identifier);
-        ReflectionTestUtils.setField(entity, "id", 2);
+//        ReflectionTestUtils.setField(entity, "id", 2L);
         final ServerClientEntity serverClient = new ServerClientEntity();
         final XRoadMemberEntity owner = new XRoadMemberEntity(OWNER_NAME, memberIdEntity, memberClasEntity);
         serverClient.setSecurityServer(new SecurityServerEntity(owner, SERVER_CODE));
