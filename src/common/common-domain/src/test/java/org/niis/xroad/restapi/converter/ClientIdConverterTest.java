@@ -28,7 +28,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,19 +67,19 @@ class ClientIdConverterTest {
 
     @Test
     void convertBadStringId() {
-        assertThatExceptionOfType(BadRequestException.class)
+        assertThatExceptionOfType(XrdRuntimeException.class)
                 .isThrownBy(() -> clientIdConverter.convertId("XRD2:GOV:M4:SS1:aa"));
     }
 
     @Test
     void convertBadStringId2() {
-        assertThatExceptionOfType(BadRequestException.class)
+        assertThatExceptionOfType(XrdRuntimeException.class)
                 .isThrownBy(() -> clientIdConverter.convertId("XRD2"));
     }
 
     @Test
     void convertBadStringId3() {
-        assertThatExceptionOfType(BadRequestException.class)
+        assertThatExceptionOfType(XrdRuntimeException.class)
                 .isThrownBy(() -> clientIdConverter.convertId("XRD2:GOV:M4:SS1::::::"));
     }
 

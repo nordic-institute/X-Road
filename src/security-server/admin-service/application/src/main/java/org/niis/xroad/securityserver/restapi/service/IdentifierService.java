@@ -28,26 +28,19 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.XRoadId;
-import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
-import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.groupingBy;
 
 /**
  * service class for handling identifiers
@@ -60,18 +53,17 @@ import static java.util.stream.Collectors.groupingBy;
 public class IdentifierService {
 
     private final IdentifierRepository identifierRepository;
-    private final LocalGroupService localGroupService;
-    private final GlobalConfService globalConfService;
 
     /**
      * Get the existing {@link XRoadId xRoadIds} from the local db and persist the not-existing ones
      * Useful method when changing identifier relations (such as adding access rights to services)
+     *
      * @param xRoadIds
-     * @return List of XRoadIds
+     * @return Set of XRoadIds
      */
-    Set<XRoadIdEntity> getOrPersistXroadIdEntities(Set<XRoadIdEntity> xRoadIds) {
-        Set<XRoadIdEntity> idsToPersist = new HashSet<>(xRoadIds);
-        Set<XRoadIdEntity> managedEntities = getXroadIdEntities(idsToPersist);
+    <T extends XRoadIdEntity> Set<T> getOrPersistXroadIdEntities(Set<T> xRoadIds) {
+        Set<T> idsToPersist = new HashSet<>(xRoadIds);
+        Set<T> managedEntities = getXroadIdEntities(idsToPersist);
         idsToPersist.removeAll(managedEntities); // remove the persistent ones
         identifierRepository.persist(idsToPersist); // persist the non-persisted
         managedEntities.addAll(idsToPersist); // add the newly persisted ids into the collection of already existing ids
@@ -80,66 +72,27 @@ public class IdentifierService {
 
     /**
      * Get the existing {@link XRoadId xRoadId} from the local db or persist it if it did not exist in db yet.
+     *
      * @param xRoadId
      * @return managed XRoadId which exists in IDENTIFIER table
      */
-    XRoadIdEntity getOrPersistXroadIdEntity(XRoadIdEntity xRoadId) {
-        return getOrPersistXroadIdEntities(new HashSet<>(Arrays.asList(xRoadId))).iterator().next();
+    <T extends XRoadIdEntity> T getOrPersistXroadIdEntity(T xRoadId) {
+        return getOrPersistXroadIdEntities(Set.of(xRoadId)).iterator().next();
     }
 
     /**
      * Get the existing {@link XRoadId xRoadIds} from the local db
+     *
      * @param xRoadIds
-     * @return List of XRoadIds
+     * @return Set of XRoadIds
      */
-    Set<XRoadIdEntity> getXroadIdEntities(Set<XRoadIdEntity> xRoadIds) {
-        Collection<XRoadIdEntity> allIdsFromDb = identifierRepository.getIdentifiers();
+    @SuppressWarnings({"unchecked", "SuspiciousMethodCalls"})
+    <T extends XRoadIdEntity> Set<T> getXroadIdEntities(Set<T> xRoadIds) {
+        Collection<? extends XRoadIdEntity> allIdsFromDb = identifierRepository.getIdentifiers();
         return allIdsFromDb.stream()
                 .filter(xRoadIds::contains) // this works because of the XRoadId equals and hashCode overrides
+                .map(xRoadId -> (T) xRoadId)
                 .collect(Collectors.toSet());
     }
-
-    /**
-     * Verify that service client objects identified by given XRoadIds do exist.
-     * Criteria in detail:
-     * - subsystem is registered in global configuration
-     * - global group exists in global configuration
-     * - local group exists and belongs to given client
-     * @param clientEntity owner of (possible) local groups
-     * @param serviceClientIds service client ids to check
-     * @throws ServiceClientNotFoundException if some service client objects could not be found
-     */
-    public void verifyServiceClientObjectsExist(ClientEntity clientEntity, Set<XRoadIdEntity> serviceClientIds)
-            throws ServiceClientNotFoundException {
-        Map<XRoadObjectType, List<XRoadIdEntity>> idsPerType = serviceClientIds.stream()
-                .collect(groupingBy(XRoadIdEntity::getObjectType));
-        for (XRoadObjectType type : idsPerType.keySet()) {
-            if (!isValidServiceClientType(type)) {
-                throw new ServiceClientNotFoundException("Invalid service client subject object type " + type);
-            }
-        }
-        if (idsPerType.containsKey(XRoadObjectType.GLOBALGROUP)) {
-            if (!globalConfService.globalGroupsExist(idsPerType.get(XRoadObjectType.GLOBALGROUP))) {
-                throw new ServiceClientNotFoundException();
-            }
-        }
-        if (idsPerType.containsKey(XRoadObjectType.SUBSYSTEM)) {
-            if (!globalConfService.clientsExist(idsPerType.get(XRoadObjectType.SUBSYSTEM))) {
-                throw new ServiceClientNotFoundException();
-            }
-        }
-        if (idsPerType.containsKey(XRoadObjectType.LOCALGROUP)) {
-            if (!localGroupService.localGroupsExist(clientEntity, idsPerType.get(XRoadObjectType.LOCALGROUP))) {
-                throw new ServiceClientNotFoundException();
-            }
-        }
-    }
-
-    private boolean isValidServiceClientType(XRoadObjectType objectType) {
-        return objectType == XRoadObjectType.SUBSYSTEM
-                || objectType == XRoadObjectType.GLOBALGROUP
-                || objectType == XRoadObjectType.LOCALGROUP;
-    }
-
 
 }

@@ -33,6 +33,7 @@ import ee.ria.xroad.common.util.PasswordPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -40,7 +41,6 @@ import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
@@ -185,7 +185,6 @@ public class InitializationService {
                 + ownerClientId.getMemberCode() + "/" + serverConf.getServerCode();
         generateGPGKeyPair(keyRealName);
 
-        serverConfService.saveOrUpdate(serverConf);
     }
 
     /**
@@ -294,7 +293,7 @@ public class InitializationService {
      * @param securityServerCode securityServerCode
      * @return ServerConfEntity
      */
-    private ServerConfEntity createInitialServerConf(ClientIdEntity ownerClientId, String securityServerCode) {
+    ServerConfEntity createInitialServerConf(ClientIdEntity ownerClientId, String securityServerCode) {
         ServerConfEntity serverConfEntity = serverConfService.getOrCreateServerConfEntity();
 
         if (ObjectUtils.isEmpty(serverConfEntity.getServerCode())) {
@@ -302,11 +301,7 @@ public class InitializationService {
         }
 
         if (serverConfEntity.getOwner() == null) {
-            ClientEntity ownerClient = getInitialClient(ownerClientId);
-            ownerClient.setConf(serverConfEntity);
-            if (!serverConfEntity.getClients().contains(ownerClient)) {
-                serverConfEntity.getClients().add(ownerClient);
-            }
+            ClientEntity ownerClient = getInitialClient(ownerClientId, serverConfEntity);
             serverConfEntity.setOwner(ownerClient);
         }
         return serverConfEntity;
@@ -362,15 +357,13 @@ public class InitializationService {
      * Helper to create an initial client
      *
      * @param clientId
+     * @param serverConf
      * @return
      */
-    private ClientEntity getInitialClient(ClientIdEntity clientId) {
+    private ClientEntity getInitialClient(ClientIdEntity clientId, ServerConfEntity serverConf) {
         ClientEntity localClient = clientService.getLocalClientEntity(clientId);
         if (localClient == null) {
-            localClient = new ClientEntity();
-            localClient.setIdentifier(clientId);
-            localClient.setClientStatus(Client.STATUS_SAVED);
-            localClient.setIsAuthentication(IsAuthentication.SSLAUTH.name());
+            localClient = clientService.addClient(clientId, serverConf, IsAuthentication.SSLAUTH, Client.STATUS_SAVED);
         }
         return localClient;
     }

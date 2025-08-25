@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
+import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -41,7 +42,6 @@ import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
@@ -84,9 +84,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CLIENT_NAME;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_CLIENT_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_NAME;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_UNREGISTERED_MEMBER;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ADDITIONAL_MEMBER_ALREADY_EXISTS;
@@ -123,6 +124,7 @@ public class ClientService {
     private final GlobalConfService globalConfService;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfService serverConfService;
+    private final IdentifierService identifierService;
     private final IdentifierRepository identifierRepository;
     private final LocalGroupRepository localGroupRepository;
     private final AccessRightRepository accessRightRepository;
@@ -176,6 +178,15 @@ public class ClientService {
             members.add(ClientId.Conf.create(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode()));
         }
         return members;
+    }
+
+    Set<ClientId> getAllClientIds() {
+        List<ClientEntity> localClients = getAllLocalClientEntities();
+        List<ClientEntity> globalClients = getAllGlobalClientEntities();
+
+        return Stream.concat(localClients.stream(), globalClients.stream())
+                .map(ClientEntity::getIdentifier)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -763,7 +774,7 @@ public class ClientService {
             throw new InvalidMemberClassException(INVALID_MEMBER_CLASS + memberClass);
         }
 
-        ClientId.Conf clientId = ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(),
+        ClientId clientId = ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(),
                 memberClass,
                 memberCode,
                 subsystemCode);
@@ -777,7 +788,7 @@ public class ClientService {
             throw new ClientAlreadyExistsException("client " + clientId + " already exists");
         }
         if (clientId.getSubsystemCode() == null) {
-            // adding member - check that we dont already have owner + one additional member
+            // adding member - check that we don't already have owner + one additional member
             List<ClientEntity> existingMembers = getAllLocalMemberEntities();
             Optional<ClientEntity> additionalMember = existingMembers.stream()
                     .filter(m -> !ownerId.equals(m.getIdentifier()))
@@ -789,7 +800,7 @@ public class ClientService {
         }
 
         // check if the member associated with clientId exists in global conf
-        ClientId.Conf memberId = clientId.getMemberId();
+        ClientId memberId = clientId.getMemberId();
         if (globalConfProvider.getMemberName(memberId) == null) {
             // unregistered member
             if (!ignoreWarnings) {
@@ -799,25 +810,26 @@ public class ClientService {
         }
 
         boolean clientRegistered = globalConfService.isSecurityServerClientForThisInstance(clientId);
-        ClientEntity client = new ClientEntity();
-        client.setIdentifier(getPossiblyManagedEntity(clientId));
-        if (clientRegistered) {
-            client.setClientStatus(Client.STATUS_REGISTERED);
-        } else {
-            client.setClientStatus(Client.STATUS_SAVED);
-        }
+
+        ClientEntity client = addClient(clientId,
+                serverConfService.getServerConfEntity(),
+                isAuthentication,
+                clientRegistered ? Client.STATUS_REGISTERED : Client.STATUS_SAVED);
         putClientStatusToAudit(client);
 
-        client.setIsAuthentication(isAuthentication.name());
-        ServerConfEntity serverConfEntity = serverConfService.getServerConfEntity();
-        client.setConf(serverConfEntity);
-        serverConfEntity.getClients().add(client);
-
-        ClientEntity persisted = clientRepository.persist(client);
         if (clientId.isSubsystem() && StringUtils.isNotEmpty(subsystemName)) {
             subsystemNameStatus.set(clientId, globalConfProvider.getSubsystemName(clientId), subsystemName);
         }
-        return persisted;
+        return client;
+    }
+
+    ClientEntity addClient(ClientId clientId, ServerConfEntity serverConfEntity, IsAuthentication isAuthentication, String status) {
+        ClientEntity client = new ClientEntity();
+        client.setIdentifier(identifierService.getOrPersistXroadIdEntity(XRoadIdMapper.get().toEntity(clientId)));
+        client.setConf(serverConfEntity);
+        client.setClientStatus(status);
+        client.setIsAuthentication(isAuthentication.name());
+        return clientRepository.persist(client);
     }
 
     /**
@@ -829,19 +841,6 @@ public class ClientService {
         Optional<String> match = globalConfService.getMemberClassesForThisInstance().stream()
                 .filter(mc -> mc.equals(memberClass)).findFirst();
         return match.isPresent();
-    }
-
-    /**
-     * If ClientId already exists in DB, return the managed instance.
-     * Otherwise return transient instance that was given as parameter
-     */
-    private ClientIdEntity getPossiblyManagedEntity(ClientId.Conf transientClientId) {
-        ClientIdEntity managedEntity = identifierRepository.getClientId(transientClientId);
-        if (managedEntity != null) {
-            return managedEntity;
-        } else {
-            return XRoadIdMapper.get().toEntity(transientClientId);
-        }
     }
 
     /**
@@ -867,9 +866,6 @@ public class ClientService {
         if (!allowedStatuses.contains(clientEntity.getClientStatus())) {
             throw new ActionNotPossibleException("cannot delete client with status " + clientEntity.getClientStatus());
         }
-        // we also remove local group members and access rights what is given to this client
-        localGroupRepository.deleteGroupMembersByMemberId(clientEntity.getIdentifier());
-        accessRightRepository.deleteBySubjectId(clientEntity.getIdentifier());
         removeLocalClient(clientEntity);
         subsystemNameStatus.clear(clientId);
     }
@@ -879,7 +875,26 @@ public class ClientService {
         if (!serverConfEntity.getClients().remove(clientEntity)) {
             throw new RuntimeException("client to be deleted was somehow missing from server conf");
         }
-        identifierRepository.remove(clientEntity.getIdentifier());
+        clientRepository.remove(clientEntity);
+
+        if (!clientRegisteredOnOtherServers(clientEntity.getIdentifier())) {
+            localGroupRepository.deleteGroupMembersByMemberId(clientEntity.getIdentifier());
+            accessRightRepository.deleteBySubjectId(clientEntity.getIdentifier());
+        }
+
+        if (!identifierReferenced(clientEntity.getIdentifier())) {
+            identifierRepository.remove(clientEntity.getIdentifier());
+        }
+    }
+
+    private boolean identifierReferenced(ClientIdEntity clientId) {
+        return localGroupRepository.countGroupMembersByMemberId(clientId) > 0
+                || accessRightRepository.countBySubjectId(clientId) > 0;
+    }
+
+    private boolean clientRegisteredOnOtherServers(ClientId clientId) {
+        return globalConfProvider.getClientSecurityServers(clientId).stream()
+                .anyMatch(serverId -> !serverId.equals(currentSecurityServerId.getServerId()));
     }
 
     public void renameClient(ClientId.Conf clientId, String subsystemName)

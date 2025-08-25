@@ -1,6 +1,8 @@
 # Change Log
 
-## 7.7.0 - UNRELEASED
+## 7.8.0 - UNRELEASED
+
+## 7.7.0 - 2025-07-08
 - XRDDEV-55: As a Product Owner I want that the memory allocated for Proxy component will be automatically adjusted at init phase of Security Server to correlate the amount of RAM memory to optimize the performance
 - XRDDEV-599: As a Security Server user I want that X-Road metaservice codes are reserved so that the user can't overload them
 - XRDDEV-823: As a Security Server Administrator I would like to have an easy or automated way to configure my Security Server's IP ACL so that maintaining the Security Server would be easier.

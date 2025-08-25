@@ -203,6 +203,7 @@ public final class CryptoUtils {
      * @return the read certificate
      */
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static X509Certificate readCertificate(byte[] certBytes) {
         try (InputStream is = new ByteArrayInputStream(certBytes)) {
             return readCertificate(is);
@@ -216,6 +217,7 @@ public final class CryptoUtils {
      * @return the read certificate collection
      */
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static Collection<X509Certificate> readCertificates(byte[] certBytes) {
         try (InputStream is = new ByteArrayInputStream(certBytes)) {
             return readCertificates(is);
@@ -229,6 +231,7 @@ public final class CryptoUtils {
      * @return the read certificate
      */
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static X509Certificate readCertificate(InputStream is) {
         return (X509Certificate) CERT_FACTORY.generateCertificate(is);
     }
@@ -240,6 +243,7 @@ public final class CryptoUtils {
      * @return the read certificate chain
      */
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static Collection<X509Certificate> readCertificates(InputStream is) {
         return CERT_FACTORY.generateCertificates(is).stream()
                 .map(X509Certificate.class::cast)

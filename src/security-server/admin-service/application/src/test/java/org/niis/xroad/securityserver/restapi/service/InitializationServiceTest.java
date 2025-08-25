@@ -57,7 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.GPG_KEY_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.GPG_KEY_GENERATION_FAILED;
 import static org.niis.xroad.securityserver.restapi.util.DeviationTestUtils.assertWarningWithoutMetadata;
 
 @RunWith(MockitoJUnitRunner.class)

@@ -82,6 +82,9 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
     @Autowired
     EndpointService endpointService;
 
+    @Autowired
+    IdentifierService identifierService;
+
     private List<MemberInfo> memberInfos = new ArrayList<>(List.of(
             TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
             TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
@@ -513,7 +516,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         ClientIdEntity subsystemId = TestUtils.getClientIdEntity(TestUtils.CLIENT_ID_SS5);
         LocalGroupIdEntity localGroupId = LocalGroupIdEntity.create("group2");
         GlobalGroupIdEntity globalGroupId = GlobalGroupIdEntity.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE);
-        Set<XRoadIdEntity> subjectIds = new HashSet<>(Arrays.asList(subsystemId, localGroupId, globalGroupId));
+        Set<XRoadIdEntity> subjectIds = identifierService.getOrPersistXroadIdEntities(Set.of(subsystemId, localGroupId, globalGroupId));
 
         ClientEntity ownerClient = clientRepository.getClient(serviceOwner);
 

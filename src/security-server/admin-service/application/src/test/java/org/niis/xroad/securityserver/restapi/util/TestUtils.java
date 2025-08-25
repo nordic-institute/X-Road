@@ -31,13 +31,13 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.google.common.collect.Ordering;
+import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.model.TimestampingService;
@@ -119,6 +119,7 @@ public final class TestUtils {
     public static final String DB_LOCAL_GROUP_ID_2 = "2";
     public static final String DB_LOCAL_GROUP_CODE = "group1";
     public static final int GROUP1_ACCESS_RIGHTS_COUNT = 1;
+    public static final long DB_ENDPOINT_ID_GET_RANDOM = 1L;
     // services from initial test data: src/test/resources/data.sql
     public static final String FULL_SERVICE_XROAD_GET_RANDOM_OLD = "xroadGetRandomOld.v1";
     public static final String SERVICE_XROAD_GET_RANDOM_OLD = "xroadGetRandomOld";

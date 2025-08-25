@@ -194,6 +194,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private static byte[] getOkResponseBytes() {
         return OBJECT_WRITER.writeValueAsString(new StoreOpMonitoringDataResponse()).getBytes(
                 MimeUtils.UTF8);

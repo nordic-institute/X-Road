@@ -151,6 +151,7 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     @Override
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public boolean canHandle(ServiceId requestServiceId,
                              ProxyMessage requestProxyMessage) {
 

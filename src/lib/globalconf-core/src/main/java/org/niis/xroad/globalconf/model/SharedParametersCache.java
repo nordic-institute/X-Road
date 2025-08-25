@@ -66,6 +66,7 @@ public class SharedParametersCache {
     private final Map<SecurityServerId, Set<ClientId>> securityServerClients = new HashMap<>();
     private final Set<String> knownAddresses = new HashSet<>();
     private final Map<SecurityServerId, SharedParameters.SecurityServer> securityServersById = new HashMap<>();
+    private final Map<ClientId, Set<SharedParameters.SecurityServer>> securityServersByClientId = new HashMap<>();
     private final Map<String, SharedParameters.SecurityServer> securityServersByAddress = new HashMap<>();
 
     public String getInstanceIdentifier() {
@@ -73,6 +74,7 @@ public class SharedParametersCache {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public SharedParametersCache(@NonNull SharedParameters sharedParameters) {
         this.sharedParameters = sharedParameters;
 
@@ -158,6 +160,7 @@ public class SharedParametersCache {
     }
 
     private void addServerClient(ClientId client, SharedParameters.SecurityServer server) {
+        addToMap(securityServersByClientId, client, server);
         // Add the mapping from client to security server address.
         if (isNotBlank(server.getAddress())) {
             addToMap(memberAddresses, client, server.getAddress());

@@ -64,6 +64,7 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.TestCertUtil.getCertChainCert;
 import static java.util.Collections.singleton;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -461,6 +462,17 @@ public class GlobalConfTest {
 
         assertEquals(5, cas.size());
     }
+
+    @Test
+    public void getClientSecurityServers() {
+       SecurityServerId server1 = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "producerServerCode");
+       SecurityServerId server3 = SecurityServerId.Conf.create("EE", "BUSINESS", "foo", "fooServerCode");
+       SecurityServerId server4 = SecurityServerId.Conf.create("EE", "BUSINESS", "foo", "FooBarServerCode");
+
+       Set<SecurityServerId> securityServers = globalConfProvider.getClientSecurityServers(newClientId("foo"));
+
+       assertThat(securityServers).containsExactlyInAnyOrder(server1, server3, server4);
+   }
 
     private static ClientId newClientId(String name) {
         return ClientId.Conf.create("EE", "BUSINESS", name);

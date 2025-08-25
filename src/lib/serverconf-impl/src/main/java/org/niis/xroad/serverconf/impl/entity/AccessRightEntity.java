@@ -27,7 +27,6 @@
 package org.niis.xroad.serverconf.impl.entity;
 
 import jakarta.persistence.Access;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -62,11 +61,11 @@ public class AccessRightEntity {
     @Column(name = "rightsgiven", nullable = false)
     private Date rightsGiven;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "subjectid", nullable = false)
     private XRoadIdEntity subjectId;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "endpoint_id", nullable = false)
     private EndpointEntity endpoint;
 }

@@ -78,12 +78,14 @@ public class ConfigurationDistributor {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public void moveDirectoryContentFile(String source, String target) {
         var sourcePath = getVersionLocationPath().resolve(source);
         Files.move(sourcePath, getVersionLocationPath().resolve(target), StandardCopyOption.ATOMIC_MOVE);
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public void deleteDirectoryContentFile(String target) {
         FileUtils.delete(getVersionLocationPath().resolve(target));
     }

@@ -73,7 +73,7 @@ public class ClientEntity {
     @JsonIgnore
     private ServerConfEntity conf;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "identifier")
     private ClientIdEntity identifier;
 
@@ -95,4 +95,9 @@ public class ClientEntity {
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "client_id")
     private List<EndpointEntity> endpoints = new ArrayList<>();
+
+    public void setConf(ServerConfEntity conf) {
+        this.conf = conf;
+        conf.getClients().add(this);
+    }
 }

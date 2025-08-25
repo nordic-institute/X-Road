@@ -43,9 +43,9 @@ final class OperationalDataInTimeIntervalsQuery {
         this.session = session;
     }
 
-    public List<OperationalDataInTimeInterval> list(Long startTime,
-                                                    Long endTime,
-                                                    Integer intervalInMinutes,
+    public List<OperationalDataInTimeInterval> list(long startTime,
+                                                    long endTime,
+                                                    int intervalInMinutes,
                                                     OpMonitoringData.SecurityServerType securityServerType,
                                                     ClientId memberId,
                                                     ServiceId serviceId) {
@@ -59,29 +59,29 @@ final class OperationalDataInTimeIntervalsQuery {
         StringBuilder sql = new StringBuilder("""
                 WITH time_buckets AS (
                     SELECT GENERATE_SERIES(
-                        TO_TIMESTAMP(:startTimeMillis / 1000),
-                        TO_TIMESTAMP(:endTimeMillis / 1000),
-                        (:interval || ' minutes')::INTERVAL
+                        :startTimeMillis,
+                        :endTimeMillis,
+                        :interval * 60 * 1000
                     ) AS time_interval_start
                 ),
                 request_counts AS (
                     SELECT
-                        TO_TIMESTAMP(FLOOR(request_in_ts / 1000 / (:interval * 60)) * (:interval * 60)) AS time_interval_start,
-                        COUNT(*) FILTER (WHERE succeeded = true) AS success_count,
-                        COUNT(*) FILTER (WHERE succeeded = false) AS failure_count
+                        request_in_ts,
+                        succeeded
                     FROM operational_data
                     WHERE request_in_ts BETWEEN :startTimeMillis AND :endTimeMillis
                 """);
         addOptionalFilters(sql, securityServerType, memberId, serviceId);
         sql.append("""
-                    GROUP BY time_interval_start
                 )
                 SELECT
-                    tb.time_interval_start,
-                    COALESCE(rc.success_count, 0) AS success_count,
-                    COALESCE(rc.failure_count, 0) AS failure_count
+                    to_timestamp(tb.time_interval_start / 1000),
+                    COUNT(*) FILTER (WHERE succeeded = true)  AS success_count,
+                    COUNT(*) FILTER (WHERE succeeded = false) AS failure_count
                 FROM time_buckets tb
-                LEFT JOIN request_counts rc ON tb.time_interval_start = rc.time_interval_start
+                LEFT JOIN request_counts rc
+                    ON rc.request_in_ts >= tb.time_interval_start AND rc.request_in_ts < tb.time_interval_start + (:interval * 60 * 1000)
+                GROUP BY tb.time_interval_start
                 ORDER BY tb.time_interval_start;
                 """);
         return sql.toString();
@@ -130,9 +130,9 @@ final class OperationalDataInTimeIntervalsQuery {
     }
 
     private NativeQuery<OperationalDataInTimeInterval> createQuery(String sql,
-                                                                   Long startTime,
-                                                                   Long endTime,
-                                                                   Integer intervalInMinutes,
+                                                                   long startTime,
+                                                                   long endTime,
+                                                                   int intervalInMinutes,
                                                                    OpMonitoringData.SecurityServerType securityServerType,
                                                                    ClientId memberId,
                                                                    ServiceId serviceId) {
@@ -166,6 +166,5 @@ final class OperationalDataInTimeIntervalsQuery {
         }
         return query;
     }
-
 
 }
