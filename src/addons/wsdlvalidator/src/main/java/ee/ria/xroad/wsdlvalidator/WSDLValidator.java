@@ -29,7 +29,6 @@ import org.apache.cxf.tools.common.ToolConstants;
 import org.apache.cxf.tools.common.ToolContext;
 import org.apache.cxf.tools.common.ToolException;
 import org.apache.cxf.tools.validator.internal.WSDL11Validator;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
@@ -49,12 +48,12 @@ import java.security.cert.X509Certificate;
 /**
  * Adaptation of Apache CXF WSDLValidator command line interface for X-Road. Used by security server admin GUI when
  * adding a new service.
- *
+ * <p>
  * Usage: java -jar wsdlvalidator.jar <i>wsdlUrl</i><br> Exits with code zero if the validation was successful, nonzero
  * otherwise.
  *
  * @see org.apache.cxf.tools.validator.WSDLValidator
- *
+ * <p>
  * The original CLI always exists with code 0. This version does not support any of the wsdlvalidator command line
  * switches.
  */
@@ -66,7 +65,6 @@ public final class WSDLValidator {
     private WSDLValidator() {
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     static int executeValidator(String wsdlUrl, PrintStream msg) {
         try {
             ToolContext env = new ToolContext();
@@ -89,8 +87,7 @@ public final class WSDLValidator {
     /**
      * WSDLValidator wrapper.
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws GeneralSecurityException, IOException {
         if (args.length == 0) {
             System.err.println("WSDLValidator Error : Missing argument: wsdlUrl");
             System.exit(1);
