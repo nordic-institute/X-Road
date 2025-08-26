@@ -13,10 +13,6 @@ quarkus:
     proxy:
       rpc:
         listen-address: 0.0.0.0
-  script:
-    generate-certificate:
-      path: /opt/app/scripts/generate_certificate.sh
-      args: -c /opt/app/scripts -n internal -f -S -p 2>&1
 
 "%native":
   quarkus:

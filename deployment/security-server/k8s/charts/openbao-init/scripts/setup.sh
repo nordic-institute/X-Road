@@ -21,9 +21,6 @@ bao_api "POST" "/v1/sys/mounts/xrd-pki" \
 bao_api "POST" "/v1/sys/mounts/xrd-secret" \
   '{"type": "kv"}' "$ROOT_TOKEN" "Enabling KV engine" >/dev/null
 
-bao_api "POST" "/v1/sys/mounts/xrd-ds-secret" \
-  '{"type": "kv", "options": {"version": "2"}}' "$ROOT_TOKEN" "Enabling KV engine" >/dev/null
-
 bao_api "POST" "/v1/sys/mounts/xrd-pki/tune" \
   '{"max_lease_ttl": "87600h"}' "$ROOT_TOKEN" "Configuring PKI lease" >/dev/null
 
@@ -47,9 +44,6 @@ path "xrd-pki/*" {
 }
 path "xrd-secret/*" {
   capabilities = ["read", "list"]
-}
-path "xrd-ds-secret/*" {
-  capabilities = ["create", "read", "update", "delete", "list"]
 }
 path "xrd-secret" {
   capabilities = ["list"]

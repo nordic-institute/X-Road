@@ -43,14 +43,18 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -60,6 +64,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
 import java.util.Collection;
 
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
@@ -244,6 +251,36 @@ public final class CryptoUtils {
         return CERT_FACTORY.generateCertificates(is).stream()
                 .map(X509Certificate.class::cast)
                 .toList();
+    }
+
+    public static PrivateKey getPrivateKey(InputStream inputStream)
+            throws IOException, NoSuchAlgorithmException,
+            InvalidKeySpecException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if ("-----BEGIN PRIVATE KEY-----".equals(line)) {
+                break;
+            }
+        }
+        StringBuilder keyContent = new StringBuilder();
+        while ((line = reader.readLine()) != null) {
+            if ("-----END PRIVATE KEY-----".equals(line)) {
+                break;
+            }
+            keyContent.append(line);
+        }
+        byte[] decodedKeyBytes = Base64.getDecoder().decode(keyContent.toString());
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedKeyBytes);
+        try {
+            return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
+        } catch (InvalidKeySpecException ignore) {
+            try {
+                return KeyFactory.getInstance("EC").generatePrivate(keySpec);
+            } catch (InvalidKeySpecException e) {
+                throw new InvalidKeySpecException("Neither RSA nor EC worked", e);
+            }
+        }
     }
 
     /**

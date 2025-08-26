@@ -3,7 +3,6 @@
 ../../../../../service/op-monitor/op-monitor-db/src/main/resources/liquibase/* usr/share/xroad/db/
 
 ../../../../../service/op-monitor/op-monitor-application/build/quarkus-app/* usr/share/xroad/jlib/op-monitor/
-../../../../src/xroad/common/op-monitor/generate-opmonitor-certificate.sh usr/share/xroad/scripts
 
 ../../../../../LICENSE.txt usr/share/doc/xroad-opmonitor
 ../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-opmonitor

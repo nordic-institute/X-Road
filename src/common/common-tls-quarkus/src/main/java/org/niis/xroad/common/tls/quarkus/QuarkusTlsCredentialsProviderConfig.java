@@ -24,21 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.vault;
 
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
+package org.niis.xroad.common.tls.quarkus;
 
-public interface VaultKeyClient {
-    String CERTIFICATE_FORMAT = "pem";
-    String PKCS8_FORMAT = "pkcs8";
+import io.quarkus.vault.VaultKVSecretEngine;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.tls.quarkus.vault.QuarkusVaultTlsCredentialsProvider;
 
-    VaultKeyData provisionNewCerts() throws Exception;
+@Slf4j
+public class QuarkusTlsCredentialsProviderConfig {
 
-    record VaultKeyData(
-            X509Certificate[] identityCertChain, PrivateKey identityPrivateKey,
-            X509Certificate[] trustCerts
-    ) {
-
+    @ApplicationScoped
+    QuarkusVaultTlsCredentialsProvider vaultKeyProvider(VaultKVSecretEngine kvSecretEngine) {
+        return new QuarkusVaultTlsCredentialsProvider(kvSecretEngine);
     }
+
 }

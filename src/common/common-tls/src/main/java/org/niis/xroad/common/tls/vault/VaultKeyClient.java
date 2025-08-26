@@ -24,25 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.tls.vault;
 
-package org.niis.xroad.proxy.core;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+public interface VaultKeyClient {
+    String CERTIFICATE_FORMAT = "pem";
+    String PKCS8_FORMAT = "pkcs8";
 
-@ConfigMapping(prefix = "script.generate-certificate")
-public interface GenerateCertScriptProperties {
+    VaultKeyData provisionNewCerts() throws Exception;
 
-    String DEFAULT_PATH = "/usr/share/xroad/scripts/generate_certificate.sh";
-    String DEFAULT_ARGS = "-n internal -f -S -p 2>&1";
+    record VaultKeyData(
+            X509Certificate[] identityCertChain, PrivateKey identityPrivateKey,
+            X509Certificate[] trustCerts
+    ) {
 
-    @WithName("path")
-    @WithDefault(DEFAULT_PATH)
-    String path();
-
-    @WithName("args")
-    @WithDefault(DEFAULT_ARGS)
-    String args();
-
+    }
 }

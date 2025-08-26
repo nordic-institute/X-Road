@@ -1,0 +1,123 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.common.tls.quarkus.vault;
+
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import io.quarkus.vault.VaultKVSecretEngine;
+import lombok.RequiredArgsConstructor;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
+import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.HashMap;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static org.bouncycastle.openssl.PEMParser.TYPE_CERTIFICATE;
+import static org.bouncycastle.openssl.PEMParser.TYPE_PRIVATE_KEY;
+
+@RequiredArgsConstructor
+public class QuarkusVaultTlsCredentialsProvider implements VaultTlsCredentialsProvider {
+
+    private final VaultKVSecretEngine kvSecretEngine;
+
+    @Override
+    public InternalSSLKey getInternalTlsCredentials() throws Exception {
+        return getTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH);
+    }
+
+    @Override
+    public InternalSSLKey getOpmonitorTlsCredentials() throws Exception {
+        return getTlsCredentials(OPMONITOR_TLS_CREDENTIALS_PATH);
+    }
+
+    @Override
+    public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws Exception {
+        createTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
+    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws Exception {
+        createTlsCredentials(OPMONITOR_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    private InternalSSLKey getTlsCredentials(String path) throws Exception {
+        if (kvSecretEngine == null) {
+            throw new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.");
+        }
+
+        var vaultResponse = kvSecretEngine.readSecret(path);
+        if (vaultResponse == null) {
+            throw new CodedException(X_INTERNAL_ERROR, "Failed to get TLS credentials from Vault. Response is null.");
+        }
+        var certificates = CryptoUtils.readCertificates(vaultResponse.get(CERTIFICATE_KEY).getBytes());
+        var privateKey = CryptoUtils.getPrivateKey(new ByteArrayInputStream(vaultResponse.get(PRIVATEKEY_KEY).getBytes(StandardCharsets.UTF_8)));
+
+        return new InternalSSLKey(privateKey, certificates.toArray(X509Certificate[]::new));
+    }
+
+    private void createTlsCredentials(String path, InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
+        var secret = new HashMap<String, String>();
+
+        var sb = new StringBuilder();
+        for (X509Certificate cert : internalSSLKey.getCertChain()) {
+            var pem = toPem(cert);
+            sb.append(pem);
+        }
+
+        secret.put(CERTIFICATE_KEY, sb.toString());
+        secret.put(PRIVATEKEY_KEY, toPem(internalSSLKey.getKey()));
+        kvSecretEngine.writeSecret(path, secret);
+    }
+
+    private String toPem(PrivateKey privateKey) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+            PemObject pemObject = new PemObject(TYPE_PRIVATE_KEY, privateKey.getEncoded());
+            pemWriter.writeObject(pemObject);
+        }
+        return stringWriter.toString();
+    }
+
+    private String toPem(X509Certificate certificate) throws IOException, CertificateEncodingException {
+        StringWriter stringWriter = new StringWriter();
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+            PemObject pemObject = new PemObject(TYPE_CERTIFICATE, certificate.getEncoded());
+            pemWriter.writeObject(pemObject);
+        }
+        return stringWriter.toString();
+    }
+}

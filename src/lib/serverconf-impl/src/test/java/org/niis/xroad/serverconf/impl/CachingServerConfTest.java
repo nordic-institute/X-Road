@@ -106,7 +106,7 @@ public class CachingServerConfTest {
                 return true;
             }
         };
-        serverConfProvider = new CachingServerConfImpl(DATABASE_CTX, globalConfProvider, serverConfProperties);
+        serverConfProvider = new CachingServerConfImpl(DATABASE_CTX, globalConfProvider, null, serverConfProperties);
 
         prepareDB(DATABASE_CTX);
     }

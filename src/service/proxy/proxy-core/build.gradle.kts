@@ -7,6 +7,7 @@ plugins {
 dependencies {
   implementation(project(":service:proxy:proxy-rpc-client"))
 
+  implementation(project(":common:common-tls-quarkus"))
   implementation(project(":common:common-jetty"))
   implementation(project(":common:common-messagelog"))
   implementation(project(":service:op-monitor:op-monitor-api"))

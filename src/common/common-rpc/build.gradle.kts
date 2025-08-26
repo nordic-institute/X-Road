@@ -7,6 +7,7 @@ plugins {
 dependencies {
   api(project(":common:common-domain"))
   api(project(":common:common-properties"))
+  api(project(":common:common-tls"))
 
   api(libs.slf4j.api)
   api(libs.grpc.protobuf)

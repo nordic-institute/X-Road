@@ -27,6 +27,7 @@ package org.niis.xroad.monitor.core.configuration;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -39,8 +40,9 @@ public class MonitorConfig {
     @ApplicationScoped
     ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
                                           ServerConfCommonProperties serverConfProperties,
-                                          GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
+                                          GlobalConfProvider globalConfProvider,
+                                          VaultTlsCredentialsProvider vaultTlsCredentialsProvider) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultTlsCredentialsProvider, serverConfProperties);
     }
 
 }

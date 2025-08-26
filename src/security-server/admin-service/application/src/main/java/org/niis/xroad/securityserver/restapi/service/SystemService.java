@@ -99,9 +99,6 @@ public class SystemService {
     private final ConfClientRpcClient confClientRpcClient;
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final GlobalConfProvider globalConfProvider;
-
-    @Setter
-    private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
     @Setter
     private String tempFilesPath = SystemProperties.getTempFilesPath();
 

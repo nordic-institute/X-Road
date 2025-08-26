@@ -174,17 +174,6 @@ if [ $1 -gt 1 ] ; then
       fi
 fi
 
-## generate internal certificate
-if [[ ! -r /etc/xroad/ssl/internal.crt || ! -r /etc/xroad/ssl/internal.key  || ! -r /etc/xroad/ssl/internal.p12 ]]
-then
-    echo "Generating new internal.[crt|key|p12] files "
-    rm -f /etc/xroad/ssl/internal.crt /etc/xroad/ssl/internal.key /etc/xroad/ssl/internal.p12
-    if ! /usr/share/xroad/scripts/generate_certificate.sh -n internal -S -f -p &>/tmp/generate_cert.$$.log; then
-      echo "Generating certificate failed: "
-      cat /tmp/generate_cert.$$.log
-    fi
-fi
-
 mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
 mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
 mkdir -p /etc/xroad/globalconf; chown xroad:xroad /etc/xroad/globalconf

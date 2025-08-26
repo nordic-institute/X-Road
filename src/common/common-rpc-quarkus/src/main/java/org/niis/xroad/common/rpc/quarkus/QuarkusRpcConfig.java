@@ -36,6 +36,7 @@ import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.vault.ReloadableVaultKeyManager;
+import org.niis.xroad.common.tls.quarkus.vault.QuarkusVaultKeyClient;
 
 @Slf4j
 public class QuarkusRpcConfig extends RpcConfig {
@@ -44,7 +45,15 @@ public class QuarkusRpcConfig extends RpcConfig {
     VaultKeyProvider vaultKeyProvider(CommonRpcProperties rpcProperties,
                                       VaultPKISecretEngineFactory pkiSecretEngineFactory) throws Exception {
         if (rpcProperties.useTls()) {
-            var vaultKeyClient = new QuarkusVaultKeyClient(rpcProperties.certificateProvisioning(), pkiSecretEngineFactory);
+            var vaultKeyClient = new QuarkusVaultKeyClient(
+                    pkiSecretEngineFactory,
+                    rpcProperties.certificateProvisioning().secretStorePkiPath(),
+                    rpcProperties.certificateProvisioning().ttl(),
+                    rpcProperties.certificateProvisioning().issuanceRoleName(),
+                    rpcProperties.certificateProvisioning().commonName(),
+                    rpcProperties.certificateProvisioning().altNames(),
+                    rpcProperties.certificateProvisioning().ipSubjectAltNames()
+            );
             var keyManager = ReloadableVaultKeyManager.withDefaults(rpcProperties.certificateProvisioning(), vaultKeyClient);
             keyManager.init();
             return keyManager;

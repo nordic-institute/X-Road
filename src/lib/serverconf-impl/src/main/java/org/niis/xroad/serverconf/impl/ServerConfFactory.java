@@ -27,6 +27,7 @@
 package org.niis.xroad.serverconf.impl;
 
 import lombok.NoArgsConstructor;
+import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -35,11 +36,11 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 public class ServerConfFactory {
 
     public static ServerConfProvider create(ServerConfDatabaseCtx databaseCtx, GlobalConfProvider globalConfProvider,
-                                            ServerConfCommonProperties serverConfProperties) {
+                                            VaultTlsCredentialsProvider vaultTlsCredentialsProvider, ServerConfCommonProperties serverConfProperties) {
         if (serverConfProperties.cachePeriod() > 0) {
-            return new CachingServerConfImpl(databaseCtx, globalConfProvider, serverConfProperties);
+            return new CachingServerConfImpl(databaseCtx, globalConfProvider, vaultTlsCredentialsProvider, serverConfProperties);
         }
-        return new ServerConfImpl(databaseCtx, globalConfProvider);
+        return new ServerConfImpl(databaseCtx, globalConfProvider, vaultTlsCredentialsProvider);
 
     }
 }
