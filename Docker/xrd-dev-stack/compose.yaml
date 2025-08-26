@@ -21,7 +21,7 @@ services:
         reservations:
           memory: 512M
         limits:
-          memory: 2560M
+          memory: 3G
     healthcheck:
       interval: 5s
       retries: 40
@@ -36,7 +36,7 @@ services:
         reservations:
           memory: 512M
         limits:
-          memory: 2560M
+          memory: 3G
     healthcheck:
       interval: 5s
       retries: 40

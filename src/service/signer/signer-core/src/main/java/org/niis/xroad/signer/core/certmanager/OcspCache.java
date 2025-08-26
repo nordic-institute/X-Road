@@ -34,8 +34,6 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -79,13 +77,6 @@ public class OcspCache {
      */
     public void clear() {
         cache.clear();
-    }
-
-    /**
-     * @return a Set view of the mappings contained in this map.
-     */
-    public Set<Entry<String, OCSPResp>> entrySet() {
-        return cache.entrySet();
     }
 
     protected OCSPResp getResponse(Object key, Date atDate) {

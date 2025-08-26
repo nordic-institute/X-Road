@@ -25,92 +25,69 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
-import ee.ria.xroad.common.util.process.ProcessFailedException;
-import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
-import com.google.common.collect.Iterables;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.niis.xroad.common.core.exception.ErrorDeviation;
-import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.securityserver.restapi.repository.InternalTlsCertificateRepository;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
-
-import static org.niis.xroad.common.core.exception.ErrorCodes.KEY_CERT_GENERATION_FAILED;
 
 /**
  * Operations related to internal tls certificates
  */
 @Slf4j
 @Service
-@Transactional
 @PreAuthorize("isAuthenticated()")
 public class InternalTlsCertificateService {
-    public static final String IMPORT_INTERNAL_CERT_FAILED = "import_internal_cert_failed";
-    public static final String LOAD_INTERNAL_TLS_KEY_FAILED = "load_internal_tls_key_failed";
 
     private static final String CERT_PEM_FILENAME = "./cert.pem";
     private static final String CERT_CER_FILENAME = "./cert.cer";
 
-    private final ExternalProcessRunner externalProcessRunner;
-    private final ClearCacheService clearCacheService;
-    private final String generateCertScriptArgs;
+    private final ProxyRpcClient proxyRpcClient;
     private final AuditDataHelper auditDataHelper;
 
-    @Setter
-    private String generateCertScriptPath;
-    @Setter
-    private InternalTlsCertificateRepository internalTlsCertificateRepository;
-    @Setter
-    private String internalCertPath = SystemProperties.getConfPath() + InternalSSLKey.CRT_FILE_NAME;
-    @Setter
-    private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
-    @Setter
-    private String internalKeystorePath = SystemProperties.getConfPath() + InternalSSLKey.KEY_FILE_NAME;
-
     @Autowired
-    public InternalTlsCertificateService(InternalTlsCertificateRepository internalTlsCertificateRepository,
-                                         ExternalProcessRunner externalProcessRunner,
-                                         ClearCacheService clearCacheService,
-                                         @Value("${script.generate-certificate.path}") String generateCertScriptPath,
-                                         @Value("${script.generate-certificate.args}") String generateCertScriptArgs,
+    public InternalTlsCertificateService(ProxyRpcClient proxyRpcClient,
                                          AuditDataHelper auditDataHelper) {
-        this.internalTlsCertificateRepository = internalTlsCertificateRepository;
-        this.externalProcessRunner = externalProcessRunner;
-        this.clearCacheService = clearCacheService;
-        this.generateCertScriptPath = generateCertScriptPath;
-        this.generateCertScriptArgs = generateCertScriptArgs;
+        this.proxyRpcClient = proxyRpcClient;
         this.auditDataHelper = auditDataHelper;
     }
 
     public X509Certificate getInternalTlsCertificate() {
-        return internalTlsCertificateRepository.getInternalTlsCertificate();
+        try {
+            return proxyRpcClient.getInternalTlsCertificate();
+        } catch (CodedException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to obtain TLS certificate", e);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+        }
     }
 
     public Collection<X509Certificate> getInternalTlsCertificateChain() {
-        return internalTlsCertificateRepository.getInternalTlsCertificateChain();
+        try {
+            return proxyRpcClient.getInternalTlsCertificateChain();
+        } catch (CodedException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to obtain TLS certificate chain", e);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+        }
     }
 
     /**
@@ -118,10 +95,11 @@ public class InternalTlsCertificateService {
      * two files:
      * - cert.pem PEM encoded certificate
      * - cert.cer DER encoded certificate
+     *
      * @return byte array that contains the exported certs.tar.gz
      */
     public byte[] exportInternalTlsCertificate() {
-        X509Certificate certificate = internalTlsCertificateRepository.getInternalTlsCertificate();
+        X509Certificate certificate = getInternalTlsCertificate();
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (
@@ -159,76 +137,60 @@ public class InternalTlsCertificateService {
     /**
      * Generates a new TLS key and certificate for internal use for the current Security Server. A runtime
      * exception will be thrown if the generation is interrupted or otherwise unable to be executed.
+     *
      * @throws InterruptedException if the thread running the key generator is interrupted. <b>The interrupted thread
      *                              has already been handled with so you can choose to ignore this exception if you so please.</b>
      */
-    public void generateInternalTlsKeyAndCertificate() throws InterruptedException {
+    public void generateInternalTlsKeyAndCertificate() {
         try {
-            externalProcessRunner.executeAndThrowOnFailure(generateCertScriptPath,
-                    generateCertScriptArgs.split("\\s+"));
-        } catch (ProcessNotExecutableException | ProcessFailedException e) {
-            log.error("Failed to generate internal TLS key and cert", e);
-            throw new InternalServerErrorException(e, KEY_CERT_GENERATION_FAILED.build());
+            X509Certificate generatedCert = proxyRpcClient.generateInternalTlsKeyAndCertificate();
+            auditDataHelper.putCertificateHash(generatedCert);
+        } catch (CodedException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to generate TLS key & certificate", e);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
         }
-
-        clearCacheService.executeClearConfigurationCache();
-
-        // audit log hash of generated cert
-        X509Certificate generatedCert = internalTlsCertificateRepository.getInternalTlsCertificate();
-        auditDataHelper.putCertificateHash(generatedCert);
     }
 
     /**
      * Imports a new internal TLS certificate.
+     *
      * @param certificateBytes
      * @return X509Certificate
      * @throws InvalidCertificateException
      */
-    public X509Certificate importInternalTlsCertificate(byte[] certificateBytes)
-            throws InvalidCertificateException, KeyNotFoundException, CertificateAlreadyExistsException {
-        Collection<X509Certificate> x509Certificates = null;
+    public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) {
         try {
-            // the imported file can be a single certificate or a chain
-            x509Certificates = CryptoUtils.readCertificates(certificateBytes);
-            if (x509Certificates == null || x509Certificates.isEmpty()) {
-                throw new InvalidCertificateException("cannot convert bytes to certificate");
-            }
+            var certificate = proxyRpcClient.importInternalTlsCertificate(certificateBytes);
+            auditDataHelper.putCertificateHash(certificate);
+            return certificate;
+        } catch (CodedException e) {
+            throw e;
         } catch (Exception e) {
-            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
+            log.error("Failed to import TLS certificate", e);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
         }
-        auditDataHelper.putCertificateHash(Iterables.get(x509Certificates, 0));
-        verifyInternalCertImportability(x509Certificates);
-        try {
-            // create pkcs12 checks the certificate chain validity
-            CertUtils.createPkcs12(internalKeyPath, certificateBytes, internalKeystorePath);
-            CertUtils.writePemToFile(certificateBytes, internalCertPath);
-        } catch (Exception e) {
-            log.error("Failed to import internal TLS cert", e);
-            throw new DeviationAwareRuntimeException("cannot import internal TLS cert", e,
-                    new ErrorDeviation(IMPORT_INTERNAL_CERT_FAILED));
-        }
-
-        clearCacheService.executeClearConfigurationCache();
-
-        return Iterables.get(x509Certificates, 0);
     }
 
     /**
-     * Verifies that the chain matches the internal TLS key
-     * @param newCertChain the cert chain to be imported
-     * @throws KeyNotFoundException              if the public key of the cert does not match
-     * @throws CertificateAlreadyExistsException if the certificate has already been imported
+     * Generate internal auth cert CSR
+     *
+     * @param distinguishedName
+     * @return
+     * @throws InvalidDistinguishedNameException if {@code distinguishedName} does not conform to
+     *                                           <a href="http://www.ietf.org/rfc/rfc1779.txt">RFC 1779</a> or
+     *                                           <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>
      */
-    private void verifyInternalCertImportability(Collection<X509Certificate> newCertChain)
-            throws KeyNotFoundException, CertificateAlreadyExistsException {
-        Collection<X509Certificate> internalCertChain = getInternalTlsCertificateChain();
-        PublicKey internalPublicKey = Iterables.get(internalCertChain, 0).getPublicKey();
-
-        boolean found = newCertChain.stream().anyMatch(c -> c.getPublicKey().equals(internalPublicKey));
-        if (!found) {
-            throw new KeyNotFoundException("The imported cert does not match the internal TLS key");
-        } else if (Iterables.elementsEqual(internalCertChain, newCertChain)) {
-            throw new CertificateAlreadyExistsException("The imported cert already exists");
+    public byte[] generateInternalCsr(String distinguishedName) {
+        try {
+            auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, distinguishedName);
+            return proxyRpcClient.generateInternalCsr(distinguishedName);
+        } catch (CodedException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to generate TLS CSR", e);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
         }
     }
 }

@@ -1,28 +1,30 @@
 plugins {
   id("xroad.java-conventions")
-  alias(libs.plugins.shadow)
+  id("xroad.quarkus-application-conventions")
+}
+
+quarkus {
+  quarkusBuildProperties.putAll(
+    buildMap {
+      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-op-monitor")
+    }
+  )
 }
 
 dependencies {
-  implementation(project(":common:common-core"))
-  implementation(project(":service:op-monitor:op-monitor-core"))
-  implementation(libs.logback.classic)
-}
+  implementation(platform(libs.quarkus.bom))
 
-tasks.shadowJar {
-  archiveClassifier.set("")
-  archiveBaseName.set("op-monitor-daemon")
-  exclude("**/module-info.class")
-  manifest {
-    attributes("Main-Class" to "org.niis.xroad.opmonitor.application.OpMonitorDaemonMain")
-  }
-  mergeServiceFiles()
+  implementation(project(":lib:bootstrap-quarkus"))
+  implementation(project(":common:common-rpc-quarkus"))
+  implementation(project(":service:op-monitor:op-monitor-core"))
+
+  implementation(libs.bundles.quarkus.containerized)
+  implementation(libs.quarkus.extension.systemd.notify)
+
+  testImplementation(libs.quarkus.junit5)
+  testImplementation(libs.hsqldb)
 }
 
 tasks.jar {
   enabled = false
-}
-
-tasks.assemble {
-  dependsOn(tasks.shadowJar)
 }

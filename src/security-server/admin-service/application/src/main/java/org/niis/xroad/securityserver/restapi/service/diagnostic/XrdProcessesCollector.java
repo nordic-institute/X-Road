@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.monitor.common.Metrics;
 import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.common.SingleMetrics;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 
 import java.util.List;
 
@@ -38,7 +39,7 @@ public class XrdProcessesCollector implements DiagnosticCollector<List<XrdProces
     public static final String PROCESSES = "Xroad Processes";
     public static final String COMMAND = "command";
 
-    private final MonitorClient monitorClient;
+    private final MonitorRpcClient monitorClient;
 
     @Override
     public String name() {

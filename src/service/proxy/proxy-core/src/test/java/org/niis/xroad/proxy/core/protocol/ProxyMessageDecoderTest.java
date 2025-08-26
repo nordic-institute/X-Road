@@ -41,7 +41,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -68,7 +68,7 @@ public class ProxyMessageDecoderTest {
     @Before
     public void initialize() {
         callback = new DummyMessageConsumer();
-        globalConfProvider = new TestGlobalConfImpl();
+        globalConfProvider = TestGlobalConfFactory.create();
     }
 
     @Rule

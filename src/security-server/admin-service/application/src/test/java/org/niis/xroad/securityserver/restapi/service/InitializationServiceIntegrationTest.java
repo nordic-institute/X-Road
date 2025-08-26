@@ -27,7 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;

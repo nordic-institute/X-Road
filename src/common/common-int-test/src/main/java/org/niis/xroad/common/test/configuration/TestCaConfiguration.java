@@ -26,12 +26,11 @@
 package org.niis.xroad.common.test.configuration;
 
 import org.niis.xroad.common.test.api.TestCaFeignApi;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(value = "test-automation.containers.context-containers.ca-server.enabled", havingValue = "true")
 @EnableFeignClients(clients = TestCaFeignApi.class)
 public class TestCaConfiguration {
+
 }
