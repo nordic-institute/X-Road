@@ -179,27 +179,6 @@ public class CodedException extends RuntimeException implements Serializable {
         return ret;
     }
 
-    /**
-     * Creates new exception with translation code for i18n, arguments and the {@link Throwable} that
-     * caused this exception.
-     * @param faultCode the fault code
-     * @param cause the actual causing {@link Throwable}
-     * @param trCode the translation code
-     * @param faultMessage the message
-     * @param args optional arguments
-     * @return CodedException
-     */
-    public static CodedException tr(String faultCode, Throwable cause, String trCode,
-                                    String faultMessage, Object... args) {
-
-        CodedException ret = new CodedException(faultCode, cause, faultMessage, args);
-
-        ret.translationCode = trCode;
-
-        return ret;
-    }
-
-
     @Override
     public String getMessage() {
         return toString();

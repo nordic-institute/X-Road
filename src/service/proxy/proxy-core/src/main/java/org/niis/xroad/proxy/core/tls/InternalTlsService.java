@@ -31,9 +31,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
-import ee.ria.xroad.common.util.process.ProcessFailedException;
-import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import com.google.common.collect.Iterables;
 import com.google.protobuf.ByteString;
@@ -41,7 +38,6 @@ import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.rpc.server.CommonRpcHandler;
 import org.niis.xroad.common.tls.vault.VaultKeyClient;
 import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
@@ -53,24 +49,20 @@ import org.niis.xroad.proxy.proto.InternalTlsServiceGrpc;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import java.io.IOException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CERTIFICATE_ALREADY_EXISTS;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.IMPORT_INTERNAL_CERT_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CERTIFICATE;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_DISTINGUISHED_NAME;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCodes.CERTIFICATE_ALREADY_EXISTS;
+import static org.niis.xroad.common.core.exception.ErrorCodes.IMPORT_INTERNAL_CERT_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_DISTINGUISHED_NAME;
+import static org.niis.xroad.common.core.exception.ErrorCodes.KEY_NOT_FOUND;
 
 @Slf4j
 @ApplicationScoped

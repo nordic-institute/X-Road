@@ -25,7 +25,7 @@
 package org.niis.xroad.securityserver.restapi.exceptions;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.restapi.exceptions.DeviationBuilder;
+import org.niis.xroad.common.core.exception.DeviationBuilder;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS;

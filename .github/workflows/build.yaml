@@ -39,11 +39,11 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: start-measurement
           label: 'Build, unit tests and packaging'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
       - name: Ensure required packages
@@ -69,7 +69,7 @@ jobs:
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
       - name: Build, test and package code setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
           label: 'Build environment setup'
@@ -113,7 +113,7 @@ jobs:
             src/service/op-monitor/op-monitor-int-test/build/allure-report/
             src/service/op-monitor/op-monitor-int-test/build/container-logs/
       - name: Build, test and package code execution measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
           label: 'Build, unit tests and packaging'
@@ -166,12 +166,12 @@ jobs:
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
       - name: Packaging and upload artifacts measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
           label: 'Packaging and upload artifacts'
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: display-results
           pr-comment: true
@@ -213,7 +213,7 @@ jobs:
     runs-on: ubuntu-22.04-arm
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: start-measurement
           label: 'Packaging for arm architecture'
@@ -234,11 +234,11 @@ jobs:
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
       - name: Download workspace
-        uses: pyTooling/download-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
+        uses: pyTooling/download-artifact@v5 # https://github.com/actions/upload-artifact/issues/38
         with:
           name: workspace-for-arm
       - name: Set up measurement for arm packaging
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
           label: 'Set up arm packaging'
@@ -272,12 +272,12 @@ jobs:
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
       - name: Measurement for arm packaging
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
           label: 'Packaging for arm architecture'
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: display-results
           pr-comment: true
@@ -292,11 +292,11 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: start-measurement
           label: 'Central Server system tests'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -314,7 +314,7 @@ jobs:
         with:
           driver-opts: network=host
       - name: Download debian packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: debian-packages
           path: ./Docker/centralserver/build/packages/
@@ -329,7 +329,7 @@ jobs:
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Central Server test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
           label: 'Set up Central Server tests'
@@ -337,7 +337,7 @@ jobs:
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Test Central Server measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
           label: 'Test Central Server'
@@ -364,7 +364,7 @@ jobs:
           path: |
             src/central-server/admin-service/ui-system-test/build/allure-report/
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: display-results
           pr-comment: true
@@ -386,11 +386,11 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: start-measurement
           label: 'Security Server system tests'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -401,7 +401,7 @@ jobs:
         with:
           cache-read-only: true
       - name: Download SS docker images
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: docker-images
           path: ${{ runner.temp }}/docker-images
@@ -413,7 +413,7 @@ jobs:
             docker push "$IMAGE_ID"
           done
       - name: Security Server test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
           label: 'Set up Security Server tests'
@@ -423,7 +423,7 @@ jobs:
           mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest
       - name: Test Security Server measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
           label: 'Test Security Server'
@@ -448,7 +448,7 @@ jobs:
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: display-results
           pr-comment: true
@@ -463,12 +463,12 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: start-measurement
           label: 'E2E tests'
       # Setup
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -487,7 +487,7 @@ jobs:
         working-directory: ./Docker/centralserver
         run: ./init_context.sh
       - name: Download debian packages for CS
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: debian-packages
           path: ./Docker/centralserver/build/packages/
@@ -512,7 +512,7 @@ jobs:
             docker push "$IMAGE_ID"
           done
       - name: E2E test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
           label: 'Set up E2E tests'
@@ -524,7 +524,7 @@ jobs:
           docker network create xroad-network
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: E2E test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
           label: 'E2E tests'
@@ -545,7 +545,7 @@ jobs:
           path: |
             src/security-server/e2e-test/build/allure-report/
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: display-results
           pr-comment: true

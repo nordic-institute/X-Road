@@ -118,6 +118,7 @@ public class GlobalConfService {
 
     /**
      * Check the validity of the GlobalConf
+     *
      * @throws GlobalConfOutdatedException if conf is outdated
      */
     public void verifyGlobalConfValidity() throws GlobalConfOutdatedException {
@@ -191,6 +192,7 @@ public class GlobalConfService {
 
     /**
      * Find member's name in the global conf
+     *
      * @param memberClass
      * @param memberCode
      * @return

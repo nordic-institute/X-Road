@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,15 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.common.core.exception;
 
-import java.io.Serializable;
-import java.util.List;
+import lombok.Getter;
 
+import java.util.Collection;
 
-@SuppressWarnings("javaarchitecture:S7027")
-public sealed interface Deviation extends Serializable permits ErrorDeviation, WarningDeviation {
-    String code();
+/**
+ * Checked exception that (possibly) carries error code.
+ * Root of all checked deviation aware exceptions
+ */
+@Getter
+public class XrdException extends Exception implements DeviationAware {
 
-    List<String> metadata();
+    private final ErrorDeviation errorDeviation;
+    private final Collection<WarningDeviation> warningDeviations;
+
+    public XrdException(String msg, ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
+        super(msg);
+        this.errorDeviation = errorDeviation;
+        this.warningDeviations = warningDeviations;
+    }
+
 }

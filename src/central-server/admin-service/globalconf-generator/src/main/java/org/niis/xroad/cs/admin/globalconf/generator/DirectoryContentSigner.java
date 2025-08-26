@@ -55,6 +55,7 @@ public class DirectoryContentSigner {
     private final DigestAlgorithm certDigestAlgorithmId;
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public String createSignedDirectory(DirectoryContentBuilder.DirectoryContentHolder directoryContent, String keyId, byte[] signingCert) {
         var signAlgorithmId = getSignAlgorithmId(keyId, signDigestAlgorithmId);
         var certHashCalculator = new HashCalculator(certDigestAlgorithmId);
@@ -73,6 +74,7 @@ public class DirectoryContentSigner {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private byte[] sign(String keyId, byte[] data) {
         log.trace("sign(dataBytes)");
 
@@ -84,6 +86,7 @@ public class DirectoryContentSigner {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private SignAlgorithm getSignAlgorithmId(String keyId, DigestAlgorithm digestAlgorithmId) {
         log.trace("getSignAlgorithmId({}, {})", keyId, digestAlgorithmId);
 

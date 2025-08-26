@@ -92,6 +92,7 @@ class LinkingInfoBuilder {
 
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private String hexDigest(byte[] fileBytes) {
         return Digests.hexDigest(hashAlgoId, fileBytes);
     }

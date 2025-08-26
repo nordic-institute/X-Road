@@ -73,6 +73,7 @@ public class TestKeyConf extends EmptyKeyConf {
 
     @Override
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
     public AuthKey getAuthKey() {
         return new AuthKey(CertChainFactory
                 .create("EE",

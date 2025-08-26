@@ -131,6 +131,7 @@ public final class OpMonitorDaemon {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private ServerConnector createDaemonSslConnector() {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
