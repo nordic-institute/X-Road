@@ -24,39 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.tls.vault;
 
-package org.niis.xroad.proxy.application;
-
-import io.quarkus.test.Mock;
-import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.TestProfile;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.tls.vault.NoopVaultTlsCredentialsProvider;
-import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.test.serverconf.TestServerConf;
-
-@QuarkusTest
-@TestProfile(ProxyTestProfile.class)
-class ProxyMainTest {
-
-    @Test
-    @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
-    void contextLoads() {
-        // ok
+public class NoopVaultKeyClient implements VaultKeyClient {
+    @Override
+    public VaultKeyData provisionNewCerts() {
+        return null;
     }
-
-    @ApplicationScoped
-    @Mock
-    ServerConfProvider serverConfProvider() {
-        return new TestServerConf();
-    }
-
-    @ApplicationScoped
-    @Mock
-    VaultTlsCredentialsProvider vaultTlsCredentialsProvider() {
-        return new NoopVaultTlsCredentialsProvider();
-    }
-
 }

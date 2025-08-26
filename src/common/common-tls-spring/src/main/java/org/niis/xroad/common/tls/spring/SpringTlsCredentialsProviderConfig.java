@@ -28,17 +28,27 @@
 package org.niis.xroad.common.tls.spring;
 
 import org.niis.xroad.common.tls.spring.vault.SpringVaultTlsCredentialsProvider;
-import org.niis.xroad.common.tls.vault.VaultKeyClient;
+import org.niis.xroad.common.tls.vault.NoopVaultTlsCredentialsProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.vault.core.VaultTemplate;
+
+import java.util.Optional;
 
 @Configuration
 public class SpringTlsCredentialsProviderConfig {
 
     @Bean
-    SpringVaultTlsCredentialsProvider vaultKeyProvider(VaultTemplate vaultTemplate) {
-        return new SpringVaultTlsCredentialsProvider(vaultTemplate);
+    @Profile("!test")
+    SpringVaultTlsCredentialsProvider springVaultTlsCredentialsProvider(Optional<VaultTemplate> vaultTemplate) {
+        return new SpringVaultTlsCredentialsProvider(vaultTemplate.get());
+    }
+
+    @Bean
+    @Profile("test")
+    NoopVaultTlsCredentialsProvider noopVaultTlsCredentialsProvider() {
+        return new NoopVaultTlsCredentialsProvider();
     }
 
 }

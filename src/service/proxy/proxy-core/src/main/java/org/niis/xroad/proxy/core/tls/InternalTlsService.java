@@ -116,7 +116,7 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
         commonRpcHandler.handleRequest(responseObserver, () -> {
             var csr = generateInternalCsr(request.getDistinguishedName());
             return toGenerateInternalCsrResponse(csr);
-       });
+        });
     }
 
     @Override
@@ -179,7 +179,9 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
     private byte[] generateInternalCsr(String distinguishedName) {
         try {
             var internalSslKey = vaultTlsCredentialsProvider.getInternalTlsCredentials();
-            return CertUtils.generateCertRequest(internalSslKey.getKey(), internalSslKey.getCertChain()[0].getPublicKey(), distinguishedName);
+            return CertUtils.generateCertRequest(
+                    internalSslKey.getKey(), internalSslKey.getCertChain()[0].getPublicKey(), distinguishedName
+            );
         } catch (IllegalArgumentException e) {
             throw new CodedException(INVALID_DISTINGUISHED_NAME.code(), e);
         } catch (Exception e) {

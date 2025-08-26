@@ -79,7 +79,7 @@ public interface OpMonitorCommonProperties {
          */
         @WithName("client-tls-certificate")
         @Deprecated
-        // TODO: In X-Road 8 we store TLS certificates in OpenBao - only needed for 7 -> 8 migration, can be removed otherwise
+        //TODO In X-Road 8 we store TLS certificates in OpenBao - only needed for 7 -> 8 migration, can be removed otherwise
         Optional<String> clientTlsCertificate();
 
         /**
@@ -89,7 +89,7 @@ public interface OpMonitorCommonProperties {
          */
         @WithName("tls-certificate")
         @Deprecated
-        // TODO: In X-Road 8 we store TLS certificates in OpenBao - only needed for 7 -> 8 migration, can be removed otherwise
+        //TODO In X-Road 8 we store TLS certificates in OpenBao - only needed for 7 -> 8 migration, can be removed otherwise
         Optional<String> tlsCertificate();
 
     }

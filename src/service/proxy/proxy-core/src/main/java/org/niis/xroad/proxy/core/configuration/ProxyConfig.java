@@ -32,7 +32,6 @@ import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.tls.quarkus.vault.QuarkusVaultKeyClient;
 import org.niis.xroad.common.tls.vault.VaultKeyClient;
 import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
@@ -47,9 +46,6 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
 
-import java.time.Duration;
-import java.util.List;
-
 @Slf4j
 public class ProxyConfig {
 
@@ -57,15 +53,15 @@ public class ProxyConfig {
     public static class OpMonitoringBufferInitializer {
 
         @ApplicationScoped
-        public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory) {
+        public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, ProxyProperties proxyProperties) {
             return new QuarkusVaultKeyClient(
                     pkiSecretEngineFactory,
-                    "xrd-pki",
-                    Duration.ofDays(3650),
-                    "xrd-internal",
-                    "localhost",
-                    List.of(),
-                    List.of("127.0.0.1")
+                    proxyProperties.certificateProvisioning().secretStorePkiPath(),
+                    proxyProperties.certificateProvisioning().ttl(),
+                    proxyProperties.certificateProvisioning().issuanceRoleName(),
+                    proxyProperties.certificateProvisioning().commonName(),
+                    proxyProperties.certificateProvisioning().altNames(),
+                    proxyProperties.certificateProvisioning().ipSubjectAltNames()
             );
         }
 
@@ -78,7 +74,8 @@ public class ProxyConfig {
 
             if (addonProperties.opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
-                var opMonitoringBuffer = new OpMonitoringBufferImpl(serverConfProvider, opMonitorCommonProperties, vaultTlsCredentialsProvider);
+                var opMonitoringBuffer = new OpMonitoringBufferImpl(
+                        serverConfProvider, opMonitorCommonProperties, vaultTlsCredentialsProvider);
                 opMonitoringBuffer.init();
                 return opMonitoringBuffer;
             } else {

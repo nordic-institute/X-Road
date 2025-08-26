@@ -27,7 +27,6 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.crypto.Digests;
 
 import lombok.RequiredArgsConstructor;

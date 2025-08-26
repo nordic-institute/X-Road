@@ -27,7 +27,6 @@
 package org.niis.xroad.common.tls.quarkus.vault;
 
 import ee.ria.xroad.common.CodedException;
-
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import io.quarkus.vault.VaultPKISecretEngine;
@@ -53,8 +52,8 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
     private final List<String> altNames;
     private final List<String> ipSubjectAltNames;
 
-    public QuarkusVaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, String secretStorePkiPath,
-                                 Duration ttl, String issuanceRoleName, String commonName, List<String> altNames, List<String> ipSubjectAltNames) {
+    public QuarkusVaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, String secretStorePkiPath, Duration ttl,
+                                 String issuanceRoleName, String commonName, List<String> altNames, List<String> ipSubjectAltNames) {
         this.pkiSecretEngine = pkiSecretEngineFactory.engine(secretStorePkiPath);
         this.ttl = ttl;
         this.issuanceRoleName = issuanceRoleName;

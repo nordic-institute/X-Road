@@ -36,7 +36,7 @@ import org.niis.xroad.common.tls.quarkus.vault.QuarkusVaultTlsCredentialsProvide
 public class QuarkusTlsCredentialsProviderConfig {
 
     @ApplicationScoped
-    QuarkusVaultTlsCredentialsProvider vaultKeyProvider(VaultKVSecretEngine kvSecretEngine) {
+    QuarkusVaultTlsCredentialsProvider vaultTlsCredentialsProvider(VaultKVSecretEngine kvSecretEngine) {
         return new QuarkusVaultTlsCredentialsProvider(kvSecretEngine);
     }
 

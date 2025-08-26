@@ -35,8 +35,10 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class ServerConfFactory {
 
-    public static ServerConfProvider create(ServerConfDatabaseCtx databaseCtx, GlobalConfProvider globalConfProvider,
-                                            VaultTlsCredentialsProvider vaultTlsCredentialsProvider, ServerConfCommonProperties serverConfProperties) {
+    public static ServerConfProvider create(ServerConfDatabaseCtx databaseCtx,
+                                            GlobalConfProvider globalConfProvider,
+                                            VaultTlsCredentialsProvider vaultTlsCredentialsProvider,
+                                            ServerConfCommonProperties serverConfProperties) {
         if (serverConfProperties.cachePeriod() > 0) {
             return new CachingServerConfImpl(databaseCtx, globalConfProvider, vaultTlsCredentialsProvider, serverConfProperties);
         }

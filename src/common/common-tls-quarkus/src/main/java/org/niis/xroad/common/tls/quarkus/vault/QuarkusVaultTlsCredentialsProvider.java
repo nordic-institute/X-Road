@@ -84,7 +84,9 @@ public class QuarkusVaultTlsCredentialsProvider implements VaultTlsCredentialsPr
             throw new CodedException(X_INTERNAL_ERROR, "Failed to get TLS credentials from Vault. Response is null.");
         }
         var certificates = CryptoUtils.readCertificates(vaultResponse.get(CERTIFICATE_KEY).getBytes());
-        var privateKey = CryptoUtils.getPrivateKey(new ByteArrayInputStream(vaultResponse.get(PRIVATEKEY_KEY).getBytes(StandardCharsets.UTF_8)));
+        var privateKey = CryptoUtils.getPrivateKey(
+                new ByteArrayInputStream(vaultResponse.get(PRIVATEKEY_KEY).getBytes(StandardCharsets.UTF_8))
+        );
 
         return new InternalSSLKey(privateKey, certificates.toArray(X509Certificate[]::new));
     }

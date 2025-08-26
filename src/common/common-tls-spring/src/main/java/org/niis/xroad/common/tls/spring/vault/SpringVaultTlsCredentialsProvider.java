@@ -73,7 +73,9 @@ public class SpringVaultTlsCredentialsProvider implements VaultTlsCredentialsPro
             throw new CodedException(X_INTERNAL_ERROR, "Failed to get TLS credentials from Vault. Response is null.");
         }
         var certificates = CryptoUtils.readCertificates(vaultResponse.getData().get(CERTIFICATE_KEY).toString().getBytes());
-        var privateKey = CryptoUtils.getPrivateKey(new ByteArrayInputStream(vaultResponse.getData().get(PRIVATEKEY_KEY).toString().getBytes(StandardCharsets.UTF_8)));
+        var privateKey = CryptoUtils.getPrivateKey(
+                new ByteArrayInputStream(vaultResponse.getData().get(PRIVATEKEY_KEY).toString().getBytes(StandardCharsets.UTF_8))
+        );
 
         return new InternalSSLKey(privateKey, certificates.toArray(X509Certificate[]::new));
     }

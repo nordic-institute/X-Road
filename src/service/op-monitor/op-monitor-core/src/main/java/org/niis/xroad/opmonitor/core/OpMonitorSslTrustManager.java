@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
 
 import javax.net.ssl.X509TrustManager;
+
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 

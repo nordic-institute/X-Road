@@ -27,7 +27,6 @@
 package org.niis.xroad.common.tls.spring.vault;
 
 import ee.ria.xroad.common.CodedException;
-
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;

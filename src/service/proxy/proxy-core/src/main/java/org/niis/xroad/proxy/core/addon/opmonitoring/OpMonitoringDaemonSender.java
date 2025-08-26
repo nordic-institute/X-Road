@@ -37,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
@@ -76,8 +75,10 @@ public class OpMonitoringDaemonSender {
 
     private final AtomicBoolean processing = new AtomicBoolean(false);
 
-    OpMonitoringDaemonSender(ServerConfProvider serverConfProvider, OpMonitoringBuffer opMonitoringBuffer,
-                             OpMonitorCommonProperties opMonitorCommonProperties, VaultTlsCredentialsProvider vaultTlsCredentialsProvider) throws Exception {
+    OpMonitoringDaemonSender(ServerConfProvider serverConfProvider,
+                             OpMonitoringBuffer opMonitoringBuffer,
+                             OpMonitorCommonProperties opMonitorCommonProperties,
+                             VaultTlsCredentialsProvider vaultTlsCredentialsProvider) throws Exception {
         this.serverConfProvider = serverConfProvider;
         this.opMonitoringBuffer = opMonitoringBuffer;
         this.opMonitorCommonProperties = opMonitorCommonProperties;

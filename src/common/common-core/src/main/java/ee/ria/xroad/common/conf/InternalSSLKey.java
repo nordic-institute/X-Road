@@ -27,6 +27,7 @@ package ee.ria.xroad.common.conf;
 
 import lombok.Getter;
 import lombok.Value;
+
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
