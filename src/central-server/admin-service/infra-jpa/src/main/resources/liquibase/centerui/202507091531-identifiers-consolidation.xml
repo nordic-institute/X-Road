@@ -4,6 +4,25 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
+    <changeSet author="niis" id="set-timestamps-function">
+        <sql splitStatements="false"><![CDATA[
+            CREATE OR REPLACE FUNCTION set_timestamps()
+            RETURNS TRIGGER
+            LANGUAGE plpgsql
+            AS $$
+            DECLARE
+            now_ts TIMESTAMP := CURRENT_TIMESTAMP;
+            BEGIN
+                IF TG_OP = 'INSERT' THEN
+                    NEW.created_at := now_ts;
+            END IF;
+                NEW.updated_at := now_ts;
+            RETURN NEW;
+            END;
+            $$;
+            ]]></sql>
+    </changeSet>
+
     <changeSet author="niis" id="202507091531-identifiers-consolidation-001">
         <addColumn tableName="identifiers">
             <column name="group_code" type="VARCHAR(255)"/>
@@ -122,6 +141,16 @@
                                    AND client_owner.member_class_id = client_mc.id
                                    AND client_owner.type = 'XRoadMember')
         </createView>
+    </changeSet>
+
+    <changeSet author="niis" id="202507091531-identifiers-consolidation-003">
+        <sql splitStatements="false"><![CDATA[
+            DROP TRIGGER IF EXISTS set_timestamps ON identifier;
+            CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON identifier
+                FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+            ]]></sql>
+        <dropDefaultValue tableName="identifier" columnName="created_at"/>
+        <dropDefaultValue tableName="identifier" columnName="updated_at"/>
     </changeSet>
 
 </databaseChangeLog>

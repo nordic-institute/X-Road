@@ -120,7 +120,6 @@ class SecurityServerClientMapperTest {
         ReflectionTestUtils.setField(identifier, "createdAt", TimeUtils.now());
         ReflectionTestUtils.setField(identifier, "updatedAt", TimeUtils.now());
         final SubsystemEntity entity = new SubsystemEntity(member, identifier);
-//        ReflectionTestUtils.setField(entity, "id", 2L);
         final ServerClientEntity serverClient = new ServerClientEntity();
         final XRoadMemberEntity owner = new XRoadMemberEntity(OWNER_NAME, memberIdEntity, memberClasEntity);
         serverClient.setSecurityServer(new SecurityServerEntity(owner, SERVER_CODE));
