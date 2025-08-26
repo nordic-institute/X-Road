@@ -16,6 +16,7 @@ dependencies {
   implementation(libs.apache.cxfRtTransportsHttp)
   implementation(libs.jakarta.annotationApi)
   implementation(project(":common:common-core"))
+  implementation(libs.logback.classic)
 }
 
 tasks.shadowJar {
