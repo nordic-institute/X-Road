@@ -43,7 +43,7 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
@@ -79,7 +79,7 @@ public final class OpMonitorDaemon {
     private final OpMonitorProperties opMonitorProperties;
     private final OpMonitorCommonProperties opMonitorCommonProperties;
     private final GlobalConfProvider globalConfProvider;
-    private final VaultTlsCredentialsProvider vaultTlsCredentialsProvider;
+    private final VaultClient vaultClient;
     private final OperationalDataRecordManager operationalDataRecordManager;
     private final HealthDataMetrics healthDataMetrics;
 
@@ -142,8 +142,8 @@ public final class OpMonitorDaemon {
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
 
-        ctx.init(new KeyManager[]{new OpMonitorSslKeyManager(vaultTlsCredentialsProvider)},
-                new TrustManager[]{new OpMonitorSslTrustManager(vaultTlsCredentialsProvider)},
+        ctx.init(new KeyManager[]{new OpMonitorSslKeyManager(vaultClient)},
+                new TrustManager[]{new OpMonitorSslTrustManager(vaultClient)},
                 new SecureRandom());
 
         cf.setSslContext(ctx);

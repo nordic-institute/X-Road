@@ -57,7 +57,7 @@ import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
-import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -109,7 +109,7 @@ public class ServerConfImpl implements ServerConfProvider {
     protected final DatabaseCtx serverConfDatabaseCtx;
     protected final GlobalConfProvider globalConfProvider;
 
-    private final VaultTlsCredentialsProvider vaultTlsCredentialsProvider;
+    private final VaultClient vaultClient;
 
     private final ServiceDAOImpl serviceDao = new ServiceDAOImpl();
     private final IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
@@ -338,7 +338,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public InternalSSLKey getSSLKey() throws Exception {
-        return vaultTlsCredentialsProvider.getInternalTlsCredentials();
+        return vaultClient.getInternalTlsCredentials();
     }
 
     @Override

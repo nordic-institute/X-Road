@@ -33,7 +33,7 @@ import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.vault.ReloadableVaultKeyManager;
-import org.niis.xroad.common.tls.spring.vault.SpringVaultKeyClient;
+import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

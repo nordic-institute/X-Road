@@ -46,8 +46,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
-import org.niis.xroad.common.tls.vault.NoopVaultKeyClient;
-import org.niis.xroad.common.tls.vault.NoopVaultTlsCredentialsProvider;
+import org.niis.xroad.common.vault.NoopVaultClient;
+import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -179,7 +179,7 @@ public abstract class AbstractProxyIntegrationTest {
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
                 mock(MonitorRpcClient.class), proxyProperties.addOn(), opMonitorCommonProperties);
         serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
-                opMonitorCommonProperties, new NoopVaultKeyClient(), new NoopVaultTlsCredentialsProvider());
+                opMonitorCommonProperties, new NoopVaultKeyClient(), new NoopVaultClient());
         serverProxy.init();
     }
 

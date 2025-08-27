@@ -39,7 +39,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.tls.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
 
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;

@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
@@ -69,7 +69,7 @@ public class OpMonitoringDaemonSender {
     private final OpMonitorCommonProperties opMonitorCommonProperties;
     private final ServerConfProvider serverConfProvider;
     private final OpMonitoringBuffer opMonitoringBuffer;
-    private final VaultTlsCredentialsProvider vaultTlsCredentialsProvider;
+    private final VaultClient vaultClient;
     private final CloseableHttpClient httpClient;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -78,11 +78,11 @@ public class OpMonitoringDaemonSender {
     OpMonitoringDaemonSender(ServerConfProvider serverConfProvider,
                              OpMonitoringBuffer opMonitoringBuffer,
                              OpMonitorCommonProperties opMonitorCommonProperties,
-                             VaultTlsCredentialsProvider vaultTlsCredentialsProvider) throws Exception {
+                             VaultClient vaultClient) throws Exception {
         this.serverConfProvider = serverConfProvider;
         this.opMonitoringBuffer = opMonitoringBuffer;
         this.opMonitorCommonProperties = opMonitorCommonProperties;
-        this.vaultTlsCredentialsProvider = vaultTlsCredentialsProvider;
+        this.vaultClient = vaultClient;
 
         this.httpClient = createHttpClient();
     }
@@ -149,7 +149,7 @@ public class OpMonitoringDaemonSender {
 
     CloseableHttpClient createHttpClient() throws Exception {
         return OpMonitoringDaemonHttpClient.createHttpClient(
-                opMonitorCommonProperties, vaultTlsCredentialsProvider, serverConfProvider.getSSLKey(),
+                opMonitorCommonProperties, vaultClient, serverConfProvider.getSSLKey(),
                 1, 1,
                 TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().connectionTimeoutSeconds()),
                 TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().socketTimeoutSeconds()));

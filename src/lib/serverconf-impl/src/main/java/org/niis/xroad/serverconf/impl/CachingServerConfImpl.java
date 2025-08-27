@@ -38,7 +38,7 @@ import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.Session;
-import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
@@ -78,8 +78,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
      */
     @SuppressWarnings("checkstyle:MagicNumber")
     public CachingServerConfImpl(DatabaseCtx serverConfDatabaseCtx, GlobalConfProvider globalConfProvider,
-                                 VaultTlsCredentialsProvider vaultTlsCredentialsProvider, ServerConfCommonProperties serverConfProperties) {
-        super(serverConfDatabaseCtx, globalConfProvider, vaultTlsCredentialsProvider);
+                                 VaultClient vaultClient, ServerConfCommonProperties serverConfProperties) {
+        super(serverConfDatabaseCtx, globalConfProvider, vaultClient);
 
         int expireSeconds = serverConfProperties.cachePeriod();
         internalKeyCache = CacheBuilder.newBuilder()

@@ -36,7 +36,7 @@ import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.vault.ReloadableVaultKeyManager;
-import org.niis.xroad.common.tls.quarkus.vault.QuarkusVaultKeyClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 
 @Slf4j
 public class QuarkusRpcConfig extends RpcConfig {

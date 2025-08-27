@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
   api(project(":common:common-rpc"))
-  api(project(":common:common-tls-quarkus"))
+  api(project(":common:common-vault-quarkus"))
 
   api(libs.quarkus.arc)
   api(libs.quarkus.scheduler)

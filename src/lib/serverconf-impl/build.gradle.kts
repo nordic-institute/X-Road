@@ -6,7 +6,7 @@ plugins {
 
 dependencies {
   implementation(project(":common:common-domain"))
-  implementation(project(":common:common-tls"))
+  implementation(project(":common:common-vault"))
   api(project(":common:common-db"))
   api(project(":common:common-db-identifiers"))
   api(project(":lib:serverconf-core"))

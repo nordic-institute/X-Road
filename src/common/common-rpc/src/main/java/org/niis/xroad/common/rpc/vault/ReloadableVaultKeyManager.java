@@ -34,7 +34,7 @@ import io.grpc.util.AdvancedTlsX509TrustManager;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
-import org.niis.xroad.common.tls.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;

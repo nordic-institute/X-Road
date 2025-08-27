@@ -39,8 +39,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.CommonRpcHandler;
-import org.niis.xroad.common.tls.vault.VaultKeyClient;
-import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.proxy.proto.GenerateInternalCsrRequest;
 import org.niis.xroad.proxy.proto.GenerateInternalCsrResponse;
 import org.niis.xroad.proxy.proto.InternalTlsCertificateChainMessage;
@@ -72,14 +72,14 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
     private final CommonRpcHandler commonRpcHandler = new CommonRpcHandler();
 
     private final ServerConfProvider serverConfProvider;
-    private final VaultTlsCredentialsProvider vaultTlsCredentialsProvider;
+    private final VaultClient vaultClient;
     private final VaultKeyClient vaultKeyClient;
 
     @Override
     public void getInternalTlsCertificate(Empty request, StreamObserver<InternalTlsCertificateMessage> responseObserver) {
         commonRpcHandler.handleRequest(responseObserver, () -> {
             try {
-                var internalSslKey = vaultTlsCredentialsProvider.getInternalTlsCredentials();
+                var internalSslKey = vaultClient.getInternalTlsCredentials();
                 return toCertificateMessage(internalSslKey.getCertChain()[0]);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -91,7 +91,7 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
     public void getInternalTlsCertificateChain(Empty request, StreamObserver<InternalTlsCertificateChainMessage> responseObserver) {
         commonRpcHandler.handleRequest(responseObserver, () -> {
             try {
-                var internalSslKey = vaultTlsCredentialsProvider.getInternalTlsCredentials();
+                var internalSslKey = vaultClient.getInternalTlsCredentials();
                 return toCertificateChainMessage(internalSslKey.getCertChain());
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -165,9 +165,9 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
         var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
                 .toArray(X509Certificate[]::new);
         var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-        vaultTlsCredentialsProvider.createInternalTlsCredentials(internalTlsKey);
+        vaultClient.createInternalTlsCredentials(internalTlsKey);
         log.info("Successfully created internal TLS credentials");
-        var internalSslKey = vaultTlsCredentialsProvider.getInternalTlsCredentials();
+        var internalSslKey = vaultClient.getInternalTlsCredentials();
         return internalSslKey.getCertChain()[0];
     }
 
@@ -178,7 +178,7 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
      */
     private byte[] generateInternalCsr(String distinguishedName) {
         try {
-            var internalSslKey = vaultTlsCredentialsProvider.getInternalTlsCredentials();
+            var internalSslKey = vaultClient.getInternalTlsCredentials();
             return CertUtils.generateCertRequest(
                     internalSslKey.getKey(), internalSslKey.getCertChain()[0].getPublicKey(), distinguishedName
             );
@@ -207,9 +207,9 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
         }
         verifyInternalCertImportability(x509Certificates);
         try {
-            var internalSslKey = vaultTlsCredentialsProvider.getInternalTlsCredentials();
+            var internalSslKey = vaultClient.getInternalTlsCredentials();
             var internalSslKeyWithNewCert = new InternalSSLKey(internalSslKey.getKey(), x509Certificates.toArray(X509Certificate[]::new));
-            vaultTlsCredentialsProvider.createInternalTlsCredentials(internalSslKeyWithNewCert);
+            vaultClient.createInternalTlsCredentials(internalSslKeyWithNewCert);
         } catch (Exception e) {
             throw new CodedException(IMPORT_INTERNAL_CERT_FAILED.code(), e);
         }
@@ -224,7 +224,7 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
      * @param newCertChain the cert chain to be imported
      */
     private void verifyInternalCertImportability(Collection<X509Certificate> newCertChain) throws Exception {
-        var internalCertChain = Arrays.asList(vaultTlsCredentialsProvider.getInternalTlsCredentials().getCertChain());
+        var internalCertChain = Arrays.asList(vaultClient.getInternalTlsCredentials().getCertChain());
         PublicKey internalPublicKey = internalCertChain.getFirst().getPublicKey();
 
         boolean found = newCertChain.stream().anyMatch(c -> c.getPublicKey().equals(internalPublicKey));

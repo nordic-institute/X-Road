@@ -32,9 +32,9 @@ import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.tls.quarkus.vault.QuarkusVaultKeyClient;
-import org.niis.xroad.common.tls.vault.VaultKeyClient;
-import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
@@ -70,12 +70,12 @@ public class ProxyConfig {
         public OpMonitoringBuffer opMonitoringBuffer(ProxyProperties.ProxyAddonProperties addonProperties,
                                                      OpMonitorCommonProperties opMonitorCommonProperties,
                                                      ServerConfProvider serverConfProvider,
-                                                     VaultTlsCredentialsProvider vaultTlsCredentialsProvider) throws Exception {
+                                                     VaultClient vaultClient) throws Exception {
 
             if (addonProperties.opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
                 var opMonitoringBuffer = new OpMonitoringBufferImpl(
-                        serverConfProvider, opMonitorCommonProperties, vaultTlsCredentialsProvider);
+                        serverConfProvider, opMonitorCommonProperties, vaultClient);
                 opMonitoringBuffer.init();
                 return opMonitoringBuffer;
             } else {
@@ -96,8 +96,8 @@ public class ProxyConfig {
     ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
                                           ServerConfCommonProperties serverConfProperties,
                                           GlobalConfProvider globalConfProvider,
-                                          VaultTlsCredentialsProvider vaultTlsCredentialsProvider) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultTlsCredentialsProvider, serverConfProperties);
+                                          VaultClient vaultClient) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
     }
 
     @ApplicationScoped

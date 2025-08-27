@@ -7,6 +7,6 @@ dependencies {
 
   api(project(":common:common-properties"))
   api(project(":common:common-rpc"))
-  api(project(":common:common-tls-spring"))
+  api(project(":common:common-vault-spring"))
   api("org.springframework.cloud:spring-cloud-starter-vault-config")
 }

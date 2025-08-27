@@ -26,8 +26,8 @@
 package org.niis.xroad.serverconf.spring;
 
 import lombok.Setter;
-import org.niis.xroad.common.tls.spring.SpringTlsCredentialsProviderConfig;
-import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
@@ -46,7 +46,7 @@ import java.util.Map;
 @EnableConfigurationProperties({
         ServerConfBeanConfig.SpringServerConfProperties.class,
         ServerConfBeanConfig.SpringServerConfDbProperties.class})
-@Import(SpringTlsCredentialsProviderConfig.class)
+@Import(SpringVaultClientConfig.class)
 public class ServerConfBeanConfig {
 
     @Bean(destroyMethod = "destroy")
@@ -58,8 +58,8 @@ public class ServerConfBeanConfig {
     public ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
                                                  GlobalConfProvider globalConfProvider,
                                                  SpringServerConfProperties serverConfProperties,
-                                                 VaultTlsCredentialsProvider vaultTlsCredentialsProvider) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultTlsCredentialsProvider, serverConfProperties);
+                                                 VaultClient vaultClient) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
     }
 
     @Setter

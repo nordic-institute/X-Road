@@ -42,7 +42,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
@@ -79,14 +79,14 @@ class OpMonitoringBufferImplTest {
     @SuppressWarnings("checkstyle:FinalClass")
     private class TestOpMonitoringBufferImpl extends OpMonitoringBufferImpl {
         TestOpMonitoringBufferImpl(OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
-            super(mock(ServerConfProvider.class), opMonitorCommonProperties, mock(VaultTlsCredentialsProvider.class));
+            super(mock(ServerConfProvider.class), opMonitorCommonProperties, mock(VaultClient.class));
         }
 
         @Override
         OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
                                               OpMonitorCommonProperties opMonitorCommonProperties,
-                                              VaultTlsCredentialsProvider vaultTlsCredentialsProvider) throws Exception {
-            return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorCommonProperties, vaultTlsCredentialsProvider) {
+                                              VaultClient vaultClient) throws Exception {
+            return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorCommonProperties, vaultClient) {
                 @Override
                 CloseableHttpClient createHttpClient() {
                     return httpClient;
@@ -167,7 +167,7 @@ class OpMonitoringBufferImplTest {
             @Override
             OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
                                                   OpMonitorCommonProperties opMonitorCommonProperties,
-                                                  VaultTlsCredentialsProvider baultTlsCredentialsProvider) {
+                                                  VaultClient baultTlsCredentialsProvider) {
                 var mockedSender = mock(OpMonitoringDaemonSender.class);
                 when(mockedSender.isReady()).thenReturn(false);
                 return mockedSender;
@@ -198,7 +198,7 @@ class OpMonitoringBufferImplTest {
     @Test
     void noOpMonitoringDataIsStored() throws Exception {
         var serverConfProvider = mock(ServerConfProvider.class);
-        var vaultTlsCredentialsProvider = mock(VaultTlsCredentialsProvider.class);
+        var vaultTlsCredentialsProvider = mock(VaultClient.class);
         new OpMonitoringBufferImpl(serverConfProvider,
                 ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
                         "xroad.op-monitor.buffer.size", "0"

@@ -46,7 +46,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.niis.xroad.common.tls.vault.VaultTlsCredentialsProvider;
+import org.niis.xroad.common.vault.VaultClient;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -78,18 +78,18 @@ public final class OpMonitoringDaemonHttpClient {
     /**
      * Creates HTTP client.
      *
-     * @param vaultTlsCredentialsProvider trust provider for TLS
+     * @param vaultClient trust provider for TLS
      * @param authKey the client's authentication key
      * @return HTTP client
      * @throws Exception if creating a HTTPS client and SSLContext initialization fails
      */
     public static CloseableHttpClient createHttpClient(OpMonitorCommonProperties opMonitorCommonProperties,
-                                                       VaultTlsCredentialsProvider vaultTlsCredentialsProvider,
+                                                       VaultClient vaultClient,
                                                        InternalSSLKey authKey) throws Exception {
         int connectionTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().connectionTimeoutSeconds());
         int socketTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().socketTimeoutSeconds());
 
-        return createHttpClient(opMonitorCommonProperties, vaultTlsCredentialsProvider, authKey,
+        return createHttpClient(opMonitorCommonProperties, vaultClient, authKey,
                 DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS, DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE,
                 connectionTimeoutMilliseconds, socketTimeoutMilliseconds);
     }
@@ -97,7 +97,7 @@ public final class OpMonitoringDaemonHttpClient {
     /**
      * Creates HTTP client.
      *
-     * @param vaultTlsCredentialsProvider trust provider for TLS
+     * @param vaultClient trust provider for TLS
      * @param authKey the client's authentication key
      * @param clientMaxTotalConnections     client max total connections
      * @param clientMaxConnectionsPerRoute  client max connections per route
@@ -108,7 +108,7 @@ public final class OpMonitoringDaemonHttpClient {
      *                   initialization fails
      */
     public static CloseableHttpClient createHttpClient(OpMonitorCommonProperties opMonitorCommonProperties,
-                                                       VaultTlsCredentialsProvider vaultTlsCredentialsProvider,
+                                                       VaultClient vaultClient,
                                                        InternalSSLKey authKey,
                                                        int clientMaxTotalConnections, int clientMaxConnectionsPerRoute,
                                                        int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
@@ -117,7 +117,7 @@ public final class OpMonitoringDaemonHttpClient {
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
         if ("https".equalsIgnoreCase(opMonitorCommonProperties.connection().scheme())) {
-            sfr.register("https", createSSLSocketFactory(vaultTlsCredentialsProvider, authKey));
+            sfr.register("https", createSSLSocketFactory(vaultClient, authKey));
         } else {
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
         }
@@ -142,12 +142,12 @@ public final class OpMonitoringDaemonHttpClient {
         return cb.build();
     }
 
-    private static SSLConnectionSocketFactory createSSLSocketFactory(VaultTlsCredentialsProvider vaultTlsCredentialsProvider,
+    private static SSLConnectionSocketFactory createSSLSocketFactory(VaultClient vaultClient,
                                                                      InternalSSLKey authKey) throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
 
         ctx.init(new KeyManager[]{new OpMonitorClientKeyManager(authKey)},
-                new TrustManager[]{new OpMonitorClientTrustManager(vaultTlsCredentialsProvider)},
+                new TrustManager[]{new OpMonitorClientTrustManager(vaultClient)},
                 new SecureRandom());
 
         return new SSLConnectionSocketFactory(ctx.getSocketFactory(), new String[]{CryptoUtils.SSL_PROTOCOL},
@@ -158,9 +158,9 @@ public final class OpMonitoringDaemonHttpClient {
     private static final class OpMonitorClientTrustManager implements X509TrustManager {
         private X509Certificate opMonitorCert = null;
 
-        private OpMonitorClientTrustManager(VaultTlsCredentialsProvider vaultTlsCredentialsProvider) {
+        private OpMonitorClientTrustManager(VaultClient vaultClient) {
             try {
-                var certChain = vaultTlsCredentialsProvider.getOpmonitorTlsCredentials().getCertChain();
+                var certChain = vaultClient.getOpmonitorTlsCredentials().getCertChain();
                 opMonitorCert = CryptoUtils.readCertificate(certChain[0].getEncoded());
             } catch (Exception e) {
                 log.error("Could not load operational monitoring daemon certificate", e);
