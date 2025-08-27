@@ -60,4 +60,8 @@
             ]]></sql>
     </changeSet>
 
+    <changeSet author="niis" id="009-identifiers-consolidation-006">
+        <sql>ALTER TABLE identifier RENAME CONSTRAINT identifierpk TO identifier_pkey</sql>
+    </changeSet>
+
 </databaseChangeLog>

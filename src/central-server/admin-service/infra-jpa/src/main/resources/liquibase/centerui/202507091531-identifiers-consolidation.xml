@@ -153,4 +153,8 @@
         <dropDefaultValue tableName="identifier" columnName="updated_at"/>
     </changeSet>
 
+    <changeSet author="niis" id="202507091531-identifiers-consolidation-004" >
+        <sql>ALTER TABLE identifier RENAME CONSTRAINT identifiers_pkey TO identifier_pkey</sql>
+    </changeSet>
+
 </databaseChangeLog>
