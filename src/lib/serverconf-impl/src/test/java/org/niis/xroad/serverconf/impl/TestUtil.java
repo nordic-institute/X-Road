@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.EncoderUtils;
 import org.hibernate.Session;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
@@ -245,7 +246,7 @@ public final class TestUtil {
             client.getAccessRights().add(
                     createAccessRight(endpoint, client.getIdentifier()));
 
-            ClientIdEntity cl = ClientIdEntity.createMember("XX", "memberClass", "memberCode" + i);
+            ClientIdEntity cl = MemberIdEntity.create("XX", "memberClass", "memberCode" + i);
             session.persist(cl);
             client.getAccessRights().add(createAccessRight(endpoint, cl));
 

@@ -37,6 +37,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
@@ -69,7 +70,7 @@ public class InitializationServiceTest {
     private static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
     private static final String SOFTWARE_TOKEN_INVALID_PIN = "‘œ‘–ßçıı–ç˛®ç†é®ß";
     private static final String SOFTWARE_TOKEN_VALID_PIN = "TopSecretP1n.";
-    private static final ClientIdEntity CLIENT = ClientIdEntity.createMember(INSTANCE, OWNER_MEMBER_CLASS,
+    private static final ClientIdEntity CLIENT = MemberIdEntity.create(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE);
     private static final SecurityServerId SERVER = SecurityServerId.Conf.create(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE, SECURITY_SERVER_CODE);

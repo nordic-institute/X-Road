@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,37 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.entity;
+
+package org.niis.xroad.common.identifiers.jpa;
 
 import ee.ria.xroad.common.identifier.XRoadObjectType;
-import ee.ria.xroad.common.util.NoCoverage;
+import ee.ria.xroad.common.util.Validation;
 
-import jakarta.persistence.Entity;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity;
 
 import java.util.Optional;
 
-@Entity
-public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.ClientId {
+public final class ClientIdEntityFactory {
 
-    protected ClientIdEntity() {
-        //for JPA
+    private ClientIdEntityFactory() {
     }
 
-    protected ClientIdEntity(XRoadObjectType objectType, String xRoadInstance, String memberClass, String memberCode) {
-        super(objectType, xRoadInstance, memberClass);
-        setMemberCode(memberCode);
+    public static ClientIdEntity create(ee.ria.xroad.common.identifier.ClientId identifier) {
+        Validation.validateArgument("identifier", identifier);
+
+        return create(identifier.getXRoadInstance(), identifier.getMemberClass(), identifier.getMemberCode(),
+                identifier.getSubsystemCode());
     }
 
-    @Override
-    @NoCoverage
-    public boolean equals(Object obj) {
-        return ee.ria.xroad.common.identifier.ClientId.equals(this, obj);
-    }
-
-    @Override
-    @NoCoverage
-    public int hashCode() {
-        return ee.ria.xroad.common.identifier.ClientId.hashCode(this);
+    private static ClientIdEntity create(String xRoadInstance,
+                                         String memberClass,
+                                         String memberCode,
+                                         String subsystemCode) {
+        return subsystemCode == null
+                ? MemberIdEntity.create(xRoadInstance, memberClass, memberCode)
+                : SubsystemIdEntity.create(xRoadInstance, memberClass, memberCode, subsystemCode);
     }
 
     public static ClientIdEntity ensure(ee.ria.xroad.common.identifier.ClientId identifier) {
