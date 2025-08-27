@@ -41,6 +41,7 @@ import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 
@@ -61,6 +62,7 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.OUTP
  */
 @Slf4j
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class OperationalDataRequestHandler extends QueryRequestHandler {
     private final GlobalConfProvider globalConfProvider;
 

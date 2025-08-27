@@ -41,6 +41,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.transforms.Transforms;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
@@ -72,6 +73,7 @@ import static ee.ria.xroad.common.util.SchemaValidator.createSchema;
  * Verification of hash chains.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class HashChainVerifier {
 
     /** For accessing JAXB functionality. Shared between all the verifiers. */

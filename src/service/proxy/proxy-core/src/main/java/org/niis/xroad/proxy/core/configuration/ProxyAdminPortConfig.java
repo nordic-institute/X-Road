@@ -41,6 +41,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.MimeTypes;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -142,6 +143,7 @@ public class ProxyAdminPortConfig {
     private void addMaintenanceHandler(AdminPort adminPort) {
         adminPort.addHandler("/maintenance", new AdminPort.SynchronousCallback() {
             @Override
+            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
             public void handle(RequestWrapper request, ResponseWrapper response) throws Exception {
 
                 String result = "Invalid parameter 'targetState', request ignored";

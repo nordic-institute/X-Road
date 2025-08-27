@@ -27,6 +27,7 @@
 
 package org.niis.xroad.securityserver.restapi.config;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.context.annotation.Bean;
@@ -43,6 +44,7 @@ class RpcClientsConfig {
     }
 
     @Bean
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public OpMonitorClient opMonitorClient() throws Exception {
         return new OpMonitorClient();
     }

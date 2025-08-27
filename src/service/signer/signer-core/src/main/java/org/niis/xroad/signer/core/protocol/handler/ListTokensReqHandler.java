@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 public class ListTokensReqHandler extends AbstractRpcHandler<Empty, ListTokensResp> {
 
     @Override
-    protected ListTokensResp handle(Empty request) throws Exception {
+    protected ListTokensResp handle(Empty request) {
         final ListTokensResp.Builder builder = ListTokensResp.newBuilder();
 
         TokenManager.listTokens().forEach(tokenInfo -> builder.addTokens(tokenInfo.asMessage()));

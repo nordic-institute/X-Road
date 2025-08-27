@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 public class GenerateKeyReqHandler extends AbstractRpcHandler<GenerateKeyReq, KeyInfoProto> {
 
     @Override
-    protected KeyInfoProto handle(GenerateKeyReq request) throws Exception {
+    protected KeyInfoProto handle(GenerateKeyReq request) {
         final KeyInfo keyInfo = getTokenWorker(request.getTokenId()).handleGenerateKey(request);
         return keyInfo.asMessage();
     }

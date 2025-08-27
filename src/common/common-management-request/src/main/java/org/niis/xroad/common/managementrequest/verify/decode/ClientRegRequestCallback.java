@@ -47,7 +47,7 @@ public class ClientRegRequestCallback extends BaseClientRequestCallback<ClientRe
     }
 
     @Override
-    protected void verifyMessage() throws Exception {
+    protected void verifyMessage() {
         super.verifyMessage();
 
         if (StringUtils.isNotEmpty(getRequest().getSubsystemName()) && !getRequest().getClient().isSubsystem()) {

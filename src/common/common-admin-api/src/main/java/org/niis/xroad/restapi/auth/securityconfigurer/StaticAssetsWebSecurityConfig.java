@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -45,6 +46,7 @@ public class StaticAssetsWebSecurityConfig {
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public SecurityFilterChain staticAssetsSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .securityMatcher(

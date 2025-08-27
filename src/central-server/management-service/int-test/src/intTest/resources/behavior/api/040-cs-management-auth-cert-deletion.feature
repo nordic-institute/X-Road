@@ -17,5 +17,5 @@ Feature: Management requests API: Auth cert deletion
 
   Scenario: Auth cert deletion fails with soap fault when request sender is not server owner
     When Auth cert deletion request with clientId "EE:CLASS:MEMBER" and serverId "EE:CLASS:MEMBER2:SS1" was sent
-    Then Response of status code 500 and soap faultCode "InvalidRequest" and soap faultString "Sender does not match server owner." is returned
+    Then Response of status code 500 and soap faultCode "invalid_request" and soap faultString "Sender does not match server owner." is returned
     And Admin api has not received any request

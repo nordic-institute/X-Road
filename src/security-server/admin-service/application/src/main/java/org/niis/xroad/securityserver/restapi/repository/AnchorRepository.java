@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.AtomicSave;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.springframework.stereotype.Repository;
 
@@ -61,7 +62,7 @@ public class AnchorRepository {
             throw nsfe;
         } catch (IOException ioe) {
             log.error("can't read anchor file's content (" + path + ")");
-            throw new RuntimeException(ioe);
+            throw XrdRuntimeException.systemException(ioe);
         }
     }
 

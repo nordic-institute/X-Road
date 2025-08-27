@@ -38,6 +38,9 @@ import org.niis.xroad.monitor.common.StatsResp;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.springframework.scheduling.TaskScheduler;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.time.Duration;
 
 /**
@@ -53,7 +56,8 @@ public class SystemMetricsSensor extends AbstractSensor {
     private final Duration interval = Duration.ofSeconds(SystemProperties.getEnvMonitorSystemMetricsSensorInterval());
 
 
-    public SystemMetricsSensor(TaskScheduler taskScheduler) throws Exception {
+    public SystemMetricsSensor(TaskScheduler taskScheduler)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         super(taskScheduler);
         log.info("Creating sensor, measurement interval: {}", getInterval());
 

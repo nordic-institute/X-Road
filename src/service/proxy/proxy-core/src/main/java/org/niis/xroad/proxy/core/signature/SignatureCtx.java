@@ -42,6 +42,7 @@ import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -62,6 +63,7 @@ import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
  * result with corresponding hash chains.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SignatureCtx {
 
     private final List<SigningRequest> requests = new ArrayList<>();

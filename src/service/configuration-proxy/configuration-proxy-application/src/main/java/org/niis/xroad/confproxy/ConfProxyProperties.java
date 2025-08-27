@@ -35,6 +35,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -57,6 +58,7 @@ import java.util.stream.Collectors;
  * means to of altering these properties.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfProxyProperties {
 
     public static final String ACTIVE_SIGNING_KEY_ID = "active-signing-key-id";

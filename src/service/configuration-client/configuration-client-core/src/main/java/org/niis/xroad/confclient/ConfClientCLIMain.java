@@ -34,6 +34,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confclient.core.ConfigurationClientCLI;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
@@ -42,6 +43,7 @@ import static org.niis.xroad.confclient.core.ConfigurationClientCLI.OPTION_VERIF
 
 @Slf4j
 @UtilityClass
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfClientCLIMain {
     private static final String APP_NAME = "xroad-confclient";
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;

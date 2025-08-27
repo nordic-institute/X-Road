@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 public class DeleteKeyReqHandler extends AbstractRpcHandler<DeleteKeyReq, Empty> {
 
     @Override
-    protected Empty handle(DeleteKeyReq request) throws Exception {
+    protected Empty handle(DeleteKeyReq request) {
         TokenAndKey tokenAndKey =
                 TokenManager.findTokenAndKey(request.getKeyId());
 

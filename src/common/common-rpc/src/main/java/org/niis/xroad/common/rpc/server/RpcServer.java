@@ -82,7 +82,7 @@ public class RpcServer {
     }
 
     @PreDestroy
-    public void destroy() throws Exception {
+    public void destroy() throws InterruptedException {
         if (server != null) {
             log.info("Shutting down RPC server..");
             server.shutdown();

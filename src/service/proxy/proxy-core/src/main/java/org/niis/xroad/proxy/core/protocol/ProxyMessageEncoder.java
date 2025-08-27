@@ -42,6 +42,7 @@ import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.signedmessage.Signer;
 
@@ -60,6 +61,7 @@ import static ee.ria.xroad.common.util.MimeUtils.toHeaders;
  * Encodes proxy SOAP messages from an output stream.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     private final DigestAlgorithm hashAlgoId;

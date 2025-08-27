@@ -40,6 +40,7 @@ import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.JobManager;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -79,7 +80,7 @@ public final class MessageLog {
             logManager = clazz.getDeclaredConstructor(JobManager.class, GlobalConfProvider.class, ServerConfProvider.class)
                     .newInstance(jobManager, globalConfProvider, serverConfProvider);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize LogManager", e);
+            throw XrdRuntimeException.systemInternalError("Failed to initialize LogManager", e);
         }
 
         return logManager;
@@ -172,7 +173,7 @@ public final class MessageLog {
 
             return (Class<? extends AbstractLogManager>) clazz;
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Unable to load log manager impl: " + logManagerImplClassName, e);
+            throw XrdRuntimeException.systemInternalError("Unable to load log manager impl: " + logManagerImplClassName, e);
         }
     }
 

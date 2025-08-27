@@ -37,6 +37,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.security.cert.X509Certificate;
 
@@ -110,7 +112,7 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
         }
 
         @Override
-        public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) throws Exception {
+        public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
             X500Name x500Name = new X500Name(certificate.getSubjectX500Principal().getName());
             String organizationIdentifier = CertUtils.getRDNValue(x500Name, ORGANIZATION_IDENTIFIER);
 
@@ -119,7 +121,7 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
                     : getSubjectIdentifierByOrgId(organizationIdentifier);
         }
 
-        private ClientId.Conf getSubjectIdentifierBySerialNumber(X500Name x500Name) throws Exception {
+        private ClientId.Conf getSubjectIdentifierBySerialNumber(X500Name x500Name) {
             if (log.isTraceEnabled()) {
                 log.trace("getSubjectIdentifierBySerialNumber {}", x500Name.toString());
             }
@@ -127,15 +129,21 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
             String sn = CertUtils.getRDNValue(x500Name, BCStyle.SERIALNUMBER);
 
             if (StringUtils.isEmpty(sn)) {
-                throw new Exception("Subject name does not contain serial number");
+                throw XrdRuntimeException.businessException(ErrorCodes.INVALID_CERTIFICATE)
+                        .details("Subject name does not contain serial number")
+                        .build();
             }
 
             if (!StringUtils.isNumeric(sn)) {
-                throw new Exception("Serial number is not an integer");
+                throw XrdRuntimeException.businessException(ErrorCodes.INVALID_CERTIFICATE)
+                        .details("Serial number is not an integer")
+                        .build();
             }
 
             if (sn.length() != SN_LENGTH) {
-                throw new Exception("Serial number must be " + SN_LENGTH + " digits long");
+                throw XrdRuntimeException.businessException(ErrorCodes.INVALID_CERTIFICATE)
+                        .details("Serial number must be " + SN_LENGTH + " digits long")
+                        .build();
             }
 
             return ClientId.Conf.create(instanceIdentifier, getMemberClass(sn), sn);
@@ -161,12 +169,14 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
         }
 
         // Returns the hardcoded member class based on the first number in the serial number.
-        private static String getMemberClass(String sn) throws Exception {
+        private static String getMemberClass(String sn) {
             return switch (sn.charAt(0)) {
                 case '1', '2', '3', '4', '5', '6' -> COM_MEMBER;
                 case '7' -> GOV_MEMBER;
                 case '8', '9' -> NGO_MEMBER;
-                default -> throw new Exception("Malformed serial number: " + sn);
+                default -> throw XrdRuntimeException.businessException(ErrorCodes.INTERNAL_ERROR)
+                        .details("Malformed serial number: " + sn)
+                        .build();
             };
         }
     }

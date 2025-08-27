@@ -40,7 +40,7 @@ public class GetTokenInfoAndKeyIdForCertHashReqHandler
 
 
     @Override
-    protected TokenInfoAndKeyIdProto handle(GetTokenByCertHashReq request) throws Exception {
+    protected TokenInfoAndKeyIdProto handle(GetTokenByCertHashReq request) {
         var token = TokenManager.findTokenAndKeyIdForCertHash(request.getCertHash());
         return token.asMessage();
     }

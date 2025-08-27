@@ -38,6 +38,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -46,8 +48,7 @@ import java.security.cert.X509Certificate;
 /**
  * Certificate profile for SK ESTEID.
  *
- * @deprecated
- * No longer used to the best of our knowledge, deprecated as of X-Road 7.2.0.
+ * @deprecated No longer used to the best of our knowledge, deprecated as of X-Road 7.2.0.
  * Will be removed in a future version.
  */
 @Deprecated
@@ -80,7 +81,8 @@ public class SkEsteIdCertificateProfileInfoProvider
         }
 
         @Override
-        public void validateSubjectField(DnFieldValue field) throws Exception {
+        public void validateSubjectField(DnFieldValue field) {
+            // nothing to validate
         }
 
     }
@@ -99,18 +101,16 @@ public class SkEsteIdCertificateProfileInfoProvider
         private final SignCertificateProfileInfo.Parameters params;
 
         @Override
-        public ClientId.Conf getSubjectIdentifier(X509Certificate certificate)
-                throws Exception {
-            return getSubjectIdentifier(
-                    new X500Name(certificate.getSubjectX500Principal().getName())
-            );
+        public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
+            return getSubjectIdentifier(new X500Name(certificate.getSubjectX500Principal().getName()));
         }
 
-        ClientId.Conf getSubjectIdentifier(X500Name x500name) throws Exception {
+        ClientId.Conf getSubjectIdentifier(X500Name x500name) {
             String sn = CertUtils.getRDNValue(x500name, BCStyle.SERIALNUMBER);
             if (StringUtils.isEmpty(sn)) {
-                throw new Exception(
-                        "Subject name does not contain serial number");
+                throw XrdRuntimeException.businessException(ErrorCodes.INVALID_CERTIFICATE)
+                        .details("Subject name does not contain serial number")
+                        .build();
             }
 
             return ClientId.Conf.create(

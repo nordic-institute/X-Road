@@ -83,7 +83,12 @@ import org.niis.xroad.serverconf.model.Service;
 import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.niis.xroad.serverconf.model.TimestampingService;
 
+import java.io.IOException;
 import java.net.URI;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -301,7 +306,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<X509Certificate> getIsCerts(ClientId clientId) throws Exception {
+    public List<X509Certificate> getIsCerts(ClientId clientId) {
         return tx(session -> CertificateMapper.get().toTargets(clientDao.getIsCerts(session, clientId)).stream()
                 .map(Certificate::getData)
                 .map(CryptoUtils::readCertificate)
@@ -333,7 +338,8 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public InternalSSLKey getSSLKey() throws Exception {
+    public InternalSSLKey getSSLKey()
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         return InternalSSLKey.load();
     }
 

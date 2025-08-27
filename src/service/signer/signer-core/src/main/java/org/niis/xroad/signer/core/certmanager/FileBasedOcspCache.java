@@ -28,6 +28,7 @@ package org.niis.xroad.signer.core.certmanager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.File;
@@ -49,6 +50,7 @@ import static ee.ria.xroad.common.SystemProperties.getOcspCachePath;
  * OCSP cache that holds the OCSP responses on disk.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class FileBasedOcspCache extends OcspCache {
 
     /** The OCSP response file extension. */

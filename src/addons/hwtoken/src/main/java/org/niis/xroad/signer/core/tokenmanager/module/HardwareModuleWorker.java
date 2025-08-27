@@ -36,6 +36,7 @@ import iaik.pkcs.pkcs11.wrapper.Functions;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.tokenmanager.token.AbstractTokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenType;
@@ -66,6 +67,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void start() {
         if (pkcs11Module != null) {
             return;
@@ -126,6 +128,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected List<TokenType> listTokens() throws Exception {
         log.trace("Listing tokens on module '{}'", module.getType());
 
@@ -170,7 +173,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
         return new ArrayList<>(tokens.values());
     }
 
-    private TokenType createToken(Slot[] slots, int slotIndex) throws Exception {
+    private TokenType createToken(Slot[] slots, int slotIndex) throws TokenException {
         Slot slot = slots[slotIndex];
 
         iaik.pkcs.pkcs11.Token pkcs11Token = slot.getToken();

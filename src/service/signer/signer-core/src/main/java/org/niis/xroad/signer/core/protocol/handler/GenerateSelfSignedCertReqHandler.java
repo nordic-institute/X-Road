@@ -34,12 +34,14 @@ import ee.ria.xroad.common.identifier.ClientId;
 import com.google.protobuf.ByteString;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.X509Extension;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
@@ -60,6 +62,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.PublicKey;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Date;
@@ -81,7 +84,9 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
     private final ImportCertReqHandler importCertReqHandler;
 
     @Override
-    protected GenerateSelfSignedCertResp handle(GenerateSelfSignedCertReq request) throws Exception {
+    @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
+    protected GenerateSelfSignedCertResp handle(GenerateSelfSignedCertReq request) {
         TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(request.getKeyId());
 
         if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
@@ -116,7 +121,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
     class DummyCertBuilder {
 
         X509Certificate build(TokenAndKey tokenAndKey, GenerateSelfSignedCertReq message, PublicKey publicKey,
-                              SignAlgorithm signAlgoId) throws Exception {
+                              SignAlgorithm signAlgoId) throws CertIOException, CertificateException {
             X500Name subject = new X500Name("CN=" + message.getCommonName());
 
             JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE,

@@ -37,6 +37,9 @@ import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -56,7 +59,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Base class for XML-based configurations, where underlying classes are
  * generated from the XSD that describes the XML.
- *
+ * <p>
  * This class also contains a file content change checker that check if a
  * file contents has been changed since the last time it was accessed. The
  * check is based on the checksum of the file's contents.
@@ -64,6 +67,7 @@ import static java.util.Objects.requireNonNull;
  * @param <T> the generated configuration type
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public abstract class AbstractXmlConf<T> implements ConfProvider {
     protected final Class<? extends SchemaValidator> schemaValidator;
 
@@ -104,6 +108,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     /**
      * A method for subclasses to return (preferably static) JAXBContext
+     *
      * @return class specific JAXBContext
      */
     protected abstract JAXBContext getJAXBContext();
@@ -111,6 +116,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     /**
      * A special constructor for creating an AbstractXmlConf from bytes instead of a file on the filesystem.
      * <b>Does not set <code>confFileChecker</code>.</b>
+     *
      * @param fileBytes
      * @param schemaValidator
      */
@@ -145,7 +151,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     }
 
     @Override
-    public void load(String fileName) throws Exception {
+    public void load(String fileName) throws IOException, OperatorCreationException, JAXBException, IllegalAccessException {
         if (fileName == null) {
             return;
         }
@@ -162,9 +168,10 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     /**
      * Load the xml configuration to a {@link LoadResult} that can be manipulated further.
+     *
      * @return
-     * @throws IOException if opening {@link #confFileName} fails.
-     * @throws JAXBException if an unmarshalling error occurs
+     * @throws IOException          if opening {@link #confFileName} fails.
+     * @throws JAXBException        if an unmarshalling error occurs
      * @throws NullPointerException if {@link #confFileName} or {@link #getJAXBContext()} is null
      */
     @SuppressWarnings("unchecked")
@@ -227,11 +234,12 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     /**
      * Loads the configuration from a byte array.
+     *
      * @param data the data
      * @throws Exception if an error occurs
      */
     @SuppressWarnings("unchecked")
-    public void load(byte[] data) throws Exception {
+    public void load(byte[] data) throws IOException, JAXBException, IllegalAccessException {
         if (data == null) {
             return;
         }
@@ -251,6 +259,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     /**
      * Reloads the configuration from the file.
+     *
      * @throws Exception the file cannot be loaded
      */
     public void reload() throws Exception {
@@ -271,8 +280,8 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
                 throw translateException(e.getCause());
             }
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException("SchemaValidator '" + schemaValidator.getName() + "' must implement static "
-                    + "method 'void validate(Source)'");
+            throw XrdRuntimeException.systemInternalError(
+                    "SchemaValidator '" + schemaValidator.getName() + "' must implement static " + "method 'void validate(Source)'");
         }
     }
 }
