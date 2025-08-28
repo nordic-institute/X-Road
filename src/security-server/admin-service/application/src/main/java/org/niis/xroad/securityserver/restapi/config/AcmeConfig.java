@@ -60,7 +60,7 @@ public class AcmeConfig {
     private void acmeChallengeCustomizer(TomcatServletWebServerFactory factory) {
         var connector = new Connector(Http11NioProtocol.class.getName());
         connector.setScheme("http");
-        connector.setPort(80);
+        connector.setPort(SystemProperties.getAcmeChallengePort());
         factory.addAdditionalTomcatConnectors(connector);
     }
 
@@ -80,7 +80,7 @@ public class AcmeConfig {
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
             boolean isEnabled = SystemProperties.isAcmeChallengePortEnabled();
             if (!isEnabled) {
-                log.info("ACME challenge port 80 is disabled");
+                log.info("ACME challenge port is disabled");
             }
             return isEnabled;
         }
