@@ -31,6 +31,7 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static java.lang.Math.max;
@@ -38,10 +39,6 @@ import static java.lang.Math.max;
 @ConfigMapping(prefix = "xroad.signer")
 public interface SignerProperties {
     int MIN_SIGNER_KEY_LENGTH = 2048;
-
-    @WithName("device-configuration-file")
-    @WithDefault("/etc/xroad/devices.ini")
-    String deviceConfigurationFile();
 
     @WithName("selfsigned-cert-digest-algorithm")
     @WithDefault("SHA-512")
@@ -97,5 +94,8 @@ public interface SignerProperties {
 
     @WithName("module-instance-provider")
     Optional<String> moduleInstanceProvider();
+
+    @WithName("modules")
+    Map<String, ModuleProperties> modulesConfig();
 
 }

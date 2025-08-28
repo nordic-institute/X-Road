@@ -46,7 +46,6 @@ public class SignerUnderCsTestProfile implements QuarkusTestProfile {
         return Map.of(
                 "quarkus.log.level", "INFO",
                 "xroad.common.rpc.use-tls", "false",
-                "xroad.signer.device-configuration-file", "src/test/resources/test-devices.ini",
                 "spring.datasource.url", "jdbc:hsqldb:mem:testdb2",
                 "spring.datasource.username", "testdb2",
                 "spring.datasource.password", "testdb2",

@@ -11,7 +11,11 @@ quarkus:
 
 xroad:
   signer:
-    device-configuration-file: /etc/xroad/signer/devices.ini
+    modules:
+      softhsm2:
+        library: /usr/lib/softhsm/libsofthsm2.so
+        os_locking_ok: true
+        library_cant_create_os_threads: true
     rpc:
       listen-address: "0.0.0.0"
     addon:

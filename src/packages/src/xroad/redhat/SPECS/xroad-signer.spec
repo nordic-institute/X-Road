@@ -52,7 +52,6 @@ ln -s /usr/share/xroad/jlib/signer/quarkus-run.jar %{buildroot}/usr/share/xroad/
 ln -s /usr/share/xroad/jlib/signer-console/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/signer-console.jar
 
 cp -p %{_sourcedir}/signer/xroad-signer.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/default-configuration/devices.ini %{buildroot}/etc/xroad/
 cp -p -r %{srcdir}/../../../service/signer/signer-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/signer/
 cp -p -r %{srcdir}/../../../service/signer/signer-cli/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/signer-console/
 
@@ -76,7 +75,6 @@ rm -rf %{buildroot}
 %dir /etc/xroad/services
 %dir /etc/xroad/conf.d
 %dir /etc/xroad/conf.d/addons
-%config /etc/xroad/devices.ini
 %config /etc/xroad/services/signer.conf
 %config /etc/xroad/services/signer-console.conf
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-signer
