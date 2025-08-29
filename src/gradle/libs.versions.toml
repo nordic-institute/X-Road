@@ -32,7 +32,7 @@ checkstyle = "10.22.0"
 jacoco = "0.8.12"
 resilience4j = "2.3.0"
 quarkus = "3.24.5"
-quarkus-vault = "4.4.0"
+quarkus-vault = "4.3.0"
 quarkus-systemd-notify = "1.0.2"
 smallryeConfig = "3.13.4"
 
