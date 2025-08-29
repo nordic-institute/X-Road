@@ -26,6 +26,7 @@
 package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.codahale.metrics.MetricRegistry;
@@ -44,6 +45,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
@@ -53,8 +55,11 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static java.util.Arrays.stream;
 
 /**
  * The main HTTP(S) request handler of the operational monitoring daemon.
@@ -80,6 +85,7 @@ public final class OpMonitorDaemon {
     private final OpMonitorCommonProperties opMonitorCommonProperties;
     private final GlobalConfProvider globalConfProvider;
     private final VaultClient vaultClient;
+    private final VaultKeyClient vaultKeyClient;
     private final OperationalDataRecordManager operationalDataRecordManager;
     private final HealthDataMetrics healthDataMetrics;
 
@@ -142,6 +148,8 @@ public final class OpMonitorDaemon {
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
 
+        ensureOpMonitorTlsKeyPresent();
+
         ctx.init(new KeyManager[]{new OpMonitorSslKeyManager(vaultClient)},
                 new TrustManager[]{new OpMonitorSslTrustManager(vaultClient)},
                 new SecureRandom());
@@ -158,4 +166,19 @@ public final class OpMonitorDaemon {
     private void registerHealthMetrics() {
         healthDataMetrics.registerInitialMetrics(healthMetricRegistry, this::getStartTimestamp);
     }
+
+    private void ensureOpMonitorTlsKeyPresent() throws Exception {
+        try {
+            vaultClient.getOpmonitorTlsCredentials();
+        } catch (Exception e) {
+            log.warn("Unable to locate op-monitor TLS credentials, attempting to create new ones", e);
+            var vaultKeyData = vaultKeyClient.provisionNewCerts();
+            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
+                    .toArray(X509Certificate[]::new);
+            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
+            vaultClient.createOpmonitorTlsCredentials(internalTlsKey);
+            log.info("Successfully created op-monitor TLS credentials");
+        }
+    }
+
 }

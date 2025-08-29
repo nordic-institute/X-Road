@@ -54,7 +54,8 @@ quarkus:
 
 xroad:
   proxy:
-    certificate-provisioning:
-      common-name: ${XROAD_HOST:localhost}
-      ip-subject-alt-names:
-        - 127.0.0.1
+    tls:
+      certificate-provisioning:
+        common-name: ${XROAD_HOST:localhost}
+        ip-subject-alt-names:
+          - 127.0.0.1

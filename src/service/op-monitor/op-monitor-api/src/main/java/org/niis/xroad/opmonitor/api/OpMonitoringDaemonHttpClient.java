@@ -89,7 +89,7 @@ public final class OpMonitoringDaemonHttpClient {
         int connectionTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().connectionTimeoutSeconds());
         int socketTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().socketTimeoutSeconds());
 
-        return createHttpClient(opMonitorCommonProperties, vaultClient, authKey,
+        return createHttpClient(opMonitorCommonProperties, authKey, vaultClient,
                 DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS, DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE,
                 connectionTimeoutMilliseconds, socketTimeoutMilliseconds);
     }
@@ -108,8 +108,8 @@ public final class OpMonitoringDaemonHttpClient {
      *                   initialization fails
      */
     public static CloseableHttpClient createHttpClient(OpMonitorCommonProperties opMonitorCommonProperties,
-                                                       VaultClient vaultClient,
                                                        InternalSSLKey authKey,
+                                                       VaultClient vaultClient,
                                                        int clientMaxTotalConnections, int clientMaxConnectionsPerRoute,
                                                        int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
         log.trace("createHttpClient()");
@@ -117,7 +117,7 @@ public final class OpMonitoringDaemonHttpClient {
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
         if ("https".equalsIgnoreCase(opMonitorCommonProperties.connection().scheme())) {
-            sfr.register("https", createSSLSocketFactory(vaultClient, authKey));
+            sfr.register("https", createSSLSocketFactory(authKey, vaultClient));
         } else {
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
         }
@@ -142,8 +142,8 @@ public final class OpMonitoringDaemonHttpClient {
         return cb.build();
     }
 
-    private static SSLConnectionSocketFactory createSSLSocketFactory(VaultClient vaultClient,
-                                                                     InternalSSLKey authKey) throws Exception {
+    private static SSLConnectionSocketFactory createSSLSocketFactory(InternalSSLKey authKey,
+                                                                     VaultClient vaultClient) throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
 
         ctx.init(new KeyManager[]{new OpMonitorClientKeyManager(authKey)},
@@ -155,17 +155,10 @@ public final class OpMonitoringDaemonHttpClient {
         // We don't need hostname verification
     }
 
+    @RequiredArgsConstructor
     private static final class OpMonitorClientTrustManager implements X509TrustManager {
-        private X509Certificate opMonitorCert = null;
-
-        private OpMonitorClientTrustManager(VaultClient vaultClient) {
-            try {
-                var certChain = vaultClient.getOpmonitorTlsCredentials().getCertChain();
-                opMonitorCert = CryptoUtils.readCertificate(certChain[0].getEncoded());
-            } catch (Exception e) {
-                log.error("Could not load operational monitoring daemon certificate", e);
-            }
-        }
+        private final VaultClient vaultClient;
+        private X509Certificate opMonitorCert;
 
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) {
@@ -181,8 +174,12 @@ public final class OpMonitoringDaemonHttpClient {
             log.trace("Received server certificate {}", chain[0]);
 
             if (opMonitorCert == null) {
-                throw new CertificateException(
-                        "Operational monitoring daemon certificate not loaded, cannot verify server");
+                try {
+                    var certChain = vaultClient.getOpmonitorTlsCredentials().getCertChain();
+                    opMonitorCert = CryptoUtils.readCertificate(certChain[0].getEncoded());
+                } catch (Exception e) {
+                    throw new CertificateException("Could not load operational monitoring daemon certificate, cannot verify server", e);
+                }
             }
 
             if (!chain[0].equals(opMonitorCert)) {

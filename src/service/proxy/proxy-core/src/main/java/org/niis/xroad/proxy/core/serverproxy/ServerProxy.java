@@ -50,9 +50,9 @@ import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonHttpClient;
-import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.antidos.AntiDosConnector;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
 
@@ -90,8 +90,8 @@ public class ServerProxy {
     private final CommonBeanProxy commonBeanProxy;
     private final ServiceHandlerLoader serviceHandlerLoader;
     private final OpMonitorCommonProperties opMonitorCommonProperties;
-    private final VaultKeyClient vaultKeyClient;
     private final VaultClient vaultClient;
+    private final VaultKeyClient vaultKeyClient;
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connMonitor;
@@ -129,7 +129,6 @@ public class ServerProxy {
     }
 
     private void createOpMonitorClient() throws Exception {
-        ensureOpMonitorTlsKeyPresent();
 
         opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(
                 opMonitorCommonProperties, vaultClient, commonBeanProxy.getServerConfProvider().getSSLKey());
@@ -217,6 +216,7 @@ public class ServerProxy {
 
     private void ensureInternalTlsKeyPresent() throws Exception {
         try {
+
             vaultClient.getInternalTlsCredentials();
         } catch (Exception e) {
             log.warn("Unable to locate internal TLS credentials, attempting to create new ones", e);
@@ -226,20 +226,6 @@ public class ServerProxy {
             var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
             vaultClient.createInternalTlsCredentials(internalTlsKey);
             log.info("Successfully created internal TLS credentials");
-        }
-    }
-
-    private void ensureOpMonitorTlsKeyPresent() throws Exception {
-        try {
-            vaultClient.getOpmonitorTlsCredentials();
-        } catch (Exception e) {
-            log.warn("Unable to locate op-monitor TLS credentials, attempting to create new ones", e);
-            var vaultKeyData = vaultKeyClient.provisionNewCerts();
-            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
-                    .toArray(X509Certificate[]::new);
-            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createOpmonitorTlsCredentials(internalTlsKey);
-            log.info("Successfully created op-monitor TLS credentials");
         }
     }
 

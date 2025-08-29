@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,31 +23,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.admin;
+package org.niis.xroad.opmonitor.core.config;
 
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-import ee.ria.xroad.common.ProxyMemory;
+import java.time.Duration;
+import java.util.List;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+@ConfigMapping(prefix = "xroad.op-monitor.tls")
+public interface OpMonitorTlsProperties {
 
+    @WithName("certificate-provisioning")
+    CertificateProvisionProperties certificateProvisioning();
 
-@RequiredArgsConstructor
-@ApplicationScoped
-public class ProxyMemoryStatusService {
-    private final ProxyProperties proxyProperties;
+    interface CertificateProvisionProperties {
+        String DEFAULT_ISSUANCE_ROLE_NAME = "xrd-internal";
+        String DEFAULT_COMMON_NAME = "localhost";
+        String DEFAULT_SECRET_STORE_PKI_PATH = "xrd-pki";
+        String DEFAULT_TTL = "3650D";
 
-    public ProxyMemory getMemoryStatus() {
-        Runtime runtime = Runtime.getRuntime();
-        long maxMemory = runtime.maxMemory();
-        long totalMemory = runtime.totalMemory();
-        long freeMemory = runtime.freeMemory();
-        long usedMemory = totalMemory - freeMemory;
-        Long threshold = proxyProperties.memoryUsageThreshold().orElse(null);
-        long usedPercent = (usedMemory * 100) / maxMemory;
-        return new ProxyMemory(totalMemory, freeMemory, maxMemory, usedMemory, threshold, usedPercent);
+        @WithName("issuance-role-name")
+        @WithDefault(DEFAULT_ISSUANCE_ROLE_NAME)
+        String issuanceRoleName();
+
+        @WithName("common-name")
+        @WithDefault(DEFAULT_COMMON_NAME)
+        String commonName();
+
+        @WithName("alt-names")
+        @WithDefault("[]")
+        List<String> altNames();
+
+        @WithName("ip-subject-alt-names")
+        @WithDefault("[]")
+        List<String> ipSubjectAltNames();
+
+        @WithName("ttl")
+        @WithDefault(DEFAULT_TTL)
+        Duration ttl();
+
+        @WithName("secret-store-pki-path")
+        @WithDefault(DEFAULT_SECRET_STORE_PKI_PATH)
+        String secretStorePkiPath();
+
     }
-
 
 }

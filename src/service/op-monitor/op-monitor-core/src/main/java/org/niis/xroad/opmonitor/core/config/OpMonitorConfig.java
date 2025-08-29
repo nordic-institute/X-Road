@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,31 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.admin;
+package org.niis.xroad.opmonitor.core.config;
 
-
-import ee.ria.xroad.common.ProxyMemory;
-
+import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 
+public class OpMonitorConfig {
 
-@RequiredArgsConstructor
-@ApplicationScoped
-public class ProxyMemoryStatusService {
-    private final ProxyProperties proxyProperties;
-
-    public ProxyMemory getMemoryStatus() {
-        Runtime runtime = Runtime.getRuntime();
-        long maxMemory = runtime.maxMemory();
-        long totalMemory = runtime.totalMemory();
-        long freeMemory = runtime.freeMemory();
-        long usedMemory = totalMemory - freeMemory;
-        Long threshold = proxyProperties.memoryUsageThreshold().orElse(null);
-        long usedPercent = (usedMemory * 100) / maxMemory;
-        return new ProxyMemory(totalMemory, freeMemory, maxMemory, usedMemory, threshold, usedPercent);
+    @ApplicationScoped
+    public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, OpMonitorTlsProperties tlsProperties) {
+        return new QuarkusVaultKeyClient(
+                pkiSecretEngineFactory,
+                tlsProperties.certificateProvisioning().secretStorePkiPath(),
+                tlsProperties.certificateProvisioning().ttl(),
+                tlsProperties.certificateProvisioning().issuanceRoleName(),
+                tlsProperties.certificateProvisioning().commonName(),
+                tlsProperties.certificateProvisioning().altNames(),
+                tlsProperties.certificateProvisioning().ipSubjectAltNames()
+        );
     }
-
 
 }

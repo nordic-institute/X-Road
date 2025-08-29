@@ -69,6 +69,9 @@ path "xrd-pki/*" {
 path "xrd-secret/*" {
   capabilities = ["read", "list"]
 }
+path "xrd-secret/tls/*" {
+  capabilities = ["read", "list", "create", "update"]
+}
 path "xrd-secret" {
   capabilities = ["list"]
 }

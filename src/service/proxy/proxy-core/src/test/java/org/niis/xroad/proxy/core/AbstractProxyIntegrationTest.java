@@ -61,6 +61,7 @@ import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageHandler;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
@@ -179,7 +180,7 @@ public abstract class AbstractProxyIntegrationTest {
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
                 mock(MonitorRpcClient.class), proxyProperties.addOn(), opMonitorCommonProperties);
         serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
-                opMonitorCommonProperties, new NoopVaultKeyClient(), new NoopVaultClient());
+                opMonitorCommonProperties, new NoopVaultClient(), new NoopVaultKeyClient());
         serverProxy.init();
     }
 

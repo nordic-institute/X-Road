@@ -27,6 +27,7 @@ package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.vault.VaultClient;
 
@@ -36,18 +37,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 @Slf4j
+@RequiredArgsConstructor
 class OpMonitorSslTrustManager implements X509TrustManager {
 
-    private X509Certificate expectedClientCert = null;
-
-    OpMonitorSslTrustManager(VaultClient vaultClient) {
-        try {
-            var certChain = vaultClient.getInternalTlsCredentials().getCertChain();
-            expectedClientCert = CryptoUtils.readCertificate(certChain[0].getEncoded());
-        } catch (Exception e) {
-            log.error("Could not load client certificate", e);
-        }
-    }
+    private final VaultClient vaultClient;
+    private X509Certificate expectedClientCert;
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType)
@@ -60,8 +54,12 @@ class OpMonitorSslTrustManager implements X509TrustManager {
         log.trace("Received peer certificate {}", chain[0]);
 
         if (expectedClientCert == null) {
-            throw new CertificateException("Expected client certificate not"
-                    + " loaded, cannot verify client");
+            try {
+                var certChain = vaultClient.getInternalTlsCredentials().getCertChain();
+                expectedClientCert = CryptoUtils.readCertificate(certChain[0].getEncoded());
+            } catch (Exception e) {
+                throw new CertificateException("Could not load client certificate, cannot verify client", e);
+            }
         }
 
         if (!expectedClientCert.equals(chain[0])) {
@@ -69,6 +67,7 @@ class OpMonitorSslTrustManager implements X509TrustManager {
                     "Client sent unknown TLS certificate");
         }
     }
+
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) {

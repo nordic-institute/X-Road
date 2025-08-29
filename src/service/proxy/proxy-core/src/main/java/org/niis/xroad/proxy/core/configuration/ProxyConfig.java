@@ -38,7 +38,6 @@ import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
-import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
@@ -53,15 +52,15 @@ public class ProxyConfig {
     public static class OpMonitoringBufferInitializer {
 
         @ApplicationScoped
-        public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, ProxyProperties proxyProperties) {
+        public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, ProxyTlsProperties tlsProperties) {
             return new QuarkusVaultKeyClient(
                     pkiSecretEngineFactory,
-                    proxyProperties.certificateProvisioning().secretStorePkiPath(),
-                    proxyProperties.certificateProvisioning().ttl(),
-                    proxyProperties.certificateProvisioning().issuanceRoleName(),
-                    proxyProperties.certificateProvisioning().commonName(),
-                    proxyProperties.certificateProvisioning().altNames(),
-                    proxyProperties.certificateProvisioning().ipSubjectAltNames()
+                    tlsProperties.certificateProvisioning().secretStorePkiPath(),
+                    tlsProperties.certificateProvisioning().ttl(),
+                    tlsProperties.certificateProvisioning().issuanceRoleName(),
+                    tlsProperties.certificateProvisioning().commonName(),
+                    tlsProperties.certificateProvisioning().altNames(),
+                    tlsProperties.certificateProvisioning().ipSubjectAltNames()
             );
         }
 

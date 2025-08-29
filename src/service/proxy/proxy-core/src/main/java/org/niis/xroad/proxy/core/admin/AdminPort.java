@@ -43,7 +43,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
-import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 
 import java.io.PrintWriter;
