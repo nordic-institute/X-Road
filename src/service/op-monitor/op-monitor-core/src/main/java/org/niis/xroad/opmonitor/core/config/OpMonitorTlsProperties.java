@@ -35,8 +35,14 @@ import java.util.List;
 @ConfigMapping(prefix = "xroad.op-monitor.tls")
 public interface OpMonitorTlsProperties {
 
+    String DEFAULT_CLIENT_CERTIFICATE_REFRESH_INTERVAL = "0S";
+
     @WithName("certificate-provisioning")
     CertificateProvisionProperties certificateProvisioning();
+
+    @WithName("client-certificate-refresh-interval")
+    @WithDefault(DEFAULT_CLIENT_CERTIFICATE_REFRESH_INTERVAL)
+    Duration clientCertificateRefreshInterval();
 
     interface CertificateProvisionProperties {
         String DEFAULT_ISSUANCE_ROLE_NAME = "xrd-internal";

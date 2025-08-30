@@ -27,7 +27,6 @@ package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.vault.VaultClient;
 
@@ -35,13 +34,26 @@ import javax.net.ssl.X509TrustManager;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.ScheduledExecutorService;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
-@RequiredArgsConstructor
 class OpMonitorSslTrustManager implements X509TrustManager {
 
     private final VaultClient vaultClient;
     private X509Certificate expectedClientCert;
+
+    OpMonitorSslTrustManager(VaultClient vaultClient, ScheduledExecutorService trustRefreshScheduler, long refreshIntervalSeconds) {
+        this(vaultClient);
+
+        log.info("Client TLS certificate refresh interval set to {} seconds", refreshIntervalSeconds);
+        trustRefreshScheduler.scheduleAtFixedRate(this::loadClientCertificate, refreshIntervalSeconds, refreshIntervalSeconds, SECONDS);
+    }
+
+    OpMonitorSslTrustManager(VaultClient vaultClient) {
+        this.vaultClient = vaultClient;
+    }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType)
@@ -54,18 +66,29 @@ class OpMonitorSslTrustManager implements X509TrustManager {
         log.trace("Received peer certificate {}", chain[0]);
 
         if (expectedClientCert == null) {
-            try {
-                var certChain = vaultClient.getInternalTlsCredentials().getCertChain();
-                expectedClientCert = CryptoUtils.readCertificate(certChain[0].getEncoded());
-            } catch (Exception e) {
-                throw new CertificateException("Could not load client certificate, cannot verify client", e);
-            }
+            loadClientCertificate();
         }
 
         if (!expectedClientCert.equals(chain[0])) {
             throw new CertificateException(
                     "Client sent unknown TLS certificate");
         }
+    }
+
+    private void loadClientCertificate() {
+        try {
+            var certChain = vaultClient.getInternalTlsCredentials().getCertChain();
+            var cert = CryptoUtils.readCertificate(certChain[0].getEncoded());
+            if (!cert.equals(this.expectedClientCert)) {
+                if (expectedClientCert != null) {
+                    log.info("Reloaded client TLS certificate from Vault");
+                }
+                this.expectedClientCert = cert;
+            }
+        } catch (Exception e) {
+            log.error("Could not read client TLS certificate from Vault", e);
+        }
+
     }
 
 

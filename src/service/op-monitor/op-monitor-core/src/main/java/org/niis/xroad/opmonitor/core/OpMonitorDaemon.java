@@ -49,6 +49,7 @@ import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
+import org.niis.xroad.opmonitor.core.config.OpMonitorTlsProperties;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -56,6 +57,8 @@ import javax.net.ssl.TrustManager;
 
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
@@ -83,11 +86,14 @@ public final class OpMonitorDaemon {
 
     private final OpMonitorProperties opMonitorProperties;
     private final OpMonitorCommonProperties opMonitorCommonProperties;
+    private final OpMonitorTlsProperties opMonitorTlsProperties;
     private final GlobalConfProvider globalConfProvider;
     private final VaultClient vaultClient;
     private final VaultKeyClient vaultKeyClient;
     private final OperationalDataRecordManager operationalDataRecordManager;
     private final HealthDataMetrics healthDataMetrics;
+    private final ScheduledExecutorService tlsClientCertificateRefreshScheduler =
+            Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
 
     private final MetricRegistry healthMetricRegistry = new MetricRegistry();
     private final JmxReporter reporter = JmxReporter.forRegistry(healthMetricRegistry).build();
@@ -107,6 +113,7 @@ public final class OpMonitorDaemon {
 
     @PreDestroy
     public void destroy() throws Exception {
+        tlsClientCertificateRefreshScheduler.shutdown();
         server.stop();
         reporter.stop();
     }
@@ -151,7 +158,7 @@ public final class OpMonitorDaemon {
         ensureOpMonitorTlsKeyPresent();
 
         ctx.init(new KeyManager[]{new OpMonitorSslKeyManager(vaultClient)},
-                new TrustManager[]{new OpMonitorSslTrustManager(vaultClient)},
+                new TrustManager[]{createTrustManager()},
                 new SecureRandom());
 
         cf.setSslContext(ctx);
@@ -178,6 +185,15 @@ public final class OpMonitorDaemon {
             var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
             vaultClient.createOpmonitorTlsCredentials(internalTlsKey);
             log.info("Successfully created op-monitor TLS credentials");
+        }
+    }
+
+    private OpMonitorSslTrustManager createTrustManager() {
+        if (opMonitorTlsProperties.clientCertificateRefreshInterval().toSeconds() < 1) {
+            return new OpMonitorSslTrustManager(vaultClient);
+        } else {
+            var certificateRefreshIntervalInSeconds = opMonitorTlsProperties.clientCertificateRefreshInterval().toSeconds();
+            return new OpMonitorSslTrustManager(vaultClient, tlsClientCertificateRefreshScheduler, certificateRefreshIntervalInSeconds);
         }
     }
 
