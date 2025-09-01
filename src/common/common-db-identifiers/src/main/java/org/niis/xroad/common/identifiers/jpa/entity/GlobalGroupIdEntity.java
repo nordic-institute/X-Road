@@ -43,13 +43,13 @@ import static org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity.D
 @Entity
 @DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class GlobalGroupIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.GlobalGroupId {
-    public static final String DISCRIMINATOR_VALUE = "GG";
+    static final String DISCRIMINATOR_VALUE = "GLOBALGROUP";
 
-    protected GlobalGroupIdEntity(XRoadObjectType objectType, String xRoadInstance, String groupCode) {
-        super(DISCRIMINATOR_VALUE, objectType, xRoadInstance, null, groupCode);
+    protected GlobalGroupIdEntity(String xRoadInstance, String groupCode) {
+        super(XRoadObjectType.GLOBALGROUP, xRoadInstance, null, groupCode);
     }
 
-    public GlobalGroupIdEntity() {
+    protected GlobalGroupIdEntity() {
     }
 
     public static GlobalGroupIdEntity create(ee.ria.xroad.common.identifier.GlobalGroupId identifier) {
@@ -61,7 +61,7 @@ public class GlobalGroupIdEntity extends XRoadIdEntity implements ee.ria.xroad.c
     public static GlobalGroupIdEntity create(String xRoadInstance, String groupCode) {
         validateArgument("xRoadInstance", xRoadInstance);
         validateArgument("groupCode", groupCode);
-        return new GlobalGroupIdEntity(XRoadObjectType.GLOBALGROUP, xRoadInstance, groupCode);
+        return new GlobalGroupIdEntity(xRoadInstance, groupCode);
     }
 
     @Override

@@ -37,6 +37,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.factory.Mappers;
 import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
@@ -153,14 +154,14 @@ public interface XRoadIdMapper extends GenericUniDirectionalMapper<XRoadIdEntity
         if (domain == null) {
             return null;
         }
-        return ClientIdEntity.create(domain);
+        return ClientIdEntityFactory.create(domain);
     }
 
     default ClientIdEntity toEntity(ClientId domain) {
         if (domain == null) {
             return null;
         }
-        return ClientIdEntity.create(domain);
+        return ClientIdEntityFactory.create(domain);
     }
 
     default GlobalGroupIdEntity toEntity(GlobalGroupId domain) {

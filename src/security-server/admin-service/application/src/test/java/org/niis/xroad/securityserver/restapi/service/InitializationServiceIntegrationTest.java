@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
@@ -47,7 +48,7 @@ class InitializationServiceIntegrationTest extends AbstractServiceIntegrationTes
 
     @Test
     void createInitialServerConfToEmptyDatabase() {
-        ClientIdEntity ownerClientId = ClientIdEntity.createMember("INSTANCE", "CLASS", "MEMBER-CODE");
+        ClientIdEntity ownerClientId = MemberIdEntity.create("INSTANCE", "CLASS", "MEMBER-CODE");
         String securityServerCode = "SS1";
 
         initializationService.createInitialServerConf(ownerClientId, securityServerCode);

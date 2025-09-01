@@ -38,6 +38,7 @@ import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -162,7 +163,7 @@ public class InitializationService {
         if (isServerOwnerInitialized) {
             ownerClientId = serverConfService.getSecurityServerOwnerIdEntity();
         } else {
-            ownerClientId = ClientIdEntity.createMember(instanceIdentifier, ownerMemberClass, ownerMemberCode);
+            ownerClientId = MemberIdEntity.create(instanceIdentifier, ownerMemberClass, ownerMemberCode);
         }
         auditDataHelper.put(OWNER_IDENTIFIER, ownerClientId);
         auditDataHelper.put(SERVER_CODE, securityServerCode);

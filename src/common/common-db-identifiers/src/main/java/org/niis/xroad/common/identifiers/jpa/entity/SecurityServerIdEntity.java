@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.common.identifiers.jpa.entity;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 import ee.ria.xroad.common.util.Validation;
@@ -35,6 +36,8 @@ import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Optional;
+
 import static ee.ria.xroad.common.util.Validation.validateArgument;
 import static org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity.DISCRIMINATOR_VALUE;
 
@@ -43,20 +46,18 @@ import static org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntit
 @Entity
 @DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class SecurityServerIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.SecurityServerId {
-    public static final String DISCRIMINATOR_VALUE = "SS";
+    static final String DISCRIMINATOR_VALUE = "SERVER";
 
-    protected SecurityServerIdEntity(XRoadObjectType type,
-                                     String xRoadInstance,
+    protected SecurityServerIdEntity(String xRoadInstance,
                                      String memberClass,
                                      String memberCode,
                                      String serverCode) {
-        super(DISCRIMINATOR_VALUE, type, xRoadInstance, memberClass);
+        super(XRoadObjectType.SERVER, xRoadInstance, memberClass);
         setMemberCode(memberCode);
         setServerCode(serverCode);
     }
 
-    public SecurityServerIdEntity() {
-
+    protected SecurityServerIdEntity() {
     }
 
     public static SecurityServerIdEntity create(ee.ria.xroad.common.identifier.SecurityServerId identifier) {
@@ -68,6 +69,15 @@ public class SecurityServerIdEntity extends XRoadIdEntity implements ee.ria.xroa
                 identifier.getServerCode());
     }
 
+    public static SecurityServerIdEntity create(ClientId identifier, String serverCode) {
+        validateArgument("identifier", identifier);
+
+        return create(identifier.getXRoadInstance(),
+                identifier.getMemberClass(),
+                identifier.getMemberCode(),
+                serverCode);
+    }
+
     public static SecurityServerIdEntity create(String xRoadInstance,
                                                 String memberClass,
                                                 String memberCode,
@@ -77,12 +87,12 @@ public class SecurityServerIdEntity extends XRoadIdEntity implements ee.ria.xroa
         validateArgument("memberCode", memberCode);
         validateArgument("serverCode", serverCode);
 
-        return new SecurityServerIdEntity(XRoadObjectType.SERVER, xRoadInstance, memberClass, memberCode, serverCode);
+        return new SecurityServerIdEntity(xRoadInstance, memberClass, memberCode, serverCode);
     }
 
     @Override
-    public ClientIdEntity getOwner() {
-        return ClientIdEntity.createMember(getXRoadInstance(), getMemberClass(), getMemberCode());
+    public MemberIdEntity getOwner() {
+        return new MemberIdEntity(getXRoadInstance(), getMemberClass(), getMemberCode());
     }
 
     @Override
@@ -95,5 +105,13 @@ public class SecurityServerIdEntity extends XRoadIdEntity implements ee.ria.xroa
     @NoCoverage
     public int hashCode() {
         return ee.ria.xroad.common.identifier.SecurityServerId.hashCode(this);
+    }
+
+    public static SecurityServerIdEntity ensure(
+            ee.ria.xroad.common.identifier.SecurityServerId identifier) {
+        return Optional.ofNullable(identifier)
+                .filter(SecurityServerIdEntity.class::isInstance)
+                .map(SecurityServerIdEntity.class::cast)
+                .orElseGet(() -> SecurityServerIdEntity.create(identifier));
     }
 }

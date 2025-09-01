@@ -33,7 +33,6 @@ import ee.ria.xroad.common.util.AbstractHttpSender;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.apache.james.mime4j.stream.BodyDescriptor;
-import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
@@ -75,9 +74,6 @@ public class GetWSDLMessage extends MessageTestCase {
     private static final String MOCK_SERVER_WSDL_FILE = "wsdl.wsdl";
 
     private final WireMockServer mockServer;
-
-    private final ClientIdEntity expectedProviderQuery =
-            ClientIdEntity.createMember("EE", "BUSINESS", "producer");
 
     private final String expectedServiceNameForWSDLQuery = "getRandom";
     private final List<String> expectedWSDLServiceNames =

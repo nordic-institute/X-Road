@@ -6,50 +6,23 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
-    <changeSet id="signer-create-settimestamps-function" author="niis">
+    <changeSet id="signer-create-set-timestamps-function" author="niis">
         <sql splitStatements="false"><![CDATA[
             CREATE OR REPLACE FUNCTION set_timestamps()
             RETURNS TRIGGER
             LANGUAGE plpgsql
             AS $$
+            DECLARE
+                now_ts TIMESTAMP := CURRENT_TIMESTAMP;
             BEGIN
                 IF TG_OP = 'INSERT' THEN
-                    NEW.created_at := CURRENT_TIMESTAMP;
+                    NEW.created_at := now_ts;
                 END IF;
-                NEW.updated_at := CURRENT_TIMESTAMP;
+                NEW.updated_at := now_ts;
             RETURN NEW;
             END;
             $$;
             ]]></sql>
-    </changeSet>
-
-    <changeSet id="create-temp-identifier-table" author="niis">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="identifier"/>
-            </not>
-        </preConditions>
-        <comment>
-            TODO This is a temporary table mainly for CS support. There will be a separate task to properly implement this.
-        </comment>
-        <createTable tableName="identifier">
-            <column name="id" type="BIGINT">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="discriminator" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="type" type="VARCHAR(255)"/>
-            <column name="xroadinstance" type="VARCHAR(255)"/>
-            <column name="memberclass" type="VARCHAR(255)"/>
-            <column name="membercode" type="VARCHAR(255)"/>
-            <column name="subsystemcode" type="VARCHAR(255)"/>
-            <column name="serviceversion" type="VARCHAR(255)"/>
-            <column name="servicecode" type="VARCHAR(255)"/>
-            <column name="groupcode" type="VARCHAR(255)"/>
-            <column name="securitycategory" type="VARCHAR(255)"/>
-            <column name="servercode" type="VARCHAR(255)"/>
-        </createTable>
     </changeSet>
 
     <changeSet id="create-signer_tokens-table" author="niis">

@@ -4,10 +4,11 @@ plugins {
 }
 
 dependencies {
+  annotationProcessor(libs.hibernate.jpamodelgen)
   annotationProcessor(libs.mapstructProcessor)
   annotationProcessor(libs.lombokMapstructBinding)
 
-  implementation(project(":common:common-db"))
+  api(project(":common:common-db"))
   implementation(project(":common:common-domain"))
   implementation(libs.quarkus.arc)
   implementation(libs.mapstruct)
