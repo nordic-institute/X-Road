@@ -37,8 +37,8 @@ import static java.lang.String.format;
 public class KeyAndCertPageObj {
     private static final String X_FOLLOWING = "//following::";
     private static final String X_TOKEN_EXPANDABLE = "//div[@data-test='tokens-table']"
-            + "//div[span[contains(., 'Token: %s')]]";
-    private static final String X_TOKEN_EDIT_BUTTON = "//div[span[contains(., 'Token: %s')]]"
+            + "//div[span[text()='Token: %s']]";
+    private static final String X_TOKEN_EDIT_BUTTON = "//div[span[text()='Token: %s']]"
             + "//button[@data-test='token-icon-button'][1]";
     private static final String X_TOKEN_EXPANDABLE_W_FOLLOWING = X_TOKEN_EXPANDABLE + X_FOLLOWING;
 

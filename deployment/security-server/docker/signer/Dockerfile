@@ -1,4 +1,5 @@
-FROM localhost:5555/ss-signer
+ARG REGISTRY_URL=localhost:5555
+FROM ${REGISTRY_URL}/ss-signer
 
 USER root
 

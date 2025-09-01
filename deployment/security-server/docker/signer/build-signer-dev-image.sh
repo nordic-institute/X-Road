@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Set registry URL, default to localhost:5555 if not provided
 REGISTRY_URL=${1:-localhost:5555}
 
 echo "Building dev-signer-image ..."
