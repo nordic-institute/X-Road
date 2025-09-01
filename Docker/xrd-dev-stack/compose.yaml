@@ -63,10 +63,16 @@ services:
     environment:
       MP_MAX_MESSAGES: 5000
       MP_DATABASE: /data/mailpit.db
-      MP_SMTP_REQUIRE_STARTTLS: 1
+#      MP_SMTP_REQUIRE_STARTTLS: 1
+      MP_SMTP_REQUIRE_TLS: 1
       MP_SMTP_TLS_CERT: /data/mailpit_cert.pem
       MP_SMTP_TLS_KEY: /data/mailpit_key.pem
       MP_SMTP_AUTH_FILE: /data/password_file
+  monit:
+    build: monit
+    restart: unless-stopped
+    volumes:
+      - ./monit/monitrc:/etc/monitrc
   isopenapi:
     image: ${IS_OPENAPI_IMG}
     deploy:

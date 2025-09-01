@@ -1,0 +1,17 @@
+set mailserver mailpit port 1025 username testusername password testpassword using tls
+
+set alert admin@ss1
+
+# Set the polling interval (seconds)
+set daemon 30
+
+set httpd port 2812
+    allow admin:monit
+
+# Check SS1 halthcheck service at http://ss1:5588
+check host ss1 with address ss1
+    if failed
+        port 5588
+        protocol http
+        timeout 20 seconds
+    then alert

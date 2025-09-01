@@ -81,6 +81,14 @@ services:
       - "1025:1025"
     networks:
       - xroad-network
+  monit:
+    container_name: monit
+    volumes:
+      - ./monit/monitrc:/etc/monitrc
+    ports:
+      - "2812:2812"
+    networks:
+      - xroad-network
   hurl:
     networks:
       - xroad-network
