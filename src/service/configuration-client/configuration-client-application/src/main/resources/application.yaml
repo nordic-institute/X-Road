@@ -31,7 +31,7 @@ quarkus:
   quarkus:
     log:
       file:
-        enable: true
+        enabled: true
         path: /var/log/xroad/configuration_client.log
 
 "%cli":
@@ -46,7 +46,7 @@ quarkus:
   quarkus:
     log:
       file:
-        enable: false
+        enabled: false
   xroad:
     configuration-client:
       rpc:

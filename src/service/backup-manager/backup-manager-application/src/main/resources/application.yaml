@@ -26,14 +26,14 @@ quarkus:
   quarkus:
     log:
       file:
-        enable: true
+        enabled: true
         path: /var/log/xroad/backup_manager.log
 
 "%test":
   quarkus:
     log:
       file:
-        enable: false
+        enabled: false
   xroad:
     backup-manager:
       rpc:
