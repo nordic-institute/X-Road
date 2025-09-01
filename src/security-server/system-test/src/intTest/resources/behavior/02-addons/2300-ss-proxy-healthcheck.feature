@@ -25,8 +25,6 @@ Feature: 2300 - SS Proxy: healthcheck
     And signer service is restarted
     And User logs in token: softToken-0 with PIN: Secret1234
     Then Token: softToken-0 is logged-in
-    #And User logs in token: softhsm2 with PIN: Secret1234
-    #Then Token: softhsm2 is logged-in
     And healthcheck has no errors
 
   Scenario: HSM healthcheck has no errors when HSM health check is enabled
