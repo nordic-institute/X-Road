@@ -34,7 +34,7 @@ import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
@@ -77,7 +77,7 @@ public final class EcKeyManager extends AbstractKeyManager {
 
             return keyPairGen.generateKeyPair();
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
-            throw XrdRuntimeException.systemException(ErrorCodes.CRYPTO_ERROR)
+            throw XrdRuntimeException.systemException(ErrorCode.CRYPTO_ERROR)
                     .cause(e)
                     .details("Algorithm isn't supported in current environment")
                     .metadataItems(cryptoAlgorithm(), namedCurve)

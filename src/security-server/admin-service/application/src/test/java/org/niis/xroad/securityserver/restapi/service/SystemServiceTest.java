@@ -75,7 +75,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.core.exception.ErrorCodes.MISSING_PRIVATE_PARAMS;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_PRIVATE_PARAMS;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SystemServiceTest {

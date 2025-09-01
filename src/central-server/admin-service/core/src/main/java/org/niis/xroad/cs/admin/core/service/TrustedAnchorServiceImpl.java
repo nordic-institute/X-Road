@@ -55,7 +55,7 @@ import static ee.ria.xroad.common.crypto.Digests.DEFAULT_ANCHOR_HASH_ALGORITHM_I
 import static ee.ria.xroad.common.crypto.Digests.calculateAnchorHashDelimited;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.niis.xroad.common.core.exception.ErrorCodes.MALFORMED_ANCHOR;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_ANCHOR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ANCHOR_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ANCHOR_VERIFICATION_FAILED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH;

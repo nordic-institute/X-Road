@@ -33,7 +33,7 @@ import jakarta.inject.Named;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_ENCODED_ID;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_ENCODED_ID;
 
 /**
  * Converter for encoded client ids

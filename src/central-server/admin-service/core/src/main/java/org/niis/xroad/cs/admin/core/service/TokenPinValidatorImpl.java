@@ -37,7 +37,7 @@ import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.TOKEN_WEAK_PIN;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_WEAK_PIN;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_INVALID_CHARACTERS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;

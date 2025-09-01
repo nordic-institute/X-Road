@@ -28,11 +28,14 @@ syntax = "proto3";
 option java_multiple_files = true;
 option java_package = "org.niis.xroad.rpc.error";
 
-// todo rename the exception and the fields. should not be using soap fault naming inside signer.
-message CodedExceptionProto {
-  string fault_code = 1;
-  string fault_actor = 2;
-  string fault_detail = 3;
-  string fault_string = 4;
-  string translation_code = 5;
+message XrdRuntimeExceptionProto {
+  string identifier = 1;
+  ErrorDeviationProto errorDeviation = 2;
+  string details = 3;
+  int32 httpStatus = 4;
+}
+
+message ErrorDeviationProto {
+  string code = 1;
+  repeated string metadata = 2;
 }

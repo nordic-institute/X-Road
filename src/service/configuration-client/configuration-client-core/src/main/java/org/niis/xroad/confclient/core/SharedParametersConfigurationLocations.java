@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_DOWNLOAD_URL_FORMAT;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_DOWNLOAD_URL_FORMAT;
 import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.getVersion;
 
 @Slf4j

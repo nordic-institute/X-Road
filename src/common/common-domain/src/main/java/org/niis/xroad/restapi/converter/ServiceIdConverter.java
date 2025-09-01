@@ -37,7 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
-import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_ENCODED_ID;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_ENCODED_ID;
 
 /**
  * Converter for encoded service ids

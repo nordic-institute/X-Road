@@ -258,7 +258,7 @@ class RestProxyTest extends AbstractProxyIntegrationTest {
                 .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
                 .then()
                 .statusCode(500)
-                .header("X-Road-Error", "Server.ServerProxy.service_type");
+                .header("X-Road-Error", "server.serverproxy.service_type");
     }
 
     @Test
@@ -286,7 +286,7 @@ class RestProxyTest extends AbstractProxyIntegrationTest {
                 .patch(PREFIX + "/EE/BUSINESS/producer/sub/service")
                 .then()
                 .statusCode(500)
-                .header("X-Road-Error", "Server.ServerProxy.access_denied");
+                .header("X-Road-Error", "server.serverproxy.access_denied");
     }
 
     @Test

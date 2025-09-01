@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
  * Enumeration of all X-Road error codes.
  */
 @RequiredArgsConstructor
-public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
+public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
     // ===== GENERIC ERRORS =====
     IO_ERROR("io_error"),
@@ -245,17 +245,16 @@ public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
     }
 
     /**
-     * Get ErrorCode from string code.
+     * Get ErrorDeviation from string code.
      *
      * @param code the string code
-     * @return the ErrorCode enum value, or INTERNAL_ERROR if not found
+     * @return the ErrorDeviation built from the code
      */
-    public static ErrorCodes fromCode(String code) {
-        for (ErrorCodes errorCode : values()) {
-            if (errorCode.code.equals(code)) {
-                return errorCode;
-            }
-        }
-        return INTERNAL_ERROR; // Default fallback
+    public static DeviationBuilder.ErrorDeviationBuilder withCode(String code) {
+        return () -> code;
+    }
+
+    public DeviationBuilder.ErrorDeviationBuilder withPrefix(String prefix) {
+        return () -> prefix + "." + code;
     }
 }

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.HttpStatus;
 import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.soap.SOAPException;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.xml.sax.SAXException;
 
@@ -57,12 +58,10 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
     private final ExceptionCategory category;
     private final ErrorDeviation errorDeviation;
     private final String details;
-    private final boolean thrownRemotely;
     private final HttpStatus httpStatus;
 
     XrdRuntimeException(String identifier,
                         ExceptionCategory category,
-                        boolean thrownRemotely,
                         ErrorDeviation errorDeviation,
                         String details,
                         HttpStatus httpStatus) {
@@ -70,7 +69,6 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         this.identifier = identifier;
         this.translationCode = errorDeviation.code();
         this.category = category;
-        this.thrownRemotely = thrownRemotely;
         this.errorDeviation = errorDeviation;
         this.details = details;
         this.httpStatus = httpStatus;
@@ -79,7 +77,6 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
     XrdRuntimeException(Throwable cause,
                         String identifier,
                         ExceptionCategory category,
-                        boolean thrownRemotely,
                         ErrorDeviation errorDeviation,
                         String details,
                         HttpStatus httpStatus) {
@@ -87,7 +84,6 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         this.identifier = identifier;
         this.translationCode = errorDeviation.code();
         this.category = category;
-        this.thrownRemotely = thrownRemotely;
         this.errorDeviation = errorDeviation;
         this.details = details;
         this.httpStatus = httpStatus;
@@ -96,13 +92,11 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
     XrdRuntimeException(Throwable cause,
                         String identifier,
                         ExceptionCategory category,
-                        boolean thrownRemotely,
                         ErrorDeviation errorDeviation,
                         HttpStatus httpStatus) {
         super(errorDeviation.code(), cause);
         this.identifier = identifier;
         this.category = category;
-        this.thrownRemotely = thrownRemotely;
         this.errorDeviation = errorDeviation;
         this.details = null;
         this.httpStatus = httpStatus;
@@ -124,16 +118,45 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
             message += ": %s".formatted(details);
         }
 
-        if (thrownRemotely) {
-            message += " (thrown remotely)";
-        }
-
         return message;
     }
 
     @Override
     public String getMessage() {
         return toString();
+    }
+
+    public String getCode() {
+        return errorDeviation.code();
+    }
+
+    public boolean isCausedBy(ErrorCode errorCode) {
+        final var code = errorDeviation.code();
+        if (code.contains(".")) {
+            return errorDeviation.code().endsWith("." + errorCode.code());
+        }
+        return code.equals(errorCode.code());
+    }
+
+    public boolean originatesFrom(ErrorOrigin origin) {
+        return errorDeviation.code().startsWith(origin.toPrefix());
+    }
+
+    @Override
+    public CodedException withPrefix(String... prefixes) {
+        //TODO consider keeping prefix separately instead of modifying the code
+        var prefix = StringUtils.join(prefixes, ".");
+
+        if (!getCode().startsWith(prefix)) {
+            return new XrdRuntimeException(
+                    getCause(),
+                    getIdentifier(),
+                    getCategory(),
+                    ErrorCode.withCode(prefix + "." + getCode()).build(getErrorDeviation().metadata()),
+                    getDetails(),
+                    getHttpStatus().orElse(null));
+        }
+        return this;
     }
 
     public Optional<HttpStatus> getHttpStatus() {
@@ -192,26 +215,28 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
      */
     @SuppressWarnings("squid:S1872")
     public static XrdRuntimeException systemException(Throwable ex) {
-        if (ex == null) {
-            throw new IllegalArgumentException("Exception cannot be null");
-        }
-        if (ex instanceof XrdRuntimeException xrdEx) {
-            return xrdEx;
-        }
-        return new Builder(ExceptionCategory.SYSTEM, resolveExceptionCode(ex))
-                .cause(ex)
-                .details(ex.getMessage())
-                .build();
+        return switch (ex) {
+            case null -> throw new IllegalArgumentException("Exception cannot be null");
+            case XrdRuntimeException xrdEx -> xrdEx;
+            case CodedException cex -> new Builder(ExceptionCategory.SYSTEM, ErrorCode.withCode(cex.getFaultCode()))
+                    .cause(ex)
+                    .details(cex.getFaultString())
+                    .build();
+            default -> new Builder(ExceptionCategory.SYSTEM, resolveExceptionCode(ex))
+                    .cause(ex)
+                    .details(ex.getMessage())
+                    .build();
+        };
     }
 
     public static XrdRuntimeException systemInternalError(String details) {
-        return new Builder(ExceptionCategory.SYSTEM, ErrorCodes.INTERNAL_ERROR)
+        return new Builder(ExceptionCategory.SYSTEM, ErrorCode.INTERNAL_ERROR)
                 .details(details)
                 .build();
     }
 
     public static XrdRuntimeException systemInternalError(String details, Throwable ex) {
-        return new Builder(ExceptionCategory.SYSTEM, ErrorCodes.INTERNAL_ERROR)
+        return new Builder(ExceptionCategory.SYSTEM, ErrorCode.INTERNAL_ERROR)
                 .details(details)
                 .cause(ex)
                 .build();
@@ -225,23 +250,23 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
      * @return the appropriate ErrorCodes enum value
      */
     @ArchUnitSuppressed("NoVanillaExceptions")
-    private static ErrorCodes resolveExceptionCode(Throwable ex) {
+    private static DeviationBuilder.ErrorDeviationBuilder resolveExceptionCode(Throwable ex) {
         return switch (ex) {
-            case CodedException cex -> ErrorCodes.fromCode(cex.getFaultCode());
-            case UnknownHostException ignored -> ErrorCodes.NETWORK_ERROR;
-            case MalformedURLException ignored -> ErrorCodes.NETWORK_ERROR;
-            case SocketException ignored -> ErrorCodes.NETWORK_ERROR;
-            case UnknownServiceException ignored -> ErrorCodes.NETWORK_ERROR;
-            case UnresolvedAddressException ignored -> ErrorCodes.NETWORK_ERROR;
-            case IOException ignored -> ErrorCodes.IO_ERROR;
-            case CertificateException ignored -> ErrorCodes.INCORRECT_CERTIFICATE;
-            case SOAPException ignored -> ErrorCodes.INVALID_SOAP;
-            case SAXException ignored -> ErrorCodes.INVALID_XML;
+            case CodedException cex -> ErrorCode.withCode(cex.getFaultCode());
+            case UnknownHostException ignored -> ErrorCode.NETWORK_ERROR;
+            case MalformedURLException ignored -> ErrorCode.NETWORK_ERROR;
+            case SocketException ignored -> ErrorCode.NETWORK_ERROR;
+            case UnknownServiceException ignored -> ErrorCode.NETWORK_ERROR;
+            case UnresolvedAddressException ignored -> ErrorCode.NETWORK_ERROR;
+            case IOException ignored -> ErrorCode.IO_ERROR;
+            case CertificateException ignored -> ErrorCode.INCORRECT_CERTIFICATE;
+            case SOAPException ignored -> ErrorCode.INVALID_SOAP;
+            case SAXException ignored -> ErrorCode.INVALID_XML;
             case UnmarshalException ue when isAccessorException(ue.getCause()) -> resolveExceptionCode(ue.getCause());
-            case Exception me when isMimeException(me) -> ErrorCodes.MIME_PARSING_FAILED;
+            case Exception me when isMimeException(me) -> ErrorCode.MIME_PARSING_FAILED;
             case Exception ae when isAccessorException(ae) && ae.getCause() instanceof CodedException cex ->
-                    ErrorCodes.fromCode(cex.getFaultCode());
-            default -> ErrorCodes.INTERNAL_ERROR;
+                    ErrorCode.withCode(cex.getFaultCode());
+            default -> ErrorCode.INTERNAL_ERROR;
         };
     }
 
@@ -279,7 +304,6 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         private Object[] metadataItems;
 
         private String details;
-        private boolean thrownRemotely = false;
         private HttpStatus httpStatus;
 
         public Builder(ExceptionCategory category, DeviationBuilder.ErrorDeviationBuilder errorDeviation) {
@@ -314,17 +338,6 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
          */
         public Builder identifier(String identifier) {
             this.identifier = identifier;
-            return this;
-        }
-
-        /**
-         * Marks whether this exception was thrown remotely.
-         *
-         * @param thrownRemotely true if thrown remotely
-         * @return this builder instance
-         */
-        public Builder thrownRemotely(boolean thrownRemotely) {
-            this.thrownRemotely = thrownRemotely;
             return this;
         }
 
@@ -381,7 +394,6 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
                             cause,
                             identifier,
                             category,
-                            thrownRemotely,
                             errorDeviation.build(metadataItems),
                             details,
                             httpStatus);
@@ -390,14 +402,12 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
                         cause,
                         identifier,
                         category,
-                        thrownRemotely,
-                        errorDeviation.build(),
+                        errorDeviation.build(metadataItems),
                         httpStatus);
             }
             return new XrdRuntimeException(
                     identifier,
                     category,
-                    thrownRemotely,
                     errorDeviation.build(metadataItems),
                     details,
                     httpStatus);

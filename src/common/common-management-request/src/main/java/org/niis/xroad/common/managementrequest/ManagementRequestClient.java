@@ -44,7 +44,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.beans.factory.DisposableBean;
@@ -116,7 +116,7 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
             createCentralHttpClient();
             createProxyHttpClient();
         } catch (Exception e) {
-            throw XrdRuntimeException.systemException(ErrorCodes.INTERNAL_ERROR)
+            throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                     .cause(e)
                     .details("Unable to initialize management request client")
                     .build();
