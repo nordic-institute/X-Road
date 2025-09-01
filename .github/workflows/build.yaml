@@ -91,6 +91,11 @@ jobs:
           mv -f ./service/signer/signer-int-test/src/intTest/resources/.env.github ./service/signer/signer-int-test/src/intTest/resources/.env
           mv -f ./service/op-monitor/op-monitor-int-test/src/intTest/resources/.env.github ./service/op-monitor/op-monitor-int-test/src/intTest/resources/.env
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5000
+      - name: Build signer-dev docker image
+        working-directory: ./deployment/security-server/docker/signer
+        run: |
+          chmod +x build-signer-dev-image.sh
+          ./build-signer-dev-image.sh localhost:5000
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -184,7 +189,7 @@ jobs:
           docker pull localhost:5000/ss-backup-manager:latest
           docker pull localhost:5000/ss-configuration-client:latest
           docker pull localhost:5000/ss-proxy:latest
-          docker pull localhost:5000/ss-signer:latest
+          docker pull localhost:5000/ss-signer-dev:latest
           docker pull localhost:5000/ss-monitor:latest
           docker pull localhost:5000/ss-op-monitor:latest
           docker pull localhost:5000/ss-proxy-ui-api:latest
@@ -195,7 +200,7 @@ jobs:
           docker save -o ${{ runner.temp }}/docker-images/ss-backup-manager.tar localhost:5000/ss-backup-manager:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-configuration-client.tar localhost:5000/ss-configuration-client:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-proxy.tar localhost:5000/ss-proxy:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-signer.tar localhost:5000/ss-signer:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-signer-dev.tar localhost:5000/ss-signer-dev:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-monitor.tar localhost:5000/ss-monitor:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-op-monitor.tar localhost:5000/ss-op-monitor:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-proxy-ui-api.tar localhost:5000/ss-proxy-ui-api:latest
