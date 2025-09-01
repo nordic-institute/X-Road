@@ -91,6 +91,11 @@ jobs:
           mv -f ./service/signer/signer-int-test/src/intTest/resources/.env.github ./service/signer/signer-int-test/src/intTest/resources/.env
           mv -f ./service/op-monitor/op-monitor-int-test/src/intTest/resources/.env.github ./service/op-monitor/op-monitor-int-test/src/intTest/resources/.env
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5000
+      - name: Build signer-dev docker image
+        working-directory: ./deployment/security-server/docker/signer
+        run: |
+          chmod +x build-signer-dev-image.sh
+          ./build-signer-dev-image.sh localhost:5000
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'

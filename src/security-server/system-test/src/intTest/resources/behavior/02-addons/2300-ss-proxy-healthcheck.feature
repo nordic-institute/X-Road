@@ -14,7 +14,7 @@ Feature: 2300 - SS Proxy: healthcheck
     And PIN is changed from "T0ken1zer3" to "Secret1234"
     Then Token: softToken-0 is logged-out
     And healthcheck has errors and error message is "No certificate chain available in authentication key."
-    When HSM tokens are deleted
+    #When HSM tokens are deleted
     And All Signer keys are deleted
     And authentication key "E67CCA8E9B3DA52DB740CDCDC0926F356F431063" named "Auth key" is added to softtoken
     And authentication certificate "D7D15F0ED1A1320EBA0190C838506B60EC07C994" is added for key "E67CCA8E9B3DA52DB740CDCDC0926F356F431063"
@@ -25,6 +25,8 @@ Feature: 2300 - SS Proxy: healthcheck
     And signer service is restarted
     And User logs in token: softToken-0 with PIN: Secret1234
     Then Token: softToken-0 is logged-in
+    And User logs in token: softhsm2 with PIN: Secret1234
+    Then Token: softhsm2 is logged-in
     And healthcheck has no errors
 
   Scenario: HSM healthcheck has no errors when HSM health check is enabled
