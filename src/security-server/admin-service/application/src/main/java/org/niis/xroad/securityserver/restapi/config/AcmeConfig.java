@@ -59,8 +59,10 @@ public class AcmeConfig {
     @SuppressWarnings("checkstyle:MagicNumber")
     private void acmeChallengeCustomizer(TomcatServletWebServerFactory factory) {
         var connector = new Connector(Http11NioProtocol.class.getName());
+        int acmeChallengePort = SystemProperties.getAcmeChallengePort();
         connector.setScheme("http");
-        connector.setPort(SystemProperties.getAcmeChallengePort());
+        connector.setPort(acmeChallengePort);
+        log.info("ACME challenge port enabled, listening on port {}", acmeChallengePort);
         factory.addAdditionalTomcatConnectors(connector);
     }
 
