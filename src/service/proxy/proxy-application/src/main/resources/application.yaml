@@ -13,10 +13,6 @@ quarkus:
     proxy:
       rpc:
         listen-address: 0.0.0.0
-  script:
-    generate-certificate:
-      path: /opt/app/scripts/generate_certificate.sh
-      args: -c /opt/app/scripts -n internal -f -S -p 2>&1
 
 "%native":
   quarkus:
@@ -55,3 +51,11 @@ quarkus:
               max-file-size: 100m
               file-suffix: .yyyy-MM-dd.zip
               rotate-on-boot: false
+
+xroad:
+  proxy:
+    tls:
+      certificate-provisioning:
+        common-name: ${XROAD_HOST:localhost}
+        ip-subject-alt-names:
+          - 127.0.0.1

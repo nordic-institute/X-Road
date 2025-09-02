@@ -27,6 +27,7 @@
 package org.niis.xroad.serverconf.impl;
 
 import lombok.NoArgsConstructor;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -34,12 +35,14 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class ServerConfFactory {
 
-    public static ServerConfProvider create(ServerConfDatabaseCtx databaseCtx, GlobalConfProvider globalConfProvider,
+    public static ServerConfProvider create(ServerConfDatabaseCtx databaseCtx,
+                                            GlobalConfProvider globalConfProvider,
+                                            VaultClient vaultClient,
                                             ServerConfCommonProperties serverConfProperties) {
         if (serverConfProperties.cachePeriod() > 0) {
-            return new CachingServerConfImpl(databaseCtx, globalConfProvider, serverConfProperties);
+            return new CachingServerConfImpl(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
         }
-        return new ServerConfImpl(databaseCtx, globalConfProvider);
+        return new ServerConfImpl(databaseCtx, globalConfProvider, vaultClient);
 
     }
 }

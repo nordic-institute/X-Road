@@ -26,6 +26,7 @@
 package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.codahale.metrics.MetricRegistry;
@@ -43,18 +44,25 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
+import org.niis.xroad.opmonitor.core.config.OpMonitorTlsProperties;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static java.util.Arrays.stream;
 
 /**
  * The main HTTP(S) request handler of the operational monitoring daemon.
@@ -67,7 +75,6 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 @RequiredArgsConstructor
 public final class OpMonitorDaemon {
     private static final String CLIENT_CONNECTOR_NAME = "OpMonitorDaemonClientConnector";
-
     private static final int SSL_SESSION_TIMEOUT = 600;
 
     // The start timestamp is saved once the server has been started.
@@ -79,10 +86,14 @@ public final class OpMonitorDaemon {
 
     private final OpMonitorProperties opMonitorProperties;
     private final OpMonitorCommonProperties opMonitorCommonProperties;
-    private final VaultKeyProvider vaultKeyProvider;
+    private final OpMonitorTlsProperties opMonitorTlsProperties;
     private final GlobalConfProvider globalConfProvider;
+    private final VaultClient vaultClient;
+    private final VaultKeyClient vaultKeyClient;
     private final OperationalDataRecordManager operationalDataRecordManager;
     private final HealthDataMetrics healthDataMetrics;
+    private final ScheduledExecutorService tlsClientCertificateRefreshScheduler =
+            Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
 
     private final MetricRegistry healthMetricRegistry = new MetricRegistry();
     private final JmxReporter reporter = JmxReporter.forRegistry(healthMetricRegistry).build();
@@ -102,6 +113,7 @@ public final class OpMonitorDaemon {
 
     @PreDestroy
     public void destroy() throws Exception {
+        tlsClientCertificateRefreshScheduler.shutdown();
         server.stop();
         reporter.stop();
     }
@@ -143,16 +155,11 @@ public final class OpMonitorDaemon {
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
 
-        if (opMonitorCommonProperties.connection().clientTlsCertificate().isEmpty()) {
-            ctx.init(new KeyManager[]{vaultKeyProvider.getKeyManager()},
-                    new TrustManager[]{vaultKeyProvider.getTrustManager()},
-                    new SecureRandom());
-        } else {
-            // op-monitoring daemon client TLS certificate is explicitly configured in case of external op-monitoring daemon
-            ctx.init(new KeyManager[]{new OpMonitorSslKeyManager()},
-                    new TrustManager[]{new OpMonitorSslTrustManager(opMonitorCommonProperties.connection().clientTlsCertificate().get())},
-                    new SecureRandom());
-        }
+        ensureOpMonitorTlsKeyPresent();
+
+        ctx.init(new KeyManager[]{new OpMonitorSslKeyManager(vaultClient)},
+                new TrustManager[]{createTrustManager()},
+                new SecureRandom());
 
         cf.setSslContext(ctx);
         return new ServerConnector(server, cf);
@@ -166,4 +173,28 @@ public final class OpMonitorDaemon {
     private void registerHealthMetrics() {
         healthDataMetrics.registerInitialMetrics(healthMetricRegistry, this::getStartTimestamp);
     }
+
+    private void ensureOpMonitorTlsKeyPresent() throws Exception {
+        try {
+            vaultClient.getOpmonitorTlsCredentials();
+        } catch (Exception e) {
+            log.warn("Unable to locate op-monitor TLS credentials, attempting to create new ones", e);
+            var vaultKeyData = vaultKeyClient.provisionNewCerts();
+            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
+                    .toArray(X509Certificate[]::new);
+            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
+            vaultClient.createOpmonitorTlsCredentials(internalTlsKey);
+            log.info("Successfully created op-monitor TLS credentials");
+        }
+    }
+
+    private OpMonitorSslTrustManager createTrustManager() {
+        if (opMonitorTlsProperties.clientCertificateRefreshInterval().toSeconds() < 1) {
+            return new OpMonitorSslTrustManager(vaultClient);
+        } else {
+            var certificateRefreshIntervalInSeconds = opMonitorTlsProperties.clientCertificateRefreshInterval().toSeconds();
+            return new OpMonitorSslTrustManager(vaultClient, tlsClientCertificateRefreshScheduler, certificateRefreshIntervalInSeconds);
+        }
+    }
+
 }

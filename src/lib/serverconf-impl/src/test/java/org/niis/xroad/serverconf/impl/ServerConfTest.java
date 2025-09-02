@@ -98,7 +98,7 @@ public class ServerConfTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         var globalConfProvider = TestGlobalConfFactory.create();
-        serverConfProvider = new ServerConfImpl(DATABASE_CTX, globalConfProvider);
+        serverConfProvider = new ServerConfImpl(DATABASE_CTX, globalConfProvider, null);
 
         prepareDB(DATABASE_CTX);
     }

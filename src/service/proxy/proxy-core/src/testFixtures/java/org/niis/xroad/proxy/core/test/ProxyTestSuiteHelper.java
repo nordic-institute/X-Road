@@ -30,7 +30,7 @@ package org.niis.xroad.proxy.core.test;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.experimental.UtilityClass;
-import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import java.util.Map;
 import java.util.Set;

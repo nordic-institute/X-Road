@@ -27,7 +27,7 @@
 package org.niis.xroad.proxy.core.addon.opmonitoring;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -67,7 +67,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
      */
     public OpMonitoringBufferImpl(ServerConfProvider serverConfProvider,
                                   OpMonitorCommonProperties opMonitorCommonProperties,
-                                  VaultKeyProvider vaultKeyProvider) throws Exception {
+                                  VaultClient vaultClient) throws Exception {
 
         this.opMonitorCommonProperties = opMonitorCommonProperties;
 
@@ -80,7 +80,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
             opMonitoringDataProcessor = null;
             savedServiceEndpoint = null;
         } else {
-            sender = createSender(serverConfProvider, opMonitorCommonProperties, vaultKeyProvider);
+            sender = createSender(serverConfProvider, opMonitorCommonProperties, vaultClient);
             executorService = Executors.newSingleThreadExecutor();
             taskScheduler = Executors.newSingleThreadScheduledExecutor();
             opMonitoringDataProcessor = createDataProcessor();
@@ -94,8 +94,8 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
 
     OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
                                           OpMonitorCommonProperties opMonCommonProperties,
-                                          VaultKeyProvider vaultKeyProvider) throws Exception {
-        return new OpMonitoringDaemonSender(serverConfProvider, this, opMonCommonProperties, vaultKeyProvider);
+                                          VaultClient vaultClient) throws Exception {
+        return new OpMonitoringDaemonSender(serverConfProvider, this, opMonCommonProperties, vaultClient);
     }
 
     @Override

@@ -27,7 +27,6 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.crypto.Digests;
 
 import lombok.RequiredArgsConstructor;
@@ -99,9 +98,6 @@ public class SystemService {
     private final ConfClientRpcClient confClientRpcClient;
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final GlobalConfProvider globalConfProvider;
-
-    @Setter
-    private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
     @Setter
     private String tempFilesPath = SystemProperties.getTempFilesPath();
 

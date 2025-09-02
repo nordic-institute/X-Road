@@ -6,6 +6,7 @@ dependencies {
   implementation(platform(libs.springBoot.bom))
 
   api(project(":lib:serverconf-impl"))
+  implementation(project(":common:common-vault-spring"))
 
   implementation("org.springframework.boot:spring-boot-starter")
 }

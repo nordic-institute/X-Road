@@ -24,46 +24,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.spring;
+package org.niis.xroad.common.vault.spring;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.CryptoUtils;
 
-import io.grpc.util.CertificateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.properties.CommonRpcProperties;
-import org.niis.xroad.common.rpc.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultCertificateRequest;
 import org.springframework.vault.support.VaultCertificateResponse;
 
 import java.io.ByteArrayInputStream;
+import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 @Slf4j
 @RequiredArgsConstructor
 public class SpringVaultKeyClient implements VaultKeyClient {
-    private final CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties;
     private final VaultTemplate vaultTemplate;
+    private final String secretStorePkiPath;
+    private final Duration ttl;
+    private final String issuanceRoleName;
+    private final String commonName;
+    private final List<String> altNames;
+    private final List<String> ipSubjectAltNames;
 
     @Override
     public VaultKeyData provisionNewCerts() throws Exception {
         var request = buildVaultCertificateRequest();
 
-        VaultCertificateResponse vaultResponse = vaultTemplate.opsForPki(certificateProvisionProperties.secretStorePkiPath())
-                .issueCertificate(certificateProvisionProperties.issuanceRoleName(), request);
+        VaultCertificateResponse vaultResponse = vaultTemplate.opsForPki(secretStorePkiPath)
+                .issueCertificate(issuanceRoleName, request);
 
         if (vaultResponse.getData() != null) {
             var data = vaultResponse.getData();
-            var cert = CertificateUtils.getX509Certificates(new ByteArrayInputStream(data.getCertificate().getBytes()));
-            var privateKey = CertificateUtils.getPrivateKey(new ByteArrayInputStream(data.getPrivateKey().getBytes()));
-            var certTrustChain = CertificateUtils.getX509Certificates(new ByteArrayInputStream(data.getIssuingCaCertificate().getBytes()));
+            var cert = CryptoUtils.readCertificates(new ByteArrayInputStream(data.getCertificate().getBytes()));
+            var privateKey = CryptoUtils.getPrivateKey(new ByteArrayInputStream(data.getPrivateKey().getBytes()));
+            var certTrustChain = CryptoUtils.readCertificates(new ByteArrayInputStream(data.getIssuingCaCertificate().getBytes()));
 
             return new VaultKeyData(
-                    cert,
+                    cert.toArray(new X509Certificate[0]),
                     privateKey,
-                    certTrustChain
+                    certTrustChain.toArray(new X509Certificate[0])
             );
         } else {
             throw new CodedException(X_INTERNAL_ERROR, "Failed to get certificate from Vault. Data is null.");
@@ -72,18 +79,18 @@ public class SpringVaultKeyClient implements VaultKeyClient {
 
     private VaultCertificateRequest buildVaultCertificateRequest() {
         var builder = VaultCertificateRequest.builder()
-                .ttl(certificateProvisionProperties.ttl())
+                .ttl(ttl)
                 .format(CERTIFICATE_FORMAT)
                 .privateKeyFormat(PKCS8_FORMAT);
 
-        if (certificateProvisionProperties.commonName() != null) {
-            builder.commonName(certificateProvisionProperties.commonName());
+        if (commonName != null) {
+            builder.commonName(commonName);
         }
-        if (certificateProvisionProperties.altNames() != null) {
-            builder.altNames(certificateProvisionProperties.altNames());
+        if (altNames != null) {
+            builder.altNames(altNames);
         }
-        if (certificateProvisionProperties.ipSubjectAltNames() != null) {
-            builder.ipSubjectAltNames(certificateProvisionProperties.ipSubjectAltNames());
+        if (ipSubjectAltNames != null) {
+            builder.ipSubjectAltNames(ipSubjectAltNames);
         }
         return builder.build();
     }

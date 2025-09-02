@@ -26,6 +26,8 @@
 package org.niis.xroad.serverconf.spring;
 
 import lombok.Setter;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
@@ -36,6 +38,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import java.util.Map;
 
@@ -43,6 +46,7 @@ import java.util.Map;
 @EnableConfigurationProperties({
         ServerConfBeanConfig.SpringServerConfProperties.class,
         ServerConfBeanConfig.SpringServerConfDbProperties.class})
+@Import(SpringVaultClientConfig.class)
 public class ServerConfBeanConfig {
 
     @Bean(destroyMethod = "destroy")
@@ -53,8 +57,9 @@ public class ServerConfBeanConfig {
     @Bean
     public ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
                                                  GlobalConfProvider globalConfProvider,
-                                                 SpringServerConfProperties serverConfProperties) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
+                                                 SpringServerConfProperties serverConfProperties,
+                                                 VaultClient vaultClient) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
     }
 
     @Setter

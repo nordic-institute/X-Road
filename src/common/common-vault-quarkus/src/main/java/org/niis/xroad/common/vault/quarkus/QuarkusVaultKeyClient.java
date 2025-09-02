@@ -24,34 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.quarkus;
+package org.niis.xroad.common.vault.quarkus;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.CryptoUtils;
 
-import io.grpc.util.CertificateUtils;
 import io.quarkus.vault.VaultPKISecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
 import io.quarkus.vault.pki.DataFormat;
 import io.quarkus.vault.pki.GenerateCertificateOptions;
 import io.quarkus.vault.pki.PrivateKeyEncoding;
-import org.niis.xroad.common.properties.CommonRpcProperties;
-import org.niis.xroad.common.rpc.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 public class QuarkusVaultKeyClient implements VaultKeyClient {
-    private final CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties;
     private final VaultPKISecretEngine pkiSecretEngine;
+    private final Duration ttl;
+    private final String issuanceRoleName;
+    private final String commonName;
+    private final List<String> altNames;
+    private final List<String> ipSubjectAltNames;
 
-    public QuarkusVaultKeyClient(CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties,
-                                 VaultPKISecretEngineFactory pkiSecretEngineFactory) {
-        this.certificateProvisionProperties = certificateProvisionProperties;
-        this.pkiSecretEngine = pkiSecretEngineFactory.engine(certificateProvisionProperties.secretStorePkiPath());
-
+    public QuarkusVaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, String secretStorePkiPath, Duration ttl,
+                                 String issuanceRoleName, String commonName, List<String> altNames, List<String> ipSubjectAltNames) {
+        this.pkiSecretEngine = pkiSecretEngineFactory.engine(secretStorePkiPath);
+        this.ttl = ttl;
+        this.issuanceRoleName = issuanceRoleName;
+        this.commonName = commonName;
+        this.altNames = altNames;
+        this.ipSubjectAltNames = ipSubjectAltNames;
     }
 
     @Override
@@ -62,7 +70,7 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
 
         var request = buildVaultCertificateRequest();
 
-        var vaultResponse = pkiSecretEngine.generateCertificate(certificateProvisionProperties.issuanceRoleName(), request);
+        var vaultResponse = pkiSecretEngine.generateCertificate(issuanceRoleName, request);
 
         if (vaultResponse == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Failed to get certificate from Vault. Response is null.");
@@ -70,7 +78,7 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
 
         if (vaultResponse.privateKey.getData() instanceof String privateKeyData) {
             var cert = vaultResponse.certificate.getCertificate();
-            var privateKey = CertificateUtils.getPrivateKey(new ByteArrayInputStream(privateKeyData.getBytes(StandardCharsets.UTF_8)));
+            var privateKey = CryptoUtils.getPrivateKey(new ByteArrayInputStream(privateKeyData.getBytes(StandardCharsets.UTF_8)));
             var certTrustChain = vaultResponse.issuingCA.getCertificate();
             return new VaultKeyData(new X509Certificate[]{cert},
                     privateKey,
@@ -83,18 +91,18 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
 
     private GenerateCertificateOptions buildVaultCertificateRequest() {
         var request = new GenerateCertificateOptions();
-        request.setTimeToLive("%ds".formatted(certificateProvisionProperties.ttl().toSeconds()));
+        request.setTimeToLive("%ds".formatted(ttl.toSeconds()));
         request.setFormat(DataFormat.valueOf(CERTIFICATE_FORMAT.toUpperCase()));
         request.setPrivateKeyEncoding(PrivateKeyEncoding.valueOf(PKCS8_FORMAT.toUpperCase()));
 
-        if (certificateProvisionProperties.commonName() != null) {
-            request.setSubjectCommonName(certificateProvisionProperties.commonName());
+        if (commonName != null) {
+            request.setSubjectCommonName(commonName);
         }
-        if (certificateProvisionProperties.altNames() != null) {
-            request.setSubjectAlternativeNames(certificateProvisionProperties.altNames());
+        if (altNames != null) {
+            request.setSubjectAlternativeNames(altNames);
         }
-        if (certificateProvisionProperties.ipSubjectAltNames() != null) {
-            request.setIpSubjectAlternativeNames(certificateProvisionProperties.ipSubjectAltNames());
+        if (ipSubjectAltNames != null) {
+            request.setIpSubjectAlternativeNames(ipSubjectAltNames);
         }
         return request;
     }

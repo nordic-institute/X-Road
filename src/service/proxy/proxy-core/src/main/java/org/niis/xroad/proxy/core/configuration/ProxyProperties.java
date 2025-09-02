@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.proxy.core;
+package org.niis.xroad.proxy.core.configuration;
 
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
@@ -213,4 +213,5 @@ public interface ProxyProperties {
         }
 
     }
+
 }

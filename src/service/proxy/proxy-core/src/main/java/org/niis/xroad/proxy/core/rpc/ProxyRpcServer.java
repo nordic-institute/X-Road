@@ -34,9 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.ManagedRpcServer;
-import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.proxymonitor.util.ProxyMonitorService;
 import org.niis.xroad.proxy.core.admin.AdminService;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.tls.InternalTlsService;
 
 import java.util.ArrayList;

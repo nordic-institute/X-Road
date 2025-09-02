@@ -19,8 +19,6 @@ services:
       - ../../../src/security-server/system-test/build/resources/intTest/container-files/etc/xroad/conf.d:/etc/xroad/conf.d
       - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/messagelog:/etc/xroad/messagelog
     depends_on:
-      op-monitor:
-        condition: service_healthy
       testca:
         condition: service_healthy
 
@@ -90,6 +88,7 @@ services:
       - XROAD_HOST=op-monitor
       - XROAD_OP_MONITOR_LISTEN_ADDRESS=0.0.0.0
       - XROAD_OP_MONITOR_SCHEME=https
+      - XROAD_OP_MONITOR_TLS_CLIENT_CERTIFICATE_REFRESH_INTERVAL=60S
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http

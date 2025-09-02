@@ -28,13 +28,9 @@
 package org.niis.xroad.proxy.core.tls;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
-import ee.ria.xroad.common.util.process.ProcessFailedException;
-import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import com.google.common.collect.Iterables;
 import com.google.protobuf.ByteString;
@@ -42,9 +38,9 @@ import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.rpc.server.CommonRpcHandler;
-import org.niis.xroad.proxy.core.GenerateCertScriptProperties;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.proxy.proto.GenerateInternalCsrRequest;
 import org.niis.xroad.proxy.proto.GenerateInternalCsrResponse;
 import org.niis.xroad.proxy.proto.InternalTlsCertificateChainMessage;
@@ -53,22 +49,19 @@ import org.niis.xroad.proxy.proto.InternalTlsServiceGrpc;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import java.io.IOException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Stream;
 
+import static java.util.Arrays.stream;
 import static org.niis.xroad.common.core.exception.ErrorCodes.CERTIFICATE_ALREADY_EXISTS;
 import static org.niis.xroad.common.core.exception.ErrorCodes.IMPORT_INTERNAL_CERT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCodes.INTERNAL_ERROR;
-import static org.niis.xroad.common.core.exception.ErrorCodes.INTERNAL_KEY_CERT_INTERRUPTED;
 import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_CERTIFICATE;
 import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_DISTINGUISHED_NAME;
-import static org.niis.xroad.common.core.exception.ErrorCodes.KEY_CERT_GENERATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCodes.KEY_NOT_FOUND;
 
 @Slf4j
@@ -78,36 +71,43 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
 
     private final CommonRpcHandler commonRpcHandler = new CommonRpcHandler();
 
-    private final ExternalProcessRunner externalProcessRunner;
     private final ServerConfProvider serverConfProvider;
-    private final GenerateCertScriptProperties generateCertScriptProperties;
-    private final InternalTlsCertificateRepository internalTlsCertificateRepository;
-
-    private String internalCertPath = SystemProperties.getConfPath() + InternalSSLKey.CRT_FILE_NAME;
-    private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
-    private String internalKeystorePath = SystemProperties.getConfPath() + InternalSSLKey.KEY_FILE_NAME;
+    private final VaultClient vaultClient;
+    private final VaultKeyClient vaultKeyClient;
 
     @Override
     public void getInternalTlsCertificate(Empty request, StreamObserver<InternalTlsCertificateMessage> responseObserver) {
         commonRpcHandler.handleRequest(responseObserver, () -> {
-            var cert = internalTlsCertificateRepository.getInternalTlsCertificate();
-            return toCertificateMessage(cert);
+            try {
+                var internalSslKey = vaultClient.getInternalTlsCredentials();
+                return toCertificateMessage(internalSslKey.getCertChain()[0]);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
     @Override
     public void getInternalTlsCertificateChain(Empty request, StreamObserver<InternalTlsCertificateChainMessage> responseObserver) {
         commonRpcHandler.handleRequest(responseObserver, () -> {
-            var certChain = internalTlsCertificateRepository.getInternalTlsCertificateChain();
-            return toCertificateChainMessage(certChain);
+            try {
+                var internalSslKey = vaultClient.getInternalTlsCredentials();
+                return toCertificateChainMessage(internalSslKey.getCertChain());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
     @Override
     public void generateInternalTlsKeyAndCertificate(Empty request, StreamObserver<InternalTlsCertificateMessage> responseObserver) {
         commonRpcHandler.handleRequest(responseObserver, () -> {
-            var cert = generateInternalTlsKeyAndCertificate();
-            return toCertificateMessage(cert);
+            try {
+                var cert = generateInternalTlsKeyAndCertificate();
+                return toCertificateMessage(cert);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
@@ -116,15 +116,19 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
         commonRpcHandler.handleRequest(responseObserver, () -> {
             var csr = generateInternalCsr(request.getDistinguishedName());
             return toGenerateInternalCsrResponse(csr);
-       });
+        });
     }
 
     @Override
     public void importInternalTlsCertificate(InternalTlsCertificateMessage request,
                                              StreamObserver<InternalTlsCertificateMessage> responseObserver) {
         commonRpcHandler.handleRequest(responseObserver, () -> {
-            var importedCert = importInternalTlsCertificate(request.getInternalTlsCertificate().toByteArray());
-            return toCertificateMessage(importedCert);
+            try {
+                var importedCert = importInternalTlsCertificate(request.getInternalTlsCertificate().toByteArray());
+                return toCertificateMessage(importedCert);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
@@ -138,7 +142,7 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
         }
     }
 
-    private InternalTlsCertificateChainMessage toCertificateChainMessage(Collection<X509Certificate> certificates) {
+    private InternalTlsCertificateChainMessage toCertificateChainMessage(X509Certificate[] certificates) {
         try {
             var messageBuilder = InternalTlsCertificateChainMessage.newBuilder();
             for (X509Certificate cert : certificates) {
@@ -156,19 +160,15 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
                 .build();
     }
 
-    private X509Certificate generateInternalTlsKeyAndCertificate() {
-        try {
-            externalProcessRunner.executeAndThrowOnFailure(generateCertScriptProperties.path(),
-                    generateCertScriptProperties.args().split("\\s+"));
-        } catch (ProcessNotExecutableException | ProcessFailedException e) {
-            throw new CodedException(KEY_CERT_GENERATION_FAILED.code(), e);
-        } catch (InterruptedException e) {
-            throw new CodedException(INTERNAL_KEY_CERT_INTERRUPTED.code(), e);
-        }
-
-        serverConfProvider.clearCache();
-
-        return internalTlsCertificateRepository.getInternalTlsCertificate();
+    private X509Certificate generateInternalTlsKeyAndCertificate() throws Exception {
+        var vaultKeyData = vaultKeyClient.provisionNewCerts();
+        var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
+                .toArray(X509Certificate[]::new);
+        var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
+        vaultClient.createInternalTlsCredentials(internalTlsKey);
+        log.info("Successfully created internal TLS credentials");
+        var internalSslKey = vaultClient.getInternalTlsCredentials();
+        return internalSslKey.getCertChain()[0];
     }
 
     /**
@@ -178,13 +178,15 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
      */
     private byte[] generateInternalCsr(String distinguishedName) {
         try {
-            KeyPair keyPair = CertUtils.readKeyPairFromPemFile(internalKeyPath);
-            return CertUtils.generateCertRequest(keyPair.getPrivate(), keyPair.getPublic(), distinguishedName);
+            var internalSslKey = vaultClient.getInternalTlsCredentials();
+            return CertUtils.generateCertRequest(
+                    internalSslKey.getKey(), internalSslKey.getCertChain()[0].getPublicKey(), distinguishedName
+            );
         } catch (IllegalArgumentException e) {
             throw new CodedException(INVALID_DISTINGUISHED_NAME.code(), e);
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | OperatorCreationException e) {
+        } catch (Exception e) {
             throw new CodedException(INTERNAL_ERROR.code(), e);
-    }
+        }
     }
 
     /**
@@ -192,7 +194,7 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
      * @param certificateBytes
      * @return X509Certificate
      */
-    private X509Certificate importInternalTlsCertificate(byte[] certificateBytes) {
+    private X509Certificate importInternalTlsCertificate(byte[] certificateBytes) throws Exception {
         Collection<X509Certificate> x509Certificates;
         try {
             // the imported file can be a single certificate or a chain
@@ -205,9 +207,9 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
         }
         verifyInternalCertImportability(x509Certificates);
         try {
-            // create pkcs12 checks the certificate chain validity
-            CertUtils.createPkcs12(internalKeyPath, certificateBytes, internalKeystorePath);
-            CertUtils.writePemToFile(certificateBytes, internalCertPath);
+            var internalSslKey = vaultClient.getInternalTlsCredentials();
+            var internalSslKeyWithNewCert = new InternalSSLKey(internalSslKey.getKey(), x509Certificates.toArray(X509Certificate[]::new));
+            vaultClient.createInternalTlsCredentials(internalSslKeyWithNewCert);
         } catch (Exception e) {
             throw new CodedException(IMPORT_INTERNAL_CERT_FAILED.code(), e);
         }
@@ -221,9 +223,9 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
      * Verifies that the chain matches the internal TLS key
      * @param newCertChain the cert chain to be imported
      */
-    private void verifyInternalCertImportability(Collection<X509Certificate> newCertChain) {
-        Collection<X509Certificate> internalCertChain = internalTlsCertificateRepository.getInternalTlsCertificateChain();
-        PublicKey internalPublicKey = Iterables.get(internalCertChain, 0).getPublicKey();
+    private void verifyInternalCertImportability(Collection<X509Certificate> newCertChain) throws Exception {
+        var internalCertChain = Arrays.asList(vaultClient.getInternalTlsCredentials().getCertChain());
+        PublicKey internalPublicKey = internalCertChain.getFirst().getPublicKey();
 
         boolean found = newCertChain.stream().anyMatch(c -> c.getPublicKey().equals(internalPublicKey));
         if (!found) {

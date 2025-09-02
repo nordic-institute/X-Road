@@ -31,7 +31,7 @@ import ee.ria.xroad.common.ProxyMemory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 
 @RequiredArgsConstructor

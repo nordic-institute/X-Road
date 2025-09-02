@@ -117,7 +117,6 @@ public class SystemServiceTest {
         systemService = new SystemService(globalConfService, serverConfService,
                 currentSecurityServerId, managementRequestSenderService, auditDataHelper,
                 addressChangeStatus, confClientRpcClient, maintenanceModeStatus, globalConfProvider);
-        systemService.setInternalKeyPath("src/test/resources/internal.key");
     }
 
     @Test

@@ -83,8 +83,8 @@ public class AcmeClientWorker {
     private final SignerSignClient signerSignClient;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfService serverConfService;
-    private final MailNotificationHelper mailNotificationHelper;
     private final VaultKeyProvider vaultKeyProvider;
+    private final MailNotificationHelper mailNotificationHelper;
 
     @Value("${xroad.proxy-ui-api.security-server-url}")
     private String proxyUrl;

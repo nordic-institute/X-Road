@@ -54,40 +54,4 @@ LIST=
 for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
 ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
 
-while :; do
-    if [[ ! -r /etc/xroad/ssl/internal.crt || ! -r /etc/xroad/ssl/internal.key  || ! -r /etc/xroad/ssl/internal.p12 ]]
-    then
-       echo "Generating new internal.[crt|key|p12] files "
-       db_subst xroad-common/service-subject HOST "$HOST"
-       db_subst xroad-common/service-altsubject ALT "$ALT"
-       RET=
-       db_get xroad-common/service-subject
-       if [ -z "$RET"  ]
-       then
-          db_set xroad-common/service-subject "/CN=$HOST"
-       fi
-       RET=
-       db_get xroad-common/service-altsubject
-       if [ -z "$RET"  ]
-       then
-          db_set xroad-common/service-altsubject "$ALT"
-       fi
-       db_input critical xroad-common/service-subject || true
-       db_input critical xroad-common/service-altsubject || true
-       db_go
-       RET=
-       db_get xroad-common/service-subject
-       subj="$RET"
-       RET=
-       db_get xroad-common/service-altsubject
-       altn="$RET"
-       db_go
-       rm -f /etc/xroad/ssl/internal.crt /etc/xroad/ssl/internal.key /etc/xroad/ssl/internal.p12
-       echo "generating new service TLS key/certificate with $subj and $altn"
-       /usr/share/xroad/scripts/generate_certificate.sh  -n internal -s "${subj}" -a "${altn}" -p 2>/tmp/cert.err || handle_error
-    else
-      break
-    fi
-done
-
 db_stop

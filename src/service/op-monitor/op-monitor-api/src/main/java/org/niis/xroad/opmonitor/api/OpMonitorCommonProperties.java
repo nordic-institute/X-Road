@@ -76,16 +76,20 @@ public interface OpMonitorCommonProperties {
         /**
          * Property name of the path to the location of the TLS certificate used by the HTTP client sending requests to the
          * operational data daemon.
-         * If not explicitly specified, certificate from Vault will be used.
          */
         @WithName("client-tls-certificate")
+        @Deprecated
+        //TODO In X-Road 8 we store TLS certificates in OpenBao - only needed for 7 -> 8 migration, can be removed otherwise
         Optional<String> clientTlsCertificate();
 
         /**
          * @return the path to the location of the operational monitoring daemon TLS certificate,
          * If not explicitly specified, certificate from Vault will be used.
+         *
          */
         @WithName("tls-certificate")
+        @Deprecated
+        //TODO In X-Road 8 we store TLS certificates in OpenBao - only needed for 7 -> 8 migration, can be removed otherwise
         Optional<String> tlsCertificate();
 
     }

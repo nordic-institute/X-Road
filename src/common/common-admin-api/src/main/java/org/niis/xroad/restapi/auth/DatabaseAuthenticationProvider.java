@@ -43,8 +43,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class DatabaseAuthenticationProvider implements AuthenticationProvider {
 
-    private static final int MAX_LEN = 255;
-
     private final PasswordEncoder passwordEncoder;
     private final AdminUserService adminUserService;
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
