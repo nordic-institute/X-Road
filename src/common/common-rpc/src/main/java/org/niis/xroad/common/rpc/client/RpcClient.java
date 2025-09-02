@@ -44,6 +44,7 @@ import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
@@ -140,7 +141,8 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             return grpcCall.exec(executionContext);
         } catch (StatusRuntimeException error) {
             if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
-                throw XrdRuntimeException.systemException(NETWORK_ERROR.withPrefix("signer"))
+                throw XrdRuntimeException.systemException(NETWORK_ERROR)
+                        .origin(ErrorOrigin.SIGNER)
                         .details("gRPC client timed out. Deadline: %s ms".formatted(rpcDeadlineMillis))
                         .build();
             }

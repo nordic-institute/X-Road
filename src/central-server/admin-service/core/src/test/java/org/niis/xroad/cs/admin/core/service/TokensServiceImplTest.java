@@ -34,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -118,7 +119,7 @@ class TokensServiceImplTest {
     @Test
     void loginShouldThrowWhenTokenNotFound() {
         when(signerProxyFacade.getToken(TOKEN_ID))
-                .thenThrow(XrdRuntimeException.systemException(TOKEN_NOT_FOUND.withPrefix("signer")).build());
+                .thenThrow(XrdRuntimeException.systemException(TOKEN_NOT_FOUND).origin(ErrorOrigin.SIGNER).build());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(NotFoundException.class)
@@ -165,7 +166,7 @@ class TokensServiceImplTest {
     @Test
     void loginShouldThrowOtherException() {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK));
-        doThrow(XrdRuntimeException.systemException(INTERNAL_ERROR.withPrefix("signer")).build())
+        doThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).origin(ErrorOrigin.SIGNER).build())
                 .when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
@@ -233,7 +234,7 @@ class TokensServiceImplTest {
     @Test
     void logoutShouldThrowNotFound() {
         when(signerProxyFacade.getToken(TOKEN_ID))
-                .thenThrow(XrdRuntimeException.systemException(TOKEN_NOT_FOUND.withPrefix("signer")).build());
+                .thenThrow(XrdRuntimeException.systemException(TOKEN_NOT_FOUND).origin(ErrorOrigin.SIGNER).build());
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(NotFoundException.class)
@@ -243,7 +244,7 @@ class TokensServiceImplTest {
     @Test
     void logoutShouldThrowOtherExceptionWhenGetTokenFails() {
         when(signerProxyFacade.getToken(TOKEN_ID))
-                .thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR.withPrefix("signer")).build());
+                .thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).origin(ErrorOrigin.SIGNER).build());
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(SignerProxyException.class)

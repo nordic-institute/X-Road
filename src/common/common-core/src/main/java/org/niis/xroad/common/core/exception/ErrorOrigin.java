@@ -27,7 +27,6 @@
 package org.niis.xroad.common.core.exception;
 
 public enum ErrorOrigin {
-    LOCAL,
     CLIENT,
     SERVER,
     SIGNER;

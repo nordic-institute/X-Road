@@ -82,6 +82,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     @Override
     @WithSpan
+    @SuppressWarnings({"java:S3776"}) //TODO XRDDEV-2962 cognitive complexity should drop after refactoring
     @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
         boolean handled = false;

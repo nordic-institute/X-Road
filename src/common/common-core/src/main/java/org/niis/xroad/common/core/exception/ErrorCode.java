@@ -26,10 +26,12 @@
 package org.niis.xroad.common.core.exception;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Enumeration of all X-Road error codes.
  */
+@Slf4j
 @RequiredArgsConstructor
 public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
@@ -251,10 +253,14 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
      * @return the ErrorDeviation built from the code
      */
     public static DeviationBuilder.ErrorDeviationBuilder withCode(String code) {
-        return () -> code;
+        return () -> prepareCode(code);
     }
 
-    public DeviationBuilder.ErrorDeviationBuilder withPrefix(String prefix) {
-        return () -> prefix + "." + code;
+    private static String prepareCode(String code) {
+        if (code == null) {
+            log.warn("Error code is null, returning empty string");
+            return INTERNAL_ERROR.code();
+        }
+        return code.toLowerCase();
     }
 }

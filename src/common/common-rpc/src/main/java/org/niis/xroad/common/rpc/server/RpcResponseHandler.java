@@ -53,7 +53,6 @@ public class RpcResponseHandler {
         }
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     public <T> void handleException(Exception exception, StreamObserver<T> responseObserver) {
         var xrdRuntimeException = XrdRuntimeException.systemException(exception);
 

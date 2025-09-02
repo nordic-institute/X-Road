@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -89,11 +90,13 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             String tokenId = (String) args[0];
             switch (tokenId) {
                 case WRONG_SOFTTOKEN_PIN_TOKEN_ID -> throw XrdRuntimeException.systemException(PIN_INCORRECT).build();
-                case UNKNOWN_LOGIN_FAIL_TOKEN_ID -> throw XrdRuntimeException.systemException(LOGIN_FAILED.withPrefix("Signer"))
+                case UNKNOWN_LOGIN_FAIL_TOKEN_ID -> throw XrdRuntimeException.systemException(LOGIN_FAILED)
+                        .origin(ErrorOrigin.SIGNER)
                         .details("dont know what happened").build();
                 case TOKEN_NOT_FOUND_TOKEN_ID -> throw XrdRuntimeException.systemException(TOKEN_NOT_FOUND)
                         .details("did not find it").build();
-                case UNRECOGNIZED_FAULT_CODE_TOKEN_ID -> throw XrdRuntimeException.systemException(INTERNAL_ERROR.withPrefix("Signer"))
+                case UNRECOGNIZED_FAULT_CODE_TOKEN_ID -> throw XrdRuntimeException.systemException(INTERNAL_ERROR)
+                        .origin(ErrorOrigin.SIGNER)
                         .details("bar").build();
                 case null, default -> log.debug("activate successful");
             }
@@ -117,7 +120,8 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
                 throw XrdRuntimeException.systemException(TOKEN_NOT_FOUND).build();
             } else if (UNRECOGNIZED_FAULT_CODE_TOKEN_ID.equals(tokenId)) {
-                throw XrdRuntimeException.systemException(INTERNAL_ERROR.withPrefix("Signer"))
+                throw XrdRuntimeException.systemException(INTERNAL_ERROR)
+                        .origin(ErrorOrigin.SIGNER)
                         .details("bar").build();
             } else {
                 log.debug("deactivate successful");
@@ -230,7 +234,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void getUnknownSoftwareTokenInitStatus() {
-        when(signerRpcClient.getTokens()).thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR.withPrefix("Signer")).build());
+        when(signerRpcClient.getTokens()).thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).origin(ErrorOrigin.SIGNER).build());
         TokenInitStatusInfo tokenStatus = tokenService.getSoftwareTokenInitStatus();
         assertEquals(TokenInitStatusInfo.UNKNOWN, tokenStatus);
     }
