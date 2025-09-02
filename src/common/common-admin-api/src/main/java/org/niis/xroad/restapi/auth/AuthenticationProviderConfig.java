@@ -64,7 +64,7 @@ public class AuthenticationProviderConfig {
      * @return AuthenticationProvider
      */
     @Bean(FORM_LOGIN_AUTHENTICATION)
-    public AuthenticationProvider formLoginDBAuthentication(@Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder) {
+    public AuthenticationProvider formLoginAuthentication(@Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder) {
         AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
         formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
 
@@ -82,7 +82,7 @@ public class AuthenticationProviderConfig {
      * @return AuthenticationProvider
      */
     @Bean(KEY_MANAGEMENT_AUTHENTICATION)
-    public AuthenticationProvider keyManagementDBAuthentication(@Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder,
+    public AuthenticationProvider keyManagementAuthentication(@Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder,
             @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
 
         if (UserAuthenticationConfig.AuthenticationProviderType.DATABASE == userAuthenticationConfig.getAuthenticationProvider()) {

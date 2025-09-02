@@ -53,7 +53,6 @@ cp -p %{srcdir}/../../../service/op-monitor/op-monitor-db/src/main/resources/liq
 cp -p %{srcdir}/../../../service/op-monitor/op-monitor-db/src/main/resources/liquibase/op-monitor-changelog.xml %{buildroot}/usr/share/xroad/db/
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/bin/xroad-opmonitor %{buildroot}/usr/share/xroad/bin/
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/scripts/setup_opmonitor_db.sh %{buildroot}/usr/share/xroad/scripts/
-cp -p %{srcdir}/common/op-monitor/generate-opmonitor-certificate.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{srcdir}/../../../systemtest/op-monitoring/zabbix_api/examples/zabbix/* %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
@@ -61,7 +60,6 @@ cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/xroad-opmoni
 cp -p %{srcdir}/common/op-monitor/etc/xroad/backup.d/??_xroad-opmonitor %{buildroot}/etc/xroad/backup.d/
 
 ln -s /usr/share/xroad/jlib/op-monitor/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/op-monitor-daemon.jar
-ln -s /usr/share/xroad/scripts/generate-opmonitor-certificate.sh %{buildroot}/usr/bin/generate-opmonitor-certificate
 
 %clean
 rm -rf %{buildroot}
@@ -82,8 +80,6 @@ rm -rf %{buildroot}
 
 /usr/share/xroad/jlib/op-monitor/
 /usr/share/xroad/jlib/op-monitor-daemon.jar
-%attr(554,root,xroad) /usr/share/xroad/scripts/generate-opmonitor-certificate.sh
-/usr/bin/generate-opmonitor-certificate
 
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt

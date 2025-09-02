@@ -13,6 +13,9 @@ xroad:
     global-conf-hostname-verification: false
   signer:
     enforce-token-pin-policy: true
+    addon:
+      hwtoken:
+        enabled: true
   proxy:
     ssl-enabled: false # Can be removed once UI system tests configure a functional AUTH certificate
     health-check-port: 5558

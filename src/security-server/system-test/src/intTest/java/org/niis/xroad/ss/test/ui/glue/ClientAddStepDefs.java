@@ -80,7 +80,7 @@ public class ClientAddStepDefs extends BaseUiStepDefs {
     @Step("Add Client Token is set as {string}")
     public void wizardClientToken(String token) {
         clientPageObj.addClientToken.radioByTokenName(token).shouldBe(visible);
-        vRadio(clientPageObj.addClientToken.radioByTokenName(token)).shouldBeChecked();
+        vRadio(clientPageObj.addClientToken.radioByTokenName(token)).click();
         clientPageObj.addClientToken.btnNext().click();
     }
 

@@ -32,6 +32,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.vault.NoopVaultClient;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.test.serverconf.TestServerConf;
 
@@ -49,6 +51,12 @@ class ProxyMainTest {
     @Mock
     ServerConfProvider serverConfProvider() {
         return new TestServerConf();
+    }
+
+    @ApplicationScoped
+    @Mock
+    VaultClient vaultTlsCredentialsProvider() {
+        return new NoopVaultClient();
     }
 
 }

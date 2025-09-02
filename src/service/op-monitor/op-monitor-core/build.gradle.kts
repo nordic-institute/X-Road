@@ -28,7 +28,7 @@ dependencies {
   implementation(project(":common:common-db"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":service:op-monitor:op-monitor-api"))
-  implementation(project(":common:common-rpc-quarkus"))
+  implementation(project(":common:common-vault-quarkus"))
 
   testImplementation(libs.hsqldb)
   testImplementation(project(":common:common-test"))

@@ -47,7 +47,7 @@ import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import java.util.ArrayList;
 import java.util.List;

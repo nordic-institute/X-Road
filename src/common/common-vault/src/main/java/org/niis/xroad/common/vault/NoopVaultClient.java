@@ -24,25 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.vault;
 
-package org.niis.xroad.proxy.core;
+import ee.ria.xroad.common.conf.InternalSSLKey;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+public class NoopVaultClient implements VaultClient {
+    @Override
+    public InternalSSLKey getInternalTlsCredentials() {
+        return null;
+    }
 
-@ConfigMapping(prefix = "script.generate-certificate")
-public interface GenerateCertScriptProperties {
+    @Override
+    public InternalSSLKey getOpmonitorTlsCredentials()  {
+        return null;
+    }
 
-    String DEFAULT_PATH = "/usr/share/xroad/scripts/generate_certificate.sh";
-    String DEFAULT_ARGS = "-n internal -f -S -p 2>&1";
+    @Override
+    public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new UnsupportedOperationException("Not supported");
+    }
 
-    @WithName("path")
-    @WithDefault(DEFAULT_PATH)
-    String path();
-
-    @WithName("args")
-    @WithDefault(DEFAULT_ARGS)
-    String args();
-
+    @Override
+    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new UnsupportedOperationException("Not supported");
+    }
 }

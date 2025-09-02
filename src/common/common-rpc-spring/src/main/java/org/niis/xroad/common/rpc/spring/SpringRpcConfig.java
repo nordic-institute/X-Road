@@ -33,6 +33,7 @@ import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.vault.ReloadableVaultKeyManager;
+import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,7 +53,15 @@ public class SpringRpcConfig extends RpcConfig {
     VaultKeyProvider reloadableVaultKeyManager(Optional<VaultTemplate> vaultTemplate,
                                                CommonRpcProperties rpcProperties) throws Exception {
         if (rpcProperties.useTls()) {
-            var vaultKeyClient = new SpringVaultKeyClient(rpcProperties.certificateProvisioning(), vaultTemplate.get());
+            var vaultKeyClient = new SpringVaultKeyClient(
+                    vaultTemplate.get(),
+                    rpcProperties.certificateProvisioning().secretStorePkiPath(),
+                    rpcProperties.certificateProvisioning().ttl(),
+                    rpcProperties.certificateProvisioning().issuanceRoleName(),
+                    rpcProperties.certificateProvisioning().commonName(),
+                    rpcProperties.certificateProvisioning().altNames(),
+                    rpcProperties.certificateProvisioning().ipSubjectAltNames()
+            );
             return ReloadableVaultKeyManager.withDefaults(rpcProperties.certificateProvisioning(), vaultKeyClient);
         } else {
             return new NoopVaultKeyProvider();

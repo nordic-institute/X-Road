@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,21 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.vault;
+package org.niis.xroad.opmonitor.core.config;
 
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
+import io.quarkus.vault.VaultPKISecretEngineFactory;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 
-public interface VaultKeyClient {
-    String CERTIFICATE_FORMAT = "pem";
-    String PKCS8_FORMAT = "pkcs8";
+public class OpMonitorConfig {
 
-    VaultKeyData provisionNewCerts() throws Exception;
-
-    record VaultKeyData(
-            X509Certificate[] identityCertChain, PrivateKey identityPrivateKey,
-            X509Certificate[] trustCerts
-    ) {
-
+    @ApplicationScoped
+    public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, OpMonitorTlsProperties tlsProperties) {
+        return new QuarkusVaultKeyClient(
+                pkiSecretEngineFactory,
+                tlsProperties.certificateProvisioning().secretStorePkiPath(),
+                tlsProperties.certificateProvisioning().ttl(),
+                tlsProperties.certificateProvisioning().issuanceRoleName(),
+                tlsProperties.certificateProvisioning().commonName(),
+                tlsProperties.certificateProvisioning().altNames(),
+                tlsProperties.certificateProvisioning().ipSubjectAltNames()
+        );
     }
+
 }

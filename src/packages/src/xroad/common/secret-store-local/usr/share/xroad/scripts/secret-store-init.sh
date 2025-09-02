@@ -36,14 +36,12 @@ else
   echo "Initializing X-Road secrets engine ..."
 
   # Enable secrets engines
-  # Enable secrets engines
   bao secrets enable -path=xrd-pki pki || exit 1
   bao secrets enable -path=xrd-secret kv || exit 1
-  bao secrets enable -path=xrd-ds-secret -version=2 kv || exit 1
 
   # Configure PKI
-  bao secrets tune -max-lease-ttl=87600h xrd-pki || exit 1
-  bao write xrd-pki/root/generate/internal common_name="localhost" ttl=8760h || exit 1
+  bao secrets tune -max-lease-ttl=175200h xrd-pki || exit 1
+  bao write xrd-pki/root/generate/internal common_name="localhost" ttl=175200h || exit 1
   bao write xrd-pki/config/urls \
     issuing_certificates="https://127.0.0.1:8200/v1/xrd-pki/ca" \
     crl_distribution_points="https://127.0.0.1:8200/v1/xrd-pki/crl" || exit 1
@@ -61,7 +59,7 @@ else
     allow_subdomains=true \
     allow_localhost=true \
     allow_ip_sans=true \
-    max_ttl="300h" || exit 1
+    max_ttl="87600h" || exit 1
 
   # Create policy for PKI and secret access
   bao policy write xroad-policy - <<EOF
@@ -71,11 +69,11 @@ path "xrd-pki/*" {
 path "xrd-secret/*" {
   capabilities = ["read", "list"]
 }
+path "xrd-secret/tls/*" {
+  capabilities = ["read", "list", "create", "update"]
+}
 path "xrd-secret" {
   capabilities = ["list"]
-}
-path "xrd-ds-secret/*" {
-  capabilities = ["create", "read", "update", "delete", "list"]
 }
 path "sys/internal/ui/mounts/*" {
   capabilities = ["read", "list"]

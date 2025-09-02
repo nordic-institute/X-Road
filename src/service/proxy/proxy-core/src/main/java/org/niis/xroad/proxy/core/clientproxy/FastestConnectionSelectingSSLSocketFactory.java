@@ -36,8 +36,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.clientproxy.FastestSocketSelector.SocketInfo;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSocket;

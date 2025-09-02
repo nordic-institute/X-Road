@@ -28,14 +28,16 @@ package org.niis.xroad.proxy.core.configuration;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import io.quarkus.runtime.Startup;
+import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
-import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
@@ -49,16 +51,30 @@ public class ProxyConfig {
     @ApplicationScoped
     public static class OpMonitoringBufferInitializer {
 
+        @ApplicationScoped
+        public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, ProxyTlsProperties tlsProperties) {
+            return new QuarkusVaultKeyClient(
+                    pkiSecretEngineFactory,
+                    tlsProperties.certificateProvisioning().secretStorePkiPath(),
+                    tlsProperties.certificateProvisioning().ttl(),
+                    tlsProperties.certificateProvisioning().issuanceRoleName(),
+                    tlsProperties.certificateProvisioning().commonName(),
+                    tlsProperties.certificateProvisioning().altNames(),
+                    tlsProperties.certificateProvisioning().ipSubjectAltNames()
+            );
+        }
+
         @Startup
         @ApplicationScoped
         public OpMonitoringBuffer opMonitoringBuffer(ProxyProperties.ProxyAddonProperties addonProperties,
                                                      OpMonitorCommonProperties opMonitorCommonProperties,
                                                      ServerConfProvider serverConfProvider,
-                                                     VaultKeyProvider vaultKeyProvider) throws Exception {
+                                                     VaultClient vaultClient) throws Exception {
 
             if (addonProperties.opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
-                var opMonitoringBuffer = new OpMonitoringBufferImpl(serverConfProvider, opMonitorCommonProperties, vaultKeyProvider);
+                var opMonitoringBuffer = new OpMonitoringBufferImpl(
+                        serverConfProvider, opMonitorCommonProperties, vaultClient);
                 opMonitoringBuffer.init();
                 return opMonitoringBuffer;
             } else {
@@ -78,8 +94,9 @@ public class ProxyConfig {
     @ApplicationScoped
     ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
                                           ServerConfCommonProperties serverConfProperties,
-                                          GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
+                                          GlobalConfProvider globalConfProvider,
+                                          VaultClient vaultClient) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
     }
 
     @ApplicationScoped

@@ -120,11 +120,7 @@ if dpkg --compare-versions "$CONFIG_VERSION" lt-nl "7.6.0"; then
   /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
 fi
 
-# Generate internal and admin UI TLS keys and certificates if necessary
-if [ ! -f /etc/xroad/ssl/internal.crt ]; then
-  log "Generating new internal TLS key and certificate"
-  "$XROAD_SCRIPT_LOCATION/generate_certificate.sh" -n internal -f -S -p 2>&1 >/dev/null | sed 's/^/    /'
-fi
+# Generate admin UI TLS key and certificate if necessary
 
 if [ ! -f /etc/xroad/ssl/proxy-ui-api.crt ]; then
   log "Generating new SSL key and certificate for the admin UI"
