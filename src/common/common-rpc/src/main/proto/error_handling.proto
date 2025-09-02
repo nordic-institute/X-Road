@@ -30,12 +30,8 @@ option java_package = "org.niis.xroad.rpc.error";
 
 message XrdRuntimeExceptionProto {
   string identifier = 1;
-  ErrorDeviationProto errorDeviation = 2;
-  string details = 3;
-  int32 httpStatus = 4;
-}
-
-message ErrorDeviationProto {
-  string code = 1;
-  repeated string metadata = 2;
+  string errorCode = 2;
+  repeated string errorMetadata = 3;
+  string details = 4;
+  int32 httpStatus = 5;
 }

@@ -160,15 +160,15 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
                 try {
                     final var ce = any.unpack(XrdRuntimeExceptionProto.class);
 
-                    var errorDeviation = ErrorCode.withCode(ce.getErrorDeviation().getCode());
+                    var errorDeviation = ErrorCode.withCode(ce.getErrorCode());
                     var exceptionBuilder = XrdRuntimeException.systemException(errorDeviation)
-
+                            .origin(ErrorOrigin.SIGNER)
                             .identifier(ce.getIdentifier())
                             .details(ce.getDetails())
                             .httpStatus(ce.getHttpStatus() > 0 ? HttpStatus.fromCode(ce.getHttpStatus()) : null);
 
-                    if (!ce.getErrorDeviation().getMetadataList().isEmpty()) {
-                        exceptionBuilder.metadataItems(ce.getErrorDeviation().getMetadataList());
+                    if (!ce.getErrorMetadataList().isEmpty()) {
+                        exceptionBuilder.metadataItems(ce.getErrorMetadataList());
                     }
                     throw exceptionBuilder.build();
                 } catch (InvalidProtocolBufferException e) {

@@ -30,9 +30,7 @@ import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.rpc.error.ErrorDeviationProto;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.util.function.Supplier;
@@ -42,7 +40,6 @@ import static com.google.protobuf.Any.pack;
 @Slf4j
 @RequiredArgsConstructor
 public class RpcResponseHandler {
-    private final String errorCodePrefix;
 
     public <T> void handleRequest(StreamObserver<T> responseObserver, Supplier<T> handler) {
         try {
@@ -71,7 +68,11 @@ public class RpcResponseHandler {
         final var builder = XrdRuntimeExceptionProto.newBuilder();
 
         builder.setIdentifier(exception.getIdentifier());
-        builder.setErrorDeviation(toProto(exception.getErrorDeviation()));
+        builder.setErrorCode(exception.getCode());
+
+        if (exception.getErrorCodeMetadata() != null && !exception.getErrorCodeMetadata().isEmpty()) {
+            builder.addAllErrorMetadata(exception.getErrorCodeMetadata());
+        }
         builder.setDetails(exception.getDetails());
 
         exception.getHttpStatus().ifPresent(httpStatus -> builder.setHttpStatus(httpStatus.getCode()));
@@ -79,13 +80,4 @@ public class RpcResponseHandler {
         return builder.build();
     }
 
-    private ErrorDeviationProto toProto(ErrorDeviation errorDeviation) {
-        var builder = ErrorDeviationProto.newBuilder()
-                .setCode(errorCodePrefix + "." + errorDeviation.code());
-
-        if (errorDeviation.metadata() != null && !errorDeviation.metadata().isEmpty()) {
-            builder.addAllMetadata(errorDeviation.metadata());
-        }
-        return builder.build();
-    }
 }

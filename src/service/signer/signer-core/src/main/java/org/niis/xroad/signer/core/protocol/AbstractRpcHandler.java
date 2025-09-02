@@ -43,7 +43,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotFound;
 @Slf4j
 @SuppressWarnings("squid:S119")
 public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT extends AbstractMessage> {
-    private final RpcResponseHandler rpcResponseHandler = new RpcResponseHandler("signer");
+    private final RpcResponseHandler rpcResponseHandler = new RpcResponseHandler();
 
     @Autowired
     protected TokenWorkerProvider tokenWorkerProvider;
