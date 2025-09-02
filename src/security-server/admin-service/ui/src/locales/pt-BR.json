@@ -304,6 +304,27 @@
         "UNKNOWN": "Desconhecido"
       },
       "title": "Carimbo de tempo"
+    },
+    "traffic": {
+      "period": "Período",
+      "periodInfo": "Selecione início e fim",
+      "date": "Data",
+      "time": "Hora",
+      "party": "Parte",
+      "partyInfo": "Serviço, subsistema, membro",
+      "client": "Cliente",
+      "service": "Serviço",
+      "exchangeRole": "Função de troca",
+      "exchangeRoleInfo": "Produtor ou Consumidor",
+      "producer": "Produtor",
+      "status": "Status",
+      "statusInfo": "Status da troca de mensagens",
+      "success": "Sucesso",
+      "failure": "Falha",
+      "successfulRequests": "Solicitações exitosas",
+      "failedRequests": "Solicitações falhas",
+      "disabledTitle": "Monitoramento de dados operacionais desativado",
+      "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, instale o complemento de monitoramento de dados operacionais (xroad-addon-opmonitoring)."
     }
   },
   "endpoints": {
@@ -948,6 +969,10 @@
     "settings": {
       "backupAndRestore": "Backup e Restauração",
       "systemParameters": "Parâmetros do Sistema"
+    },
+    "diagnostics": {
+      "overview": "Visão Geral",
+      "traffic": "Tráfego"
     }
   },
   "token": {
