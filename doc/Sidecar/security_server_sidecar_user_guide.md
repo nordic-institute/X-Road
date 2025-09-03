@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.18  
+Version: 1.19  
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -26,6 +26,7 @@ Doc. ID: UG-SS-SIDECAR
 | 18.02.2025 | 1.16    | Configuring memory allocation fo proxy service          | Ovidijus Narkevičius      |
 | 26.03.2025 | 1.17    | Syntax and styling                                      | Pauline Dimmek            |
 | 02.04.2025 | 1.18    | Added autologin paragraph                               | Mikk-Erik Bachmann        |
+| 28.08.2025 | 1.19    | Added paragraph about custom ACME challenge port number | Mikk-Erik Bachmann        |
 
 ## License
 
@@ -364,6 +365,8 @@ See [UG-SYSPAR](#Ref_UG-SYSPAR) for configuration details.
 
 Automated Certificate Management Environment (ACME) protocol enables partly automated certificate management of the authentication and sign
 certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
+
+For Sidecar, it is possible to use a different ACME challenge port from the default 80. For this, set the environment variable `XROAD_PROXY_UI_API_ACME_CHALLENGE_PORT` to the desired port number and map it to a host port 80 when starting the container (ACME Servers always use port 80 for HTTP-01 challenge).
 
 ### 3.3 Configuring the memory allocation for the Proxy Service
 
