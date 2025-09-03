@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.common.rpc.client;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.HttpStatus;
 import ee.ria.xroad.common.SystemProperties;
 
 import com.google.protobuf.Any;
@@ -43,11 +43,12 @@ import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
-import org.niis.xroad.rpc.error.CodedExceptionProto;
+import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -55,8 +56,8 @@ import java.security.UnrecoverableKeyException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 @Slf4j
 public final class RpcClient<C extends RpcClient.ExecutionContext> {
@@ -140,8 +141,10 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             return grpcCall.exec(executionContext);
         } catch (StatusRuntimeException error) {
             if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
-                throw CodedException.tr(X_NETWORK_ERROR, "grpc_client_timeout",
-                        "gRPC client timed out. Deadline: " + rpcDeadlineMillis + " ms");
+                throw XrdRuntimeException.systemException(NETWORK_ERROR)
+                        .origin(ErrorOrigin.SIGNER)
+                        .details("gRPC client timed out. Deadline: %s ms".formatted(rpcDeadlineMillis))
+                        .build();
             }
             com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
             if (status != null) {
@@ -153,12 +156,23 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
 
     private void handleGenericStatusRuntimeException(com.google.rpc.Status status) {
         for (Any any : status.getDetailsList()) {
-            if (any.is(CodedExceptionProto.class)) {
+            if (any.is(XrdRuntimeExceptionProto.class)) {
                 try {
-                    final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
-                    throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString());
+                    final var ce = any.unpack(XrdRuntimeExceptionProto.class);
+
+                    var errorDeviation = ErrorCode.withCode(ce.getErrorCode());
+                    var exceptionBuilder = XrdRuntimeException.systemException(errorDeviation)
+                            .origin(ErrorOrigin.SIGNER)
+                            .identifier(ce.getIdentifier())
+                            .details(ce.getDetails())
+                            .httpStatus(ce.getHttpStatus() > 0 ? HttpStatus.fromCode(ce.getHttpStatus()) : null);
+
+                    if (!ce.getErrorMetadataList().isEmpty()) {
+                        exceptionBuilder.metadataItems(ce.getErrorMetadataList());
+                    }
+                    throw exceptionBuilder.build();
                 } catch (InvalidProtocolBufferException e) {
-                    throw XrdRuntimeException.systemException(ErrorCodes.INTERNAL_ERROR)
+                    throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                             .cause(e)
                             .details("Failed to parse CodedExceptionProto from gRPC status details")
                             .build();

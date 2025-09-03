@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
 import org.niis.xroad.cs.registrationservice.service.AdminApiService;
@@ -133,7 +133,7 @@ class RegistrationRequestControllerTest {
         var result = controller.register(payload.getContentType(), payload.getPayloadAsStream());
 
         Assertions.assertTrue(result.getStatusCode().is5xxServerError());
-        assertFault(result.getBody(), ErrorCodes.INVALID_SIGNATURE_VALUE.code());
+        assertFault(result.getBody(), ErrorCode.INVALID_SIGNATURE_VALUE.code());
     }
 
     @Test
@@ -161,7 +161,7 @@ class RegistrationRequestControllerTest {
         var result = controller.register(payload.getContentType(), payload.getPayloadAsStream());
 
         Assertions.assertTrue(result.getStatusCode().is5xxServerError());
-        assertFault(result.getBody(), ErrorCodes.INVALID_SIGNATURE_VALUE.code());
+        assertFault(result.getBody(), ErrorCode.INVALID_SIGNATURE_VALUE.code());
     }
 
     @Test
@@ -189,7 +189,7 @@ class RegistrationRequestControllerTest {
         var result = controller.register(payload.getContentType(), payload.getPayloadAsStream());
 
         Assertions.assertTrue(result.getStatusCode().is5xxServerError());
-        assertFault(result.getBody(), ErrorCodes.CERT_VALIDATION.code());
+        assertFault(result.getBody(), ErrorCode.CERT_VALIDATION.code());
     }
 
     @Test
@@ -217,14 +217,14 @@ class RegistrationRequestControllerTest {
         var result = controller.register(payload.getContentType(), payload.getPayloadAsStream());
 
         Assertions.assertTrue(result.getStatusCode().is5xxServerError());
-        assertFault(result.getBody(), ErrorCodes.CERT_VALIDATION.code());
+        assertFault(result.getBody(), ErrorCode.CERT_VALIDATION.code());
     }
 
     @Test
     void shouldFailIfEmptyRequest() throws SOAPException, IOException {
         var result = controller.register(CONTENT_TYPE, new ByteArrayInputStream(new byte[0]));
         Assertions.assertTrue(result.getStatusCode().is5xxServerError());
-        assertFault(result.getBody(), ErrorCodes.INVALID_REQUEST.code());
+        assertFault(result.getBody(), ErrorCode.INVALID_REQUEST.code());
     }
 
     @Test
@@ -232,7 +232,7 @@ class RegistrationRequestControllerTest {
         var sid = SecurityServerId.Conf.create(globalConfProvider.getInstanceIdentifier() + "-X", "CLASS", "MEMBER", "SS1");
         var result = register(sid, "ss1.example.org");
         Assertions.assertTrue(result.getStatusCode().is5xxServerError());
-        assertFault(result.getBody(), ErrorCodes.INVALID_REQUEST.code());
+        assertFault(result.getBody(), ErrorCode.INVALID_REQUEST.code());
     }
 
     @Test
@@ -240,21 +240,21 @@ class RegistrationRequestControllerTest {
         var sid = SecurityServerId.Conf.create(globalConfProvider.getInstanceIdentifier(), "CLASS", "MEM BER", "S:;S1");
         var result = register(sid, "ss1.example.org");
         Assertions.assertTrue(result.getStatusCode().is5xxServerError());
-        assertFault(result.getBody(), ErrorCodes.INVALID_CLIENT_IDENTIFIER.code());
+        assertFault(result.getBody(), ErrorCode.INVALID_CLIENT_IDENTIFIER.code());
     }
 
     @Test
     void shouldFailIfInvalidServerAddress() throws Exception {
         var result = register(serverId, String.format("%s.invalid", "a".repeat(64)));
         Assertions.assertTrue(result.getStatusCode().is5xxServerError());
-        assertFault(result.getBody(), ErrorCodes.INVALID_REQUEST.code());
+        assertFault(result.getBody(), ErrorCode.INVALID_REQUEST.code());
     }
 
     @Test
     void shouldFailIfInvalidCertificate() throws Exception {
         var result = registerWithInvalidCerts(serverId);
         Assertions.assertTrue(result.getStatusCode().is5xxServerError());
-        assertFault(result.getBody(), ErrorCodes.INCORRECT_CERTIFICATE.code());
+        assertFault(result.getBody(), ErrorCode.INCORRECT_CERTIFICATE.code());
     }
 
     private ResponseEntity<String> register(SecurityServerId.Conf sid, String address) throws Exception {

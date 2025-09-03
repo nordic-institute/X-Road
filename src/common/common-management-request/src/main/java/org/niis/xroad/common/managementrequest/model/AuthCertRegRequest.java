@@ -37,7 +37,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -115,7 +115,7 @@ public class AuthCertRegRequest implements ManagementRequest {
         try {
             CryptoUtils.readCertificate(authCert).checkValidity();
         } catch (Exception e) {
-            throw XrdRuntimeException.systemException(ErrorCodes.CERT_VALIDATION)
+            throw XrdRuntimeException.systemException(ErrorCode.CERT_VALIDATION)
                     .details("Authentication certificate is invalid: %s".formatted(e.getMessage()))
                     .build();
         }

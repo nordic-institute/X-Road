@@ -63,7 +63,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.core.exception.ErrorCodes.CLIENT_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.CLIENT_NOT_FOUND;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVICE_NOT_FOUND;
 
 /**

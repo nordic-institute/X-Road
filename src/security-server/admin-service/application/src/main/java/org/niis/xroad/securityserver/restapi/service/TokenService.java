@@ -30,6 +30,7 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -41,7 +42,6 @@ import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,9 +53,15 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.common.core.exception.ErrorCodes.ACTION_NOT_POSSIBLE;
-import static org.niis.xroad.common.core.exception.ErrorCodes.TOKEN_FETCH_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCodes.TOKEN_PIN_INCORRECT;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACTION_NOT_POSSIBLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.CERT_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.CSR_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.LOGIN_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.PIN_INCORRECT;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_FETCH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_PIN_INCORRECT;
 
 /**
  * Service that handles tokens
@@ -66,6 +72,7 @@ import static org.niis.xroad.common.core.exception.ErrorCodes.TOKEN_PIN_INCORREC
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class TokenService {
+    private static final String ERROR_CKR_PIN_INCORRECT = "CKR_PIN_INCORRECT";
 
     private final SignerRpcClient signerRpcClient;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
@@ -74,6 +81,7 @@ public class TokenService {
 
     /**
      * get all tokens
+     *
      * @return
      */
     public List<TokenInfo> getAllTokens() {
@@ -86,6 +94,7 @@ public class TokenService {
 
     /**
      * get all sign certificates for a given client.
+     *
      * @param client client whose member certificates need to be
      *               linked to
      * @return
@@ -96,6 +105,7 @@ public class TokenService {
 
     /**
      * get all certificates for a given client.
+     *
      * @param client client whose member certificates need to be
      *               linked to
      * @return
@@ -106,6 +116,7 @@ public class TokenService {
 
     /**
      * Get all certificates for a given client
+     *
      * @param client
      * @param onlySignCertificates if true, return only signing certificates
      * @return
@@ -126,6 +137,7 @@ public class TokenService {
 
     /**
      * Activate a token
+     *
      * @param id       id of token
      * @param password password for token
      * @throws TokenNotFoundException     if token was not found
@@ -133,7 +145,7 @@ public class TokenService {
      * @throws ActionNotPossibleException if token activation was not possible
      */
     public void activateToken(String id, char[] password) throws
-                                                          TokenNotFoundException, PinIncorrectException, ActionNotPossibleException {
+            TokenNotFoundException, PinIncorrectException, ActionNotPossibleException {
 
         // check that action is possible
         TokenInfo tokenInfo = getToken(id);
@@ -144,10 +156,10 @@ public class TokenService {
                 tokenInfo);
         try {
             signerRpcClient.activateToken(id, password);
-        } catch (SignerException e) {
-            if (e.isCausedByTokenNotFound()) {
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(TOKEN_NOT_FOUND)) {
                 throw new TokenNotFoundException(e);
-            } else if (e.isCausedByIncorrectPin()) {
+            } else if (isCausedByIncorrectPin(e)) {
                 throw new PinIncorrectException(e);
             } else {
                 throw e;
@@ -161,6 +173,7 @@ public class TokenService {
 
     /**
      * Deactivate a token
+     *
      * @param id id of token
      * @throws TokenNotFoundException     if token was not found
      * @throws ActionNotPossibleException if deactivation was not possible
@@ -177,8 +190,8 @@ public class TokenService {
 
         try {
             signerRpcClient.deactivateToken(id);
-        } catch (SignerException e) {
-            if (e.isCausedByTokenNotFound()) {
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(TOKEN_NOT_FOUND)) {
                 throw new TokenNotFoundException(e);
             } else {
                 throw e;
@@ -192,14 +205,15 @@ public class TokenService {
 
     /**
      * return one token
+     *
      * @param id
      * @throws TokenNotFoundException if token was not found
      */
     public TokenInfo getToken(String id) throws TokenNotFoundException {
         try {
             return signerRpcClient.getToken(id);
-        } catch (SignerException e) {
-            if (e.isCausedByTokenNotFound()) {
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(TOKEN_NOT_FOUND)) {
                 throw new TokenNotFoundException(e);
             } else {
                 throw e;
@@ -213,12 +227,13 @@ public class TokenService {
 
     /**
      * update token friendly name
+     *
      * @param tokenId
      * @param friendlyName
      * @throws TokenNotFoundException if token was not found
      */
     public TokenInfo updateTokenFriendlyName(String tokenId, String friendlyName) throws TokenNotFoundException,
-                                                                                         ActionNotPossibleException {
+            ActionNotPossibleException {
 
         // check that updating friendly name is possible
         TokenInfo tokenInfo = getToken(tokenId);
@@ -230,8 +245,8 @@ public class TokenService {
         try {
             signerRpcClient.setTokenFriendlyName(tokenId, friendlyName);
             tokenInfo = signerRpcClient.getToken(tokenId);
-        } catch (SignerException e) {
-            if (e.isCausedByTokenNotFound()) {
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(TOKEN_NOT_FOUND)) {
                 throw new TokenNotFoundException(e);
             } else {
                 throw e;
@@ -250,8 +265,8 @@ public class TokenService {
     public TokenInfo getTokenForKeyId(String keyId) throws KeyNotFoundException {
         try {
             return signerRpcClient.getTokenForKeyId(keyId);
-        } catch (SignerException e) {
-            if (e.isCausedByKeyNotFound()) {
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(KEY_NOT_FOUND)) {
                 throw new KeyNotFoundException(e);
             } else {
                 throw e;
@@ -267,13 +282,13 @@ public class TokenService {
      * Get TokenInfoAndKeyId for certificate hash
      */
     public TokenInfoAndKeyId getTokenAndKeyIdForCertificateHash(String hash) throws KeyNotFoundException,
-                                                                                    CertificateNotFoundException {
+            CertificateNotFoundException {
         try {
             return signerRpcClient.getTokenAndKeyIdForCertHash(hash);
-        } catch (SignerException e) {
-            if (e.isCausedByKeyNotFound()) {
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(KEY_NOT_FOUND)) {
                 throw new KeyNotFoundException(e);
-            } else if (e.isCausedByCertNotFound()) {
+            } else if (e.isCausedBy(CERT_NOT_FOUND)) {
                 throw new CertificateNotFoundException(e);
             } else {
                 throw e;
@@ -287,6 +302,7 @@ public class TokenService {
 
     /**
      * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED
+     *
      * @return true/false
      */
     public boolean isSoftwareTokenInitialized() {
@@ -305,6 +321,7 @@ public class TokenService {
 
     /**
      * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED
+     *
      * @return {@link TokenInitStatusInfo}
      */
     public TokenInitStatusInfo getSoftwareTokenInitStatus() {
@@ -315,7 +332,7 @@ public class TokenService {
             } else {
                 return TokenInitStatusInfo.NOT_INITIALIZED;
             }
-        } catch (SignerException | InternalServerErrorException e) {
+        } catch (XrdRuntimeException | InternalServerErrorException e) {
             log.error("Could not get software token status from signer", e);
             return TokenInitStatusInfo.UNKNOWN;
         }
@@ -325,13 +342,13 @@ public class TokenService {
      * Get TokenInfoAndKeyId for csr id
      */
     public TokenInfoAndKeyId getTokenAndKeyIdForCertificateRequestId(String csrId) throws KeyNotFoundException,
-                                                                                          CsrNotFoundException {
+            CsrNotFoundException {
         try {
             return signerRpcClient.getTokenAndKeyIdForCertRequestId(csrId);
-        } catch (SignerException e) {
-            if (e.isCausedByKeyNotFound()) {
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(KEY_NOT_FOUND)) {
                 throw new KeyNotFoundException(e);
-            } else if (e.isCausedByCsrNotFound()) {
+            } else if (e.isCausedBy(CSR_NOT_FOUND)) {
                 throw new CsrNotFoundException(e);
             } else {
                 throw e;
@@ -345,6 +362,7 @@ public class TokenService {
 
     /**
      * Check if there are any tokens that are not software tokens
+     *
      * @return true if there are any other than software tokens present
      */
     public boolean hasHardwareTokens() {
@@ -355,6 +373,7 @@ public class TokenService {
 
     /**
      * Update the pin code for a token and it's keys
+     *
      * @param tokenId ID of the token
      * @param oldPin  the old (current) passing pin
      * @param newPin  the new pin
@@ -363,8 +382,8 @@ public class TokenService {
      */
     public void updateSoftwareTokenPin(String tokenId, String oldPin, String newPin)
             throws TokenNotFoundException, PinIncorrectException,
-                   ActionNotPossibleException, InvalidCharactersException,
-                   WeakPinException {
+            ActionNotPossibleException, InvalidCharactersException,
+            WeakPinException {
         TokenInfo tokenInfo = getToken(tokenId);
 
         auditDataHelper.put(tokenInfo);
@@ -375,10 +394,10 @@ public class TokenService {
         tokenPinValidator.validateSoftwareTokenPin(newPinCharArray);
         try {
             signerRpcClient.updateTokenPin(tokenId, oldPin.toCharArray(), newPinCharArray);
-        } catch (SignerException se) {
-            if (se.isCausedByTokenNotFound()) {
+        } catch (XrdRuntimeException se) {
+            if (se.isCausedBy(TOKEN_NOT_FOUND)) {
                 throw new TokenNotFoundException(se);
-            } else if (se.isCausedByIncorrectPin()) {
+            } else if (isCausedByIncorrectPin(se)) {
                 throw new PinIncorrectException(se);
             } else {
                 throw se;
@@ -392,6 +411,7 @@ public class TokenService {
 
     /**
      * Delete inactive token
+     *
      * @param id ID of the token
      */
     public void deleteToken(String id) {
@@ -408,6 +428,17 @@ public class TokenService {
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
+    }
+
+    private boolean isCausedByIncorrectPin(XrdRuntimeException e) {
+        if (e.isCausedBy(PIN_INCORRECT)) {
+            return true;
+        } else if (e.isCausedBy(LOGIN_FAILED)) {
+            // only way to detect HSM pin incorrect is by matching to codedException
+            // fault string.
+            return e.getMessage().contains(ERROR_CKR_PIN_INCORRECT);
+        }
+        return false;
     }
 
     public static class PinIncorrectException extends BadRequestException {

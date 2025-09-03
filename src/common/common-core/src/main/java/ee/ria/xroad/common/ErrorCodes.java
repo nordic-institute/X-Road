@@ -25,18 +25,7 @@
  */
 package ee.ria.xroad.common;
 
-import jakarta.xml.bind.UnmarshalException;
-import jakarta.xml.soap.SOAPException;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.net.UnknownServiceException;
-import java.nio.channels.UnresolvedAddressException;
-import java.security.cert.CertificateException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 /**
  * Enumeration class for various error codes.
@@ -45,12 +34,12 @@ public final class ErrorCodes {
 
     // Error code prefixes
 
-    public static final String SERVER_SERVERPROXY_X = "Server.ServerProxy";
-    public static final String CLIENT_X = "Client";
-    public static final String SERVER_CLIENTPROXY_X = "Server.ClientProxy";
-    public static final String SIGNER_X = "Signer";
+    public static final String SERVER_SERVERPROXY_X = "server.serverproxy";
+    public static final String CLIENT_X = "client";
+    public static final String SERVER_CLIENTPROXY_X = "server.clientproxy";
+    public static final String SIGNER_X = "signer";
     public static final String SERVER_SERVER_PROXY_OPMONITOR_X =
-            SERVER_SERVERPROXY_X + ".OpMonitor";
+            SERVER_SERVERPROXY_X + ".opmonitor";
 
     // Generic errors.
 
@@ -179,34 +168,8 @@ public final class ErrorCodes {
      * @param ex the exception
      * @return translated CodedException
      */
-    @SuppressWarnings("squid:S1872")
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public static CodedException translateException(Throwable ex) {
-        return switch (ex) {
-            case CodedException cex -> cex;
-            case UnknownHostException ne -> new CodedException(X_NETWORK_ERROR, ne);
-            case MalformedURLException ne -> new CodedException(X_NETWORK_ERROR, ne);
-            case SocketException ne -> new CodedException(X_NETWORK_ERROR, ne);
-            case UnknownServiceException ne -> new CodedException(X_NETWORK_ERROR, ne);
-            case UnresolvedAddressException ne -> new CodedException(X_NETWORK_ERROR, ne);
-            case IOException ioe -> new CodedException(X_IO_ERROR, ioe);
-            case CertificateException ice -> new CodedException(X_INCORRECT_CERTIFICATE, ice);
-            case SOAPException ise -> new CodedException(X_INVALID_SOAP, ise);
-            case SAXException ixe -> new CodedException(X_INVALID_XML, ixe);
-            case UnmarshalException ue when isAccessorException(ue.getCause()) -> translateException(ue.getCause());
-            case Exception me when isMimeException(me) -> new CodedException(X_MIME_PARSING_FAILED, me);
-            case Exception ae when isAccessorException(ae) && ae.getCause() instanceof CodedException cex -> cex;
-            default -> new CodedException(X_INTERNAL_ERROR, ex);
-
-        };
-    }
-
-    private static boolean isAccessorException(Throwable ex) {
-        return ex != null && ex.getClass().getName().equals("org.glassfish.jaxb.runtime.api.AccessorException");
-    }
-
-    private static boolean isMimeException(Throwable ex) {
-        return ex != null && ex.getClass().getName().equals("org.apache.james.mime4j.MimeException");
+    public static CodedException  translateException(Throwable ex) {
+        return XrdRuntimeException.systemException(ex);
     }
 
     /**

@@ -32,7 +32,7 @@ import ee.ria.xroad.common.util.XmlUtils;
 
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.stringtemplate.v4.ST;
 
@@ -116,7 +116,7 @@ public class Request {
      */
     public String toXml() {
         if (StringUtils.isNotBlank(boundary)) {
-            throw XrdRuntimeException.systemException(ErrorCodes.INTERNAL_ERROR)
+            throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                     .details("Cannot turn request into XML where boundary is specified")
                     .build();
         }
