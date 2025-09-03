@@ -35,7 +35,7 @@ import org.niis.xroad.common.core.exception.HttpStatusAware;
 
 import java.util.Optional;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * Base exception for any manually thrown exception. It has an error message which optionally can be thrown to api layer.

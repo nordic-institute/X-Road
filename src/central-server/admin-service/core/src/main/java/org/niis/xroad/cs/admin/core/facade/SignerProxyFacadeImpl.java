@@ -35,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -59,45 +58,45 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade {
     private final SignerRpcClient signerRpcClient;
     private final SignerSignClient signerSignClient;
 
-    public void initSoftwareToken(char[] password) throws SignerException {
+    public void initSoftwareToken(char[] password) {
         signerRpcClient.initSoftwareToken(password);
     }
 
-    public List<TokenInfo> getTokens() throws SignerException {
+    public List<TokenInfo> getTokens() {
         return signerRpcClient.getTokens();
     }
 
-    public TokenInfo getToken(String tokenId) throws SignerException {
+    public TokenInfo getToken(String tokenId) {
         return signerRpcClient.getToken(tokenId);
     }
 
-    public void activateToken(String tokenId, char[] password) throws SignerException {
+    public void activateToken(String tokenId, char[] password) {
         signerRpcClient.activateToken(tokenId, password);
     }
 
-    public void deactivateToken(String tokenId) throws SignerException {
+    public void deactivateToken(String tokenId) {
         signerRpcClient.deactivateToken(tokenId);
     }
 
-    public KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws SignerException {
+    public KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) {
         return signerRpcClient.generateKey(tokenId, keyLabel, algorithm);
     }
 
     public byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                         String commonName, Date notBefore, Date notAfter) throws SignerException {
+                                         String commonName, Date notBefore, Date notAfter) {
         return signerRpcClient.generateSelfSignedCert(keyId, memberId, keyUsage,
                 commonName, notBefore, notAfter);
     }
 
-    public void deleteKey(String keyId, boolean deleteFromToken) throws SignerException {
+    public void deleteKey(String keyId, boolean deleteFromToken) {
         signerRpcClient.deleteKey(keyId, deleteFromToken);
     }
 
-    public SignMechanism getSignMechanism(String keyId) throws SignerException {
+    public SignMechanism getSignMechanism(String keyId) {
         return signerRpcClient.getSignMechanism(keyId);
     }
 
-    public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws SignerException {
+    public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) {
         return signerSignClient.sign(keyId, signatureAlgorithmId, digest);
     }
 

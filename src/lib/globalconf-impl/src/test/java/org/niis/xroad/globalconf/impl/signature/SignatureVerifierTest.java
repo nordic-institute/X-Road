@@ -40,7 +40,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -167,7 +167,7 @@ class SignatureVerifierTest {
     void emptySignature() {
         assertThatThrownBy(() -> createSignatureVerifier("src/test/signatures/empty.xml"))
                 .isInstanceOf(CodedException.class)
-                .hasMessageContaining(ErrorCodes.INVALID_XML.code());
+                .hasMessageContaining(ErrorCode.INVALID_XML.code());
     }
 
     /**
@@ -197,7 +197,7 @@ class SignatureVerifierTest {
     void malformedXml() {
         assertThatThrownBy(() -> createSignatureVerifier("src/test/signatures/sign-0-malformed-xml.xml"))
                 .isInstanceOf(CodedException.class)
-                .hasMessageContaining(ErrorCodes.INVALID_XML.code());
+                .hasMessageContaining(ErrorCode.INVALID_XML.code());
     }
 
     /**

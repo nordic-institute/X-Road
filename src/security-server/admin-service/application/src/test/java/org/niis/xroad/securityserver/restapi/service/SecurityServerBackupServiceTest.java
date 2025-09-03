@@ -40,8 +40,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_FILE_NOT_FOUND;
-import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_RESTORATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_FAILED;
 
 public class SecurityServerBackupServiceTest extends AbstractServiceTestContext {
 

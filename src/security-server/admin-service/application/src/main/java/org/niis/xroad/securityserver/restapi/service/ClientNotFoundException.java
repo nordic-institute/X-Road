@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.niis.xroad.common.exception.NotFoundException;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.CLIENT_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.CLIENT_NOT_FOUND;
 
 public class ClientNotFoundException extends NotFoundException {
 

@@ -43,7 +43,6 @@ import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,7 +55,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED;
 
 /**
@@ -132,8 +132,8 @@ public class KeyService {
         try {
             signerRpcClient.setKeyFriendlyName(id, friendlyName);
             keyInfo = getKey(id);
-        } catch (SignerException e) {
-            if (e.isCausedByKeyNotFound()) {
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(KEY_NOT_FOUND)) {
                 throw new KeyNotFoundException(e);
             } else {
                 throw e;

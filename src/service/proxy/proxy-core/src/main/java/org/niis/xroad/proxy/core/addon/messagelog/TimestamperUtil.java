@@ -42,7 +42,7 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
@@ -97,7 +97,7 @@ final class TimestamperUtil {
 
         if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
             con.disconnect();
-            throw XrdRuntimeException.systemException(ErrorCodes.INTERNAL_ERROR)
+            throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                     .details("Received HTTP error: " + con.getResponseCode() + " - " + con.getResponseMessage())
                     .build();
         } else if (con.getInputStream() == null) {

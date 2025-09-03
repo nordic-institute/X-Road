@@ -28,7 +28,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.math.BigInteger;
@@ -81,7 +81,7 @@ public final class RsaKeyManager extends AbstractKeyManager {
 
             return keyPairGen.generateKeyPair();
         } catch (NoSuchAlgorithmException e) {
-            throw XrdRuntimeException.systemException(ErrorCodes.CRYPTO_ERROR)
+            throw XrdRuntimeException.systemException(ErrorCode.CRYPTO_ERROR)
                     .cause(e)
                     .details("Algorithm isn't supported in current environment")
                     .metadataItems(cryptoAlgorithm())

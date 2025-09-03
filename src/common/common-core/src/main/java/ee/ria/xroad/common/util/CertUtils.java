@@ -62,6 +62,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.security.auth.x500.X500Principal;
@@ -270,7 +271,7 @@ public final class CertUtils {
         boolean[] keyUsage = cert.getKeyUsage();
 
         if (keyUsage == null) {
-            throw XrdRuntimeException.systemException(org.niis.xroad.common.core.exception.ErrorCodes.INTERNAL_ERROR)
+            throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                     .details("Certificate does not contain keyUsage extension")
                     .build();
         }

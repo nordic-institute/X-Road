@@ -31,7 +31,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.annotation.concurrent.Immutable;
@@ -341,7 +341,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
                 consumer.consume(metadata, is);
             } catch (Exception e) {
-                throw XrdRuntimeException.systemException(ErrorCodes.INTERNAL_ERROR)
+                throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                         .cause(e)
                         .details("Error processing configuration file")
                         .metadataItems(filepath)

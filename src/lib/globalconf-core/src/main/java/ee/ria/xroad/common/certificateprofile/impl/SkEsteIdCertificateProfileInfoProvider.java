@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.security.auth.x500.X500Principal;
@@ -108,7 +108,7 @@ public class SkEsteIdCertificateProfileInfoProvider
         ClientId.Conf getSubjectIdentifier(X500Name x500name) {
             String sn = CertUtils.getRDNValue(x500name, BCStyle.SERIALNUMBER);
             if (StringUtils.isEmpty(sn)) {
-                throw XrdRuntimeException.businessException(ErrorCodes.INVALID_CERTIFICATE)
+                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
                         .details("Subject name does not contain serial number")
                         .build();
             }

@@ -35,7 +35,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Map;
@@ -161,7 +161,7 @@ public class DatabaseCtx {
 
     private CodedException customizeException(Exception e) {
         if (e instanceof JDBCException) {
-            return XrdRuntimeException.systemException(ErrorCodes.DATABASE_ERROR)
+            return XrdRuntimeException.systemException(ErrorCode.DATABASE_ERROR)
                     .details("Error accessing database")
                     .metadataItems(sessionFactoryName)
                     .build();
@@ -169,7 +169,7 @@ public class DatabaseCtx {
             return codedException;
         }
 
-        return XrdRuntimeException.systemException(ErrorCodes.DATABASE_ERROR)
+        return XrdRuntimeException.systemException(ErrorCode.DATABASE_ERROR)
                 .cause(e)
                 .build();
     }

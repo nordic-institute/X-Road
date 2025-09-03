@@ -34,7 +34,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -126,7 +126,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
             }
         }
 
-        throw XrdRuntimeException.systemException(ErrorCodes.KEY_NOT_FOUND)
+        throw XrdRuntimeException.systemException(ErrorCode.KEY_NOT_FOUND)
                 .details("Could not find key that has public key that matches the public key of certificate")
                 .build();
     }

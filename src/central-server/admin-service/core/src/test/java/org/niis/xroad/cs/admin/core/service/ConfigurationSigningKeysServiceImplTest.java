@@ -37,6 +37,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
@@ -59,7 +60,6 @@ import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
@@ -82,6 +82,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.signer.protocol.dto.TokenStatusInfo.OK;
@@ -148,7 +149,7 @@ class ConfigurationSigningKeysServiceImplTest {
 
 
     @Test
-    void deleteActiveKeyShouldThrowException() throws Exception {
+    void deleteActiveKeyShouldThrowException() {
         ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", true);
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of()));
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
@@ -160,11 +161,12 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     @Test
-    void deleteKeyErrorGettingTokenFromSignerProxyShouldThrowException() throws Exception {
+    void deleteKeyErrorGettingTokenFromSignerProxyShouldThrowException() {
         ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", false);
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
                 .thenReturn(Optional.of(signingKeyEntity));
-        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenThrow(new SignerException("Error"));
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier()))
+                .thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).build());
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
                 .isInstanceOf(SigningKeyException.class)
@@ -172,13 +174,14 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     @Test
-    void deleteKeyErrorDeletingKeyThroughSignerShouldThrowException() throws Exception {
+    void deleteKeyErrorDeletingKeyThroughSignerShouldThrowException() {
         ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", false);
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
                 .thenReturn(Optional.of(signingKeyEntity));
         when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier()))
                 .thenReturn(createTokenInfo(true, true, List.of()));
-        doThrow(new SignerException("Error")).when(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
+        doThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).build())
+                .when(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
                 .isInstanceOf(SigningKeyException.class)
@@ -187,7 +190,7 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     @Test
-    void deleteInternalConfigurationSigningKey() throws Exception {
+    void deleteInternalConfigurationSigningKey() {
         ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", false);
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
                 .thenReturn(Optional.of(signingKeyEntity));
@@ -206,7 +209,7 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     @Test
-    void deleteExternalConfigurationSigningKey() throws Exception {
+    void deleteExternalConfigurationSigningKey() {
         ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("EXTERNAL", false);
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
                 .thenReturn(Optional.of(signingKeyEntity));
@@ -225,7 +228,7 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     @Test
-    void shouldAddSigningKey() throws Exception {
+    void shouldAddSigningKey() {
         when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION, haConfigStatus))
                 .thenReturn(configurationSourceEntity);
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of()));
@@ -252,7 +255,7 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     @Test
-    void shouldNotAddMoreThanTwoSigningKeys() throws Exception {
+    void shouldNotAddMoreThanTwoSigningKeys() {
         ConfigurationSigningKeyEntity key1 = createConfigurationSigningEntity(INTERNAL_CONFIGURATION, true);
         ConfigurationSigningKeyEntity key2 = createConfigurationSigningEntity(INTERNAL_CONFIGURATION, false);
         when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION, haConfigStatus))
@@ -292,7 +295,7 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     @Test
-    void activateKeyShouldFailWhenTokenNotLoggedIn() throws Exception {
+    void activateKeyShouldFailWhenTokenNotLoggedIn() {
         final var tokenInfo = createTokenInfo(FALSE, TRUE, List.of());
         final var signingKeyEntity = createConfigurationSigningEntity("EXTERNAL", TRUE);
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
@@ -305,7 +308,7 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     @Test
-    void activateKeyShouldSucceed() throws Exception {
+    void activateKeyShouldSucceed() {
         final var tokenInfo = createTokenInfo(TRUE, TRUE, List.of());
         final var signingKeyEntity = createConfigurationSigningEntity("EXTERNAL", FALSE);
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
@@ -320,11 +323,12 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     @Test
-    void activateKeyErrorGettingTokenFromSignerProxyShouldThrowException() throws Exception {
+    void activateKeyErrorGettingTokenFromSignerProxyShouldThrowException() {
         ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", false);
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
                 .thenReturn(Optional.of(signingKeyEntity));
-        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenThrow(new SignerException("Error"));
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier()))
+                .thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).build());
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.activateKey(signingKeyEntity.getKeyIdentifier()))
                 .isInstanceOf(SigningKeyException.class)
