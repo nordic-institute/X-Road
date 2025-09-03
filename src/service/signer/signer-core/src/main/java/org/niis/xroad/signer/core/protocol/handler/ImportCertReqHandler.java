@@ -32,6 +32,9 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
@@ -50,6 +53,9 @@ import org.niis.xroad.signer.proto.ImportCertResp;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Date;
@@ -57,7 +63,6 @@ import java.util.Date;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_IMPORT_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -75,8 +80,8 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
     private final CertChainFactory certChainFactory;
 
     @Override
-    protected ImportCertResp handle(ImportCertReq request) throws Exception {
-        X509Certificate cert = null;
+    protected ImportCertResp handle(ImportCertReq request) {
+        X509Certificate cert;
         try {
             cert = CryptoUtils.readCertificate(request.getCertData().toByteArray());
         } catch (Exception e) {
@@ -85,16 +90,21 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
                     "Failed to parse certificate: %s", e.getMessage());
         }
 
-        ClientId.Conf memberId = request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null;
-        String keyId = importCertificate(cert, request.getInitialStatus(), memberId, request.getActivate());
+        try {
+            ClientId.Conf memberId = request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null;
+            String keyId = importCertificate(cert, request.getInitialStatus(), memberId, request.getActivate());
 
-        return ImportCertResp.newBuilder()
-                .setKeyId(keyId)
-                .build();
+            return ImportCertResp.newBuilder()
+                    .setKeyId(keyId)
+                    .build();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     public String importCertificate(X509Certificate cert,
-                                    String initialStatus, ClientId.Conf memberId, boolean activate) throws Exception {
+                                    String initialStatus, ClientId.Conf memberId, boolean activate)
+            throws CertificateEncodingException, CertificateParsingException, IOException, OperatorCreationException {
         String publicKey = encodeBase64(cert.getPublicKey().getEncoded());
 
         // Find the key based on the public key of the cert
@@ -111,16 +121,15 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
             }
         }
 
-        throw CodedException.tr(X_KEY_NOT_FOUND,
-                "key_not_found_for_certificate",
-                "Could not find key that has public key that matches the "
-                        + "public key of certificate");
+        throw XrdRuntimeException.systemException(ErrorCodes.KEY_NOT_FOUND)
+                .details("Could not find key that has public key that matches the public key of certificate")
+                .build();
     }
     // XXX: #2955 Currently, if the key does not have public key, we also check
     // if the key contains the (unsaved) certificate
 
     private boolean matchesPublicKeyOrExistingCert(String publicKey,
-                                                   X509Certificate cert, KeyInfo keyInfo) throws Exception {
+                                                   X509Certificate cert, KeyInfo keyInfo) throws CertificateEncodingException {
         if (keyInfo.getPublicKey() != null
                 && keyInfo.getPublicKey().equals(publicKey)) {
             return true;
@@ -137,7 +146,8 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
     }
 
     private void importCertificateToKey(KeyInfo keyInfo, X509Certificate cert,
-                                        String initialStatus, ClientId.Conf memberId, boolean activate) throws Exception {
+                                        String initialStatus, ClientId.Conf memberId, boolean activate)
+            throws CertificateEncodingException, IOException, OperatorCreationException, CertificateParsingException {
         String certHash = calculateCertHexHash(cert);
 
         CertificateInfo existingCert = TokenManager.getCertificateInfoForCertHash(certHash);
@@ -199,8 +209,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
         return true;
     }
 
-    private void validateCertKeyUsage(boolean signing, boolean authentication,
-                                      KeyUsageInfo keyUsage) {
+    private void validateCertKeyUsage(boolean signing, boolean authentication, KeyUsageInfo keyUsage) {
         // Check that the cert is a signing or auth cert
         if (!signing && !authentication) {
             throw CodedException.tr(X_WRONG_CERT_USAGE,
@@ -244,7 +253,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
         }
     }
 
-    private void deleteCertRequest(String keyId, ClientId memberId) throws Exception {
+    private void deleteCertRequest(String keyId, ClientId memberId) {
         CertRequestInfo certReq = TokenManager.getCertRequestInfo(keyId, memberId);
         if (certReq != null) {
             deleteCertRequestReqHandler.deleteCertRequest(certReq.getId());

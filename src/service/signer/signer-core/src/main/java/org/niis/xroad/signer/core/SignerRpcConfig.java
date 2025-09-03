@@ -33,6 +33,9 @@ import org.niis.xroad.common.rpc.server.RpcServer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.List;
 
 @Slf4j
@@ -40,7 +43,8 @@ import java.util.List;
 public class SignerRpcConfig {
 
     @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
+    RpcServer rpcServer(final List<BindableService> bindableServices)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         return RpcServer.newServer(
                 SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getGrpcSignerPort(),

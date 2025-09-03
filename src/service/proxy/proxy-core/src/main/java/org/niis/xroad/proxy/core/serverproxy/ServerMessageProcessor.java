@@ -49,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -101,6 +102,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class ServerMessageProcessor extends MessageProcessorBase {
 
     private static final String SERVERPROXY_SERVICE_HANDLERS = SystemProperties.PREFIX + "proxy.serverServiceHandlers";
@@ -206,7 +208,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     @Override
-    protected void postprocess() throws Exception {
+    protected void postprocess() {
         opMonitoringData.setSucceeded(true);
     }
 
@@ -271,6 +273,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         originalSoapAction = validateSoapActionHeader(jRequest.getHeaders().get(HEADER_ORIGINAL_SOAP_ACTION));
         requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
+            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
             public void soap(SoapMessageImpl soapMessage, Map<String, String> additionalHeaders) throws Exception {
                 super.soap(soapMessage, additionalHeaders);
 
@@ -536,6 +539,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         return DigestAlgorithm.ofName(hashAlgoId);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private final class DefaultServiceHandlerImpl extends AbstractServiceHandler {
 
         private HttpSender sender;
@@ -606,6 +610,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private final class SoapMessageHandler implements SoapMessageDecoder.Callback {
         @Override
         public void soap(SoapMessage message, Map<String, String> headers) throws Exception {

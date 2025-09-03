@@ -36,6 +36,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +46,13 @@ import java.util.Map;
 /**
  * Service that listens for administrative commands on a specific port.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AdminPort {
 
     /**
      * Base class for AdminPort callbacks
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public abstract static class AdminPortCallback {
         public abstract void handle(RequestWrapper request, ResponseWrapper response) throws Exception;
     }
@@ -118,6 +121,7 @@ public class AdminPort {
         server.setHandler(handlerCollection);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private final class AdminHandler extends Handler.Abstract {
         @Override
         public boolean handle(Request request, Response response, Callback callback) {

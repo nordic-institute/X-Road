@@ -29,11 +29,13 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.RequestWrapper;
 
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 
 import java.io.InputStream;
 
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 interface ServiceHandler {
 
     boolean shouldVerifyAccess();

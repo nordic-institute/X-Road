@@ -63,11 +63,6 @@ public class SignerException extends CodedException {
         withPrefix(SIGNER_X);
     }
 
-    public SignerException(String faultCode, String faultMessage, Throwable cause) {
-        super(faultCode, cause, faultMessage);
-        withPrefix(SIGNER_X);
-    }
-
     private boolean isCausedBy(String faultCode) {
         return getFaultCode().endsWith("." + faultCode);
     }

@@ -1,4 +1,4 @@
-ARG BASE_IMAGE="xrd-securityserver-dev:latest"
+ARG BASE_IMAGE="xrd-securityserver-hwtoken-dev:latest"
 
 FROM $BASE_IMAGE
 

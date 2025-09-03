@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
@@ -56,6 +57,7 @@ import java.util.Set;
  * return nulls. You can extend this class and override only the
  * more interesting methods.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class EmptyGlobalConf implements GlobalConfProvider {
 
     private static final int DEFAULT_TIMESTAMPING_INTERVAL = 60;
@@ -147,7 +149,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) {
         return null;
     }
 
@@ -329,5 +331,10 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress) {
         return Optional.empty();
+    }
+
+    @Override
+    public Set<SecurityServerId> getClientSecurityServers(ClientId clientId) {
+        return Set.of();
     }
 }

@@ -64,7 +64,7 @@ public class AuthKeyChangeManager implements InitializingBean, DisposableBean {
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         if (changeWatcher != null) {
             changeWatcher.stop();
         }

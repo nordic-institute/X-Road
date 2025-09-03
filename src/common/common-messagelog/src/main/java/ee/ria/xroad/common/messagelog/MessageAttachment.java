@@ -33,6 +33,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -73,7 +74,7 @@ public class MessageAttachment {
             }
             return attachment.getBinaryStream();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

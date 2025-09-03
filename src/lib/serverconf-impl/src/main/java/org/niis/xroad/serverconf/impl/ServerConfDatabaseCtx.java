@@ -56,13 +56,12 @@ public final class ServerConfDatabaseCtx {
 
     /**
      * Executes the unit of work transactionally.
+     *
      * @param callback the unit of work callback
-     * @param <T> the type of the result
+     * @param <T>      the type of the result
      * @return the result of the callback
-     * @throws Exception if an error occurs
      */
-    public static <T> T doInTransaction(TransactionCallback<T> callback)
-            throws Exception {
+    public static <T> T doInTransaction(TransactionCallback<T> callback) {
         return CTX.doInTransaction(callback);
     }
 

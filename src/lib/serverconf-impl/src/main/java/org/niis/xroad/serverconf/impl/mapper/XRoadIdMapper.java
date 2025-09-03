@@ -222,7 +222,7 @@ public interface XRoadIdMapper extends GenericUniDirectionalMapper<XRoadIdEntity
 
     List<ServiceId.Conf> toServices(List<ServiceIdEntity> entities);
 
-    Set<XRoadIdEntity> toEntities(Set<XRoadId.Conf> domains);
+    Set<XRoadIdEntity> toEntities(Set<? extends XRoadId> domains);
 
     Set<XRoadIdEntity> toSubjects(Set<? extends XRoadId> domains);
 }

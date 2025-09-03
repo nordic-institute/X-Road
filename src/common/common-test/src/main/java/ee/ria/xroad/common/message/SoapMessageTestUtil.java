@@ -30,6 +30,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import org.apache.commons.io.IOUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -37,6 +39,7 @@ import java.io.FileInputStream;
 /**
  * Utility class providing helper functionality for SOAP messages.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class SoapMessageTestUtil {
 
     public static final String QUERY_DIR = "../../service/proxy/proxy-core/src/test/queries/";
@@ -49,10 +52,11 @@ public final class SoapMessageTestUtil {
 
     /**
      * Builds SOAP message
-     * @param sender sender
+     *
+     * @param sender   sender
      * @param receiver receiver
-     * @param userId user id
-     * @param queryId query id
+     * @param userId   user id
+     * @param queryId  query id
      * @return SOAP message
      * @throws Exception in case of any errors
      */
@@ -64,11 +68,12 @@ public final class SoapMessageTestUtil {
 
     /**
      * Builds SOAP message.
+     *
      * @param isRpcEncoded if true, RPC encoded style is used
-     * @param sender sender
-     * @param receiver receiver
-     * @param userId user id
-     * @param queryId query id
+     * @param sender       sender
+     * @param receiver     receiver
+     * @param userId       user id
+     * @param queryId      query id
      * @return SOAP message
      * @throws Exception in case of any errors
      */
@@ -80,11 +85,12 @@ public final class SoapMessageTestUtil {
 
     /**
      * Builds SOAP message.
-     * @param isRpcEncoded if true, RPC encoded style is used
-     * @param sender sender
-     * @param receiver receiver
-     * @param userId user id
-     * @param queryId query id
+     *
+     * @param isRpcEncoded       if true, RPC encoded style is used
+     * @param sender             sender
+     * @param receiver           receiver
+     * @param userId             user id
+     * @param queryId            query id
      * @param createBodyCallback callback to create body of SOAP message
      * @return SOAP message
      * @throws Exception in case of any errors
@@ -110,6 +116,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Returns byte array of file.
+     *
      * @param fileName file name
      * @return byte array of the file
      * @throws Exception in case of any errors
@@ -120,6 +127,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Gets byte array of SOAP message
+     *
      * @param soap SOAP message
      * @return byte array of SOAP message
      * @throws Exception in case of any errors
@@ -134,6 +142,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Creates SOAP message from file
+     *
      * @param fileName SOAP message file name
      * @return SOAP message
      * @throws Exception in case of any errors
@@ -145,6 +154,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Creates SOAP message from file
+     *
      * @param queryDir query directory
      * @param fileName SOAP message file name
      * @return SOAP message
@@ -157,6 +167,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Creates SOAP message from byte array.
+     *
      * @param data byte array of SOAP message
      * @return SOAP message
      * @throws Exception in case of any errors
@@ -169,6 +180,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Creates SOAP request message from file
+     *
      * @param fileName request file name
      * @return SOAP request
      * @throws Exception in case of any errors
@@ -180,6 +192,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Create SOAP request
+     *
      * @param queryDir query directory
      * @param fileName input file
      * @return SOAP request
@@ -189,12 +202,12 @@ public final class SoapMessageTestUtil {
             throws Exception {
         Soap message = createSoapMessage(queryDir, fileName);
         if (!(message instanceof SoapMessageImpl)) {
-            throw new RuntimeException(
+            throw XrdRuntimeException.systemInternalError(
                     "Got " + message.getClass() + " instead of SoapMessage");
         }
 
         if (((SoapMessageImpl) message).isResponse()) {
-            throw new RuntimeException("Got response instead of request");
+            throw XrdRuntimeException.systemInternalError("Got response instead of request");
         }
 
         return (SoapMessageImpl) message;
@@ -202,6 +215,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Creates SOAP response message from file.
+     *
      * @param fileName response file name
      * @return SOAP response
      * @throws Exception in case of any errors
@@ -213,6 +227,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Create SOAP response
+     *
      * @param queryDir query directory
      * @param fileName input file
      * @return SOAP response
@@ -222,12 +237,12 @@ public final class SoapMessageTestUtil {
             throws Exception {
         Soap message = createSoapMessage(queryDir, fileName);
         if (!(message instanceof SoapMessageImpl)) {
-            throw new RuntimeException(
+            throw XrdRuntimeException.systemInternalError(
                     "Got " + message.getClass() + " instead of SoapResponse");
         }
 
         if (((SoapMessageImpl) message).isRequest()) {
-            throw new RuntimeException("Got request instead of response");
+            throw XrdRuntimeException.systemInternalError("Got request instead of response");
         }
 
         return (SoapMessageImpl) message;
@@ -235,6 +250,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Create new query input stream of the query file.
+     *
      * @param fileName query file name
      * @return file input stream of the query file.
      * @throws Exception in case of any errors
@@ -246,6 +262,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Create new query input stream
+     *
      * @param queryDir query directory
      * @param fileName input file
      * @return input stream

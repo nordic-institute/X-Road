@@ -28,6 +28,7 @@ package org.niis.xroad.signer.core.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 
 import com.google.protobuf.ByteString;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
@@ -50,7 +51,9 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
 public class GenerateCertReqReqHandler extends AbstractGenerateCertReq<GenerateCertRequestReq, GenerateCertRequestResp> {
 
     @Override
-    protected GenerateCertRequestResp handle(GenerateCertRequestReq request) throws Exception {
+    @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
+    protected GenerateCertRequestResp handle(GenerateCertRequestReq request) {
         TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(request.getKeyId());
 
         if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {

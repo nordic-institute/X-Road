@@ -50,6 +50,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -179,6 +180,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void refresh() throws Exception {
         log.trace("refresh()");
 
@@ -197,6 +199,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     // ----------------------- Message handlers -------------------------------
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected void activateToken(ActivateTokenReq message) {
         if (message.getActivate()) { // login
             log.info("Logging in token '{}'", getWorkerId());
@@ -226,6 +229,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected GenerateKeyResult generateKey(GenerateKeyReq message) throws Exception {
         log.trace("generateKeys()");
 
@@ -263,6 +267,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected void deleteKey(String keyId) throws Exception {
         log.trace("deleteKey({})", keyId);
 
@@ -346,6 +351,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
         log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
@@ -386,6 +392,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         return signMechanism;
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
             throws Exception {
         log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
@@ -416,6 +423,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
     // ------------------------------------------------------------------------
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void findKeysNotInConf() throws Exception {
         log.trace("findKeysNotInConf()");
 
@@ -458,6 +466,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private PrivateKey getPrivateKey(String keyId) throws Exception {
         PrivateKey privateKey = privateKeys.get(keyId);
         if (privateKey == null) {
@@ -468,6 +477,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         return privateKey;
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void findPublicKeysForPrivateKeys() throws Exception {
         log.trace("findPublicKeysForPrivateKeys()");
 
@@ -478,6 +488,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void findCertificatesNotInConf() throws Exception {
         log.trace("findCertificatesNotInConf()");
 
@@ -504,6 +515,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void updatePublicKey(String keyId) throws Exception {
         log.trace("updatePublicKey({})", keyId);
 
@@ -542,6 +554,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
     // ------------------------------------------------------------------------
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void initialize() throws Exception {
         log.trace("initialize()");
 
@@ -549,6 +562,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         updateTokenInfo();
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void login() throws Exception {
         char[] password = PasswordStore.getPassword(tokenId);
 
@@ -577,6 +591,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void logout() throws Exception {
         if (activeSession == null) {
             return;
@@ -601,6 +616,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void pinVerificationPerSigningLogin() {
         if (tokenType.isPinVerificationPerSigning()) {
             try {
@@ -623,6 +639,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void createSession() throws Exception {
         log.trace("createSession()");
         closeActiveSession();
@@ -632,6 +649,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void loadPrivateKeys() throws Exception {
         if (activeSession == null) {
             return;
@@ -695,6 +713,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void closeActiveSession() throws Exception {
         if (activeSession != null) {
             try {
@@ -710,6 +729,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         return ((HardwareTokenType) tokenType).getToken();
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void setTokenStatusFromErrorCode(long errorCode) throws Exception {
         TokenStatusInfo status = getTokenStatus(getToken().getTokenInfo(), errorCode);
 
@@ -786,6 +806,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
 
         @Override
+        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
         public byte[] getSignature() {
             try {
                 assertActiveSession();

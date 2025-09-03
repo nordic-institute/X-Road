@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Setter;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
@@ -52,6 +53,7 @@ import java.util.Set;
  * GlobalConf wrapper to allow old-style TestGlobalConf usage withing spring based tests.
  */
 @Setter
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class TestGlobalConfWrapper implements GlobalConfProvider {
     private GlobalConfProvider globalConfProvider;
 
@@ -125,7 +127,7 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) {
         return globalConfProvider.getSubjectName(parameters, cert);
     }
 
@@ -299,5 +301,10 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     @Override
     public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress) {
         return globalConfProvider.getMaintenanceMode(instanceIdentifier, serverAddress);
+    }
+
+    @Override
+    public Set<SecurityServerId> getClientSecurityServers(ClientId clientId) {
+        return globalConfProvider.getClientSecurityServers(clientId);
     }
 }

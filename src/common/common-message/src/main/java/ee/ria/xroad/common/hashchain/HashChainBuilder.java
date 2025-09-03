@@ -30,6 +30,7 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +68,7 @@ import static java.lang.Integer.numberOfLeadingZeros;
  *
  * For incomplete binary trees, some inputs and nodes can be null.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class HashChainBuilder {
 
     private static final int INTEGER_BITS = 32;

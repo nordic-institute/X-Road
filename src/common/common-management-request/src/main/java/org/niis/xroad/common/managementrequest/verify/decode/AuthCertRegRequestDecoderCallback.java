@@ -40,6 +40,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import lombok.Getter;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestCertVerifier;
@@ -62,6 +63,7 @@ import static org.niis.xroad.common.managementrequest.verify.decode.util.Managem
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifySignature;
 
 @Getter
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecoderCallback {
     private final GlobalConfProvider globalConfProvider;
     private final ManagementRequestCertVerifier managementRequestCertVerifier;

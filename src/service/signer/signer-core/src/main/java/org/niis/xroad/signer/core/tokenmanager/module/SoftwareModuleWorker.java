@@ -28,6 +28,7 @@ package org.niis.xroad.signer.core.tokenmanager.module;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.AbstractTokenWorker;
@@ -56,6 +57,7 @@ public class SoftwareModuleWorker extends AbstractModuleWorker {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected List<TokenType> listTokens() throws Exception {
         return TOKENS;
     }

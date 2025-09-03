@@ -44,6 +44,7 @@ import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleConf;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleInstanceProvider;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -61,8 +62,6 @@ public final class HardwareTokenUtil {
 
     private static final int MAX_OBJECTS = 64;
 
-    private static final Mechanism EC_KEYGEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_ECDSA_KEY_PAIR_GEN);
-
     private HardwareTokenUtil() {
     }
 
@@ -73,6 +72,7 @@ public final class HardwareTokenUtil {
      * @return the module instance
      * @throws Exception if an error occurs
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public static Module moduleGetInstance(String libraryPath) throws Exception {
         String providerClass = System.getProperty(SystemProperties.SIGNER_MODULE_INSTANCE_PROVIDER);
         if (providerClass != null) {
@@ -91,7 +91,7 @@ public final class HardwareTokenUtil {
         return Module.getInstance(libraryPath);
     }
 
-    static void login(Session session, char[] password) throws Exception {
+    static void login(Session session, char[] password) throws TokenException {
         try {
             session.login(Session.CKUserType.USER, password);
         } catch (PKCS11Exception ex) {
@@ -101,7 +101,7 @@ public final class HardwareTokenUtil {
         }
     }
 
-    static void logout(Session session) throws Exception {
+    static void logout(Session session) throws TokenException {
         try {
             session.logout();
         } catch (PKCS11Exception ex) {
@@ -111,7 +111,7 @@ public final class HardwareTokenUtil {
         }
     }
 
-    static PrivateKey findPrivateKey(Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
+    static PrivateKey findPrivateKey(Session session, String keyId, Set<Long> allowedMechanisms) throws TokenException {
         var template = new PrivateKey();
         template.getId().setByteArrayValue(toBinaryKeyId(keyId));
 
@@ -120,7 +120,7 @@ public final class HardwareTokenUtil {
         return find(template, session);
     }
 
-    static List<PrivateKey> findPrivateKeys(Session session, Set<Long> allowedMechanisms) throws Exception {
+    static List<PrivateKey> findPrivateKeys(Session session, Set<Long> allowedMechanisms) throws TokenException {
         var template = new PrivateKey();
         template.getSign().setBooleanValue(true);
 
@@ -129,7 +129,7 @@ public final class HardwareTokenUtil {
         return find(template, session, MAX_OBJECTS);
     }
 
-    static List<PublicKey> findPublicKeys(Session session, Set<Long> allowedMechanisms) throws Exception {
+    static List<PublicKey> findPublicKeys(Session session, Set<Long> allowedMechanisms) throws TokenException {
         var template = new PublicKey();
         template.getVerify().setBooleanValue(true);
 
@@ -138,7 +138,7 @@ public final class HardwareTokenUtil {
         return find(template, session, MAX_OBJECTS);
     }
 
-    static PublicKey findPublicKey(Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
+    static PublicKey findPublicKey(Session session, String keyId, Set<Long> allowedMechanisms) throws TokenException {
         var template = new PublicKey();
         template.getId().setByteArrayValue(toBinaryKeyId(keyId));
 
@@ -147,7 +147,7 @@ public final class HardwareTokenUtil {
         return find(template, session);
     }
 
-    static List<X509PublicKeyCertificate> findPublicKeyCertificates(Session session) throws Exception {
+    static List<X509PublicKeyCertificate> findPublicKeyCertificates(Session session) throws TokenException {
         return find(new X509PublicKeyCertificate(), session, MAX_OBJECTS);
     }
 

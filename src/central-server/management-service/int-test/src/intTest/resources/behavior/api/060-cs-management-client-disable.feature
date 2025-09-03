@@ -17,5 +17,5 @@ Feature: Management requests API: Client disabling
 
   Scenario: Client disable fails with soap fault when request sender is not server owner
     When Client disable request with clientId "EE:CLASS:MEMBER:SUBSYSTEM" and serverId "EE:CLASS:MEMBER2:SS1" was sent
-    Then Response of status code 500 and soap faultCode "InvalidRequest" and soap faultString "Sender does not match server owner." is returned
+    Then Response of status code 500 and soap faultCode "invalid_request" and soap faultString "Sender does not match server owner." is returned
     And Admin api has not received any request

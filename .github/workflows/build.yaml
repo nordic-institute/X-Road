@@ -38,7 +38,7 @@ jobs:
         with:
           task: start-measurement
           label: 'Build, unit tests and packaging'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
       - name: Ensure required packages
@@ -166,7 +166,7 @@ jobs:
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
       - name: Download workspace
-        uses: pyTooling/download-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
+        uses: pyTooling/download-artifact@v5 # https://github.com/actions/upload-artifact/issues/38
         with:
           name: workspace-for-arm
       - name: Set up measurement for arm packaging
@@ -222,7 +222,7 @@ jobs:
         with:
           task: start-measurement
           label: 'Central Server system tests'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -316,7 +316,7 @@ jobs:
         with:
           task: start-measurement
           label: 'Security Server system tests'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -345,7 +345,8 @@ jobs:
           push: true
           build-args: |
             PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
+          target: final-hwtoken
+          tags: localhost:5000/xrd-securityserver-hwtoken:${{ github.sha }}
       - name: Security Server test setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -353,7 +354,7 @@ jobs:
           label: 'Set up Security Server tests'
       - name: Run Security Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver-hwtoken:${{ github.sha }}
       - name: Test Security Server measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -402,7 +403,7 @@ jobs:
           task: start-measurement
           label: 'E2E tests'
       # Setup
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -446,7 +447,8 @@ jobs:
           push: true
           build-args: |
             PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
+          target: final-hwtoken
+          tags: localhost:5000/xrd-securityserver-hwtoken:${{ github.sha }}
       - name: E2E test setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -458,7 +460,7 @@ jobs:
         run: >
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest 
           -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }} 
-          -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
+          -Pe2eTestSSImage=localhost:5000/xrd-securityserver-hwtoken:${{ github.sha }}
       - name: E2E test measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:

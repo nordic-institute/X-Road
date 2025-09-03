@@ -30,6 +30,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.dto.AlertStatus;
@@ -133,7 +134,7 @@ public class NotificationService {
                 .filter(t -> t.getId().equals(SignerRpcClient.SSL_TOKEN_ID)).findFirst();
         if (token.isEmpty()) {
             log.warn("soft token not found");
-            throw new RuntimeException("soft token not found");
+            throw XrdRuntimeException.systemInternalError("soft token not found");
         }
         return token.get().isActive();
     }
