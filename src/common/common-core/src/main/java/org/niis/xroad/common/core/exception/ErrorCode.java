@@ -258,7 +258,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
     private static String prepareCode(String code) {
         if (code == null) {
-            log.warn("Error code is null, returning empty string");
+            log.warn("Error code is null, defaulting to {}", INTERNAL_ERROR.code());
             return INTERNAL_ERROR.code();
         }
         return code.toLowerCase();

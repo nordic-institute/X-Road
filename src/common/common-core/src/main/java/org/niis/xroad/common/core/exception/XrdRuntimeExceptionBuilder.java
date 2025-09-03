@@ -33,7 +33,7 @@ import java.util.UUID;
  * Builder class for constructing XrdRuntimeException instances.
  * Provides a fluent API for setting exception properties.
  */
-@SuppressWarnings("checkstyle:HiddenField")
+@SuppressWarnings({"checkstyle:HiddenField", "javaarchitecture:S7027"})
 public class XrdRuntimeExceptionBuilder {
     private Throwable cause;
     private String identifier;
@@ -117,6 +117,12 @@ public class XrdRuntimeExceptionBuilder {
     }
 
 
+    /**
+     * Sets the origin of the error.
+     *
+     * @param origin the error origin
+     * @return this builder instance
+     */
     public XrdRuntimeExceptionBuilder origin(ErrorOrigin origin) {
         this.origin = origin;
         return this;
@@ -157,7 +163,6 @@ public class XrdRuntimeExceptionBuilder {
     }
 
     private String resolveErrorCode() {
-
         if (origin != null) {
             return origin.toPrefix() + errorDeviation.code();
         }
