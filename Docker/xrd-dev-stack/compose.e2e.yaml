@@ -1,5 +1,10 @@
 # E2E specific hurl execution on boot.
 services:
+  ss1:
+    entrypoint: [ "/usr/local/bin/init-token-and-run-entrypoint.sh" ]
+    volumes:
+      - ./ss1/init-token-and-run-entrypoint.sh:/usr/local/bin/init-token-and-run-entrypoint.sh:ro
+
   hurl:
     command: >
       --insecure
