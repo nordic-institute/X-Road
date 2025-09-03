@@ -102,3 +102,4 @@ RUN chmod 755 /usr/share/xroad/autologin/login-inactive-token.sh
 CMD ["/root/entrypoint.sh"]
 
 VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/16/main/", "/var/lib/softhsm/tokens"]
+EXPOSE 8080 8443 4000 5432 5500 5577 5558 80

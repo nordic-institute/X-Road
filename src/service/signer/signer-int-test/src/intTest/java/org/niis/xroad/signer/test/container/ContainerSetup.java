@@ -86,7 +86,7 @@ public class ContainerSetup {
             @Override
             @SuppressWarnings("checkstyle:MagicNumber")
             public @NotNull List<Integer> exposedPorts() {
-                return List.of(5588, 5560);
+                return List.of(5560);
             }
 
             private Path getPkcsWrapperPath() {
