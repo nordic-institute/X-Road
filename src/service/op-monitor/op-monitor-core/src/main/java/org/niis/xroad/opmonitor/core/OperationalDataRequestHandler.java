@@ -43,7 +43,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -65,10 +65,8 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.OUTP
 @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class OperationalDataRequestHandler extends QueryRequestHandler {
     private final GlobalConfProvider globalConfProvider;
-
-    private static final int OFFSET_SECONDS =
-            OpMonitoringSystemProperties.
-                    getOpMonitorRecordsAvailableTimestampOffsetSeconds();
+    private final OperationalDataRecordManager operationalDataRecordManager;
+    private final OpMonitorProperties opMonitorProperties;
 
     protected static final String CID = "operational-monitoring-data.json.gz";
 
@@ -214,7 +212,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
             ClientId filterByClient, long recordsFrom, long recordsTo,
             ClientId filterByServiceProvider, Set<String> outputFields) {
         try {
-            return OperationalDataRecordManager.queryRecords(recordsFrom,
+            return operationalDataRecordManager.queryRecords(recordsFrom,
                     recordsTo, filterByClient, filterByServiceProvider,
                     outputFields);
         } catch (Exception e) {
@@ -235,13 +233,12 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
         return clientId != null && clientId.equals(globalConfProvider.getGlobalConfExtensions().getMonitoringClient());
     }
 
-    private boolean isServerOwner(ClientId clientId, SecurityServerId serverId)
-            throws Exception {
+    private boolean isServerOwner(ClientId clientId, SecurityServerId serverId) {
         return serverId != null
                 && clientId.equals(globalConfProvider.getServerOwner(serverId));
     }
 
-    private static long getRecordsAvailableBeforeTimestamp() {
-        return TimeUtils.getEpochSecond() - OFFSET_SECONDS;
+    private  long getRecordsAvailableBeforeTimestamp() {
+        return TimeUtils.getEpochSecond() - opMonitorProperties.recordsAvailableTimestampOffsetSeconds();
     }
 }

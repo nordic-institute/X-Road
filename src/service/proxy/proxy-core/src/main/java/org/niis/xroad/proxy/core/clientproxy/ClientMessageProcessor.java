@@ -281,7 +281,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
         response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
 
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.globalConfProvider, response,
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(), response,
                 httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
         try {
@@ -514,7 +514,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             updateOpMonitoringData();
 
             try {
-                request.sign(commonBeanProxy.signingCtxProvider.createSigningCtx(requestSoap.getClient()));
+                request.sign(commonBeanProxy.getSigningCtxProvider().createSigningCtx(requestSoap.getClient()));
                 logRequestMessage();
                 request.writeSignature();
             } catch (Exception ex) {
@@ -546,9 +546,9 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         private void writeOcspResponses() throws Exception {
-            CertChain chain = commonBeanProxy.keyConfProvider.getAuthKey().certChain();
+            CertChain chain = commonBeanProxy.getKeyConfProvider().getAuthKey().certChain();
             // exclude TopCA
-            List<OCSPResp> ocspResponses = commonBeanProxy.keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
+            List<OCSPResp> ocspResponses = commonBeanProxy.getKeyConfProvider().getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
 
             for (OCSPResp ocsp : ocspResponses) {
                 request.ocspResponse(ocsp);

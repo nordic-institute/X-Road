@@ -26,16 +26,18 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -48,9 +50,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ManagementRequestSenderService {
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     private final GlobalConfProvider globalConfProvider;
     private final GlobalConfService globalConfService;
     private final CurrentSecurityServerId currentSecurityServerId;
+    private final VaultKeyProvider vaultKeyProvider;
+
+    @Value("${xroad.proxy-ui-api.security-server-url}")
+    private String proxyUrl;
 
     private static final String MANAGEMENT_REQUEST_SENDING_FAILED_ERROR = "Sending management request failed";
 
@@ -61,6 +68,7 @@ public class ManagementRequestSenderService {
      * <p>
      * Request is sent for this securityserver (ManagementRequestSender
      * call's SecurityServerId = this security server's id)
+     *
      * @param address  the IP address of the security server
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
@@ -86,13 +94,14 @@ public class ManagementRequestSenderService {
      * <p>
      * Request is sent for this securityserver (ManagementRequestSender
      * call's SecurityServerId = this security server's id)
+     *
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
     public Integer sendAuthCertDeletionRequest(byte[] authCert) throws
-                                                                GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+            GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendAuthCertDeletionRequest(currentSecurityServerId.getServerId(), authCert);
@@ -107,6 +116,7 @@ public class ManagementRequestSenderService {
      * <p>
      * Request is sent for this securityserver (ManagementRequestSender
      * call's SecurityServerId = this security server's id)
+     *
      * @param newAddress the new Security Server address
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      * @throws GlobalConfOutdatedException
@@ -124,6 +134,7 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends a client register request as a normal X-Road message
+     *
      * @param clientId      the client id that will be registered
      * @param subsystemName subsystem name (in case of a subsystem)
      * @return request ID in the central server database
@@ -146,6 +157,7 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends a client unregister request as a normal X-Road message
+     *
      * @param clientId the client id that will be unregistered
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
@@ -167,6 +179,7 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends an owner change request as a normal X-Road message
+     *
      * @param clientId the client id that will be set as a new  owner
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
@@ -224,8 +237,8 @@ public class ManagementRequestSenderService {
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(globalConfProvider, signerRpcClient, sender, receiver,
-                SystemProperties.getProxyUiSecurityServerUrl());
+        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
+                signerSignClient, sender, receiver, proxyUrl);
     }
 
     public Integer sendMaintenanceModeEnableRequest(String message) {

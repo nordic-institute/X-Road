@@ -52,13 +52,14 @@ import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerP
 @Configuration
 public class ManageApiKeysWebSecurityConfig {
 
+    public static final String KEY_MANAGEMENT_AUTHENTICATION = "keyManagementAuthentication";
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.API_KEY_MANAGEMENT_SECURITY_ORDER)
     @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public SecurityFilterChain manageApiSecurityFilterChain(HttpSecurity http,
                                                             CommonModuleEndpointPaths commonModuleEndpointPaths,
-                                                            @Qualifier(PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION)
+                                                            @Qualifier(KEY_MANAGEMENT_AUTHENTICATION)
                                                             AuthenticationProvider authenticationProvider,
                                                             @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
             throws Exception {

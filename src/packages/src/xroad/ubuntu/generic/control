@@ -23,13 +23,13 @@ Package: xroad-center
 Conflicts: xroad-proxy, xroad-confproxy, xtee55-center
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, curl, unzip, libmhash2, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-confclient (=${binary:Version})
-Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
+Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
 Description: X-Road central server
  X-Road central server programs and utilities
 
 Package: xroad-base
 Architecture: amd64 arm64
-Pre-depends: dpkg (>= 1.15.7.2)
+Pre-Depends: dpkg (>= 1.15.7.2)
 Depends: ${misc:Depends}, openjdk-21-jre-headless | java21-runtime-headless | java21-runtime, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl, gpg, gpg-agent, bc
 Replaces: xroad-proxy (<< 6.8.9), xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
@@ -38,7 +38,7 @@ Description: X-Road base components
 
 Package: xroad-confclient
 Architecture: amd64 arm64
-Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road configuration client components
@@ -55,7 +55,7 @@ Description: X-Road nginx component
 
 Package: xroad-signer
 Architecture: amd64 arm64
-Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road signer component
@@ -64,7 +64,7 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-addon-metaservices (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-addon-proxymonitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-backup-manager (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
@@ -72,7 +72,7 @@ Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-21-jre-headless | java21-runtime-headless | java21-runtime
-Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
+Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
 Description: X-Road security server
  X-Road security server programs and utilities
 
@@ -80,7 +80,7 @@ Package: xroad-confproxy
 Conflicts: xroad-center, xroad-proxy
 Architecture: all
 Depends: ${misc:Depends}, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
-Pre-depends: xroad-base (=${binary:Version})
+Pre-Depends: xroad-base (=${binary:Version})
 Description: X-Road configuration proxy
  X-Road configuration proxy
 
@@ -100,21 +100,9 @@ Conflicts: xroad-addon-legacy-securelog
 Description: X-Road AddOn: messagelog
  AddOn for secure message log
 
-Package: xroad-addon-metaservices
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
-Description: X-Road AddOn: metaservices
- AddOn for metaservice reponders
-
-Package: xroad-addon-proxymonitor
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version})
-Description: X-Road AddOn: proxy monitoring metaservice
- Addon for proxy monitoring
-
 Package: xroad-monitor
 Architecture: all
-Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Description: X-Road monitoring service
  Monitoring service
 
@@ -124,37 +112,31 @@ Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Description: X-Road AddOn: wsdlvalidator
  AddOn for WSDL validator for the X-Road services
 
-Package: xroad-addon-opmonitoring
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-opmonitor (=${binary:Version})
-Description: X-Road AddOn: operations monitoring service
- AddOn for operations monitoring.
-
 Package: xroad-securityserver-fi
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Finnish settings
  This is meta-package of X-Road security server with Finnish settings.
 
 Package: xroad-securityserver-is
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Icelandic settings
  This is meta-package of X-Road security server with Icelandic settings.
 
 Package: xroad-securityserver-ee
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Estonian settings
  This is meta-package of X-Road security server with Estonian settings.
 
 Package: xroad-securityserver-fo
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with the Faroe Islands' settings
  This is meta-package of X-Road security server with the Faroe Islands' settings.
 
@@ -162,7 +144,7 @@ Package: xroad-opmonitor
 Conflicts: xroad-center
 Architecture: all
 Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version})
-Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
+Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
 Description: X-Road operations monitoring daemon
  X-Road operations monitoring daemon
 
@@ -176,7 +158,7 @@ Description: Automatic token pin code entry
 
 Package: xroad-proxy-ui-api
 Architecture: all
-Pre-depends: xroad-base (=${binary:Version})
+Pre-Depends: xroad-base (=${binary:Version})
 Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Replaces: xroad-nginx, xroad-jetty9
 Breaks: xroad-nginx, xroad-jetty9
@@ -192,19 +174,40 @@ Description: Meta-package for X-Road local database dependencies
 Package: xroad-database-remote
 Architecture: all
 Conflicts: xroad-database-local
-Depends: xroad-base (=${binary:Version}), postgresql-client
+Depends: xroad-base (=${binary:Version}), postgresql-client, bao (>= 2.0.0) | xroad-secret-store-remote (=${binary:Version})
 Description: Meta-package for X-Road remote database dependencies
 
 Package: xroad-center-registration-service
 Architecture: all
 Depends: ${misc:Depends}, xroad-confclient (=${binary:Version})
-Pre-depends: xroad-base (=${binary:Version}), xroad-center (=${binary:Version})
+Pre-Depends: xroad-base (=${binary:Version}), xroad-center (=${binary:Version})
 Description: X-Road Central Server Registration Service
  X-Road Central Server registration service component
 
 Package: xroad-center-management-service
 Architecture: all
 Depends: ${misc:Depends}, xroad-confclient (=${binary:Version})
-Pre-depends: xroad-base (=${binary:Version}), xroad-center (=${binary:Version})
+Pre-Depends: xroad-base (=${binary:Version}), xroad-center (=${binary:Version})
 Description: X-Road Central Server Management Service
  X-Road Central Server management service component
+
+Package: xroad-secret-store-local
+Architecture: amd64 arm64
+Conflicts: xroad-secret-store-remote
+Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
+Depends: jq, gpg, bao (>= 2.0.0), xroad-base (=${binary:Version})
+Description: Meta-package for X-Road local secret store dependencies
+
+Package: xroad-secret-store-remote
+Architecture: all
+Conflicts: xroad-secret-store-local
+Description: Meta-package for X-Road remote secret store dependencies
+
+Package: xroad-backup-manager
+Architecture: amd64 arm64
+#todo: should be (<< 8.0.0)
+Replaces: xroad-proxy (<< 7.7.0)
+Breaks: xroad-proxy (<< 7.7.0)
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
+Description: X-Road backup manager
+ X-Road backup manager

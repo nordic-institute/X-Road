@@ -26,7 +26,6 @@
 package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 
@@ -44,6 +43,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.core.exception.ErrorCodes;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -53,10 +53,8 @@ import org.springframework.beans.factory.InitializingBean;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import java.io.IOException;
@@ -84,6 +82,7 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 100;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 25;
 
+    private final VaultKeyProvider vaultKeyProvider;
     private final GlobalConfProvider globalConfProvider;
 
     private CloseableHttpClient centralHttpClient;
@@ -110,7 +109,8 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         return httpSender;
     }
 
-    ManagementRequestClient(GlobalConfProvider globalConfProvider) {
+    ManagementRequestClient(VaultKeyProvider vaultKeyProvider, GlobalConfProvider globalConfProvider) {
+        this.vaultKeyProvider = vaultKeyProvider;
         this.globalConfProvider = globalConfProvider;
         try {
             createCentralHttpClient();
@@ -185,99 +185,23 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
             IOException, KeyStoreException {
         log.trace("createProxyHttpClient()");
 
+        // replace /etc/xroad/ssl/internal.p12 with rotating keys from openbao
         String keyStore = SystemProperties.getManagementRequestSenderClientKeystore();
         String trustStore = SystemProperties.getManagementRequestSenderClientTruststore();
 
         if (StringUtils.isAllEmpty(keyStore, trustStore)) {
-            proxyHttpClient = createProxyHttpClientWithInternalKey();
+            proxyHttpClient = createHttpClient(
+                    new KeyManager[]{vaultKeyProvider.getKeyManager()},
+                    new TrustManager[]{new NoopTrustManager()}
+            );
         } else {
-            proxyHttpClient = createProxyHttpClient(keyStore, SystemProperties.getManagementRequestSenderClientKeystorePassword(),
+            proxyHttpClient = createHttpClient(keyStore, SystemProperties.getManagementRequestSenderClientKeystorePassword(),
                     trustStore, SystemProperties.getManagementRequestSenderClientTruststorePassword());
         }
     }
 
-    @SuppressWarnings("java:S4830") // Won't fix: Works as designed ("Server certificates should be verified")
-    private CloseableHttpClient createProxyHttpClientWithInternalKey() throws NoSuchAlgorithmException, KeyManagementException {
-        TrustManager tm = new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType) {
-                // never called as this is trustmanager of a client
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType) {
-                // localhost called so server is trusted
-            }
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
-        };
-
-        KeyManager km = new X509ExtendedKeyManager() {
-
-            private static final String ALIAS = "MgmtAuthKeyManager";
-
-            @Override
-            public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
-                return ALIAS;
-            }
-
-            @Override
-            public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-                return ALIAS;
-            }
-
-            @Override
-            public X509Certificate[] getCertificateChain(String alias) {
-                try {
-                    return InternalSSLKey.load().getCertChain();
-                } catch (Exception e) {
-                    log.error("Failed to load internal TLS key", e);
-                    return new X509Certificate[]{};
-                }
-            }
-
-            @Override
-            public String[] getClientAliases(String keyType, Principal[] issuers) {
-                return null;
-            }
-
-            @Override
-            public PrivateKey getPrivateKey(String alias) {
-                try {
-                    return InternalSSLKey.load().getKey();
-                } catch (Exception e) {
-                    log.error("Failed to load internal TLS key", e);
-
-                    return null;
-                }
-            }
-
-            @Override
-            public String[] getServerAliases(String keyType, Principal[] issuers) {
-                return null;
-            }
-
-            @Override
-            public String chooseEngineClientAlias(String[] keyType, Principal[] issuers, SSLEngine engine) {
-                return ALIAS;
-            }
-
-            @Override
-            public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine) {
-                return ALIAS;
-            }
-        };
-
-        return createHttpClient(new KeyManager[]{km}, new TrustManager[]{tm});
-    }
-
-    private CloseableHttpClient createProxyHttpClient(String keyStorePath, char[] keyStorePassword, String trustStorePath,
-                                                      char[] trustStorePassword)
-            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException,
-            UnrecoverableKeyException, KeyManagementException {
+    private CloseableHttpClient createHttpClient(String keyStorePath, char[] keyStorePassword, String trustStorePath,
+                                                      char[] trustStorePassword) throws Exception {
 
         Objects.requireNonNull(keyStorePath, "Management request client key store path is not provided.");
         Objects.requireNonNull(trustStorePath, "Management request client trust store path is not provided.");
@@ -326,5 +250,23 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         cb.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
 
         return cb.build();
+    }
+
+    @SuppressWarnings("java:S4830") // Won't fix: Works as designed
+    private static final class NoopTrustManager implements X509TrustManager {
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {
+            // never called as this is trustmanager of a client
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) {
+            // ClientProxy of same instance is called so server is trusted
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return null;
+        }
     }
 }

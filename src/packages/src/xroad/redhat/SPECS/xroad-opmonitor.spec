@@ -36,6 +36,7 @@ mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/share/xroad/db/op-monitor/
 mkdir -p %{buildroot}/usr/share/xroad/scripts/
 mkdir -p %{buildroot}/usr/share/xroad/jlib/
+mkdir -p %{buildroot}/usr/share/xroad/jlib/op-monitor
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/usr/bin/
 mkdir -p %{buildroot}/etc/xroad/services/
@@ -46,31 +47,25 @@ mkdir -p %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor.service %{buildroot}%{_unitdir}
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor-initdb.sh %{buildroot}/usr/share/xroad/scripts/
-cp -p %{srcdir}/../../../service/op-monitor/op-monitor-application/build/libs/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/default-configuration/op-monitor.ini %{buildroot}/etc/xroad/conf.d/
-cp -p %{srcdir}/default-configuration/op-monitor-logback.xml %{buildroot}/etc/xroad/conf.d/
+cp -p -r %{srcdir}/../../../service/op-monitor/op-monitor-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/op-monitor/
 cp -p %{srcdir}/common/op-monitor/etc/xroad/services/opmonitor.conf %{buildroot}/etc/xroad/services/
 cp -p %{srcdir}/../../../service/op-monitor/op-monitor-db/src/main/resources/liquibase/op-monitor/*.xml %{buildroot}/usr/share/xroad/db/op-monitor/
 cp -p %{srcdir}/../../../service/op-monitor/op-monitor-db/src/main/resources/liquibase/op-monitor-changelog.xml %{buildroot}/usr/share/xroad/db/
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/bin/xroad-opmonitor %{buildroot}/usr/share/xroad/bin/
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/scripts/setup_opmonitor_db.sh %{buildroot}/usr/share/xroad/scripts/
-cp -p %{srcdir}/common/op-monitor/generate-opmonitor-certificate.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{srcdir}/../../../systemtest/op-monitoring/zabbix_api/examples/zabbix/* %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{srcdir}/common/op-monitor/etc/xroad/backup.d/??_xroad-opmonitor %{buildroot}/etc/xroad/backup.d/
 
-ln -s /usr/share/xroad/jlib/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/op-monitor-daemon.jar
-ln -s /usr/share/xroad/scripts/generate-opmonitor-certificate.sh %{buildroot}/usr/bin/generate-opmonitor-certificate
+ln -s /usr/share/xroad/jlib/op-monitor/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/op-monitor-daemon.jar
 
 %clean
 rm -rf %{buildroot}
 
 %files
 %defattr(-,xroad,xroad,-)
-%config /etc/xroad/conf.d/op-monitor.ini
-%config /etc/xroad/conf.d/op-monitor-logback.xml
 %config /etc/xroad/services/opmonitor.conf
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-opmonitor
 
@@ -83,10 +78,8 @@ rm -rf %{buildroot}
 %attr(554,root,xroad) /usr/share/xroad/bin/xroad-opmonitor
 %attr(644,root,root) %{_unitdir}/xroad-opmonitor.service
 
-/usr/share/xroad/jlib/op-monitor-daemon-*.jar
+/usr/share/xroad/jlib/op-monitor/
 /usr/share/xroad/jlib/op-monitor-daemon.jar
-%attr(554,root,xroad) /usr/share/xroad/scripts/generate-opmonitor-certificate.sh
-/usr/bin/generate-opmonitor-certificate
 
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt

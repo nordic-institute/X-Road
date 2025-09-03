@@ -30,7 +30,12 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Optional;
 
 public final class JettyUtils {
@@ -115,6 +120,22 @@ public final class JettyUtils {
 
     public static void setContentLength(final Response response, final int length) {
         response.getHeaders().put(HttpHeader.CONTENT_LENGTH, length);
+    }
+
+    public static Resource toResource(String resourcePath) throws IOException {
+        URL url;
+        if (resourcePath.startsWith("classpath:")) {
+            String path = resourcePath.replace("classpath:", "");
+            // Ensure path starts with forward slash
+            path = path.startsWith("/") ? path.substring(1) : path;
+            url = Thread.currentThread().getContextClassLoader().getResource(path);
+            if (url == null) {
+                throw new IOException("Classpath resource not found: " + path);
+            }
+        } else {
+            url = new File(resourcePath).toURI().toURL();
+        }
+        return ResourceFactory.root().newResource(url);
     }
 
     private JettyUtils() {

@@ -34,6 +34,9 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -62,7 +65,7 @@ public final class ConfProxyUtilMain {
      *
      * @param args program args
      */
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws Exception {
         try {
             setup();
             runUtilWithArgs(args);
@@ -70,15 +73,32 @@ public final class ConfProxyUtilMain {
             System.err.println(e.getMessage());
             log.error("Error while running confproxy util:", e);
         } finally {
-            signerRpcClient.destroy();
+            signerRpcClient.close();
         }
     }
 
     /**
      * Initialize configuration proxy utility program components.
      */
+    @Deprecated
     static void setup() throws Exception {
-        signerRpcClient = new SignerRpcClient();
+        var factory = new RpcChannelFactory(new InsecureRpcCredentialsConfigurer());
+        signerRpcClient = new SignerRpcClient(factory, new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return DEFAULT_HOST;
+            }
+
+            @Override
+            public int port() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+        });
         signerRpcClient.init();
 
         cmdLineParser = new DefaultParser();

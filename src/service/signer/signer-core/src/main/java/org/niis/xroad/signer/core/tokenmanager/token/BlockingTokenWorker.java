@@ -34,54 +34,58 @@ import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
 
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 /**
- * A blocking (calls to token are synchronized) token worker.
+ * A token worker with read-write locking to allow concurrent read operations.
  */
 @Slf4j
 @RequiredArgsConstructor
 public class BlockingTokenWorker implements TokenWorker, WorkerWithLifecycle {
     private final AbstractTokenWorker tokenWorker;
+    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     @Override
     public void handleActivateToken(ActivateTokenReq message) {
-        synchronizedAction(() -> tokenWorker.handleActivateToken(message));
+        writeAction(() -> tokenWorker.handleActivateToken(message));
     }
 
     @Override
     public KeyInfo handleGenerateKey(GenerateKeyReq message) {
-        return synchronizedAction(() -> tokenWorker.handleGenerateKey(message));
+        return writeAction(() -> tokenWorker.handleGenerateKey(message));
     }
 
     @Override
     public void handleDeleteKey(String keyId) {
-        synchronizedAction(() -> tokenWorker.handleDeleteKey(keyId));
+        writeAction(() -> tokenWorker.handleDeleteKey(keyId));
     }
 
     @Override
     public void handleDeleteCert(String certificateId) {
-        synchronizedAction(() -> tokenWorker.handleDeleteCert(certificateId));
+        writeAction(() -> tokenWorker.handleDeleteCert(certificateId));
     }
 
     @Override
     public byte[] handleSign(SignReq request) {
-        return synchronizedAction(() -> tokenWorker.handleSign(request));
+        return readAction(() -> tokenWorker.handleSign(request));
     }
 
     @Override
-    public synchronized byte[] handleSignCertificate(SignCertificateReq request) {
-        return synchronizedAction(() -> tokenWorker.handleSignCertificate(request));
+    public byte[] handleSignCertificate(SignCertificateReq request) {
+        return readAction(() -> tokenWorker.handleSignCertificate(request));
     }
 
     @Override
-    public synchronized void initializeToken(char[] pin) {
-        synchronizedAction(() -> tokenWorker.initializeToken(pin));
+    public void initializeToken(char[] pin) {
+        writeAction(() -> tokenWorker.initializeToken(pin));
     }
 
     @Override
-    public synchronized void handleUpdateTokenPin(char[] oldPin, char[] newPin) {
-        synchronizedAction(() -> tokenWorker.handleUpdateTokenPin(oldPin, newPin));
+    public void handleUpdateTokenPin(char[] oldPin, char[] newPin) {
+        writeAction(() -> tokenWorker.handleUpdateTokenPin(oldPin, newPin));
     }
 
     @Override
@@ -91,23 +95,23 @@ public class BlockingTokenWorker implements TokenWorker, WorkerWithLifecycle {
 
     @Override
     public void start() {
-        synchronizedAction(tokenWorker::start);
+        writeAction(tokenWorker::start);
     }
 
     @Override
     public void destroy() {
-        synchronizedAction(tokenWorker::destroy);
+        writeAction(tokenWorker::destroy);
     }
 
     @Override
     public void reload() {
-        synchronizedAction(tokenWorker::reload);
+        writeAction(tokenWorker::reload);
     }
 
     @Override
     @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void refresh() throws Exception {
-        synchronizedAction(tokenWorker::refresh);
+        writeAction(tokenWorker::refresh);
     }
 
     @FunctionalInterface
@@ -122,25 +126,39 @@ public class BlockingTokenWorker implements TokenWorker, WorkerWithLifecycle {
         void run() throws E;
     }
 
-
-    private synchronized <T> T synchronizedAction(ThrowingSupplier<T, Exception> action) {
+    private <T> T readAction(ThrowingSupplier<T, Exception> action) {
+        rwLock.readLock().lock();
         try {
             return action.get();
         } catch (Exception e) {
             throw translateException(e);
         } finally {
             tokenWorker.onActionHandled();
+            rwLock.readLock().unlock();
         }
     }
 
+    private <T> T writeAction(ThrowingSupplier<T, Exception> action) {
+        rwLock.writeLock().lock();
+        try {
+            return action.get();
+        } catch (Exception e) {
+            throw translateException(e);
+        } finally {
+            tokenWorker.onActionHandled();
+            rwLock.writeLock().unlock();
+        }
+    }
 
-    private synchronized void synchronizedAction(ThrowingRunnable<Exception> action) {
+    private void writeAction(ThrowingRunnable<Exception> action) {
+        rwLock.writeLock().lock();
         try {
             action.run();
         } catch (Exception e) {
             throw translateException(e);
         } finally {
             tokenWorker.onActionHandled();
+            rwLock.writeLock().unlock();
         }
     }
 }

@@ -5,5 +5,10 @@ spring:
   main:
     banner-mode: off
 
+xroad:
+  common:
+    rpc:
+      use-tls: false
+
 logging:
   config: classpath:centralserver-admin-service-test-logback.xml

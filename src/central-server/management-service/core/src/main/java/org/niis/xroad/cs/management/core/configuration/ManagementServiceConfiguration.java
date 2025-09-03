@@ -30,8 +30,7 @@ import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.cs.admin.client.configuration.AdminServiceClientConfiguration;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
+import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -39,9 +38,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Import({
         AdminServiceClientConfiguration.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class
-})
+        SpringGlobalConfConfig.class})
 @Configuration
 @EnableScheduling
 public class ManagementServiceConfiguration {

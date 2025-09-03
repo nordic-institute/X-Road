@@ -25,11 +25,14 @@
  */
 package org.niis.xroad.proxy.core.util;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.eclipse.jetty.io.Content;
@@ -42,15 +45,11 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
-import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.keyconf.KeyConfProvider;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +57,7 @@ import java.util.Optional;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
+import static org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient.SHA_256_CERT_PARAM;
 
 /**
  * Service responsible for responding with OCSP responses of SSL certificates identified with the certificate hashes.
@@ -68,55 +68,43 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
  * http://<host>:<port>/?cert=hash1&cert=hash2&cert=hash3 ...
  */
 @Slf4j
+@ApplicationScoped
+@Startup
 @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-public class CertHashBasedOcspResponder implements InitializingBean, DisposableBean {
+public class CertHashBasedOcspResponder {
 
     private static final String METHOD_HEAD = "HEAD";
     private static final String METHOD_GET = "GET";
 
-    private static final String CERT_PARAM = "cert";
-
+    private final ProxyProperties.OcspResponderProperties ocspResponderProperties;
     private final KeyConfProvider keyConfProvider;
     private final Server server = new Server();
 
     /**
-     * Constructs a cert hash responder.
-     *
-     * @throws Exception in case of any errors
-     */
-    public CertHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
-        this(keyConfProvider, SystemProperties.getOcspResponderListenAddress());
-    }
-
-    /**
      * Constructs a cert hash responder that listens on the specified address.
-     *
-     * @param host the address this responder should listen at
-     * @throws Exception in case of any errors
      */
-    public CertHashBasedOcspResponder(KeyConfProvider keyConfProvider, String host) throws Exception {
+    public CertHashBasedOcspResponder(ProxyProperties.OcspResponderProperties ocspResponderProperties, KeyConfProvider keyConfProvider) {
         this.keyConfProvider = keyConfProvider;
-        configureServer();
-        createConnector(host);
-        createHandler();
+        this.ocspResponderProperties = ocspResponderProperties;
     }
 
     private void configureServer() throws Exception {
         log.trace("configureServer()");
 
-        Path file = Paths.get(SystemProperties.getJettyOcspResponderConfFile());
+        var file = ocspResponderProperties.jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
-        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
+        new XmlConfiguration(JettyUtils.toResource(file)).configure(server);
     }
 
-    private void createConnector(String host) {
+    private void createConnector() {
+        String host = ocspResponderProperties.listenAddress();
         log.trace("createConnector({})", host);
 
         ServerConnector ocspConnector = new ServerConnector(server);
 
         ocspConnector.setName("OcspResponseConnector");
-        ocspConnector.setPort(SystemProperties.getOcspResponderPort());
+        ocspConnector.setPort(ocspResponderProperties.port());
         ocspConnector.setHost(host);
         ocspConnector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)
@@ -138,18 +126,22 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
         server.setHandler(new RequestHandler());
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
+        configureServer();
+        createConnector();
+        createHandler();
+
         server.start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         server.stop();
     }
 
     private void doHandleRequest(Request request, Response response) throws Exception {
-        var hashes = getCertSha1Hashes(request);
+        var hashes = getCertSha256Hashes(request);
         List<OCSPResp> ocspResponses = getOcspResponses(hashes);
 
         log.debug("Returning OCSP responses for cert hashes: " + hashes);
@@ -218,11 +210,10 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
         return ocsp;
     }
 
-    private static List<String> getCertSha1Hashes(Request request) throws Exception {
-        // TODO sha256 cert hashes should be read from "cert_hash" param instead once 7.3.x is no longer supported
-        var paramValues = Request.getParameters(request).getValues(CERT_PARAM);
+    private static List<String> getCertSha256Hashes(Request request) throws Exception {
+        var paramValues = Request.getParameters(request).getValues(SHA_256_CERT_PARAM);
 
-        if (paramValues.isEmpty()) {
+        if (paramValues == null || paramValues.isEmpty()) {
             throw new Exception("Could not get cert hashes");
         }
 

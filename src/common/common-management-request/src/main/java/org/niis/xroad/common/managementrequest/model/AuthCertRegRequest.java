@@ -43,6 +43,7 @@ import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerRpcClient.KeyIdInfo;
 import org.niis.xroad.signer.client.SignerRpcClient.MemberSigningInfoDto;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -58,10 +59,10 @@ import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 
 @Slf4j
 public class AuthCertRegRequest implements ManagementRequest {
-    private static final DigestAlgorithm SIGNATURE_DIGEST_ALGORITHM_ID =
-            SystemProperties.getAuthCertRegSignatureDigestAlgorithmId();
+    private static final DigestAlgorithm SIGNATURE_DIGEST_ALGORITHM_ID = SystemProperties.getAuthCertRegSignatureDigestAlgorithmId();
 
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     private final byte[] authCert;
     private final ClientId owner;
     private final SoapMessageImpl requestMessage;
@@ -72,8 +73,10 @@ public class AuthCertRegRequest implements ManagementRequest {
 
     private MultipartOutputStream multipart;
 
-    public AuthCertRegRequest(SignerRpcClient signerRpcClient, byte[] authCert, ClientId owner, SoapMessageImpl request) {
+    public AuthCertRegRequest(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
+                              byte[] authCert, ClientId owner, SoapMessageImpl request) {
         this.signerRpcClient = signerRpcClient;
+        this.signerSignClient = signerSignClient;
         this.authCert = authCert;
         this.owner = owner;
         this.requestMessage = request;
@@ -182,7 +185,7 @@ public class AuthCertRegRequest implements ManagementRequest {
 
     private byte[] createSignature(String keyId, SignAlgorithm signAlgoId, byte[] digest) {
         try {
-            return Signatures.useAsn1DerFormat(signAlgoId, signerRpcClient.sign(keyId, signAlgoId, digest));
+            return Signatures.useAsn1DerFormat(signAlgoId, signerSignClient.sign(keyId, signAlgoId, digest));
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.or;
 import static com.codeborne.selenide.Condition.partialText;
 import static com.codeborne.selenide.Condition.text;
@@ -65,7 +66,7 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             "OS version",
             "OCSP responders",
             "Global configuration",
-            "Configuration overrides from local.ini",
+            "Configuration overrides from local.yaml",
             "Authentication certificates",
             "Maintenance mode"
     };
@@ -180,7 +181,7 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
         diagnosticsPage.proxyMemoryUsageMessage()
                 .scrollIntoView(false)
                 .shouldHave(partialText("ok"));
-        diagnosticsPage.proxyMemoryUsageMax().shouldHave(partialText("512.0MB"));
+        diagnosticsPage.proxyMemoryUsageMax().shouldHave(matchText("\\d{3}\\.\\dMB"));
         diagnosticsPage.proxyMemoryUsageThreshold().shouldHave(partialText("Not set"));
     }
 

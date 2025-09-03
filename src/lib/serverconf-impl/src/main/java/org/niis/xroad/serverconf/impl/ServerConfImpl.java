@@ -27,6 +27,7 @@ package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.db.TransactionCallback;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -52,28 +53,29 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SharedSessionContract;
+import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
+import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.CertificateDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
-import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
-import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
 import org.niis.xroad.serverconf.impl.mapper.CertificateMapper;
 import org.niis.xroad.serverconf.impl.mapper.ClientMapper;
 import org.niis.xroad.serverconf.impl.mapper.EndpointMapper;
 import org.niis.xroad.serverconf.impl.mapper.ServerConfMapper;
 import org.niis.xroad.serverconf.impl.mapper.ServiceDescriptionMapper;
 import org.niis.xroad.serverconf.impl.mapper.ServiceMapper;
-import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.model.Certificate;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.DescriptionType;
@@ -98,7 +100,6 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx.doInTransaction;
 
 /**
  * Server conf implementation.
@@ -110,7 +111,10 @@ public class ServerConfImpl implements ServerConfProvider {
     // default service connection timeout in seconds
     protected static final int DEFAULT_SERVICE_TIMEOUT = 30;
 
+    protected final DatabaseCtx serverConfDatabaseCtx;
     protected final GlobalConfProvider globalConfProvider;
+
+    private final VaultClient vaultClient;
 
     private final ServiceDAOImpl serviceDao = new ServiceDAOImpl();
     private final IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
@@ -340,7 +344,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public InternalSSLKey getSSLKey()
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-        return InternalSSLKey.load();
+        return vaultClient.getInternalTlsCredentials();
     }
 
     @Override
@@ -397,7 +401,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public boolean isAvailable() {
         try {
-            return doInTransaction(SharedSessionContract::isConnected);
+            return serverConfDatabaseCtx.doInTransaction(SharedSessionContract::isConnected);
         } catch (Exception e) {
             log.warn("Unable to check Serverconf availability", e);
             return false;
@@ -528,7 +532,7 @@ public class ServerConfImpl implements ServerConfProvider {
      */
     protected <T> T tx(TransactionCallback<T> t) {
         try {
-            return doInTransaction(t);
+            return serverConfDatabaseCtx.doInTransaction(t);
         } catch (Exception e) {
             throw translateException(e);
         }
