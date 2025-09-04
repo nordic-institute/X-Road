@@ -247,7 +247,7 @@
         "AUTH_CERT_REGISTERED": "AUTH sertifikaadi registreerimise teavitused",
         "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME sertifikaadi automaatse aktiveerimise teavitused",
         "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME sertifikaadi automaatse aktiveerimise ebaõnnestumise teavitused"
-    },
+      },
       "types": "Meili teavituste tüübid"
     },
     "maintenanceMode": {
@@ -413,7 +413,7 @@
     "endpoint_already_exists": "Otspunkt on juba olemas",
     "endpoint_not_found": "Otspunkti ei leitud",
     "forbidden_disable_management_service_client": "Haldusteenuste pakkujat ei saa välja lülitada",
-    "forbidden_enable_maintenance_mode_for_management_service": "Haldusteenuste pakkujat ei saa välja lülitada",    
+    "forbidden_enable_maintenance_mode_for_management_service": "Haldusteenuste pakkujat ei saa välja lülitada",
     "global_conf_download_request_failed": "Globaalse konfiguratsiooni allalaadimise päring ebaõnnestus",
     "global_conf_outdated": "Globaalne konfiguratsioon on aegunud",
     "gpg_key_generation_failed": "GPG võtmepaari loomine ebaõnnestus",
@@ -441,6 +441,7 @@
     "local_group_member_not_found": "Lokaalse rühma liiget ei leitud",
     "local_group_not_found": "Lokaalset rühma ei leitud",
     "malformed_anchor": "Vale vorminguga ankur",
+    "maintenance_mode_change_request_already_submitted": "Hooldusrežiimi muudatus on juba ootel",
     "malformed_url": "Vale vorminguga URL",
     "management_request_sending_failed": "Halduspäringu saatmine ebaõnnestus",
     "member_already_owner": "Liige on juba omanik",
@@ -466,7 +467,6 @@
     "service_description_not_found": "Teenuse kirjeldust ei leitud",
     "service_not_found": "teenust ei leitud",
     "sign_cert_not_supported": "Signeerimise sertifikaati ei toetata",
-    "signer_not_reachable": "Signeerija pole hetkel kättesaadav. Vt täpsemalt vt signeerija logi.",
     "software_token_init_failed": "Tarkvaralise krüptomooduli lähtestamine ebaõnnestus",
     "timestamping_service_already_configured": "Ajatempli teenus on juba konfigureeritud",
     "timestamping_service_not_found": "Ajatempli teenust ei leitud",
@@ -646,7 +646,7 @@
     "importCertOcspVerifyWarning": "Sertifikaati ei õnnestunud aktiveerida, sest OCSP vastust ei saanud valideerida. Veateade: {errorMessage}",
     "importCertSuccess": "Sertifikaadi üleslaadimine õnnestus",
     "incorrectPin": "Vale PIN. Palun proovige uuesti.",
-    "keyAlgorithm": "Key Algorithm:",    
+    "keyAlgorithm": "Key Algorithm:",
     "keyDeleted": "Võti kustutatud",
     "keyId": "Võtme ID:",
     "keyInfo": "Võtme teave",
@@ -1050,6 +1050,7 @@
       "subsystemExists": "Alamsüsteem on juba olemas"
     },
     "subsystemCode": "Alamsüsteemi kood",
+    "subsystemName": "Alamsüsteemi nimi",
     "token": {
       "info": "Valige krüptomoodul, millele soovite lisada SIGN-võtme uue kliendi jaoks. Märkus: krüptomoodul peab olema sisselogitud olekus.",
       "loggedIn": "Sisselogitud",
