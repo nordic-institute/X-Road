@@ -67,10 +67,12 @@ public class IniUtil {
             for (Iterator<String> it = ini.parsedContent().getSection(section).getKeys(); it.hasNext(); ) {
                 var sectionKey = it.next();
                 var key = section + "." + sectionKey;
-                var mappedKey = LegacyConfigPathMapping.map(key);
-                var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
+                if (LegacyConfigPathMapping.shouldKeep(key)) {
+                    var mappedKey = LegacyConfigPathMapping.map(key);
+                    var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
 
-                insertNestedProperty(properties, mappedKey.split("\\."), resolveValue(valueStr));
+                    insertNestedProperty(properties, mappedKey.split("\\."), resolveValue(valueStr));
+                }
             }
         }
 
@@ -86,11 +88,13 @@ public class IniUtil {
         for (String section : ini.parsedContent().getSections()) {
             for (Iterator<String> it = ini.parsedContent().getSection(section).getKeys(); it.hasNext(); ) {
                 var sectionKey = it.next();
-                var key = String.join(".", rootPrefix, section, sectionKey);
-                var mappedKey = LegacyConfigPathMapping.map(key);
-                var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
+                var key = String.join(".", section, sectionKey);
+                if (LegacyConfigPathMapping.shouldKeep(key)) {
+                    var mappedKey = LegacyConfigPathMapping.map(key);
+                    var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
 
-                properties.put(mappedKey, valueStr);
+                    properties.put(String.join(".", rootPrefix, mappedKey), valueStr);
+                }
             }
         }
 

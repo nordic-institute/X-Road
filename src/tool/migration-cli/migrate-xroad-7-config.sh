@@ -28,11 +28,16 @@ for cfg in "${CONFIG_FILES[@]}"; do
   done
 done
 
-#todo: ssl properties
+if [ -f "$SSL_PROPERTIES_FILE" ]; then
+  echo "SSL properties file ($SSL_PROPERTIES_FILE) exists. Will insert to db."
+  java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration.PropertiesToDbMigrator "$SSL_PROPERTIES_FILE" "proxy-ui-api" "$DB_PROPERTIES_FILE"
+else
+  echo "$SSL_PROPERTIES_FILE file not found, skipping migration to db."
+fi
+
 
 if [ -f "$CONF_ANCHOR_FILE" ]; then
   echo "Configuration anchor file (${CONF_ANCHOR_FILE}) exists. Will insert to db."
-
   java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration.ConfigurationAnchorMigrator "$CONF_ANCHOR_FILE" "$DB_PROPERTIES_FILE"
 else
   echo "${CONF_ANCHOR_FILE} file not found, skipping migration to db."
