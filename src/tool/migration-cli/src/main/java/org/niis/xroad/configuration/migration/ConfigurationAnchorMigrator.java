@@ -33,8 +33,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.niis.xroad.configuration.migration.DbRepository.DEFAULT_DB_PROPERTIES_PATH;
-
 @Slf4j
 public class ConfigurationAnchorMigrator {
 
@@ -53,22 +51,19 @@ public class ConfigurationAnchorMigrator {
     public static void main(String[] args) {
         validateParams(args);
 
-        String dbPropertiesPath = args.length == 2 ? args[1] : DEFAULT_DB_PROPERTIES_PATH;
-        new ConfigurationAnchorMigrator().migrate(args[0], dbPropertiesPath);
+        new ConfigurationAnchorMigrator().migrate(args[0], args[1]);
     }
 
     private static void validateParams(String[] args) {
-        if (args.length != 1 && args.length != 2) {
+        if (args.length != 2) {
             logUsageAndThrow("Invalid number of arguments provided.");
         }
         LegacyConfigMigrationCLI.validateFilePath(args[0], "Configuration anchor file");
-        if (args.length == 2) {
-            LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
-        }
+        LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
     }
 
     private static void logUsageAndThrow(String message) {
-        log.error("Usage: <input file> [db.properties file]");
+        log.error("Usage: <input file> <db.properties file>");
         throw new IllegalArgumentException(message);
     }
 

@@ -13,6 +13,10 @@ CONFIG_FILES=(
  /etc/xroad/conf.d/local.ini
 )
 
+printLine() {
+  echo "----------------------------------"
+}
+
 echo "Using database properties: $DB_PROPERTIES_FILE"
 echo "Starting configuration files migration..."
 
@@ -20,25 +24,51 @@ for cfg in "${CONFIG_FILES[@]}"; do
   # Expand globs
   for file in $cfg; do
     if [[ -f "$file" ]]; then
-      echo "Migrating: $file"
-      java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration.IniToDbMigrator "$file" "$DB_PROPERTIES_FILE"
+      read -p "Migrate $file? [y/N] " confirm
+      case "$confirm" in
+        [yY][eE][sS]|[yY])
+          echo "Migrating: $file"
+          java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration.IniToDbMigrator "$file" "$DB_PROPERTIES_FILE"
+          ;;
+        *)
+          echo "Skipping: $file"
+          ;;
+      esac
+      printLine
     else
       echo "Skipping (not found): $file"
     fi
   done
 done
 
+
 if [ -f "$SSL_PROPERTIES_FILE" ]; then
-  echo "SSL properties file ($SSL_PROPERTIES_FILE) exists. Will insert to db."
-  java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration.PropertiesToDbMigrator "$SSL_PROPERTIES_FILE" "proxy-ui-api" "$DB_PROPERTIES_FILE"
+  read -p "SSL properties file ($SSL_PROPERTIES_FILE) exists. Migrate? [y/N]" confirm
+  case "$confirm" in
+    [yY][eE][sS]|[yY])
+      java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration.PropertiesToDbMigrator "$SSL_PROPERTIES_FILE" "$DB_PROPERTIES_FILE" "proxy-ui-api"
+      ;;
+    *)
+      echo "Skipping: $SSL_PROPERTIES_FILE"
+      ;;
+  esac
+  printLine
 else
-  echo "$SSL_PROPERTIES_FILE file not found, skipping migration to db."
+  echo "$SSL_PROPERTIES_FILE file not found."
 fi
 
 
 if [ -f "$CONF_ANCHOR_FILE" ]; then
-  echo "Configuration anchor file (${CONF_ANCHOR_FILE}) exists. Will insert to db."
-  java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration.ConfigurationAnchorMigrator "$CONF_ANCHOR_FILE" "$DB_PROPERTIES_FILE"
+  read -p "Configuration anchor file (${CONF_ANCHOR_FILE}) exists. Migrate? [y/N]" confirm
+  case "$confirm" in
+    [yY][eE][sS]|[yY])
+      java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration.ConfigurationAnchorMigrator "$CONF_ANCHOR_FILE" "$DB_PROPERTIES_FILE"
+      ;;
+    *)
+      echo "Skipping: $CONF_ANCHOR_FILE"
+      ;;
+  esac
+  printLine
 else
-  echo "${CONF_ANCHOR_FILE} file not found, skipping migration to db."
+  echo "${CONF_ANCHOR_FILE} file not found."
 fi

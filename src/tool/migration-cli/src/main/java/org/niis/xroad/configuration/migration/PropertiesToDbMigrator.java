@@ -31,44 +31,34 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
-
-import static org.niis.xroad.configuration.migration.DbRepository.DEFAULT_DB_PROPERTIES_PATH;
+import java.util.stream.Collectors;
 
 @Slf4j
-public class PropertiesToDbMigrator {
+public class PropertiesToDbMigrator extends BasePropertiesMigrator {
 
-    void migrate(String propertiesFilePath, String scope, String dbPropertiesPath) {
-        log.info("Loading properties from [{}]. Scope [{}]", propertiesFilePath, scope);
+    @Override
+    Map<String, String> loadProperties(String filePath) {
+        log.info("Loading properties from [{}].", filePath);
 
         Properties properties = new Properties();
-        try (FileInputStream fis = new FileInputStream(propertiesFilePath)) {
+        try (FileInputStream fis = new FileInputStream(filePath)) {
             properties.load(fis);
         } catch (IOException e) {
             throw new MigrationException("Failed to read properties.");
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Loaded properties from file {}", propertiesFilePath);
-            properties.forEach((k, v) -> log.debug("{}={}", k, v));
-        }
-
-        try (DbRepository dbRepo = new DbRepository(dbPropertiesPath)) {
-            properties.forEach((key, value) -> {
-                log.debug("Processing property {}={}, with scope [{}]", key, value, scope);
-                dbRepo.saveProperty(String.valueOf(key), String.valueOf(value), scope);
-            });
-        }
-
-        log.info("{} properties migrated to DB", properties.size());
+        return properties.stringPropertyNames()
+                .stream()
+                .collect(Collectors.toMap(k -> k, properties::getProperty));
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
     public static void main(String[] args) {
         validateParams(args);
 
-        String dbPropertiesPath = args.length == 3 ? args[2] : DEFAULT_DB_PROPERTIES_PATH;
-        new PropertiesToDbMigrator().migrate(args[0], args[1], dbPropertiesPath);
+        new PropertiesToDbMigrator().migrate(args[0], args[1], args[2]);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -77,13 +67,11 @@ public class PropertiesToDbMigrator {
             logUsageAndThrow("Invalid number of arguments provided.");
         }
         LegacyConfigMigrationCLI.validateFilePath(args[0], "properties input file");
-        if (args.length == 3) {
-            LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
-        }
+        LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
     }
 
     private static void logUsageAndThrow(String message) {
-        log.error("Usage: <input file> <scope> [db.properties file]");
+        log.error("Usage: <input file> <db.properties file> [scope]");
         throw new IllegalArgumentException(message);
     }
 

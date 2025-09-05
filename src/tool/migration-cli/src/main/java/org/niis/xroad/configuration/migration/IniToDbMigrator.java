@@ -31,52 +31,34 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
-import static org.niis.xroad.configuration.migration.DbRepository.DEFAULT_DB_PROPERTIES_PATH;
-
 @Slf4j
-public class IniToDbMigrator {
+public class IniToDbMigrator extends BasePropertiesMigrator {
 
     private final IniUtil iniUtil = new IniUtil();
 
-    void migrate(String iniFilePath, String dbPropertiesPath) {
-        log.info("Loading INI properties from [{}]", iniFilePath);
-        Map<String, String> properties = iniUtil.loadToFlatMap(iniFilePath, "xroad");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Loaded properties from file {}", iniFilePath);
-            properties.forEach((k, v) -> log.debug("{}={}", k, v));
-        }
-
-        try (DbRepository dbRepo = new DbRepository(dbPropertiesPath)) {
-            properties.forEach((key, value) -> {
-                log.debug("Processing property {}={}", key, value);
-                dbRepo.saveProperty(key, value);
-            });
-        }
-
-        log.info("{} properties migrated to DB", properties.size());
+    @Override
+    Map<String, String> loadProperties(String filePath) {
+        log.info("Loading INI properties from [{}]", filePath);
+        return iniUtil.loadToFlatMap(filePath, "xroad");
     }
 
     public static void main(String[] args) {
         validateParams(args);
 
-        IniToDbMigrator migrator = new IniToDbMigrator();
-        String dbPropertiesPath = args.length == 2 ? args[1] : DEFAULT_DB_PROPERTIES_PATH;
-        migrator.migrate(args[0], dbPropertiesPath);
+        new IniToDbMigrator().migrate(args[0], args[1]);
     }
 
     private static void validateParams(String[] args) {
-        if (args.length != 1 && args.length != 2) {
+        if (args.length != 2) {
             logUsageAndThrow("Invalid number of arguments provided.");
         }
         LegacyConfigMigrationCLI.validateFilePath(args[0], "INI input file");
-        if (args.length == 2) {
-            LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
-        }
+        LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
     }
 
     private static void logUsageAndThrow(String message) {
-        log.error("Usage: <input file> [db.properties file]");
+        log.error("Usage: <input file> <db.properties file>");
         throw new IllegalArgumentException(message);
     }
+
 }
