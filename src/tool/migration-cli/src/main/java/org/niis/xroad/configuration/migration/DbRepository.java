@@ -38,7 +38,9 @@ import java.sql.PreparedStatement;
 import java.util.Properties;
 
 @Slf4j
-public class DbPropertiesRepository implements AutoCloseable {
+public class DbRepository implements AutoCloseable {
+
+    public static final String DEFAULT_DB_PROPERTIES_PATH = "/etc/xroad/db.properties";
 
     private final String jdbcUrl;
     private final String username;
@@ -53,7 +55,11 @@ public class DbPropertiesRepository implements AutoCloseable {
             "INSERT INTO configuration_properties(property_key, property_value, scope) VALUES (?, ?, ?) "
                     + " ON CONFLICT (property_key, scope) WHERE scope IS NOT NULL DO UPDATE SET property_value = EXCLUDED.property_value";
 
-    public DbPropertiesRepository(String dbPropertiesFilePath) {
+    private static final String UPSERT_CONFIGURATION_ANCHOR =
+            "INSERT INTO configuration_client(name, content) VALUES ('configuration-anchor', ?) "
+                    + " ON CONFLICT (name) DO UPDATE SET content = EXCLUDED.content";
+
+    public DbRepository(String dbPropertiesFilePath) {
         try (FileInputStream fis = new FileInputStream(dbPropertiesFilePath)) {
             Properties props = new Properties();
             props.load(fis);
@@ -110,6 +116,15 @@ public class DbPropertiesRepository implements AutoCloseable {
             statement.executeUpdate();
         } catch (Exception e) {
             throw new MigrationException("Failed to save configuration property %s".formatted(key), e);
+        }
+    }
+
+    public void saveConfigurationAnchor(String configurationAnchor) {
+        try (PreparedStatement statement = connection.prepareStatement(UPSERT_CONFIGURATION_ANCHOR)) {
+            statement.setString(1, configurationAnchor);
+            statement.executeUpdate();
+        } catch (Exception e) {
+            throw new MigrationException("Failed to save configuration anchor", e);
         }
     }
 

@@ -29,47 +29,39 @@ package org.niis.xroad.configuration.migration;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.niis.xroad.configuration.migration.DbRepository.DEFAULT_DB_PROPERTIES_PATH;
 
 @Slf4j
-public class IniToDbMigrator {
+public class ConfigurationAnchorMigrator {
 
-    private final IniUtil iniUtil = new IniUtil();
-
-    void migrate(String iniFilePath, String dbPropertiesPath) {
-        log.info("Loading INI properties from [{}]", iniFilePath);
-        Map<String, String> properties = iniUtil.loadToFlatMap(iniFilePath, "xroad");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Loaded properties from file {}", iniFilePath);
-            properties.forEach((k, v) -> log.debug("{}={}", k, v));
-        }
-
+    void migrate(String anchorFilePath, String dbPropertiesPath) {
         try (DbRepository dbRepo = new DbRepository(dbPropertiesPath)) {
-            properties.forEach((key, value) -> {
-                log.debug("Processing property {}={}", key, value);
-                dbRepo.saveProperty(key, value);
-            });
+            log.info("Reading configuration anchor file from [{}]", anchorFilePath);
+            String configurationAnchor = Files.readString(Paths.get(anchorFilePath));
+            dbRepo.saveConfigurationAnchor(configurationAnchor);
+        } catch (IOException e) {
+            throw new MigrationException("Failed to read configuration anchor file", e);
         }
 
-        log.info("{} properties migrated to DB", properties.size());
+        log.info("Configuration anchor file saved to DB");
     }
 
     public static void main(String[] args) {
         validateParams(args);
 
-        IniToDbMigrator migrator = new IniToDbMigrator();
         String dbPropertiesPath = args.length == 2 ? args[1] : DEFAULT_DB_PROPERTIES_PATH;
-        migrator.migrate(args[0], dbPropertiesPath);
+        new ConfigurationAnchorMigrator().migrate(args[0], dbPropertiesPath);
     }
 
     private static void validateParams(String[] args) {
         if (args.length != 1 && args.length != 2) {
             logUsageAndThrow("Invalid number of arguments provided.");
         }
-        LegacyConfigMigrationCLI.validateFilePath(args[0], "INI input file");
+        LegacyConfigMigrationCLI.validateFilePath(args[0], "Configuration anchor file");
         if (args.length == 2) {
             LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
         }
@@ -79,4 +71,5 @@ public class IniToDbMigrator {
         log.error("Usage: <input file> [db.properties file]");
         throw new IllegalArgumentException(message);
     }
+
 }
