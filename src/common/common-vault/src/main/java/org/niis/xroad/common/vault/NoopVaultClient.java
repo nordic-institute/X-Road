@@ -40,12 +40,22 @@ public class NoopVaultClient implements VaultClient {
     }
 
     @Override
+    public InternalSSLKey getProxyUyApiTlsCredentials() {
+        return null;
+    }
+
+    @Override
     public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) {
         throw new UnsupportedOperationException("Not supported");
     }
 
     @Override
     public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) {
         throw new UnsupportedOperationException("Not supported");
     }
 }

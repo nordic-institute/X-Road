@@ -27,7 +27,8 @@ spring:
       scheme: ${XROAD_SECRET_STORE_SCHEME:https}
       token: ${XROAD_SECRET_STORE_TOKEN}
       kv:
-        enabled: false
+        backend-version: 1
+        backend: xrd-secret
 
 "%containerized":
   quarkus:

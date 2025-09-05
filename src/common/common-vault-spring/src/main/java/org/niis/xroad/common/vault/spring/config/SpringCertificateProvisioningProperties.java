@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,18 +24,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.common.vault.spring.config;
 
-import io.quarkus.vault.VaultPKISecretEngineFactory;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
+import lombok.Setter;
+import org.niis.xroad.common.properties.util.DurationConverter;
+import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
-public class OpMonitorConfig {
+import java.time.Duration;
+import java.util.List;
 
-    @ApplicationScoped
-    public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, OpMonitorTlsProperties tlsProperties) {
-        return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
+@Setter
+public class SpringCertificateProvisioningProperties implements CertificateProvisioningProperties {
+
+    private String issuanceRoleName = DEFAULT_ISSUANCE_ROLE_NAME;
+    private String commonName = DEFAULT_COMMON_NAME;
+    private List<String> altNames;
+    private List<String> ipSubjectAltNames;
+    private Duration ttl = DurationConverter.parseDuration(DEFAULT_TTL);
+    private String secretStorePkiPath = DEFAULT_SECRET_STORE_PKI_PATH;
+
+    @Override
+    public String issuanceRoleName() {
+        return issuanceRoleName;
+    }
+
+    @Override
+    public String commonName() {
+        return commonName;
+    }
+
+    @Override
+    public List<String> altNames() {
+        return altNames;
+    }
+
+    @Override
+    public List<String> ipSubjectAltNames() {
+        return ipSubjectAltNames;
+    }
+
+    @Override
+    public Duration ttl() {
+        return ttl;
+    }
+
+    @Override
+    public String secretStorePkiPath() {
+        return secretStorePkiPath;
     }
 
 }

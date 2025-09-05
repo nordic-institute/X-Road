@@ -32,7 +32,7 @@ import io.github.resilience4j.retry.RetryRegistry;
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.properties.CommonRpcProperties;
+import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.vault.VaultKeyClient;
 
@@ -53,7 +53,7 @@ import static io.github.resilience4j.core.IntervalFunction.ofExponentialBackoff;
 public class ReloadableVaultKeyManager implements VaultKeyProvider {
     private static final String RETRY_INSTANCE_NAME = "vaultReloadRetry";
 
-    private final CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties;
+    private final RpcProperties.RpcCertificateProvisioningProperties certificateProvisionProperties;
     private final ScheduledExecutorService scheduler;
     private final VaultKeyClient vaultKeyClient;
     private final AdvancedTlsX509TrustManager trustManager;
@@ -61,10 +61,10 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
 
     private final Retry retryInstance;
 
-    public ReloadableVaultKeyManager(CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties,
+    public ReloadableVaultKeyManager(RpcProperties.RpcCertificateProvisioningProperties certificateProvisioningProperties,
                                      VaultKeyClient vaultKeyClient, AdvancedTlsX509TrustManager trustManager,
                                      AdvancedTlsX509KeyManager keyManager, ScheduledExecutorService scheduler, Retry retryInstance) {
-        this.certificateProvisionProperties = certificateProvisionProperties;
+        this.certificateProvisionProperties = certificateProvisioningProperties;
         this.vaultKeyClient = vaultKeyClient;
         this.trustManager = trustManager;
         this.keyManager = keyManager;
@@ -111,12 +111,12 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
         return trustManager;
     }
 
-    static Retry createRetryInstance(CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties) {
-        var retryInterval = ofExponentialBackoff(certificateProvisionProperties.retryDelay(),
-                certificateProvisionProperties.retryExponentialBackoffMultiplier());
+    static Retry createRetryInstance(RpcProperties.RpcCertificateProvisioningProperties certificateProvisioningProperties) {
+        var retryInterval = ofExponentialBackoff(certificateProvisioningProperties.retryDelay(),
+                certificateProvisioningProperties.retryExponentialBackoffMultiplier());
 
         RetryConfig retryConfig = RetryConfig.custom()
-                .maxAttempts(certificateProvisionProperties.retryMaxAttempts() + 1)
+                .maxAttempts(certificateProvisioningProperties.retryMaxAttempts() + 1)
                 .intervalFunction(retryInterval)
                 .retryExceptions(Exception.class)
                 .failAfterMaxAttempts(true)
@@ -127,7 +127,7 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
     }
 
     public static ReloadableVaultKeyManager withDefaults(
-            CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties,
+            RpcProperties.RpcCertificateProvisioningProperties certificateProvisionProperties,
             VaultKeyClient vaultKeyClient) throws CertificateException {
         var trustStore = AdvancedTlsX509TrustManager.newBuilder()
                 .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)

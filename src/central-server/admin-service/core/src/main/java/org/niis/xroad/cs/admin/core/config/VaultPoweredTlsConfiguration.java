@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,18 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.cs.admin.core.config;
 
-import io.quarkus.vault.VaultPKISecretEngineFactory;
-import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
+import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
+import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
+import org.niis.xroad.restapi.vault.VaultSslBundleRegistrar;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.vault.core.VaultTemplate;
 
-public class OpMonitorConfig {
+@ConditionalOnProperty(name = "server.ssl.enabled", havingValue = "true")
+@Configuration
+@Import(SpringVaultClientConfig.class)
+public class VaultPoweredTlsConfiguration {
 
-    @ApplicationScoped
-    public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, OpMonitorTlsProperties tlsProperties) {
-        return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
+    @Bean
+    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = "vault")
+    VaultKeyClient vaultKeyClient(VaultTemplate vaultTemplate, AdminServiceTlsProperties properties) {
+        return new SpringVaultKeyClient(vaultTemplate, properties.getCertificateProvisioning());
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = "vault")
+    public SslBundleRegistrar vaultSslBundleRegistrar(VaultKeyClient vaultKeyClient, VaultClient vaultClient) {
+        return new VaultSslBundleRegistrar(vaultKeyClient, vaultClient);
     }
 
 }

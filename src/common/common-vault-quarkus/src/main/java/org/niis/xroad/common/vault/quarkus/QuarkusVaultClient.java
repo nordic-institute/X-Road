@@ -32,22 +32,17 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import io.quarkus.vault.VaultKVSecretEngine;
 import lombok.RequiredArgsConstructor;
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemWriter;
+import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static org.bouncycastle.openssl.PEMParser.TYPE_CERTIFICATE;
-import static org.bouncycastle.openssl.PEMParser.TYPE_PRIVATE_KEY;
 
 @RequiredArgsConstructor
 public class QuarkusVaultClient implements VaultClient {
@@ -65,6 +60,11 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
+    public InternalSSLKey getProxyUyApiTlsCredentials() {
+        throw new NotImplementedException();
+    }
+
+    @Override
     public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws Exception {
         createTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH, internalSSLKey);
     }
@@ -72,6 +72,11 @@ public class QuarkusVaultClient implements VaultClient {
     @Override
     public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws Exception {
         createTlsCredentials(OPMONITOR_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
+    public void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new NotImplementedException();
     }
 
     private InternalSSLKey getTlsCredentials(String path) throws Exception {
@@ -105,21 +110,4 @@ public class QuarkusVaultClient implements VaultClient {
         kvSecretEngine.writeSecret(path, secret);
     }
 
-    private String toPem(PrivateKey privateKey) throws IOException {
-        StringWriter stringWriter = new StringWriter();
-        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
-            PemObject pemObject = new PemObject(TYPE_PRIVATE_KEY, privateKey.getEncoded());
-            pemWriter.writeObject(pemObject);
-        }
-        return stringWriter.toString();
-    }
-
-    private String toPem(X509Certificate certificate) throws IOException, CertificateEncodingException {
-        StringWriter stringWriter = new StringWriter();
-        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
-            PemObject pemObject = new PemObject(TYPE_CERTIFICATE, certificate.getEncoded());
-            pemWriter.writeObject(pemObject);
-        }
-        return stringWriter.toString();
-    }
 }

@@ -24,24 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.common.rpc.spring;
 
 import lombok.Setter;
-import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.niis.xroad.common.properties.util.DurationConverter;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.vault.spring.config.SpringCertificateProvisioningProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
-import java.util.List;
-
 
 @Setter
-@ConfigurationProperties(prefix = CommonRpcProperties.PREFIX)
-public class SpringCommonRpcProperties implements CommonRpcProperties {
+@ConfigurationProperties(prefix = RpcProperties.PREFIX)
+public class SpringRpcProperties implements RpcProperties {
 
     private boolean useTls = Boolean.parseBoolean(DEFAULT_USE_TLS);
-    private SpringCertificateProvisionProperties certificateProvisioning;
+    private SpringRpcCertificateProvisioningProperties certificateProvisioning;
 
     @Override
     public boolean useTls() {
@@ -49,57 +47,22 @@ public class SpringCommonRpcProperties implements CommonRpcProperties {
     }
 
     @Override
-    public CertificateProvisionProperties certificateProvisioning() {
+    public SpringRpcCertificateProvisioningProperties certificateProvisioning() {
         return certificateProvisioning;
     }
 
     @Setter
-    static class SpringCertificateProvisionProperties implements CertificateProvisionProperties {
+    public static class SpringRpcCertificateProvisioningProperties extends SpringCertificateProvisioningProperties
+            implements RpcCertificateProvisioningProperties {
 
-        private String issuanceRoleName = DEFAULT_ISSUANCE_ROLE_NAME;
-        private String commonName = DEFAULT_COMMON_NAME;
-        private List<String> altNames;
-        private List<String> ipSubjectAltNames;
-        private Duration ttl = DurationConverter.parseDuration(DEFAULT_TTL);
         private Duration refreshInterval = DurationConverter.parseDuration(DEFAULT_REFRESH_INTERVAL);
         private Duration retryDelay = DurationConverter.parseDuration(DEFAULT_RETRY_DELAY);
         private Double retryExponentialBackoffMultiplier = Double.parseDouble(DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER);
         private int retryMaxAttempts = Integer.parseInt(DEFAULT_RETRY_MAX_ATTEMPTS);
-        private String secretStorePkiPath = DEFAULT_SECRET_STORE_PKI_PATH;
-
-        @Override
-        public String issuanceRoleName() {
-            return issuanceRoleName;
-        }
-
-        @Override
-        public String commonName() {
-            return commonName;
-        }
-
-        @Override
-        public List<String> altNames() {
-            return altNames;
-        }
-
-        @Override
-        public List<String> ipSubjectAltNames() {
-            return ipSubjectAltNames;
-        }
-
-        @Override
-        public Duration ttl() {
-            return ttl;
-        }
 
         @Override
         public Duration refreshInterval() {
             return refreshInterval;
-        }
-
-        @Override
-        public String secretStorePkiPath() {
-            return secretStorePkiPath;
         }
 
         @Override

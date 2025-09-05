@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,18 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.common.vault.config;
 
-import io.quarkus.vault.VaultPKISecretEngineFactory;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
+import java.time.Duration;
+import java.util.List;
 
-public class OpMonitorConfig {
+public interface CertificateProvisioningProperties {
 
-    @ApplicationScoped
-    public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, OpMonitorTlsProperties tlsProperties) {
-        return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
-    }
+    String DEFAULT_ISSUANCE_ROLE_NAME = "xrd-internal";
+    String DEFAULT_COMMON_NAME = "localhost";
+    String DEFAULT_SECRET_STORE_PKI_PATH = "xrd-pki";
+    String DEFAULT_TTL = "3650D";
 
+    String issuanceRoleName();
+    String commonName();
+    List<String> altNames();
+    List<String> ipSubjectAltNames();
+    Duration ttl();
+    String secretStorePkiPath();
 }

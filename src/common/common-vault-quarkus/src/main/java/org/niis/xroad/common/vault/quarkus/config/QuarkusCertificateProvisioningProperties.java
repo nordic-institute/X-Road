@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,18 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.common.vault.quarkus.config;
 
-import io.quarkus.vault.VaultPKISecretEngineFactory;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
-public class OpMonitorConfig {
+import java.time.Duration;
+import java.util.List;
 
-    @ApplicationScoped
-    public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, OpMonitorTlsProperties tlsProperties) {
-        return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
-    }
+public interface QuarkusCertificateProvisioningProperties extends CertificateProvisioningProperties {
+
+    @WithName("issuance-role-name")
+    @WithDefault(DEFAULT_ISSUANCE_ROLE_NAME)
+    String issuanceRoleName();
+
+    @WithName("common-name")
+    @WithDefault(DEFAULT_COMMON_NAME)
+    String commonName();
+
+    @WithName("alt-names")
+    @WithDefault("[]")
+    List<String> altNames();
+
+    @WithName("ip-subject-alt-names")
+    @WithDefault("[]")
+    List<String> ipSubjectAltNames();
+
+    @WithName("ttl")
+    @WithDefault(DEFAULT_TTL)
+    Duration ttl();
+
+    @WithName("secret-store-pki-path")
+    @WithDefault(DEFAULT_SECRET_STORE_PKI_PATH)
+    String secretStorePkiPath();
 
 }

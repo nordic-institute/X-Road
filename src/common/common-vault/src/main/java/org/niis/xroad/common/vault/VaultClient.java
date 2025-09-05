@@ -28,18 +28,53 @@ package org.niis.xroad.common.vault;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+
+import static org.bouncycastle.openssl.PEMParser.TYPE_CERTIFICATE;
+import static org.bouncycastle.openssl.PEMParser.TYPE_PRIVATE_KEY;
+
 public interface VaultClient {
     String PRIVATEKEY_KEY = "privateKey";
     String CERTIFICATE_KEY = "certificate";
 
     String INTERNAL_TLS_CREDENTIALS_PATH = "tls/internal";
     String OPMONITOR_TLS_CREDENTIALS_PATH = "tls/opmonitor";
+    String PROXY_UI_API_TLS_CREDENTIALS_PATH = "tls/proxy-ui-api";
 
     InternalSSLKey getInternalTlsCredentials() throws Exception;
 
     InternalSSLKey getOpmonitorTlsCredentials() throws Exception;
 
+    InternalSSLKey getProxyUyApiTlsCredentials() throws Exception;
+
     void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws Exception;
 
     void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws Exception;
+
+    void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) throws Exception;
+
+    default String toPem(PrivateKey privateKey) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+            PemObject pemObject = new PemObject(TYPE_PRIVATE_KEY, privateKey.getEncoded());
+            pemWriter.writeObject(pemObject);
+        }
+        return stringWriter.toString();
+    }
+
+    default String toPem(X509Certificate certificate) throws IOException, CertificateEncodingException {
+        StringWriter stringWriter = new StringWriter();
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+            PemObject pemObject = new PemObject(TYPE_CERTIFICATE, certificate.getEncoded());
+            pemWriter.writeObject(pemObject);
+        }
+        return stringWriter.toString();
+    }
 }

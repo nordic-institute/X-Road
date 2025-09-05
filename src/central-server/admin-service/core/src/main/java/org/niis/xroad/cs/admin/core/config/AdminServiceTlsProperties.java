@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,18 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.cs.admin.core.config;
 
-import io.quarkus.vault.VaultPKISecretEngineFactory;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
+import lombok.Getter;
+import lombok.Setter;
+import org.niis.xroad.common.vault.spring.config.SpringCertificateProvisioningProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-public class OpMonitorConfig {
-
-    @ApplicationScoped
-    public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, OpMonitorTlsProperties tlsProperties) {
-        return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
-    }
-
+@Configuration
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "xroad.admin-service.tls")
+public class AdminServiceTlsProperties {
+    private SpringCertificateProvisioningProperties certificateProvisioning;
 }

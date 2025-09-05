@@ -33,18 +33,20 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.vault.VaultClient;
-import org.springframework.vault.core.VaultTemplate;
+import org.springframework.vault.core.VaultKeyValueOperations;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 @RequiredArgsConstructor
 public class SpringVaultClient implements VaultClient {
-
-    private final VaultTemplate vaultTemplate;
+    private final VaultKeyValueOperations vaultClient;
 
     @Override
     public InternalSSLKey getInternalTlsCredentials() throws Exception {
@@ -52,8 +54,13 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
-    public InternalSSLKey getOpmonitorTlsCredentials() throws Exception {
-        return getTlsCredentials(OPMONITOR_TLS_CREDENTIALS_PATH);
+    public InternalSSLKey getOpmonitorTlsCredentials() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public InternalSSLKey getProxyUyApiTlsCredentials() throws Exception {
+        return getTlsCredentials(PROXY_UI_API_TLS_CREDENTIALS_PATH);
     }
 
     @Override
@@ -66,9 +73,14 @@ public class SpringVaultClient implements VaultClient {
         throw new NotImplementedException();
     }
 
+    @Override
+    public void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) throws Exception {
+        createTlsCredentials(PROXY_UI_API_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
     private InternalSSLKey getTlsCredentials(String path) throws Exception {
 
-        var vaultResponse = vaultTemplate.read(path);
+        var vaultResponse = vaultClient.get(path);
         if (vaultResponse == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Failed to get TLS credentials from Vault. Response is null.");
         }
@@ -79,5 +91,21 @@ public class SpringVaultClient implements VaultClient {
 
         return new InternalSSLKey(privateKey, certificates.toArray(X509Certificate[]::new));
     }
+
+    private void createTlsCredentials(String path, InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
+        var secret = new HashMap<String, String>();
+
+        var sb = new StringBuilder();
+        for (X509Certificate cert : internalSSLKey.getCertChain()) {
+            var pem = toPem(cert);
+            sb.append(pem);
+        }
+
+        secret.put(CERTIFICATE_KEY, sb.toString());
+        secret.put(PRIVATEKEY_KEY, toPem(internalSSLKey.getKey()));
+        vaultClient.put(path, secret);
+    }
+
+
 
 }

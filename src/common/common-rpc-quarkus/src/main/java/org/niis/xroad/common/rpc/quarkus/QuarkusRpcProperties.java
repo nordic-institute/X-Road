@@ -24,37 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-package org.niis.xroad.common.properties;
+package org.niis.xroad.common.rpc.quarkus;
 
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
 import java.time.Duration;
 import java.util.List;
 
-@ConfigMapping(prefix = CommonRpcProperties.PREFIX)
-public interface CommonRpcProperties {
-    String PREFIX = "xroad.common.rpc";
-    String DEFAULT_USE_TLS = "true";
+import static org.niis.xroad.common.rpc.RpcProperties.PREFIX;
+
+@ConfigMapping(prefix = PREFIX)
+public interface QuarkusRpcProperties extends RpcProperties {
 
     @WithName("use-tls")
     @WithDefault(DEFAULT_USE_TLS)
     boolean useTls();
 
     @WithName("certificate-provisioning")
-    CertificateProvisionProperties certificateProvisioning();
+    QuarkusRpcCertificateProvisioningProperties certificateProvisioning();
 
-    interface CertificateProvisionProperties {
-        String DEFAULT_ISSUANCE_ROLE_NAME = "xrd-internal";
-        String DEFAULT_COMMON_NAME = "localhost";
-        String DEFAULT_SECRET_STORE_PKI_PATH = "xrd-pki";
-        String DEFAULT_TTL = "12H";
-        String DEFAULT_REFRESH_INTERVAL = "5H";
-        String DEFAULT_RETRY_DELAY = "5S";
-        String DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.5";
-        String DEFAULT_RETRY_MAX_ATTEMPTS = "10";
+    interface QuarkusRpcCertificateProvisioningProperties extends RpcCertificateProvisioningProperties, CertificateProvisioningProperties {
 
         @WithName("issuance-role-name")
         @WithDefault(DEFAULT_ISSUANCE_ROLE_NAME)
@@ -76,13 +69,13 @@ public interface CommonRpcProperties {
         @WithDefault(DEFAULT_TTL)
         Duration ttl();
 
-        @WithName("refresh-interval")
-        @WithDefault(DEFAULT_REFRESH_INTERVAL)
-        Duration refreshInterval();
-
         @WithName("secret-store-pki-path")
         @WithDefault(DEFAULT_SECRET_STORE_PKI_PATH)
         String secretStorePkiPath();
+
+        @WithName("refresh-interval")
+        @WithDefault(DEFAULT_REFRESH_INTERVAL)
+        Duration refreshInterval();
 
         @WithName("retry-base-delay")
         @WithDefault(DEFAULT_RETRY_DELAY)

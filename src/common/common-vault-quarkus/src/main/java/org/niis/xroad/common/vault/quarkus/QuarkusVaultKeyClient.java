@@ -35,31 +35,21 @@ import io.quarkus.vault.pki.DataFormat;
 import io.quarkus.vault.pki.GenerateCertificateOptions;
 import io.quarkus.vault.pki.PrivateKeyEncoding;
 import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
-import java.time.Duration;
-import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 public class QuarkusVaultKeyClient implements VaultKeyClient {
     private final VaultPKISecretEngine pkiSecretEngine;
-    private final Duration ttl;
-    private final String issuanceRoleName;
-    private final String commonName;
-    private final List<String> altNames;
-    private final List<String> ipSubjectAltNames;
+    private final CertificateProvisioningProperties properties;
 
-    public QuarkusVaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, String secretStorePkiPath, Duration ttl,
-                                 String issuanceRoleName, String commonName, List<String> altNames, List<String> ipSubjectAltNames) {
-        this.pkiSecretEngine = pkiSecretEngineFactory.engine(secretStorePkiPath);
-        this.ttl = ttl;
-        this.issuanceRoleName = issuanceRoleName;
-        this.commonName = commonName;
-        this.altNames = altNames;
-        this.ipSubjectAltNames = ipSubjectAltNames;
+    public QuarkusVaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, CertificateProvisioningProperties properties) {
+        this.pkiSecretEngine = pkiSecretEngineFactory.engine(properties.secretStorePkiPath());
+        this.properties = properties;
     }
 
     @Override
@@ -70,7 +60,7 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
 
         var request = buildVaultCertificateRequest();
 
-        var vaultResponse = pkiSecretEngine.generateCertificate(issuanceRoleName, request);
+        var vaultResponse = pkiSecretEngine.generateCertificate(properties.issuanceRoleName(), request);
 
         if (vaultResponse == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Failed to get certificate from Vault. Response is null.");
@@ -91,18 +81,18 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
 
     private GenerateCertificateOptions buildVaultCertificateRequest() {
         var request = new GenerateCertificateOptions();
-        request.setTimeToLive("%ds".formatted(ttl.toSeconds()));
+        request.setTimeToLive("%ds".formatted(properties.ttl().toSeconds()));
         request.setFormat(DataFormat.valueOf(CERTIFICATE_FORMAT.toUpperCase()));
         request.setPrivateKeyEncoding(PrivateKeyEncoding.valueOf(PKCS8_FORMAT.toUpperCase()));
 
-        if (commonName != null) {
-            request.setSubjectCommonName(commonName);
+        if (properties.commonName() != null) {
+            request.setSubjectCommonName(properties.commonName());
         }
-        if (altNames != null) {
-            request.setSubjectAlternativeNames(altNames);
+        if (properties.altNames() != null) {
+            request.setSubjectAlternativeNames(properties.altNames());
         }
-        if (ipSubjectAltNames != null) {
-            request.setIpSubjectAlternativeNames(ipSubjectAltNames);
+        if (properties.ipSubjectAltNames() != null) {
+            request.setIpSubjectAlternativeNames(properties.ipSubjectAltNames());
         }
         return request;
     }

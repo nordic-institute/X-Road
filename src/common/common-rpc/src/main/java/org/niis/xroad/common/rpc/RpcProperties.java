@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,18 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.common.rpc;
 
-import io.quarkus.vault.VaultPKISecretEngineFactory;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
+import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
-public class OpMonitorConfig {
+import java.time.Duration;
 
-    @ApplicationScoped
-    public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, OpMonitorTlsProperties tlsProperties) {
-        return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
+public interface RpcProperties {
+    String PREFIX = "xroad.common.rpc";
+    String DEFAULT_USE_TLS = "true";
+
+    boolean useTls();
+    RpcCertificateProvisioningProperties certificateProvisioning();
+
+    interface RpcCertificateProvisioningProperties extends CertificateProvisioningProperties {
+        String DEFAULT_REFRESH_INTERVAL = "5H";
+        String DEFAULT_RETRY_DELAY = "5S";
+        String DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.5";
+        String DEFAULT_RETRY_MAX_ATTEMPTS = "10";
+
+        Duration refreshInterval();
+        Duration retryDelay();
+        Double retryExponentialBackoffMultiplier();
+        int retryMaxAttempts();
     }
-
 }
