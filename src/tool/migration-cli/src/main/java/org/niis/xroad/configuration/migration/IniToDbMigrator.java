@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Map;
 
 @Slf4j
-public class IniToDbMigrator extends BasePropertiesMigrator {
+public class IniToDbMigrator extends BasePropertiesToDbMigrator {
 
     private final IniUtil iniUtil = new IniUtil();
 

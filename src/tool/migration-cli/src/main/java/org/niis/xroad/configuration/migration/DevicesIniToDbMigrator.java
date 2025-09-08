@@ -29,49 +29,34 @@ package org.niis.xroad.configuration.migration;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
 
 @Slf4j
-public class PropertiesToDbMigrator extends BasePropertiesToDbMigrator {
+public class DevicesIniToDbMigrator extends BasePropertiesToDbMigrator {
 
     @Override
     Map<String, String> loadProperties(String filePath) {
-        log.info("Loading properties from [{}].", filePath);
-
-        Properties properties = new Properties();
-        try (FileInputStream fis = new FileInputStream(filePath)) {
-            properties.load(fis);
-        } catch (IOException e) {
-            throw new MigrationException("Failed to read properties.");
-        }
-
-        return properties.stringPropertyNames()
-                .stream()
-                .collect(Collectors.toMap(k -> k, properties::getProperty));
+        log.info("Loading devices configuration properties from [{}]", filePath);
+        return new IniUtil().loadToFlatMap(filePath, "xroad.signer.modules");
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     public static void main(String[] args) {
         validateParams(args);
 
-        new PropertiesToDbMigrator().migrate(args[0], args[1], args[2]);
+        new DevicesIniToDbMigrator().migrate(args[0], args[1], "signer");
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private static void validateParams(String[] args) {
-        if (args.length != 2 && args.length != 3) {
+        if (args.length != 2) {
             logUsageAndThrow("Invalid number of arguments provided.");
         }
-        LegacyConfigMigrationCLI.validateFilePath(args[0], "properties input file");
+        LegacyConfigMigrationCLI.validateFilePath(args[0], "devices.ini file");
         LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
     }
 
     private static void logUsageAndThrow(String message) {
-        log.error("Usage: <input file> <db.properties file> [scope]");
+        log.error("Usage: <devices.ini file> <db.properties file>");
         throw new IllegalArgumentException(message);
     }
 

@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 @Slf4j
-public abstract class BasePropertiesMigrator {
+public abstract class BasePropertiesToDbMigrator {
 
     abstract Map<String, String> loadProperties(String filePath);
 

@@ -117,7 +117,7 @@ public class LegacyConfigPathMapping {
         REMOVED_KEYS.add("proxy-ui-api.ssl-properties");
         REMOVED_KEYS.add("proxy.configuration-anchor-file");
         REMOVED_KEYS.add("proxy.database-properties");
-
+        REMOVED_KEYS.add("signer.device-configuration-file");
     }
 
     private static Map<String, String> addDatabaseMapping(String dbName) {
