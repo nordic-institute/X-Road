@@ -29,7 +29,7 @@ jobs:
         run: ./init_context.sh
       # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
       - name: Download Debian packages
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
@@ -85,7 +85,7 @@ jobs:
         run: ./init_context.sh
       # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
       - name: Download Debian packages
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
