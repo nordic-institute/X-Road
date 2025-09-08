@@ -120,13 +120,6 @@ if dpkg --compare-versions "$CONFIG_VERSION" lt-nl "7.6.0"; then
   /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
 fi
 
-# Generate admin UI TLS key and certificate if necessary
-
-if [ ! -f /etc/xroad/ssl/proxy-ui-api.crt ]; then
-  log "Generating new SSL key and certificate for the admin UI"
-  "$XROAD_SCRIPT_LOCATION/generate_certificate.sh" -n proxy-ui-api -f -S -p 2>&1 >/dev/null | sed 's/^/   /'
-fi
-
 # Create database properties and configure remote db address if necessary
 if [ ! -f ${DB_PROPERTIES} ]; then
   XROAD_DB_PORT="${XROAD_DB_PORT:-5432}"

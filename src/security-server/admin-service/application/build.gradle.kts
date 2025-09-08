@@ -153,7 +153,6 @@ jib {
       }
     }
     permissions = mapOf(
-      "/opt/app/scripts/generate_certificate.sh" to "755",
       "/usr/share/xroad/scripts/generate_gpg_keypair.sh" to "755",
       "/usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh" to "755"
     )
