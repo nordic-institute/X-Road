@@ -33,6 +33,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
@@ -57,8 +58,13 @@ public class OpMonitorClient extends AbstractRpcClient {
     private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub opMonitoringServiceBlockingStub;
 
 
+    @Override
+    public ErrorOrigin getRpcOrigin() {
+        return ErrorOrigin.OP_MONITOR;
+    }
+
     @PostConstruct
-    public void init() throws Exception {
+    public void init() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
         channel = rpcChannelFactory.createChannel(rpcChannelProperties);
@@ -101,7 +107,7 @@ public class OpMonitorClient extends AbstractRpcClient {
         } catch (Exception e) {
             throw XrdRuntimeException.systemInternalError(
                     "Failed to get operational data from: %s, to: %s".formatted(Instant.ofEpochMilli(recordsFrom),
-                    Instant.ofEpochMilli(recordsTo)), e);
+                            Instant.ofEpochMilli(recordsTo)), e);
         }
     }
 }

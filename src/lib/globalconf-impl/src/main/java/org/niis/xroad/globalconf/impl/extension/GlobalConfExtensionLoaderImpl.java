@@ -30,10 +30,10 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 import jakarta.xml.bind.JAXBException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.FileSource;
-import org.niis.xroad.common.core.dto.InMemoryFile;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.FileSource;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.dto.InMemoryFile;
 import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.RemoteGlobalConfSource;
@@ -111,7 +111,8 @@ public class GlobalConfExtensionLoaderImpl<T extends AbstractXmlConf<?>> {
         }
     }
 
-    private void loadFromRemote(FileSource<InMemoryFile> remoteSource) throws Exception {
+    private void loadFromRemote(FileSource<InMemoryFile> remoteSource)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         if (remoteSource.getFile().isPresent()) {
             log.trace("Loading GlobalConfExtension from Remote");
             reference = extensionClass.getDeclaredConstructor().newInstance();

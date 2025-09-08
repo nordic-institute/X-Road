@@ -38,6 +38,8 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.rpc.common.Empty;
@@ -56,8 +58,13 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
     private ManagedChannel channel;
     private BackupServiceGrpc.BackupServiceBlockingStub backupServiceBlockingStub;
 
+    @Override
+    public ErrorOrigin getRpcOrigin() {
+        return ErrorOrigin.BACKUP_MANAGER;
+    }
+
     @PostConstruct
-    public void init() throws Exception {
+    public void init() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
         channel = rpcChannelFactory.createChannel(rpcChannelProperties);
@@ -82,7 +89,7 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to list backups", e);
+            throw XrdRuntimeException.systemInternalError("Failed to list backups", e);
         }
     }
 
@@ -92,7 +99,7 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to delete backup", e);
+            throw XrdRuntimeException.systemInternalError("Failed to delete backup", e);
         }
     }
 
@@ -106,7 +113,7 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to download backup", e);
+            throw XrdRuntimeException.systemInternalError("Failed to download backup", e);
         }
     }
 
@@ -123,7 +130,7 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to upload backup", e);
+            throw XrdRuntimeException.systemInternalError("Failed to upload backup", e);
         }
     }
 
@@ -138,7 +145,7 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create backup", e);
+            throw XrdRuntimeException.systemInternalError("Failed to create backup", e);
         }
     }
 
@@ -152,7 +159,7 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to restore from backup", e);
+            throw XrdRuntimeException.systemInternalError("Failed to restore from backup", e);
         }
     }
 
@@ -165,7 +172,7 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to generate GPG key", e);
+            throw XrdRuntimeException.systemInternalError("Failed to generate GPG key", e);
         }
     }
 
@@ -179,7 +186,7 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get backup encryption status", e);
+            throw XrdRuntimeException.systemInternalError("Failed to get backup encryption status", e);
         }
     }
 

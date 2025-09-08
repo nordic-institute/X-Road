@@ -29,7 +29,7 @@ package org.niis.xroad.signer.core.protocol;
 import com.google.protobuf.AbstractMessage;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.server.CommonRpcHandler;
+import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 
 /**
  * @param <ReqT>

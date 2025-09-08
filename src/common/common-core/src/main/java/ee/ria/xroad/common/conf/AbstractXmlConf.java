@@ -36,13 +36,13 @@ import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.ChangeChecker;
 import org.niis.xroad.common.core.FileSource;
-import org.niis.xroad.common.core.dto.InMemoryFile;
-import org.niis.xroad.common.core.util.InMemoryFileSourceChangeChecker;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.dto.InMemoryFile;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.util.InMemoryFileSourceChangeChecker;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -172,7 +172,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         confType = result.getConfType();
     }
 
-    public void load(FileSource<InMemoryFile> fileSource) throws Exception {
+    public void load(FileSource<InMemoryFile> fileSource) {
         if (fileSource == null) {
             return;
         }

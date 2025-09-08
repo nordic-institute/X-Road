@@ -28,7 +28,6 @@ package org.niis.xroad.signer.core.passwordstore;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.output.WriterOutputStream;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import static ee.ria.xroad.common.util.SignerProtoUtils.byteToChar;
@@ -60,6 +59,7 @@ public final class PasswordStore {
 
     /**
      * Returns stored password with identifier id.
+     *
      * @param id identifier of the password
      * @return password value or null, if password with this ID was not found.
      * @throws Exception in case of any errors
@@ -72,6 +72,7 @@ public final class PasswordStore {
     /**
      * Stores the password in shared memory.
      * Use null as password parameter to remove password from memory.
+     *
      * @param id       identifier of the password
      * @param password password to be stored
      * @throws Exception in case of any errors
@@ -83,6 +84,7 @@ public final class PasswordStore {
 
     /**
      * Clears the password store. Useful for testing purposes.
+     *
      * @throws Exception in case of any errors
      */
     public static void clearStore() throws Exception {

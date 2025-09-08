@@ -32,11 +32,9 @@ import java.util.List;
  */
 public interface OpMonitoringBuffer {
 
-    void store(OpMonitoringData data) throws Exception;
-
     void sendingSuccess(int count);
 
-    public abstract void store(OpMonitoringData data);
+    void store(OpMonitoringData data);
 
     void sendingFailure(List<OpMonitoringData> failedData);
 }

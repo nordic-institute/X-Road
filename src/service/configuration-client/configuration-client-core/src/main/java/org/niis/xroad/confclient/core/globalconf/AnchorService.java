@@ -31,6 +31,7 @@ import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confclient.core.ConfigurationClient;
 import org.niis.xroad.confclient.core.ConfigurationClientActionExecutor;
 import org.niis.xroad.confclient.proto.AnchorServiceGrpc;
@@ -48,6 +49,7 @@ import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_
 @RequiredArgsConstructor
 @Slf4j
 @ApplicationScoped
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     private final ConfigurationClient configurationClient;
     private final ConfigurationClientActionExecutor configurationClientActionExecutor;

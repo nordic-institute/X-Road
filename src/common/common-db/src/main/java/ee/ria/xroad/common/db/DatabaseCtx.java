@@ -40,9 +40,6 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
-import static ee.ria.xroad.common.db.HibernateUtil.getSessionFactory;
-
 /**
  * Database context manages database connections for a specific session
  * factory.
@@ -163,7 +160,7 @@ public class DatabaseCtx {
         if (e instanceof JDBCException) {
             return XrdRuntimeException.systemException(ErrorCode.DATABASE_ERROR)
                     .details("Error accessing database")
-                    .metadataItems(sessionFactoryName)
+                    .metadataItems(name)
                     .build();
         } else if (e instanceof CodedException codedException) {
             return codedException;

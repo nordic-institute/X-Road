@@ -26,7 +26,6 @@ package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.YamlMapFactoryBean;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;

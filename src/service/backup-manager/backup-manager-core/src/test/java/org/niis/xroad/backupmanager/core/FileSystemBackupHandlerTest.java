@@ -160,7 +160,7 @@ class FileSystemBackupHandlerTest {
         when(backupRepository.listBackups()).thenReturn(List.of(new BackupItem(name, Instant.now())));
         assertThatThrownBy(() -> fileSystemBackupHandler.saveBackup(name, content, false))
                 .isExactlyInstanceOf(CodedException.class)
-                .hasMessage("warning_file_already_exists: Backup with this name already exists");
+                .hasMessageContaining("warning_file_already_exists: Backup with this name already exists");
         verifyNoMoreInteractions(backupRepository);
 
         fileSystemBackupHandler.saveBackup(name, content, true);

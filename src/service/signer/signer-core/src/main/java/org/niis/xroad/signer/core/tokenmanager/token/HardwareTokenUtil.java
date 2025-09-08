@@ -43,10 +43,13 @@ import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import jakarta.xml.bind.DatatypeConverter;
 import lombok.NoArgsConstructor;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleConf;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleInstanceProvider;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,10 +71,12 @@ public final class HardwareTokenUtil {
      * @param libraryPath   the pkcs11 library path
      * @param providerClass provider class
      * @return the module instance
-     * @throws Exception if an error occurs
+     * @throws org.niis.xroad.common.core.exception.XrdRuntimeException if an error occurs
      */
     @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public static Module moduleGetInstance(String libraryPath, String providerClass) throws Exception {
+    public static Module moduleGetInstance(String libraryPath, String providerClass)
+            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
+            InstantiationException, IllegalAccessException, IOException {
         if (providerClass != null) {
             Class<?> cl = Class.forName(providerClass);
 
@@ -80,7 +85,7 @@ public final class HardwareTokenUtil {
 
                 return provider.getInstance(libraryPath);
             } else {
-                throw new RuntimeException("Invalid module provider class (" + cl + "), must be subclass of "
+                throw XrdRuntimeException.systemInternalError("Invalid module provider class (" + cl + "), must be subclass of "
                         + ModuleInstanceProvider.class);
             }
         }
@@ -88,7 +93,7 @@ public final class HardwareTokenUtil {
         return Module.getInstance(libraryPath);
     }
 
-    static PrivateKey findPrivateKey(ManagedPKCS11Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
+    static PrivateKey findPrivateKey(ManagedPKCS11Session session, String keyId, Set<Long> allowedMechanisms) throws TokenException {
         var template = new PrivateKey();
         template.getId().setByteArrayValue(toBinaryKeyId(keyId));
 

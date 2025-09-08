@@ -56,8 +56,6 @@ import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Set;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_INTERRUPTED;
-import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_INTERRUPTED;
 import static java.lang.Boolean.TRUE;
 
 /**

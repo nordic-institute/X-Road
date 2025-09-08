@@ -28,11 +28,6 @@ package org.niis.xroad.signer.core.protocol.handler;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.core.certmanager.OcspResponseLookup;
-import org.apache.commons.lang3.ArrayUtils;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.signer.api.message.GetOcspResponses;
-import org.niis.xroad.signer.api.message.GetOcspResponsesResponse;
-import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.proto.GetOcspResponsesReq;
 import org.niis.xroad.signer.proto.GetOcspResponsesResp;
@@ -47,7 +42,7 @@ public class GetOcspResponsesReqHandler extends AbstractRpcHandler<GetOcspRespon
     private final OcspResponseLookup ocspResponseLookup;
 
     @Override
-    protected GetOcspResponsesResp handle(GetOcspResponsesReq request) throws Exception {
+    protected GetOcspResponsesResp handle(GetOcspResponsesReq request) {
         var response = ocspResponseLookup.handleGetOcspResponses(request.getCertHashList());
 
         return GetOcspResponsesResp.newBuilder()

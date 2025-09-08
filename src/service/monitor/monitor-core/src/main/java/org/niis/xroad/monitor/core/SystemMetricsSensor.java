@@ -36,12 +36,6 @@ import org.niis.xroad.monitor.common.StatsReq;
 import org.niis.xroad.monitor.common.StatsResp;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
-import org.springframework.scheduling.TaskScheduler;
-
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.time.Duration;
 
 /**
  * System metrics sensor collects information such as
@@ -65,8 +59,7 @@ public class SystemMetricsSensor {
     }
 
     @PostConstruct
-    public void afterPropertiesSet()
-            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+    public void afterPropertiesSet() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
         var channel = rpcChannelFactory.createChannel(rpcChannelProperties);

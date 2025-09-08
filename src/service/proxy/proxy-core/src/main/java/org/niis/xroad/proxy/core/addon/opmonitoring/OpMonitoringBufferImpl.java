@@ -27,11 +27,10 @@
 package org.niis.xroad.proxy.core.addon.opmonitoring;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -50,6 +49,7 @@ import java.util.concurrent.TimeUnit;
  * monitoring daemon (using OpMonitoringDaemonSender).
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
 
     private final ExecutorService executorService;
@@ -94,7 +94,8 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
         return new OpMonitoringDataProcessor();
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
+        //TODO XRDDEV-2962 review and refactor if needed
     OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
                                           OpMonitorCommonProperties opMonCommonProperties,
                                           VaultClient vaultClient) throws Exception {

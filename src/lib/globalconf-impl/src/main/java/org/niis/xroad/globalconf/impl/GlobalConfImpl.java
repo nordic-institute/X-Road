@@ -79,7 +79,6 @@ import static java.util.stream.Collectors.toSet;
  * Global configuration implementation
  */
 @Slf4j
-@Singleton
 @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class GlobalConfImpl implements GlobalConfProvider {
 

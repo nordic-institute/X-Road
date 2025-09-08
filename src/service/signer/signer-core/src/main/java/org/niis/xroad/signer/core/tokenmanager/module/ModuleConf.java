@@ -191,7 +191,7 @@ public class ModuleConf {
         }
     }
 
-    private static void reload(String fileName) throws IOException, ConfigurationException {
+    private static void reload(String fileName) throws ConfigurationException, IOException {
         log.trace("Loading module configuration from '{}'", fileName);
 
         MODULES.clear();
@@ -205,7 +205,7 @@ public class ModuleConf {
         }
     }
 
-    private static void readDevicesConfig(Path configPath) throws Exception {
+    private static void readDevicesConfig(Path configPath) throws ConfigurationException, IOException {
         INIConfiguration conf = new INIConfiguration();
         conf.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
         try (Reader reader = Files.newBufferedReader(configPath, StandardCharsets.UTF_8)) {

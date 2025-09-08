@@ -189,8 +189,7 @@ public final class LogRecordManager {
      * @param hashChains            the time-stamp hash chains for each message record.
      */
     void saveTimestampRecord(TimestampRecord timestampRecord, Long[]
-            timestampedLogRecords, String[] hashChains)
-            throws Exception {
+            timestampedLogRecords, String[] hashChains) {
         databaseCtx.doInTransaction(session -> {
             timestampRecord.setId(getNextRecordId(session));
             save(session, timestampRecord);

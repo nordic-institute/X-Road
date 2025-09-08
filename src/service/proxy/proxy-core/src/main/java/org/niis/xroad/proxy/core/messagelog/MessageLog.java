@@ -38,7 +38,6 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
 
 import java.util.List;

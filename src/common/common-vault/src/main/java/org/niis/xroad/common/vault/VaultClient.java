@@ -28,6 +28,11 @@ package org.niis.xroad.common.vault;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
+import java.security.spec.InvalidKeySpecException;
+
 public interface VaultClient {
     String PRIVATEKEY_KEY = "privateKey";
     String CERTIFICATE_KEY = "certificate";
@@ -35,11 +40,11 @@ public interface VaultClient {
     String INTERNAL_TLS_CREDENTIALS_PATH = "tls/internal";
     String OPMONITOR_TLS_CREDENTIALS_PATH = "tls/opmonitor";
 
-    InternalSSLKey getInternalTlsCredentials() throws Exception;
+    InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
-    InternalSSLKey getOpmonitorTlsCredentials() throws Exception;
+    InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
-    void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws Exception;
+    void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
-    void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws Exception;
+    void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 }

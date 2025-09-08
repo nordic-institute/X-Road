@@ -56,7 +56,6 @@ import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
 import org.niis.xroad.serverconf.model.TimestampingService;
 
-import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -220,7 +219,7 @@ public class SystemServiceTest {
     @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
     public void uploadInitialAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
-        when(confClientRpcClient.getConfigurationAnchor()).thenThrow(new NoSuchFileException(""));
+        when(confClientRpcClient.getConfigurationAnchor()).thenThrow(new RuntimeException(""));
         systemService.uploadInitialAnchor(anchorBytes);
     }
 

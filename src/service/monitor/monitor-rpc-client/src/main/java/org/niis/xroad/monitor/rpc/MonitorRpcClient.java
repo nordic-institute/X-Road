@@ -33,6 +33,8 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.monitor.common.MetricsGroup;
@@ -53,8 +55,13 @@ public class MonitorRpcClient extends AbstractRpcClient {
     private ManagedChannel channel;
     private MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
 
+    @Override
+    public ErrorOrigin getRpcOrigin() {
+        return ErrorOrigin.MONITOR;
+    }
+
     @PostConstruct
-    public void init() throws Exception {
+    public void init() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), envMonitorRpcChannelProperties.host(),
                 envMonitorRpcChannelProperties.port());
         channel = rpcChannelFactory.createChannel(envMonitorRpcChannelProperties);
@@ -64,7 +71,7 @@ public class MonitorRpcClient extends AbstractRpcClient {
 
     @Override
     @PreDestroy
-    public void close() throws Exception {
+    public void close() {
         if (channel != null) {
             channel.shutdown();
         }
@@ -79,7 +86,7 @@ public class MonitorRpcClient extends AbstractRpcClient {
 
             return response.getMetrics();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get metrics for: " + Arrays.toString(metricNames), e);
+            throw XrdRuntimeException.systemInternalError("Failed to get metrics for: " + Arrays.toString(metricNames), e);
         }
     }
 
@@ -92,7 +99,7 @@ public class MonitorRpcClient extends AbstractRpcClient {
 
             return response.getMetrics();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get metrics for: " + String.join(",", metricNames), e);
+            throw XrdRuntimeException.systemInternalError("Failed to get metrics for: " + String.join(",", metricNames), e);
         }
     }
 

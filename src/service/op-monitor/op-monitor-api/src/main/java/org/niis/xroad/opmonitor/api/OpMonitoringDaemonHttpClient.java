@@ -46,8 +46,8 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.vault.VaultClient;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -81,7 +81,7 @@ public final class OpMonitoringDaemonHttpClient {
      * Creates HTTP client.
      *
      * @param vaultClient trust provider for TLS
-     * @param authKey the client's authentication key
+     * @param authKey     the client's authentication key
      * @return HTTP client
      * @throws Exception if creating a HTTPS client and SSLContext initialization fails
      */
@@ -99,8 +99,8 @@ public final class OpMonitoringDaemonHttpClient {
     /**
      * Creates HTTP client.
      *
-     * @param vaultClient trust provider for TLS
-     * @param authKey the client's authentication key
+     * @param vaultClient                   trust provider for TLS
+     * @param authKey                       the client's authentication key
      * @param clientMaxTotalConnections     client max total connections
      * @param clientMaxConnectionsPerRoute  client max connections per route
      * @param connectionTimeoutMilliseconds connection timeout in milliseconds

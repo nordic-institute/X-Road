@@ -159,6 +159,7 @@ public class AdminPort {
     private void addMaintenanceHandler() {
         addHandler("/maintenance", new AdminPort.SynchronousCallback() {
             @Override
+            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
             public void handle(RequestWrapper request, ResponseWrapper response) throws Exception {
 
                 String result = "Invalid parameter 'targetState', request ignored";

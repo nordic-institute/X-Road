@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.niis.xroad.common.properties.dbsource.CachedDbConfigSource;
 import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.util.Map;
 import java.util.Set;

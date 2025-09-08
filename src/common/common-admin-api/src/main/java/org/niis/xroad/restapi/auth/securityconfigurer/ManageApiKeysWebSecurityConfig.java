@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.restapi.auth.PamAuthenticationProvider;
 import org.niis.xroad.restapi.controller.CommonModuleEndpointPaths;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;

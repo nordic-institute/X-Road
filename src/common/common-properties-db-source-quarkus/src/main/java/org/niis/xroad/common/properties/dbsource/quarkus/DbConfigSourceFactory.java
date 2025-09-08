@@ -35,10 +35,6 @@ import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
 
 import java.util.Collections;
 
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-
 @Slf4j
 public class DbConfigSourceFactory implements ConfigSourceFactory {
 

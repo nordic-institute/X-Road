@@ -29,10 +29,10 @@ package org.niis.xroad.proxy.core.addon.messagelog;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogArchiverProperties;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

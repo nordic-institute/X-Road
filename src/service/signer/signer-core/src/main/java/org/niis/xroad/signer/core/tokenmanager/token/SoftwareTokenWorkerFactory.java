@@ -46,10 +46,11 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
@@ -65,11 +66,15 @@ import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.SignatureException;
 import java.security.cert.CertPath;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -126,6 +131,7 @@ public class SoftwareTokenWorkerFactory {
         return new SoftwareTokenWorker(tokenInfo, tokenDefinition);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public class SoftwareTokenWorker extends AbstractTokenWorker {
         private final Map<String, PrivateKey> privateKeys = new ConcurrentHashMap<>();
         private final TokenDefinition tokenDefinition;
@@ -236,7 +242,8 @@ public class SoftwareTokenWorkerFactory {
         }
 
         @Override
-        protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
+        protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data)
+                throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException {
             log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
             assertTokenAvailable();
@@ -475,7 +482,7 @@ public class SoftwareTokenWorkerFactory {
             verifyPinProvided(pin);
 
             if (!pinManager.verifyTokenPin(tokenId, pin)) {
-                throw new SignerException("PIN verification failed for token " + tokenId);
+                throw XrdRuntimeException.systemInternalError("PIN verification failed for token " + tokenId);
             }
         }
 

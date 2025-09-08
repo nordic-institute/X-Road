@@ -34,14 +34,6 @@ import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 import org.niis.xroad.signer.proto.KeyConfChecksum;
-import org.niis.xroad.common.rpc.server.RpcServer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.util.List;
 
 @Slf4j
 @ApplicationScoped
@@ -50,8 +42,7 @@ public class GetKeyConfChecksumHandler extends AbstractRpcHandler<Empty, KeyConf
     private final TokenRegistry tokenRegistry;
 
     @Override
-    protected KeyConfChecksum handle(Empty request)
-            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+    protected KeyConfChecksum handle(Empty request) {
         KeyConfChecksum.Builder builder = KeyConfChecksum.newBuilder();
         builder.setChecksum(tokenRegistry.getCurrentKeyConfChecksum());
         return builder.build();

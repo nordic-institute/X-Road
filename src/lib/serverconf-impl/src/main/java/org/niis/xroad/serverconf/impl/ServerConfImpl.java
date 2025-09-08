@@ -92,6 +92,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -343,7 +344,8 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public InternalSSLKey getSSLKey()
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
+            InvalidKeySpecException {
         return vaultClient.getInternalTlsCredentials();
     }
 

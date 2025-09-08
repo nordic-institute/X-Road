@@ -51,8 +51,8 @@ import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Assertions;
-import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -781,7 +781,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void signerGetTokensFailsWithTimeoutException() {
         assertThatThrownBy(() -> clientHolder.get().getTokens())
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageMatching("\\[.*?\\] \\[SYSTEM\\] signer\\.network_error: Signer client timed out\\..*");
+                .hasMessageMatching("\\[.*?\\] \\[SYSTEM\\] signer\\.network_error: gRPC client timed out\\..*");
     }
 
     @Step("secondary node sync is forced")
@@ -825,8 +825,8 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
     void assertAccessDenied(ThrowableAssert.ThrowingCallable callable) {
         assertThatThrownBy(callable)
-                .isExactlyInstanceOf(CodedException.class)
-                .hasMessage("Signer.AccessDenied: Write operations are not allowed on secondary node");
+                .isExactlyInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("signer.access_denied: Write operations are not allowed on secondary node");
     }
 
     @ParameterType("RSA|EC")

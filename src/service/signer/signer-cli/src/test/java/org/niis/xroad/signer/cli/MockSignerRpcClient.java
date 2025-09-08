@@ -29,7 +29,6 @@ import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Singleton;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -52,7 +51,7 @@ public class MockSignerRpcClient extends SignerRpcClient {
     }
 
     @Override
-    public List<TokenInfo> getTokens() throws SignerException {
+    public List<TokenInfo> getTokens() {
         var tokenOne = mock(TokenInfo.class);
         when(tokenOne.getId()).thenReturn("token-one-id");
         when(tokenOne.getFriendlyName()).thenReturn("Token One");

@@ -40,6 +40,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.vault.core.VaultTemplate;
 
+import java.security.cert.CertificateException;
 import java.util.Optional;
 
 @Configuration(proxyBeanMethods = false)
@@ -51,7 +52,7 @@ public class SpringRpcConfig extends RpcConfig {
 
     @Bean(initMethod = "init", destroyMethod = "shutdown")
     VaultKeyProvider reloadableVaultKeyManager(Optional<VaultTemplate> vaultTemplate,
-                                               CommonRpcProperties rpcProperties) throws Exception {
+                                               CommonRpcProperties rpcProperties) throws CertificateException {
         if (rpcProperties.useTls()) {
             var vaultKeyClient = new SpringVaultKeyClient(
                     vaultTemplate.get(),

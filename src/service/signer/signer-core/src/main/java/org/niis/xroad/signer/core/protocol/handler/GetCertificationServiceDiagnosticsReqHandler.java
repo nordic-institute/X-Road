@@ -55,7 +55,7 @@ public class GetCertificationServiceDiagnosticsReqHandler extends AbstractRpcHan
     private final CertificationServiceDiagnostics diagnosticsDefault = new CertificationServiceDiagnostics();
 
     @Override
-    protected CertificationServiceDiagnosticsResp handle(Empty request) throws Exception {
+    protected CertificationServiceDiagnosticsResp handle(Empty request) {
 
         CertificationServiceDiagnostics diagnostics = null;
         try {

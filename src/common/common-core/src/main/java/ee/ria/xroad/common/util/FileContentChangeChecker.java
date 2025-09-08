@@ -29,8 +29,9 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.ChangeChecker;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.ChangeChecker;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -73,15 +74,19 @@ public class FileContentChangeChecker implements ChangeChecker {
      * @throws Exception if an error occurs
      */
     @Override
-    public boolean hasChanged() throws IOException, OperatorCreationException {
+    public boolean hasChanged() {
         File file = getFile();
 
-        String newCheckSum = calculateConfFileChecksum(file);
+        try {
+            String newCheckSum = calculateConfFileChecksum(file);
 
-        synchronized (this) {
-            previousChecksum = checksum;
-            checksum = newCheckSum;
-            return !Objects.equals(checksum, previousChecksum);
+            synchronized (this) {
+                previousChecksum = checksum;
+                checksum = newCheckSum;
+                return !Objects.equals(checksum, previousChecksum);
+            }
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
