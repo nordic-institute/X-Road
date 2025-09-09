@@ -1038,6 +1038,10 @@ In X-Road, the certificate chain may consist of either two or three levels. The 
 
 If both the root CA (1) and the intermediate CA (2) are configured separately as top-level approved CAs, the system still treats the intermediate (2) as an intermediate certificate, even though it is configured as a top-level CA. In other words, the outcome is the same as if (2) had been configured as an intermediate of (1). Conversely, if (2) is configured as a top-level approved CA but (1) is not included in the configuration, then (2) is treated as a root CA.
 
+**OCSP Checks**
+
+The Security Server verifies the validity of signing and authentication certificates using the Online Certificate Status Protocol (OCSP). The OCSP responder service that provides certificate status information is maintained by the issuing CA. The details of the OCSP checks depend on the [configuration](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB/pages/858226698/How+Is+the+OCSP+Responder+Service+Used+in+X-Road) of the Central Server.
+
 Understanding how the certificate chain works and how certificates are treated is important, because it affects how OCSP checks are performed. In X-Road, both end certificates (3) and intermediate certificates (2) require OCSP responses. When a Security Server checks an end certificate (3), it first uses the OCSP responder configured for its issuer (2). If none is configured, it falls back to the Authority Information Access (AIA) data in the certificate, if available. Intermediate certificates (2) also require OCSP responses: their status is retrieved from the root CA’s (1) responder, or from the certificate’s AIA data if no responder is configured. However, if an intermediate is configured alone as a trusted CA (without the root), no OCSP response is required for it.
 
 **Certificate Profile**
