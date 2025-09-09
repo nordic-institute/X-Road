@@ -8,6 +8,8 @@ MIGRATION_CLI_JAR_PATH=$XROAD_HOME/src/tool/migration-cli/build/libs/migration-c
 SSL_PROPERTIES_FILE=$(crudini --get /etc/xroad/conf.d/local.ini proxy-ui-api ssl-properties 2>/dev/null || echo "/etc/xroad/ssl.properties")
 CONF_ANCHOR_FILE=$(crudini --get /etc/xroad/conf.d/local.ini proxy configuration-anchor-file 2>/dev/null || echo "/etc/xroad/configuration-anchor.xml")
 DEVICES_INI_FILE=$(crudini --get /etc/xroad/conf.d/local.ini signer device-configuration-file 2>/dev/null || echo "/etc/xroad/devices.ini")
+ACME_CONFIG_FILE="/etc/xroad/conf.d/acme.yml"
+MAIL_CONFIG_FILE="/etc/xroad/conf.d/mail.yml"
 
 CONFIG_FILES=(
  /etc/xroad/conf.d/override-*.ini
@@ -19,15 +21,17 @@ migrate_file() {
   local class="$2"
   local description="$3"
   local scope="$4"
+  local property_key="$5"
 
   if [[ -f "$file" ]]; then
     read -p "$description ($file) exists. Migrate? [y/N]" confirm
     case "$confirm" in
       [yY][eE][sS]|[yY])
-        java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration."$class" "$file" "$DB_PROPERTIES_FILE" ${scope:+$scope}
+        java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration."$class" "$file" \
+          "$DB_PROPERTIES_FILE" ${property_key:+$property_key} ${scope:+$scope}
         ;;
       *)
-        echo "Skipping: $SSL_PROPERTIES_FILE"
+        echo "Skipping: $file"
         ;;
     esac
     echo "----------------------------------"
@@ -49,4 +53,5 @@ done
 migrate_file "$SSL_PROPERTIES_FILE" PropertiesToDbMigrator "SSL properties file" "proxy-ui-api"
 migrate_file "$CONF_ANCHOR_FILE" ConfigurationAnchorMigrator "Configuration anchor file"
 migrate_file "$DEVICES_INI_FILE" DevicesIniToDbMigrator "Signer devices configuration file"
-
+migrate_file "$ACME_CONFIG_FILE" FileToDbPropertyMigrator "ACME configuration file" "proxy-ui-api" "xroad.acme"
+migrate_file "$MAIL_CONFIG_FILE" FileToDbPropertyMigrator "Mail notification configuration file" "proxy-ui-api" "xroad.mail-notification"

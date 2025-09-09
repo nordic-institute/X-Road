@@ -27,54 +27,56 @@
 
 package org.niis.xroad.configuration.migration;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
 
+/**
+ * Used to migrate the whole file contents as a single property value.
+ */
 @Slf4j
-public class PropertiesToDbMigrator extends BasePropertiesToDbMigrator {
+@RequiredArgsConstructor
+public class FileToDbPropertyMigrator extends BasePropertiesToDbMigrator {
+
+    private final String propertyKey;
 
     @Override
     Map<String, String> loadProperties(String filePath) {
-        log.info("Loading properties from [{}].", filePath);
+        log.info("Loading file [{}].", filePath);
+        try {
+            return Map.of(propertyKey, Files.readString(Paths.get(filePath)));
 
-        Properties properties = new Properties();
-        try (FileInputStream fis = new FileInputStream(filePath)) {
-            properties.load(fis);
         } catch (IOException e) {
-            throw new MigrationException("Failed to read properties.");
+            throw new MigrationException("Failed to read input file", e);
         }
-
-        return properties.stringPropertyNames()
-                .stream()
-                .collect(Collectors.toMap(k -> k, properties::getProperty));
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
     public static void main(String[] args) {
         validateParams(args);
-        if (args.length > 2) {
-            new PropertiesToDbMigrator().migrate(args[0], args[1], args[2]);
-        } else {
-            new PropertiesToDbMigrator().migrate(args[0], args[1]);
-        }
+        new FileToDbPropertyMigrator(args[2]).migrate(args[0], args[1],
+                args.length > 3 ? args[3] : null);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private static void validateParams(String[] args) {
-        if (args.length != 2 && args.length != 3) {
+        if (args.length != 3 && args.length != 4) {
             logUsageAndThrow("Invalid number of arguments provided.");
         }
-        LegacyConfigMigrationCLI.validateFilePath(args[0], "properties input file");
+        LegacyConfigMigrationCLI.validateFilePath(args[0], "Input file");
         LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
+        if (StringUtils.isBlank(args[2])) {
+            logUsageAndThrow("Property key cannot be empty");
+        }
     }
 
     private static void logUsageAndThrow(String message) {
-        log.error("Usage: <input file> <db.properties file> [scope]");
+        log.error("Usage: <input file> <db.properties file> <property key> [scope]");
         throw new IllegalArgumentException(message);
     }
 

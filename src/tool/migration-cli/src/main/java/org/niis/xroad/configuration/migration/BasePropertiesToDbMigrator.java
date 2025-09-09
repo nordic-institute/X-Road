@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 @Slf4j
 public abstract class BasePropertiesToDbMigrator {
@@ -42,7 +43,7 @@ public abstract class BasePropertiesToDbMigrator {
     }
 
     public void migrate(String filePath, String dbPropertiesPath, String scope) {
-        Map<String, String> properties = loadProperties(filePath);
+        Map<String, String> properties = new TreeMap<>(loadProperties(filePath));
 
         if (log.isDebugEnabled()) {
             log.debug("Loaded properties from file {}:", filePath);
