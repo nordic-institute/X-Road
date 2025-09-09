@@ -27,7 +27,6 @@
 
 package org.niis.xroad.backupmanager.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
@@ -39,6 +38,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.backupmanager.core.repository.BackupRepository;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.restapi.util.FormatUtils;
 
@@ -159,8 +159,8 @@ class FileSystemBackupHandlerTest {
 
         when(backupRepository.listBackups()).thenReturn(List.of(new BackupItem(name, Instant.now())));
         assertThatThrownBy(() -> fileSystemBackupHandler.saveBackup(name, content, false))
-                .isExactlyInstanceOf(CodedException.class)
-                .hasMessageContaining("warning_file_already_exists: Backup with this name already exists");
+                .isExactlyInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("file_already_exists: Backup with this name already exists");
         verifyNoMoreInteractions(backupRepository);
 
         fileSystemBackupHandler.saveBackup(name, content, true);
