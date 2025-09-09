@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.49  
+Version: 2.50  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -75,6 +75,7 @@ Doc. ID: UG-CS
 | 15.01.2025 | 2.47    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki     |
 | 09.03.2025 | 2.48    | Naming/Renaming subsystems                                                                                                                                                                                                                                                                                                                                                                                                              | Ovidijus Narkevicius |
 | 21.03.2025 | 2.49    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                                                      | Pauline Dimmek       |
+| 09.09.2025 | 2.50    | Add information about trust services                                                                                                                                                                                                                                                                                                                                                                                                    | Petteri Kivimäki     |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -1027,6 +1028,34 @@ To delete a global group, follow these steps.
 
 ## 10. Managing the Approved Certification Services
 
+A Certification Authority (CA) issues certificates to Security Servers (authentication certificates) and to X-Road member organizations (signing certificates). Authentication certificates secure the TLS connection between two Security Servers, while signing certificates are used to digitally sign messages sent by X-Road members. Only certificates issued by an approved CA, as defined on the Central Server by the X-Road operator, may be used. Information about approved CAs is distributed to the Security Servers via the global configuration. All approved CAs must comply with the [technical requirements](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB/pages/16252930/What+Are+the+Technical+Requirements+for+Trust+Service+Providers#Certification-Authority) defined by X-Road.
+
+**Certificate Chains**
+
+In X-Road, the certificate chain may consist of either two or three levels. The chain has two levels when authentication (3) and signing certificates (3) are issued directly by a root CA (1), and three levels when they are issued by an intermediate CA (2).
+
+> Root CA (1) → Intermediate CA (2) → End certificate (3)
+
+If both the root CA (1) and the intermediate CA (2) are configured separately as top-level approved CAs, the system still treats the intermediate (2) as an intermediate certificate, even though it is configured as a top-level CA. In other words, the outcome is the same as if (2) had been configured as an intermediate of (1). Conversely, if (2) is configured as a top-level approved CA but (1) is not included in the configuration, then (2) is treated as a root CA.
+
+Understanding how the certificate chain works and how certificates are treated is important, because it affects how OCSP checks are performed. In X-Road, both end certificates (3) and intermediate certificates (2) require OCSP responses. When a Security Server checks an end certificate (3), it first uses the OCSP responder configured for its issuer (2). If none is configured, it falls back to the Authority Information Access (AIA) data in the certificate, if available. Intermediate certificates (2) also require OCSP responses: their status is retrieved from the root CA’s (1) responder, or from the certificate’s AIA data if no responder is configured. However, if an intermediate is configured alone as a trusted CA (without the root), no OCSP response is required for it.
+
+**Certificate Profile**
+
+Every CA uses a [certificate profile](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB/pages/16449539/What+Is+a+Certificate+Profile) that defines how information is stored in the certificate — including which fields are required, which are optional, and what values are allowed. The information required by X-Road must be present in the certificates, although the specific fields used to store it may vary between CAs. The following information is mandatory in X-Road certificates:
+
+* Instance identifier
+* Member class
+* Member code
+
+X-Road supports multiple certificate profiles, but adding a new profile requires coding and the release of a new software version. Typically, profiles are country-specific and include a hard-coded country code.
+
+X-Road includes a basic certificate profile implementation that does not contain a hard-coded country code and is therefore not tied to any specific country. The basic profile can be used to get started with X-Road. It can be enabled by setting the following `CertificateProfileInfo` value on the Central Server:
+
+```java
+ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider
+```
+
 ### 10.1 Adding an Approved Certification Service
 
 Access rights: System Administrator
@@ -1073,6 +1102,8 @@ To delete a certification service from the list of approved services, follow the
 3. In the window that opens, click Delete trust service "\<certification service name\>" and in the confirmation window click Yes.
 
 ## 11. Managing the Approved Timestamping Services
+
+All messages sent via X-Road are timestamped and logged by the Security Server. The purpose of timestamping is to certify the existence of data at a specific point in time. A Timestamping Authority (TSA) provides the timestamping service used by the Security Server for all incoming and outgoing requests and responses. Only approved TSAs, as defined on the Central Server by the X-Road operator, may be used. Information about approved TSAs is distributed to the Security Servers through the global configuration. All approved TSAs must comply with the [technical requirements](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB/pages/16252930/What+Are+the+Technical+Requirements+for+Trust+Service+Providers#Time-Stamping-Authority) defined by X-Road.
 
 ### 11.1 Adding an Approved Timestamping Service
 
