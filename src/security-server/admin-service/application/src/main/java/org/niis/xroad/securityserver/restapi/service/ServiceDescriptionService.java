@@ -580,7 +580,7 @@ public class ServiceDescriptionService {
                    UnhandledWarningsException,
                    InvalidUrlException,
                    ServiceAlreadyExistsException,
-                   WsdlUrlAlreadyExistsException, InterruptedException, InvalidServiceUrlException {
+                   WsdlUrlAlreadyExistsException, InvalidServiceUrlException {
         ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(id);
         if (serviceDescriptionEntity == null) {
             throw new ServiceDescriptionNotFoundException(id);
@@ -610,7 +610,7 @@ public class ServiceDescriptionService {
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
                    ServiceDescriptionNotFoundException, WrongServiceDescriptionException,
                    UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
-                   WsdlUrlAlreadyExistsException, OpenApiParser.ParsingException, InterruptedException,
+                   WsdlUrlAlreadyExistsException, OpenApiParser.ParsingException,
                    InvalidServiceUrlException, UnsupportedOpenApiVersionException {
 
         ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(id);
@@ -655,7 +655,7 @@ public class ServiceDescriptionService {
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
                    WrongServiceDescriptionException,
                    UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
-                   WsdlUrlAlreadyExistsException, InterruptedException {
+                   WsdlUrlAlreadyExistsException {
 
         if (!serviceDescriptionEntity.getType().equals(DescriptionType.WSDL)) {
             throw new WrongServiceDescriptionException("Expected description type WSDL");
@@ -985,7 +985,7 @@ public class ServiceDescriptionService {
     private ServiceDescriptionEntity updateWsdlUrl(ServiceDescriptionEntity serviceDescriptionEntity, String url, boolean ignoreWarnings)
             throws InvalidWsdlException, WsdlParser.WsdlNotFoundException,
                    WrongServiceDescriptionException, UnhandledWarningsException,
-                   ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException, InterruptedException {
+                   ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException {
 
         auditDataHelper.put(serviceDescriptionEntity.getClient().getIdentifier());
         Map<RestApiAuditProperty, Object> wsdlAuditData = auditDataHelper.putMap(RestApiAuditProperty.WSDL);
@@ -1184,12 +1184,9 @@ public class ServiceDescriptionService {
      * If non-fatal warnings, return those.
      * @param url
      * @return list of validation warnings that can be ignored by choice
-     * @throws WsdlValidator.WsdlValidationFailedException
-     * @throws WsdlValidator.WsdlValidatorNotExecutableException
      */
-    private List<String> validateWsdl(String url) throws WsdlValidator.WsdlValidationFailedException,
-                                                         WsdlValidator.WsdlValidatorNotExecutableException, InterruptedException {
-        return wsdlValidator.executeValidator(url);
+    private List<String> validateWsdl(String url) {
+        return wsdlValidator.validate(url);
     }
 
     private List<ServiceEntity> getClientsExistingServices(ClientEntity clientEntity, Long idToSkip) {
@@ -1264,7 +1261,7 @@ public class ServiceDescriptionService {
                    InvalidWsdlException,
                    InvalidUrlException,
                    WsdlUrlAlreadyExistsException,
-                   ServiceAlreadyExistsException, InterruptedException {
+                   ServiceAlreadyExistsException {
 
         WsdlProcessingResult result = new WsdlProcessingResult();
 

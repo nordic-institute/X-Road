@@ -150,7 +150,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             throw new InternalServerErrorException(e, WSDL_VALIDATOR_INTERRUPTED.build());
         }
 
@@ -170,8 +170,6 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                             ignoreWarnings.getIgnoreWarnings()));
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
-        } catch (InterruptedException e) {
-            throw new InternalServerErrorException(e, WSDL_VALIDATOR_INTERRUPTED.build());
         }
         return new ResponseEntity<>(serviceDescriptionDto, HttpStatus.OK);
     }

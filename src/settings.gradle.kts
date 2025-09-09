@@ -155,5 +155,3 @@ include("addons:messagelog:messagelog-db")
 include("addons:proxymonitor-common")
 project(":addons:proxymonitor-common").projectDir = file("addons/proxymonitor/common")
 
-include("addons:wsdlvalidator")
-
