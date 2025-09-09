@@ -52,34 +52,34 @@ Feature: Management requests API: Client registration
   Scenario: Client registration fails with soap fault on invalid signature
     Given Admin api is mocked with a response with status-code 200, type CLIENT_REGISTRATION_REQUEST and id 1122
     When Client Registration request with clientId "EE:CLASS:MEMBER" and invalid signature was sent
-    Then Response of status code 500 and soap fault "InvalidSignatureValue" is returned
+    Then Response of status code 500 and soap fault "invalid_signature_value" is returned
     And Admin api has not received any request
 
   Scenario: Client registration fails with soap fault on invalid certificate
     Given Admin api is mocked with a response with status-code 200, type CLIENT_REGISTRATION_REQUEST and id 1122
     When Client Registration request with clientId "EE:CLASS:MEMBER" and invalid client certificate was sent
-    Then Response of status code 500 and soap fault "IncorrectCertificate" is returned
+    Then Response of status code 500 and soap fault "incorrect_certificate" is returned
     And Admin api has not received any request
 
   Scenario: Client registration fails with soap fault on revoked ocsp certificate
     Given Admin api is mocked with a response with status-code 200, type CLIENT_REGISTRATION_REQUEST and id 1122
     When Client Registration request with ClientId "EE:CLASS:MEMBER" and revoked OCSP was sent
-    Then Response of status code 500 and soap fault "CertValidation" is returned
+    Then Response of status code 500 and soap fault "cert_validation" is returned
     And Admin api has not received any request
 
   Scenario: Client registration fails with soap fault on empty request
     Given Admin api is mocked with a response with status-code 200, type CLIENT_REGISTRATION_REQUEST and id 1122
     When Client Registration request with empty request was sent
-    Then Response of status code 500 and soap fault "InvalidRequest" is returned
+    Then Response of status code 500 and soap fault "invalid_request" is returned
     And Admin api has not received any request
 
   Scenario: Client registration fails with invalid clientId
     Given Admin api is mocked with a response with status-code 200, type CLIENT_REGISTRATION_REQUEST and id 1122
     When Client Registration request with clientId "EE:CLASS:___" was sent
-    Then Response of status code 500 and soap fault "InvalidRequest" is returned
+    Then Response of status code 500 and soap fault "invalid_request" is returned
     And Admin api has not received any request
 
   Scenario: Client registration fails with soap fault when request sender is not server owner
     When Client Registration request with clientId "EE:CLASS:MEMBER" and serverId "EE:CLASS:MEMBER2:SS1" was sent
-    Then Response of status code 500 and soap faultCode "InvalidRequest" and soap faultString "Sender does not match server owner." is returned
+    Then Response of status code 500 and soap faultCode "invalid_request" and soap faultString "Sender does not match server owner." is returned
     And Admin api has not received any request

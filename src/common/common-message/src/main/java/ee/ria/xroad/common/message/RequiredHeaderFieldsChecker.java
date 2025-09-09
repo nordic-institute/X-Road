@@ -56,7 +56,7 @@ class RequiredHeaderFieldsChecker extends Unmarshaller.Listener {
         }
     }
 
-    static void checkRequiredFields(Object obj) throws Exception {
+    static void checkRequiredFields(Object obj) throws IllegalAccessException {
         for (Field field : getDeclaredFields(obj.getClass())) {
             XmlElement annotation = SoapUtils.getXmlElementAnnotation(field);
             if (annotation != null) {
@@ -75,13 +75,13 @@ class RequiredHeaderFieldsChecker extends Unmarshaller.Listener {
         }
     }
 
-    static Object getValue(Field field, Object obj) throws Exception {
+    static Object getValue(Field field, Object obj) throws IllegalAccessException {
         field.setAccessible(true); // the field might be private
         return field.get(obj);
     }
 
     private static List<Field> getDeclaredFields(Class<?> type) {
-        List<Field> fields = new ArrayList<Field>();
+        List<Field> fields = new ArrayList<>();
 
         for (Class<?> c = type; c != null; c = c.getSuperclass()) {
             fields.addAll(Arrays.asList(c.getDeclaredFields()));

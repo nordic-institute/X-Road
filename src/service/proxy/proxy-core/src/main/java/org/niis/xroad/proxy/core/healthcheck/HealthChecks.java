@@ -248,7 +248,7 @@ public class HealthChecks {
         };
     }
 
-    private void verifyAllHSMOperational() throws Exception {
+    private void verifyAllHSMOperational() {
         if (!signerRpcClient.isHSMOperational()) {
             throw new CodedException(X_HW_MODULE_NON_OPERATIONAL,
                     "At least one HSM are non operational");

@@ -50,7 +50,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public final class RpcChannelFactory {
     private final RpcCredentialsConfigurer rpcCredentialsConfigurer;
 
-    public ManagedChannel createChannel(RpcChannelProperties channelProperties) throws Exception {
+    public ManagedChannel createChannel(RpcChannelProperties channelProperties)  {
         var credentials = rpcCredentialsConfigurer.createClientCredentials();
 
         var host = channelProperties.host();

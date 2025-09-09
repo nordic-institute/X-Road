@@ -34,6 +34,7 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -56,6 +57,7 @@ import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
  * Decodes SOAP messages from an input stream.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SoapMessageDecoder {
 
     private final String contentType;
@@ -66,6 +68,7 @@ public class SoapMessageDecoder {
     /**
      * Callback interface for handling the outcome of the decoding process.
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public interface Callback extends SoapMessageConsumer, Closeable {
 
         /**

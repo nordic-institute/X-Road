@@ -51,7 +51,7 @@ public class DeleteKeyReqHandler extends AbstractRpcHandler<DeleteKeyReq, Empty>
     private final TokenWorkerProvider tokenWorkerProvider;
 
     @Override
-    protected Empty handle(DeleteKeyReq request) throws Exception {
+    protected Empty handle(DeleteKeyReq request) {
         TokenAndKey tokenAndKey = tokenLookup.findTokenAndKey(request.getKeyId());
 
         if (request.getDeleteFromDevice()) {

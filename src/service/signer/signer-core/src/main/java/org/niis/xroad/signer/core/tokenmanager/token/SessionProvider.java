@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface SessionProvider {
     /**
      * Executes an operation with a session and returns a result.
@@ -48,12 +51,14 @@ public interface SessionProvider {
     void close();
 
     @FunctionalInterface
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     interface FuncWithSession<R> {
 
         R apply(ManagedPKCS11Session session) throws Exception;
     }
 
     @FunctionalInterface
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     interface ConsumerWithSession {
 
         void accept(ManagedPKCS11Session session) throws Exception;

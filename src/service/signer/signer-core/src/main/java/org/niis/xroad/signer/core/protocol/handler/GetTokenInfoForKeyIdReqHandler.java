@@ -41,7 +41,7 @@ public class GetTokenInfoForKeyIdReqHandler extends AbstractRpcHandler<GetTokenB
     private final TokenLookup tokenLookup;
 
     @Override
-    protected TokenInfoProto handle(GetTokenByKeyIdReq request) throws Exception {
+    protected TokenInfoProto handle(GetTokenByKeyIdReq request) {
         var token = tokenLookup.findTokenInfoForKeyId(request.getKeyId());
         return token.asMessage();
     }

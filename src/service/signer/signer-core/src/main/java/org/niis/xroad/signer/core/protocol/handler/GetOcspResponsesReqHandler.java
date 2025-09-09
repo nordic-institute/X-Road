@@ -42,7 +42,7 @@ public class GetOcspResponsesReqHandler extends AbstractRpcHandler<GetOcspRespon
     private final OcspResponseLookup ocspResponseLookup;
 
     @Override
-    protected GetOcspResponsesResp handle(GetOcspResponsesReq request) throws Exception {
+    protected GetOcspResponsesResp handle(GetOcspResponsesReq request) {
         var response = ocspResponseLookup.handleGetOcspResponses(request.getCertHashList());
 
         return GetOcspResponsesResp.newBuilder()

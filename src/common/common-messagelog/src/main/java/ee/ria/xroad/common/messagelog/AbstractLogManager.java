@@ -49,9 +49,9 @@ public abstract class AbstractLogManager {
         }
     }
 
-    public abstract void log(LogMessage message) throws Exception;
+    public abstract void log(LogMessage message);
 
-    public abstract TimestampRecord timestamp(Long messageRecordId) throws Exception;
+    public abstract TimestampRecord timestamp(Long messageRecordId);
 
     public abstract Map<String, DiagnosticsStatus> getDiagnosticStatus();
 

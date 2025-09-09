@@ -57,9 +57,12 @@ import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -73,7 +76,8 @@ public class CertRequestCreationService {
     private final TokenWorkerProvider tokenWorkerProvider;
 
     public PKCS10CertificationRequest buildSignedCertRequest(TokenAndKey tokenAndKey, String subjectName,
-                                                             String subjectAltName, KeyUsageInfo keyUsage) throws Exception {
+                                                             String subjectAltName, KeyUsageInfo keyUsage)
+            throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 
         if (tokenAndKey.key().getPublicKey() == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", tokenAndKey.getKeyId());
@@ -109,8 +113,7 @@ public class CertRequestCreationService {
         return certRequestBuilder.build(signer);
     }
 
-    public byte[] convert(PKCS10CertificationRequest request, CertificateRequestFormat format)
-            throws Exception {
+    public byte[] convert(PKCS10CertificationRequest request, CertificateRequestFormat format) throws IOException {
         if (CertificateRequestFormat.PEM == format) {
             return toPem(request);
         } else {
@@ -118,7 +121,7 @@ public class CertRequestCreationService {
         }
     }
 
-    private static byte[] toPem(PKCS10CertificationRequest req) throws Exception {
+    private static byte[] toPem(PKCS10CertificationRequest req) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         try (var pw = new JcaPEMWriter(new OutputStreamWriter(out))) {

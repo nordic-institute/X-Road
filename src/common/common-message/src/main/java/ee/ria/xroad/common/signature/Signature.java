@@ -37,6 +37,8 @@ import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.utils.Constants;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -53,7 +55,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.signature.Helper.BASE_URI;
 import static ee.ria.xroad.common.signature.Helper.COMPLETE_CERTIFICATE_REFS_ID;
 import static ee.ria.xroad.common.signature.Helper.ENCAPSULATED_TIMESTAMP_TAG;
@@ -78,6 +79,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 /**
  * Container class for the XML signature specific objects.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class Signature {
 
     static {
@@ -121,7 +123,7 @@ public class Signature {
         } catch (XMLSignatureException e) {
             throw new CodedException(X_MALFORMED_SIGNATURE, e);
         } catch (Exception e) {
-            throw translateException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

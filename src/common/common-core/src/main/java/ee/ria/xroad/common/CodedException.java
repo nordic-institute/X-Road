@@ -28,6 +28,7 @@ package ee.ria.xroad.common;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.ExceptionCategory;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -104,7 +105,7 @@ public class CodedException extends RuntimeException implements Serializable {
      * @param args the arguments
      */
     public CodedException(String faultCode, Throwable cause, String format, Object... args) {
-        super(String.format(format, args), cause);
+        super(format != null ? String.format(format, args) : null, cause);
 
         this.faultCode = faultCode;
         faultDetail = String.valueOf(UUID.randomUUID());
@@ -191,7 +192,11 @@ public class CodedException extends RuntimeException implements Serializable {
      */
     @Override
     public String toString() {
-        return faultCode + ": " + faultString;
+        var message = "[%s] [%s] %s".formatted(UUID.randomUUID().toString(), ExceptionCategory.SYSTEM, faultCode);
+        if (faultString != null && !faultString.isBlank()) {
+            message += ": %s".formatted(faultString);
+        }
+        return message;
     }
 
     /**

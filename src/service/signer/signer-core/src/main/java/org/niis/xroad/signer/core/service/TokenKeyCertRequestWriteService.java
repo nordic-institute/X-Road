@@ -35,7 +35,7 @@ public interface TokenKeyCertRequestWriteService {
               ClientId.Conf memberId,
               String subjectName,
               String subjectAltName,
-              String certificateProfile) throws Exception;
+              String certificateProfile);
 
-    boolean delete(Long id) throws Exception;
+    boolean delete(Long id);
 }

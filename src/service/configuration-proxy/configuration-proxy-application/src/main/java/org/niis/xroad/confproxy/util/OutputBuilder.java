@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.TeeInputStream;
 import org.eclipse.jetty.util.MultiPartWriter;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
 import org.niis.xroad.globalconf.model.ParametersProviderFactory;
@@ -84,6 +85,7 @@ import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_
  * global configuration and moving it to the target location.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class OutputBuilder implements AutoCloseable {
 
     public static final String SIGNED_DIRECTORY_NAME = "conf";

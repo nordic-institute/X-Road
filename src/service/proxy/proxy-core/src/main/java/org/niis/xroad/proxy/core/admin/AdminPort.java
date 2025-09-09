@@ -43,6 +43,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 
@@ -57,11 +58,13 @@ import java.util.Map;
 @Startup
 @ApplicationScoped
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AdminPort {
 
     /**
      * Base class for AdminPort callbacks
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public abstract static class AdminPortCallback {
         public abstract void handle(RequestWrapper request, ResponseWrapper response) throws Exception;
     }
@@ -120,6 +123,7 @@ public class AdminPort {
         server.setHandler(handlerCollection);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private final class AdminHandler extends Handler.Abstract {
         @Override
         public boolean handle(Request request, Response response, Callback callback) {
@@ -155,6 +159,7 @@ public class AdminPort {
     private void addMaintenanceHandler() {
         addHandler("/maintenance", new AdminPort.SynchronousCallback() {
             @Override
+            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
             public void handle(RequestWrapper request, ResponseWrapper response) throws Exception {
 
                 String result = "Invalid parameter 'targetState', request ignored";

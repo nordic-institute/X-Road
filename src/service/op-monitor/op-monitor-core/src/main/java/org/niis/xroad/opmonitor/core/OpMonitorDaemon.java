@@ -44,6 +44,7 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -55,8 +56,12 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
@@ -99,6 +104,7 @@ public final class OpMonitorDaemon {
     private final JmxReporter reporter = JmxReporter.forRegistry(healthMetricRegistry).build();
 
     @PostConstruct
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void init() throws Exception {
         log.info("Creating OpMonitorDaemon.");
         startTimestamp = getEpochMillisecond();
@@ -112,6 +118,7 @@ public final class OpMonitorDaemon {
     }
 
     @PreDestroy
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void destroy() throws Exception {
         tlsClientCertificateRefreshScheduler.shutdown();
         server.stop();
@@ -174,7 +181,8 @@ public final class OpMonitorDaemon {
         healthDataMetrics.registerInitialMetrics(healthMetricRegistry, this::getStartTimestamp);
     }
 
-    private void ensureOpMonitorTlsKeyPresent() throws Exception {
+    private void ensureOpMonitorTlsKeyPresent()
+            throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         try {
             vaultClient.getOpmonitorTlsCredentials();
         } catch (Exception e) {

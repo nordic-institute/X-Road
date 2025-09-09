@@ -40,9 +40,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -55,26 +57,26 @@ public class QuarkusVaultClient implements VaultClient {
     private final VaultKVSecretEngine kvSecretEngine;
 
     @Override
-    public InternalSSLKey getInternalTlsCredentials() throws Exception {
+    public InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         return getTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH);
     }
 
     @Override
-    public InternalSSLKey getOpmonitorTlsCredentials() throws Exception {
+    public InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         return getTlsCredentials(OPMONITOR_TLS_CREDENTIALS_PATH);
     }
 
     @Override
-    public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws Exception {
+    public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
         createTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH, internalSSLKey);
     }
 
     @Override
-    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws Exception {
+    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
         createTlsCredentials(OPMONITOR_TLS_CREDENTIALS_PATH, internalSSLKey);
     }
 
-    private InternalSSLKey getTlsCredentials(String path) throws Exception {
+    private InternalSSLKey getTlsCredentials(String path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         if (kvSecretEngine == null) {
             throw new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.");
         }

@@ -52,7 +52,7 @@ class TestLogCleaner extends LogCleaner {
     }
 
     @Override
-    protected long handleClean() throws Exception {
+    protected long handleClean() {
         final long removed = super.handleClean();
         gate.countDown();
         return removed;

@@ -46,7 +46,7 @@ public class GetKeyIdForCertHashReqHandler extends AbstractRpcHandler<GetKeyIdFo
     private final TokenLookup tokenLookup;
 
     @Override
-    protected GetKeyIdForCertHashResp handle(GetKeyIdForCertHashReq request) throws Exception {
+    protected GetKeyIdForCertHashResp handle(GetKeyIdForCertHashReq request) {
         KeyInfo keyInfo = tokenLookup.getKeyInfoForCertHash(request.getCertHash());
 
         if (keyInfo == null) {

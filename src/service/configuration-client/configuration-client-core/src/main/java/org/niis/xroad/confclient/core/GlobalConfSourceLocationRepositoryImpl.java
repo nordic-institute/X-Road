@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.sql.DataSource;
 
@@ -76,7 +77,7 @@ public class GlobalConfSourceLocationRepositoryImpl implements GlobalConfSourceL
                 conn.setAutoCommit(true); // reset auto-commit
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Database connection error", e);
+            throw XrdRuntimeException.systemInternalError("Database connection error", e);
         }
     }
 
@@ -114,7 +115,7 @@ public class GlobalConfSourceLocationRepositoryImpl implements GlobalConfSourceL
         try {
             return queryRunner.query(sql, handler, instanceIdentifier);
         } catch (SQLException e) {
-            throw new RuntimeException("Database error in hasLocations", e);
+            throw XrdRuntimeException.systemInternalError("Database error in hasLocations", e);
         }
     }
 
@@ -140,7 +141,7 @@ public class GlobalConfSourceLocationRepositoryImpl implements GlobalConfSourceL
         try {
             return queryRunner.query(sql, resultSetHandler, instanceIdentifier);
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to fetch GlobalConfSourceLocation", e);
+            throw XrdRuntimeException.systemInternalError("Failed to fetch GlobalConfSourceLocation", e);
         }
     }
 

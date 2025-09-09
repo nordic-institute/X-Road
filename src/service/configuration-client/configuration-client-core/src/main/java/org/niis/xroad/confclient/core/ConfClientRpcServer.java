@@ -35,6 +35,7 @@ import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.ManagedRpcServer;
 import org.niis.xroad.confclient.core.config.ConfigurationClientRpcServerProperties;
 
+import java.io.IOException;
 import java.util.List;
 
 @Startup
@@ -47,13 +48,15 @@ public class ConfClientRpcServer extends ManagedRpcServer {
         super(services, rpcServerProperties, rpcCredentialsConfigurer);
     }
 
+    @Override
     @PostConstruct
-    public void init() throws Exception {
+    public void init() throws IOException {
         super.init();
     }
 
+    @Override
     @PreDestroy
-    public void destroy() throws Exception {
+    public void destroy() throws InterruptedException {
         super.destroy();
     }
 }

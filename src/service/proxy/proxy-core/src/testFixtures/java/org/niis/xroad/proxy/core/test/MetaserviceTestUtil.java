@@ -364,8 +364,7 @@ public final class MetaserviceTestUtil {
                 };
             }
 
-            ProtocolVersion protocolVersion = new ProtocolVersion();
-            protocolVersion.setVersion("4.0");
+            ProtocolVersion protocolVersion = new ProtocolVersion("4.0");
 
             this.xroadSoapHeader = new SoapHeader();
             xroadSoapHeader.setService(this.serviceId);

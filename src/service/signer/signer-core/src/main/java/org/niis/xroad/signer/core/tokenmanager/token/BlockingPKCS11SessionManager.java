@@ -32,10 +32,12 @@ import iaik.pkcs.pkcs11.Token;
 import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class BlockingPKCS11SessionManager implements SessionProvider {
     private final ManagedPKCS11Session session;
 

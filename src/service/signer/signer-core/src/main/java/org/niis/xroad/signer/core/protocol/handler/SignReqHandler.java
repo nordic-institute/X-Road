@@ -44,7 +44,7 @@ public class SignReqHandler extends AbstractRpcHandler<SignReq, SignResp> {
     private final TokenLookup tokenLookup;
 
     @Override
-    protected SignResp handle(SignReq request) throws Exception {
+    protected SignResp handle(SignReq request) {
         final byte[] signature = signData(request);
 
         return SignResp.newBuilder()

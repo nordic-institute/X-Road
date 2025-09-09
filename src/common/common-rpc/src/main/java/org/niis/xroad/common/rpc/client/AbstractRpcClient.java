@@ -26,55 +26,97 @@
  */
 package org.niis.xroad.common.rpc.client;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.HttpStatus;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import org.niis.xroad.rpc.error.CodedExceptionProto;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.util.concurrent.Callable;
+import java.util.function.Function;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 public abstract class AbstractRpcClient implements AutoCloseable {
 
-    public <V> V exec(Callable<V> grpcCall) throws Exception {
+    public void exec(Runnable action) {
+        try {
+            action.run();
+        } catch (XrdRuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    public <R, T> T exec(Callable<R> action, Function<R, T> mapper) {
+        return exec(() -> mapper.apply(action.call()));
+    }
+
+    public <V> V exec(Callable<V> grpcCall) {
         try {
             return grpcCall.call();
         } catch (StatusRuntimeException error) {
             if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
-                throw error; //TODO or handle?
+                throw XrdRuntimeException.systemException(NETWORK_ERROR)
+                        .origin(getRpcOrigin())
+                        .details("gRPC client timed out.")
+                        .build();
             }
             com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
             if (status != null) {
                 handleGenericStatusRuntimeException(status);
             }
             throw error;
+        } catch (Exception e) {
+            if (e instanceof XrdRuntimeException xrdRuntimeException) {
+                throw xrdRuntimeException;
+            } else {
+                throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
+                        .cause(e)
+                        .details("gRPC client call failed")
+                        .origin(getRpcOrigin())
+                        .build();
+            }
         }
     }
 
+
     private void handleGenericStatusRuntimeException(com.google.rpc.Status status) {
         for (Any any : status.getDetailsList()) {
-            if (any.is(CodedExceptionProto.class)) {
+            if (any.is(XrdRuntimeExceptionProto.class)) {
                 try {
-                    final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
+                    final var ce = any.unpack(XrdRuntimeExceptionProto.class);
 
-                    throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString());
+                    var errorDeviation = ErrorCode.withCode(ce.getErrorCode());
+                    var exceptionBuilder = XrdRuntimeException.systemException(errorDeviation)
+                            .origin(getRpcOrigin())
+                            .identifier(ce.getIdentifier())
+                            .details(ce.getDetails())
+                            .httpStatus(ce.getHttpStatus() > 0 ? HttpStatus.fromCode(ce.getHttpStatus()) : null);
+
+                    if (!ce.getErrorMetadataList().isEmpty()) {
+                        exceptionBuilder.metadataItems(ce.getErrorMetadataList());
+                    }
+                    throw exceptionBuilder.build();
                 } catch (InvalidProtocolBufferException e) {
-                    throw new RuntimeException("Failed to parse grpc message", e);
+                    throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
+                            .cause(e)
+                            .details("Failed to parse CodedExceptionProto from gRPC status details")
+                            .build();
                 }
             }
         }
     }
 
-/*     void handleTimeout() {
-        var codedException = new CodedException(X_INTERNAL_ERROR, "rpc_client_timeout",
-                "RPC client timed out.");
-       codedException.withPrefix("[%s] ".formatted(getClass().getSimpleName()));
-        throw codedException;
-    }
+    /**
+     * Get rpc origin that will be populated for exceptions
+     */
+    public abstract ErrorOrigin getRpcOrigin();
 
-    private String getErrorPrefix() {
-        return "prefix";
-    }*/
 }

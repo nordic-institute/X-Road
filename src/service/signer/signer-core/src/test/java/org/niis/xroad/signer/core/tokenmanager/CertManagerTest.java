@@ -32,7 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.model.CertRequestData;
 import org.niis.xroad.signer.core.model.RuntimeCertImpl;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
@@ -107,9 +107,9 @@ class CertManagerTest {
         when(keyMock.certs()).thenReturn(Set.of(certMock));
         initRegistry(keyMock);
 
-        var exception = assertThrows(SignerException.class, () -> certManager.setCertActive(CERT_EXTERNAL_ID, true));
+        var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setCertActive(CERT_EXTERNAL_ID, true));
 
-        assertEquals("Signer.InternalError", exception.getFaultCode());
+        assertEquals("internal_error", exception.getFaultCode());
         assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
 
         verify(tokenRegistryLoader).loadTokens();
@@ -141,11 +141,11 @@ class CertManagerTest {
         initRegistry(keyMock);
 
         // Simulate an exception during setActive
-        doThrow(new SignerException("Test exception")).when(tokenKeyCertWriteService).setActive(1L, true);
+        doThrow(XrdRuntimeException.systemInternalError("Test exception")).when(tokenKeyCertWriteService).setActive(1L, true);
 
-        var exception = assertThrows(SignerException.class, () -> certManager.setCertActive(CERT_EXTERNAL_ID, true));
+        var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setCertActive(CERT_EXTERNAL_ID, true));
 
-        assertEquals("Signer.Test exception", exception.getFaultCode());
+        assertEquals("internal_error", exception.getFaultCode());
 
         verify(tokenRegistryLoader).refreshTokens(any());
     }
@@ -174,9 +174,9 @@ class CertManagerTest {
         when(keyMock.certs()).thenReturn(Set.of(certMock));
         initRegistry(keyMock);
 
-        var exception = assertThrows(SignerException.class, () -> certManager.setCertStatus(CERT_EXTERNAL_ID, "status"));
+        var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setCertStatus(CERT_EXTERNAL_ID, "status"));
 
-        assertEquals("Signer.InternalError", exception.getFaultCode());
+        assertEquals("internal_error", exception.getFaultCode());
         assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
 
         verifyNoInteractions(tokenKeyCertWriteService);
@@ -209,9 +209,9 @@ class CertManagerTest {
         when(keyMock.certs()).thenReturn(Set.of(certMock));
         initRegistry(keyMock);
 
-        var exception = assertThrows(SignerException.class, () -> certManager.setRenewedCertHash(CERT_EXTERNAL_ID, "status"));
+        var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setRenewedCertHash(CERT_EXTERNAL_ID, "status"));
 
-        assertEquals("Signer.InternalError", exception.getFaultCode());
+        assertEquals("internal_error", exception.getFaultCode());
         assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
 
         verifyNoInteractions(tokenKeyCertWriteService);
@@ -244,9 +244,9 @@ class CertManagerTest {
         when(keyMock.certs()).thenReturn(Set.of(certMock));
         initRegistry(keyMock);
 
-        var exception = assertThrows(SignerException.class, () -> certManager.setRenewalError(CERT_EXTERNAL_ID, "renewal error"));
+        var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setRenewalError(CERT_EXTERNAL_ID, "renewal error"));
 
-        assertEquals("Signer.InternalError", exception.getFaultCode());
+        assertEquals("internal_error", exception.getFaultCode());
         assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
 
         verifyNoInteractions(tokenKeyCertWriteService);
@@ -281,9 +281,9 @@ class CertManagerTest {
         when(keyMock.certs()).thenReturn(Set.of(certMock));
         initRegistry(keyMock);
 
-        var exception = assertThrows(SignerException.class, () -> certManager.setNextPlannedRenewal(CERT_EXTERNAL_ID, Instant.now()));
+        var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setNextPlannedRenewal(CERT_EXTERNAL_ID, Instant.now()));
 
-        assertEquals("Signer.InternalError", exception.getFaultCode());
+        assertEquals("internal_error", exception.getFaultCode());
         assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
 
         verifyNoInteractions(tokenKeyCertWriteService);
@@ -348,8 +348,7 @@ class CertManagerTest {
                 certManager.addCertRequest(KEY_EXTERNAL_ID, memberID, "subjectName", "subjectAltName",
                         KeyUsageInfo.AUTHENTICATION, "certProfile"));
 
-        assertEquals("WrongCertUsage", exception.getFaultCode());
-        assertEquals("cert_request_wrong_usage", exception.getTranslationCode());
+        assertEquals("wrong_cert_usage", exception.getFaultCode());
         assertEquals("Cannot add AUTHENTICATION certificate request to SIGNING key", exception.getFaultString());
 
         verifyNoInteractions(tokenKeyWriteService);

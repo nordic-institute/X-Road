@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
@@ -131,7 +132,7 @@ public class GlobalConfService {
                 throw e;
             }
         } catch (Exception e) {
-            throw new RuntimeException("global conf validity check failed", e);
+            throw XrdRuntimeException.systemInternalError("global conf validity check failed", e);
         }
     }
 

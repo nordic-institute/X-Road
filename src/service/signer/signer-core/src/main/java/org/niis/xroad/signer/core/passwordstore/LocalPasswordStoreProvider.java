@@ -27,6 +27,8 @@
 
 package org.niis.xroad.signer.core.passwordstore;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -34,6 +36,7 @@ import javax.crypto.SecretKey;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class LocalPasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
 
     private static final String ALGORITHM = "AES";

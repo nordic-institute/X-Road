@@ -32,8 +32,11 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import iaik.pkcs.pkcs11.Mechanism;
 import iaik.pkcs.pkcs11.Token;
+import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.PrivateKey;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 
 import java.io.Closeable;
@@ -49,6 +52,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.loginFailed;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class HardwareTokenSigner implements Closeable {
     private final SignPrivateKeyProvider privateKeyProvider;
 
@@ -103,7 +107,7 @@ public class HardwareTokenSigner implements Closeable {
 
         var sessionProvider = sessionSupplier.get();
         if (sessionProvider == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Session provider is null");
+            throw XrdRuntimeException.systemInternalError("Session provider is null");
         }
         return sessionProvider.executeWithSession(session -> {
             return doSign(session, keyId, signatureAlgorithmId, data);
@@ -179,7 +183,7 @@ public class HardwareTokenSigner implements Closeable {
     }
 
     public interface SignPrivateKeyProvider {
-        PrivateKey getPrivateKey(ManagedPKCS11Session session, String keyId) throws Exception;
+        PrivateKey getPrivateKey(ManagedPKCS11Session session, String keyId) throws TokenException;
 
         SessionProvider getManagementSessionProvider();
     }

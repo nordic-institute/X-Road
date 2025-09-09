@@ -38,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.backupmanager.core.repository.BackupRepository;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.restapi.util.FormatUtils;
 
 import java.io.IOException;
@@ -52,13 +53,13 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_GENERATION_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_GENERATION_INTERRUPTED;
-import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_RESTORATION_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_RESTORATION_INTERRUPTED;
-import static org.niis.xroad.common.core.exception.ErrorCodes.GPG_KEY_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.FILE_ALREADY_EXISTS;
+import static org.niis.xroad.common.core.exception.ErrorCode.GPG_KEY_GENERATION_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_INTERRUPTED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -168,7 +169,9 @@ public class FileSystemBackupHandler {
     public BackupItem saveBackup(String name, byte[] content, boolean ignoreWarnings) {
         log.info("Saving uploaded backup: {}", name);
         if (!ignoreWarnings && getBackupItem(name).isPresent()) {
-            throw new CodedException(WARNING_FILE_ALREADY_EXISTS, "Backup with this name already exists");
+            throw XrdRuntimeException.systemException(FILE_ALREADY_EXISTS)
+                    .details("Backup with this name already exists")
+                    .build();
         }
         return backupRepository.storeBackup(name, content);
     }

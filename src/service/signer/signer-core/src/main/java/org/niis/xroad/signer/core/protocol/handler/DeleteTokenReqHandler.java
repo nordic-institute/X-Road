@@ -40,7 +40,7 @@ public class DeleteTokenReqHandler extends AbstractRpcHandler<DeleteTokenReq, Em
     private final TokenManager tokenManager;
 
     @Override
-    protected Empty handle(DeleteTokenReq request) throws Exception {
+    protected Empty handle(DeleteTokenReq request) {
         deleteToken(request.getTokenId());
 
         return Empty.getDefaultInstance();

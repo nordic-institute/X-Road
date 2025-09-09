@@ -42,7 +42,7 @@ public class GenerateKeyReqHandler extends AbstractRpcHandler<GenerateKeyReq, Ke
     private final TokenWorkerProvider tokenWorkerProvider;
 
     @Override
-    protected KeyInfoProto handle(GenerateKeyReq request) throws Exception {
+    protected KeyInfoProto handle(GenerateKeyReq request) {
         final KeyInfo keyInfo = tokenWorkerProvider.getTokenWorker(request.getTokenId()).handleGenerateKey(request);
         return keyInfo.asMessage();
     }

@@ -30,5 +30,5 @@ public interface ChangeChecker {
      * @return true, if the file has changed
      * @throws Exception if an error occurs
      */
-    boolean hasChanged() throws Exception;
+    boolean hasChanged();
 }

@@ -59,7 +59,7 @@ public class SystemMetricsSensor {
     }
 
     @PostConstruct
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
         var channel = rpcChannelFactory.createChannel(rpcChannelProperties);

@@ -19,4 +19,10 @@ fi
 
 chown -R xroad /var/lib/softhsm/tokens
 
-source /root/entrypoint.sh
+# This should be consolidated with the entrypoint in the base image
+exec java \
+    -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9999,server=y,suspend=n \
+    -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
+    -Dquarkus.profile=containerized \
+    -Djava.library.path=/usr/share/xroad/lib \
+    -jar /opt/app/quarkus-run.jar

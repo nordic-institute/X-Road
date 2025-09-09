@@ -145,6 +145,7 @@ archUnit {
 //    "org.niis.xroad.arch.rule.NoBeanAnnotationWithInitDestroy",
     "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
     "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
+    "org.niis.xroad.arch.rule.NoVanillaExceptions",
   )
 }
 

@@ -34,6 +34,7 @@ import jakarta.xml.soap.SOAPMessage;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import javax.xml.namespace.QName;
 
@@ -57,6 +58,7 @@ public final class ManagementRequestUtil {
      * @return the response SOAP message
      * @throws Exception in case of any errors
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public static SoapMessageImpl toResponse(SoapMessageImpl request, int requestId) throws Exception {
         return SoapUtils.toResponse(request, soap -> addRequestId(requestId, soap));
     }
