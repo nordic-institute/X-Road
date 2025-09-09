@@ -31,13 +31,14 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.acme.AcmeCommonConfig;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class AcmeConfigTest {
     private AcmeCommonConfig acmeCommonConfig;
@@ -45,7 +46,7 @@ public class AcmeConfigTest {
     private ListAppender<ILoggingEvent> appender;
     private final Logger logger = (Logger) LoggerFactory.getLogger(AcmeCommonConfig.class);
 
-    @Before
+    @BeforeEach
     public void setup() {
         acmeCommonConfig = new AcmeCommonConfig();
 
@@ -54,7 +55,7 @@ public class AcmeConfigTest {
         logger.addAppender(appender);
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         logger.detachAppender(appender);
         appender.stop();
@@ -62,25 +63,36 @@ public class AcmeConfigTest {
 
 
     @Test
-    public void whenProxyUiApiAcmeChallengePortEnabledAndAcmeYmlNotExists() {
+    void whenProxyUiApiAcmeChallengePortEnabledAndAcmeYmlNotExists() {
         System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "true");
 
-        acmeCommonConfig.acmeProperties();
+        acmeCommonConfig.acmeProperties("");
 
         assertThat(appender.list).hasSize(1);
-        assertThat(appender.list.get(0).getLevel()).isEqualTo(Level.WARN);
-        assertThat(appender.list.get(0).getMessage()).isEqualTo("Failed to load yaml configuration from {}");
+        assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.ERROR);
+        assertThat(appender.list.getFirst().getMessage()).isEqualTo("Acme challenge port enabled, but configuration is missing.");
     }
 
     @Test
-    public void whenProxyUiApiAcmeChallengePortNotEnabledAndAcmeYmlNotExists() {
-        System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "false");
+    void testAcmePropertiesBeanIsCreatedWhenPropNotSet() {
+        System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "true");
 
-        acmeCommonConfig.acmeProperties();
-
-        assertThat(appender.list).hasSize(1);
-        assertThat(appender.list.get(0).getLevel()).isEqualTo(Level.WARN);
-        assertThat(appender.list.get(0).getMessage()).isEqualTo("Configuration {} does not exist");
+        assertNotNull(acmeCommonConfig.acmeProperties(null));
+        assertNotNull(acmeCommonConfig.acmeProperties(""));
+        assertNotNull(acmeCommonConfig.acmeProperties("not valid"));
 
     }
+
+    @Test
+    void whenProxyUiApiAcmeChallengePortNotEnabledAndAcmeYmlNotExists() {
+        System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "false");
+
+        acmeCommonConfig.acmeProperties(null);
+
+        assertThat(appender.list).hasSize(1);
+        assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.INFO);
+        assertThat(appender.list.getFirst().getMessage())
+                .isEqualTo("Acme configuration not set, and acme challenge port not enabled. Skipping ACME configuration.");
+    }
+
 }

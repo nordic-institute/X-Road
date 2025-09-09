@@ -40,3 +40,11 @@ xroad:
   common:
     rpc:
       use-tls: false
+
+  mail-notification: |
+    host: mailpit
+    port: 587
+    username: testusername
+    password: testpassword
+    contacts:
+      'DEV:COM:1234': member1@example.org

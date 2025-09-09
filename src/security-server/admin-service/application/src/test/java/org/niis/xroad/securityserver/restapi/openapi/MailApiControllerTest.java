@@ -51,8 +51,7 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.OWNER_SERVER_
 /**
  * test mail api
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"xroad.conf.path=build/resources/test/"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class MailApiControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
