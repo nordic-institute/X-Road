@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.backupmanager.proto.BackupInfo;
 import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
 import org.niis.xroad.common.core.exception.WarningDeviation;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -55,6 +56,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_F
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_INTERRUPTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.FILE_ALREADY_EXISTS;
 import static org.niis.xroad.common.core.exception.ErrorCode.GPG_KEY_GENERATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_BACKUP_FILE;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_FILENAME;
@@ -114,8 +116,8 @@ public class SecurityServerBackupService {
         auditDataHelper.put(RestApiAuditProperty.BACKUP_FILE_NAME, name);
         try {
             return backupManagerRpcClient.uploadBackup(name, data, ignoreWarnings);
-        } catch (CodedException ce) {
-            if (ce.getFaultCode().equals(WARNING_FILE_ALREADY_EXISTS)) {
+        } catch (XrdRuntimeException ce) {
+            if (ce.isCausedBy(FILE_ALREADY_EXISTS)) {
                 throw new UnhandledWarningsException(new WarningDeviation(WARNING_FILE_ALREADY_EXISTS, name));
             }
             throw mapException(ce, new InternalServerErrorException("Failed to upload backup", ce));

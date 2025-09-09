@@ -191,6 +191,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_FILE_EXTENSION("invalid_file_extension"),
     DOUBLE_FILE_EXTENSION("double_file_extension"),
     INVALID_BACKUP_FILE("invalid_backup_file"),
+    FILE_ALREADY_EXISTS("file_already_exists"),
 
     // ===== BACKUP ERRORS =====
     BACKUP_FILE_NOT_FOUND("backup_file_not_found"),
