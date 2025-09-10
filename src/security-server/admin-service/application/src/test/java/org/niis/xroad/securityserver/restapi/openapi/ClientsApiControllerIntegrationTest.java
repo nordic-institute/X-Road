@@ -789,11 +789,9 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertErrorWithoutMetadata(DeviationCodes.ERROR_WARNINGS_DETECTED,
                 expected);
         assertWarning(DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS,
-                "\n"
-                        + " Summary:  Failures: 0, Warnings: 1\n"
-                        + " <<< WARNING! \n"
-                        + "Operation xroadGetRandom in PortType: {http://producer.x-road.eu}testServicePort has no output message\n",
-                expected);
+                expected,
+                "", " Summary:  Failures: 0, Warnings: 1", " <<< WARNING! ",
+                "Operation xroadGetRandom in PortType: {http://producer.x-road.eu}testServicePort has no output message");
 
         // now lets ignore the warningDeviations
         serviceDescription.setIgnoreWarnings(true);

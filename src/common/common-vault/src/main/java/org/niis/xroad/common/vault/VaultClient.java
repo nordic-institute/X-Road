@@ -48,19 +48,19 @@ public interface VaultClient {
 
     String INTERNAL_TLS_CREDENTIALS_PATH = "tls/internal";
     String OPMONITOR_TLS_CREDENTIALS_PATH = "tls/opmonitor";
-    String PROXY_UI_API_TLS_CREDENTIALS_PATH = "tls/proxy-ui-api";
+    String ADMIN_SERVICE_TLS_CREDENTIALS_PATH = "tls/admin-service";
 
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
-    InternalSSLKey getProxyUyApiTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
+    InternalSSLKey getAdminServiceTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
     void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
-    void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
+    void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();

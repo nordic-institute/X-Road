@@ -32,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.security.GeneralSecurityException;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,18 +44,24 @@ public class WsdlValidatorTest {
     private ServerConfProvider serverConfProvider;
 
     @Test
-    public void shouldFailValidation() {
+    void shouldFailValidation() {
         assertThrows(WsdlValidator.WsdlValidationFailedException.class,
                 () -> new WsdlValidator(serverConfProvider).validate("src/test/resources/wsdl/error.wsdl"));
     }
 
     @Test
-    public void shouldProduceWarning() throws GeneralSecurityException {
-        assertThat(new WsdlValidator(serverConfProvider).validate("src/test/resources/wsdl/warning.wsdl").size()).isEqualTo(1);
+    void shouldProduceWarning() throws GeneralSecurityException {
+        var result = new WsdlValidator(serverConfProvider).validate("src/test/resources/wsdl/warning.wsdl");
+        assertThat(result).hasSize(4);
+        assertThat(result).isEqualTo(
+                List.of("", " Summary:  Failures: 0, Warnings: 1", " <<< WARNING! ",
+                        "Operation xroadGetRandom in PortType: {http://producer.x-road.eu}testServicePort has no output message")
+        );
+
     }
 
     @Test
-    public void shouldPassValidation() throws GeneralSecurityException {
+    void shouldPassValidation() throws GeneralSecurityException {
         assertThat(new WsdlValidator(serverConfProvider).validate("src/test/resources/wsdl/testservice.wsdl")).isEmpty();
     }
 }

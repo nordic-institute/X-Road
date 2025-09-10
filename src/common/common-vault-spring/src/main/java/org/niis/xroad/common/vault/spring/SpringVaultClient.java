@@ -61,8 +61,8 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
-    public InternalSSLKey getProxyUyApiTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        return getTlsCredentials(PROXY_UI_API_TLS_CREDENTIALS_PATH);
+    public InternalSSLKey getAdminServiceTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        return getTlsCredentials(ADMIN_SERVICE_TLS_CREDENTIALS_PATH);
     }
 
     @Override
@@ -76,8 +76,8 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
-    public void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
-        createTlsCredentials(PROXY_UI_API_TLS_CREDENTIALS_PATH, internalSSLKey);
+    public void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
+        createTlsCredentials(ADMIN_SERVICE_TLS_CREDENTIALS_PATH, internalSSLKey);
     }
 
     private InternalSSLKey getTlsCredentials(String path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {

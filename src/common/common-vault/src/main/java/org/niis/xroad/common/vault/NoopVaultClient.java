@@ -28,20 +28,22 @@ package org.niis.xroad.common.vault;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
+import java.security.cert.X509Certificate;
+
 public class NoopVaultClient implements VaultClient {
     @Override
     public InternalSSLKey getInternalTlsCredentials() {
-        return null;
+        return new InternalSSLKey(null, new X509Certificate[]{});
     }
 
     @Override
     public InternalSSLKey getOpmonitorTlsCredentials()  {
-        return null;
+        return new InternalSSLKey(null, new X509Certificate[]{});
     }
 
     @Override
-    public InternalSSLKey getProxyUyApiTlsCredentials() {
-        return null;
+    public InternalSSLKey getAdminServiceTlsCredentials() {
+        return new InternalSSLKey(null, new X509Certificate[]{});
     }
 
     @Override
@@ -55,7 +57,7 @@ public class NoopVaultClient implements VaultClient {
     }
 
     @Override
-    public void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) {
+    public void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) {
         throw new UnsupportedOperationException("Not supported");
     }
 }

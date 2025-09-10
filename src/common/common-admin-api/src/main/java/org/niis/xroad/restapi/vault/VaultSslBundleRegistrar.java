@@ -60,7 +60,7 @@ public class VaultSslBundleRegistrar implements SslBundleRegistrar {
         log.info("Registering '{}' SSL Bundle", BUNDLE_NAME);
         try {
             ensureTlsKeyPresent();
-            var tlsCredentials = vaultClient.getProxyUyApiTlsCredentials();
+            var tlsCredentials = vaultClient.getAdminServiceTlsCredentials();
 
             KeyStore keystore = KeyStore.getInstance("PKCS12");
             keystore.load(null, null);
@@ -75,15 +75,15 @@ public class VaultSslBundleRegistrar implements SslBundleRegistrar {
 
     private void ensureTlsKeyPresent() throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         try {
-            vaultClient.getProxyUyApiTlsCredentials();
+            vaultClient.getAdminServiceTlsCredentials();
         } catch (Exception e) {
             log.warn("Unable to locate proxy-ui-api TLS credentials, attempting to create new ones", e);
             var vaultKeyData = vaultKeyClient.provisionNewCerts();
             var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
                     .toArray(X509Certificate[]::new);
             var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createProxyUiApiTlsCredentials(internalTlsKey);
-            vaultClient.getProxyUyApiTlsCredentials();
+            vaultClient.createAdminServiceTlsCredentials(internalTlsKey);
+            vaultClient.getAdminServiceTlsCredentials();
             log.info("Successfully created proxy-ui-api TLS credentials");
         }
     }

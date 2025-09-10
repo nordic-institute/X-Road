@@ -29,6 +29,6 @@ package org.niis.xroad.common.vault;
 public class NoopVaultKeyClient implements VaultKeyClient {
     @Override
     public VaultKeyData provisionNewCerts() {
-        return null;
+        return new VaultKeyData(null, null, null);
     }
 }

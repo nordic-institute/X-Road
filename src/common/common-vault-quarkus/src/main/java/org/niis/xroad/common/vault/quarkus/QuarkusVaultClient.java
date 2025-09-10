@@ -62,7 +62,7 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
-    public InternalSSLKey getProxyUyApiTlsCredentials() {
+    public InternalSSLKey getAdminServiceTlsCredentials() {
         throw new NotImplementedException();
     }
 
@@ -77,7 +77,7 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
-    public void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) {
+    public void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) {
         throw new NotImplementedException();
     }
 

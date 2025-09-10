@@ -74,13 +74,17 @@ public class WsdlValidator {
             }
         } catch (ToolException ex) {
             if ((ex.getCause() == null || ex.getCause() == ex) && ex.getMessage().contains(" Failures: 0,")) {
-                return List.of(ex.getMessage());
+                return splitLines(ex.getMessage());
             }
-            throw new WsdlValidationFailedException(List.of(ex.getMessage()));
+            throw new WsdlValidationFailedException(splitLines(ex.getMessage()));
         } catch (Exception ex) {
-            throw new WsdlValidationFailedException(List.of(ex.getMessage()));
+            throw new WsdlValidationFailedException(splitLines(ex.getMessage()));
         }
-        throw new WsdlValidationFailedException(List.of(validator.getErrorMessage()));
+        throw new WsdlValidationFailedException(splitLines(validator.getErrorMessage()));
+    }
+
+    private List<String> splitLines(String input) {
+        return List.of(input.split("\\r?\\n"));
     }
 
     public static class WsdlValidationFailedException extends InvalidWsdlException {
