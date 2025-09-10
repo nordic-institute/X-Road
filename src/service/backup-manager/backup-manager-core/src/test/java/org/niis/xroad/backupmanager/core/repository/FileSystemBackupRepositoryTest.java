@@ -78,11 +78,11 @@ class FileSystemBackupRepositoryTest {
     void readBackupFile() {
         assertThatThrownBy(() -> backupRepository.readBackupFile("not-existing-file.gpg"))
                 .isInstanceOf(CodedException.class)
-                .hasMessage("backup_file_not_found: not-existing-file.gpg");
+                .hasMessageContaining("backup_file_not_found: not-existing-file.gpg");
 
         assertThatThrownBy(() -> backupRepository.readBackupFile("file-name-not-valid"))
                 .isInstanceOf(CodedException.class)
-                .hasMessage("backup_file_not_found: file-name-not-valid");
+                .hasMessageContaining("backup_file_not_found: file-name-not-valid");
 
         createBackupFile("backup.gpg");
         assertThat(backupRepository.readBackupFile("backup.gpg")).isNotNull();
@@ -93,7 +93,7 @@ class FileSystemBackupRepositoryTest {
         var name = "../secret/folder/file.txt";
         assertThatThrownBy(() -> backupRepository.getAbsoluteBackupFilePath(name))
                 .isInstanceOf(CodedException.class)
-                .hasMessage("invalid_filename: %s".formatted(name));
+                .hasMessageContaining("invalid_filename: %s".formatted(name));
 
         createBackupFile("backup.gpg");
         assertThat(backupRepository.getAbsoluteBackupFilePath("backup.gpg").toString()).isEqualTo(

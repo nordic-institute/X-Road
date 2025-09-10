@@ -38,7 +38,7 @@ import java.util.Set;
 
 public interface TokenReadService {
 
-    LoadedTokens loadAllTokens() throws Exception;
+    LoadedTokens loadAllTokens();
 
     record LoadedTokens(Set<BasicTokenInfo> tokens,
                         Map<Long, List<BasicKeyInfo>> keys,

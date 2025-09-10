@@ -36,7 +36,7 @@ import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGener
 
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_GENERATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_INTERRUPTED;
 
 @ExtendWith(MockitoExtension.class)
 class BackupsApiControllerTest {

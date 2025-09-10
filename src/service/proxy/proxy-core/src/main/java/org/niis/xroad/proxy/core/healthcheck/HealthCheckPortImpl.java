@@ -38,6 +38,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,6 +52,7 @@ import static org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503;
  * Service that listens for health check requests on a specific port and interface
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class HealthCheckPortImpl implements HealthCheckPort {
 
     public static final String MAINTENANCE_MESSAGE = "Health check interface is in maintenance mode.";
@@ -141,7 +143,7 @@ public class HealthCheckPortImpl implements HealthCheckPort {
         private final HealthCheckProvider healthCheckProvider;
 
         @Override
-        public boolean handle(Request request, Response response, Callback callback) throws Exception {
+        public boolean handle(Request request, Response response, Callback callback) {
 
             if (isMaintenanceMode()) {
                 response.setStatus(SERVICE_UNAVAILABLE_503);

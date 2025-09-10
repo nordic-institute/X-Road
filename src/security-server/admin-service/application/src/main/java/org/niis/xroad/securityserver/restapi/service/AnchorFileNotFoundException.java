@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 
 /**
@@ -34,6 +34,6 @@ import org.niis.xroad.common.exception.InternalServerErrorException;
 
 public class AnchorFileNotFoundException extends InternalServerErrorException {
     public AnchorFileNotFoundException(String s, Throwable throwable) {
-        super(s, throwable, ErrorCodes.ANCHOR_FILE_NOT_FOUND.build());
+        super(s, throwable, ErrorCode.ANCHOR_FILE_NOT_FOUND.build());
     }
 }

@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -45,6 +46,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochSecond;
  */
 @Slf4j
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class StoreRequestProcessor {
 
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();

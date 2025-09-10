@@ -42,7 +42,7 @@ public class GetKeyConfChecksumHandler extends AbstractRpcHandler<Empty, KeyConf
     private final TokenRegistry tokenRegistry;
 
     @Override
-    protected KeyConfChecksum handle(Empty request) throws Exception {
+    protected KeyConfChecksum handle(Empty request) {
         KeyConfChecksum.Builder builder = KeyConfChecksum.newBuilder();
         builder.setChecksum(tokenRegistry.getCurrentKeyConfChecksum());
         return builder.build();

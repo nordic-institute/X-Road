@@ -42,7 +42,7 @@ public class SignCertificateReqHandler extends AbstractRpcHandler<SignCertificat
     private final TokenLookup tokenLookup;
 
     @Override
-    protected SignCertificateResp handle(SignCertificateReq request) throws Exception {
+    protected SignCertificateResp handle(SignCertificateReq request) {
         final byte[] signedCertificate = tokenWorkerProvider.getTokenWorker(tokenLookup.findTokenIdForKeyId(request.getKeyId()))
                 .handleSignCertificate(request);
 

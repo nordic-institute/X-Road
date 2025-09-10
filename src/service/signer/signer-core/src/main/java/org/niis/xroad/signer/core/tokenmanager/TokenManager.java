@@ -31,8 +31,8 @@ import ee.ria.xroad.common.CodedException;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
 import org.niis.xroad.signer.core.service.TokenWriteService;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenDefinition;
@@ -40,7 +40,6 @@ import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static org.niis.xroad.signer.core.util.SignerUtil.getDefaultFriendlyName;
 
 @Slf4j
@@ -70,8 +69,7 @@ public class TokenManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR,
-                        "Failed to create token " + tokenDefinition.getId(), e);
+                throw XrdRuntimeException.systemInternalError("Failed to create token " + tokenDefinition.getId(), e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -135,7 +133,7 @@ public class TokenManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException("Failed to update friendly name for token " + tokenId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to update friendly name for token " + tokenId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -171,7 +169,7 @@ public class TokenManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to delete token " + tokenId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to delete token " + tokenId, e);
             } finally {
                 ctx.invalidateCache();
             }

@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
@@ -110,6 +111,7 @@ public class OpMonitoringDaemonSender {
         return Boolean.FALSE.equals(processing.get());
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void send(String json) throws Exception {
         try (HttpSender sender = new HttpSender(httpClient)) {
             sender.setConnectionTimeout(TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().connectionTimeoutSeconds()));
@@ -147,6 +149,7 @@ public class OpMonitoringDaemonSender {
                 OpMonitoringDaemonEndpoints.STORE_DATA_PATH, null, null);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     CloseableHttpClient createHttpClient() throws Exception {
         return OpMonitoringDaemonHttpClient.createHttpClient(
                 opMonitorCommonProperties, serverConfProvider.getSSLKey(), vaultClient,

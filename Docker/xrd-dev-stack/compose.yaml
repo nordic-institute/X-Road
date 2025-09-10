@@ -12,7 +12,7 @@ services:
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   ss0:
-    image: ${SS0_IMG}
+    image: ${SS_IMG}
     environment:
       - PROXY_JMX_PORT=4299
       - SIGNER_JMX_PORT=4298
@@ -27,7 +27,7 @@ services:
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   ss1:
-    image: ${SS1_IMG}
+    image: ${SS_IMG}
     environment:
       - PROXY_JMX_PORT=4399
       - SIGNER_JMX_PORT=4398

@@ -43,6 +43,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 
 import java.util.Optional;
@@ -77,9 +78,10 @@ class HardwareTokenSignerTest {
     void testSignNoSessionProvider() throws Exception {
         try (var signer = HardwareTokenSigner.create(privateKeyProvider, tokenDefinition, token, TOKEN_ID, properties)) {
 
-            var thrown = assertThrows(CodedException.class, () -> signer.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "data".getBytes()));
+            var thrown = assertThrows(XrdRuntimeException.class,
+                    () -> signer.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "data".getBytes()));
 
-            assertEquals("InternalError: Session provider is null", thrown.getMessage());
+            assertEquals("Session provider is null", thrown.getDetails());
         }
     }
 
@@ -100,7 +102,7 @@ class HardwareTokenSignerTest {
         try (var signer = HardwareTokenSigner.create(privateKeyProvider, tokenDefinition, token, TOKEN_ID, properties)) {
 
             var thrown = assertThrows(CodedException.class, () -> signer.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "data".getBytes()));
-            assertEquals("KeyNotFound: Key 'keyId' not found on token 'null'", thrown.getMessage());
+            assertEquals("Key 'keyId' not found on token 'null'", thrown.getFaultString());
         }
     }
 

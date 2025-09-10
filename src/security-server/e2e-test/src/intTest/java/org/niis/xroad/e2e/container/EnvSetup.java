@@ -53,6 +53,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     private static final String COMPOSE_AUX_FILE = "../../../Docker/xrd-dev-stack/compose.aux.yaml";
     private static final String COMPOSE_E2E_FILE = "../../../Docker/xrd-dev-stack/compose.e2e.yaml";
     private static final String COMPOSE_SS_FILE = "../../../deployment/security-server/docker/compose.yaml";
+    private static final String COMPOSE_SS_HSM_FILE = "src/intTest/resources/compose.ss-hsm.e2e.yaml";
 
     private static final String CS = "cs";
     private static final String PROXY = "proxy";
@@ -74,9 +75,9 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         if (customProperties.isUseCustomEnv()) {
             log.warn("Using custom environment. Docker compose is not used.");
         } else {
-            envSs0 = createSSEnvironment("ss0");
+            envSs0 = createSSEnvironment("ss0", false);
 
-            envSs1 = createSSEnvironment("ss1");
+            envSs1 = createSSEnvironment("ss1", true);
 
             envAux = new ComposeContainer("aux-", new File(COMPOSE_AUX_FILE), new File(COMPOSE_E2E_FILE))
                     .withLocalCompose(true)
@@ -116,15 +117,21 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         }
     }
 
-    private ComposeContainer createSSEnvironment(String name) {
-        var env = new ComposeContainer(name + "-", new File(COMPOSE_SS_FILE))
+    private ComposeContainer createSSEnvironment(String name, boolean enableHsm) {
+        var files = enableHsm
+                ? new File[]{new File(COMPOSE_SS_FILE), new File(COMPOSE_SS_HSM_FILE)}
+                : new File[]{new File(COMPOSE_SS_FILE)};
+
+        var env = new ComposeContainer(name + "-", files)
                 .withLocalCompose(true)
+                .withEnv("CS_IMG", customProperties.getCsImage())
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
                 .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER));
+
         env.start();
         connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER);
 

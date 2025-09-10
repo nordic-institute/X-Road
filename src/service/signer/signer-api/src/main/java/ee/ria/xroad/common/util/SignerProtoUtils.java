@@ -29,6 +29,7 @@ package ee.ria.xroad.common.util;
 
 import lombok.experimental.UtilityClass;
 import org.apache.commons.io.output.WriterOutputStream;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
@@ -51,7 +52,7 @@ public class SignerProtoUtils {
             writer.close();
             return os.toByteArray();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

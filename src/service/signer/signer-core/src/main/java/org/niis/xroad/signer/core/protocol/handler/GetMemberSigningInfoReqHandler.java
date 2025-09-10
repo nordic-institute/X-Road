@@ -33,6 +33,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -57,6 +58,7 @@ import static org.niis.xroad.signer.api.dto.CertificateInfo.STATUS_REGISTERED;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMemberSigningInfoReq, GetMemberSigningInfoResp> {
     private final GlobalConfProvider globalConfProvider;
     private final TokenLookup tokenLookup;
@@ -65,7 +67,7 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
     }
 
     @Override
-    protected GetMemberSigningInfoResp handle(GetMemberSigningInfoReq request) throws Exception {
+    protected GetMemberSigningInfoResp handle(GetMemberSigningInfoReq request) {
         var memberId = ClientIdMapper.fromDto(request.getMemberId());
         List<KeyInfo> memberKeys = tokenLookup.getKeyInfo(memberId);
 

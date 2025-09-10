@@ -33,6 +33,7 @@ import ee.ria.xroad.common.signature.Signature;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -43,6 +44,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
  * The data to be time-stamped is the ds:SignatureValue element.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class SingleTimestampRequest extends AbstractTimestampRequest {
     private final LogRecordManager logRecordManager;
 

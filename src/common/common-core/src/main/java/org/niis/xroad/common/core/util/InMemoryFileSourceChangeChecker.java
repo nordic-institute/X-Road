@@ -41,7 +41,7 @@ public class InMemoryFileSourceChangeChecker implements ChangeChecker {
     }
 
     @Override
-    public boolean hasChanged() throws Exception {
+    public boolean hasChanged() {
         var currentFile = source.getFile();
         if (currentFile.isPresent()) {
             var currentChecksum = currentFile.get().checksum();

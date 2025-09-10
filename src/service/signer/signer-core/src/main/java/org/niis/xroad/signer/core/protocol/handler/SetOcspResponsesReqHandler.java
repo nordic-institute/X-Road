@@ -28,6 +28,7 @@ package org.niis.xroad.signer.core.protocol.handler;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.certmanager.OcspCacheManager;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
@@ -45,12 +46,16 @@ public class SetOcspResponsesReqHandler extends AbstractRpcHandler<SetOcspRespon
     private final OcspCacheManager ocspCacheManager;
 
     @Override
-    protected Empty handle(SetOcspResponsesReq request) throws Exception {
-        for (int i = 0; i < request.getCertHashesCount(); i++) {
-            ocspCacheManager.addToCache(
-                    request.getCertHashes(i),
-                    new OCSPResp(decodeBase64(request.getBase64EncodedResponses(i))));
+    protected Empty handle(SetOcspResponsesReq request) {
+        try {
+            for (int i = 0; i < request.getCertHashesCount(); i++) {
+                ocspCacheManager.addToCache(
+                        request.getCertHashes(i),
+                        new OCSPResp(decodeBase64(request.getBase64EncodedResponses(i))));
+            }
+            return Empty.getDefaultInstance();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
         }
-        return Empty.getDefaultInstance();
     }
 }

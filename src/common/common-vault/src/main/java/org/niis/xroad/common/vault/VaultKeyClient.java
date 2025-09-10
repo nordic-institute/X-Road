@@ -26,14 +26,18 @@
  */
 package org.niis.xroad.common.vault;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 
 public interface VaultKeyClient {
     String CERTIFICATE_FORMAT = "pem";
     String PKCS8_FORMAT = "pkcs8";
 
-    VaultKeyData provisionNewCerts() throws Exception;
+    VaultKeyData provisionNewCerts() throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     record VaultKeyData(
             X509Certificate[] identityCertChain, PrivateKey identityPrivateKey,

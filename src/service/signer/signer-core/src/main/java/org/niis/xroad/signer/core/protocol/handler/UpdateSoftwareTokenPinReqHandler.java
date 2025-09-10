@@ -25,18 +25,18 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import java.io.IOException;
+
 import static ee.ria.xroad.common.util.SignerProtoUtils.byteToChar;
 
 /**
@@ -49,14 +49,18 @@ public class UpdateSoftwareTokenPinReqHandler extends AbstractRpcHandler<UpdateS
     private final TokenWorkerProvider tokenWorkerProvider;
 
     @Override
-    protected Empty handle(UpdateSoftwareTokenPinReq request) throws Exception {
+    protected Empty handle(UpdateSoftwareTokenPinReq request) {
         final TokenWorker tokenWorker = tokenWorkerProvider.getTokenWorker(request.getTokenId());
         if (tokenWorker.isSoftwareToken()) {
-            tokenWorker.handleUpdateTokenPin(byteToChar(request.getOldPin().toByteArray()),
-                    byteToChar(request.getNewPin().toByteArray()));
-            return Empty.getDefaultInstance();
+            try {
+                tokenWorker.handleUpdateTokenPin(byteToChar(request.getOldPin().toByteArray()),
+                        byteToChar(request.getNewPin().toByteArray()));
+                return Empty.getDefaultInstance();
+            } catch (IOException e) {
+                throw XrdRuntimeException.systemException(e);
+            }
         } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
+            throw XrdRuntimeException.systemInternalError("Software token not found");
         }
     }
 }

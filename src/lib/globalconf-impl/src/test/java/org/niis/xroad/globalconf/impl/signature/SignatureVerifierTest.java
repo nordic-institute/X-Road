@@ -40,6 +40,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -57,7 +58,6 @@ import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
@@ -165,7 +165,7 @@ class SignatureVerifierTest {
     void emptySignature() {
         assertThatThrownBy(() -> createSignatureVerifier("src/test/signatures/empty.xml"))
                 .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_INVALID_XML);
+                .hasMessageContaining(ErrorCode.INVALID_XML.code());
     }
 
     /**
@@ -195,7 +195,7 @@ class SignatureVerifierTest {
     void malformedXml() {
         assertThatThrownBy(() -> createSignatureVerifier("src/test/signatures/sign-0-malformed-xml.xml"))
                 .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_INVALID_XML);
+                .hasMessageContaining(ErrorCode.INVALID_XML.code());
     }
 
     /**

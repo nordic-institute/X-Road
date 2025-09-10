@@ -49,7 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_ROLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_ROLE;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController

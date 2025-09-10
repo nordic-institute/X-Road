@@ -36,6 +36,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
@@ -53,6 +54,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public abstract class BaseSignedRequestCallback<T> implements ManagementRequestDecoderCallback {
     protected final GlobalConfProvider globalConfProvider;
     protected final ManagementRequestCertVerifier managementRequestCertVerifier;
@@ -131,7 +133,7 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
         managementRequestCertVerifier.verifyCertificate(x509ClientCert, clientCertOcsp);
     }
 
-    protected abstract void verifyMessage() throws Exception;
+    protected abstract void verifyMessage();
 
     @Override
     public T getRequest() {

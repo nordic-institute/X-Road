@@ -41,7 +41,7 @@ public class SetTokenFriendlyNameReqHandler extends AbstractRpcHandler<SetTokenF
     private final TokenManager tokenManager;
 
     @Override
-    protected Empty handle(SetTokenFriendlyNameReq request) throws Exception {
+    protected Empty handle(SetTokenFriendlyNameReq request) {
         tokenManager.setTokenFriendlyName(
                 request.getTokenId(),
                 request.getFriendlyName());

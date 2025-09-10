@@ -26,12 +26,14 @@
 package org.niis.xroad.common.core.exception;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Enumeration of all X-Road error codes.
  */
+@Slf4j
 @RequiredArgsConstructor
-public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
+public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
     // ===== GENERIC ERRORS =====
     IO_ERROR("io_error"),
@@ -43,7 +45,7 @@ public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
     DATABASE_ERROR("database_error"),
     INVALID_RESPONSE("invalid_response"),
     INVALID_REQUEST("invalid_request"),
-
+    CRYPTO_ERROR("cryptography_error"),
     // ===== VERIFICATION ERRORS =====
     CANNOT_CREATE_SIGNATURE("cannot_create_signature"),
     CERT_VALIDATION("cert_validation"),
@@ -189,6 +191,7 @@ public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_FILE_EXTENSION("invalid_file_extension"),
     DOUBLE_FILE_EXTENSION("double_file_extension"),
     INVALID_BACKUP_FILE("invalid_backup_file"),
+    FILE_ALREADY_EXISTS("file_already_exists"),
 
     // ===== BACKUP ERRORS =====
     BACKUP_FILE_NOT_FOUND("backup_file_not_found"),
@@ -255,17 +258,20 @@ public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
     }
 
     /**
-     * Get ErrorCode from string code.
+     * Get ErrorDeviation from string code.
      *
      * @param code the string code
-     * @return the ErrorCode enum value, or INTERNAL_ERROR if not found
+     * @return the ErrorDeviation built from the code
      */
-    public static ErrorCodes fromCode(String code) {
-        for (ErrorCodes errorCode : values()) {
-            if (errorCode.code.equals(code)) {
-                return errorCode;
-            }
+    public static DeviationBuilder.ErrorDeviationBuilder withCode(String code) {
+        return () -> prepareCode(code);
+    }
+
+    private static String prepareCode(String code) {
+        if (code == null) {
+            log.warn("Error code is null, defaulting to {}", INTERNAL_ERROR.code());
+            return INTERNAL_ERROR.code();
         }
-        return INTERNAL_ERROR; // Default fallback
+        return code.toLowerCase();
     }
 }

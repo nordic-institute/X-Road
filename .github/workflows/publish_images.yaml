@@ -118,18 +118,8 @@ jobs:
           context: ${{ github.workspace }}/Docker/securityserver
           build-args: |
             PACKAGE_SOURCE=internal
-          target: final
           push: true
           tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-security-server:arm-latest' || 'ghcr.io/nordic-institute/xrddev-security-server:amd-latest' }}
-      - name: Build and push Docker image (Hardware Token)
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ github.workspace }}/Docker/securityserver
-          build-args: |
-            PACKAGE_SOURCE=internal
-          target: final-hwtoken
-          push: true
-          tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-security-server-hwtoken:arm-latest' || 'ghcr.io/nordic-institute/xrddev-security-server-hwtoken:amd-latest' }}
   PublishMultiArchCS:
     runs-on: ubuntu-22.04
     needs: PublishCS
@@ -181,27 +171,10 @@ jobs:
             --amend ghcr.io/nordic-institute/xrddev-security-server:amd-latest \
             --amend ghcr.io/nordic-institute/xrddev-security-server:arm-latest
           docker manifest push ghcr.io/nordic-institute/xrddev-security-server:latest
-      - name: Create and push manifest (Hardware Token)
-        run: |
-          docker manifest create ghcr.io/nordic-institute/xrddev-security-server-hwtoken:latest \
-            --amend ghcr.io/nordic-institute/xrddev-security-server-hwtoken:amd-latest \
-            --amend ghcr.io/nordic-institute/xrddev-security-server-hwtoken:arm-latest
-          docker manifest push ghcr.io/nordic-institute/xrddev-security-server-hwtoken:latest
       - name: Clean old SS images
         uses: snok/container-retention-policy@v2
         with:
           image-names: xrddev-security-server
-          cut-off: 1 week ago UTC
-          timestamp-to-use: created_at
-          account-type: org
-          org-name: nordic-institute
-          keep-at-least: 1
-          token-type: github-token
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Clean old SS images (Hardware Token)
-        uses: snok/container-retention-policy@v2
-        with:
-          image-names: xrddev-security-server-hwtoken
           cut-off: 1 week ago UTC
           timestamp-to-use: created_at
           account-type: org

@@ -51,6 +51,9 @@ services:
       - "4398:4398" # Signer JMX port
     networks:
       - xroad-network
+    entrypoint: [ "/usr/local/bin/init-token-and-run-entrypoint.sh" ]
+    volumes:
+      - ./ss1/init-token-and-run-entrypoint.sh:/usr/local/bin/init-token-and-run-entrypoint.sh:ro
   testca:
     container_name: testca
     ports:

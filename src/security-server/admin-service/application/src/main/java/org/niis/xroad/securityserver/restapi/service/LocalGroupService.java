@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
@@ -138,7 +139,7 @@ public class LocalGroupService {
             auditDataHelper.put(clientRepository.getClientByLocalGroup(localGroupEntity).getIdentifier());
         } catch (ClientNotFoundException e) {
             // unexpected
-            throw new RuntimeException("local group was not attached to client", e);
+            throw XrdRuntimeException.systemInternalError("local group was not attached to client", e);
         }
     }
 

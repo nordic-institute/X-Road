@@ -37,7 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_URL;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_URL;
 
 @RestController
 public class AcmeChallengeController {

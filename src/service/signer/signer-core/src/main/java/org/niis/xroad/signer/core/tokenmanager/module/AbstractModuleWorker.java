@@ -29,6 +29,7 @@ import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
@@ -98,10 +99,12 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
         tokenWorkers = Collections.emptyMap();
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected abstract List<TokenDefinition> listTokens() throws Exception;
 
     protected abstract AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition);
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void loadTokens(boolean reload) throws Exception {
         final Map<String, BlockingTokenWorker> newTokens = new HashMap<>();
 

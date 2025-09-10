@@ -30,6 +30,7 @@ import ee.ria.xroad.common.CodedException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.xml.security.c14n.Canonicalizer;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -68,6 +69,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
  * Contains various XML-related utility methods.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class XmlUtils {
 
     public static final String FEATURE_EXTERNAL_GENERAL_ENTITIES =

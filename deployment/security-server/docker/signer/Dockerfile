@@ -31,4 +31,7 @@ EOF
 RUN chown -R xroad:softhsm /var/lib/softhsm/tokens && \
     chown -R xroad:xroad /etc/xroad
 
+COPY entrypoint-with-hsm.sh /usr/local/bin/entrypoint.sh
 VOLUME ["/var/lib/softhsm/tokens", "/etc/xroad"]
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

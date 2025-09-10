@@ -38,7 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 
@@ -139,7 +139,7 @@ class LoadedTokenSessionPoolTest {
         // No session validation needed as prefill fails before validation
 
         // When & Assert
-        SignerException thrown = assertThrows(SignerException.class, () -> {
+        XrdRuntimeException thrown = assertThrows(XrdRuntimeException.class, () -> {
             try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
                  MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
 
@@ -168,7 +168,7 @@ class LoadedTokenSessionPoolTest {
         when(properties.sessionAcquireTimeout()).thenReturn(Duration.ofSeconds(10));
 
         // When & Assert
-        SignerException thrown = assertThrows(SignerException.class, () -> {
+        XrdRuntimeException thrown = assertThrows(XrdRuntimeException.class, () -> {
             try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
                  MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
 

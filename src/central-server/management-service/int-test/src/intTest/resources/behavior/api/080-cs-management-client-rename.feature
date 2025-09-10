@@ -18,15 +18,15 @@ Feature: Management requests API: Client Rename
 
   Scenario: Client rename fails with soap fault when request sender is not server owner
     When Client rename request for "New Subsystem Name" with clientId "EE:CLASS:MEMBER:SUBSYSTEM" and serverId "EE:CLASS:MEMBER2:SS1" was sent
-    Then Response of status code 500 and soap faultCode "InvalidRequest" and soap faultString "Sender does not match server owner." is returned
+    Then Response of status code 500 and soap faultCode "invalid_request" and soap faultString "Sender does not match server owner." is returned
     And Admin api has not received any request
 
   Scenario: Client rename fails with soap fault when target client isn't subsystem
     When Client rename request for "New Subsystem Name" with clientId "EE:CLASS:MEMBER" was sent
-    Then Response of status code 500 and soap faultCode "InvalidRequest" and soap faultString "Only name of subsystem can be changed" is returned
+    Then Response of status code 500 and soap faultCode "invalid_request" and soap faultString "Only name of subsystem can be changed" is returned
     And Admin api has not received any request
 
   Scenario: Client rename fails with soap fault when client name is blank
     When Client rename request for "" with clientId "EE:CLASS:MEMBER:SUBSYSTEM" was sent
-    Then Response of status code 500 and soap faultCode "InvalidRequest" and soap faultString "Invalid subsystem name" is returned
+    Then Response of status code 500 and soap faultCode "invalid_request" and soap faultString "Invalid subsystem name" is returned
     And Admin api has not received any request

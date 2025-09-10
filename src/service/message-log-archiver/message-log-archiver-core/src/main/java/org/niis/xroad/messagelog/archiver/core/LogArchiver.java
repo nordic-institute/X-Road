@@ -107,7 +107,7 @@ public class LogArchiver {
                 .executeUpdate();
     }
 
-    private boolean handleArchive(long maxRecordId) throws Exception {
+    private boolean handleArchive(long maxRecordId) {
         return databaseCtx.doInTransaction(session -> {
             final int limit = logArchiverProperties.archiveTransactionBatchSize();
             final long start = System.currentTimeMillis();

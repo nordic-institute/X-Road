@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.soap.SOAPBody;
 import jakarta.xml.soap.SOAPEnvelope;
@@ -36,6 +37,7 @@ import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -57,6 +59,7 @@ import static ee.ria.xroad.common.message.SoapUtils.validateServiceName;
  */
 @Getter
 @Setter
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SoapBuilder {
     public static final String NS_IDENTIFIERS = "http://x-road.eu/xsd/identifiers";
 
@@ -65,12 +68,14 @@ public class SoapBuilder {
     /**
      * Functional interface for the callback used when assembling the SOAP body.
      */
+
     public interface SoapBodyCallback {
         /**
          * Populates the SOAPBody object with content.
          * @param soapBody the SOAP body that needs to be populated by content.
          * @throws Exception if errors occur when populating the SOAP body
          */
+        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
         void create(SOAPBody soapBody) throws Exception;
     }
 
@@ -129,21 +134,18 @@ public class SoapBuilder {
         SoapBodyCallback cb = createBodyCallback;
         if (cb == null) {
             final String bodyNodeName = getService().getServiceCode();
-            cb = new SoapBodyCallback() {
-                @Override
-                public void create(SOAPBody soapBody) throws Exception {
-                    Document doc = soapBody.getOwnerDocument();
-                    Element node = doc.createElementNS(NS_XROAD,
-                            PREFIX_XROAD + ":" + bodyNodeName);
-                    soapBody.appendChild(node);
-                }
+            cb = soapBody -> {
+                Document doc = soapBody.getOwnerDocument();
+                Element node = doc.createElementNS(NS_XROAD,
+                        PREFIX_XROAD + ":" + bodyNodeName);
+                soapBody.appendChild(node);
             };
         }
 
         cb.create(soap.getSOAPBody());
     }
 
-    private void assembleMessage(SOAPMessage soap) throws Exception {
+    private void assembleMessage(SOAPMessage soap) throws SOAPException, JAXBException {
         // Since we are marshaling the header into the SOAPEnvelope object
         // (creating a new SOAPHeader element), we need to remove the existing
         // SOAPHeader element and SOAPBody from the Envelope, then marshal

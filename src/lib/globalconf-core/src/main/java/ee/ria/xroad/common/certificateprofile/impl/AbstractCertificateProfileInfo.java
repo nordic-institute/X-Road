@@ -30,6 +30,8 @@ import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -63,15 +65,15 @@ abstract class AbstractCertificateProfileInfo
     }
 
     @Override
-    public void validateSubjectField(DnFieldValue field) throws Exception {
+    public void validateSubjectField(DnFieldValue field) {
         DnFieldDescription description = getDescription(field);
         if (description.isRequired() && StringUtils.isBlank(field.getValue())) {
-            throw new RuntimeException(
-                    String.format("Field '%s (%s)' is missing value",
+            throw XrdRuntimeException.businessException(ErrorCode.CERT_VALIDATION)
+                    .details(String.format("Field '%s (%s)' is missing value",
                             description.getLabel(),
                             description.getId()
-                    )
-            );
+                    ))
+                    .build();
         }
     }
 
@@ -83,8 +85,9 @@ abstract class AbstractCertificateProfileInfo
         return Arrays.stream(fields)
                 .filter(f -> f.getId().equals(value.getId()))
                 .findFirst()
-                .orElseThrow(() ->
-                        new RuntimeException("Unknown field: " + value.getId())
+                .orElseThrow(() -> XrdRuntimeException.businessException(ErrorCode.CERT_VALIDATION)
+                        .details("Unknown field: " + value.getId())
+                        .build()
                 );
     }
 }

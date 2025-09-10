@@ -42,6 +42,7 @@ import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
@@ -112,6 +113,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 /**
  * Encapsulates the AsiC XAdES signature profile. This class creates the signature used in signing the messages.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 final class SignatureXmlBuilder {
 
     private static final String SIGNATURE_POLICY_IDENTIFIER = "urn:oid:1.3.6.1.4.1.3516.16.2";

@@ -29,6 +29,7 @@ package org.niis.xroad.confclient.core.globalconf;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.sql.DataSource;
 
@@ -50,13 +51,15 @@ public class DBBasedProvider implements ConfigurationAnchorProvider {
     private final DataSource dataSource;
 
     @Override
-    public Optional<byte[]> get() throws Exception {
+    public Optional<byte[]> get() {
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
             ResultSet resultSet = statement.executeQuery(SELECT_SQL);
             if (resultSet.next()) {
                 return Optional.of(resultSet.getString("content").getBytes(StandardCharsets.UTF_8));
             }
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemInternalError("Error getting configuration", e);
         }
 
         return Optional.empty();
@@ -69,7 +72,7 @@ public class DBBasedProvider implements ConfigurationAnchorProvider {
             stmt.setString(1, new String(content));
             stmt.executeUpdate();
         } catch (Exception e) {
-            throw new RuntimeException("Error saving configuration", e);
+            throw XrdRuntimeException.systemInternalError("Error saving configuration", e);
         }
     }
 

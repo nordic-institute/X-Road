@@ -78,3 +78,7 @@ tasks.openApiGenerate {
 tasks.compileJava {
   dependsOn(tasks.openApiGenerate)
 }
+
+archUnit {
+  isSkip = true
+}

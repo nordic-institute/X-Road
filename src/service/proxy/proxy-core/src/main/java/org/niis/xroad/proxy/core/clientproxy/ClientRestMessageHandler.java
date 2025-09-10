@@ -60,7 +60,7 @@ import java.util.List;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
-import static org.niis.xroad.common.core.exception.ErrorCodes.SSL_AUTH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 /**
  * Handles client messages. This handler must be the last handler in the
@@ -83,7 +83,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     @Override
     protected MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                OpMonitoringData opMonitoringData) throws Exception {
+                                                OpMonitoringData opMonitoringData) {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
@@ -113,7 +113,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
                                   Response response,
                                   Callback callback,
                                   CodedException ex) throws IOException {
-        if (ex.getFaultCode().startsWith("Server.")) {
+        if (ex.getFaultCode().startsWith("server.")) {
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         } else {
             response.setStatus(HttpStatus.BAD_REQUEST_400);

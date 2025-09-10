@@ -230,7 +230,7 @@ class SoftwareTokenWorkerFactoryTest {
 
             var thrown = assertThrows(CodedException.class, () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), new char[0]));
 
-            assertEquals("PinIncorrect: PIN incorrect", thrown.getMessage());
+            assertEquals("PIN incorrect", thrown.getFaultString());
 
             verify(tokenManager).setTokenStatus(TOKEN_ID, TokenStatusInfo.USER_PIN_INCORRECT);
         }
@@ -295,7 +295,7 @@ class SoftwareTokenWorkerFactoryTest {
         when(tokenLookup.isTokenActive(TOKEN_ID)).thenReturn(false);
 
         var thrown = assertThrows(CodedException.class, () -> tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3}));
-        assertEquals("TokenNotActive: Token 'token-id' not active", thrown.getMessage());
+        assertEquals("Token 'token-id' not active", thrown.getFaultString());
     }
 
     @Test
@@ -304,7 +304,7 @@ class SoftwareTokenWorkerFactoryTest {
         when(tokenLookup.isKeyAvailable(KEY_ID)).thenReturn(false);
 
         var thrown = assertThrows(CodedException.class, () -> tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3}));
-        assertEquals("KeyNotFound: Key 'key-id' not available", thrown.getMessage());
+        assertEquals("Key 'key-id' not available", thrown.getFaultString());
     }
 
     @Test
@@ -314,7 +314,7 @@ class SoftwareTokenWorkerFactoryTest {
         when(tokenLookup.getSoftwareTokenKeyStore(KEY_ID)).thenReturn(Optional.empty());
 
         var thrown = assertThrows(CodedException.class, () -> tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3}));
-        assertEquals("KeyNotFound: Key 'key-id' not found", thrown.getMessage());
+        assertEquals("Key 'key-id' not found", thrown.getFaultString());
     }
 
     @Test

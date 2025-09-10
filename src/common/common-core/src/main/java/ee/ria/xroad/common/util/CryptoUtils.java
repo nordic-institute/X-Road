@@ -36,12 +36,14 @@ import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -83,7 +85,7 @@ public final class CryptoUtils {
             Providers.init();
             CERT_FACTORY = CertificateFactory.getInstance("X.509");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -156,7 +158,8 @@ public final class CryptoUtils {
      * @throws Exception if the certificate if cannot be created
      */
     public static CertificateID createCertId(X509Certificate subject,
-                                             X509Certificate issuer) throws Exception {
+                                             X509Certificate issuer)
+            throws OCSPException, CertificateEncodingException, IOException, OperatorCreationException {
         return createCertId(subject.getSerialNumber(), issuer);
     }
 
@@ -171,7 +174,8 @@ public final class CryptoUtils {
      * @throws Exception if the certificate id cannot be created
      */
     public static CertificateID createCertId(BigInteger subjectSerialNumber,
-                                             X509Certificate issuer) throws Exception {
+                                             X509Certificate issuer)
+            throws OCSPException, OperatorCreationException, CertificateEncodingException, IOException {
         return new CertificateID(Digests.createDigestCalculator(DigestAlgorithm.SHA1),
                 new X509CertificateHolder(issuer.getEncoded()),
                 subjectSerialNumber);

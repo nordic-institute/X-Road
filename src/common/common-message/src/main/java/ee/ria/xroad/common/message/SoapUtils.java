@@ -39,6 +39,8 @@ import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.namespace.QName;
 
@@ -63,6 +65,7 @@ import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
 /**
  * Contains utility methods for working with SOAP messages.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class SoapUtils {
 
     private static final String[] ALLOWED_MIMETYPES = {TEXT_XML, XOP_XML};
@@ -90,6 +93,7 @@ public final class SoapUtils {
          * @param soap newly created SOAP message object
          * @throws Exception if any errors occur
          */
+        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
         void call(SOAPMessage soap) throws Exception;
     }
 
@@ -100,7 +104,7 @@ public final class SoapUtils {
         try {
             return MessageFactory.newInstance();
         } catch (SOAPException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

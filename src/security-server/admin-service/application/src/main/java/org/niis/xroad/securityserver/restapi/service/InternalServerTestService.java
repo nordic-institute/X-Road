@@ -48,13 +48,19 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,7 +85,9 @@ public class InternalServerTestService {
      * @throws Exception in case connection fails
      */
     public void testHttpsConnection(
-            List<CertificateEntity> trustedCerts, String url) throws Exception {
+            List<CertificateEntity> trustedCerts, String url)
+            throws IOException, UnrecoverableKeyException, CertificateException, KeyStoreException,
+            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
 
         List<X509Certificate> trustedX509Certs = new ArrayList<>();
         for (CertificateEntity trustedCert : trustedCerts) {
@@ -99,7 +107,9 @@ public class InternalServerTestService {
         con.connect();
     }
 
-    private KeyManager[] createServiceKeyManager() throws Exception {
+    private KeyManager[] createServiceKeyManager()
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
+            InvalidKeySpecException {
         InternalSSLKey key = serverConfProvider.getSSLKey();
 
         if (key != null) {

@@ -60,7 +60,7 @@ public class ActivateCertReqHandler extends AbstractRpcHandler<ActivateCertReq, 
     private final CertOcspManager certOcspManager;
 
     @Override
-    protected Empty handle(ActivateCertReq request) throws Exception {
+    protected Empty handle(ActivateCertReq request) {
         if (request.getActive()) {
             CertificateInfo certificateInfo = tokenLookup.getCertificateInfo(request.getCertIdOrHash());
             if (certificateInfo == null) {

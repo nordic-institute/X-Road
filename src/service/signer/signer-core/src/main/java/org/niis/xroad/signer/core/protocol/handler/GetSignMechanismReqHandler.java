@@ -44,7 +44,7 @@ public class GetSignMechanismReqHandler extends AbstractRpcHandler<GetSignMechan
     private final TokenLookup tokenLookup;
 
     @Override
-    protected GetSignMechanismResp handle(GetSignMechanismReq request) throws Exception {
+    protected GetSignMechanismResp handle(GetSignMechanismReq request) {
         var signMechanism = tokenLookup.getKeySignMechanismInfo(request.getKeyId());
 
         if (signMechanism.isEmpty()) {

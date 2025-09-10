@@ -31,6 +31,7 @@ import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
@@ -53,6 +54,7 @@ public class ProxyDiagnosticsConfig {
 
         @ApplicationScoped
         @Startup
+        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
         HealthCheckPort healthCheckPort(ProxyProperties proxyProperties,
                                         HealthChecks healthChecks) throws Exception {
             if (proxyProperties.healthCheckPort() > 0) {
@@ -64,6 +66,7 @@ public class ProxyDiagnosticsConfig {
             }
         }
 
+        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
         public void dispose(@Disposes HealthCheckPort healthCheckPort) throws Exception {
             if (healthCheckPort instanceof HealthCheckPortImpl impl) {
                 impl.destroy();

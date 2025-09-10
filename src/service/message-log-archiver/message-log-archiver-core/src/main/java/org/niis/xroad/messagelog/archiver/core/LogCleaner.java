@@ -66,7 +66,7 @@ public class LogCleaner {
         }
     }
 
-    protected long handleClean() throws Exception {
+    protected long handleClean() {
 
         final Long time =
                 TimeUtils.now().minus(logArchiverProperties.cleanKeepRecordsFor(), ChronoUnit.DAYS).toEpochMilli();
