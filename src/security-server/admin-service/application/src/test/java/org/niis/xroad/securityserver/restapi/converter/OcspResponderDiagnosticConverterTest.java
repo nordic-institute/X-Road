@@ -31,7 +31,7 @@ import ee.ria.xroad.common.DiagnosticsErrorCodes;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;

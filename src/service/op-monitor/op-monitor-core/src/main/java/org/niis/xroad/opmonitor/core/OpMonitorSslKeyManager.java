@@ -28,6 +28,7 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.vault.VaultClient;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -37,19 +38,18 @@ import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
+
 @Slf4j
 class OpMonitorSslKeyManager extends X509ExtendedKeyManager {
-
-    private static final String MONITOR_KEY_ALIAS = "opmonitor";
     private static final String ALIAS = "OpMonitorSslKeyManager";
 
     private InternalSSLKey sslKey;
 
-    OpMonitorSslKeyManager() {
+    OpMonitorSslKeyManager(VaultClient vaultClient) {
         try {
-            sslKey = InternalSSLKey.load(MONITOR_KEY_ALIAS);
+            sslKey = vaultClient.getOpmonitorTlsCredentials();
         } catch (Exception e) {
-            log.error("Failed to load SSL key '{}'", MONITOR_KEY_ALIAS, e);
+            log.error("Failed to load SSL key", e);
         }
     }
 

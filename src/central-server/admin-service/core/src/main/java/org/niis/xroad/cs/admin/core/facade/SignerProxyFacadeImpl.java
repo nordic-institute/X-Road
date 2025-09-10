@@ -36,6 +36,7 @@ import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -55,6 +56,7 @@ import java.util.List;
 public class SignerProxyFacadeImpl implements SignerProxyFacade {
 
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
 
     public void initSoftwareToken(char[] password) {
         signerRpcClient.initSoftwareToken(password);
@@ -95,7 +97,7 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade {
     }
 
     public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) {
-        return signerRpcClient.sign(keyId, signatureAlgorithmId, digest);
+        return signerSignClient.sign(keyId, signatureAlgorithmId, digest);
     }
 
 }

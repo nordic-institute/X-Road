@@ -59,9 +59,9 @@ import java.util.concurrent.Semaphore;
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AntiDosConnector extends ServerConnector {
-    private final AntiDosConfiguration configuration = new AntiDosConfiguration();
+    private final AntiDosConfiguration configuration;
 
-    private final Semaphore semaphore = new Semaphore(configuration.getMaxParallelConnections());
+    private final Semaphore semaphore;
 
     private final GlobalConfProvider globalConfProvider;
     private final AntiDosConnectionManager<SocketChannelWrapperImpl> manager;
@@ -73,10 +73,13 @@ public class AntiDosConnector extends ServerConnector {
      * @param server             the server
      * @param acceptorCount      acceptor count
      */
-    public AntiDosConnector(GlobalConfProvider globalConfProvider, Server server, int acceptorCount) {
+    public AntiDosConnector(AntiDosConfiguration configuration, GlobalConfProvider globalConfProvider, Server server, int acceptorCount) {
         super(server, acceptorCount, -1);
+        this.configuration = configuration;
         this.globalConfProvider = globalConfProvider;
         this.manager = createConnectionManager();
+
+        semaphore = new Semaphore(configuration.getMaxParallelConnections());
     }
 
     /**
@@ -87,11 +90,13 @@ public class AntiDosConnector extends ServerConnector {
      * @param acceptorCount      acceptor count
      * @param sslContextFactory  SSL context factory to use for configuration
      */
-    public AntiDosConnector(GlobalConfProvider globalConfProvider, Server server, int acceptorCount,
+    public AntiDosConnector(AntiDosConfiguration configuration, GlobalConfProvider globalConfProvider, Server server, int acceptorCount,
                             SslContextFactory.Server sslContextFactory) {
         super(server, acceptorCount, -1, sslContextFactory);
+        this.configuration = configuration;
         this.globalConfProvider = globalConfProvider;
         this.manager = createConnectionManager();
+        semaphore = new Semaphore(configuration.getMaxParallelConnections());
     }
 
     private AntiDosConnectionManager<SocketChannelWrapperImpl> createConnectionManager() {

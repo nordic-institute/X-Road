@@ -33,8 +33,10 @@ import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.GlobalConfImpl;
+import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,6 +46,8 @@ import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 
 /**
  * ASiC container verifier utility program.
@@ -76,7 +80,8 @@ public final class AsicVerifierMain {
 
         System.out.println("Loading configuration from " + confPath + "...");
         try {
-            var globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(confPath));
+            var source = new FileSystemGlobalConfSource(getConfigurationPath());
+            var globalConfProvider = new GlobalConfImpl(source, new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
             verifyConfPathCorrectness(globalConfProvider);
             return globalConfProvider;
         } catch (CodedException e) {

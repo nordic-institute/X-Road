@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.core.conf;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -37,6 +38,7 @@ import org.niis.xroad.proxy.core.signedmessage.SignerSigningKey;
 
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class SigningCtxProviderImpl implements SigningCtxProvider {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;

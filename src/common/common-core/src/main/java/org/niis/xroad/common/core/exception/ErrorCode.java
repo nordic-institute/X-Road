@@ -70,6 +70,12 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_ENCODED_ID("invalid_encoded_id"),
     GENERIC_VALIDATION_FAILURE("invalid_parameters"),
     ERROR_ID_NOT_A_NUMBER("id_not_a_number"),
+    CERTIFICATE_ALREADY_EXISTS("certificate_already_exists"),
+    USER_WEAK_PASSWORD("user_weak_password"),
+    USER_PASSWORD_INVALID_CHARACTERS("user_password_invalid_characters"),
+    USER_NOT_FOUND("user_not_found"),
+    INVALID_ROLE("invalid_role"),
+    PASSWORD_INCORRECT("password_incorrect"),
 
     // ===== MESSAGE PROCESSING ERRORS =====
     SSL_AUTH_FAILED("ssl_authentication_failed"),
@@ -185,6 +191,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_FILE_EXTENSION("invalid_file_extension"),
     DOUBLE_FILE_EXTENSION("double_file_extension"),
     INVALID_BACKUP_FILE("invalid_backup_file"),
+    FILE_ALREADY_EXISTS("file_already_exists"),
 
     // ===== BACKUP ERRORS =====
     BACKUP_FILE_NOT_FOUND("backup_file_not_found"),
@@ -232,6 +239,10 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
     // ===== GPG ERRORS =====
     GPG_KEY_GENERATION_FAILED("gpg_key_generation_failed"),
+
+    // ===== INTERNAL_CERT ERRORS =====
+    IMPORT_INTERNAL_CERT_FAILED("import_internal_cert_failed"),
+    INTERNAL_KEY_CERT_INTERRUPTED("internal_key_cert_interrupted"),
 
     // ===== CERTIFICATE ERRORS =====
     KEY_CERT_GENERATION_FAILED("key_and_cert_generation_failed"),

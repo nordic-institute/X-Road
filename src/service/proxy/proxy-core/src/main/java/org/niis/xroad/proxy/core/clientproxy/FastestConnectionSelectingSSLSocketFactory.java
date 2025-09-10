@@ -37,6 +37,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.FastestSocketSelector.SocketInfo;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSocket;
@@ -66,7 +67,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * that address is selected immediately without previous selection algorithm.
  */
 @Slf4j
-class FastestConnectionSelectingSSLSocketFactory
+public class FastestConnectionSelectingSSLSocketFactory
         extends SSLConnectionSocketFactory {
 
     /**
@@ -87,20 +88,23 @@ class FastestConnectionSelectingSSLSocketFactory
 
     private final Cache<CacheKey, URI> selectedHosts;
     private final boolean cachingEnabled;
+    private final ProxyProperties.ClientProxyProperties clientProxyProperties;
 
-    FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, SSLSocketFactory socketfactory) {
+    public FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, SSLSocketFactory socketfactory,
+                                                      ProxyProperties.ClientProxyProperties clientProxyProperties) {
         super(socketfactory, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier) null);
         this.authTrustVerifier = authTrustVerifier;
         this.socketfactory = socketfactory;
         this.selectedHosts = CacheBuilder.newBuilder()
-                .expireAfterWrite(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
+                .expireAfterWrite(clientProxyProperties.clientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
                 .maximumSize(CACHE_MAXIMUM_SIZE)
                 .build();
-        this.cachingEnabled = SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0;
+        this.cachingEnabled = clientProxyProperties.clientProxyFastestConnectingSslUriCachePeriod() > 0;
+        this.clientProxyProperties = clientProxyProperties;
     }
 
     @Override
-    public Socket createSocket(HttpContext context) throws IOException {
+    public Socket createSocket(HttpContext context) {
         // Create dummy socket that will be discarded.
         return new Socket();
     }
@@ -233,9 +237,9 @@ class FastestConnectionSelectingSSLSocketFactory
      * @throws SocketException
      */
     private void configureSocket(Socket socket) throws SocketException {
-        socket.setSoTimeout(SystemProperties.getClientProxyHttpClientTimeout());
+        socket.setSoTimeout(clientProxyProperties.clientHttpclientTimeout());
 
-        int linger = SystemProperties.getClientProxyHttpClientSoLinger();
+        int linger = clientProxyProperties.clientHttpclientSoLinger();
         socket.setSoLinger(linger >= 0, linger);
 
         socket.setKeepAlive(true);
@@ -265,7 +269,8 @@ class FastestConnectionSelectingSSLSocketFactory
         socket.setSoTimeout(connectTimeout);
         socket.setSoLinger(false, 0);
         Socket sslSocket = socketfactory.createSocket(socket,
-                socket.getInetAddress().getHostName(), socket.getPort(), SystemProperties.isUseSslSocketAutoClose());
+                socket.getInetAddress().getHostName(), socket.getPort(),
+                clientProxyProperties.useSslSocketAutoClose());
         if (sslSocket instanceof SSLSocket) {
             return (SSLSocket) sslSocket;
         }

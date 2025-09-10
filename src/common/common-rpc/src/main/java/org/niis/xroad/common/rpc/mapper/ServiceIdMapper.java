@@ -31,7 +31,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.niis.xroad.signer.protocol.dto.ServiceIdProto;
+import org.niis.xroad.rpc.common.ServiceIdProto;
 
 import static java.util.Optional.ofNullable;
 

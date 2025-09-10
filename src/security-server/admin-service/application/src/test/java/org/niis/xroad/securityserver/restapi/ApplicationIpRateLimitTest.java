@@ -31,9 +31,13 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -64,6 +68,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         "xroad.proxy-ui-api.rate-limit-requests-per-minute=10",
         "xroad.proxy-ui-api.rate-limit-requests-per-second=5"})
 @ActiveProfiles({"nontest", "test"})
+@AutoConfigureTestDatabase
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class ApplicationIpRateLimitTest {
     private static final int RUNS_PER_MINUTE = 11;
@@ -73,7 +78,14 @@ class ApplicationIpRateLimitTest {
     private MockMvc mvc;
 
     @MockitoBean
-    MonitorClient monitorClient;
+    MonitorRpcClient monitorClient;
+    @MockitoBean
+    ConfClientRpcClient confClientRpcClient;
+    @MockitoBean
+    ProxyRpcClient proxyRpcClient;
+
+    @MockitoBean
+    ServerConfDatabaseCtx databaseCtx;
 
     @MockitoBean
     GlobalConfProvider globalConfProvider;

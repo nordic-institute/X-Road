@@ -32,9 +32,11 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.junit.Test;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -52,13 +54,15 @@ public class ServerProxyHandlerTest {
         var globalConfProvider = mock(GlobalConfProvider.class);
         var keyConfProvider = mock(KeyConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
-        var certChainFactory = mock(CertChainFactory.class);
         var checkMock = mock(ClientProxyVersionVerifier.class);
-        var commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null,
-                certChainFactory, null);
+        var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+        var commonBeanProxy =
+                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null,
+                        null, vaultKeyProvider, new NoOpMonitoringBuffer());
 
-        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(commonBeanProxy, mock(HttpClient.class), mock(HttpClient.class),
-                checkMock);
+        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(commonBeanProxy, mock(ProxyProperties.ServerProperties.class),
+                mock(HttpClient.class), mock(HttpClient.class),
+                checkMock, mock(ServiceHandlerLoader.class));
 
         serverProxyHandler.handle(request, getMockedResponse(), callback);
 

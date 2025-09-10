@@ -20,8 +20,8 @@ fi
 
 echo -e "Cleaning non-subsystem relations\n"
 
-PW=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.password)
-USER=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.username)
+PW=$(crudini --get /etc/xroad/db.properties '' xroad.db.serverconf.hibernate.connection.password)
+USER=$(crudini --get /etc/xroad/db.properties '' xroad.db.serverconf.hibernate.connection.username)
 su - postgres -c "PGPASSWORD=${PW:-serverconf} psql -h 0 serverconf ${USER:-serverconf}" <<EOF
 begin;
 delete from groupmember where localgroup_id in (select localgroup.id from localgroup join client on localgroup.client_id=client.id join identifier on client.identifier=identifier.id where identifier.type='MEMBER');
@@ -35,7 +35,7 @@ delete from accessright where id in ( select accessright.id from accessright joi
 
 delete from service where servicedescription_id in (select servicedescription.id from servicedescription join client on servicedescription.client_id=client.id join identifier on client.identifier=identifier.id where identifier.type='MEMBER');
 delete from servicedescription where id in (select servicedescription.id from servicedescription join client on servicedescription.client_id=client.id join identifier on client.identifier=identifier.id where identifier.type='MEMBER');
-delete from identifier where identifier.type='MEMBER' and id not in (select client.identifier from client);
+delete from identifier where identifier.object_type='MEMBER' and id not in (select client.identifier from client);
 commit;
 EOF
 

@@ -29,6 +29,7 @@ services:
       - "4291:9998" # Signer debug port
       - "4292:9997" # Proxy UI debug port
       - "4293:9996" # Conf Client debug
+      - "4294:9995" # Backup manager debug
       - "4299:4299" # Proxy JMX port
       - "4298:4298" # Signer JMX port
     networks:
@@ -45,6 +46,7 @@ services:
       - "4391:9998" # Signer debug port
       - "4392:9997" # Proxy UI debug port
       - "4393:9996" # Conf Client debug
+      - "4394:9995" # Backup manager debug
       - "4399:4399" # Proxy JMX port
       - "4398:4398" # Signer JMX port
     networks:

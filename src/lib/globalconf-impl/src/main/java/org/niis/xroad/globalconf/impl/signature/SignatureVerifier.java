@@ -86,7 +86,6 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 public class SignatureVerifier {
 
     private final GlobalConfProvider globalConfProvider;
-    private final CertChainFactory certChainFactory;
 
     /**
      * The signature object.
@@ -161,7 +160,6 @@ public class SignatureVerifier {
         this.signature = signature;
         this.hashChainResult = hashChainResult;
         this.hashChain = hashChain;
-        this.certChainFactory = new CertChainFactory(globalConfProvider);
     }
 
     /**
@@ -370,9 +368,11 @@ public class SignatureVerifier {
         }
     }
 
-    private void verifyCertificateChain(Date atDate, ClientId signer, X509Certificate signingCert) {
+    private void verifyCertificateChain(Date atDate, ClientId signer, X509Certificate signingCert) throws Exception {
         CertChain certChain =
-                certChainFactory.create(signer.getXRoadInstance(), signingCert,
+                CertChainFactory.create(signer.getXRoadInstance(),
+                        globalConfProvider.getCaCert(signer.getXRoadInstance(), signingCert),
+                        signingCert,
                         signature.getExtraCertificates());
         new CertChainVerifier(globalConfProvider, certChain).verify(signature.getOcspResponses(),
                 atDate);

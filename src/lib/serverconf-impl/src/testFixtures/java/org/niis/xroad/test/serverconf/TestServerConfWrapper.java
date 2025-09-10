@@ -43,6 +43,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
 @Setter
@@ -126,7 +127,7 @@ public class TestServerConfWrapper implements ServerConfProvider {
 
     @Override
     public InternalSSLKey getSSLKey() throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchAlgorithmException {
+            NoSuchAlgorithmException, InvalidKeySpecException {
         return serverConfProvider.getSSLKey();
     }
 

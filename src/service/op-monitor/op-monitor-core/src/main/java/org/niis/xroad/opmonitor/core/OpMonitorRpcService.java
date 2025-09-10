@@ -27,6 +27,8 @@ package org.niis.xroad.opmonitor.core;
 
 import com.google.protobuf.Timestamp;
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
@@ -42,7 +44,10 @@ import java.time.Instant;
 import java.util.List;
 
 @Slf4j
+@ApplicationScoped
+@RequiredArgsConstructor
 public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceImplBase {
+    private final OperationalDataRecordManager operationalDataRecordManager;
 
     @Override
     public void getOperationalDataIntervals(GetOperationalDataIntervalsReq request,
@@ -63,7 +68,7 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
                 Instant.ofEpochMilli(request.getRecordsFrom()),
                 Instant.ofEpochMilli(request.getRecordsTo()));
         List<OperationalDataInTimeInterval> operationalDataInIntervals =
-                OperationalDataRecordManager.queryRequestMetricsDividedInIntervals(request.getRecordsFrom(),
+                operationalDataRecordManager.queryRequestMetricsDividedInIntervals(request.getRecordsFrom(),
                         request.getRecordsTo(),
                         request.getIntervalInMinutes(),
                         convertSecurityServerType(request.getSecurityServerType()),
