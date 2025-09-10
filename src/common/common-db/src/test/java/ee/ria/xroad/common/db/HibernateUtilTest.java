@@ -72,7 +72,7 @@ class HibernateUtilTest {
         } catch (Exception e) {
             assertThat(e)
                     .isInstanceOf(CodedException.class)
-                    .hasMessageContaining("DatabaseError: Error accessing database (testSessionFactory)");
+                    .hasMessageContaining("database_error: Error accessing database (testSessionFactory)");
         }
 
 

@@ -51,7 +51,7 @@ public class OcspCacheManager {
         });
     }
 
-    OCSPResp getFromCacheOrDownload(X509Certificate cert, String certHash) throws Exception {
+    OCSPResp getFromCacheOrDownload(X509Certificate cert, String certHash) {
         OCSPResp ocspResponse = getFromCache(certHash);
         if (ocspResponse == null) {
             log.debug("No cached OCSP response available for cert {}", certHash);

@@ -32,8 +32,8 @@ import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.springframework.stereotype.Component;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.USER_PASSWORD_INVALID_CHARACTERS;
-import static org.niis.xroad.common.core.exception.ErrorCodes.USER_WEAK_PASSWORD;
+import static org.niis.xroad.common.core.exception.ErrorCode.USER_PASSWORD_INVALID_CHARACTERS;
+import static org.niis.xroad.common.core.exception.ErrorCode.USER_WEAK_PASSWORD;
 
 @Component
 @RequiredArgsConstructor

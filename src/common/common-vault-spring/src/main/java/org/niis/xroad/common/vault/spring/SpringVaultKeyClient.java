@@ -37,7 +37,10 @@ import org.springframework.vault.support.VaultCertificateRequest;
 import org.springframework.vault.support.VaultCertificateResponse;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.time.Duration;
 import java.util.List;
 
@@ -55,7 +58,7 @@ public class SpringVaultKeyClient implements VaultKeyClient {
     private final List<String> ipSubjectAltNames;
 
     @Override
-    public VaultKeyData provisionNewCerts() throws Exception {
+    public VaultKeyData provisionNewCerts() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         var request = buildVaultCertificateRequest();
 
         VaultCertificateResponse vaultResponse = vaultTemplate.opsForPki(secretStorePkiPath)

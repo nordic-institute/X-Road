@@ -29,7 +29,7 @@ package org.niis.xroad.signer.core.tokenmanager;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.service.TokenKeyCertWriteService;
 
 @Slf4j
@@ -55,7 +55,8 @@ public class CertOcspManager {
 
                         tokenKeyCertWriteService.updateOcspVerifyBeforeActivationError(cert.id(), errorMessage);
                     } catch (Exception e) {
-                        throw new SignerException("Failed to set OCSP verify before activation error for certificate " + certId, e);
+                        throw XrdRuntimeException.systemInternalError(
+                                "Failed to set OCSP verify before activation error for certificate " + certId, e);
                     } finally {
                         ctx.invalidateCache();
                     }

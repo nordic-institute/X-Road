@@ -40,7 +40,7 @@ public class RefreshReqHandler extends AbstractRpcHandler<Empty, Empty> {
     private final ModuleManager moduleManager;
 
     @Override
-    protected Empty handle(Empty request) throws Exception {
+    protected Empty handle(Empty request) {
         moduleManager.refresh();
         return Empty.getDefaultInstance();
     }

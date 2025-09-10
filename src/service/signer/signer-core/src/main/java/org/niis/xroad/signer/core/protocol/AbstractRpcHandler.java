@@ -29,7 +29,7 @@ package org.niis.xroad.signer.core.protocol;
 import com.google.protobuf.AbstractMessage;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.server.CommonRpcHandler;
+import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 
 /**
  * @param <ReqT>
@@ -37,19 +37,12 @@ import org.niis.xroad.common.rpc.server.CommonRpcHandler;
  */
 @Slf4j
 public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT extends AbstractMessage> {
-    private final CommonRpcHandler commonRpcHandler = new CommonRpcHandler();
+    private final RpcResponseHandler rpcResponseHandler = new RpcResponseHandler();
 
-    protected abstract RespT handle(ReqT request) throws Exception;
+    protected abstract RespT handle(ReqT request);
 
     public void processSingle(ReqT request, StreamObserver<RespT> responseObserver) {
-        try {
-            var response = handle(request);
-
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-        } catch (Exception e) {
-            commonRpcHandler.handleException(e, responseObserver);
-        }
+        rpcResponseHandler.handleRequest(responseObserver, () -> handle(request));
     }
 
 }

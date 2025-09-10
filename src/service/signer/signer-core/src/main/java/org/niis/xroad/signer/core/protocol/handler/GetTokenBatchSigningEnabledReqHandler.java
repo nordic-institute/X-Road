@@ -42,7 +42,7 @@ public class GetTokenBatchSigningEnabledReqHandler
     private final TokenLookup tokenLookup;
 
     @Override
-    protected GetTokenBatchSigningEnabledResp handle(GetTokenBatchSigningEnabledReq request) throws Exception {
+    protected GetTokenBatchSigningEnabledResp handle(GetTokenBatchSigningEnabledReq request) {
         String tokenId = tokenLookup.findTokenIdForKeyId(request.getKeyId());
 
         return GetTokenBatchSigningEnabledResp.newBuilder()

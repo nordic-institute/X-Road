@@ -41,7 +41,7 @@ public class SetKeyFriendlyNameReqHandler extends AbstractRpcHandler<SetKeyFrien
     private final KeyManager keyManager;
 
     @Override
-    protected Empty handle(SetKeyFriendlyNameReq request) throws Exception {
+    protected Empty handle(SetKeyFriendlyNameReq request) {
         keyManager.setKeyFriendlyName(request.getKeyId(), request.getFriendlyName());
         return Empty.getDefaultInstance();
     }

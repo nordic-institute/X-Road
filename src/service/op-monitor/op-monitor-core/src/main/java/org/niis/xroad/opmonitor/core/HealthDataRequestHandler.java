@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.OutputStream;
 import java.util.Map.Entry;
@@ -70,6 +71,7 @@ import static org.niis.xroad.opmonitor.core.HealthDataMetricsUtil.getServiceType
  */
 @Slf4j
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class HealthDataRequestHandler extends QueryRequestHandler {
 
     private static final int SERVICE_ID_NUM_PARTS = 6;

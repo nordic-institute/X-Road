@@ -35,8 +35,9 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.proto.SignCertificateReq;
@@ -46,12 +47,11 @@ import org.niis.xroad.signer.proto.SignServiceGrpc;
 import java.io.Closeable;
 import java.security.PublicKey;
 
-import static org.niis.xroad.signer.client.util.SignerRpcUtils.tryToRun;
 
 @Slf4j
 @RequiredArgsConstructor
 @ApplicationScoped
-public class SignerSignRpcClient implements SignerSignClient, Closeable {
+public class SignerSignRpcClient extends AbstractRpcClient implements SignerSignClient, Closeable {
     private final RpcChannelFactory proxyRpcChannelFactory;
     private final SignerRpcChannelProperties rpcChannelProperties;
 
@@ -59,7 +59,7 @@ public class SignerSignRpcClient implements SignerSignClient, Closeable {
     private SignServiceGrpc.SignServiceBlockingStub signServiceBlockingStub;
 
     @PostConstruct
-    public void init() throws Exception {
+    public void init() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
         channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
@@ -77,9 +77,14 @@ public class SignerSignRpcClient implements SignerSignClient, Closeable {
 
 
     @Override
+    public ErrorOrigin getRpcOrigin() {
+        return ErrorOrigin.SIGNER;
+    }
+
+    @Override
     @WithSpan("SignerSignRpcClient#sign")
-    public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws SignerException {
-        return tryToRun(
+    public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) {
+        return exec(
                 () -> signServiceBlockingStub.sign(SignReq.newBuilder()
                                 .setKeyId(keyId)
                                 .setSignatureAlgorithmId(signatureAlgorithmId.name())
@@ -90,9 +95,8 @@ public class SignerSignRpcClient implements SignerSignClient, Closeable {
     }
 
     @Override
-    public byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
-            throws SignerException {
-        return tryToRun(
+    public byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey) {
+        return exec(
                 () -> signServiceBlockingStub.signCertificate(SignCertificateReq.newBuilder()
                                 .setKeyId(keyId)
                                 .setSignatureAlgorithmId(signatureAlgorithmId.name())

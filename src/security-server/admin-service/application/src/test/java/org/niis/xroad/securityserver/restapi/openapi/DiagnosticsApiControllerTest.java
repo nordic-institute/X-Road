@@ -107,7 +107,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     private DiagnosticReportService diagnosticReportService;
 
     @Test
-    public void getAddOnDiagnostics() throws Exception {
+    public void getAddOnDiagnostics() {
         when(proxyRpcClient.getAddOnStatus()).thenReturn(new AddOnStatusDiagnostics(true, true));
         ResponseEntity<AddOnStatusDto> response = diagnosticsApiController.getAddOnDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -139,7 +139,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getMessageLogEncryptionDiagnostics() throws Exception {
+    public void getMessageLogEncryptionDiagnostics() {
         when(proxyRpcClient.getMessageLogEncryptionStatus()).thenReturn(
                 new MessageLogEncryptionStatusDiagnostics(true, true, "none",
                         List.of(new MessageLogArchiveEncryptionMember("memberId", Set.of("key"), false)))
@@ -165,7 +165,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getGlobalConfDiagnosticsSuccess() throws Exception {
+    public void getGlobalConfDiagnosticsSuccess() {
         final Instant prevUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
         final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.HOURS);
         when(confClientRpcClient.getStatus()).thenReturn(
@@ -182,7 +182,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getGlobalConfDiagnosticsWaiting() throws Exception {
+    public void getGlobalConfDiagnosticsWaiting() {
         final Instant prevUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
         final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.HOURS);
 
@@ -200,7 +200,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getGlobalConfDiagnosticsFailNextUpdateTomorrow() throws Exception {
+    public void getGlobalConfDiagnosticsFailNextUpdateTomorrow() {
         final Instant prevUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
         final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.DAYS);
 
@@ -218,7 +218,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getGlobalConfDiagnosticsFailPreviousUpdateYesterday() throws Exception {
+    public void getGlobalConfDiagnosticsFailPreviousUpdateYesterday() {
         final Instant prevUpdate = TimeUtils.offsetDateTimeNow().with(LocalTime.of(0, 0)).toInstant();
         final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.DAYS);
 
@@ -236,7 +236,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getGlobalConfDiagnosticsException() throws Exception {
+    public void getGlobalConfDiagnosticsException() {
         when(confClientRpcClient.getStatus()).thenThrow(new RuntimeException());
         DeviationAwareRuntimeException exception =
                 assertThrows(DeviationAwareRuntimeException.class, diagnosticsApiController::getGlobalConfDiagnostics);
@@ -244,7 +244,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getTimestampingServiceDiagnosticsSuccess() throws Exception {
+    public void getTimestampingServiceDiagnosticsSuccess() {
         when(proxyRpcClient.getTimestampingStatus()).thenReturn(
                 Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS,
                         PREVIOUS_UPDATE, TSA_URL_1))
@@ -266,7 +266,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getTimestampingServiceDiagnosticsWaiting() throws Exception {
+    public void getTimestampingServiceDiagnosticsWaiting() {
         when(proxyRpcClient.getTimestampingStatus()).thenReturn(
                 Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED,
                         PREVIOUS_UPDATE, TSA_URL_1))
@@ -290,7 +290,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getTimestampingServiceDiagnosticsFailPreviousUpdateYesterday() throws Exception {
+    public void getTimestampingServiceDiagnosticsFailPreviousUpdateYesterday() {
         when(proxyRpcClient.getTimestampingStatus()).thenReturn(
                 Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL,
                         PREVIOUS_UPDATE_MIDNIGHT, TSA_URL_1))
@@ -314,15 +314,15 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getTimestampingServiceDiagnosticsException() throws Exception {
-        when(proxyRpcClient.getTimestampingStatus()).thenThrow(new Exception());
+    public void getTimestampingServiceDiagnosticsException() {
+        when(proxyRpcClient.getTimestampingStatus()).thenThrow(new RuntimeException());
         DeviationAwareRuntimeException exception = assertThrows(DeviationAwareRuntimeException.class,
                 diagnosticsApiController::getTimestampingServicesDiagnostics);
         assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().code());
     }
 
     @Test
-    public void getOcspResponderDiagnosticsSuccess() throws Exception {
+    public void getOcspResponderDiagnosticsSuccess() {
         var certServiceStatus = new CertificationServiceStatus(CA_NAME_1);
         certServiceStatus.getOcspResponderStatusMap().put(OCSP_URL_1,
                 new OcspResponderStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OCSP_URL_1, PREVIOUS_UPDATE, NEXT_UPDATE));

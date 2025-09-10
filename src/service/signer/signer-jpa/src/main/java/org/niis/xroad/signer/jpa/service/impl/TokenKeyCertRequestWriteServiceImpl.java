@@ -48,7 +48,7 @@ public class TokenKeyCertRequestWriteServiceImpl implements TokenKeyCertRequestW
                      ClientId.Conf memberId,
                      String subjectName,
                      String subjectAltName,
-                     String certificateProfile) throws Exception {
+                     String certificateProfile) {
         return sessionProvider.doInTransaction(session -> {
             var certReq = new SignerCertRequestEntity();
             certReq.setKeyId(keyId);
@@ -66,7 +66,7 @@ public class TokenKeyCertRequestWriteServiceImpl implements TokenKeyCertRequestW
     }
 
     @Override
-    public boolean delete(Long id) throws Exception {
+    public boolean delete(Long id) {
         return sessionProvider.doInTransaction(session ->
                 keyCertRequestDao.deleteById(session, SignerCertRequestEntity.class, id));
     }

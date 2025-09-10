@@ -32,7 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.model.BasicKeyInfo;
 import org.niis.xroad.signer.core.model.RuntimeToken;
 import org.niis.xroad.signer.core.service.TokenWriteService;
@@ -45,9 +45,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
-import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static org.niis.xroad.common.core.exception.ErrorCode.PIN_INCORRECT;
+import static org.niis.xroad.common.core.exception.ErrorCode.WRONG_CERT_USAGE;
 
 @Slf4j
 @ApplicationScoped
@@ -68,7 +67,7 @@ public final class TokenPinManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to set PIN for token " + tokenId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to set PIN for token " + tokenId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -88,8 +87,10 @@ public final class TokenPinManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_WRONG_CERT_USAGE,
-                        "Failed to update PIN for token " + tokenId + ": " + e.getMessage(), e);
+                throw XrdRuntimeException.systemException(WRONG_CERT_USAGE)
+                        .details("Failed to update PIN for token " + tokenId + ": ")
+                        .cause(e)
+                        .build();
             } finally {
                 ctx.invalidateCache();
             }
@@ -98,7 +99,9 @@ public final class TokenPinManager {
 
     private void validateTokenPin(RuntimeToken token, String tokenId) {
         if (token.softwareTokenPinHash().isEmpty()) {
-            throw new SignerException(X_PIN_INCORRECT, "PIN not set for token " + tokenId);
+            throw XrdRuntimeException.systemException(PIN_INCORRECT)
+                    .details("PIN not set for token " + tokenId)
+                    .build();
         }
     }
 
@@ -128,8 +131,10 @@ public final class TokenPinManager {
         } catch (CodedException signerException) {
             throw signerException;
         } catch (Exception e) {
-            throw new SignerException(X_WRONG_CERT_USAGE,
-                    "Failed to update key store for key " + key.id() + ": " + e.getMessage(), e);
+            throw XrdRuntimeException.systemException(WRONG_CERT_USAGE)
+                    .details("Failed to update key store for key " + key.id() + ": " + e.getMessage())
+                    .cause(e)
+                    .build();
         }
     }
 

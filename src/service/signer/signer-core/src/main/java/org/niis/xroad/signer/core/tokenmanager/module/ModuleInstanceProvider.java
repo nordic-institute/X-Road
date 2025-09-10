@@ -36,8 +36,7 @@ public interface ModuleInstanceProvider {
      * Returns the instance of a module based on pkcs11 library path.
      * @param path the pkcs11 library path
      * @return the module instance
-     * @throws Exception if an error occurs
      */
-    Module getInstance(String path) throws Exception;
+    Module getInstance(String path);
 
 }

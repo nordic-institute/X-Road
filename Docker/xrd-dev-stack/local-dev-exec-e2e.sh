@@ -24,6 +24,6 @@ fi
 
 cd "$XROAD_HOME"/src && ./gradlew :security-server:e2e-test:e2eTest --rerun-tasks  \
   -Pe2eTestCSImage=xrd-centralserver-dev \
-  -Pe2eTestSSImage=xrd-securityserver-hwtoken-dev \
+  -Pe2eTestSSImage=xrd-securityserver-dev \
   -Pe2eTestTestCAImage=xrd-testca \
   $ADDITIONAL_GRADLE_ARGS

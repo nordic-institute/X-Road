@@ -30,7 +30,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.ArrayList;
@@ -41,7 +41,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 
 /**
@@ -147,7 +146,7 @@ public final class RuntimeKeyImpl implements RuntimeKey {
 
             certs.add(runtimeCert);
         } catch (Exception e) {
-            throw new SignerException(X_INTERNAL_ERROR, "Failed to add transient certificate", e);
+            throw XrdRuntimeException.systemInternalError("Failed to add transient certificate", e);
         }
     }
 

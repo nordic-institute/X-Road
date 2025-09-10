@@ -48,6 +48,7 @@ import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
@@ -84,6 +85,7 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.ASIC;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.VERIFICATIONCONF;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
@@ -256,6 +258,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     @FunctionalInterface
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     interface CheckedSupplier<T> {
         T get() throws Exception;
     }
@@ -430,6 +433,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         return paramValue;
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private static class VerificationConfWriter implements FileConsumer, Closeable {
 
         private static final String PREFIX = "verificationconf/";

@@ -33,15 +33,15 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 public interface TokenKeyWriteService {
     Long save(Long tokenId, String keyId, String publicKeyBase64, byte[] keyStore,
               SignMechanism signMechanism,
-              String friendlyName, String label, boolean softwareKey) throws Exception;
+              String friendlyName, String label, boolean softwareKey);
 
-    boolean delete(Long id) throws Exception;
+    boolean delete(Long id);
 
-    boolean updateFriendlyName(Long id, String friendlyName) throws Exception;
+    boolean updateFriendlyName(Long id, String friendlyName);
 
-    boolean updateLabel(Long id, String label) throws Exception;
+    boolean updateLabel(Long id, String label);
 
-    boolean updateKeyUsage(Long id, KeyUsageInfo keyUsage) throws Exception;
+    boolean updateKeyUsage(Long id, KeyUsageInfo keyUsage);
 
-    boolean updatePublicKey(Long id, String publicKey) throws Exception;
+    boolean updatePublicKey(Long id, String publicKey);
 }

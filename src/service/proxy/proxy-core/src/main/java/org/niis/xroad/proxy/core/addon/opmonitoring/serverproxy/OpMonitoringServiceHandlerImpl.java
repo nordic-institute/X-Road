@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
@@ -102,6 +103,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
                               HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception {
         log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
@@ -115,6 +117,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void finishHandling() {
         sender.close();
         sender = null;
@@ -126,6 +129,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public InputStream getResponseContent() throws Exception {
         return sender.getResponseContent();
     }
@@ -134,6 +138,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         return new HttpSender(opMonitorClient);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void sendRequest(ProxyMessage proxyRequestMessage, OpMonitoringData opMonitoringData) {
         log.trace("sendRequest {}", opMonitorAddress);
 

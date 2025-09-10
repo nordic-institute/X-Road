@@ -39,6 +39,7 @@ import org.niis.xroad.proxy.core.admin.AdminService;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.tls.InternalTlsService;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,13 +56,15 @@ public class ProxyRpcServer extends ManagedRpcServer {
         super(getServices(addonProperties, adminService, internalTlsService), rpcServerProperties, rpcCredentialsConfigurer);
     }
 
+    @Override
     @PostConstruct
-    public void init() throws Exception {
+    public void init() throws IOException {
         super.init();
     }
 
+    @Override
     @PreDestroy
-    public void destroy() throws Exception {
+    public void destroy() throws InterruptedException {
         super.destroy();
     }
 

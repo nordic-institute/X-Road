@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.Date;
@@ -45,25 +44,25 @@ import java.util.List;
  */
 public interface SignerProxyFacade {
 
-    void initSoftwareToken(char[] password) throws SignerException;
+    void initSoftwareToken(char[] password);
 
-    List<TokenInfo> getTokens() throws SignerException;
+    List<TokenInfo> getTokens();
 
-    TokenInfo getToken(String tokenId) throws SignerException;
+    TokenInfo getToken(String tokenId);
 
-    void activateToken(String tokenId, char[] password) throws SignerException;
+    void activateToken(String tokenId, char[] password);
 
-    void deactivateToken(String tokenId) throws SignerException;
+    void deactivateToken(String tokenId);
 
-    KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws SignerException;
+    KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm);
 
     byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                  String commonName, Date notBefore, Date notAfter) throws SignerException;
+                                  String commonName, Date notBefore, Date notAfter);
 
-    void deleteKey(String keyId, boolean deleteFromToken) throws SignerException;
+    void deleteKey(String keyId, boolean deleteFromToken);
 
-    SignMechanism getSignMechanism(String keyId) throws SignerException;
+    SignMechanism getSignMechanism(String keyId);
 
-    byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws SignerException;
+    byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest);
 
 }

@@ -174,7 +174,7 @@ class RpcClientsConfig {
 
     @Bean
     public OpMonitorClient opMonitorClient(RpcChannelFactory rpcChannelFactory,
-                                           SpringOpMonitorRpcChannelProperties rpcChannelProperties) throws Exception {
+                                           SpringOpMonitorRpcChannelProperties rpcChannelProperties) {
         return new OpMonitorClient(rpcChannelFactory, rpcChannelProperties);
     }
 

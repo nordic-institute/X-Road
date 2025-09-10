@@ -41,7 +41,7 @@ public class GetTokenInfoAndKeyIdForCertRequestIdReqHandler extends AbstractRpcH
     private final TokenLookup tokenLookup;
 
     @Override
-    protected TokenInfoAndKeyIdProto handle(GetTokenByCertRequestIdReq request) throws Exception {
+    protected TokenInfoAndKeyIdProto handle(GetTokenByCertRequestIdReq request) {
         var token = tokenLookup.findTokenAndKeyIdForCertRequestId(request.getCertRequestId());
         return token.asMessage();
     }

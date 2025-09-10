@@ -38,6 +38,7 @@ import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
@@ -62,6 +63,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class HardwareModuleWorkerFactory {
     private final SignerProperties signerProperties;
     private final HardwareTokenWorkerFactory tokenWorkerFactory;
@@ -72,6 +74,7 @@ public class HardwareModuleWorkerFactory {
         return new HardwareModuleWorker(moduleType);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public class HardwareModuleWorker extends AbstractModuleWorker {
         private final HardwareModuleType module;
 

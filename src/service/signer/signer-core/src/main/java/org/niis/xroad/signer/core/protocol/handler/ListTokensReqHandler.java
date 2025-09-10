@@ -41,7 +41,7 @@ public class ListTokensReqHandler extends AbstractRpcHandler<Empty, ListTokensRe
     private final TokenLookup tokenLookup;
 
     @Override
-    protected ListTokensResp handle(Empty request) throws Exception {
+    protected ListTokensResp handle(Empty request) {
         final ListTokensResp.Builder builder = ListTokensResp.newBuilder();
 
         tokenLookup.listTokens().forEach(tokenInfo -> builder.addTokens(tokenInfo.asMessage()));

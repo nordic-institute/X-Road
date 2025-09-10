@@ -33,6 +33,7 @@ import ee.ria.xroad.common.util.AtomicSave;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -49,21 +50,27 @@ public class FileBasedProvider implements ConfigurationAnchorProvider {
     private final String filePath;
 
     @Override
-    public Optional<byte[]> get() throws Exception {
-        Path anchorPath = Paths.get(filePath);
-        if (!Files.exists(anchorPath)) {
-            log.error("Configuration anchor file {} does not exist.", anchorPath);
-            throw new FileNotFoundException(anchorPath.toAbsolutePath().toString());
+    public Optional<byte[]> get() {
+        try {
+            Path anchorPath = Paths.get(filePath);
+            if (!Files.exists(anchorPath)) {
+                log.error("Configuration anchor file {} does not exist.", anchorPath);
+                throw new FileNotFoundException(anchorPath.toAbsolutePath().toString());
+            }
+            return Optional.of(Files.readAllBytes(anchorPath));
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemInternalError("Error reading configuration anchor", e);
         }
-        return Optional.of(Files.readAllBytes(anchorPath));
     }
 
     @Override
-    public void save(byte[] content) throws Exception {
+    public void save(byte[] content) {
         File anchorTempFile = null;
         try {
             anchorTempFile = createTemporaryAnchorFile(content);
             AtomicSave.moveBetweenFilesystems(anchorTempFile.getAbsolutePath(), filePath);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemInternalError("Error saving configuration", e);
         } finally {
             FileUtils.deleteQuietly(anchorTempFile);
         }

@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.EncoderUtils;
 
 import iaik.pkcs.pkcs11.Token;
+import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.ECDSAPublicKey;
 import iaik.pkcs.pkcs11.objects.PrivateKey;
 import iaik.pkcs.pkcs11.objects.RSAPublicKey;
@@ -48,6 +49,7 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -97,6 +99,7 @@ import static org.niis.xroad.signer.core.util.SignerUtil.keyId;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class HardwareTokenWorkerFactory {
     private final SignerHwTokenAddonProperties hwTokenAddonProperties;
     private final CertManager certManager;
@@ -108,6 +111,7 @@ public class HardwareTokenWorkerFactory {
         return new HardwareTokenWorker(tokenInfo, tokenDefinition);
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public class HardwareTokenWorker extends AbstractTokenWorker implements HardwareTokenSigner.SignPrivateKeyProvider {
         // maps key id (hex) to PrivateKey
         private final Map<String, PrivateKey> privateKeyCache = new HashMap<>();
@@ -451,7 +455,7 @@ public class HardwareTokenWorkerFactory {
         }
 
         @Override
-        public PrivateKey getPrivateKey(ManagedPKCS11Session session, String keyId) throws Exception {
+        public PrivateKey getPrivateKey(ManagedPKCS11Session session, String keyId) throws TokenException {
             PrivateKey privateKey = privateKeyCache.get(keyId);
             if (privateKey == null) {
                 log.debug("Key {} not found in cache, trying to find it from hardware token", keyId);

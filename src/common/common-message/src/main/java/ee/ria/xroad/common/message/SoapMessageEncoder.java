@@ -42,9 +42,9 @@ public interface SoapMessageEncoder extends SoapMessageConsumer, Closeable {
 
     @Override
     void soap(SoapMessage soapMessage,
-              Map<String, String> additionalHeaders) throws Exception;
+              Map<String, String> additionalHeaders) throws IOException;
 
     @Override
     void attachment(String contentType, InputStream content,
-                    Map<String, String> additionalHeaders) throws Exception;
+                    Map<String, String> additionalHeaders) throws IOException;
 }

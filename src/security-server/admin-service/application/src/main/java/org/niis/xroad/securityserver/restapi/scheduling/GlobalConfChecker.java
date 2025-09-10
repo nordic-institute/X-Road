@@ -36,6 +36,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
@@ -51,7 +53,6 @@ import org.niis.xroad.serverconf.model.TimestampingService;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.context.event.EventListener;
@@ -74,6 +75,7 @@ import static java.util.function.Predicate.not;
 @Component
 @Slf4j
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class GlobalConfChecker {
     public static final int JOB_REPEAT_INTERVAL_MS = 30000;
     public static final int INITIAL_DELAY_MS = 30000;
@@ -317,7 +319,7 @@ public class GlobalConfChecker {
         for (CertificateInfo certInfo : keyInfo.getCerts()) {
             try {
                 updateCertStatus(securityServerId, certInfo, keyInfo.getUsage());
-            } catch (SignerException se) {
+            } catch (XrdRuntimeException se) {
                 throw se;
             } catch (Exception e) {
                 throw translateException(e);
@@ -363,7 +365,7 @@ public class GlobalConfChecker {
             try {
                 signerRpcClient.activateCert(certInfo.getId());
                 mailNotificationHelper.sendCertActivatedNotification(ownerMemberId, securityServerId, certInfo, keyUsageInfo);
-            } catch (SignerException e) {
+            } catch (XrdRuntimeException e) {
                 String certHash = CryptoUtils.calculateCertHexHash(certInfo.getCertificateBytes());
                 CertificateInfo updatedCertInfo = signerRpcClient.getCertForHash(certHash);
                 mailNotificationHelper.sendCertActivationFailureNotification(ownerMemberId,
@@ -375,7 +377,7 @@ public class GlobalConfChecker {
         }
     }
 
-    private void setCertStatus(X509Certificate cert, String status, CertificateInfo certInfo) throws Exception {
+    private void setCertStatus(X509Certificate cert, String status, CertificateInfo certInfo) {
         log.debug("Setting certificate '{}' status to '{}'", CertUtils.identify(cert), status);
         signerRpcClient.setCertStatus(certInfo.getId(), status);
     }

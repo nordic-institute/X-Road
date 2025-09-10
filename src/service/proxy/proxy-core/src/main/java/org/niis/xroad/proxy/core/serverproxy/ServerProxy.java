@@ -46,6 +46,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
@@ -69,6 +70,7 @@ import static java.util.Arrays.stream;
 @Startup
 @Singleton
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ServerProxy {
 
     private static final int ACCEPTOR_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors());

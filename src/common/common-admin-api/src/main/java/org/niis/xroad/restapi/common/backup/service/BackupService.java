@@ -41,7 +41,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_FILE_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
 
 /**

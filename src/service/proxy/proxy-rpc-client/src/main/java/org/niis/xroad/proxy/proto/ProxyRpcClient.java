@@ -41,6 +41,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
@@ -66,8 +67,13 @@ public class ProxyRpcClient extends AbstractRpcClient {
     private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
     private InternalTlsServiceGrpc.InternalTlsServiceBlockingStub internalTlsServiceBlockingStub;
 
+    @Override
+    public ErrorOrigin getRpcOrigin() {
+        return ErrorOrigin.PROXY;
+    }
+
     @PostConstruct
-    public void init() throws Exception {
+    public void init() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
         channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
@@ -77,21 +83,20 @@ public class ProxyRpcClient extends AbstractRpcClient {
     }
 
     @Override
-
     @PreDestroy
-    public void close() throws Exception {
+    public void close() {
         if (channel != null) {
             channel.shutdown();
         }
     }
 
-    public AddOnStatusDiagnostics getAddOnStatus() throws Exception {
+    public AddOnStatusDiagnostics getAddOnStatus() {
         var response = exec(() -> adminServiceBlockingStub
                 .getAddOnStatus(Empty.getDefaultInstance()));
         return new AddOnStatusDiagnostics(response.getMessageLogEnabled(), response.getOpMonitoringEnabled());
     }
 
-    public MessageLogEncryptionStatusDiagnostics getMessageLogEncryptionStatus() throws Exception {
+    public MessageLogEncryptionStatusDiagnostics getMessageLogEncryptionStatus() {
         var response = exec(() -> adminServiceBlockingStub
                 .getMessageLogEncryptionStatus(Empty.getDefaultInstance()));
 
@@ -110,7 +115,7 @@ public class ProxyRpcClient extends AbstractRpcClient {
         );
     }
 
-    public Map<String, DiagnosticsStatus> getTimestampingStatus() throws Exception {
+    public Map<String, DiagnosticsStatus> getTimestampingStatus() {
         var statuses = exec(() -> adminServiceBlockingStub
                 .getTimestampStatus(Empty.getDefaultInstance()));
 
@@ -126,7 +131,7 @@ public class ProxyRpcClient extends AbstractRpcClient {
                 }));
     }
 
-    public ProxyMemory getProxyMemoryStatus() throws Exception {
+    public ProxyMemory getProxyMemoryStatus() {
         var response = exec(() -> adminServiceBlockingStub.getProxyMemoryStatus(Empty.getDefaultInstance()));
         return new ProxyMemory(response.getTotalMemory(),
                 response.getFreeMemory(),
@@ -136,33 +141,33 @@ public class ProxyRpcClient extends AbstractRpcClient {
                 response.getUsedPercent());
     }
 
-    public void clearConfCache() throws Exception {
+    public void clearConfCache() {
         exec(() -> adminServiceBlockingStub.clearConfCache(Empty.getDefaultInstance()));
     }
 
-    public void triggerDsAssetUpdate() throws Exception {
+    public void triggerDsAssetUpdate() {
         exec(() -> adminServiceBlockingStub.triggerDSAssetUpdate(Empty.getDefaultInstance()));
     }
 
     // Internal TLS management methods
-    public X509Certificate getInternalTlsCertificate() throws Exception {
+    public X509Certificate getInternalTlsCertificate() {
         var response = exec(() -> internalTlsServiceBlockingStub.getInternalTlsCertificate(Empty.getDefaultInstance()));
         return CryptoUtils.readCertificate(response.getInternalTlsCertificate().toByteArray());
     }
 
-    public List<X509Certificate> getInternalTlsCertificateChain() throws Exception {
+    public List<X509Certificate> getInternalTlsCertificateChain() {
         var response = exec(() -> internalTlsServiceBlockingStub.getInternalTlsCertificateChain(Empty.getDefaultInstance()));
         return response.getInternalTlsCertificateList().stream()
                 .map(cert -> CryptoUtils.readCertificate(cert.toByteArray()))
                 .toList();
     }
 
-    public X509Certificate generateInternalTlsKeyAndCertificate() throws Exception {
+    public X509Certificate generateInternalTlsKeyAndCertificate() {
         var response = exec(() -> internalTlsServiceBlockingStub.generateInternalTlsKeyAndCertificate(Empty.getDefaultInstance()));
         return CryptoUtils.readCertificate(response.getInternalTlsCertificate().toByteArray());
     }
 
-    public byte[] generateInternalCsr(String distinguishedName) throws Exception {
+    public byte[] generateInternalCsr(String distinguishedName) {
         var request = GenerateInternalCsrRequest.newBuilder()
                 .setDistinguishedName(distinguishedName)
                 .build();
@@ -170,7 +175,7 @@ public class ProxyRpcClient extends AbstractRpcClient {
         return response.getTlsCsr().toByteArray();
     }
 
-    public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) throws Exception {
+    public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) {
         var request = InternalTlsCertificateMessage.newBuilder()
                 .setInternalTlsCertificate(ByteString.copyFrom(certificateBytes))
                 .build();

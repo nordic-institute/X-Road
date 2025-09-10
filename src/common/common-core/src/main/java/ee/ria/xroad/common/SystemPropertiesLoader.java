@@ -31,6 +31,7 @@ import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.SubnodeConfiguration;
 import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -373,6 +374,7 @@ public class SystemPropertiesLoader {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void load(FileWithSections file) {
         INIConfiguration ini = new INIConfiguration();
         // turn off list delimiting (before parsing),

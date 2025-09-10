@@ -42,7 +42,7 @@ import org.niis.xroad.backupmanager.proto.GenerateGpgKeyReq;
 import org.niis.xroad.backupmanager.proto.ListBackupsResp;
 import org.niis.xroad.backupmanager.proto.RestoreBackupReq;
 import org.niis.xroad.backupmanager.proto.UploadBackupReq;
-import org.niis.xroad.common.rpc.server.CommonRpcHandler;
+import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.rpc.common.Empty;
 
 import java.time.Instant;
@@ -54,13 +54,13 @@ import static java.util.Collections.unmodifiableList;
 @RequiredArgsConstructor
 public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
 
-    private final CommonRpcHandler commonRpcHandler = new CommonRpcHandler();
+    private final RpcResponseHandler rpcResponseHandler = new RpcResponseHandler();
     private final FileSystemBackupHandler backupHandler;
     private final BackupManagerProperties backupManagerProperties;
 
     @Override
     public void deleteBackup(DeleteBackupReq request, StreamObserver<Empty> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> {
+        rpcResponseHandler.handleRequest(responseObserver, () -> {
             backupHandler.deleteBackup(request.getBackupName());
             return Empty.getDefaultInstance();
         });
@@ -68,12 +68,12 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
 
     @Override
     public void listBackups(Empty request, StreamObserver<ListBackupsResp> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, this::listBackups);
+        rpcResponseHandler.handleRequest(responseObserver, this::listBackups);
     }
 
     @Override
     public void downloadBackup(DownloadBackupReq request, StreamObserver<BackupData> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> {
+        rpcResponseHandler.handleRequest(responseObserver, () -> {
             byte[] data = backupHandler.readBackup(request.getBackupName());
             return BackupData.newBuilder()
                     .setBackupName(request.getBackupName())
@@ -84,7 +84,7 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
 
     @Override
     public void uploadBackup(UploadBackupReq request, StreamObserver<org.niis.xroad.backupmanager.proto.BackupItem> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> {
+        rpcResponseHandler.handleRequest(responseObserver, () -> {
             BackupItem backupItem = backupHandler.saveBackup(request.getBackupName(),
                     request.getBackupFile().toByteArray(), request.getIgnoreWarnings());
             return mapBackupItem(backupItem);
@@ -93,7 +93,7 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
 
     @Override
     public void createBackup(CreateBackupReq request, StreamObserver<org.niis.xroad.backupmanager.proto.BackupItem> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> {
+        rpcResponseHandler.handleRequest(responseObserver, () -> {
             BackupItem backupItem = backupHandler.performBackup(request.getSecurityServerId());
             return mapBackupItem(backupItem);
         });
@@ -101,7 +101,7 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
 
     @Override
     public void restoreFromBackup(RestoreBackupReq request, StreamObserver<Empty> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> {
+        rpcResponseHandler.handleRequest(responseObserver, () -> {
             backupHandler.performRestore(request.getBackupName(), request.getSecurityServerId());
             return Empty.getDefaultInstance();
         });
@@ -109,7 +109,7 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
 
     @Override
     public void generateGgpKey(GenerateGpgKeyReq request, StreamObserver<Empty> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> {
+        rpcResponseHandler.handleRequest(responseObserver, () -> {
             backupHandler.generateGpgKey(request.getKeyName());
             return Empty.getDefaultInstance();
         });
@@ -117,7 +117,7 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
 
     @Override
     public void getBackupEncryptionStatus(Empty request, StreamObserver<BackupEncryptionStatusResp> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> BackupEncryptionStatusResp.newBuilder()
+        rpcResponseHandler.handleRequest(responseObserver, () -> BackupEncryptionStatusResp.newBuilder()
                 .setBackupEncryptionStatus(backupManagerProperties.backupEncryptionEnabled())
                 .addAllBackupEncryptionKeys(unmodifiableList(backupManagerProperties.backupEncryptionKeyids().orElse(List.of())))
                 .build());

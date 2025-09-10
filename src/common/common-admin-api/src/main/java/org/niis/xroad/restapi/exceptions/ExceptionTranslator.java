@@ -31,10 +31,11 @@ import jakarta.validation.ConstraintViolationException;
 import org.niis.xroad.common.core.exception.Deviation;
 import org.niis.xroad.common.core.exception.DeviationAware;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.HttpStatusAware;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -129,12 +130,14 @@ public class ExceptionTranslator {
         return result;
     }
 
-    private boolean isCausedBySignerException(Throwable e) {
-        return e != null && (e instanceof SignerException || isCausedBySignerException(e.getCause()));
+    private boolean isCausedByRemoteException(Throwable e) {
+        return e != null
+                && ((e instanceof XrdRuntimeException xrdRuntimeException && xrdRuntimeException.originatesFrom(ErrorOrigin.SIGNER))
+                || isCausedByRemoteException(e.getCause()));
     }
 
     private void attachCausedBySignerIfNeeded(Throwable e, ErrorInfo errorDto) {
-        if (isCausedBySignerException(e)) {
+        if (isCausedByRemoteException(e)) {
             var metadata = errorDto.getError().getMetadata();
             metadata = metadata == null ? new LinkedList<>() : new LinkedList<>(metadata);
             metadata.add(TRANSLATABLE_PREFIX + "check_signer_logs");

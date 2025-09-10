@@ -174,7 +174,7 @@ public class CertificateInfoSensor {
 
         @FunctionalInterface
         interface Lister {
-            List<TokenInfo> listTokens() throws Exception;
+            List<TokenInfo> listTokens();
         }
 
         private final Lister tokenInfoLister;

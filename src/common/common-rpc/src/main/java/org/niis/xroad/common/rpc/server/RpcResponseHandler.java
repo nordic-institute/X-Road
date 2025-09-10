@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,25 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.common.rpc.server;
-
-import ee.ria.xroad.common.CodedException;
 
 import io.grpc.Status;
 import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.rpc.error.CodedExceptionProto;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.util.function.Supplier;
 
 import static com.google.protobuf.Any.pack;
-import static java.util.Optional.ofNullable;
 
 @Slf4j
-public class CommonRpcHandler {
+@RequiredArgsConstructor
+public class RpcResponseHandler {
 
     public <T> void handleRequest(StreamObserver<T> responseObserver, Supplier<T> handler) {
         try {
@@ -53,33 +50,34 @@ public class CommonRpcHandler {
         }
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     public <T> void handleException(Exception exception, StreamObserver<T> responseObserver) {
-        if (exception instanceof CodedException codedException) {
-            com.google.rpc.Status status = com.google.rpc.Status.newBuilder()
-                    .setCode(Status.Code.INTERNAL.value())
-                    .setMessage(StringUtils.abbreviate(codedException.getMessage(), 128))
-                    .addDetails(pack(toProto(codedException)))
-                    .build();
-            responseObserver.onError(StatusProto.toStatusRuntimeException(status));
-            //TODO when improving exception handling, consider changing log level
-            log.info("CodedException handled: {}", codedException.getMessage(), codedException);
-        } else {
-            log.warn("Unhandled exception was thrown by gRPC handler.", exception);
-            responseObserver.onError(exception);
-        }
+        var xrdRuntimeException = XrdRuntimeException.systemException(exception);
+
+        log.error("Exception was thrown by gRPC handler. Exception will be sent over gRPC.", exception);
+
+        com.google.rpc.Status status = com.google.rpc.Status.newBuilder()
+                .setCode(Status.Code.INTERNAL.value())
+                .setMessage(xrdRuntimeException.getMessage())
+                .addDetails(pack(toProto(xrdRuntimeException)))
+                .build();
+
+        responseObserver.onError(StatusProto.toStatusRuntimeException(status));
     }
 
-    private CodedExceptionProto toProto(CodedException codedException) {
-        final CodedExceptionProto.Builder codedExceptionBuilder = CodedExceptionProto.newBuilder();
+    private XrdRuntimeExceptionProto toProto(XrdRuntimeException exception) {
+        final var builder = XrdRuntimeExceptionProto.newBuilder();
 
-        ofNullable(codedException.getFaultCode()).ifPresent(codedExceptionBuilder::setFaultCode);
-        ofNullable(codedException.getFaultActor()).ifPresent(codedExceptionBuilder::setFaultActor);
-        ofNullable(codedException.getFaultDetail()).ifPresent(codedExceptionBuilder::setFaultDetail);
-        ofNullable(codedException.getFaultString()).ifPresent(codedExceptionBuilder::setFaultString);
-        ofNullable(codedException.getTranslationCode()).ifPresent(codedExceptionBuilder::setTranslationCode);
+        builder.setIdentifier(exception.getIdentifier());
+        builder.setErrorCode(exception.getCode());
 
-        return codedExceptionBuilder.build();
+        if (exception.getErrorCodeMetadata() != null && !exception.getErrorCodeMetadata().isEmpty()) {
+            builder.addAllErrorMetadata(exception.getErrorCodeMetadata());
+        }
+        builder.setDetails(exception.getDetails());
+
+        exception.getHttpStatus().ifPresent(httpStatus -> builder.setHttpStatus(httpStatus.getCode()));
+
+        return builder.build();
     }
 
 }

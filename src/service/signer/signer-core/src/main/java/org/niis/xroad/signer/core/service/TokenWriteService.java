@@ -31,14 +31,14 @@ import java.util.Map;
 
 public interface TokenWriteService {
 
-    boolean delete(Long tokenId) throws Exception;
+    boolean delete(Long tokenId);
 
-    Long save(String externalId, String type, String friendlyName, String label, String serialNo) throws Exception;
+    Long save(String externalId, String type, String friendlyName, String label, String serialNo);
 
-    boolean setInitialTokenPin(Long tokenId, byte[] pinHash) throws Exception;
+    boolean setInitialTokenPin(Long tokenId, byte[] pinHash);
 
-    boolean updateTokenPin(Long tokenId, Map<Long, byte[]> updatedKeys, byte[] pinHash) throws Exception;
+    boolean updateTokenPin(Long tokenId, Map<Long, byte[]> updatedKeys, byte[] pinHash);
 
-    boolean updateFriendlyName(Long id, String friendlyName) throws Exception;
+    boolean updateFriendlyName(Long id, String friendlyName);
 
 }

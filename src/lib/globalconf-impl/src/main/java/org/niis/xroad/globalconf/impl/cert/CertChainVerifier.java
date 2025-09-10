@@ -28,6 +28,7 @@ package org.niis.xroad.globalconf.impl.cert;
 import ee.ria.xroad.common.CodedException;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -61,6 +62,7 @@ import static org.niis.xroad.globalconf.impl.cert.CertHelper.getOcspResponseForC
 /**
  * Certificate chain verifier.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class CertChainVerifier {
 
     /**

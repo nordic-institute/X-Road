@@ -39,6 +39,7 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationUtils;
 
@@ -71,6 +72,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
  */
 @Slf4j
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfigurationParser {
 
     // We cache the certificates we have found for a given hash

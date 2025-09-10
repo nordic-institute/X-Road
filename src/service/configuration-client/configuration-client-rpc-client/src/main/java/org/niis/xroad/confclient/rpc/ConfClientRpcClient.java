@@ -33,6 +33,8 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.confclient.proto.AdminServiceGrpc;
@@ -57,8 +59,13 @@ public class ConfClientRpcClient extends AbstractRpcClient {
     private AnchorServiceGrpc.AnchorServiceBlockingStub anchorServiceBlockingStub;
     private GlobalConfServiceGrpc.GlobalConfServiceBlockingStub globalConfServiceBlockingStub;
 
+    @Override
+    public ErrorOrigin getRpcOrigin() {
+        return ErrorOrigin.CONF_CLIENT;
+    }
+
     @PostConstruct
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
         channel = rpcChannelFactory.createChannel(rpcChannelProperties);
@@ -70,23 +77,23 @@ public class ConfClientRpcClient extends AbstractRpcClient {
 
     @Override
     @PreDestroy
-    public void close() throws Exception {
+    public void close() {
         if (channel != null) {
             channel.shutdown();
         }
     }
 
-    public DiagnosticsStatus getStatus() throws Exception {
+    public DiagnosticsStatus getStatus() {
         return exec(() -> adminServiceBlockingStub
                 .getStatus(Empty.getDefaultInstance()));
     }
 
-    public GetGlobalConfRespWrapped getGlobalConf() throws Exception {
+    public GetGlobalConfRespWrapped getGlobalConf() {
         return exec(() -> globalConfServiceBlockingStub
                 .getGlobalConf(GetGlobalConfReq.newBuilder().build()));
     }
 
-    public byte[] getConfigurationAnchor() throws Exception {
+    public byte[] getConfigurationAnchor() {
         return exec(() -> anchorServiceBlockingStub
                 .getConfigurationAnchor(Empty.getDefaultInstance()))
                 .getConfigurationAnchor().toByteArray();
@@ -100,7 +107,7 @@ public class ConfClientRpcClient extends AbstractRpcClient {
                             .build()));
             return response.getReturnCode();
         } catch (Exception e) {
-            throw new RuntimeException("Configuration anchor validation failed", e);
+            throw XrdRuntimeException.systemInternalError("Configuration anchor validation failed", e);
         }
     }
 

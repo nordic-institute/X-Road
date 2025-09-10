@@ -29,10 +29,14 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.ChangeChecker;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 
@@ -58,7 +62,7 @@ public class FileContentChangeChecker implements ChangeChecker {
      * @param fileName the input file
      * @throws Exception if an error occurs
      */
-    public FileContentChangeChecker(String fileName) throws Exception {
+    public FileContentChangeChecker(String fileName) throws IOException, OperatorCreationException {
         this.fileName = fileName;
 
         File file = getFile();
@@ -70,15 +74,19 @@ public class FileContentChangeChecker implements ChangeChecker {
      * @throws Exception if an error occurs
      */
     @Override
-    public boolean hasChanged() throws Exception {
+    public boolean hasChanged() {
         File file = getFile();
 
-        String newCheckSum = calculateConfFileChecksum(file);
+        try {
+            String newCheckSum = calculateConfFileChecksum(file);
 
-        synchronized (this) {
-            previousChecksum = checksum;
-            checksum = newCheckSum;
-            return !Objects.equals(checksum, previousChecksum);
+            synchronized (this) {
+                previousChecksum = checksum;
+                checksum = newCheckSum;
+                return !Objects.equals(checksum, previousChecksum);
+            }
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -86,16 +94,15 @@ public class FileContentChangeChecker implements ChangeChecker {
         return new File(fileName);
     }
 
-    protected InputStream getInputStream(File file) throws Exception {
+    protected InputStream getInputStream(File file) throws FileNotFoundException {
         return new FileInputStream(file);
     }
 
-    protected String calculateConfFileChecksum(File file) throws Exception {
+    protected String calculateConfFileChecksum(File file) throws IOException, OperatorCreationException {
         if (!file.exists()) {
             log.warn("File {} does not exist", file);
             return null;
         }
-
         try (InputStream in = getInputStream(file)) {
             return hexDigest(DigestAlgorithm.MD5, toByteArray(in));
         }

@@ -1,0 +1,8 @@
+services:
+  signer:
+    image: ""
+    build:
+        context: ../../../deployment/security-server/docker/signer
+        args:
+          - REGISTRY_URL=localhost:5000
+        dockerfile: Dockerfile

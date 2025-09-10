@@ -37,7 +37,8 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 
@@ -47,6 +48,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
  * SessionProvider implementation using Apache Commons Pool 2 for managing PKCS#11 sessions.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class HardwareTokenSessionPool implements SessionProvider {
     private final GenericObjectPool<ManagedPKCS11Session> pool;
 
@@ -101,7 +103,7 @@ class HardwareTokenSessionPool implements SessionProvider {
         return objectPool;
     }
 
-    private static void prefillPool(GenericObjectPool<ManagedPKCS11Session> objectPool, String tokenId) throws Exception {
+    private static void prefillPool(GenericObjectPool<ManagedPKCS11Session> objectPool, String tokenId) {
         try {
             log.debug("Pre-filling pool for token {}...", tokenId);
             objectPool.preparePool();
@@ -112,7 +114,7 @@ class HardwareTokenSessionPool implements SessionProvider {
             } catch (Exception closeEx) {
                 log.error("Error closing pool after pre-fill failure for token {}", tokenId, closeEx);
             }
-            throw new SignerException("Failed to pre-fill session pool for token " + tokenId, e);
+            throw XrdRuntimeException.systemInternalError("Failed to pre-fill session pool for token " + tokenId, e);
         }
     }
 
@@ -122,6 +124,7 @@ class HardwareTokenSessionPool implements SessionProvider {
         private final String tokenId;
 
         @Override
+        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
         public ManagedPKCS11Session create() throws Exception {
             log.debug("Creating new PKCS#11 session for token {}", tokenId);
 
@@ -136,7 +139,7 @@ class HardwareTokenSessionPool implements SessionProvider {
 
             } else {
                 session.close();
-                throw new SignerException("Failed to login to session for token " + tokenId);
+                throw XrdRuntimeException.systemInternalError("Failed to login to session for token " + tokenId);
             }
 
             return session;
@@ -148,7 +151,7 @@ class HardwareTokenSessionPool implements SessionProvider {
         }
 
         @Override
-        public void destroyObject(PooledObject<ManagedPKCS11Session> p) throws Exception {
+        public void destroyObject(PooledObject<ManagedPKCS11Session> p) {
             ManagedPKCS11Session session = p.getObject();
             if (session != null) {
                 log.debug("Destroying PKCS#11 session {} for token {}", session.getSessionHandle(), tokenId);

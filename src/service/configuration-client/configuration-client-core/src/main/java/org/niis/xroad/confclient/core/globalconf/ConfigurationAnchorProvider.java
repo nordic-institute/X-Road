@@ -33,9 +33,9 @@ public interface ConfigurationAnchorProvider {
 
     boolean isAnchorPresent();
 
-    Optional<byte[]> get() throws Exception;
+    Optional<byte[]> get();
 
-    void save(byte[] content) throws Exception;
+    void save(byte[] content);
 
     String source();
 

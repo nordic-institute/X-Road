@@ -36,8 +36,11 @@ import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.vault.core.VaultTemplate;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
@@ -47,12 +50,12 @@ public class SpringVaultClient implements VaultClient {
     private final VaultTemplate vaultTemplate;
 
     @Override
-    public InternalSSLKey getInternalTlsCredentials() throws Exception {
+    public InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         return getTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH);
     }
 
     @Override
-    public InternalSSLKey getOpmonitorTlsCredentials() throws Exception {
+    public InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         return getTlsCredentials(OPMONITOR_TLS_CREDENTIALS_PATH);
     }
 
@@ -66,7 +69,7 @@ public class SpringVaultClient implements VaultClient {
         throw new NotImplementedException();
     }
 
-    private InternalSSLKey getTlsCredentials(String path) throws Exception {
+    private InternalSSLKey getTlsCredentials(String path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         var vaultResponse = vaultTemplate.read(path);
         if (vaultResponse == null) {

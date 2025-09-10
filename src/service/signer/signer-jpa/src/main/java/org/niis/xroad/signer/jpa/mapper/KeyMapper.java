@@ -27,8 +27,8 @@ package org.niis.xroad.signer.jpa.mapper;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.core.model.BasicKeyInfo;
 import org.niis.xroad.signer.core.model.HardwareKey;
 import org.niis.xroad.signer.core.model.SoftwareKey;
@@ -48,7 +48,7 @@ public class KeyMapper implements GenericUniDirectionalMapper<SignerKeyEntity, B
         } else if (source.getType() == KeyType.HARDWARE) {
             return toHardwareKey(source);
         } else {
-            throw new SignerException("Unknown key type: " + source.getType());
+            throw XrdRuntimeException.systemInternalError("Unknown key type: " + source.getType());
         }
     }
 

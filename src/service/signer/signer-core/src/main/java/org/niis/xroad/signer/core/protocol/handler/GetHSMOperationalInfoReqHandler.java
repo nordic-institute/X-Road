@@ -41,7 +41,7 @@ public class GetHSMOperationalInfoReqHandler extends AbstractRpcHandler<Empty, G
     private final ModuleManager moduleManager;
 
     @Override
-    protected GetHSMOperationalInfoResp handle(Empty request) throws Exception {
+    protected GetHSMOperationalInfoResp handle(Empty request) {
         return GetHSMOperationalInfoResp.newBuilder()
                 .setOperational(moduleManager.isHSMModuleOperational())
                 .build();

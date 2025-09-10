@@ -51,7 +51,7 @@ public class InitSoftwareTokenReqHandler extends AbstractRpcHandler<InitSoftware
     private final TokenLookup tokenLookup;
 
     @Override
-    protected Empty handle(InitSoftwareTokenReq request) throws Exception {
+    protected Empty handle(InitSoftwareTokenReq request) {
         String softwareTokenId = tokenLookup.getSoftwareTokenId();
 
         if (softwareTokenId != null) {

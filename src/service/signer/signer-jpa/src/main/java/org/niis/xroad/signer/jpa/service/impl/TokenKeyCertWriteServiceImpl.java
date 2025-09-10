@@ -45,7 +45,7 @@ public class TokenKeyCertWriteServiceImpl implements TokenKeyCertWriteService {
     private final IdentifierDAOImpl identifierDAO;
 
     @Override
-    public Long save(Long keyId, String externalId, ClientId memberId, String status, byte[] certBytes) throws Exception {
+    public Long save(Long keyId, String externalId, ClientId memberId, String status, byte[] certBytes) {
         return sessionProvider.doInTransaction(session -> {
             var cert = new SignerCertificateEntity();
             cert.setKeyId(keyId);
@@ -63,37 +63,37 @@ public class TokenKeyCertWriteServiceImpl implements TokenKeyCertWriteService {
     }
 
     @Override
-    public boolean delete(Long id) throws Exception {
+    public boolean delete(Long id) {
         return sessionProvider.doInTransaction(session -> keyCertDao.deleteById(session, SignerCertificateEntity.class, id));
     }
 
     @Override
-    public boolean setActive(Long id, boolean active) throws Exception {
+    public boolean setActive(Long id, boolean active) {
         return sessionProvider.doInTransaction(session -> keyCertDao.setActive(session, id, active));
     }
 
     @Override
-    public boolean updateStatus(Long id, String status) throws Exception {
+    public boolean updateStatus(Long id, String status) {
         return sessionProvider.doInTransaction(session -> keyCertDao.updateStatus(session, id, status));
     }
 
     @Override
-    public boolean updateRenewedCertHash(Long id, String renewedCertHash) throws Exception {
+    public boolean updateRenewedCertHash(Long id, String renewedCertHash) {
         return sessionProvider.doInTransaction(session -> keyCertDao.updateRenewedCertHash(session, id, renewedCertHash));
     }
 
     @Override
-    public boolean updateRenewalError(Long id, String renewalError) throws Exception {
+    public boolean updateRenewalError(Long id, String renewalError) {
         return sessionProvider.doInTransaction(session -> keyCertDao.updateRenewalError(session, id, renewalError));
     }
 
     @Override
-    public boolean updateNextAutomaticRenewalTime(Long id, Instant nextRenewalTime) throws Exception {
+    public boolean updateNextAutomaticRenewalTime(Long id, Instant nextRenewalTime) {
         return sessionProvider.doInTransaction(session -> keyCertDao.updateNextAutomaticRenewalTime(session, id, nextRenewalTime));
     }
 
     @Override
-    public boolean updateOcspVerifyBeforeActivationError(Long certId, String ocspVerifyBeforeActivationError) throws Exception {
+    public boolean updateOcspVerifyBeforeActivationError(Long certId, String ocspVerifyBeforeActivationError) {
         return sessionProvider.doInTransaction(session ->
                 keyCertDao.updateOcspVerifyBeforeActivationError(session, certId, ocspVerifyBeforeActivationError));
     }

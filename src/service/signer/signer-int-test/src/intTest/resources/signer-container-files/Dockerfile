@@ -19,3 +19,5 @@ USER xroad
 RUN softhsm2-util --init-token --slot 0 --label 'x-road-softhsm2' --so-pin 1234 --pin 1234
 
 COPY etc/xroad/conf.d/local.yaml /etc/xroad/conf.d/local.yaml
+
+EXPOSE 5559 5560

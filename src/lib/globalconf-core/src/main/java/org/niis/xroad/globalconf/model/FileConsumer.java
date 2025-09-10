@@ -25,12 +25,15 @@
  */
 package org.niis.xroad.globalconf.model;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
 import java.io.InputStream;
 
 /**
  * Interface of the function that can be applied to files belonging to
  * the configuration directory.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 @FunctionalInterface
 public interface FileConsumer {
 

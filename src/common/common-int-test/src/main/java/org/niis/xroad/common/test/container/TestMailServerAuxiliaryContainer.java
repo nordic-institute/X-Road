@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -70,6 +71,7 @@ public class TestMailServerAuxiliaryContainer extends AbstractAuxiliaryContainer
 
     @NotNull
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public TestMailServerContainer configure() {
         var dataDirPath = Paths.get("build/mail-server-data/");
         var dataDir = dataDirPath.toFile();

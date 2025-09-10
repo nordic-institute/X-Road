@@ -55,7 +55,7 @@ public class DeleteCertReqHandler extends AbstractRpcHandler<DeleteCertReq, Empt
     private final CertManager certManager;
 
     @Override
-    protected Empty handle(DeleteCertReq request) throws Exception {
+    protected Empty handle(DeleteCertReq request) {
         CertificateInfo certInfo = tokenLookup.getCertificateInfo(request.getCertId());
         if (certInfo == null) {
             throw certWithIdNotFound(request.getCertId());

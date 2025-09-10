@@ -33,8 +33,11 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -42,7 +45,6 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
@@ -66,14 +68,16 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotInitialize
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, AuthKeyProto> {
     private final GlobalConfProvider globalConfProvider;
     private final TokenLookup tokenLookup;
     private final TokenPinManager tokenPinManager;
 
     @Override
-    @SuppressWarnings("squid:S3776")
-    protected AuthKeyProto handle(GetAuthKeyReq request) throws Exception {
+    @SuppressWarnings({"squid:S3776", "checkstyle:SneakyThrowsCheck"})//TODO XRDDEV-2390 will be refactored in the future
+    @SneakyThrows
+    protected AuthKeyProto handle(GetAuthKeyReq request) {
         var securityServer = SecurityServerIdMapper.fromDto(request.getSecurityServer());
         log.trace("Selecting authentication key for security server {}", securityServer);
 
@@ -127,7 +131,7 @@ public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, Auth
         log.trace("Loading authentication key from database");
         return tokenLookup.getSoftwareTokenKeyStore(keyId)
                 .map(ByteString::copyFrom)
-                .orElseThrow(() -> new SignerException("Key not found in key store: " + keyId));
+                .orElseThrow(() -> XrdRuntimeException.systemInternalError("Key not found in key store: " + keyId));
     }
 
     private boolean authCertValid(CertificateInfo certInfo,

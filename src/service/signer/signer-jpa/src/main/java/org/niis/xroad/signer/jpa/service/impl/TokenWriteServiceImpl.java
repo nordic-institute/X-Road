@@ -47,13 +47,13 @@ public class TokenWriteServiceImpl implements TokenWriteService {
     private final SignerKeyDaoImpl keyDao;
 
     @Override
-    public boolean delete(Long tokenId) throws Exception {
+    public boolean delete(Long tokenId) {
         return sessionProvider.doInTransaction(session ->
                 tokenDao.deleteById(sessionProvider.getSession(), SignerTokenEntity.class, tokenId));
     }
 
     @Override
-    public Long save(String externalId, String type, String friendlyName, String label, String serialNo) throws Exception {
+    public Long save(String externalId, String type, String friendlyName, String label, String serialNo) {
         var entity = new SignerTokenEntity();
         entity.setExternalId(externalId);
         entity.setType(type);
@@ -67,12 +67,12 @@ public class TokenWriteServiceImpl implements TokenWriteService {
     }
 
     @Override
-    public boolean setInitialTokenPin(Long id, byte[] pinHash) throws Exception {
+    public boolean setInitialTokenPin(Long id, byte[] pinHash) {
         return sessionProvider.doInTransaction(session -> tokenDao.updatePin(session, id, pinHash));
     }
 
     @Override
-    public boolean updateTokenPin(Long id, Map<Long, byte[]> updatedKeys, byte[] pinHash) throws Exception {
+    public boolean updateTokenPin(Long id, Map<Long, byte[]> updatedKeys, byte[] pinHash) {
         return sessionProvider.doInTransaction(session -> {
             if (tokenDao.updatePin(session, id, pinHash)) {
                 updatedKeys.forEach((keyId, keyStore) -> {
@@ -87,7 +87,7 @@ public class TokenWriteServiceImpl implements TokenWriteService {
     }
 
     @Override
-    public boolean updateFriendlyName(Long id, String friendlyName) throws Exception {
+    public boolean updateFriendlyName(Long id, String friendlyName) {
         return sessionProvider.doInTransaction(session -> tokenDao.updateFriendlyName(session, id, friendlyName));
     }
 

@@ -77,11 +77,11 @@ class ConfProxyTest {
         ConfProxyHelper.purgeOutdatedGenerations(conf);
         VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(conf.getConfigurationDownloadPath(2));
 
-        when(signerRpcClient.getSignMechanism(any())).thenThrow(new CodedException("InternalError", "Signer is unreachable"));
+        when(signerRpcClient.getSignMechanism(any())).thenThrow(new CodedException("internal_error", "Signer is unreachable"));
 
         try (OutputBuilder output = new OutputBuilder(signerRpcClient, signerSignClient, confDir, conf, 2)) {
             CodedException exception = assertThrows(CodedException.class, output::buildSignedDirectory);
-            assertEquals("InternalError: Signer is unreachable", exception.getMessage());
+            assertEquals("Signer is unreachable", exception.getFaultString());
         }
         assertEquals(0, Files.list(Paths.get("build/tmp/test/PROXY1")).count());
     }

@@ -36,6 +36,8 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -63,6 +65,7 @@ import java.util.Date;
  * Whenever you need to use a certificate in a test class, use this class. Add
  * necessary convenience methods if needed.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class TestCertUtil {
 
     /**
@@ -227,7 +230,7 @@ public final class TestCertUtil {
         try (InputStream is = getFile(pemFileName)) {
             return CryptoUtils.readCertificate(Base64.getMimeDecoder().wrap(is));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -243,12 +246,12 @@ public final class TestCertUtil {
             X509Certificate cert =
                     (X509Certificate) keyStore.getCertificate(orgName);
             if (cert == null) {
-                throw new RuntimeException(String.format(CERT_ERROR_MSG, orgName));
+                throw XrdRuntimeException.systemInternalError(String.format(CERT_ERROR_MSG, orgName));
             }
 
             return cert;
         } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -263,14 +266,14 @@ public final class TestCertUtil {
         try {
             final Certificate[] chain = keyStore.getCertificateChain(orgName);
             if (chain == null || chain.length == 0) {
-                throw new RuntimeException(String.format(CERT_ERROR_MSG, orgName));
+                throw XrdRuntimeException.systemInternalError(String.format(CERT_ERROR_MSG, orgName));
             }
 
             X509Certificate[] tmp = new X509Certificate[chain.length];
             System.arraycopy(chain, 0, tmp, 0, chain.length);
             return tmp;
         } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -288,13 +291,13 @@ public final class TestCertUtil {
             PrivateKey key = (PrivateKey) keyStore.getKey(orgName,
                     password.toCharArray());
             if (key == null) {
-                throw new RuntimeException(
+                throw XrdRuntimeException.systemInternalError(
                         String.format(CERT_ERROR_WITH_PASSWD_MSG, orgName, password));
             }
 
             return key;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -338,7 +341,7 @@ public final class TestCertUtil {
 
             return keyStore;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

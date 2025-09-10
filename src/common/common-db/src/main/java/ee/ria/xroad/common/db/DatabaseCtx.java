@@ -35,10 +35,10 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Map;
-
-import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
 
 /**
  * Database context manages database connections for a specific session
@@ -67,10 +67,9 @@ public class DatabaseCtx {
      * @param <T>      the type of result
      * @param callback the callback to call
      * @return the result from the callback
-     * @throws Exception if an exception occurred
+     * @throws XrdRuntimeException if an exception occurred
      */
-    public <T> T doInTransaction(TransactionCallback<T> callback)
-            throws Exception {
+    public <T> T doInTransaction(TransactionCallback<T> callback) {
         Session session = null;
         try {
             boolean newTransaction = false;
@@ -157,14 +156,19 @@ public class DatabaseCtx {
         }
     }
 
-
-    private Exception customizeException(Exception e) {
-        if (e instanceof JDBCException) { //TODO xroad8 a marker to refactor when dealing with exceptions
-            return new CodedException(X_DATABASE_ERROR,
-                    "Error accessing database (%s)", name);
+    private CodedException customizeException(Exception e) {
+        if (e instanceof JDBCException) {
+            return XrdRuntimeException.systemException(ErrorCode.DATABASE_ERROR)
+                    .details("Error accessing database")
+                    .metadataItems(name)
+                    .build();
+        } else if (e instanceof CodedException codedException) {
+            return codedException;
         }
 
-        return e;
+        return XrdRuntimeException.systemException(ErrorCode.DATABASE_ERROR)
+                .cause(e)
+                .build();
     }
 
     public void destroy() {

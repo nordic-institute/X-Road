@@ -31,6 +31,7 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.signer.core.config.SignerProperties;
 
@@ -54,6 +55,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 @Slf4j
 @Startup
 @Singleton
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class FileBasedOcspCache extends OcspCache {
 
     /**
