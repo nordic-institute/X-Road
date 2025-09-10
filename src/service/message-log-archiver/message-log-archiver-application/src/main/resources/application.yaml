@@ -3,8 +3,6 @@ quarkus:
     name: signer
   config:
     locations:
-      - /etc/xroad/conf.d/local.yaml
-      - /etc/xroad/db.properties
       - xroad-common.yaml
       - xroad-logging.yaml
   scheduler:
@@ -13,6 +11,10 @@ quarkus:
 
 "%native":
   quarkus:
+    config:
+      locations:
+        - /etc/xroad/conf.d/local.yaml
+        - /etc/xroad/db.properties
     log:
       file:
         enable: true
