@@ -429,7 +429,6 @@
     "wrong_servicedescription_type": "Vale teenuse kirjelduse tüüp",
     "wsdl_download_failed": "WSDL-i allalaadimine ebaõnnestus",
     "wsdl_exists": "WSDL on olemas",
-    "wsdl_validator_interrupted": "WSDL valideerimine katkestatud",
     "wsdl_validator_not_executable": "WSDL valideerimist ei saa teostada"
   },
   "fields": {

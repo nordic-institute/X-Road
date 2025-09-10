@@ -112,8 +112,6 @@ public final class DeviationCodes {
     public static final String ERROR_WRONG_TYPE = "wrong_servicedescription_type";
     public static final String ERROR_WSDL_DOWNLOAD_FAILED = "wsdl_download_failed";
     public static final String ERROR_WSDL_EXISTS = "wsdl_exists";
-    public static final String ERROR_WSDL_VALIDATOR_INTERRUPTED = "wsdl_validator_interrupted";
-    public static final String ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE = "wsdl_validator_not_executable";
     public static final String ERROR_UNSUPPORTED_OPENAPI_VERSION = "unsupported_openapi_version";
 
     public static final String WARNING_ADDING_ENDPOINTS = "adding_endpoints";

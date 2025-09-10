@@ -487,7 +487,6 @@
     "wrong_servicedescription_type": "Wrong service description type",
     "wsdl_download_failed": "WSDL download failed",
     "wsdl_exists": "WSDL exists",
-    "wsdl_validator_interrupted": "WSDL validator interrupted",
     "wsdl_validator_not_executable": "WSDL validator is not executable"
   },
   "fields": {
