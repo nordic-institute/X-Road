@@ -34,6 +34,8 @@ import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.GlobalConfImpl;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
@@ -75,7 +77,8 @@ public class TestGlobalConfFactory {
         }
 
         @Override
-        public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
+        public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert)
+                throws CertificateEncodingException, IOException {
             if (useTestCaCert) {
                 return TestCertUtil.getCaCert();
             } else {

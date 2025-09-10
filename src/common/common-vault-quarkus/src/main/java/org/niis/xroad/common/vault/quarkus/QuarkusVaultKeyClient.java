@@ -38,8 +38,12 @@ import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
@@ -53,7 +57,7 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
     }
 
     @Override
-    public VaultKeyData provisionNewCerts() throws Exception {
+    public VaultKeyData provisionNewCerts() throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         if (pkiSecretEngine == null) {
             throw new IllegalStateException("Vault PKI Secret Engine is not initialized. Check configuration.");
         }

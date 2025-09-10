@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -83,7 +84,7 @@ public class ManagementRequestSenderService {
             if (e instanceof CodedException) {
                 throw (CodedException) e;
             }
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

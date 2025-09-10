@@ -37,6 +37,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 
@@ -91,6 +93,7 @@ public class BatchSigner implements MessageSigner {
      * @return the signature data
      * @throws Exception in case of any errors
      */
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public SignatureData sign(String keyId, SignAlgorithm signatureAlgorithmId, SigningRequest request)
             throws Exception {
 
@@ -124,7 +127,7 @@ public class BatchSigner implements MessageSigner {
                 return new WorkerImpl(signRequest.getKeyId());
             });
         } catch (Exception e) {
-            throw new RuntimeException("Unable to get worker", e);
+            throw XrdRuntimeException.systemInternalError("Unable to get worker", e);
         }
     }
 
@@ -142,7 +145,7 @@ public class BatchSigner implements MessageSigner {
                 batchSigningEnabled = signerClient.isTokenBatchSigningEnabled(keyId);
             } catch (Exception e) {
                 log.error("Failed to query if batch signing is enabled for token with key {}", keyId, e);
-                throw new RuntimeException(e);
+                throw XrdRuntimeException.systemException(e);
             }
             workerThread = new Thread(this::process);
             workerThread.setDaemon(true);
@@ -154,6 +157,7 @@ public class BatchSigner implements MessageSigner {
             requestsQueue.add(signRequest);
         }
 
+        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
         private void sendSignatureResponse(BatchSignatureCtx ctx, byte[] signatureValue) throws Exception {
             String signature = ctx.createSignatureXml(signatureValue);
 

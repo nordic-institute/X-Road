@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.API_KEY_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.API_KEY_NOT_FOUND;
 import static org.niis.xroad.restapi.auth.PasswordEncoderConfig.API_KEY_ENCODER;
 import static org.niis.xroad.restapi.config.ApiCachingConfiguration.LIST_ALL_KEYS_CACHE;
 

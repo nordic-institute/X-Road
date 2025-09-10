@@ -35,11 +35,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.SubnodeConfiguration;
 import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.configuration2.ex.ConversionException;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.signer.core.config.SignerProperties;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -189,7 +191,7 @@ public class ModuleConf {
         }
     }
 
-    private static void reload(String fileName) throws Exception {
+    private static void reload(String fileName) throws ConfigurationException, IOException {
         log.trace("Loading module configuration from '{}'", fileName);
 
         MODULES.clear();
@@ -203,7 +205,7 @@ public class ModuleConf {
         }
     }
 
-    private static void readDevicesConfig(Path configPath) throws Exception {
+    private static void readDevicesConfig(Path configPath) throws ConfigurationException, IOException {
         INIConfiguration conf = new INIConfiguration();
         conf.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
         try (Reader reader = Files.newBufferedReader(configPath, StandardCharsets.UTF_8)) {

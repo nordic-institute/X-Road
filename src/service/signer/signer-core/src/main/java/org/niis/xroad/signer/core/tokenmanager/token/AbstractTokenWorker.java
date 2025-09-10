@@ -38,6 +38,7 @@ import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.KeyManager;
@@ -61,6 +62,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
  * Token worker base class.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLifecycle {
     private final String workerId;
 

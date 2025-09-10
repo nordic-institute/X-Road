@@ -41,6 +41,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
@@ -49,7 +51,7 @@ public class SpringVaultClient implements VaultClient {
     private final VaultKeyValueOperations vaultClient;
 
     @Override
-    public InternalSSLKey getInternalTlsCredentials() throws Exception {
+    public InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         return getTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH);
     }
 
@@ -59,7 +61,7 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
-    public InternalSSLKey getProxyUyApiTlsCredentials() throws Exception {
+    public InternalSSLKey getProxyUyApiTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         return getTlsCredentials(PROXY_UI_API_TLS_CREDENTIALS_PATH);
     }
 
@@ -74,11 +76,11 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
-    public void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) throws Exception {
+    public void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
         createTlsCredentials(PROXY_UI_API_TLS_CREDENTIALS_PATH, internalSSLKey);
     }
 
-    private InternalSSLKey getTlsCredentials(String path) throws Exception {
+    private InternalSSLKey getTlsCredentials(String path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         var vaultResponse = vaultClient.get(path);
         if (vaultResponse == null) {

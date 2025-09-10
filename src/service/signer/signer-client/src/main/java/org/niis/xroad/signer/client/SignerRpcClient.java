@@ -39,6 +39,8 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
@@ -52,7 +54,6 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.OcspResponderStatus;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.AdminServiceGrpc;
@@ -96,7 +97,12 @@ import org.niis.xroad.signer.proto.TokenServiceGrpc;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
@@ -114,7 +120,6 @@ import static java.time.Instant.ofEpochMilli;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
-import static org.niis.xroad.signer.client.util.SignerRpcUtils.tryToRun;
 
 /**
  * Responsible for managing cryptographic tokens (smartcards, HSMs, etc.) through the signer.
@@ -138,8 +143,13 @@ public class SignerRpcClient extends AbstractRpcClient {
     private OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
     private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
 
+    @Override
+    public ErrorOrigin getRpcOrigin() {
+        return ErrorOrigin.SIGNER;
+    }
+
     @PostConstruct
-    public void init() throws Exception {
+    public void init() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
         channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
@@ -153,7 +163,7 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     @Override
     @PreDestroy
-    public void close() throws Exception {
+    public void close() {
         if (channel != null) {
             log.info("Shutting down signer RPC client...");
             try {
@@ -177,11 +187,10 @@ public class SignerRpcClient extends AbstractRpcClient {
      * Initialize the software token with the given password.
      *
      * @param password software token password
-     * @throws SignerException if any errors occur
      */
-    public void initSoftwareToken(char[] password) throws SignerException {
+    public void initSoftwareToken(char[] password) {
         log.trace("Initializing software token");
-        tryToRun(
+        exec(
                 () -> blockingTokenService.initSoftwareToken(InitSoftwareTokenReq.newBuilder()
                         .setPin(ByteString.copyFrom(charToByte(password)))
                         .build())
@@ -192,10 +201,9 @@ public class SignerRpcClient extends AbstractRpcClient {
      * Gets information about all configured tokens.
      *
      * @return a List of TokenInfo objects
-     * @throws SignerException if any errors occur
      */
-    public List<TokenInfo> getTokens() throws SignerException {
-        return tryToRun(
+    public List<TokenInfo> getTokens() {
+        return exec(
                 () -> blockingTokenService.listTokens(Empty.newBuilder().build())
                         .getTokensList().stream()
                         .map(TokenInfo::new)
@@ -208,10 +216,9 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param tokenId ID of the token
      * @return TokenInfo
-     * @throws SignerException if any errors occur
      */
-    public TokenInfo getToken(String tokenId) throws SignerException {
-        return tryToRun(
+    public TokenInfo getToken(String tokenId) {
+        return exec(
                 () -> blockingTokenService.getTokenById(GetTokenByIdReq.newBuilder()
                         .setTokenId(tokenId).build()),
                 TokenInfo::new
@@ -223,13 +230,12 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param tokenId  ID of the token
      * @param password token password
-     * @throws SignerException if any errors occur
      */
-    public void activateToken(String tokenId, char[] password) throws SignerException {
-        tryToRun(() -> internalActivateToken(tokenId, password));
+    public void activateToken(String tokenId, char[] password) {
+        exec(() -> internalActivateToken(tokenId, password));
     }
 
-    private void internalActivateToken(String tokenId, char[] password) throws Exception {
+    private void internalActivateToken(String tokenId, char[] password) {
         log.trace("Activating token '{}'", tokenId);
 
         var activateTokenReq = ActivateTokenReq.newBuilder()
@@ -246,12 +252,12 @@ public class SignerRpcClient extends AbstractRpcClient {
      * @param tokenId ID of the token
      * @param oldPin  the old (current) pin of the token
      * @param newPin  the new pin
-     * @throws SignerException if any errors occur
+     * @throws XrdRuntimeException if any errors occur
      */
-    public void updateTokenPin(String tokenId, char[] oldPin, char[] newPin) throws SignerException {
+    public void updateTokenPin(String tokenId, char[] oldPin, char[] newPin) {
         log.trace("Updating token pin '{}'", tokenId);
 
-        tryToRun(
+        exec(
                 () -> blockingTokenService.updateSoftwareTokenPin(UpdateSoftwareTokenPinReq.newBuilder()
                         .setTokenId(tokenId)
                         .setOldPin(ByteString.copyFrom(charToByte(oldPin)))
@@ -264,12 +270,11 @@ public class SignerRpcClient extends AbstractRpcClient {
      * Deactivates the token with the given ID.
      *
      * @param tokenId ID of the token
-     * @throws SignerException if any errors occur
      */
-    public void deactivateToken(String tokenId) throws SignerException {
+    public void deactivateToken(String tokenId) {
         log.trace("Deactivating token '{}'", tokenId);
 
-        tryToRun(
+        exec(
                 () -> blockingTokenService.activateToken(ActivateTokenReq.newBuilder()
                         .setTokenId(tokenId)
                         .setActivate(false)
@@ -281,12 +286,11 @@ public class SignerRpcClient extends AbstractRpcClient {
      * Delete the token with the given ID.
      *
      * @param tokenId ID of the token
-     * @throws SignerException if any errors occur
      */
-    public void deleteToken(String tokenId) throws SignerException {
+    public void deleteToken(String tokenId) {
         log.trace("Delete token '{}'", tokenId);
 
-        tryToRun(
+        exec(
                 () -> blockingTokenService
                         .deleteToken(DeleteTokenReq.newBuilder()
                                 .setTokenId(tokenId)
@@ -299,12 +303,11 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param tokenId      ID of the token
      * @param friendlyName new friendly name of the token
-     * @throws SignerException if any errors occur
      */
-    public void setTokenFriendlyName(String tokenId, String friendlyName) throws SignerException {
+    public void setTokenFriendlyName(String tokenId, String friendlyName) {
         log.trace("Setting friendly name '{}' for token '{}'", friendlyName, tokenId);
 
-        tryToRun(
+        exec(
                 () -> blockingTokenService.setTokenFriendlyName(SetTokenFriendlyNameReq.newBuilder()
                         .setTokenId(tokenId)
                         .setFriendlyName(friendlyName)
@@ -317,12 +320,11 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param keyId        ID of the key
      * @param friendlyName new friendly name of the key
-     * @throws SignerException if any errors occur
      */
-    public void setKeyFriendlyName(String keyId, String friendlyName) throws SignerException {
+    public void setKeyFriendlyName(String keyId, String friendlyName) {
         log.trace("Setting friendly name '{}' for key '{}'", friendlyName, keyId);
 
-        tryToRun(
+        exec(
                 () -> blockingKeyService.setKeyFriendlyName(SetKeyFriendlyNameReq.newBuilder()
                         .setKeyId(keyId)
                         .setFriendlyName(friendlyName)
@@ -337,10 +339,9 @@ public class SignerRpcClient extends AbstractRpcClient {
      * @param keyLabel  label of the key
      * @param algorithm algorithm to use, RSA or EC
      * @return generated key KeyInfo object
-     * @throws SignerException if any errors occur
      */
-    public KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws SignerException {
-        return tryToRun(() -> internalGenerateKey(tokenId, keyLabel, algorithm));
+    public KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) {
+        return exec(() -> internalGenerateKey(tokenId, keyLabel, algorithm));
     }
 
     private KeyInfo internalGenerateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) {
@@ -372,15 +373,14 @@ public class SignerRpcClient extends AbstractRpcClient {
      * @param notBefore  date the certificate becomes valid
      * @param notAfter   date the certificate becomes invalid
      * @return byte content of the generated certificate
-     * @throws SignerException if any errors occur
      */
     public byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                         String commonName, Date notBefore, Date notAfter) throws SignerException {
-        return tryToRun(() -> internalGenerateSelfSignedCert(keyId, memberId, keyUsage, commonName, notBefore, notAfter));
+                                         String commonName, Date notBefore, Date notAfter) {
+        return exec(() -> internalGenerateSelfSignedCert(keyId, memberId, keyUsage, commonName, notBefore, notAfter));
     }
 
     private byte[] internalGenerateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                                  String commonName, Date notBefore, Date notAfter) throws Exception {
+                                                  String commonName, Date notBefore, Date notAfter) {
         log.trace("Generate self-signed cert for key '{}'", keyId);
 
         var builder = GenerateSelfSignedCertReq.newBuilder()
@@ -410,14 +410,12 @@ public class SignerRpcClient extends AbstractRpcClient {
      * @param initialStatus initial status of the certificate
      * @param clientId      client ID of the certificate owner
      * @return key ID of the new certificate as a String
-     * @throws SignerException if any errors occur
      */
-    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId, boolean activate) throws SignerException {
-        return tryToRun(() -> internalImportCert(certBytes, initialStatus, clientId, activate));
+    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId, boolean activate) {
+        return exec(() -> internalImportCert(certBytes, initialStatus, clientId, activate));
     }
 
-    private String internalImportCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId, boolean activate)
-            throws Exception {
+    private String internalImportCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId, boolean activate) {
         log.trace("Importing cert from file with length of '{}' bytes", certBytes.length);
 
         final ImportCertReq.Builder builder = ImportCertReq.newBuilder()
@@ -433,8 +431,8 @@ public class SignerRpcClient extends AbstractRpcClient {
         return response.getKeyId();
     }
 
-    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws SignerException {
-        return tryToRun(() -> {
+    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) {
+        return exec(() -> {
             X509Certificate x509Certificate = readCertificate(certBytes);
             return importCert(certBytes, initialStatus, clientId, !isAuthCert(x509Certificate));
         });
@@ -444,12 +442,11 @@ public class SignerRpcClient extends AbstractRpcClient {
      * Activates the certificate with the given ID.
      *
      * @param certId ID of the certificate
-     * @throws SignerException if any errors occur
      */
-    public void activateCert(String certId) throws SignerException {
+    public void activateCert(String certId) {
         log.trace("Activating cert '{}'", certId);
 
-        tryToRun(
+        exec(
                 () -> blockingCertificateService.activateCert(ActivateCertReq.newBuilder()
                         .setCertIdOrHash(certId)
                         .setActive(true)
@@ -461,12 +458,11 @@ public class SignerRpcClient extends AbstractRpcClient {
      * Deactivates the certificate with the given ID.
      *
      * @param certId ID of the certificate
-     * @throws SignerException if any errors occur
      */
-    public void deactivateCert(String certId) throws SignerException {
+    public void deactivateCert(String certId) {
         log.trace("Deactivating cert '{}'", certId);
 
-        tryToRun(
+        exec(
                 () -> blockingCertificateService.activateCert(ActivateCertReq.newBuilder()
                         .setCertIdOrHash(certId)
                         .setActive(false)
@@ -483,12 +479,11 @@ public class SignerRpcClient extends AbstractRpcClient {
      * @param subjectName subject name of the certificate
      * @param format      the format of the request
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
-     * @throws SignerException if any errors occur
      */
     public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId,
                                                         KeyUsageInfo keyUsage, String subjectName,
-                                                        CertificateRequestFormat format) throws SignerException {
-        return tryToRun(
+                                                        CertificateRequestFormat format) {
+        return exec(
                 () -> generateCertRequest(keyId, memberId, keyUsage, subjectName, null, format, null)
         );
     }
@@ -503,20 +498,18 @@ public class SignerRpcClient extends AbstractRpcClient {
      * @param subjectAltName subject alternative name of the certificate
      * @param format         the format of the request
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
-     * @throws SignerException if any errors occur
      */
     public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId,
                                                         KeyUsageInfo keyUsage, String subjectName, String subjectAltName,
-                                                        CertificateRequestFormat format, String certificateProfile) throws SignerException {
-        return tryToRun(
+                                                        CertificateRequestFormat format, String certificateProfile) {
+        return exec(
                 () -> internalGenerateCertRequest(keyId, memberId, keyUsage, subjectName, subjectAltName, format, certificateProfile)
         );
     }
 
     private GeneratedCertRequestInfo internalGenerateCertRequest(String keyId, ClientId.Conf memberId,
                                                                  KeyUsageInfo keyUsage, String subjectName, String subjectAltName,
-                                                                 CertificateRequestFormat format, String certificateProfile)
-            throws Exception {
+                                                                 CertificateRequestFormat format, String certificateProfile) {
         var reqBuilder = GenerateCertRequestReq.newBuilder()
                 .setKeyId(keyId)
                 .setKeyUsage(keyUsage)
@@ -553,15 +546,14 @@ public class SignerRpcClient extends AbstractRpcClient {
      * @param certRequestId csr ID
      * @param format        the format of the request
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
-     * @throws SignerException if any errors occur
      */
     public GeneratedCertRequestInfo regenerateCertRequest(String certRequestId,
-                                                          CertificateRequestFormat format) throws SignerException {
-        return tryToRun(() -> internalRegenerateCertRequest(certRequestId, format));
+                                                          CertificateRequestFormat format) {
+        return exec(() -> internalRegenerateCertRequest(certRequestId, format));
     }
 
     private GeneratedCertRequestInfo internalRegenerateCertRequest(String certRequestId,
-                                                                   CertificateRequestFormat format) throws Exception {
+                                                                   CertificateRequestFormat format) {
         var response = exec(() -> blockingCertificateService
                 .regenerateCertRequest(RegenerateCertRequestReq.newBuilder()
                         .setCertRequestId(certRequestId)
@@ -582,11 +574,10 @@ public class SignerRpcClient extends AbstractRpcClient {
      * Delete the certificate request with the given ID.
      *
      * @param certRequestId ID of the certificate request
-     * @throws SignerException if any errors occur
      */
-    public void deleteCertRequest(String certRequestId) throws SignerException {
+    public void deleteCertRequest(String certRequestId) {
         log.trace("Deleting cert request '{}'", certRequestId);
-        tryToRun(
+        exec(
                 () -> blockingCertificateService.deleteCertRequest(DeleteCertRequestReq.newBuilder()
                         .setCertRequestId(certRequestId)
                         .build())
@@ -597,11 +588,10 @@ public class SignerRpcClient extends AbstractRpcClient {
      * Delete the certificate with the given ID.
      *
      * @param certId ID of the certificate
-     * @throws SignerException if any errors occur
      */
-    public void deleteCert(String certId) throws SignerException {
+    public void deleteCert(String certId) {
         log.trace("Deleting cert '{}'", certId);
-        tryToRun(
+        exec(
                 () -> blockingCertificateService.deleteCert(DeleteCertReq.newBuilder()
                         .setCertId(certId)
                         .build())
@@ -614,11 +604,10 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param keyId           ID of the certificate request
      * @param deleteFromToken whether the key should be deleted from the token
-     * @throws SignerException if any errors occur
      */
-    public void deleteKey(String keyId, boolean deleteFromToken) throws SignerException {
+    public void deleteKey(String keyId, boolean deleteFromToken) {
         log.trace("Deleting key '{}', from token = {}", keyId, deleteFromToken);
-        tryToRun(
+        exec(
                 () -> blockingKeyService.deleteKey(DeleteKeyReq.newBuilder()
                         .setKeyId(keyId)
                         .setDeleteFromDevice(deleteFromToken)
@@ -631,11 +620,10 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param certId ID of the certificate
      * @param status new status of the certificate
-     * @throws SignerException if any errors occur
      */
-    public void setCertStatus(String certId, String status) throws SignerException {
+    public void setCertStatus(String certId, String status) {
         log.trace("Setting cert ('{}') status to '{}'", certId, status);
-        tryToRun(
+        exec(
                 () -> blockingCertificateService.setCertStatus(SetCertStatusReq.newBuilder()
                         .setCertId(certId)
                         .setStatus(status)
@@ -648,11 +636,10 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param certId ID of the old certificate
      * @param hash   new hash of the renewed certificate
-     * @throws SignerException if any errors occur
      */
-    public void setRenewedCertHash(String certId, String hash) throws SignerException {
+    public void setRenewedCertHash(String certId, String hash) {
         log.trace("Setting cert ('{}') renewed cert hash to '{}'", certId, hash);
-        tryToRun(
+        exec(
                 () -> blockingCertificateService.setRenewedCertHash(SetRenewedCertHashReq.newBuilder()
                         .setCertId(certId)
                         .setHash(hash)
@@ -665,11 +652,10 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param certId       ID of the certificate to be renewed
      * @param errorMessage message of the error that was thrown when trying to renew the given certificate
-     * @throws SignerException if any errors occur
      */
-    public void setRenewalError(String certId, String errorMessage) throws SignerException {
+    public void setRenewalError(String certId, String errorMessage) {
         log.trace("Setting cert ('{}') renewal error to '{}'", certId, errorMessage);
-        tryToRun(
+        exec(
                 () -> blockingCertificateService.setRenewalError(SetRenewalErrorReq.newBuilder()
                         .setCertId(certId)
                         .setErrorMessage(errorMessage)
@@ -682,11 +668,10 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param certId          ID of the certificate to be renewed
      * @param nextRenewalTime message of the error that was thrown when trying to renew the given certificate
-     * @throws SignerException if any errors occur
      */
-    public void setNextPlannedRenewal(String certId, Instant nextRenewalTime) throws SignerException {
+    public void setNextPlannedRenewal(String certId, Instant nextRenewalTime) {
         log.trace("Setting cert ('{}') next planned renewal time to '{}'", certId, nextRenewalTime);
-        tryToRun(() -> {
+        exec(() -> {
             com.google.protobuf.Timestamp nextRenewalTimestamp = com.google.protobuf.Timestamp.newBuilder()
                     .setSeconds(nextRenewalTime.getEpochSecond())
                     .setNanos(nextRenewalTime.getNano())
@@ -703,13 +688,12 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      * @return CertificateInfo
-     * @throws SignerException if any error occur
      */
-    public CertificateInfo getCertForHash(String hash) throws SignerException {
-        return tryToRun(() -> internalGetCertForHash(hash));
+    public CertificateInfo getCertForHash(String hash) {
+        return exec(() -> internalGetCertForHash(hash));
     }
 
-    private CertificateInfo internalGetCertForHash(String hash) throws Exception {
+    private CertificateInfo internalGetCertForHash(String hash) {
         final String finalHash = hash.toLowerCase();
         log.trace("Getting cert by hash '{}'", hash);
 
@@ -727,13 +711,12 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      * @return Key id and sign mechanism
-     * @throws SignerException
      */
-    public KeyIdInfo getKeyIdForCertHash(String hash) throws SignerException {
-        return tryToRun(() -> internalGetKeyIdForCertHash(hash));
+    public KeyIdInfo getKeyIdForCertHash(String hash) {
+        return exec(() -> internalGetKeyIdForCertHash(hash));
     }
 
-    private KeyIdInfo internalGetKeyIdForCertHash(String hash) throws Exception {
+    private KeyIdInfo internalGetKeyIdForCertHash(String hash) {
         final String finalHash = hash.toLowerCase();
         log.trace("Getting cert by hash '{}'", finalHash);
 
@@ -750,13 +733,12 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      * @return TokenInfoAndKeyId
-     * @throws SignerException
      */
-    public TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) throws SignerException {
-        return tryToRun(() -> internalGetTokenAndKeyIdForCertHash(hash));
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) {
+        return exec(() -> internalGetTokenAndKeyIdForCertHash(hash));
     }
 
-    private TokenInfoAndKeyId internalGetTokenAndKeyIdForCertHash(String hash) throws Exception {
+    private TokenInfoAndKeyId internalGetTokenAndKeyIdForCertHash(String hash) {
         String hashLowercase = hash.toLowerCase();
         log.trace("Getting token and key id by cert hash '{}'", hashLowercase);
 
@@ -774,14 +756,13 @@ public class SignerRpcClient extends AbstractRpcClient {
      * @param certHashes cert hashes to find OCSP responses for
      * @return base64 encoded OCSP responses. Each array item is OCSP response for
      * corresponding cert in {@code certHashes}
-     * @throws SignerException if something failed
      */
     @WithSpan("SignerProxy#getOcspResponses")
-    public String[] getOcspResponses(String[] certHashes) throws SignerException {
-        return tryToRun(() -> internalGetOcspResponses(certHashes));
+    public String[] getOcspResponses(String[] certHashes) {
+        return exec(() -> internalGetOcspResponses(certHashes));
     }
 
-    private String[] internalGetOcspResponses(String[] certHashes) throws Exception {
+    private String[] internalGetOcspResponses(String[] certHashes) {
         var response = blockingOcspService.getOcspResponses(GetOcspResponsesReq.newBuilder()
                 .addAllCertHash(toLowerCase(certHashes))
                 .build());
@@ -796,8 +777,8 @@ public class SignerRpcClient extends AbstractRpcClient {
         return result;
     }
 
-    public void setOcspResponses(String[] certHashes, String[] base64EncodedResponses) throws Exception {
-        tryToRun(
+    public void setOcspResponses(String[] certHashes, String[] base64EncodedResponses) {
+        exec(
                 () -> blockingOcspService.setOcspResponses(SetOcspResponsesReq.newBuilder()
                         .addAllCertHashes(asList(certHashes))
                         .addAllBase64EncodedResponses(asList(base64EncodedResponses))
@@ -816,15 +797,15 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param serverId securityServerId
      * @return authKeyInfo
-     * @throws SignerException
      */
-    public AuthKeyInfo getAuthKey(SecurityServerId serverId) throws SignerException {
-        return tryToRun(
+    public AuthKeyInfo getAuthKey(SecurityServerId serverId) {
+        return exec(
                 () -> internalGetAuthKey(serverId)
         );
     }
 
-    public AuthKeyInfo internalGetAuthKey(SecurityServerId serverId) throws Exception {
+    public AuthKeyInfo internalGetAuthKey(SecurityServerId serverId)
+            throws IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
         var response = blockingKeyService.getAuthKey(GetAuthKeyReq.newBuilder()
                 .setSecurityServer(SecurityServerIdMapper.toDto(serverId))
                 .build());
@@ -840,17 +821,10 @@ public class SignerRpcClient extends AbstractRpcClient {
         }
     }
 
-    /**
-     * Get TokenInfoAndKeyId for a given cert hash
-     *
-     * @param certRequestId
-     * @return TokenInfoAndKeyId
-     * @throws SignerException
-     */
-    public TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws SignerException {
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) {
         log.trace("Getting token and key id by cert request id '{}'", certRequestId);
 
-        return tryToRun(
+        return exec(
                 () -> blockingTokenService.getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdReq.newBuilder()
                         .setCertRequestId(certRequestId)
                         .build()),
@@ -866,17 +840,16 @@ public class SignerRpcClient extends AbstractRpcClient {
      *
      * @param keyId id of the key
      * @return TokenInfo
-     * @throws SignerException if any errors occur
      */
-    public TokenInfo getTokenForKeyId(String keyId) throws SignerException {
-        return tryToRun(
+    public TokenInfo getTokenForKeyId(String keyId) {
+        return exec(
                 () -> blockingTokenService.getTokenByKey(GetTokenByKeyIdReq.newBuilder().setKeyId(keyId).build()),
                 TokenInfo::new
         );
     }
 
-    public SignMechanism getSignMechanism(String keyId) throws SignerException {
-        return tryToRun(
+    public SignMechanism getSignMechanism(String keyId) {
+        return exec(
                 () -> blockingKeyService.getSignMechanism(GetSignMechanismReq.newBuilder()
                         .setKeyId(keyId)
                         .build()),
@@ -884,17 +857,16 @@ public class SignerRpcClient extends AbstractRpcClient {
         );
     }
 
-
-    public Boolean isTokenBatchSigningEnabled(String keyId) throws SignerException {
-        return tryToRun(
+    public Boolean isTokenBatchSigningEnabled(String keyId) {
+        return exec(
                 () -> blockingTokenService.getTokenBatchSigningEnabled(GetTokenBatchSigningEnabledReq.newBuilder()
                         .setKeyId(keyId)
                         .build()).getBatchingSigningEnabled()
         );
     }
 
-    public MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) throws SignerException {
-        return tryToRun(
+    public MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) {
+        return exec(
                 () -> blockingTokenService.getMemberSigningInfo(GetMemberSigningInfoReq.newBuilder()
                         .setMemberId(ClientIdMapper.toDto(clientId))
                         .build()),
@@ -904,8 +876,8 @@ public class SignerRpcClient extends AbstractRpcClient {
         );
     }
 
-    public List<CertificateInfo> getMemberCerts(ClientId memberId) throws SignerException {
-        return tryToRun(
+    public List<CertificateInfo> getMemberCerts(ClientId memberId) {
+        return exec(
                 () -> blockingCertificateService.getMemberCerts(GetMemberCertsReq.newBuilder()
                                 .setMemberId(ClientIdMapper.toDto(memberId))
                                 .build())
@@ -915,8 +887,8 @@ public class SignerRpcClient extends AbstractRpcClient {
         );
     }
 
-    public boolean isHSMOperational() throws SignerException {
-        return tryToRun(
+    public boolean isHSMOperational() {
+        return exec(
                 () -> blockingTokenService.getHSMOperationalInfo(Empty.getDefaultInstance())
                         .getOperational()
         );
@@ -936,22 +908,22 @@ public class SignerRpcClient extends AbstractRpcClient {
                                            KeyUsageInfo keyUsage) {
     }
 
-    public CertificationServiceDiagnostics getCertificationServiceDiagnostics() throws SignerException {
-        return tryToRun(
+    public CertificationServiceDiagnostics getCertificationServiceDiagnostics() {
+        return exec(
                 () -> adminServiceBlockingStub.getCertificationServiceDiagnostics(Empty.newBuilder().build()),
-                response -> CertificationServiceDiagnosticsMapper.fromDto(response)
+                CertificationServiceDiagnosticsMapper::fromDto
         );
     }
 
-    public int getKeyConfChecksum() throws SignerException {
-        return tryToRun(
+    public int getKeyConfChecksum() {
+        return exec(
                 () -> adminServiceBlockingStub.getKeyConfChecksum(Empty.getDefaultInstance()),
                 KeyConfChecksum::getChecksum
         );
     }
 
     public void refreshModules() {
-        tryToRun(() -> adminServiceBlockingStub.refreshModules(Empty.getDefaultInstance()));
+        exec(() -> adminServiceBlockingStub.refreshModules(Empty.getDefaultInstance()));
     }
 
     private static final class CertificationServiceDiagnosticsMapper {

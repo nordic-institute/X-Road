@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity_;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
@@ -80,7 +81,7 @@ public interface JpaSecurityServerClientRepository<T extends SecurityServerClien
             if (expectedToBeSubsystemType) {
                 boolean hasNoSubsystemCode = id.getSubsystemCode() == null;
                 if (hasNoSubsystemCode) {
-                    throw new RuntimeException("Subsystem code is null");
+                    throw XrdRuntimeException.systemInternalError("Subsystem code is null");
                 }
 
                 predicate = builder.and(predicate,

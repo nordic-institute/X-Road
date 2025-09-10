@@ -46,6 +46,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
@@ -69,6 +70,7 @@ import static org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient.SH
 @Slf4j
 @ApplicationScoped
 @Startup
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class CertHashBasedOcspResponder {
 
     private static final String METHOD_HEAD = "HEAD";
@@ -156,6 +158,7 @@ public class CertHashBasedOcspResponder {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private final class RequestHandler extends Handler.Abstract {
         @Override
         public boolean handle(Request request, Response response, Callback callback) {

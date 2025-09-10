@@ -36,9 +36,12 @@ import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.ChangeChecker;
 import org.niis.xroad.common.core.FileSource;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.dto.InMemoryFile;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.util.InMemoryFileSourceChangeChecker;
 
 import javax.xml.transform.Source;
@@ -68,6 +71,7 @@ import static java.util.Objects.requireNonNull;
  * @param <T> the generated configuration type
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public abstract class AbstractXmlConf<T> implements ConfProvider {
     protected final Class<? extends SchemaValidator> schemaValidator;
 
@@ -153,7 +157,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     }
 
     @Override
-    public void load(String fileName) throws Exception {
+    public void load(String fileName) throws IOException, OperatorCreationException, JAXBException, IllegalAccessException {
         if (fileName == null) {
             return;
         }
@@ -168,7 +172,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         confType = result.getConfType();
     }
 
-    public void load(FileSource<InMemoryFile> fileSource) throws Exception {
+    public void load(FileSource<InMemoryFile> fileSource) {
         if (fileSource == null) {
             return;
         }
@@ -258,7 +262,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
      * @throws Exception if an error occurs
      */
     @SuppressWarnings("unchecked")
-    public void load(byte[] data) throws Exception {
+    public void load(byte[] data) throws IOException, JAXBException, IllegalAccessException {
         if (data == null) {
             return;
         }
@@ -299,8 +303,8 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
                 throw translateException(e.getCause());
             }
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException("SchemaValidator '" + schemaValidator.getName() + "' must implement static "
-                    + "method 'void validate(Source)'");
+            throw XrdRuntimeException.systemInternalError(
+                    "SchemaValidator '" + schemaValidator.getName() + "' must implement static " + "method 'void validate(Source)'");
         }
     }
 }

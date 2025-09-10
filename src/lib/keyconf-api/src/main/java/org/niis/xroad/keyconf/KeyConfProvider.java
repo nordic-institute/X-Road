@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.keyconf.dto.AuthKey;
 
 import java.security.cert.X509Certificate;
@@ -40,6 +41,7 @@ import java.util.List;
 /**
  * Declares methods for accessing key configuration.
  */
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface KeyConfProvider {
 
     /**

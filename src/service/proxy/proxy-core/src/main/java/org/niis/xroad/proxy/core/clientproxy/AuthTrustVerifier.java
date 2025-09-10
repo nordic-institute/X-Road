@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.protocol.HttpContext;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
@@ -71,6 +72,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 @Slf4j
 @RequiredArgsConstructor
 @ApplicationScoped
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AuthTrustVerifier {
 
     public static final String ID_PROVIDERNAME = "request.providerName";

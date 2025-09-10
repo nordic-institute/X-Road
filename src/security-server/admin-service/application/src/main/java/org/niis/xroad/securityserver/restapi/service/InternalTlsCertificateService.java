@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
@@ -117,7 +118,7 @@ public class InternalTlsCertificateService {
 
         } catch (IOException | CertificateEncodingException e) {
             log.error("writing certificate file failed", e);
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
         return byteArrayOutputStream.toByteArray();
     }

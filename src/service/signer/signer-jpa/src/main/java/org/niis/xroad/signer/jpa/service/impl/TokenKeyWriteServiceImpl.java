@@ -46,7 +46,7 @@ public class TokenKeyWriteServiceImpl implements TokenKeyWriteService {
     @Override
     public Long save(Long tokenId, String externalId, String publicKeyBase64, byte[] keyStore,
                      SignMechanism signMechanism,
-                     String friendlyName, String label, boolean softwareKey) throws Exception {
+                     String friendlyName, String label, boolean softwareKey) {
         var entity = new SignerKeyEntity();
         entity.setExternalId(externalId);
         entity.setTokenId(tokenId);
@@ -61,22 +61,22 @@ public class TokenKeyWriteServiceImpl implements TokenKeyWriteService {
     }
 
     @Override
-    public boolean delete(Long id) throws Exception {
+    public boolean delete(Long id) {
         return sessionProvider.doInTransaction(session -> keyDao.deleteById(session, SignerKeyEntity.class, id));
     }
 
     @Override
-    public boolean updateFriendlyName(Long id, String friendlyName) throws Exception {
+    public boolean updateFriendlyName(Long id, String friendlyName) {
         return sessionProvider.doInTransaction(session -> keyDao.updateFriendlyName(session, id, friendlyName));
     }
 
     @Override
-    public boolean updateLabel(Long id, String label) throws Exception {
+    public boolean updateLabel(Long id, String label) {
         return sessionProvider.doInTransaction(session -> keyDao.updateLabel(session, id, label));
     }
 
     @Override
-    public boolean updateKeyUsage(Long id, KeyUsageInfo keyUsageInfo) throws Exception {
+    public boolean updateKeyUsage(Long id, KeyUsageInfo keyUsageInfo) {
         KeyUsage keyUsage = switch (keyUsageInfo) {
             case SIGNING -> KeyUsage.SIGNING;
             case AUTHENTICATION -> KeyUsage.AUTHENTICATION;
@@ -87,7 +87,7 @@ public class TokenKeyWriteServiceImpl implements TokenKeyWriteService {
     }
 
     @Override
-    public boolean updatePublicKey(Long id, String publicKey) throws Exception {
+    public boolean updatePublicKey(Long id, String publicKey) {
         return sessionProvider.doInTransaction(session -> keyDao.updatePublicKey(session, id, publicKey));
     }
 }

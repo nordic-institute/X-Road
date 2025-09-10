@@ -39,6 +39,8 @@ import java.security.cert.X509Certificate;
 
 import static org.bouncycastle.openssl.PEMParser.TYPE_CERTIFICATE;
 import static org.bouncycastle.openssl.PEMParser.TYPE_PRIVATE_KEY;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 public interface VaultClient {
     String PRIVATEKEY_KEY = "privateKey";
@@ -48,17 +50,17 @@ public interface VaultClient {
     String OPMONITOR_TLS_CREDENTIALS_PATH = "tls/opmonitor";
     String PROXY_UI_API_TLS_CREDENTIALS_PATH = "tls/proxy-ui-api";
 
-    InternalSSLKey getInternalTlsCredentials() throws Exception;
+    InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
-    InternalSSLKey getOpmonitorTlsCredentials() throws Exception;
+    InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
-    InternalSSLKey getProxyUyApiTlsCredentials() throws Exception;
+    InternalSSLKey getProxyUyApiTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
-    void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws Exception;
+    void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
-    void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws Exception;
+    void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
-    void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) throws Exception;
+    void createProxyUiApiTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();

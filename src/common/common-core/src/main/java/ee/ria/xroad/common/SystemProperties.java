@@ -124,11 +124,16 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS =
             PREFIX + "proxy-ui-api.acme-certificate-account-key-pair-expiration";
 
-    /** property name of whether the service should listen on port 80 for incoming acme challenge requests */
+    /** property name of whether the service should listen on acme challenge port (default 80) for incoming requests */
     public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED =
             PREFIX + "proxy-ui-api.acme-challenge-port-enabled";
     public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED_ENV =
             propertyNameToEnvVariable(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED);
+
+    /** property name of the acme challenge port, default 80.
+     * When changing this, it still needs to me mapped to port 80 externally (e.g. when running in docker container) */
+    public static final String PROXY_UI_API_ACME_CHALLENGE_PORT = PREFIX + "proxy-ui-api.acme-challenge-port";
+    public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENV = propertyNameToEnvVariable(PROXY_UI_API_ACME_CHALLENGE_PORT);
 
     public static final String PROXY_UI_API_ACME_RENEWAL_ACTIVE =
             PREFIX + "proxy-ui-api.acme-renewal-active";
@@ -576,6 +581,12 @@ public final class SystemProperties {
         String isAcmeChallengePortEnabled = Optional.ofNullable(System.getenv().get(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED_ENV))
                 .orElse(getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, FALSE));
         return TRUE.equalsIgnoreCase(isAcmeChallengePortEnabled);
+    }
+
+    public static int getAcmeChallengePort() {
+        String acmeChallengePort = Optional.ofNullable(System.getenv().get(PROXY_UI_API_ACME_CHALLENGE_PORT_ENV))
+                .orElse(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT, "80"));
+        return Integer.parseInt(acmeChallengePort);
     }
 
     /**

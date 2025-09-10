@@ -33,6 +33,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampFailed;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampSucceeded;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampTask;
@@ -87,6 +88,7 @@ public class TaskQueue {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected void saveTimestampRecord(TimestampSucceeded message) throws Exception {
         logManager.saveTimestampRecord(message);
     }

@@ -32,6 +32,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confclient.core.ConfigurationClientActionExecutor;
 
 import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
@@ -40,6 +41,7 @@ import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.O
 @Slf4j
 @RequiredArgsConstructor
 @ApplicationScoped
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfClientCLIRunner {
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;

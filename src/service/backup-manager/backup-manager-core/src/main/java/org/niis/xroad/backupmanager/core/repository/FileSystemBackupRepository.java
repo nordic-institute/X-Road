@@ -49,10 +49,10 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_DELETION_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCodes.BACKUP_FILE_NOT_FOUND;
-import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_BACKUP_FILE;
-import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_FILENAME;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_DELETION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_BACKUP_FILE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_FILENAME;
 
 @ApplicationScoped
 @RequiredArgsConstructor

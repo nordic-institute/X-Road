@@ -31,6 +31,8 @@ import jakarta.xml.soap.SOAPFault;
 import lombok.SneakyThrows;
 import org.apache.commons.text.StringEscapeUtils;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * Soap interface implementation representing an error message.
  */
@@ -133,7 +135,7 @@ public class SoapFault implements Soap {
     }
 
     @Override
-    public String getXml() throws Exception {
+    public String getXml() throws UnsupportedEncodingException {
         if (rawXml != null) {
             return new String(rawXml, charset);
         } else {
@@ -148,8 +150,8 @@ public class SoapFault implements Soap {
      * @return a String containing XML of the SOAP fault represented by the given coded exception
      */
     public static String createFaultXml(CodedException ex) {
-        if (ex instanceof CodedException.Fault) {
-            return ((CodedException.Fault) ex).getFaultXml();
+        if (ex instanceof CodedException.Fault fault) {
+            return fault.getFaultXml();
         } else {
             return createFaultXml(ex.getFaultCode(), ex.getFaultString(),
                     ex.getFaultActor(), ex.getFaultDetail());

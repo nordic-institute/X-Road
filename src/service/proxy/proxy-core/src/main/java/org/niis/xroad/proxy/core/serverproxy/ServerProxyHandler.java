@@ -39,6 +39,7 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
@@ -70,6 +71,7 @@ class ServerProxyHandler extends HandlerBase {
 
     @Override
     @WithSpan
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
         OpMonitoringData opMonitoringData = new OpMonitoringData(PRODUCER, getEpochMillisecond());
 

@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.DigestCalculator;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
@@ -79,6 +80,7 @@ import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.ge
  * the configuration is downloaded.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfigurationDownloader {
 
     private final FileNameProvider fileNameProvider;

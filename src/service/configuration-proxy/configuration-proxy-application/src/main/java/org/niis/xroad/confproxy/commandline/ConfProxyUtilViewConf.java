@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
@@ -53,6 +54,7 @@ import static org.niis.xroad.confproxy.ConfProxyProperties.VALIDITY_INTERVAL_SEC
  * Utility tool for viewing the configuration proxy configuration settings.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfProxyUtilViewConf extends ConfProxyUtil {
 
     private static final String ACTIVE_KEY_NA_MSG =

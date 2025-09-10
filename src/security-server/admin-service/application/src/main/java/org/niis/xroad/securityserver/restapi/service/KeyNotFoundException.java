@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.niis.xroad.common.exception.NotFoundException;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.KEY_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
 
 public class KeyNotFoundException extends NotFoundException {
     public KeyNotFoundException(String s) {

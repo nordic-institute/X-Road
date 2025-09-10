@@ -32,7 +32,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
-import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.certmanager.OcspCacheManager;
 import org.niis.xroad.signer.core.model.BasicCertInfo;
 import org.niis.xroad.signer.core.model.BasicKeyInfo;
@@ -71,7 +71,7 @@ public class TokenRegistryLoader {
 
             return result;
         } catch (Exception e) {
-            throw new SignerException("Failed to load tokens", e);
+            throw XrdRuntimeException.systemInternalError("Failed to load tokens", e);
         }
     }
 
@@ -118,7 +118,7 @@ public class TokenRegistryLoader {
 
             return newTokens;
         } catch (Exception e) {
-            throw new SignerException("Failed to reload tokens", e);
+            throw XrdRuntimeException.systemInternalError("Failed to reload tokens", e);
         }
     }
 

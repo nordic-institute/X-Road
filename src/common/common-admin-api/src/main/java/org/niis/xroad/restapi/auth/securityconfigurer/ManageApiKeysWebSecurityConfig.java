@@ -26,6 +26,7 @@
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.restapi.controller.CommonModuleEndpointPaths;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,6 +55,7 @@ public class ManageApiKeysWebSecurityConfig {
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.API_KEY_MANAGEMENT_SECURITY_ORDER)
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public SecurityFilterChain manageApiSecurityFilterChain(HttpSecurity http,
                                                             CommonModuleEndpointPaths commonModuleEndpointPaths,
                                                             @Qualifier(KEY_MANAGEMENT_AUTHENTICATION)

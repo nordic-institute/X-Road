@@ -27,14 +27,19 @@ package org.niis.xroad.globalconf.impl.extension;
 
 import ee.ria.xroad.common.conf.AbstractXmlConf;
 
+import jakarta.xml.bind.JAXBException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.FileSource;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.dto.InMemoryFile;
 import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.RemoteGlobalConfSource;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
@@ -62,6 +67,7 @@ public class GlobalConfExtensionLoaderImpl<T extends AbstractXmlConf<?>> {
         return reference;
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void reload() throws Exception {
         lock.lock();
 
@@ -75,7 +81,8 @@ public class GlobalConfExtensionLoaderImpl<T extends AbstractXmlConf<?>> {
         }
     }
 
-    private void load() throws Exception {
+    private void load() throws JAXBException, IOException, OperatorCreationException, InvocationTargetException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException {
         lock.lock();
         try {
             if (reference == null) {
@@ -92,7 +99,9 @@ public class GlobalConfExtensionLoaderImpl<T extends AbstractXmlConf<?>> {
         }
     }
 
-    private void loadFromFS(FileSystemGlobalConfSource.FileSystemFileSource fsSource) throws Exception {
+    private void loadFromFS(FileSystemGlobalConfSource.FileSystemFileSource fsSource)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException,
+            JAXBException, IOException, OperatorCreationException {
         if (fsSource.getFile().isPresent()) {
             log.trace("Loading GlobalConfExtension from FS path {}", fsSource.getFile().get());
             reference = extensionClass.getDeclaredConstructor().newInstance();
@@ -102,7 +111,8 @@ public class GlobalConfExtensionLoaderImpl<T extends AbstractXmlConf<?>> {
         }
     }
 
-    private void loadFromRemote(FileSource<InMemoryFile> remoteSource) throws Exception {
+    private void loadFromRemote(FileSource<InMemoryFile> remoteSource)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         if (remoteSource.getFile().isPresent()) {
             log.trace("Loading GlobalConfExtension from Remote");
             reference = extensionClass.getDeclaredConstructor().newInstance();

@@ -44,12 +44,7 @@ class ClientException extends CodedException {
         withPrefix(ErrorCodes.CLIENT_X);
     }
 
-    ClientException(String faultCode, Throwable cause) {
-        super(faultCode, cause);
 
-        // All the client messages have prefix Client...
-        withPrefix(ErrorCodes.CLIENT_X);
-    }
 
     ClientException(String faultCode, String format, Object... args) {
         super(faultCode, format, args);

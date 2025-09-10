@@ -32,19 +32,19 @@ import java.time.Instant;
 
 public interface TokenKeyCertWriteService {
 
-    Long save(Long keyId, String externalId, ClientId clientId, String status, byte[] certBytes) throws Exception;
+    Long save(Long keyId, String externalId, ClientId clientId, String status, byte[] certBytes);
 
-    boolean delete(Long id) throws Exception;
+    boolean delete(Long id);
 
-    boolean setActive(Long id, boolean active) throws Exception;
+    boolean setActive(Long id, boolean active);
 
-    boolean updateStatus(Long id, String status) throws Exception;
+    boolean updateStatus(Long id, String status);
 
-    boolean updateRenewedCertHash(Long id, String renewedCertHash) throws Exception;
+    boolean updateRenewedCertHash(Long id, String renewedCertHash);
 
-    boolean updateRenewalError(Long id, String renewalError) throws Exception;
+    boolean updateRenewalError(Long id, String renewalError);
 
-    boolean updateNextAutomaticRenewalTime(Long id, Instant nextRenewalTime) throws Exception;
+    boolean updateNextAutomaticRenewalTime(Long id, Instant nextRenewalTime);
 
-    boolean updateOcspVerifyBeforeActivationError(Long certId, String ocspVerifyBeforeActivationError) throws Exception;
+    boolean updateOcspVerifyBeforeActivationError(Long certId, String ocspVerifyBeforeActivationError);
 }

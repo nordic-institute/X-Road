@@ -32,7 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.model.CertRequestData;
 import org.niis.xroad.signer.core.model.RuntimeCert;
 import org.niis.xroad.signer.core.model.RuntimeKey;
@@ -46,7 +46,6 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import java.time.Instant;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 
 @Slf4j
@@ -72,7 +71,7 @@ public class CertManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to add certificate to key " + keyId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to add certificate to key " + keyId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -115,7 +114,7 @@ public class CertManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to set certificate active status for " + certId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to set certificate active status for " + certId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -143,7 +142,7 @@ public class CertManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to set certificate status for " + certId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to set certificate status for " + certId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -170,7 +169,7 @@ public class CertManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to set renewed certificate hash for " + certId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to set renewed certificate hash for " + certId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -198,7 +197,7 @@ public class CertManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to set renewal error for " + certId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to set renewal error for " + certId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -226,7 +225,7 @@ public class CertManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to set next planned renewal time for " + certId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to set next planned renewal time for " + certId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -254,7 +253,7 @@ public class CertManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to remove certificate " + certId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to remove certificate " + certId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -264,10 +263,10 @@ public class CertManager {
     /**
      * Adds a new certificate request to a key.
      *
-     * @param externalKeyId       the key id
-     * @param memberId    the member id
-     * @param subjectName the sbject name
-     * @param keyUsage    the key usage
+     * @param externalKeyId the key id
+     * @param memberId      the member id
+     * @param subjectName   the sbject name
+     * @param keyUsage      the key usage
      * @return certificate id
      */
     public String addCertRequest(String externalKeyId,
@@ -309,7 +308,7 @@ public class CertManager {
         } catch (CodedException signerException) {
             throw signerException;
         } catch (Exception e) {
-            throw new SignerException(X_INTERNAL_ERROR, "Failed to update key usage for key " + key.externalId(), e);
+            throw XrdRuntimeException.systemInternalError("Failed to update key usage for key " + key.externalId(), e);
         }
     }
 
@@ -341,7 +340,7 @@ public class CertManager {
         } catch (CodedException signerException) {
             throw signerException;
         } catch (Exception e) {
-            throw new SignerException(X_INTERNAL_ERROR, "Failed to add certificate request for key " + key.externalId(), e);
+            throw XrdRuntimeException.systemInternalError("Failed to add certificate request for key " + key.externalId(), e);
         }
     }
 
@@ -365,7 +364,7 @@ public class CertManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to remove certificate request " + certReqId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to remove certificate request " + certReqId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -374,7 +373,7 @@ public class CertManager {
 
     private void assertIsNotTransient(RuntimeCert cert) {
         if (cert.isTransientCert()) {
-            throw new SignerException(X_INTERNAL_ERROR, "Operation not allowed for transient cert " + cert.externalId());
+            throw XrdRuntimeException.systemInternalError("Operation not allowed for transient cert " + cert.externalId());
         }
     }
 }

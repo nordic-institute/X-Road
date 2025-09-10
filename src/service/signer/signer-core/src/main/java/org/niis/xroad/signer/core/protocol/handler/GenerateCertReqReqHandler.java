@@ -30,6 +30,7 @@ import ee.ria.xroad.common.CodedException;
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
@@ -57,7 +58,9 @@ public class GenerateCertReqReqHandler extends AbstractRpcHandler<GenerateCertRe
     private final CertManager certManager;
 
     @Override
-    protected GenerateCertRequestResp handle(GenerateCertRequestReq request) throws Exception {
+    @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
+    protected GenerateCertRequestResp handle(GenerateCertRequestReq request) {
         TokenAndKey tokenAndKey = tokenLookup.findTokenAndKey(request.getKeyId());
 
         if (!tokenLookup.isKeyAvailable(tokenAndKey.getKeyId())) {

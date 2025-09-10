@@ -49,7 +49,7 @@ public class GetMemberCertsReqHandler extends AbstractRpcHandler<GetMemberCertsR
     private final TokenLookup tokenLookup;
 
     @Override
-    protected GetMemberCertsResp handle(GetMemberCertsReq request) throws Exception {
+    protected GetMemberCertsResp handle(GetMemberCertsReq request) {
         final var memberId = ClientIdMapper.fromDto(request.getMemberId());
         List<CertificateInfoProto> memberCerts = tokenLookup.listTokens().stream()
                 .flatMap(t -> t.getKeyInfo().stream())

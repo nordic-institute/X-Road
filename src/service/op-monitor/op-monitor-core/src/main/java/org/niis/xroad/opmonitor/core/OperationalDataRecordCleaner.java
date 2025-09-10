@@ -84,12 +84,12 @@ public final class OperationalDataRecordCleaner {
         }
     }
 
-    private void handleCleanup() throws Exception {
+    private void handleCleanup() {
         cleanRecords(
                 TimeUtils.now().minus(opMonitorProperties.keepRecordsForDays(), ChronoUnit.DAYS));
     }
 
-    int cleanRecords(Instant before) throws Exception {
+    int cleanRecords(Instant before) {
         log.trace("cleanRecords({})", before);
 
         return databaseCtx.doInTransaction(session -> {

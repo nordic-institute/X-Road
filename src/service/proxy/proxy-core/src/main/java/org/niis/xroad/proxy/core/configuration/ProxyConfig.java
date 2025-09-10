@@ -32,6 +32,7 @@ import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
@@ -58,6 +59,7 @@ public class ProxyConfig {
 
         @Startup
         @ApplicationScoped
+        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
         public OpMonitoringBuffer opMonitoringBuffer(ProxyProperties.ProxyAddonProperties addonProperties,
                                                      OpMonitorCommonProperties opMonitorCommonProperties,
                                                      ServerConfProvider serverConfProvider,

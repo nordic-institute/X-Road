@@ -46,7 +46,7 @@ public class GetCertificateInfoForHashReqHandler extends AbstractRpcHandler<GetC
     private final TokenLookup tokenLookup;
 
     @Override
-    protected GetCertificateInfoResp handle(GetCertificateInfoForHashReq request) throws Exception {
+    protected GetCertificateInfoResp handle(GetCertificateInfoForHashReq request) {
         CertificateInfo certificateInfo = tokenLookup.getCertificateInfoForCertHash(request.getCertHash());
 
         if (certificateInfo == null) {

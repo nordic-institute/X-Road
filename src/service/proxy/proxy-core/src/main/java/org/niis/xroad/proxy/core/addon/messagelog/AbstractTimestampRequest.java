@@ -37,6 +37,7 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
 
@@ -52,6 +53,7 @@ import static org.niis.xroad.proxy.core.addon.messagelog.TimestamperUtil.getTime
 
 @Slf4j
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public abstract class AbstractTimestampRequest {
     protected final GlobalConfProvider globalConfProvider;
     protected final Long[] logRecords;

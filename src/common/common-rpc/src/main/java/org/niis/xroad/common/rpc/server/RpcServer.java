@@ -74,7 +74,7 @@ public class RpcServer {
         log.info("RPC server has started, listening on {}", server.getListenSockets());
     }
 
-    public void destroy() throws Exception {
+    public void destroy() throws InterruptedException {
         if (server != null) {
             log.info("Shutting down RPC server..");
             server.shutdown();

@@ -36,7 +36,7 @@ import org.niis.xroad.restapi.exceptions.DeviationCodes;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.niis.xroad.common.core.exception.DeviationBuilder.TRANSLATABLE_PREFIX;
-import static org.niis.xroad.common.core.exception.ErrorCodes.TOKEN_WEAK_PIN;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_WEAK_PIN;
 
 /**
  * test token pin validator

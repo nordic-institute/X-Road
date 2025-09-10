@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -51,7 +52,7 @@ public abstract class ManagedRpcServer {
         this.rpcCredentialsConfigurer = rpcCredentialsConfigurer;
     }
 
-    public void init() throws Exception {
+    public void init() throws IOException {
         if (rpcServerProperties.enabled()) {
             rpcServer = createServer();
             rpcServer.init();
@@ -60,7 +61,7 @@ public abstract class ManagedRpcServer {
         }
     }
 
-    public void destroy() throws Exception {
+    public void destroy() throws InterruptedException {
         if (rpcServer != null) {
             rpcServer.destroy();
         }

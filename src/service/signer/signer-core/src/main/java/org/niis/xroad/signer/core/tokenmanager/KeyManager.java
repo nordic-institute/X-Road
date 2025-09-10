@@ -32,11 +32,9 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.service.TokenKeyWriteService;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 @Slf4j
 @ApplicationScoped
@@ -65,7 +63,7 @@ public class KeyManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, e);
+                throw XrdRuntimeException.systemInternalError("Failed to add key " + keyId + " to token " + tokenId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -92,7 +90,7 @@ public class KeyManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, e);
+                throw XrdRuntimeException.systemInternalError("Failed to add key " + keyId + " to token " + tokenId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -130,7 +128,7 @@ public class KeyManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to update friendly name for key " + keyId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to update friendly name for key " + keyId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -154,7 +152,7 @@ public class KeyManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to update key label for key " + keyId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to update key label for key " + keyId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -177,7 +175,7 @@ public class KeyManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to update key usage for key " + keyId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to update key usage for key " + keyId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -201,7 +199,7 @@ public class KeyManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to delete key " + keyId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to delete key " + keyId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -226,7 +224,7 @@ public class KeyManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to update public key for key " + keyId, e);
+                throw XrdRuntimeException.systemInternalError("Failed to update public key for key " + keyId, e);
             } finally {
                 ctx.invalidateCache();
             }
