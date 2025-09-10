@@ -120,16 +120,16 @@ Both services use nginx as a proxy to redirect the requests to listened ports:
 ## 7. About the ACME services
 
 ACME services are provided by acme2certifier which is a python app served on `port 8887` over nginx and uwsgi.  
-For external account binding to work the kid and hmac have to match in acme2certifier's `kid_profiles.json` and Security Server's `acme.yml` files.  
+For external account binding to work the kid and hmac have to match in acme2certifier's `kid_profiles.json` and Security Server's Acme configuration (property `xroad.acme`).  
 It uses `extensions_auth` and `extensions_sign` blocks in `CA.cnf` file when creating authentication and signing certificates respectively.  
 There are two methods to let the ACME server know which type of certificate to return using profile id-s:
 - profile id in `HTTP_USER_AGENT` header. To use this, 
   - put `eab_profiling: False` in `acme_srv.cfg` 
-  - use `keyid_1` in security server's `acme.yml` 
+  - use `keyid_1` in security server's Acme configuration (`xroad.acme`) 
   - in Central Server for the `Test CA` set `Authentication certificate profile id` to `auth` and `Signing certificate profile id` to `sign`.
 - profile id in external account binding `kid_profiles.json` file. To use this, 
   - put `eab_profiling: True` in `acme_srv.cfg` 
-  - use `keyid_2` and `keyid_3` in security server's `acme.yml`
+  - use `keyid_2` and `keyid_3` in security server's Acme configuration (`xroad.acme`)
   - unset `Authentication certificate profile id` and `Signing certificate profile id` in Central Server `Test CA` configuration, if they are set.
 
 The profile id-s in `kid_profiles.json` or in `Test CA` configuration in Central Server have to match the suffix of `extensions_[suffix]`. So if you want to play around with your own profiles you could add, for example, `[extensions_my-profile]` in the Test CA `CA.cnf` file. Then in `kid_profiles.json` and in `Test CA` configuration the profile id would have to be `my-profile`.
