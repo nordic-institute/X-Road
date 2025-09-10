@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpStatus;
@@ -44,6 +45,7 @@ import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -64,19 +66,18 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints.STORE_DAT
  * Query handler for operational data and health data requests.
  */
 @Slf4j
+@RequiredArgsConstructor
 class OpMonitorDaemonRequestHandler extends HandlerBase {
 
     private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
 
     private static final byte[] OK_RESPONSE_BYTES = getOkResponseBytes();
 
+    private final OpMonitorProperties opMonitorProperties;
     private final GlobalConfProvider globalConfProvider;
     private final MetricRegistry healthMetricRegistry;
-
-    OpMonitorDaemonRequestHandler(GlobalConfProvider globalConfProvider, MetricRegistry healthMetricRegistry) {
-        this.globalConfProvider = globalConfProvider;
-        this.healthMetricRegistry = healthMetricRegistry;
-    }
+    private final OperationalDataRecordManager operationalDataRecordManager;
+    private final HealthDataMetrics healthDataMetrics;
 
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws IOException {
@@ -118,7 +119,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
             log.info("Received query request from {}", getRemoteAddr(request));
 
             new QueryRequestProcessor(globalConfProvider, RequestWrapper.of(request), ResponseWrapper.of(response),
-                    healthMetricRegistry).process();
+                    healthMetricRegistry, operationalDataRecordManager, opMonitorProperties).process();
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling query request", t);
 
@@ -148,7 +149,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
             log.info("Received store request from {}", getRemoteAddr(request));
 
             new StoreRequestProcessor(
-                    RequestWrapper.of(request), healthMetricRegistry).process();
+                    RequestWrapper.of(request), healthMetricRegistry, healthDataMetrics, operationalDataRecordManager).process();
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling data store request", t);
 

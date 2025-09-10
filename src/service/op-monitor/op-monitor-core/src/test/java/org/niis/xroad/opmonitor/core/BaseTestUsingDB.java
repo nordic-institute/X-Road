@@ -26,6 +26,12 @@
 package org.niis.xroad.opmonitor.core;
 
 import org.junit.BeforeClass;
+import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.opmonitor.core.config.OpMonitorDbProperties;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
+import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
+
+import java.util.Map;
 
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.prepareDatabase;
 
@@ -33,16 +39,34 @@ import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.prepareDatab
  * Base class for tests using database.
  */
 public class BaseTestUsingDB {
+    protected static final Map<String, String> HIBERNATE_PROPERTIES = Map.of(
+            "xroad.db.op-monitor.hibernate.jdbc.batch_size", "100",
+            "xroad.db.op-monitor.hibernate.dialect", "org.hibernate.dialect.HSQLDialect",
+            "xroad.db.op-monitor.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
+            "xroad.db.op-monitor.hibernate.connection.url", "jdbc:hsqldb:mem:op-monitor;hsqldb.sqllog=3",
+            "xroad.db.op-monitor.hibernate.connection.username", "opmonitor",
+            "xroad.db.op-monitor.hibernate.connection.password", "opmonitor",
+            "xroad.db.op-monitor.hibernate.hbm2ddl.auto", "create-drop"
+    );
+
+    private static final OpMonitorDbProperties OP_MONITOR_DB_PROPERTIES = ConfigUtils.initConfiguration(OpMonitorDbProperties.class,
+            HIBERNATE_PROPERTIES);
+    protected static final OpMonitorProperties OP_MONITOR_PROPERTIES = ConfigUtils.defaultConfiguration(OpMonitorProperties.class);
+    protected static final OpMonitorDatabaseCtx DATABASE_CTX = new OpMonitorDatabaseCtx(OP_MONITOR_DB_PROPERTIES);
+
+    protected OperationalDataRecordManager operationalDataRecordManager =
+            new OperationalDataRecordManager(DATABASE_CTX, OP_MONITOR_PROPERTIES);
 
     protected BaseTestUsingDB() {
     }
 
     /**
      * Prepares the testing database.
+     *
      * @throws Exception if an error occurs.
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        prepareDatabase();
+        prepareDatabase(DATABASE_CTX);
     }
 }

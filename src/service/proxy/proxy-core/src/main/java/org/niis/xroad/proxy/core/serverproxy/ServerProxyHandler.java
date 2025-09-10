@@ -32,6 +32,8 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
@@ -39,7 +41,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.proxy.core.util.PerformanceLogger;
@@ -56,20 +58,16 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.PRODUCER;
 
 @Slf4j
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class ServerProxyHandler extends HandlerBase {
     private final CommonBeanProxy commonBeanProxy;
-
+    private final ProxyProperties.ServerProperties serverProperties;
     private final HttpClient client;
     private final HttpClient opMonitorClient;
     private final ClientProxyVersionVerifier clientProxyVersionVerifier;
+    private final ServiceHandlerLoader serviceHandlerLoader;
 
-    ServerProxyHandler(CommonBeanProxy commonBeanProxy, HttpClient client, HttpClient opMonitorClient,
-                       ClientProxyVersionVerifier clientProxyVersionVerifier) {
-        this.commonBeanProxy = commonBeanProxy;
-        this.client = client;
-        this.opMonitorClient = opMonitorClient;
-        this.clientProxyVersionVerifier = clientProxyVersionVerifier;
-    }
+    private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
 
     @Override
     @WithSpan
@@ -79,7 +77,7 @@ class ServerProxyHandler extends HandlerBase {
 
         long start = PerformanceLogger.log(log, "Received request from " + getRemoteAddr(request));
 
-        if (!SystemProperties.isServerProxySupportClientsPooledConnections()) {
+        if (!serverProperties.serverSupportClientsPooledConnections()) {
             // if the header is added, the connections are closed and cannot be reused on the client side
             response.getHeaders().add("Connection", "close");
         }
@@ -90,7 +88,7 @@ class ServerProxyHandler extends HandlerBase {
                         request.getMethod());
             }
 
-            commonBeanProxy.globalConfProvider.verifyValidity();
+            commonBeanProxy.getGlobalConfProvider().verifyValidity();
 
             clientProxyVersionVerifier.check(request);
             final MessageProcessorBase processor = createRequestProcessor(RequestWrapper.of(request),
@@ -109,7 +107,7 @@ class ServerProxyHandler extends HandlerBase {
             callback.succeeded();
 
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
-            OpMonitoring.store(opMonitoringData);
+            commonBeanProxy.getOpMonitoringBuffer().store(opMonitoringData);
 
             PerformanceLogger.log(log, start, "Request handled");
         }
@@ -123,12 +121,12 @@ class ServerProxyHandler extends HandlerBase {
             return new ServerRestMessageProcessor(commonBeanProxy,
                     request, response, client, request.getPeerCertificates()
                     .orElse(null),
-                    opMonitoringData);
+                    opMonitoringData, serviceHandlerLoader);
         } else {
             return new ServerMessageProcessor(commonBeanProxy,
                     request, response, client, request.getPeerCertificates()
                     .orElse(null),
-                    opMonitorClient, opMonitoringData);
+                    opMonitorClient, opMonitoringData, serviceHandlerLoader);
         }
     }
 

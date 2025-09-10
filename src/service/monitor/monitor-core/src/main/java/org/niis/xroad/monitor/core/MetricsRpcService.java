@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.monitor.core;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
@@ -36,6 +34,8 @@ import com.codahale.metrics.Snapshot;
 import com.google.common.collect.Lists;
 import com.google.protobuf.util.Timestamps;
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.common.HistogramMetrics;
 import org.niis.xroad.monitor.common.Metrics;
@@ -55,6 +55,8 @@ import java.util.Map;
  * Actor for providing system metrics data
  */
 @Slf4j
+@RequiredArgsConstructor
+@ApplicationScoped
 public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase {
     private static final List<String> PACKAGE_OR_CERTIFICATE_METRIC_NAMES = Lists.newArrayList(
             SystemMetricNames.PROCESSES,
@@ -66,6 +68,8 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
             SystemMetricNames.CERTIFICATES,
             SystemMetricNames.CERTIFICATES_STRINGS
     );
+
+    private final EnvMonitorProperties envMonitorProperties;
 
     /**
      * Two phase filter for checking user requested metric names and additional chained filter for
@@ -122,7 +126,7 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
 
         collectMetrics(responseBuilder, metrics, req.getMetricNamesList(), req.getIsClientOwner());
 
-        if (req.getIsClientOwner() || !SystemProperties.getEnvMonitorLimitRemoteDataSet()) {
+        if (req.getIsClientOwner() || !envMonitorProperties.limitRemoteDataSet()) {
             collectOwnerMetrics(responseBuilder, metrics, req.getMetricNamesList());
         }
 
@@ -176,7 +180,7 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
     }
 
     private boolean filterPackageOrCertifates(boolean isOwner, String name) {
-        if (isOwner || !SystemProperties.getEnvMonitorLimitRemoteDataSet()) {
+        if (isOwner || !envMonitorProperties.limitRemoteDataSet()) {
             return !PACKAGE_OR_CERTIFICATE_METRIC_NAMES.contains(name);
         } else {
             return name.equals("OperatingSystem");

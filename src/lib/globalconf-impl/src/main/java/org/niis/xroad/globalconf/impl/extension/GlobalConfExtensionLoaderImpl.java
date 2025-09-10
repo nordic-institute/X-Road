@@ -31,9 +31,12 @@ import jakarta.xml.bind.JAXBException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.FileSource;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.dto.InMemoryFile;
 import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
+import org.niis.xroad.globalconf.impl.RemoteGlobalConfSource;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -84,9 +87,12 @@ public class GlobalConfExtensionLoaderImpl<T extends AbstractXmlConf<?>> {
         try {
             if (reference == null) {
                 var source = globalConfSource.getFile(extensionFileName);
-                if (source instanceof FileSystemGlobalConfSource.FileSystemFileSource fsSource) {
-                    loadFromFS(fsSource);
+                switch (source) {
+                    case FileSystemGlobalConfSource.FileSystemFileSource fsSource -> loadFromFS(fsSource);
+                    case RemoteGlobalConfSource.GlobalConfFileSource remoteSource -> loadFromRemote(remoteSource);
+                    default -> throw new IllegalStateException("Unknown source type: " + source.getClass());
                 }
+                log.trace("Parameters were loaded, value: {}", reference);
             }
         } finally {
             lock.unlock();
@@ -96,14 +102,23 @@ public class GlobalConfExtensionLoaderImpl<T extends AbstractXmlConf<?>> {
     private void loadFromFS(FileSystemGlobalConfSource.FileSystemFileSource fsSource)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException,
             JAXBException, IOException, OperatorCreationException {
-        if (fsSource.getExistingPath().isPresent()) {
-            log.trace("Loading private parameters from {}", fsSource.getExistingPath().get());
+        if (fsSource.getFile().isPresent()) {
+            log.trace("Loading GlobalConfExtension from FS path {}", fsSource.getFile().get());
             reference = extensionClass.getDeclaredConstructor().newInstance();
-            reference.load(fsSource.getExistingPath().get().toString());
-            log.trace("Parameters were loaded, value: {}", reference);
+            reference.load(fsSource.getFile().get().toString());
         } else {
-            log.trace("Not loading ocsp fetch interval from {}, file does not exist", fsSource);
+            log.trace("Extension {}, file does not exist in FS", fsSource);
         }
     }
 
+    private void loadFromRemote(FileSource<InMemoryFile> remoteSource)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        if (remoteSource.getFile().isPresent()) {
+            log.trace("Loading GlobalConfExtension from Remote");
+            reference = extensionClass.getDeclaredConstructor().newInstance();
+            reference.load(remoteSource);
+        } else {
+            log.trace("Extension {}, file does not exist in remote source", remoteSource);
+        }
+    }
 }

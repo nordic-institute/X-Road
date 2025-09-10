@@ -26,14 +26,9 @@
 package org.niis.xroad.keyconf.impl;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.EncoderUtils;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPException;
@@ -46,11 +41,8 @@ import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
-import java.io.File;
-import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -58,25 +50,48 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
+import static ee.ria.xroad.common.util.CertUtils.getHashes;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+
 /**
  * Encapsulates KeyConf related functionality.
  */
 @Slf4j
-@RequiredArgsConstructor
 @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class KeyConfImpl implements KeyConfProvider {
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;
     protected final SignerRpcClient signerRpcClient;
 
+    KeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
+        this.globalConfProvider = globalConfProvider;
+        this.serverConfProvider = serverConfProvider;
+        this.signerRpcClient = signerRpcClient;
+    }
+
     @Override
     public SigningInfo getSigningInfo(ClientId clientId) {
-        log.debug("Retrieving signing info for member '{}'", clientId);
+        return createSigningInfo(clientId);
+    }
 
+    public SigningInfo createSigningInfo(ClientId clientId) {
+        log.debug("Retrieving signing info for member '{}'", clientId);
         try {
-            return createSigningInfo(clientId);
+            SignerRpcClient.MemberSigningInfoDto signingInfo = signerRpcClient.getMemberSigningInfo(clientId);
+            X509Certificate cert = readCertificate(signingInfo.cert().getCertificateBytes());
+            OCSPResp ocsp = new OCSPResp(signingInfo.cert().getOcspBytes());
+
+            //Signer already checks the validity of the signing certificate. Just record the bounds
+            //the certificate and ocsp response is valid for.
+            Date notAfter = calculateNotAfter(Collections.singletonList(ocsp), cert.getNotAfter());
+            return new SigningInfo(signingInfo.keyId(), signingInfo.signMechanismName(), clientId, cert, new Date(),
+                    notAfter);
         } catch (Exception e) {
-            throw new CodedException(ErrorCodes.X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
+            throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
                     clientId, e);
         }
     }
@@ -90,15 +105,15 @@ class KeyConfImpl implements KeyConfProvider {
             log.debug("Retrieving authentication info for security "
                     + "server '{}'", serverId);
 
-            AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
+            var keyInfo = signerRpcClient.getAuthKey(serverId);
 
-            pkey = loadAuthPrivateKey(keyInfo);
+            pkey = keyInfo.key();
             if (pkey == null) {
                 log.warn("Failed to read authentication key");
             }
 
             certChain = getAuthCertChain(serverId.getXRoadInstance(),
-                    keyInfo.getCert().getCertificateBytes());
+                    keyInfo.cert().getCertificateBytes());
             if (certChain == null) {
                 log.warn("Failed to read authentication certificate");
             }
@@ -111,7 +126,7 @@ class KeyConfImpl implements KeyConfProvider {
 
     @Override
     public OCSPResp getOcspResponse(X509Certificate cert) throws Exception {
-        return getOcspResponse(CryptoUtils.calculateCertSha1HexHash(cert));
+        return getOcspResponse(calculateCertHexHash(cert));
     }
 
     @Override
@@ -120,7 +135,7 @@ class KeyConfImpl implements KeyConfProvider {
 
         for (String base64Encoded : responses) {
             return base64Encoded != null
-                    ? new OCSPResp(EncoderUtils.decodeBase64(base64Encoded)) : null;
+                    ? new OCSPResp(decodeBase64(base64Encoded)) : null;
         }
 
         return null;
@@ -129,12 +144,12 @@ class KeyConfImpl implements KeyConfProvider {
     @Override
     public List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
             throws Exception {
-        String[] responses = signerRpcClient.getOcspResponses(CertUtils.getSha1Hashes(certs));
+        String[] responses = signerRpcClient.getOcspResponses(getHashes(certs));
 
         List<OCSPResp> ocspResponses = new ArrayList<>();
         for (String base64Encoded : responses) {
             if (base64Encoded != null) {
-                ocspResponses.add(new OCSPResp(EncoderUtils.decodeBase64(base64Encoded)));
+                ocspResponses.add(new OCSPResp(decodeBase64(base64Encoded)));
             } else {
                 ocspResponses.add(null);
             }
@@ -150,24 +165,22 @@ class KeyConfImpl implements KeyConfProvider {
 
         for (int i = 0; i < responses.size(); i++) {
             base64EncodedResponses[i] =
-                    EncoderUtils.encodeBase64(responses.get(i).getEncoded());
+                    encodeBase64(responses.get(i).getEncoded());
         }
 
-        signerRpcClient.setOcspResponses(CertUtils.getSha1Hashes(certs), base64EncodedResponses);
+        signerRpcClient.setOcspResponses(getHashes(certs), base64EncodedResponses);
     }
 
-    protected SigningInfo createSigningInfo(ClientId clientId) throws Exception {
-        log.debug("Retrieving signing info for member '{}'", clientId);
+    CertChain getAuthCertChain(String instanceIdentifier,
+                               byte[] authCertBytes) {
+        X509Certificate authCert = readCertificate(authCertBytes);
+        try {
+            return globalConfProvider.getCertChain(instanceIdentifier, authCert);
+        } catch (Exception e) {
+            log.error("Failed to get cert chain for certificate {}", authCert.getSubjectX500Principal(), e);
+        }
 
-        SignerRpcClient.MemberSigningInfoDto signingInfo = signerRpcClient.getMemberSigningInfo(clientId);
-        X509Certificate cert = CryptoUtils.readCertificate(signingInfo.cert().getCertificateBytes());
-        OCSPResp ocsp = new OCSPResp(signingInfo.cert().getOcspBytes());
-
-        //Signer already checks the validity of the signing certificate. Just record the bounds
-        //the certificate and ocsp response is valid for.
-        Date notAfter = calculateNotAfter(Collections.singletonList(ocsp), cert.getNotAfter());
-        return new SigningInfo(signingInfo.keyId(), signingInfo.signMechanismName(), clientId, cert, new Date(),
-                notAfter);
+        return null;
     }
 
     /*
@@ -192,33 +205,5 @@ class KeyConfImpl implements KeyConfProvider {
             }
         }
         return notAfter;
-    }
-
-    CertChain getAuthCertChain(String instanceIdentifier,
-                               byte[] authCertBytes) {
-        X509Certificate authCert = CryptoUtils.readCertificate(authCertBytes);
-        try {
-            return globalConfProvider.getCertChain(instanceIdentifier, authCert);
-        } catch (Exception e) {
-            log.error("Failed to get cert chain for certificate {}", authCert.getSubjectX500Principal(), e);
-        }
-
-        return null;
-    }
-
-    static PrivateKey loadAuthPrivateKey(AuthKeyInfo keyInfo) throws Exception {
-        File keyStoreFile = new File(keyInfo.getKeyStoreFileName());
-        log.trace("Loading authentication key from key store '{}'",
-                keyStoreFile);
-
-        KeyStore ks = CryptoUtils.loadPkcs12KeyStore(keyStoreFile, keyInfo.getPassword());
-
-        PrivateKey privateKey = (PrivateKey) ks.getKey(keyInfo.getAlias(),
-                keyInfo.getPassword());
-        if (privateKey == null) {
-            log.warn("Failed to read authentication key");
-        }
-
-        return privateKey;
     }
 }

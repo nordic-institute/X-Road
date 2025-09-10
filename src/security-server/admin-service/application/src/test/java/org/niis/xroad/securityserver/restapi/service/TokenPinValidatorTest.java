@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.util.TokenPinPolicy;
+import ee.ria.xroad.common.util.PasswordPolicy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -65,9 +65,9 @@ public class TokenPinValidatorTest {
         );
         DeviationTestUtils.assertErrorWithMetadata(
                 TOKEN_WEAK_PIN.code(), exception, DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH,
-                String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
+                String.valueOf(PasswordPolicy.MIN_PASSWORD_LENGTH),
                 DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
-                String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
+                String.valueOf(PasswordPolicy.MIN_CHARACTER_CLASS_COUNT));
     }
 
     @Test

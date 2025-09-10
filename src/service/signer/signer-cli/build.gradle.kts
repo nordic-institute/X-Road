@@ -1,45 +1,25 @@
 plugins {
   id("xroad.java-conventions")
-  id("xroad.java-exec-conventions")
-  alias(libs.plugins.shadow)
+  id("xroad.quarkus-application-conventions")
 }
 
 dependencies {
+  implementation(platform(libs.quarkus.bom))
+
   implementation(libs.commons.cli)
   implementation(libs.cliche)
 
+  implementation(libs.bundles.quarkus.core)
+
   implementation(project(":common:common-domain"))
   implementation(project(":service:signer:signer-client"))
-}
+  implementation(project(":lib:bootstrap-quarkus"))
+  implementation(project(":common:common-rpc-quarkus"))
 
-val mainClassName = "org.niis.xroad.signer.cli.SignerCLI"
-
-tasks.jar {
-  manifest {
-    attributes("Main-Class" to mainClassName)
-  }
-}
-
-tasks.shadowJar {
-  archiveBaseName.set("signer-console")
-  archiveClassifier.set("")
-  exclude("**/module-info.class")
-  exclude("asg/cliche/example/**")
-  from(rootProject.file("LICENSE.txt"))
-  mergeServiceFiles()
+  testImplementation(libs.quarkus.junit5)
+  testImplementation(libs.mockito.jupiter)
 }
 
 tasks.jar {
   enabled = false
-}
-
-tasks.build {
-  dependsOn(tasks.shadowJar)
-}
-
-tasks.register<JavaExec>("runSignerConsole") {
-  jvmArgs("-Djava.library.path=../passwordstore")
-  mainClass.set("org.niis.xroad.signer.cli.SignerCLI")
-  classpath = sourceSets.test.get().runtimeClasspath
-  standardInput = System.`in`
 }

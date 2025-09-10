@@ -41,6 +41,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
+import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 
@@ -73,7 +75,7 @@ import static org.junit.Assert.assertTrue;
  * Tests the global configuration functionality.
  */
 public class GlobalConfTest {
-    private static final String GOOD_CONF_DIR = "../globalconf-core/src/test/resources/globalconf_good_v2";
+    private static final String GOOD_CONF_DIR = "../globalconf-core/src/test/resources/globalconf_good_v4";
     private static final Path GOOD_CONF_FILES = Paths.get(GOOD_CONF_DIR, "files");
 
     @Rule
@@ -91,8 +93,8 @@ public class GlobalConfTest {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, GOOD_CONF_DIR);
 
         createConfigurationFiles();
-
-        globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(getConfigurationPath()));
+        var source = new FileSystemGlobalConfSource(getConfigurationPath());
+        globalConfProvider = new GlobalConfImpl(source, new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
     }
 
     private static void createConfigurationFiles() throws IOException {
@@ -135,7 +137,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getInstanceIdentifiers() {
-        assertTrue(Arrays.asList("EE", "bar", "foo").containsAll(globalConfProvider.getInstanceIdentifiers()));
+        assertTrue(Arrays.asList("EE", "bar", "baz_v3", "foo_v2").containsAll(globalConfProvider.getInstanceIdentifiers()));
     }
 
     /**
@@ -249,7 +251,7 @@ public class GlobalConfTest {
             assertNotNull("Got null certificate", cert);
         }
 
-        assertEquals(12, ocspResponderCerts.size());
+        assertEquals(18, ocspResponderCerts.size());
     }
 
     /**
@@ -361,7 +363,7 @@ public class GlobalConfTest {
     public void getVerificationCaCerts() {
         List<X509Certificate> certs = globalConfProvider.getVerificationCaCerts();
 
-        assertEquals(4, certs.size());
+        assertEquals(6, certs.size());
     }
 
     /**
@@ -388,7 +390,7 @@ public class GlobalConfTest {
     public void getTspCerts() throws Exception {
         List<X509Certificate> tspCertificates = globalConfProvider.getTspCertificates();
 
-        assertEquals(3, tspCertificates.size());
+        assertEquals(4, tspCertificates.size());
     }
 
     /**
@@ -463,14 +465,14 @@ public class GlobalConfTest {
 
     @Test
     public void getClientSecurityServers() {
-       SecurityServerId server1 = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "producerServerCode");
-       SecurityServerId server3 = SecurityServerId.Conf.create("EE", "BUSINESS", "foo", "fooServerCode");
-       SecurityServerId server4 = SecurityServerId.Conf.create("EE", "BUSINESS", "foo", "FooBarServerCode");
+        SecurityServerId server1 = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "producerServerCode");
+        SecurityServerId server3 = SecurityServerId.Conf.create("EE", "BUSINESS", "foo", "fooServerCode");
+        SecurityServerId server4 = SecurityServerId.Conf.create("EE", "BUSINESS", "foo", "FooBarServerCode");
 
-       Set<SecurityServerId> securityServers = globalConfProvider.getClientSecurityServers(newClientId("foo"));
+        Set<SecurityServerId> securityServers = globalConfProvider.getClientSecurityServers(newClientId("foo"));
 
-       assertThat(securityServers).containsExactlyInAnyOrder(server1, server3, server4);
-   }
+        assertThat(securityServers).containsExactlyInAnyOrder(server1, server3, server4);
+    }
 
     private static ClientId newClientId(String name) {
         return ClientId.Conf.create("EE", "BUSINESS", name);

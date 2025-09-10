@@ -13,8 +13,8 @@ License:            MIT
 Requires:           xroad-proxy = %version-%release
 Requires:           xroad-proxy-ui-api = %version-%release
 Requires:           xroad-addon-messagelog = %version-%release
-Requires:           xroad-addon-metaservices = %version-%release
-Requires:           xroad-addon-proxymonitor = %version-%release
+Requires:           xroad-monitor = %version-%release
+Requires:           xroad-backup-manager = %version-%release
 Requires:           xroad-addon-wsdlvalidator = %version-%release
 Conflicts:          xroad-centralserver
 

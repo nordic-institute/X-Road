@@ -30,8 +30,13 @@ import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
+import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +52,7 @@ public final class ConfProxyMain {
 
     private static final String APP_NAME = "xroad-confproxy";
     private static SignerRpcClient signerRpcClient;
+    private static SignerSignClient signerSignClient;
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
@@ -83,13 +89,46 @@ public final class ConfProxyMain {
      *
      * @throws Exception if initialization fails
      */
+    @Deprecated
     private static void setup() throws Exception {
         log.trace("startup()");
 
         Version.outputVersionInfo(APP_NAME);
+        var factory = new RpcChannelFactory(new InsecureRpcCredentialsConfigurer());
+        signerRpcClient = new SignerRpcClient(factory, new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return DEFAULT_HOST;
+            }
 
-        signerRpcClient = new SignerRpcClient();
+            @Override
+            public int port() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+        });
         signerRpcClient.init();
+
+        signerSignClient = new SignerSignRpcClient(factory, new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return DEFAULT_HOST;
+            }
+
+            @Override
+            public int port() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+        });
     }
 
     /**
@@ -111,7 +150,7 @@ public final class ConfProxyMain {
 
         for (String instance : instances) {
             try {
-                ConfProxy proxy = new ConfProxy(signerRpcClient, instance);
+                ConfProxy proxy = new ConfProxy(signerRpcClient, signerSignClient, instance);
                 log.info("ConfProxy executing for instance {}", instance);
                 proxy.execute();
             } catch (Exception ex) {
@@ -124,8 +163,8 @@ public final class ConfProxyMain {
     /**
      * Shutdown configuration proxy components.
      */
-    private static void shutdown() {
+    private static void shutdown() throws Exception {
         log.trace("shutdown()");
-        signerRpcClient.destroy();
+        signerRpcClient.close();
     }
 }

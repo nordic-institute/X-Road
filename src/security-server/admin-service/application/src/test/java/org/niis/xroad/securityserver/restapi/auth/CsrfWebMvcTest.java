@@ -32,17 +32,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
-import org.niis.xroad.restapi.auth.PamAuthenticationProvider;
 import org.niis.xroad.restapi.auth.securityconfigurer.CookieAndSessionCsrfTokenRepository;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.openapi.model.User;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -50,6 +54,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -62,6 +68,7 @@ import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig.FORM_LOGIN_AUTHENTICATION;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
@@ -70,7 +77,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
+@AutoConfigureTestDatabase
 @Slf4j
+@ActiveProfiles("test")
 public class CsrfWebMvcTest {
     public static final String XSRF_HEADER = "X-XSRF-TOKEN";
     public static final String XSRF_COOKIE = "XSRF-TOKEN";
@@ -88,11 +97,20 @@ public class CsrfWebMvcTest {
     private GrantedAuthorityMapper grantedAuthorityMapper;
 
     @MockitoSpyBean
-    @Qualifier(PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION)
-    private PamAuthenticationProvider pamAuthenticationProvider;
+    @Qualifier(FORM_LOGIN_AUTHENTICATION)
+    private AuthenticationProvider pamAuthenticationProvider;
 
     @MockitoSpyBean
     private ApiKeyAuthenticationManager apiKeyAuthenticationManager;
+
+    @MockitoBean
+    private ConfClientRpcClient confClientRpcClient;
+
+    @MockitoBean
+    private ProxyRpcClient proxyRpcClient;
+
+    @MockitoBean
+    ServerConfDatabaseCtx databaseCtx;
 
     @Before
     // setup mock auth in the SecurityContext and mock both auth providers (form login and api-key)

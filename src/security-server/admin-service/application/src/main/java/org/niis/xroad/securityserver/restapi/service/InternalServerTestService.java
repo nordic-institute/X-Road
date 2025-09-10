@@ -60,6 +60,7 @@ import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,7 +87,7 @@ public class InternalServerTestService {
     public void testHttpsConnection(
             List<CertificateEntity> trustedCerts, String url)
             throws IOException, UnrecoverableKeyException, CertificateException, KeyStoreException,
-            NoSuchAlgorithmException, KeyManagementException {
+            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
 
         List<X509Certificate> trustedX509Certs = new ArrayList<>();
         for (CertificateEntity trustedCert : trustedCerts) {
@@ -107,7 +108,8 @@ public class InternalServerTestService {
     }
 
     private KeyManager[] createServiceKeyManager()
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
+            InvalidKeySpecException {
         InternalSSLKey key = serverConfProvider.getSSLKey();
 
         if (key != null) {

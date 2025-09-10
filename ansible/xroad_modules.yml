@@ -3,8 +3,7 @@ modules:
   signer:
     dir: signer
     build: build
-    lib: signer-1.0.jar
-    target: /usr/share/xroad/jlib
+    target: /usr/share/xroad/jlib/signer
     hosts: 
       - cp_servers
       - cs_servers
@@ -12,8 +11,7 @@ modules:
   signer-console:
     dir: signer-console
     build: build
-    lib: signer-console-1.0.jar
-    target: /usr/share/xroad/jlib
+    target: /usr/share/xroad/jlib/signer-console
     hosts: 
       - cp_servers
       - cs_servers

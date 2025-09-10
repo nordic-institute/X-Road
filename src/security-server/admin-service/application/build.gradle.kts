@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.jib-conventions")
   alias(libs.plugins.springBoot)
 }
 
@@ -27,17 +28,23 @@ dependencies {
   implementation(platform(libs.springCloud.bom))
 
   implementation(project(":lib:globalconf-spring"))
-  implementation(project(":service:signer:signer-client"))
+  implementation(project(":service:signer:signer-client-spring"))
   implementation(project(":lib:serverconf-spring"))
+  implementation(project(":common:common-rpc-spring"))
   implementation(project(":common:common-acme"))
   implementation(project(":common:common-admin-api"))
   implementation(project(":common:common-management-request"))
   implementation(project(":common:common-api-throttling"))
   implementation(project(":common:common-mail"))
+  implementation(project(":common:common-properties-db-source-spring"))
   implementation(project(":security-server:openapi-model"))
   implementation(project(":service:monitor:monitor-api"))
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:op-monitor:op-monitor-client"))
+  implementation(project(":service:backup-manager:backup-manager-rpc-client"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
+  implementation(project(":service:monitor:monitor-rpc-client"))
+  implementation(project(":service:proxy:proxy-rpc-client"))
 
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-web")
@@ -68,10 +75,17 @@ dependencies {
   testRuntimeOnly(libs.junit.vintageEngine)
 }
 
-tasks.register<ProcessResources>("copyUi") {
+tasks.register<Copy>("copyUi") {
   dependsOn(configurations["dist"])
   from(configurations["dist"])
-  into(layout.buildDirectory.dir("admin-service/ui/public"))
+  into(layout.buildDirectory.dir("resources/main/public"))
+}
+
+tasks.named("resolveMainClassName") {
+  dependsOn(tasks.named("copyUi"))
+}
+tasks.named("compileTestJava") {
+  dependsOn(tasks.named("copyUi"))
 }
 
 tasks.bootRun {
@@ -87,13 +101,6 @@ tasks.jar {
 
 tasks.bootJar {
   enabled = true
-
-  if (!project.hasProperty("skip-frontend-build")) {
-    dependsOn(tasks.named("copyUi"))
-    classpath(layout.buildDirectory.dir("admin-service/ui"))
-  } else {
-    println("Warning: Excluding frontend from boot jar")
-  }
 
   manifest {
     attributes(
@@ -112,6 +119,45 @@ tasks.register<Copy>("copyDeps") {
 
 tasks.assemble {
   dependsOn(tasks.named("copyDeps"))
+  dependsOn(tasks.named("jib"))
+}
+
+tasks.named("jib") {
+  dependsOn("bootJar")
+  dependsOn(":addons:wsdlvalidator:build")
+}
+
+jib {
+  from {
+    image = "${project.property("xroadImageRegistry")}/ss-baseline-runtime"
+  }
+  to {
+    image = "${project.property("xroadImageRegistry")}/ss-proxy-ui-api"
+    tags = setOf("latest")
+  }
+  container {
+    entrypoint = listOf("/bin/bash", "/opt/app/entrypoint.sh")
+    workingDirectory = "/opt/app"
+    user = "xroad"
+  }
+  extraDirectories {
+    paths {
+      path {
+        setFrom(project.file("src/main/jib").toPath())
+        into = "/"
+      }
+      path {
+        setFrom(project(":addons:wsdlvalidator").layout.buildDirectory.dir("libs"))
+        into = "/usr/share/xroad/wsdlvalidator/jlib"
+        includes = listOf("wsdlvalidator-*.jar")
+      }
+    }
+    permissions = mapOf(
+      "/opt/app/scripts/generate_certificate.sh" to "755",
+      "/usr/share/xroad/scripts/generate_gpg_keypair.sh" to "755",
+      "/usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh" to "755"
+    )
+  }
 }
 
 tasks.test {

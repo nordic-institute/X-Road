@@ -36,7 +36,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import java.io.InputStream;
 
 @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-interface ServiceHandler {
+public interface ServiceHandler {
 
     boolean shouldVerifyAccess();
 

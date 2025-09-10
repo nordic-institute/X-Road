@@ -354,6 +354,10 @@ configure | reconfigure)
     chmod 755 /var/lib/xroad/import
     chown xroad:xroad /var/lib/xroad/import
 
+    #create backups folder
+    mkdir -p /var/lib/xroad/backup
+    chown xroad:xroad /var/lib/xroad/backup
+
     # generate gpg keypair when needed - directory does not exist and server is initialised
     if [[ -n "$2" ]]; then
       if [ ! -d /etc/xroad/gpghome ] ; then

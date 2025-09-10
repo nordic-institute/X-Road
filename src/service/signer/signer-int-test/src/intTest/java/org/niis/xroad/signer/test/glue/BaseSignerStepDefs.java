@@ -27,11 +27,13 @@
 
 package org.niis.xroad.signer.test.glue;
 
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.test.SignerClientHolder;
+import org.niis.xroad.signer.test.container.SignerIntTestSetup;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +41,10 @@ import java.util.Map;
 public class BaseSignerStepDefs extends BaseStepDefs {
     private static final String KEY_FRIENDLY_NAME_MAPPING = "tokenFriendlyNameToIdMapping";
 
-    protected SignerRpcClient signerRpcClient = SignerClientHolder.get();
+    @Autowired
+    protected SignerClientHolder clientHolder;
+    @Autowired
+    protected SignerIntTestSetup signerIntTestSetup;
 
     protected Map<String, String> getTokenFriendlyNameToIdMapping() {
         Map<String, String> map = scenarioContext.getStepData(KEY_FRIENDLY_NAME_MAPPING);
@@ -50,15 +55,23 @@ public class BaseSignerStepDefs extends BaseStepDefs {
         return map;
     }
 
-    protected TokenInfo getTokenInfoByFriendlyName(String friendlyName) throws Exception {
-        var tokenInfo = signerRpcClient.getToken(getTokenFriendlyNameToIdMapping().get(friendlyName));
+    protected TokenInfo getTokenInfoByFriendlyName(String friendlyName)  {
+        return getTokenInfoByFriendlyName(friendlyName, NodeProperties.NodeType.PRIMARY);
+    }
+
+    protected TokenInfo getTokenInfoByFriendlyName(String friendlyName, NodeProperties.NodeType nodeType)  {
+        var tokenInfo = clientHolder.get(nodeType).getToken(getTokenFriendlyNameToIdMapping().get(friendlyName));
         testReportService.attachJson("TokenInfo", tokenInfo);
         return tokenInfo;
     }
 
-    protected KeyInfo findKeyInToken(String friendlyName, String keyName) throws Exception {
-        var foundKeyInfo = getTokenInfoByFriendlyName(friendlyName).getKeyInfo().stream()
-                .filter(keyInfo -> keyInfo.getFriendlyName().equals(keyName))
+    protected KeyInfo findKeyInToken(String friendlyName, String keyName) {
+        return findKeyInToken(friendlyName, keyName, NodeProperties.NodeType.PRIMARY);
+    }
+
+    protected KeyInfo findKeyInToken(String friendlyName, String keyName, NodeProperties.NodeType nodeType) {
+        var foundKeyInfo = getTokenInfoByFriendlyName(friendlyName, nodeType).getKeyInfo().stream()
+                .filter(keyInfo -> keyName.equals(keyInfo.getFriendlyName()))
                 .findFirst()
                 .orElseThrow();
         testReportService.attachJson("Key [" + keyName + "]", foundKeyInfo);

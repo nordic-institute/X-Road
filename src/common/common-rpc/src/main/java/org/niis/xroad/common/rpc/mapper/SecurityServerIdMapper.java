@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,8 +30,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.niis.xroad.signer.protocol.dto.SecurityServerIdProto;
-import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
+import org.niis.xroad.rpc.common.SecurityServerIdProto;
+import org.niis.xroad.rpc.common.XRoadObjectType;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SecurityServerIdMapper {

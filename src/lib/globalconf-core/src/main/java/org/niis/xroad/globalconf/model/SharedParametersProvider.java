@@ -29,15 +29,11 @@ import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 
-public interface SharedParametersProvider {
+public interface SharedParametersProvider extends ParameterProvider {
 
     SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException;
 
     SharedParameters getSharedParameters();
-
-    OffsetDateTime getExpiresOn();
-
-    boolean hasChanged();
 
     SharedParametersMarshaller getMarshaller();
 }
