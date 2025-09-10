@@ -73,8 +73,7 @@ public class Signer {
      * @param soap the message to be signed
      */
     public void addMessagePart(DigestAlgorithm hashMethod, SoapMessageImpl soap) {
-        builder.addPart(new MessagePart(MessageFileNames.MESSAGE, hashMethod,
-                soap.getHash(), soap.getBytes()));
+        builder.addPart(new MessagePart(MessageFileNames.MESSAGE, hashMethod, soap.getHash(), soap.getBytes()));
     }
 
     /**

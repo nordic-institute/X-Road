@@ -29,9 +29,10 @@ package org.niis.xroad.cli;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
@@ -61,9 +62,12 @@ public class DigestCalculator {
         return hexDigest(combinedDigests.getBytes(StandardCharsets.UTF_8));
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
+
     private String hexDigest(byte[] fileBytes) {
-        return Digests.hexDigest(digestAlgoId, fileBytes);
+        try {
+            return Digests.hexDigest(digestAlgoId, fileBytes);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 }

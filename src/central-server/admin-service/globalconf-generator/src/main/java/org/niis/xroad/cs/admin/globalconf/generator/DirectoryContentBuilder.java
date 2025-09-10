@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.Value;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -58,8 +57,6 @@ public class DirectoryContentBuilder {
     private final int configurationVersion;
     private final List<ConfigurationPart> configurationParts = new ArrayList<>();
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public DirectoryContentBuilder(
             @NonNull DigestAlgorithm hashAlgorithmId,
             @NonNull Instant expireDate,

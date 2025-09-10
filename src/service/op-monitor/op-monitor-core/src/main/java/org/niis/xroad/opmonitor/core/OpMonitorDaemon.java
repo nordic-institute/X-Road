@@ -32,7 +32,6 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jmx.JmxReporter;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -48,6 +47,8 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
@@ -80,7 +81,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
      *
      * @throws Exception in case of any errors
      */
-    public OpMonitorDaemon(GlobalConfProvider globalConfProvider) {
+    public OpMonitorDaemon(GlobalConfProvider globalConfProvider) throws NoSuchAlgorithmException, KeyManagementException {
         this.globalConfProvider = globalConfProvider;
 
         createConnector();
@@ -89,7 +90,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public void afterPropertiesSet() throws Exception {
         startTimestamp = getEpochMillisecond();
 
@@ -98,13 +99,13 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public void destroy() throws Exception {
         server.stop();
         reporter.stop();
     }
 
-    private void createConnector() {
+    private void createConnector() throws NoSuchAlgorithmException, KeyManagementException {
         String listenAddress = OpMonitoringSystemProperties.getOpMonitorHost();
         int port = OpMonitoringSystemProperties.getOpMonitorPort();
 
@@ -129,9 +130,8 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
         return new ServerConnector(server);
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    private static ServerConnector createDaemonSslConnector(Server server) {
+
+    private static ServerConnector createDaemonSslConnector(Server server) throws NoSuchAlgorithmException, KeyManagementException {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);

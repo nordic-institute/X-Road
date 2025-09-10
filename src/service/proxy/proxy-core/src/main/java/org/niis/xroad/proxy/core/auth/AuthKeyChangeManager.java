@@ -29,12 +29,15 @@ package org.niis.xroad.proxy.core.auth;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+
+import java.io.IOException;
 
 @Slf4j
 public class AuthKeyChangeManager implements InitializingBean, DisposableBean {
@@ -50,7 +53,7 @@ public class AuthKeyChangeManager implements InitializingBean, DisposableBean {
     }
 
     @Override
-    public void afterPropertiesSet() {
+    public void afterPropertiesSet() throws IOException, OperatorCreationException {
         changeWatcher = CachingKeyConfImpl.createChangeWatcher(this::onAuthKeyChange);
     }
 

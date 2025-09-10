@@ -27,7 +27,6 @@ package org.niis.xroad.opmonitor.core.config;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
@@ -39,6 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
@@ -53,8 +53,7 @@ import java.util.List;
 public class OpMonitorDaemonRootConfig {
 
     @Bean
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
+    OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws NoSuchAlgorithmException, KeyManagementException {
         return new OpMonitorDaemon(globalConfProvider);
     }
 

@@ -32,10 +32,10 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -72,8 +72,7 @@ public class GetAuthKeyReqHandler
     private final GlobalConfProvider globalConfProvider;
 
     @Override
-    @SuppressWarnings({"squid:S3776", "checkstyle:SneakyThrowsCheck"})//TODO XRDDEV-2390 will be refactored in the future
-    @SneakyThrows
+    @SuppressWarnings({"squid:S3776"})
     protected AuthKeyInfoProto handle(GetAuthKeyReq request) {
         var securityServer = SecurityServerIdMapper.fromDto(request.getSecurityServer());
         log.trace("Selecting authentication key for security server {}", securityServer);
@@ -99,9 +98,13 @@ public class GetAuthKeyReqHandler
                 }
 
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
-                    if (authCertValid(certInfo, securityServer)) {
-                        log.trace("Found suitable authentication key {}", keyInfo.getId());
-                        return authKeyResponse(keyInfo, certInfo);
+                    try {
+                        if (authCertValid(certInfo, securityServer)) {
+                            log.trace("Found suitable authentication key {}", keyInfo.getId());
+                            return authKeyResponse(keyInfo, certInfo);
+                        }
+                    } catch (Exception e) {
+                        throw XrdRuntimeException.systemException(e);
                     }
                 }
             }

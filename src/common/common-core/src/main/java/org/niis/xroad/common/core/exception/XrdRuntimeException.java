@@ -267,6 +267,9 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
     }
 
     public static XrdRuntimeException systemInternalError(String details, Throwable ex) {
+        if (ex instanceof XrdRuntimeException xrdEx) {
+            return xrdEx;
+        }
         return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, INTERNAL_ERROR)
                 .details(details)
                 .cause(ex)

@@ -45,6 +45,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -293,7 +294,13 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     private SharedParametersCache getSharedParametersCache(SharedParameters sharedParams) {
         return sharedParametersCacheMap.computeIfAbsent(sharedParams.getInstanceIdentifier(),
-                k -> new SharedParametersCache(sharedParams));
+                k -> {
+                    try {
+                        return new SharedParametersCache(sharedParams);
+                    } catch (IOException | CertificateEncodingException e) {
+                        throw XrdRuntimeException.systemInternalError("Failed to create SharedParametersCache for instance ", e);
+                    }
+                });
     }
 
     /**

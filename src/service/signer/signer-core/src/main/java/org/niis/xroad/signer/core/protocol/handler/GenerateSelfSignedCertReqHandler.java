@@ -34,7 +34,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import com.google.protobuf.ByteString;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -47,6 +46,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
@@ -84,8 +84,6 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
     private final ImportCertReqHandler importCertReqHandler;
 
     @Override
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     protected GenerateSelfSignedCertResp handle(GenerateSelfSignedCertReq request) {
         TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(request.getKeyId());
 
@@ -97,25 +95,29 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
             throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", request.getKeyId());
         }
 
-        PublicKey pk = KeyManagers.getFor(tokenAndKey.getSignMechanism()).readX509PublicKey(tokenAndKey.key().getPublicKey());
+        try {
+            PublicKey pk = KeyManagers.getFor(tokenAndKey.getSignMechanism()).readX509PublicKey(tokenAndKey.key().getPublicKey());
 
-        SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(
-                SystemProperties.getSelfSignedCertDigestAlgorithm(),
-                tokenAndKey.getSignMechanism()
-        );
+            SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(
+                    SystemProperties.getSelfSignedCertDigestAlgorithm(),
+                    tokenAndKey.getSignMechanism()
+            );
 
-        X509Certificate cert = new DummyCertBuilder().build(tokenAndKey, request, pk, signAlgoId);
+            X509Certificate cert = new DummyCertBuilder().build(tokenAndKey, request, pk, signAlgoId);
 
-        ClientId.Conf memberId = request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null;
-        importCertReqHandler.importCertificate(cert,
-                CertificateInfo.STATUS_REGISTERED,
-                memberId,
-                !KeyUsageInfo.AUTHENTICATION.equals(request.getKeyUsage())
-        );
+            ClientId.Conf memberId = request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null;
+            importCertReqHandler.importCertificate(cert,
+                    CertificateInfo.STATUS_REGISTERED,
+                    memberId,
+                    !KeyUsageInfo.AUTHENTICATION.equals(request.getKeyUsage())
+            );
 
-        return GenerateSelfSignedCertResp.newBuilder()
-                .setCertificateBytes(ByteString.copyFrom(cert.getEncoded()))
-                .build();
+            return GenerateSelfSignedCertResp.newBuilder()
+                    .setCertificateBytes(ByteString.copyFrom(cert.getEncoded()))
+                    .build();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     class DummyCertBuilder {

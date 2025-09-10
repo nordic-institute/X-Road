@@ -32,7 +32,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -73,9 +72,7 @@ public class SharedParametersCache {
         return sharedParameters.getInstanceIdentifier();
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    SharedParametersCache(@NonNull SharedParameters sharedParameters) {
+    SharedParametersCache(@NonNull SharedParameters sharedParameters) throws CertificateEncodingException, IOException {
         this.sharedParameters = sharedParameters;
 
         cacheCaCerts();

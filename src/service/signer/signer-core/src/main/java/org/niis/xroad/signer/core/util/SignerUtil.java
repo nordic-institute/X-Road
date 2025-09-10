@@ -26,15 +26,16 @@
 package org.niis.xroad.signer.core.util;
 
 import iaik.pkcs.pkcs11.Token;
+import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.Key;
 import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import jakarta.xml.bind.DatatypeConverter;
-import lombok.SneakyThrows;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 
 import java.math.BigInteger;
@@ -153,17 +154,19 @@ public final class SignerUtil {
      * @param token         pkcs11 token
      * @return formatted token ID
      */
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static String getFormattedTokenId(String tokenIdFormat, String moduleType,
                                              Token token) {
-        iaik.pkcs.pkcs11.TokenInfo tokenInfo = token.getTokenInfo();
-        String slotIndex = Long.toString(token.getSlot().getSlotID());
+        try {
+            iaik.pkcs.pkcs11.TokenInfo tokenInfo = token.getTokenInfo();
+            String slotIndex = Long.toString(token.getSlot().getSlotID());
 
-        return tokenIdFormat.replace("{moduleType}", moduleType)
-                .replace("{slotIndex}", slotIndex)
-                .replace("{serialNumber}", tokenInfo.getSerialNumber().trim())
-                .replace("{label}", tokenInfo.getLabel().trim());
+            return tokenIdFormat.replace("{moduleType}", moduleType)
+                    .replace("{slotIndex}", slotIndex)
+                    .replace("{serialNumber}", tokenInfo.getSerialNumber().trim())
+                    .replace("{label}", tokenInfo.getLabel().trim());
+        } catch (TokenException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
 }
