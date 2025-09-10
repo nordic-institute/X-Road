@@ -33,14 +33,14 @@ import org.bouncycastle.util.io.pem.PemWriter;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 
 import static org.bouncycastle.openssl.PEMParser.TYPE_CERTIFICATE;
 import static org.bouncycastle.openssl.PEMParser.TYPE_PRIVATE_KEY;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 
 public interface VaultClient {
     String PRIVATEKEY_KEY = "privateKey";

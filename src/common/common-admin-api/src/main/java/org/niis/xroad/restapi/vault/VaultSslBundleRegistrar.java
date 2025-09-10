@@ -37,8 +37,12 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundleRegistry;
 import org.springframework.boot.ssl.SslStoreBundle;
 
+import java.io.IOException;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
@@ -69,7 +73,7 @@ public class VaultSslBundleRegistrar implements SslBundleRegistrar {
         }
     }
 
-    private void ensureTlsKeyPresent() throws Exception {
+    private void ensureTlsKeyPresent() throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         try {
             vaultClient.getProxyUyApiTlsCredentials();
         } catch (Exception e) {

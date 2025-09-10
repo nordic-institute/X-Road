@@ -38,11 +38,11 @@ import org.springframework.vault.core.VaultKeyValueOperations;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
