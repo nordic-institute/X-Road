@@ -195,26 +195,8 @@ EOF
     fi
 }
 
-migrate_internal_crt() {
-  if [[ -f /etc/xroad/ssl/internal.crt && -f /etc/xroad/ssl/internal.key ]]; then
-    if [[ ! -r /etc/xroad/ssl/management-service.crt || ! -r /etc/xroad/ssl/management-service.key || ! -r /etc/xroad/ssl/management-service.p12 ]]; then
-      echo "found existing internal.crt and internal.key, migrating those to management-service.crt, key and p12"
-      # Copying instead of moving because nginx configuration is not updated until
-      # registration-service and management service packages are installed.
-      # internal.* files are removed in xroad-centralserver.postinst
-      cp /etc/xroad/ssl/internal.crt /etc/xroad/ssl/management-service.crt
-      cp /etc/xroad/ssl/internal.key /etc/xroad/ssl/management-service.key
-      openssl pkcs12 -export -in /etc/xroad/ssl/management-service.crt -inkey /etc/xroad/ssl/management-service.key -name management-service -out /etc/xroad/ssl/management-service.p12 -passout pass:management-service
-      chmod -f 640 /etc/xroad/ssl/management-service.key /etc/xroad/ssl/management-service.crt /etc/xroad/ssl/management-service.p12
-      chown -f xroad:xroad /etc/xroad/ssl/management-service.key /etc/xroad/ssl/management-service.crt /etc/xroad/ssl/management-service.p12
-    else
-        echo "found existing management-service.key, crt and p12, keeping those and not migrating internal.key and crt"
-    fi
-  fi
-}
-
 # check certificates and request necessary subject information from the user
-create_certificates() {
+create_management_service_certificate() {
     HOST=$(hostname -f)
     if (( ${#HOST} > 64 )); then
       HOST="$(hostname -s)"
@@ -222,23 +204,6 @@ create_certificates() {
     LIST=
     for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
     ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
-
-    if [[ -f /etc/xroad/ssl/nginx.crt && -f /etc/xroad/ssl/nginx.key ]];
-    then
-      if [[ ! -r /etc/xroad/ssl/center-admin-service.crt || ! -r /etc/xroad/ssl/center-admin-service.key || ! -r /etc/xroad/ssl/center-admin-service.p12 ]]
-      then
-        echo "found existing nginx.crt and nginx.key, migrating those to center-admin-service.crt, key and p12"
-        mv -f /etc/xroad/ssl/nginx.crt /etc/xroad/ssl/center-admin-service.crt
-        mv -f /etc/xroad/ssl/nginx.key /etc/xroad/ssl/center-admin-service.key
-        rm -f /etc/xroad/ssl/center-admin-service.p12
-        openssl pkcs12 -export -in /etc/xroad/ssl/center-admin-service.crt -inkey /etc/xroad/ssl/center-admin-service.key -name center-admin-service -out /etc/xroad/ssl/center-admin-service.p12 -passout pass:center-admin-service
-        chmod -f 660 /etc/xroad/ssl/center-admin-service.key /etc/xroad/ssl/center-admin-service.crt /etc/xroad/ssl/center-admin-service.p12
-        chown -f xroad:xroad /etc/xroad/ssl/center-admin-service.key /etc/xroad/ssl/center-admin-service.crt /etc/xroad/ssl/center-admin-service.p12
-
-      else
-        echo "found existing center-admin-service.key, crt and p12, keeping those and not migrating nginx.key and crt"
-      fi
-    fi
 
     if [[ ! -r /etc/xroad/ssl/management-service.crt || ! -r /etc/xroad/ssl/management-service.key || ! -r /etc/xroad/ssl/management-service.p12 ]]; then
         log "Generating new management-service.[crt|key|p12] files "
@@ -287,10 +252,7 @@ create_certificates() {
 
 case "$1" in
 configure | reconfigure)
-    if dpkg --compare-versions "$2" lt-nl "7.4.0"; then
-      migrate_internal_crt
-    fi
-    create_certificates
+    create_management_service_certificate
     setup_database
 
     RET=""
