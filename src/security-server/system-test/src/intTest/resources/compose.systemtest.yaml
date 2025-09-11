@@ -29,6 +29,7 @@ services:
   ui:
     environment:
       - SERVER_SERVLET_SESSION_TIMEOUT=1m
+      - XROAD_COMMON_RPC_CHANNEL_OP_MONITOR_HOST=op-monitor
     ports:
       - 0:9999 # debug port
     volumes:

@@ -9,6 +9,14 @@ quarkus:
     start-mode: forced
     enabled: true
 
+xroad:
+  op-monitor:
+    tls:
+      certificate-provisioning:
+        common-name: ${XROAD_HOST:localhost}
+        ip-subject-alt-names:
+          - 127.0.0.1
+
 "%native":
   quarkus:
     config:
@@ -20,10 +28,8 @@ quarkus:
         enable: true
         path: /var/log/xroad/op-monitor.log
 
-xroad:
-  op-monitor:
-    tls:
-      certificate-provisioning:
-        common-name: ${XROAD_HOST:localhost}
-        ip-subject-alt-names:
-          - 127.0.0.1
+"%containerized":
+  xroad:
+    op-monitor:
+      rpc:
+        listen-address: 0.0.0.0
