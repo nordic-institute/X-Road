@@ -5,8 +5,6 @@ xroad:
         # To ensure vault-powered mTLS certificate rotation
         ttl: 120S
         refresh-interval: 60S
-    global-conf:
-      source: "REMOTE"
   configuration-client:
     update-interval: 3
     global-conf-tls-cert-verification: false

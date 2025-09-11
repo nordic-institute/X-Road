@@ -5,12 +5,14 @@ services:
 
   signer:
     environment:
-      - JAVA_TOOL_OPTIONS=-Dxroad.internal.passwordstore-provider=file
+      - JAVA_TOOL_OPTIONS=-Dxroad.internal.passwordstore-provider=file -Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
       - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
       - QUARKUS_LOG_LEVEL=DEBUG
     volumes:
       - ../../../src/security-server/system-test/build/resources/intTest/container-files/etc/xroad/conf.d:/etc/xroad/conf.d
   proxy:
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
     networks:
       xrd-ss-network:
         aliases:
@@ -24,6 +26,7 @@ services:
 
   ui:
     environment:
+      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
       - SERVER_SERVLET_SESSION_TIMEOUT=1m
     ports:
       - 0:9999 # debug port
@@ -34,6 +37,8 @@ services:
         condition: service_healthy
 
   backup-manager:
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
     ports:
       - 0:9999 # debug port
     volumes:
@@ -99,8 +104,6 @@ services:
       - xroad.db.op-monitor.hibernate.connection.password=secret
       # we shorten here messages processing from 1 min to 1 second
       - xroad.op-monitor.records-available-timestamp-offset-seconds=1
-    volumes:
-      - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/conf.d/op-monitor.yaml:/etc/xroad/conf.d/local.yaml
     healthcheck:
       interval: 5s
       retries: 40
