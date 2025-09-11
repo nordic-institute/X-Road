@@ -1,5 +1,7 @@
 services:
   configuration-client:
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
     volumes:
       - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
 
@@ -26,7 +28,6 @@ services:
 
   ui:
     environment:
-      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
       - SERVER_SERVLET_SESSION_TIMEOUT=1m
     ports:
       - 0:9999 # debug port
@@ -35,6 +36,9 @@ services:
     depends_on:
       testca:
         condition: service_healthy
+    # workaround to set the `quarkus.config.locations` only for quarkus app
+    entrypoint: [ "bash", "-c", "JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml bash /opt/app/entrypoint.sh" ]
+
 
   backup-manager:
     environment:
