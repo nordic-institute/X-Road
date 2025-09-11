@@ -28,10 +28,11 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -43,7 +44,6 @@ import static org.niis.xroad.cs.admin.globalconf.generator.FileUtils.delete;
 
 @Slf4j
 @RequiredArgsConstructor
-@SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
 public class GlobalConfApplier {
     private static final int OLD_CONF_PRESERVING_SECONDS = 600;
 
@@ -61,38 +61,49 @@ public class GlobalConfApplier {
         writeLocalCopy(confVersion, configurationParts);
     }
 
-    @SneakyThrows
     public void rollback() {
         configurationDistributor.deleteDirectoryContentFile(getTmpInternalDirectory());
         configurationDistributor.deleteDirectoryContentFile(getTmpExternalDirectory());
-        delete(configurationDistributor.getConfigLocationPath());
+
+        try {
+            delete(configurationDistributor.getConfigLocationPath());
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     public void addConfigurationParts(Set<ConfigurationPart> parts) {
         this.configurationParts.addAll(parts);
     }
 
-    @SneakyThrows
     public void cleanUpOldConfigurations() {
         try (var filesStream = Files.list(configurationDistributor.getVersionLocationPath())) {
             filesStream
                     .filter(GlobalConfApplier::isExpiredConfDir)
                     .forEach(GlobalConfApplier::deleteExpiredConfigDir);
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
-    @SneakyThrows
     private static boolean isExpiredConfDir(Path dirPath) {
-        return Files.isDirectory(dirPath)
-                && dirPath.getFileName().toString().matches("\\A\\d+\\z")
-                && Files.getLastModifiedTime(dirPath).toInstant().isBefore(
-                TimeUtils.now().minusSeconds(OLD_CONF_PRESERVING_SECONDS));
+        try {
+            return Files.isDirectory(dirPath)
+                    && dirPath.getFileName().toString().matches("\\A\\d+\\z")
+                    && Files.getLastModifiedTime(dirPath).toInstant().isBefore(
+                    TimeUtils.now().minusSeconds(OLD_CONF_PRESERVING_SECONDS));
+        } catch (IOException ioException) {
+            throw XrdRuntimeException.systemException(ioException);
+        }
     }
 
-    @SneakyThrows
     private static void deleteExpiredConfigDir(Path dirPath) {
-        log.trace("Deleting expired global configuration directory {}", dirPath);
-        org.apache.commons.io.FileUtils.deleteDirectory(dirPath.toFile());
+        try {
+            log.trace("Deleting expired global configuration directory {}", dirPath);
+            org.apache.commons.io.FileUtils.deleteDirectory(dirPath.toFile());
+        } catch (IOException ioException) {
+            throw XrdRuntimeException.systemException(ioException);
+        }
     }
 
     private void writeLocalCopy(int configurationVersion, Set<ConfigurationPart> allConfigurationParts) {

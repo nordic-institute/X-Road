@@ -31,11 +31,11 @@ import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -47,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -205,6 +206,7 @@ public class ConfProxyProperties {
 
     /**
      * Gets the id for the configured signature digest algorithm.
+     *
      * @return the id of the configured signature digest algorithm.
      */
     public final DigestAlgorithm getSignatureDigestAlgorithmId() {
@@ -234,6 +236,7 @@ public class ConfProxyProperties {
 
     /**
      * Gets the URI for the configured hash algorithm.
+     *
      * @return the URI of the configured hash algorithm.
      */
     public final DigestAlgorithm getHashAlgorithmURI() {
@@ -405,10 +408,12 @@ public class ConfProxyProperties {
      * @param cert the certificate
      * @return raw bytes for the provided certificate
      */
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private static byte[] certBytes(final X509Certificate cert) {
-        return cert.getEncoded();
+        try {
+            return cert.getEncoded();
+        } catch (CertificateEncodingException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
 

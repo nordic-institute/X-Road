@@ -31,7 +31,6 @@ import ee.ria.xroad.common.crypto.identifier.Providers;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import com.google.common.base.Splitter;
-import lombok.SneakyThrows;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -192,11 +191,8 @@ public final class CryptoUtils {
      *
      * @param base64data the certificate in base64
      * @return the read certificate
-     * @throws CertificateException if certificate could not be read
-     * @throws IOException          if an I/O error occurred
      */
-    public static X509Certificate readCertificate(String base64data)
-            throws CertificateException, IOException {
+    public static X509Certificate readCertificate(String base64data) {
         return readCertificate(decodeBase64(base64data));
     }
 
@@ -206,11 +202,11 @@ public final class CryptoUtils {
      * @param certBytes the certificate bytes
      * @return the read certificate
      */
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static X509Certificate readCertificate(byte[] certBytes) {
         try (InputStream is = new ByteArrayInputStream(certBytes)) {
             return readCertificate(is);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -220,11 +216,11 @@ public final class CryptoUtils {
      * @param certBytes the certificate chain bytes
      * @return the read certificate collection
      */
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static Collection<X509Certificate> readCertificates(byte[] certBytes) {
         try (InputStream is = new ByteArrayInputStream(certBytes)) {
             return readCertificates(is);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -234,10 +230,12 @@ public final class CryptoUtils {
      * @param is Input stream containing certificate bytes.
      * @return the read certificate
      */
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static X509Certificate readCertificate(InputStream is) {
-        return (X509Certificate) CERT_FACTORY.generateCertificate(is);
+        try {
+            return (X509Certificate) CERT_FACTORY.generateCertificate(is);
+        } catch (CertificateException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     /**
@@ -246,12 +244,14 @@ public final class CryptoUtils {
      * @param is Input stream containing certificate bytes.
      * @return the read certificate chain
      */
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public static Collection<X509Certificate> readCertificates(InputStream is) {
-        return CERT_FACTORY.generateCertificates(is).stream()
-                .map(X509Certificate.class::cast)
-                .toList();
+        try {
+            return CERT_FACTORY.generateCertificates(is).stream()
+                    .map(X509Certificate.class::cast)
+                    .toList();
+        } catch (CertificateException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     /**
@@ -260,11 +260,10 @@ public final class CryptoUtils {
      * @param cert the certificate
      * @return calculated certificate hex hash String
      * @throws CertificateEncodingException if a certificate encoding error occurs
-     * @throws OperatorCreationException    if digest calculator cannot be created
      * @throws IOException                  if an I/O error occurred
      */
     public static String calculateCertHexHash(X509Certificate cert)
-            throws CertificateEncodingException, IOException, OperatorCreationException {
+            throws CertificateEncodingException, IOException {
         return calculateCertHexHash(cert.getEncoded());
     }
 
@@ -275,11 +274,10 @@ public final class CryptoUtils {
      * @param delimiter the delimiter to use
      * @return calculated certificate hex hash String
      * @throws CertificateEncodingException if a certificate encoding error occurs
-     * @throws OperatorCreationException    if digest calculator cannot be created
      * @throws IOException                  if an I/O error occurred
      */
     public static String calculateDelimitedCertHexHash(X509Certificate cert, String delimiter)
-            throws CertificateEncodingException, IOException, OperatorCreationException {
+            throws CertificateEncodingException, IOException {
         return String.join(delimiter, Splitter.fixedLength(2).split(calculateCertHexHash(cert).toUpperCase()));
     }
 
@@ -289,10 +287,9 @@ public final class CryptoUtils {
      *
      * @param bytes the bytes
      * @return calculated certificate hex hash String
-     * @throws OperatorCreationException if digest calculator cannot be created
-     * @throws IOException               if an I/O error occurred
+     * @throws IOException if an I/O error occurred
      */
-    public static String calculateCertHexHash(byte[] bytes) throws IOException, OperatorCreationException {
+    public static String calculateCertHexHash(byte[] bytes) throws IOException {
         return Digests.hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, bytes);
     }
 
@@ -310,7 +307,7 @@ public final class CryptoUtils {
      */
     @Deprecated
     public static String calculateCertSha1HexHash(X509Certificate cert)
-            throws IOException, OperatorCreationException, CertificateEncodingException {
+            throws IOException, CertificateEncodingException {
         return calculateCertSha1HexHash(cert.getEncoded());
     }
 
@@ -320,13 +317,12 @@ public final class CryptoUtils {
      *
      * @param bytes the bytes
      * @return calculated certificate hex hash String
-     * @throws OperatorCreationException if digest calculator cannot be created
-     * @throws IOException               if an I/O error occurred
+     * @throws IOException if an I/O error occurred
      * @deprecated This method should be applicable until 7.3.x is no longer supported
      * <p> From that point onward its usages should be replaced with {@link #calculateCertHexHash(byte[])} instead.
      */
     @Deprecated
-    public static String calculateCertSha1HexHash(byte[] bytes) throws IOException, OperatorCreationException {
+    public static String calculateCertSha1HexHash(byte[] bytes) throws IOException {
         return Digests.hexDigest(DigestAlgorithm.SHA1, bytes);
     }
 
@@ -376,13 +372,12 @@ public final class CryptoUtils {
      *
      * @param bytes the bytes
      * @return digest byte array of the certificate
-     * @throws OperatorCreationException if digest calculator cannot be created
-     * @throws IOException               if an I/O error occurred
+     * @throws IOException if an I/O error occurred
      * @deprecated This method should be applicable until 7.3.x is no longer supported
      * <p> From that point onward its usages should be replaced with {@link #certHash(byte[])} instead.
      */
     @Deprecated
-    public static byte[] certSha1Hash(byte[] bytes) throws IOException, OperatorCreationException {
+    public static byte[] certSha1Hash(byte[] bytes) throws IOException {
         return Digests.calculateDigest(DigestAlgorithm.SHA1, bytes);
     }
 

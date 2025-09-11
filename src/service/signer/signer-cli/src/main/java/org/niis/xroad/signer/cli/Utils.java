@@ -29,27 +29,27 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.SingleResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 final class Utils {
 
     private static final int CLIENT_ID_PARTS = 3;
@@ -109,14 +109,7 @@ final class Utils {
 
     static void printCertInfo(KeyInfo key, boolean verbose, String padding) {
         if (verbose) {
-            key.getCerts().forEach(cert -> {
-                System.out.println(padding + "Id:            " + cert.getId());
-                System.out.println(padding + "Status:        " + cert.getStatus());
-                System.out.println(padding + "Member:        " + cert.getMemberId());
-                System.out.println(padding + "Hash:          " + hash(cert));
-                System.out.println(padding + "OCSP:          " + getOcspStatus(cert.getOcspBytes()));
-                System.out.println(padding + "Saved to conf: " + cert.isSavedToConfiguration());
-            });
+            key.getCerts().forEach(cert -> printCertInfo(cert, padding));
 
             key.getCertRequests().forEach(certReq -> {
                 System.out.println(padding + "Id:            " + certReq.getId());
@@ -134,13 +127,26 @@ final class Utils {
         }
     }
 
-    static byte[] fileToBytes(String fileName) throws Exception {
+    static void printCertInfo(CertificateInfo cert, String padding) {
+        try {
+            System.out.println(padding + "Id:            " + cert.getId());
+            System.out.println(padding + "Status:        " + cert.getStatus());
+            System.out.println(padding + "Member:        " + cert.getMemberId());
+            System.out.println(padding + "Hash:          " + hash(cert));
+            System.out.println(padding + "OCSP:          " + getOcspStatus(cert.getOcspBytes()));
+            System.out.println(padding + "Saved to conf: " + cert.isSavedToConfiguration());
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    static byte[] fileToBytes(String fileName) throws IOException {
         try (FileInputStream in = new FileInputStream(fileName)) {
             return IOUtils.toByteArray(in);
         }
     }
 
-    static void bytesToFile(String file, byte[] bytes) throws Exception {
+    static void bytesToFile(String file, byte[] bytes) {
         try (FileOutputStream out = new FileOutputStream(file)) {
             IOUtils.write(bytes, out);
 
@@ -160,11 +166,11 @@ final class Utils {
         }
     }
 
-    static ClientId.Conf createClientId(String string) throws Exception {
+    static ClientId.Conf createClientId(String string) {
         String[] parts = string.split(" ");
 
         if (parts.length < CLIENT_ID_PARTS) {
-            throw new Exception("Must specify all parts for ClientId");
+            throw XrdRuntimeException.systemInternalError("Must specify all parts for ClientId");
         }
 
         if (parts.length > CLIENT_ID_PARTS) {
@@ -177,9 +183,7 @@ final class Utils {
         }
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    static String getOcspStatus(byte[] ocspBytes) {
+    static String getOcspStatus(byte[] ocspBytes) throws IOException, OCSPException {
         if (ocspBytes == null) {
             return "<not available>";
         }
@@ -200,9 +204,8 @@ final class Utils {
         }
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    static String hash(CertificateInfo cert) {
+
+    static String hash(CertificateInfo cert) throws IOException {
         return calculateCertHexHash(cert.getCertificateBytes());
     }
 }

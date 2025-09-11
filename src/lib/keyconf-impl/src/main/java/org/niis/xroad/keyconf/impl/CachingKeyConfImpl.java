@@ -37,9 +37,9 @@ import ee.ria.xroad.common.util.filewatcher.FileWatcherStartupListener;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
@@ -49,6 +49,7 @@ import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.util.Date;
@@ -163,9 +164,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
         //for testability
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    public static FileWatcherRunner createChangeWatcher(FileWatchListener onChange) {
+    public static FileWatcherRunner createChangeWatcher(FileWatchListener onChange) throws IOException, OperatorCreationException {
         return createChangeWatcher(() -> { }, onChange, new FileContentChangeChecker(SystemProperties.getKeyConfFile()));
     }
 

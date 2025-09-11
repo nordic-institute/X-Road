@@ -30,14 +30,13 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
-import lombok.SneakyThrows;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.validation.Schema;
 
 import java.io.OutputStream;
 import java.io.StringWriter;
 
-@SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
 abstract class AbstractParametersMarshaller<P, T> {
     abstract JAXBContext getJaxbContext();
 
@@ -45,16 +44,22 @@ abstract class AbstractParametersMarshaller<P, T> {
 
     abstract JAXBElement<T> convert(P parameters);
 
-    @SneakyThrows
     public String marshall(P parameters) {
-        var writer = new StringWriter();
-        createJaxbMarshaller().marshal(convert(parameters), writer);
-        return writer.toString();
+        try {
+            var writer = new StringWriter();
+            createJaxbMarshaller().marshal(convert(parameters), writer);
+            return writer.toString();
+        } catch (JAXBException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
-    @SneakyThrows
     public void marshall(P parameters, OutputStream outputStream) {
-        createJaxbMarshaller().marshal(convert(parameters), outputStream);
+        try {
+            createJaxbMarshaller().marshal(convert(parameters), outputStream);
+        } catch (JAXBException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     private Marshaller createJaxbMarshaller() throws JAXBException {

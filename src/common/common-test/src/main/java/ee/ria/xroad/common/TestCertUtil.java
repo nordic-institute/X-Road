@@ -48,7 +48,6 @@ import java.math.BigInteger;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
@@ -368,7 +367,7 @@ public final class TestCertUtil {
         return "test".toCharArray();
     }
 
-    public static byte[] generateAuthCert() throws NoSuchAlgorithmException, OperatorCreationException, IOException {
+    public static byte[] generateAuthCert() throws OperatorCreationException, IOException {
         var subjectKey = getKeyPairGenerator().generateKeyPair();
         return generateAuthCert(subjectKey.getPublic());
     }
@@ -433,7 +432,7 @@ public final class TestCertUtil {
         return new JcaX509CertificateConverter().getCertificate(cert);
     }
 
-    private static InputStream getFile(String fileName) throws Exception {
+    private static InputStream getFile(String fileName) throws FileNotFoundException {
         InputStream is = TestCertUtil.class.getResourceAsStream(fileName);
         if (is == null) {
             throw new FileNotFoundException(fileName);

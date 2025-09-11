@@ -68,6 +68,7 @@ import org.xml.sax.helpers.AttributesImpl;
 
 import javax.xml.namespace.QName;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.net.URI;
@@ -689,7 +690,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        protected void writeEndElementXml(String prefix, QName element, Attributes attributes, Writer writer) {
+        protected void writeEndElementXml(String prefix, QName element, Attributes attributes, Writer writer) throws IOException {
             if (inHeader && element.equals(QNAME_XROAD_REQUEST_HASH)) {
                 inExistingRequestHash = false;
             } else {
@@ -718,7 +719,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        protected void writeStartElementXml(String prefix, QName element, Attributes attributes, Writer writer) {
+        protected void writeStartElementXml(String prefix, QName element, Attributes attributes, Writer writer) throws IOException {
             if (inHeader && element.equals(QNAME_XROAD_REQUEST_HASH)) {
                 inExistingRequestHash = true;
             } else {
@@ -731,7 +732,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
             }
         }
 
-        private void writeBufferedCharacters(Writer writer) {
+        private void writeBufferedCharacters(Writer writer) throws IOException {
             // Write the characters we ignored at the last characters event
             if (!bufferFlushed) {
                 super.writeCharactersXml(bufferedChars, bufferedOffset, bufferedLength, writer);
@@ -740,7 +741,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        protected void writeCharactersXml(char[] characters, int start, int length, Writer writer) {
+        protected void writeCharactersXml(char[] characters, int start, int length, Writer writer) throws IOException {
             if (inHeader && headerElementTabs == null) {
                 String value = new String(characters, start, length);
 

@@ -33,7 +33,6 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
@@ -87,8 +86,6 @@ public final class OcspClient {
         return fetchResponse(subject, issuer, signerKey, signer, signAlgoId);
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     SignAlgorithm getSignAlgorithmId() {
         return SignAlgorithm.ofDigestAndMechanism(DIGEST_ALGORITHM_ID, SIGN_MECHANISM);
     }
@@ -168,7 +165,7 @@ public final class OcspClient {
         }
     }
 
-    private static void verifyResponse(OCSPResp response) throws Exception {
+    private static void verifyResponse(OCSPResp response) throws OCSPException {
         int responseStatus = response.getStatus();
 
         switch (responseStatus) {

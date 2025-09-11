@@ -34,8 +34,8 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.codahale.metrics.MetricRegistry;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
@@ -46,6 +46,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
@@ -193,11 +194,12 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
         sendJsonResponse(response, callback, OK_RESPONSE_BYTES);
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private static byte[] getOkResponseBytes() {
-        return OBJECT_WRITER.writeValueAsString(new StoreOpMonitoringDataResponse()).getBytes(
-                MimeUtils.UTF8);
+        try {
+            return OBJECT_WRITER.writeValueAsString(new StoreOpMonitoringDataResponse()).getBytes(MimeUtils.UTF8);
+        } catch (JsonProcessingException | UnsupportedEncodingException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     private static void sendJsonResponse(Response response,

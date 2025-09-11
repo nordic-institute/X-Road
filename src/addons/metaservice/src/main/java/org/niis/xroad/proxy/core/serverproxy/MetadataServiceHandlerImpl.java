@@ -48,7 +48,6 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.soap.SOAPMessage;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -59,6 +58,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.common.WsdlRequestData;
@@ -156,9 +156,6 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public boolean canHandle(ServiceId requestServiceId,
                              ProxyMessage requestProxyMessage) {
 
@@ -173,10 +170,12 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
                         try (out) {
                             requestProxyMessage.writeSoapContent(out);
                         } catch (IOException e) {
-                            throw new RuntimeException("Failed to write soap content", e);
+                            throw XrdRuntimeException.systemInternalError("Failed to write soap content", e);
                         }
                     });
                     requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(requestProxyMessage.getSoapContentType(), in);
+                } catch (IOException e) {
+                    throw XrdRuntimeException.systemInternalError("Failed to parse request message", e);
                 }
                 yield true;
             }
@@ -365,6 +364,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     /**
      * reads a WSDL from input stream, modifies it and returns input stream to the result
+     *
      * @param wsdl
      * @return
      */

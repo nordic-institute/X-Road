@@ -35,7 +35,6 @@ import ee.ria.xroad.common.signature.SigningRequest;
 import ee.ria.xroad.common.util.MessageFileNames;
 
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.signature.XMLSignatureByteInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
@@ -76,8 +75,6 @@ public class SignatureCtx {
 
     private SignatureXmlBuilder builder;
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public SignatureCtx(SignAlgorithm signatureAlgorithmId) {
         this.signatureAlgorithmId = signatureAlgorithmId;
     }
