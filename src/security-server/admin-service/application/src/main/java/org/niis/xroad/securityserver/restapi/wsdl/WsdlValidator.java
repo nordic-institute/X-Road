@@ -85,8 +85,14 @@ public class WsdlValidator {
             ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
                     .executeAndThrowOnFailure(getWsdlValidatorCommand(), wsdlUrl);
 
-            logValidatorOutput(processResult.getProcessOutput());
-            return processResult.getProcessOutput();
+            // todo temporary workaround, will be removed after wsdl-validator is merged into proxy-ui
+            List<String> processOutput = processResult.getProcessOutput();
+            if (!processOutput.isEmpty() && processOutput.getFirst().startsWith("Picked up JAVA_TOOL_OPTIONS:")) {
+                processOutput.removeFirst();
+            }
+
+            logValidatorOutput(processOutput);
+            return processOutput;
         } catch (ProcessNotExecutableException e) {
             throw new WsdlValidatorNotExecutableException(e);
         } catch (ProcessFailedException e) {
