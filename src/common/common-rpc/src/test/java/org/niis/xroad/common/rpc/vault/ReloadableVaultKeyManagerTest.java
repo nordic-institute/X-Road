@@ -37,14 +37,15 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.properties.CommonRpcProperties;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.util.DurationConverter;
+import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.vault.VaultKeyClient;
 
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Map;
+import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -61,7 +62,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ReloadableVaultKeyManagerTest {
 
-    private CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties;
+    private RpcProperties.RpcCertificateProvisioningProperties certificateProvisionProperties;
     @Mock
     private VaultKeyClient vaultKeyClient;
     @Mock
@@ -93,12 +94,7 @@ class ReloadableVaultKeyManagerTest {
 
     @BeforeEach
     void setUp() throws CertificateException {
-        certificateProvisionProperties = ConfigUtils.initConfiguration(CommonRpcProperties.class,
-                Map.of("xroad.common.rpc.certificate-provisioning.retry-max-attempts", "2",
-                        "xroad.common.rpc.certificate-provisioning.retry-base-delay", "1s",
-                        "xroad.common.rpc.certificate-provisioning.refresh-interval", "60s",
-                        "xroad.common.rpc.certificate-provisioning.retry-exponential-backoff-multiplier", "1.0")
-        ).certificateProvisioning();
+        certificateProvisionProperties = new TestCertificateProvisioningProperties();
 
         trustManager = spy(AdvancedTlsX509TrustManager.newBuilder()
                 .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
@@ -223,4 +219,56 @@ class ReloadableVaultKeyManagerTest {
         assertThat(retryInstance.getMetrics().getNumberOfFailedCallsWithRetryAttempt()).isOne();
     }
 
+    private static final class TestCertificateProvisioningProperties implements RpcProperties.RpcCertificateProvisioningProperties {
+
+        @Override
+        public Duration refreshInterval() {
+            return Duration.ofSeconds(60);
+        }
+
+        @Override
+        public Duration retryDelay() {
+            return Duration.ofSeconds(1);
+        }
+
+        @Override
+        public Double retryExponentialBackoffMultiplier() {
+            return 1.0;
+        }
+
+        @Override
+        public int retryMaxAttempts() {
+            return 2;
+        }
+
+        @Override
+        public String issuanceRoleName() {
+            return DEFAULT_ISSUANCE_ROLE_NAME;
+        }
+
+        @Override
+        public String commonName() {
+            return DEFAULT_COMMON_NAME;
+        }
+
+        @Override
+        public List<String> altNames() {
+            return List.of();
+        }
+
+        @Override
+        public List<String> ipSubjectAltNames() {
+            return List.of();
+        }
+
+        @Override
+        public Duration ttl() {
+            return DurationConverter.parseDuration(DEFAULT_TTL);
+        }
+
+        @Override
+        public String secretStorePkiPath() {
+            return DEFAULT_SECRET_STORE_PKI_PATH;
+        }
+    }
 }

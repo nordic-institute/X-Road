@@ -63,7 +63,6 @@ import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
-import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidatorTest;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -150,7 +149,6 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         when(globalConfProvider.getMembers()).thenReturn(new ArrayList<>(members));
         List<TokenInfo> mockTokens = createMockTokenInfos();
         doReturn(mockTokens).when(tokenService).getAllTokens();
-        when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
         when(globalConfProvider.getGlobalGroups()).thenReturn(globalGroupInfos);
         when(globalConfProvider.getGlobalGroups(any(String[].class))).thenReturn(globalGroupInfos);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
@@ -791,8 +789,9 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertErrorWithoutMetadata(DeviationCodes.ERROR_WARNINGS_DETECTED,
                 expected);
         assertWarning(DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS,
-                WsdlValidatorTest.MOCK_VALIDATOR_WARNING,
-                expected);
+                expected,
+                "", " Summary:  Failures: 0, Warnings: 1", " <<< WARNING! ",
+                "Operation xroadGetRandom in PortType: {http://producer.x-road.eu}testServicePort has no output message");
 
         // now lets ignore the warningDeviations
         serviceDescription.setIgnoreWarnings(true);

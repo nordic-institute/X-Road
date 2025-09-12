@@ -27,48 +27,13 @@
 package org.niis.xroad.proxy.core.configuration;
 
 import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
-
-import java.time.Duration;
-import java.util.List;
+import org.niis.xroad.common.vault.quarkus.config.QuarkusCertificateProvisioningProperties;
 
 @ConfigMapping(prefix = "xroad.proxy.tls")
 public interface ProxyTlsProperties {
 
     @WithName("certificate-provisioning")
-    CertificateProvisionProperties certificateProvisioning();
-
-    interface CertificateProvisionProperties {
-        String DEFAULT_ISSUANCE_ROLE_NAME = "xrd-internal";
-        String DEFAULT_COMMON_NAME = "localhost";
-        String DEFAULT_SECRET_STORE_PKI_PATH = "xrd-pki";
-        String DEFAULT_TTL = "3650D";
-
-        @WithName("issuance-role-name")
-        @WithDefault(DEFAULT_ISSUANCE_ROLE_NAME)
-        String issuanceRoleName();
-
-        @WithName("common-name")
-        @WithDefault(DEFAULT_COMMON_NAME)
-        String commonName();
-
-        @WithName("alt-names")
-        @WithDefault("[]")
-        List<String> altNames();
-
-        @WithName("ip-subject-alt-names")
-        @WithDefault("[]")
-        List<String> ipSubjectAltNames();
-
-        @WithName("ttl")
-        @WithDefault(DEFAULT_TTL)
-        Duration ttl();
-
-        @WithName("secret-store-pki-path")
-        @WithDefault(DEFAULT_SECRET_STORE_PKI_PATH)
-        String secretStorePkiPath();
-
-    }
+    QuarkusCertificateProvisioningProperties certificateProvisioning();
 
 }

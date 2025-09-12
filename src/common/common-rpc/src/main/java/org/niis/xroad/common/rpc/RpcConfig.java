@@ -29,7 +29,6 @@ package org.niis.xroad.common.rpc;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Provider;
-import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
@@ -38,8 +37,8 @@ public class RpcConfig {
 
     @ApplicationScoped
     public RpcCredentialsConfigurer rpcCredentialsConfigurer(Provider<VaultKeyProvider> vaultKeyProvider,
-                                                             CommonRpcProperties rpcCommonProperties) {
-        if (rpcCommonProperties.useTls()) {
+                                                             RpcProperties rpcProperties) {
+        if (rpcProperties.useTls()) {
             return new TlsRpcCredentialsConfigurer(vaultKeyProvider.get());
         } else {
             return new InsecureRpcCredentialsConfigurer();

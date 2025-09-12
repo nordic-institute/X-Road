@@ -415,7 +415,6 @@
     "wrong_servicedescription_type": "Неверный тип описания сервиса",
     "wsdl_download_failed": "Не удалось загрузить WSDL",
     "wsdl_exists": "WSDL существует",
-    "wsdl_validator_interrupted": "Валидатор WSDL был прерван",
     "wsdl_validator_not_executable": "Валидатор WSDL не является исполняемым"
   },
   "fields": {

@@ -35,6 +35,7 @@ quarkus = "3.23.3"
 quarkus-vault = "4.2.1"
 quarkus-systemd-notify = "1.0.2"
 smallryeConfig = "3.13.2"
+microprofile = "3.1"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -43,6 +44,7 @@ metrics-jmx = { module = "io.dropwizard.metrics:metrics-jmx", version.ref = "met
 jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
 jetty-http = { module = "org.eclipse.jetty:jetty-http", version.ref = "jetty" }
 jetty-xml = { module = "org.eclipse.jetty:jetty-xml", version.ref = "jetty" }
+
 
 jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb" }
 jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "jaxb" }
@@ -72,6 +74,8 @@ quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-b
 quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit5", version.ref = "quarkus" }
 quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vault", version.ref = "quarkus-vault" }
 quarkus-extension-systemd-notify = { group = "io.quarkiverse.systemd.notify", name = "quarkus-systemd-notify", version.ref = "quarkus-systemd-notify" }
+
+microprofile-config-api = { group = "org.eclipse.microprofile.config", name =  "microprofile-config-api", version.ref = "microprofile" }
 
 smallrye-config-core = { group = "io.smallrye.config", name = "smallrye-config-core", version.ref = "smallryeConfig" }
 

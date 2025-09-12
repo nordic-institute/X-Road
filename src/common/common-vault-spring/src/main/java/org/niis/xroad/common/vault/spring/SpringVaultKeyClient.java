@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultCertificateRequest;
 import org.springframework.vault.support.VaultCertificateResponse;
@@ -41,8 +42,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
-import java.time.Duration;
-import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
@@ -50,19 +49,14 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 @RequiredArgsConstructor
 public class SpringVaultKeyClient implements VaultKeyClient {
     private final VaultTemplate vaultTemplate;
-    private final String secretStorePkiPath;
-    private final Duration ttl;
-    private final String issuanceRoleName;
-    private final String commonName;
-    private final List<String> altNames;
-    private final List<String> ipSubjectAltNames;
+    private final CertificateProvisioningProperties properties;
 
     @Override
     public VaultKeyData provisionNewCerts() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         var request = buildVaultCertificateRequest();
 
-        VaultCertificateResponse vaultResponse = vaultTemplate.opsForPki(secretStorePkiPath)
-                .issueCertificate(issuanceRoleName, request);
+        VaultCertificateResponse vaultResponse = vaultTemplate.opsForPki(properties.secretStorePkiPath())
+                .issueCertificate(properties.issuanceRoleName(), request);
 
         if (vaultResponse.getData() != null) {
             var data = vaultResponse.getData();
@@ -82,18 +76,18 @@ public class SpringVaultKeyClient implements VaultKeyClient {
 
     private VaultCertificateRequest buildVaultCertificateRequest() {
         var builder = VaultCertificateRequest.builder()
-                .ttl(ttl)
+                .ttl(properties.ttl())
                 .format(CERTIFICATE_FORMAT)
                 .privateKeyFormat(PKCS8_FORMAT);
 
-        if (commonName != null) {
-            builder.commonName(commonName);
+        if (properties.commonName() != null) {
+            builder.commonName(properties.commonName());
         }
-        if (altNames != null) {
-            builder.altNames(altNames);
+        if (properties.altNames() != null) {
+            builder.altNames(properties.altNames());
         }
-        if (ipSubjectAltNames != null) {
-            builder.ipSubjectAltNames(ipSubjectAltNames);
+        if (properties.ipSubjectAltNames() != null) {
+            builder.ipSubjectAltNames(properties.ipSubjectAltNames());
         }
         return builder.build();
     }

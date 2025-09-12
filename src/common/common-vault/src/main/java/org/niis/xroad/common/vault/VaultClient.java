@@ -28,10 +28,19 @@ package org.niis.xroad.common.vault;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
+
 import java.io.IOException;
+import java.io.StringWriter;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+
+import static org.bouncycastle.openssl.PEMParser.TYPE_CERTIFICATE;
+import static org.bouncycastle.openssl.PEMParser.TYPE_PRIVATE_KEY;
 
 public interface VaultClient {
     String PRIVATEKEY_KEY = "privateKey";
@@ -39,12 +48,35 @@ public interface VaultClient {
 
     String INTERNAL_TLS_CREDENTIALS_PATH = "tls/internal";
     String OPMONITOR_TLS_CREDENTIALS_PATH = "tls/opmonitor";
+    String ADMIN_SERVICE_TLS_CREDENTIALS_PATH = "tls/admin-service";
 
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
+    InternalSSLKey getAdminServiceTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
+
     void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
     void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
+
+    void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
+
+    default String toPem(PrivateKey privateKey) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+            PemObject pemObject = new PemObject(TYPE_PRIVATE_KEY, privateKey.getEncoded());
+            pemWriter.writeObject(pemObject);
+        }
+        return stringWriter.toString();
+    }
+
+    default String toPem(X509Certificate certificate) throws IOException, CertificateEncodingException {
+        StringWriter stringWriter = new StringWriter();
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+            PemObject pemObject = new PemObject(TYPE_CERTIFICATE, certificate.getEncoded());
+            pemWriter.writeObject(pemObject);
+        }
+        return stringWriter.toString();
+    }
 }

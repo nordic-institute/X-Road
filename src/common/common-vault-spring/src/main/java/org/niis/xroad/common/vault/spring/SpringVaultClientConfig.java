@@ -28,25 +28,36 @@
 package org.niis.xroad.common.vault.spring;
 
 import org.niis.xroad.common.vault.NoopVaultClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.vault.core.VaultKeyValueOperationsSupport;
 import org.springframework.vault.core.VaultTemplate;
-
-import java.util.Optional;
 
 @Configuration
 public class SpringVaultClientConfig {
 
     @Bean
-    @Profile("!test")
-    SpringVaultClient springVaultTlsCredentialsProvider(Optional<VaultTemplate> vaultTemplate) {
-        return new SpringVaultClient(vaultTemplate.get());
+    @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true")
+    SpringVaultClient springVaultClient(VaultTemplate vaultTemplate,
+                                        @Value("${spring.cloud.vault.kv.backend}") String rootPath,
+                                        @Value("${spring.cloud.vault.kv.backend-version}") String version) {
+        var vaultKvClient = vaultTemplate.opsForKeyValue(rootPath, getKeyValueBackendVersion(version));
+        return new SpringVaultClient(vaultKvClient);
+    }
+
+    private VaultKeyValueOperationsSupport.KeyValueBackend getKeyValueBackendVersion(String version) {
+        return switch (version) {
+            case "1" -> VaultKeyValueOperationsSupport.KeyValueBackend.KV_1;
+            case "2" -> VaultKeyValueOperationsSupport.KeyValueBackend.KV_2;
+            default -> throw new IllegalArgumentException("Unsupported secrets version: " + version);
+        };
     }
 
     @Bean
-    @Profile("test")
-    NoopVaultClient noopVaultTlsCredentialsProvider() {
+    @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "false", matchIfMissing = true)
+    NoopVaultClient noopVaultClient() {
         return new NoopVaultClient();
     }
 
