@@ -35,6 +35,7 @@ import static ee.ria.xroad.common.util.PasswordStore.getPassword;
 import static ee.ria.xroad.common.util.PasswordStore.storePassword;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests to verify
@@ -43,6 +44,7 @@ public class PasswordStoreTest {
 
     /**
      * Run tests.
+     *
      * @throws Exception in case of unexpected errors
      */
     @Test
@@ -51,21 +53,21 @@ public class PasswordStoreTest {
 
         assertEquals("/", SystemProperties.getSignerPasswordStoreIPCKeyPathname());
 
-        getPassword("foo"); // Just check if get on empty DB works.
+        assertTrue(getPassword("foo").isEmpty()); // Just check if get on empty DB works.
 
         storePassword("foo", null);
         storePassword("bar", null);
 
-        assertNull(getPassword("foo"));
+        assertNull(getPassword("foo").orElse(null));
 
         storePassword("foo", "fooPwd".toCharArray());
         storePassword("bar", "barPwd".toCharArray());
 
-        assertEquals("fooPwd", new String(getPassword("foo").get()));
-        assertEquals("barPwd", new String(getPassword("bar").get()));
+        assertEquals("fooPwd", new String(getPassword("foo").orElseThrow()));
+        assertEquals("barPwd", new String(getPassword("bar").orElseThrow()));
 
         storePassword("foo", null);
-        assertNull(getPassword("foo"));
-        assertEquals("barPwd", new String(getPassword("bar").get()));
+        assertNull(getPassword("foo").orElse(null));
+        assertEquals("barPwd", new String(getPassword("bar").orElseThrow()));
     }
 }
