@@ -62,7 +62,6 @@ public class DbRepository implements AutoCloseable {
             Properties props = new Properties();
             props.load(fis);
 
-            // todo recheck prop names in xrd7
             this.jdbcUrl = props.getProperty("xroad.db.serverconf.hibernate.connection.url");
             this.username = props.getProperty("xroad.db.serverconf.hibernate.connection.username");
             this.password = props.getProperty("xroad.db.serverconf.hibernate.connection.password");
