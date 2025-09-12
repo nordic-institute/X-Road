@@ -207,7 +207,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         // start mocking validation failures, when ignoreFailures = false
         List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
         doReturn(mockValidationFailures)
-                .when(wsdlValidator).executeValidator(anyString());
+                .when(wsdlValidator).validate(anyString());
 
         FileUtils.copyFile(smallWsdl, testServiceWsdl);
 
@@ -242,7 +242,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         // start mocking validation failures, when ignoreFailures = false
         List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
         doReturn(mockValidationFailures)
-                .when(wsdlValidator).executeValidator(anyString());
+                .when(wsdlValidator).validate(anyString());
 
         try {
             serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
@@ -332,7 +332,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         // start mocking validation failures, when ignoreFailures = false
         List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
         doReturn(mockValidationFailures)
-                .when(wsdlValidator).executeValidator(anyString());
+                .when(wsdlValidator).validate(anyString());
 
         try {
             serviceDescriptionService.updateWsdlUrl(serviceDescriptionEntity.getId(),
@@ -377,7 +377,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         // start mocking validation failures, when ignoreFailures = false
         List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
         doReturn(mockValidationFailures)
-                .when(wsdlValidator).executeValidator(anyString());
+                .when(wsdlValidator).validate(anyString());
 
         // should be able to ignore them all
         serviceDescriptionService.updateWsdlUrl(serviceDescriptionEntity.getId(), newUrl, true);

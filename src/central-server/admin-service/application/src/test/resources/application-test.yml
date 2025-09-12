@@ -12,3 +12,7 @@ xroad:
 
 logging:
   config: classpath:centralserver-admin-service-test-logback.xml
+
+server:
+  ssl:
+    enabled: false

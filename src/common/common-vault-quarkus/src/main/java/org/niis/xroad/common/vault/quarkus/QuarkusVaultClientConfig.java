@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 public class QuarkusVaultClientConfig {
 
     @ApplicationScoped
-    QuarkusVaultClient vaultTlsCredentialsProvider(VaultKVSecretEngine kvSecretEngine) {
+    QuarkusVaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
         return new QuarkusVaultClient(kvSecretEngine);
     }
 

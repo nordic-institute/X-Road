@@ -156,5 +156,6 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
 
         return userRoleMappings;
     }
+
 }
 

@@ -34,15 +34,7 @@ public class OpMonitorConfig {
 
     @ApplicationScoped
     public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, OpMonitorTlsProperties tlsProperties) {
-        return new QuarkusVaultKeyClient(
-                pkiSecretEngineFactory,
-                tlsProperties.certificateProvisioning().secretStorePkiPath(),
-                tlsProperties.certificateProvisioning().ttl(),
-                tlsProperties.certificateProvisioning().issuanceRoleName(),
-                tlsProperties.certificateProvisioning().commonName(),
-                tlsProperties.certificateProvisioning().altNames(),
-                tlsProperties.certificateProvisioning().ipSubjectAltNames()
-        );
+        return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
     }
 
 }

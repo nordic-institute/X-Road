@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.common.rpc.spring;
 
-
-import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.RpcConfig;
+import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
@@ -46,23 +45,15 @@ import java.util.Optional;
 @Configuration(proxyBeanMethods = false)
 @EnableScheduling
 @EnableConfigurationProperties({
-        SpringCommonRpcProperties.class
+        SpringRpcProperties.class
 })
 public class SpringRpcConfig extends RpcConfig {
 
     @Bean(initMethod = "init", destroyMethod = "shutdown")
     VaultKeyProvider reloadableVaultKeyManager(Optional<VaultTemplate> vaultTemplate,
-                                               CommonRpcProperties rpcProperties) throws CertificateException {
+                                               RpcProperties rpcProperties) throws CertificateException {
         if (rpcProperties.useTls()) {
-            var vaultKeyClient = new SpringVaultKeyClient(
-                    vaultTemplate.get(),
-                    rpcProperties.certificateProvisioning().secretStorePkiPath(),
-                    rpcProperties.certificateProvisioning().ttl(),
-                    rpcProperties.certificateProvisioning().issuanceRoleName(),
-                    rpcProperties.certificateProvisioning().commonName(),
-                    rpcProperties.certificateProvisioning().altNames(),
-                    rpcProperties.certificateProvisioning().ipSubjectAltNames()
-            );
+            var vaultKeyClient = new SpringVaultKeyClient(vaultTemplate.get(), rpcProperties.certificateProvisioning());
             return ReloadableVaultKeyManager.withDefaults(rpcProperties.certificateProvisioning(), vaultKeyClient);
         } else {
             return new NoopVaultKeyProvider();
@@ -71,8 +62,8 @@ public class SpringRpcConfig extends RpcConfig {
 
     @Bean
     RpcCredentialsConfigurer rpcCredentialsConfigurer(Optional<VaultKeyProvider> vaultKeyProvider,
-                                                      CommonRpcProperties rpcCommonProperties) {
-        return super.rpcCredentialsConfigurer(vaultKeyProvider::get, rpcCommonProperties);
+                                                      RpcProperties rpcProperties) {
+        return super.rpcCredentialsConfigurer(vaultKeyProvider::get, rpcProperties);
     }
 
 

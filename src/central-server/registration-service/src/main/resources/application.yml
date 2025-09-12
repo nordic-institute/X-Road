@@ -1,4 +1,7 @@
 spring:
+  config:
+    import:
+      - classpath:/xroad-common.yaml
   servlet:
     multipart.enabled: false
 server:
@@ -27,6 +30,4 @@ xroad:
     rate-limit-requests-per-minute: 10
     rate-limit-cache-size: 10_000
     rate-limit-expire-after-access-minutes: 2
-    api-trust-store: ${xroad.conf.path:/etc/xroad}/ssl/center-admin-service.p12
-    api-trust-store-password: center-admin-service
     api-base-url: https://127.0.0.1:4000/api/v1
