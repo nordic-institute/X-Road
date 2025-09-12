@@ -68,7 +68,6 @@ RUN rm -f \
   && rm -rf /usr/share/xroad/config/etc/xroad/signer/softtoken \
   && mv /usr/share/xroad/config/etc/xroad/conf.d/local.ini \
     /usr/share/xroad/config/etc/xroad/services/local.properties \
-    /usr/share/xroad/config/etc/xroad/devices.ini \
     /usr/share/xroad/config/backup/ \
 ##
   && dpkg-query --showformat='${Version}' --show xroad-proxy >/usr/share/xroad/config/VERSION \
