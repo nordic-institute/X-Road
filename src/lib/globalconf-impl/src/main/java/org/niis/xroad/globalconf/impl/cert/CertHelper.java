@@ -36,12 +36,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.SingleResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
@@ -53,7 +57,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  */
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class CertHelper {
     private final GlobalConfProvider globalConfProvider;
 
@@ -68,7 +71,8 @@ public final class CertHelper {
      * @param member        the member
      * @throws Exception if verification fails.
      */
-    public void verifyAuthCert(CertChain chain, List<OCSPResp> ocspResponses, ClientId member) throws Exception {
+    public void verifyAuthCert(CertChain chain, List<OCSPResp> ocspResponses, ClientId member)
+            throws CertificateEncodingException, IOException, OperatorCreationException, CertificateParsingException {
         X509Certificate cert = chain.getEndEntityCert();
         if (!CertUtils.isAuthCert(cert)) {
             throw new CodedException(X_SSL_AUTH_FAILED,
@@ -117,7 +121,7 @@ public final class CertHelper {
      */
     public static OCSPResp getOcspResponseForCert(X509Certificate cert,
                                                   X509Certificate issuer, List<OCSPResp> ocspResponses)
-            throws Exception {
+            throws OCSPException, CertificateEncodingException, IOException, OperatorCreationException {
         CertificateID certId = CryptoUtils.createCertId(cert, issuer);
         for (OCSPResp resp : ocspResponses) {
             BasicOCSPResp basicResp = (BasicOCSPResp) resp.getResponseObject();

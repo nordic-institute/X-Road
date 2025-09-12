@@ -35,8 +35,8 @@ import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
@@ -46,6 +46,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
@@ -54,7 +55,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public abstract class BaseSignedRequestCallback<T> implements ManagementRequestDecoderCallback {
     protected final GlobalConfProvider globalConfProvider;
     protected final ManagementRequestCertVerifier managementRequestCertVerifier;
@@ -114,7 +114,7 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
         }
     }
 
-    private void verifySignature() throws Exception {
+    private void verifySignature() throws CertificateEncodingException, IOException, OCSPException {
         final SoapMessageImpl soap = rootCallback.getSoapMessage();
         byte[] dataToVerify = soap.getBytes();
 

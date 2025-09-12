@@ -40,7 +40,6 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -75,16 +74,14 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     protected final boolean storeOpMonitoringData;
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     abstract MessageProcessorBase createRequestProcessor(RequestWrapper request,
                                                          ResponseWrapper response,
-                                                         OpMonitoringData opMonitoringData) throws Exception;
+                                                         OpMonitoringData opMonitoringData) throws IOException;
 
     @Override
     @WithSpan
     @SuppressWarnings({"java:S3776"}) //TODO XRDDEV-2962 cognitive complexity should drop after refactoring
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public boolean handle(Request request, Response response, Callback callback) throws Exception {
+    public boolean handle(Request request, Response response, Callback callback) throws IOException {
         boolean handled = false;
 
         long start = logPerformanceBegin(request);

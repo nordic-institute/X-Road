@@ -33,17 +33,16 @@ import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import com.nortal.test.testcontainers.images.builder.ReusableImageFromDockerfile;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -72,18 +71,15 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
 
     @NotNull
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
     public TestCaContainer configure() {
         var logDirPath = Paths.get("build/ca-container-logs/");
         var logDir = logDirPath.toFile();
         logDir.mkdirs();
 
         if (SystemUtils.IS_OS_UNIX) {
-            try {
-                Files.setPosixFilePermissions(logDirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            Files.setPosixFilePermissions(logDirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
         }
         return new TestCaContainer(imageDefinition())
                 .withExposedPorts(8899, 8887, 8888, 8889)

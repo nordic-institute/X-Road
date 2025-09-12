@@ -34,16 +34,22 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
 import ee.ria.xroad.common.util.MessageFileNames;
 
+import jakarta.xml.bind.JAXBException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.signature.XMLSignatureByteInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +68,6 @@ import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
  * result with corresponding hash chains.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SignatureCtx {
 
     private final List<SigningRequest> requests = new ArrayList<>();
@@ -89,7 +94,7 @@ public class SignatureCtx {
     /**
      * Produces the XML signature from the given signed data.
      */
-    public synchronized String createSignatureXml(byte[] signatureValue) throws Exception {
+    public synchronized String createSignatureXml(byte[] signatureValue) throws IOException, TransformerException {
         return builder.createSignatureXml(Signatures.useRawFormat(signatureAlgorithmId, signatureValue));
     }
 
@@ -105,7 +110,8 @@ public class SignatureCtx {
      * Returns the data to be signed -- if there is only one signing request
      * and the request is simple message (no attachments), then no hash chain is used.
      */
-    public synchronized byte[] getDataToBeSigned() throws Exception {
+    public synchronized byte[] getDataToBeSigned()
+            throws CertificateEncodingException, ParserConfigurationException, IOException, XMLSecurityException, JAXBException {
         log.trace("getDataToBeSigned(requests = {})", requests.size());
 
         if (requests.isEmpty()) {
@@ -130,7 +136,7 @@ public class SignatureCtx {
                 signatureAlgorithmId);
     }
 
-    private void buildHashChain() throws Exception {
+    private void buildHashChain() throws IOException, JAXBException {
         log.trace("buildHashChain()");
 
         HashChainBuilder hashChainBuilder = new HashChainBuilder(signatureAlgorithmId.digest());

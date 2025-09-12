@@ -43,7 +43,7 @@ import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPReqBuilder;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.ContentSigner;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.stereotype.Component;
 
@@ -55,6 +55,7 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -64,7 +65,6 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class OcspClient {
     private final GlobalConfProvider globalConfProvider;
 
@@ -76,7 +76,7 @@ public final class OcspClient {
     private static final DigestAlgorithm DIGEST_ALGORITHM_ID = DigestAlgorithm.SHA512;
     private static final SignMechanism SIGN_MECHANISM = SignMechanism.CKM_RSA_PKCS;
 
-    OCSPResp queryCertStatus(X509Certificate subject) throws Exception {
+    OCSPResp queryCertStatus(X509Certificate subject) throws OCSPException, CertificateEncodingException, IOException {
         X509Certificate issuer = globalConfProvider.getCaCert(globalConfProvider.getInstanceIdentifier(), subject);
 
         PrivateKey signerKey = getOcspRequestKey(subject);
@@ -100,7 +100,8 @@ public final class OcspClient {
     }
 
     OCSPResp fetchResponse(X509Certificate subject, X509Certificate issuer, PrivateKey signerKey,
-                           X509Certificate signer, SignAlgorithm signAlgoId) throws Exception {
+                           X509Certificate signer, SignAlgorithm signAlgoId)
+            throws CertificateEncodingException, IOException, OCSPException {
         List<String> responderURIs = globalConfProvider.getOcspResponderAddresses(subject);
 
         log.trace("responder URIs: {}", responderURIs);
@@ -123,7 +124,8 @@ public final class OcspClient {
     }
 
     OCSPResp fetchResponse(String responderURI, X509Certificate subject, X509Certificate issuer,
-                           PrivateKey signerKey, X509Certificate signer, SignAlgorithm signAlgoId) throws Exception {
+                           PrivateKey signerKey, X509Certificate signer, SignAlgorithm signAlgoId)
+            throws IOException, OCSPException, CertificateEncodingException, OperatorCreationException {
         HttpURLConnection connection = createConnection(responderURI);
 
         OCSPReq ocspRequest = createRequest(subject, issuer, signerKey, signer, signAlgoId);
@@ -203,7 +205,8 @@ public final class OcspClient {
     }
 
     private static OCSPReq createRequest(X509Certificate subjectCert, X509Certificate issuerCert, PrivateKey signerKey,
-                                         X509Certificate signerCert, SignAlgorithm signAlgoId) throws Exception {
+                                         X509Certificate signerCert, SignAlgorithm signAlgoId)
+            throws OCSPException, CertificateEncodingException, IOException, OperatorCreationException {
         OCSPReqBuilder requestBuilder = new OCSPReqBuilder();
 
         CertificateID id = CryptoUtils.createCertId(subjectCert, issuerCert);

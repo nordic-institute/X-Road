@@ -69,7 +69,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
  */
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class OcspResponseManager {
     private final GlobalConfProvider globalConfProvider;
     private final OcspClient ocspClient;
@@ -175,7 +175,7 @@ public class OcspResponseManager {
         }
     }
 
-    public void handleSetOcspResponses(SetOcspResponsesReq message) throws Exception {
+    public void handleSetOcspResponses(SetOcspResponsesReq message) throws IOException {
         log.trace("handleSetOcspResponses()");
 
         for (int i = 0; i < message.getCertHashesCount(); i++) {

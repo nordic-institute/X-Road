@@ -61,7 +61,6 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -81,6 +80,7 @@ import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -371,7 +371,7 @@ public final class CertUtils {
      */
     @Deprecated
     public static String[] getSha1Hashes(List<X509Certificate> certs)
-            throws CertificateEncodingException, IOException, OperatorCreationException {
+            throws CertificateEncodingException, IOException {
         String[] certHashes = new String[certs.size()];
 
         for (int i = 0; i < certs.size(); i++) {
@@ -389,7 +389,7 @@ public final class CertUtils {
      * @throws IOException                  if an I/O error occurred
      */
     public static String[] getHashes(List<X509Certificate> certs)
-            throws CertificateEncodingException, IOException, OperatorCreationException {
+            throws CertificateEncodingException, IOException {
         String[] certHashes = new String[certs.size()];
 
         for (int i = 0; i < certs.size(); i++) {
@@ -506,8 +506,8 @@ public final class CertUtils {
      * @param filenameP12 output filename of the .p12 keystore
      * @throws Exception when error occurs
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public static void createPkcs12(String filenameKey, byte[] certBytes, String filenameP12) throws Exception {
+    public static void createPkcs12(String filenameKey, byte[] certBytes, String filenameP12)
+            throws NoSuchAlgorithmException, InvalidKeySpecException, IOException, KeyStoreException, CertificateException {
         KeyPair keyPair = readKeyPairFromPemFile(filenameKey);
         PrivateKey privateKey = keyPair.getPrivate();
 

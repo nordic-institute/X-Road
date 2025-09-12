@@ -43,7 +43,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -77,7 +79,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
  * the configuration is downloaded.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfigurationDownloader {
 
     protected final FileNameProvider fileNameProvider;
@@ -315,7 +317,7 @@ public class ConfigurationDownloader {
         return this.locationVersionResolver(location).toVersionedLocation();
     }
 
-    byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) throws Exception {
+    byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) throws IOException, URISyntaxException {
         URLConnection connection = getDownloadURLConnection(getDownloadURL(location, file));
         log.info("Downloading content from {}", connection.getURL());
         try (InputStream in = connection.getInputStream()) {
@@ -323,7 +325,7 @@ public class ConfigurationDownloader {
         }
     }
 
-    void verifyContent(byte[] content, ConfigurationFile file) throws Exception {
+    void verifyContent(byte[] content, ConfigurationFile file) throws IOException {
         log.trace("verifyContent({}, {})", file.getHash(), file.getHashAlgorithmId());
 
         DigestCalculator dc = createDigestCalculator(file.getHashAlgorithmId());
@@ -352,7 +354,8 @@ public class ConfigurationDownloader {
         ConfigurationDirectory.saveMetadata(destination, file.getMetadata());
     }
 
-    public static URL getDownloadURL(ConfigurationLocation location, ConfigurationFile file) throws Exception {
+    public static URL getDownloadURL(ConfigurationLocation location, ConfigurationFile file)
+            throws URISyntaxException, MalformedURLException {
         return new URI(location.getDownloadURL()).resolve(file.getContentLocation()).toURL();
     }
 
@@ -364,7 +367,7 @@ public class ConfigurationDownloader {
 
     // ------------------------------------------------------------------------
 
-    static byte[] hash(Path file, DigestAlgorithm algoUri) throws Exception {
+    static byte[] hash(Path file, DigestAlgorithm algoUri) throws IOException {
         DigestCalculator dc = createDigestCalculator(algoUri);
 
         try (InputStream in = Files.newInputStream(file)) {

@@ -36,9 +36,11 @@ import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
 
 import com.google.common.collect.Iterables;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.soap.SOAPException;
 import lombok.Setter;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Objects;
@@ -52,10 +54,11 @@ public class MessageBodyManipulator {
     /**
      * Extract configuration reading for better testability
      */
-    public class Configurator {
+    public static class Configurator {
         /**
          * Returns list of local producer subsystem ClientIds for which global SOAP body logging
          * setting is overridden
+         *
          * @return list of ClientId
          */
         public Collection<ClientId> getLocalProducerOverrides() {
@@ -65,6 +68,7 @@ public class MessageBodyManipulator {
         /**
          * Returns list of remote producer subsystem ClientIds for which global SOAP body logging
          * setting is overridden
+         *
          * @return list of ClientId
          */
         public Collection<ClientId> getRemoteProducerOverrides() {
@@ -73,6 +77,7 @@ public class MessageBodyManipulator {
 
         /**
          * Tells whether SOAP body logging is enabled
+         *
          * @return true if enabled
          */
         public boolean isMessageBodyLoggingEnabled() {
@@ -87,12 +92,12 @@ public class MessageBodyManipulator {
      * Returns the string that should be logged. This will either be the original soap message
      * (when soap:body logging is used for this message) or manipulated soap message with
      * soap:body element cleared.
+     *
      * @param message soap message
      * @return the string that should be logged
      * @throws Exception when error occurs
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public String getLoggableMessageText(SoapLogMessage message) throws Exception {
+    public String getLoggableMessageText(SoapLogMessage message) throws IOException, SOAPException, JAXBException, IllegalAccessException {
         if (isBodyLogged(message)) {
             return message.getMessage().getXml();
         } else {
@@ -112,8 +117,8 @@ public class MessageBodyManipulator {
         }
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private String buildBodyRemovedMessage(SoapLogMessage message) throws Exception {
+    private String buildBodyRemovedMessage(SoapLogMessage message)
+            throws SOAPException, JAXBException, IllegalAccessException, IOException {
         // build a new empty message with SoapBuilder and
         // set old SoapHeader to it
         SoapHeader oldHeader = message.getMessage().getHeader();
@@ -131,6 +136,7 @@ public class MessageBodyManipulator {
 
     /**
      * Tells whether SOAP body should be logged for this message.
+     *
      * @param message SOAP message
      * @return true if this message's body is logged
      */
@@ -154,8 +160,9 @@ public class MessageBodyManipulator {
 
     /**
      * Takes one ClientId object, and searches whether it is in searched group of ClientIds
+     *
      * @param searchParam ClientId to search
-     * @param searched collection to search from
+     * @param searched    collection to search from
      * @return true if ClientId is in the collection
      */
     public boolean isClientInCollection(ClientId searchParam, Iterable<? extends ClientId> searched) {

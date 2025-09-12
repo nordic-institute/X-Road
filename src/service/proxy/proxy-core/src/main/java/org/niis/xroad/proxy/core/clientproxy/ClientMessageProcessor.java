@@ -58,10 +58,12 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URI;
+import java.security.cert.CertificateEncodingException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -89,7 +91,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
 
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
     /**
@@ -160,7 +162,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     ClientMessageProcessor(CommonBeanProxy commonBeanProxy,
                            RequestWrapper request, ResponseWrapper response,
                            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
-            throws Exception {
+            throws IOException {
         super(commonBeanProxy, request, response, httpClient, clientCert,
                 opMonitoringData);
         this.reqIns = new PipedInputStream();
@@ -311,7 +313,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void checkResponse() throws Exception {
+    private void checkResponse() {
         log.trace("checkResponse()");
 
         if (response.getFault() != null) {
@@ -344,7 +346,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         checkRequestHash();
     }
 
-    private void checkRequestHash() throws Exception {
+    private void checkRequestHash() {
         RequestHash requestHashFromResponse = response.getSoap().getHeader().getRequestHash();
 
         if (requestHashFromResponse != null) {
@@ -365,7 +367,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void logResponseMessage() throws Exception {
+    private void logResponseMessage() {
         log.trace("logResponseMessage()");
 
         MessageLog.log(response.getSoap(), response.getSignature(), response.getAttachments(), true, xRequestId);
@@ -422,7 +424,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         httpSenderGate.countDown();
     }
 
-    private void checkError() throws Exception {
+    private void checkError() {
         if (executionException != null) {
             log.trace("checkError(): ", executionException);
 
@@ -457,11 +459,10 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private final class SoapMessageHandler implements SoapMessageDecoder.Callback {
 
         @Override
-        public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers) throws IOException, CertificateEncodingException {
             if (log.isTraceEnabled()) {
                 log.trace("soap({})", message.getXml());
             }
@@ -490,13 +491,14 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
         @Override
         public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
-                throws Exception {
+                throws IOException {
             log.trace("attachment()");
 
             request.attachment(contentType, content, additionalHeaders);
         }
 
         @Override
+        @ArchUnitSuppressed("NoVanillaExceptions")
         public void fault(SoapFault fault) throws Exception {
             onError(fault.toCodedException());
         }
@@ -530,7 +532,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             }
         }
 
-        private void logRequestMessage() throws Exception {
+        private void logRequestMessage() {
             log.trace("logRequestMessage()");
 
             // Not logging request attachments, as they are always batch-signed in X-Road 7
@@ -538,6 +540,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         @Override
+        @ArchUnitSuppressed("NoVanillaExceptions")
         public void onError(Exception e) throws Exception {
             log.error("onError()", e);
 
@@ -545,7 +548,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             throw e;
         }
 
-        private void writeOcspResponses() throws Exception {
+        private void writeOcspResponses() throws CertificateEncodingException, IOException {
             CertChain chain = commonBeanProxy.keyConfProvider.getAuthKey().certChain();
             // exclude TopCA
             List<OCSPResp> ocspResponses = commonBeanProxy.keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.messagelog;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.proxy.core.messagelog.Timestamper.TimestampFailed;
 import org.niis.xroad.proxy.core.messagelog.Timestamper.TimestampSucceeded;
@@ -93,7 +94,8 @@ class TestTaskQueue extends TaskQueue {
     }
 
     @Override
-    protected void saveTimestampRecord(TimestampSucceeded message) throws Exception {
+    @SneakyThrows
+    protected void saveTimestampRecord(TimestampSucceeded message) {
         try {
             if (throwWhenSavingTimestamp != null) {
                 throw throwWhenSavingTimestamp;

@@ -73,7 +73,7 @@ class ServerProxyHandler extends HandlerBase {
 
     @Override
     @WithSpan
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
         OpMonitoringData opMonitoringData = new OpMonitoringData(PRODUCER, getEpochMillisecond());
 

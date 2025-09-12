@@ -34,7 +34,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.apache.commons.cli.ParseException;
 import org.niis.xroad.confclient.core.ConfigurationClientCLI;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
@@ -43,7 +43,6 @@ import static org.niis.xroad.confclient.core.ConfigurationClientCLI.OPTION_VERIF
 
 @Slf4j
 @UtilityClass
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfClientCLIMain {
     private static final String APP_NAME = "xroad-confclient";
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
@@ -63,9 +62,8 @@ public class ConfClientCLIMain {
      * 3) <anchor file> -- in validate mode.
      *
      * @param args the arguments
-     * @throws Exception if an error occurs
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws ParseException {
         Version.outputVersionInfo(APP_NAME);
         CommandLine cmd = getCommandLine(args);
         String[] actualArgs = cmd.getArgs();
@@ -85,7 +83,7 @@ public class ConfClientCLIMain {
         System.exit(result);
     }
 
-    private static CommandLine getCommandLine(String[] args) throws Exception {
+    private static CommandLine getCommandLine(String[] args) throws ParseException {
         CommandLineParser parser = new DefaultParser();
         Options options = new Options();
 

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.XmlUtils;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.bind.Unmarshaller;
@@ -38,20 +39,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.transforms.Transforms;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.validation.Schema;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -73,10 +77,11 @@ import static ee.ria.xroad.common.util.SchemaValidator.createSchema;
  * Verification of hash chains.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class HashChainVerifier {
 
-    /** For accessing JAXB functionality. Shared between all the verifiers. */
+    /**
+     * For accessing JAXB functionality. Shared between all the verifiers.
+     */
     private static JAXBContext jaxbCtx;
 
     private static final String INVALID_HASH_STEP_URI_MSG = "Invalid hash step URI: %s";
@@ -97,34 +102,36 @@ public final class HashChainVerifier {
         }
     }
 
-    private InputStream hashChainResultXml;
-    private HashChainReferenceResolver referenceResolver;
-    private Map<String, DigestValue> inputs;
+    private final InputStream hashChainResultXml;
+    private final HashChainReferenceResolver referenceResolver;
+    private final Map<String, DigestValue> inputs;
 
     /**
      * Caches already retrieved and parsed hash chains.
      * Map from URI to contents.
      */
-    private Map<String, HashChainType> hashChainCache = new HashMap<>();
+    private final Map<String, HashChainType> hashChainCache = new HashMap<>();
 
-    /** Records set of inputs that were used by the hash chain calculation. */
-    private Set<String> usedInputs = new HashSet<>();
+    /**
+     * Records set of inputs that were used by the hash chain calculation.
+     */
+    private final Set<String> usedInputs = new HashSet<>();
 
     /**
      * Verifies a set of inputs with respect to hash chain result.
      * Silently returns when all the inputs are correctly referenced by the hash chain. Throws exception on error.
+     *
      * @param hashChainResultXml hash chain result that is the starting point of the verification.
-     * @param referenceResolver used to resolve references from hash chain result and hash chains.
-     *         The resolver is not called for file names that are given as inputs that have the target present.
-     * @param inputs set of inputs that are to be verified with respect to the hash chain result.
-     *         All the inputs must be referenced by the hash chain in order to the verification to succeed.
-     *         The parameter should contain mapping from file names to input hashes. The Input object (key value) can be
-     *         null,
-     *         in which case the reference resolver is used to download the input data for hashing.
-     * @throws Exception in case of any errors
+     * @param referenceResolver  used to resolve references from hash chain result and hash chains.
+     *                           The resolver is not called for file names that are given as inputs that have the target present.
+     * @param inputs             set of inputs that are to be verified with respect to the hash chain result.
+     *                           All the inputs must be referenced by the hash chain in order to the verification to succeed.
+     *                           The parameter should contain mapping from file names to input hashes. The Input object (key value) can be
+     *                           null,
+     *                           in which case the reference resolver is used to download the input data for hashing.
      */
-    public static void verify(InputStream hashChainResultXml, HashChainReferenceResolver referenceResolver,
-                              Map<String, DigestValue> inputs) throws Exception {
+    public static void verify(InputStream hashChainResultXml, HashChainReferenceResolver referenceResolver, Map<String, DigestValue> inputs)
+            throws JAXBException, IOException, ParserConfigurationException, XMLSecurityException, SAXException {
         new HashChainVerifier(hashChainResultXml, referenceResolver, inputs).verify();
     }
 
@@ -135,7 +142,7 @@ public final class HashChainVerifier {
         this.inputs = inputs;
     }
 
-    private void verify() throws Exception {
+    private void verify() throws IOException, JAXBException, ParserConfigurationException, XMLSecurityException, SAXException {
         log.trace("verify()");
 
         HashChainResultType hashChainResult = parseHashChainResult(hashChainResultXml);
@@ -167,15 +174,17 @@ public final class HashChainVerifier {
         }
     }
 
-    private static HashChainResultType parseHashChainResult(InputStream xml) throws Exception {
+    private static HashChainResultType parseHashChainResult(InputStream xml)
+            throws JAXBException, ParserConfigurationException, SAXException {
         return validateAndParse(xml, HashChainResultType.class);
     }
 
-    private static HashChainType parseHashChain(InputStream xml) throws Exception {
+    private static HashChainType parseHashChain(InputStream xml) throws JAXBException, ParserConfigurationException, SAXException {
         return validateAndParse(xml, HashChainType.class);
     }
 
-    private static <T> T validateAndParse(InputStream xml, Class<T> type) throws Exception {
+    private static <T> T validateAndParse(InputStream xml, Class<T> type)
+            throws ParserConfigurationException, SAXException, JAXBException {
         final XMLReader reader = SAX_PARSER_FACTORY.newSAXParser().getXMLReader();
         final InputSource inputSource = new InputSource(xml);
         Source source = new SAXSource(reader, inputSource);
@@ -191,9 +200,11 @@ public final class HashChainVerifier {
 
     /**
      * Downloads hash step, calculates all the values and concatenates the results to DigestList data structure.
+     *
      * @return DER-encoding of the DigestList data structure.
      */
-    private byte[] resolveHashStep(String uri, HashChainType currentChain) throws Exception {
+    private byte[] resolveHashStep(String uri, HashChainType currentChain)
+            throws JAXBException, IOException, ParserConfigurationException, SAXException, XMLSecurityException {
         log.trace("resolveHashStep({})", uri);
 
         Pair<HashStepType, HashChainType> hashStep = fetchHashStep(uri, currentChain);
@@ -210,8 +221,11 @@ public final class HashChainVerifier {
         return DigestList.concatDigests(digests);
     }
 
-    /** Calculates digest of the value in a hash step. */
-    private DigestValue resolveValue(AbstractValueType value, HashChainType currentChain) throws Exception {
+    /**
+     * Calculates digest of the value in a hash step.
+     */
+    private DigestValue resolveValue(AbstractValueType value, HashChainType currentChain)
+            throws JAXBException, IOException, ParserConfigurationException, XMLSecurityException, SAXException {
         log.trace("resolveValue({})", value);
 
         if (value instanceof DataRefType) {
@@ -232,7 +246,8 @@ public final class HashChainVerifier {
         return new DigestValue(digestMethodUri, hashValue.getDigestValue());
     }
 
-    private DigestValue resolveStepRef(StepRefType stepRef, HashChainType currentChain) throws Exception {
+    private DigestValue resolveStepRef(StepRefType stepRef, HashChainType currentChain)
+            throws JAXBException, IOException, ParserConfigurationException, XMLSecurityException, SAXException {
         // Calculate result of the referenced hash step
         byte[] resolved = resolveHashStep(stepRef.getURI(), currentChain);
         DigestAlgorithm digestMethodUri = getValueDigestMethodUri(stepRef, currentChain);
@@ -241,7 +256,8 @@ public final class HashChainVerifier {
         return new DigestValue(digestMethodUri, calculateDigest(digestMethodUri, resolved));
     }
 
-    private DigestValue resolveDataRef(DataRefType dataRef, HashChainType currentChain) throws Exception {
+    private DigestValue resolveDataRef(DataRefType dataRef, HashChainType currentChain)
+            throws IOException, JAXBException, ParserConfigurationException, XMLSecurityException {
         if (isInputRef(dataRef)) {
             // Hash chain referenced given input
             usedInputs.add(dataRef.getURI());
@@ -289,7 +305,9 @@ public final class HashChainVerifier {
         return new DigestValue(digestMethodUri, digest);
     }
 
-    /** Returns DigestValue from input if it exactly matches the reference. */
+    /**
+     * Returns DigestValue from input if it exactly matches the reference.
+     */
     private DigestValue getMatchingInputHash(DataRefType dataRef, HashChainType currentChain) {
         DigestValue inputDigest = inputs.get(dataRef.getURI());
 
@@ -305,8 +323,11 @@ public final class HashChainVerifier {
         return inputs.containsKey(dataRef.getURI());
     }
 
-    /** Downloads data from the URI and runs transforms on it. */
-    private InputStream performTransforms(String uri, TransformsType transforms) throws Exception {
+    /**
+     * Downloads data from the URI and runs transforms on it.
+     */
+    private InputStream performTransforms(String uri, TransformsType transforms)
+            throws ParserConfigurationException, JAXBException, XMLSecurityException, IOException {
         log.trace("performTransforms({}, {})", uri, transforms);
 
         JAXBElement<TransformsType> transformsElement = new ObjectFactory().createTransforms(transforms);
@@ -337,8 +358,11 @@ public final class HashChainVerifier {
         }
     }
 
-    /** Retrieve hash step based on the URI. */
-    private Pair<HashStepType, HashChainType> fetchHashStep(String uri, HashChainType currentChain) throws Exception {
+    /**
+     * Retrieve hash step based on the URI.
+     */
+    private Pair<HashStepType, HashChainType> fetchHashStep(String uri, HashChainType currentChain)
+            throws JAXBException, IOException, ParserConfigurationException, SAXException {
         // Find the fragment separator.
         int hashIndex = uri.indexOf('#');
 
@@ -373,7 +397,7 @@ public final class HashChainVerifier {
         throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
     }
 
-    private HashChainType getHashChain(String uri) throws Exception {
+    private HashChainType getHashChain(String uri) throws IOException, JAXBException, ParserConfigurationException, SAXException {
         HashChainType ret = hashChainCache.get(uri);
 
         if (ret == null) {

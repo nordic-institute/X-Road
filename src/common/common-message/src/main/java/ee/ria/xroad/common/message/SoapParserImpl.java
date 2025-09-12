@@ -31,9 +31,11 @@ import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.bind.ValidationEvent;
 import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPFault;
 import jakarta.xml.soap.SOAPHeader;
 import jakarta.xml.soap.SOAPMessage;
@@ -42,7 +44,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jaxb.runtime.api.AccessorException;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import javax.xml.namespace.QName;
 
@@ -71,7 +72,6 @@ import static ee.ria.xroad.common.util.MimeUtils.UTF8;
  * input stream.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SoapParserImpl implements SoapParser {
 
     @Override
@@ -84,7 +84,7 @@ public class SoapParserImpl implements SoapParser {
     }
 
     protected Soap parseMessage(String contentType, InputStream is)
-            throws Exception {
+            throws IOException, SOAPException, JAXBException {
         String mimeType = MimeUtils.getBaseContentType(contentType);
 
         String charset = HeaderValueUtils.getCharset(contentType);
@@ -113,7 +113,7 @@ public class SoapParserImpl implements SoapParser {
     }
 
     protected Soap parseMessage(byte[] rawXml, SOAPMessage soap,
-                                String charset, String originalContentType) throws Exception {
+                                String charset, String originalContentType) throws SOAPException, JAXBException {
         if (soap.getSOAPBody() == null) {
             throw new CodedException(X_MISSING_BODY,
                     "Malformed SOAP message: body missing");
@@ -128,7 +128,7 @@ public class SoapParserImpl implements SoapParser {
     }
 
     protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
-                                 String charset, String originalContentType) throws Exception {
+                                 String charset, String originalContentType) throws SOAPException, JAXBException {
         // Request and response messages must have a header,
         // fault messages may or may not have a header.
         SoapHeader header = null;
@@ -143,7 +143,7 @@ public class SoapParserImpl implements SoapParser {
 
     protected Soap createMessage(byte[] rawXml, SoapHeader header,
                                  SOAPMessage soap, String charset, String originalContentType)
-            throws Exception {
+            throws SOAPException {
         if (header == null) {
             throw new CodedException(X_MISSING_HEADER,
                     "Malformed SOAP message: header missing");
@@ -193,14 +193,13 @@ public class SoapParserImpl implements SoapParser {
      * @return instance of T
      * @throws Exception in case of any errors
      */
-    public static <T> T unmarshalHeader(Class<?> clazz, SOAPHeader soapHeader)
-            throws Exception {
+    public static <T> T unmarshalHeader(Class<?> clazz, SOAPHeader soapHeader) throws JAXBException {
         return unmarshalHeader(clazz, soapHeader, true);
     }
 
     @SuppressWarnings("unchecked")
     static <T> T unmarshalHeader(Class<?> clazz, SOAPHeader soapHeader,
-                                 boolean checkRequiredFields) throws Exception {
+                                 boolean checkRequiredFields) throws JAXBException {
         Unmarshaller unmarshaller = JaxbUtils.createUnmarshaller(clazz);
 
         if (checkRequiredFields) {

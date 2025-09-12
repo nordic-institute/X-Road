@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,7 +60,7 @@ import java.util.stream.Collectors;
  * means to of altering these properties.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfProxyProperties {
 
     public static final String ACTIVE_SIGNING_KEY_ID = "active-signing-key-id";
@@ -169,7 +170,7 @@ public class ConfProxyProperties {
      * @throws Exception if the configured configuration proxy
      *                   address is invalid
      */
-    public final List<String> getConfigurationProxyURLs() throws Exception {
+    public final List<String> getConfigurationProxyURLs() throws URISyntaxException {
         String address = SystemProperties.getConfigurationProxyAddress();
         if (SystemProperties.DEFAULT_CONNECTOR_HOST.equals(address)) {
             return List.of();

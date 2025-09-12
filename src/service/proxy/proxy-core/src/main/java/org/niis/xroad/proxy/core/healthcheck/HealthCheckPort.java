@@ -54,7 +54,7 @@ import static org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503;
  * Service that listens for health check requests on a specific port and interface
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class HealthCheckPort implements InitializingBean, DisposableBean {
 
     public static final String MAINTENANCE_MESSAGE = "Health check interface is in maintenance mode.";
@@ -143,7 +143,7 @@ public class HealthCheckPort implements InitializingBean, DisposableBean {
      * firewall.
      */
     @RequiredArgsConstructor
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public class HealthCheckHandler extends Handler.Abstract {
 
         private final HealthCheckProvider healthCheckProvider;

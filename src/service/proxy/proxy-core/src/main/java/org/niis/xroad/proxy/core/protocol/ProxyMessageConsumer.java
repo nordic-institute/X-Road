@@ -32,9 +32,10 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.CertificateEncodingException;
 import java.util.Map;
 
 /**
@@ -43,73 +44,67 @@ import java.util.Map;
  * optional attachments and the signature. The OCSP response is only used
  * in SSL mode to send the OCSP response of the client proxy SSL certificate.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface ProxyMessageConsumer {
 
     /**
      * Called when SOAP message is parsed.
-     * @param message the SOAP message
+     *
+     * @param message           the SOAP message
      * @param additionalHeaders headers
-     * @throws Exception if an error occurs
      */
-    void soap(SoapMessageImpl message, Map<String, String> additionalHeaders)
-            throws Exception;
+    void soap(SoapMessageImpl message, Map<String, String> additionalHeaders) throws IOException, CertificateEncodingException;
 
     /**
      * Called when REST message is parsed.
+     *
      * @param message the SOAP message
-     * @throws Exception if an error occurs
      */
-    default void rest(RestRequest message)
-            throws Exception {
+    default void rest(RestRequest message) throws CertificateEncodingException, IOException {
         throw new UnsupportedOperationException();
     }
 
     /**
      * Called when REST message is parsed.
+     *
      * @param message the SOAP message
-     * @throws Exception if an error occurs
      */
-    default void rest(RestResponse message)
-            throws Exception {
+    default void rest(RestResponse message) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * Called when REST body is parsed
-     * @param content
-     * @throws Exception
+     *
      */
-    void restBody(InputStream content) throws Exception;
+    void restBody(InputStream content) throws IOException;
 
     /**
      * Called when an attachment is received.
-     * @param contentType the content type of the attachment
-     * @param content the input stream holding the attachment data
+     *
+     * @param contentType       the content type of the attachment
+     * @param content           the input stream holding the attachment data
      * @param additionalHeaders any additional headers for the attachment
-     * @throws Exception if an error occurs
      */
     void attachment(String contentType, InputStream content,
-                    Map<String, String> additionalHeaders) throws Exception;
+                    Map<String, String> additionalHeaders) throws IOException;
 
     /***
      * Called when an OCSP response arrives.
      * @param resp the response
-     * @throws Exception if an error occurs
      */
-    void ocspResponse(OCSPResp resp) throws Exception;
+    void ocspResponse(OCSPResp resp);
 
     /***
      * Called when a signature arrives.
      * @param signature the signature
-     * @throws Exception if an error occurs
      */
-    void signature(SignatureData signature) throws Exception;
+    void signature(SignatureData signature) throws IOException;
 
     /**
      * Called when a fault is encountered.
+     *
      * @param fault the fault message
-     * @throws Exception if an error occurs
+     * @throws IOException if an error occurs
      */
-    void fault(SoapFault fault) throws Exception;
+    void fault(SoapFault fault) throws IOException;
 }

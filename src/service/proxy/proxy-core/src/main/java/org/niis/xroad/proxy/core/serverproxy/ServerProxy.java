@@ -59,7 +59,7 @@ import java.util.Optional;
  * Server proxy that handles requests of client proxies.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ServerProxy implements InitializingBean, DisposableBean {
 
     private static final int ACCEPTOR_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors());

@@ -118,7 +118,7 @@ import static org.niis.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
  * Signer command line interface.
  */
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class SignerCLI {
 
     private static final String APP_NAME = "xroad-signer-console";
@@ -154,10 +154,9 @@ public class SignerCLI {
     /**
      * Lists all tokens.
      *
-     * @throws Exception if an error occurs
      */
     @Command(description = "Lists all tokens")
-    public void listTokens() throws Exception {
+    public void listTokens() {
         List<TokenInfo> tokens = signerRpcClient.getTokens();
         tokens.forEach(t -> printTokenInfo(t, verbose));
     }
@@ -165,10 +164,9 @@ public class SignerCLI {
     /**
      * Lists all keys on all tokens.
      *
-     * @throws Exception if an error occurs
      */
     @Command(description = "Lists all keys on all tokens")
-    public void listKeys() throws Exception {
+    public void listKeys() {
         List<TokenInfo> tokens = signerRpcClient.getTokens();
         tokens.forEach(t -> {
             printTokenInfo(t, verbose);
@@ -186,10 +184,9 @@ public class SignerCLI {
     /**
      * Lists all certs on all keys on all tokens.
      *
-     * @throws Exception if an error occurs
      */
     @Command(description = "Lists all certs on all keys on all tokens")
-    public void listCerts() throws Exception {
+    public void listCerts() {
         List<TokenInfo> tokens = signerRpcClient.getTokens();
         tokens.forEach(t -> {
             printTokenInfo(t, verbose);
@@ -217,12 +214,11 @@ public class SignerCLI {
      *
      * @param tokenId      token id
      * @param friendlyName friendly name
-     * @throws Exception if an error occurs
      */
     @Command(description = "Sets token friendly name")
     public void setTokenFriendlyName(
             @Param(name = "tokenId", description = "Token ID") String tokenId,
-            @Param(name = "friendlyName", description = "Friendly name") String friendlyName) throws Exception {
+            @Param(name = "friendlyName", description = "Friendly name") String friendlyName) {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(TOKEN_ID_PARAM, tokenId);
         logData.put(TOKEN_FRIENDLY_NAME_PARAM, friendlyName);
@@ -242,11 +238,10 @@ public class SignerCLI {
      *
      * @param keyId        key id
      * @param friendlyName friendly name
-     * @throws Exception if an error occurs
      */
     @Command(description = "Sets key friendly name")
     public void setKeyFriendlyName(@Param(name = "keyId", description = "Key ID") String keyId,
-                                   @Param(name = "friendlyName", description = "Friendly name") String friendlyName) throws Exception {
+                                   @Param(name = "friendlyName", description = "Friendly name") String friendlyName) {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(KEY_ID_PARAM, keyId);
         logData.put(KEY_FRIENDLY_NAME_PARAM, friendlyName);
@@ -265,11 +260,9 @@ public class SignerCLI {
      * Returns key ID for certificate hash.
      *
      * @param certHash certificate hash
-     * @throws Exception if an error occurs
      */
     @Command(description = "Returns key ID for certificate hash")
-    public void getKeyIdForCertHash(@Param(name = "certHash", description = "Certificare hash") String certHash)
-            throws Exception {
+    public void getKeyIdForCertHash(@Param(name = "certHash", description = "Certificare hash") String certHash) {
         SignerRpcClient.KeyIdInfo keyId = signerRpcClient.getKeyIdForCertHash(certHash);
         System.out.println(keyId.keyId());
     }
@@ -278,11 +271,10 @@ public class SignerCLI {
      * Returns all certificates of a member.
      *
      * @param memberId member if
-     * @throws Exception if an error occurs
      */
     @Command(description = "Returns all certificates of a member")
     public void getMemberCerts(
-            @Param(name = "memberId", description = "Member identifier") ClientId memberId) throws Exception {
+            @Param(name = "memberId", description = "Member identifier") ClientId memberId) {
         List<CertificateInfo> certificateInfos = signerRpcClient.getMemberCerts(memberId);
 
         System.out.println("Certs of member " + memberId + ":");
@@ -298,11 +290,9 @@ public class SignerCLI {
      * Activates a certificate.
      *
      * @param certId certificate id
-     * @throws Exception if an error occurs
      */
     @Command(description = "Activates a certificate")
-    public void activateCertificate(@Param(name = "certId", description = "Certificate ID") String certId)
-            throws Exception {
+    public void activateCertificate(@Param(name = "certId", description = "Certificate ID") String certId) {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(CERT_ID_PARAM, certId);
 
@@ -320,11 +310,9 @@ public class SignerCLI {
      * Deactivates a certificate.
      *
      * @param certId certificate id
-     * @throws Exception if an error occurs
      */
     @Command(description = "Deactivates a certificate")
-    public void deactivateCertificate(@Param(name = "certId", description = "Certificate ID") String certId)
-            throws Exception {
+    public void deactivateCertificate(@Param(name = "certId", description = "Certificate ID") String certId) {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(CERT_ID_PARAM, certId);
 
@@ -342,10 +330,9 @@ public class SignerCLI {
      * Deletes a key.
      *
      * @param keyId key id
-     * @throws Exception if an error occurs
      */
     @Command(description = "Deletes a key")
-    public void deleteKey(@Param(name = "keyId", description = "Key ID") String keyId) throws Exception {
+    public void deleteKey(@Param(name = "keyId", description = "Key ID") String keyId) {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(KEY_ID_PARAM, keyId);
 
@@ -363,11 +350,9 @@ public class SignerCLI {
      * Deletes a certificate.
      *
      * @param certId certificate id
-     * @throws Exception if an error occurs
      */
     @Command(description = "Deletes a certificate")
-    public void deleteCertificate(@Param(name = "certId", description = "Certificate ID") String certId)
-            throws Exception {
+    public void deleteCertificate(@Param(name = "certId", description = "Certificate ID") String certId) {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(CERT_ID_PARAM, certId);
 
@@ -385,11 +370,10 @@ public class SignerCLI {
      * Deletes a certificate request.
      *
      * @param certReqId certificate request id
-     * @throws Exception if an error occurs
      */
     @Command(description = "Deletes a certificate request")
     public void deleteCertificateRequest(
-            @Param(name = "certReqId", description = "Certificate request ID") String certReqId) throws Exception {
+            @Param(name = "certReqId", description = "Certificate request ID") String certReqId) {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(CERT_REQUEST_ID_PARAM, certReqId);
 
@@ -408,11 +392,10 @@ public class SignerCLI {
      *
      * @param clientId   client id
      * @param serverCode server code
-     * @throws Exception if an error occurs
      */
     @Command(description = "Returns suitable authentication key for security server")
     public void getAuthenticationKey(@Param(name = "clientId", description = "Member identifier") ClientId clientId,
-                                     @Param(name = "serverCode", description = "Security server code") String serverCode) throws Exception {
+                                     @Param(name = "serverCode", description = "Security server code") String serverCode) {
         SecurityServerId serverId = SecurityServerId.Conf.create(clientId, serverCode);
         AuthKeyInfo authKey = signerRpcClient.getAuthKey(serverId);
 
@@ -426,11 +409,9 @@ public class SignerCLI {
      * Returns signing info for member.
      *
      * @param clientId client id
-     * @throws Exception if an error occurs
      */
     @Command(description = "Returns signing info for member")
-    public void getMemberSigningInfo(@Param(name = "clientId", description = "Member identifier") ClientId clientId)
-            throws Exception {
+    public void getMemberSigningInfo(@Param(name = "clientId", description = "Member identifier") ClientId clientId) {
         final SignerRpcClient.MemberSigningInfoDto response = signerRpcClient.getMemberSigningInfo(clientId);
 
         System.out.println("Signing info for member " + clientId + ":");
@@ -444,11 +425,10 @@ public class SignerCLI {
      *
      * @param file     file
      * @param clientId client id
-     * @throws Exception if an error occurs
      */
     @Command(description = "Imports a certificate")
     public void importCertificate(@Param(name = "file", description = "Certificate file (PEM)") String file,
-                                  @Param(name = "clientId", description = "Member identifier") ClientId.Conf clientId) throws Exception {
+                                  @Param(name = "clientId", description = "Member identifier") ClientId.Conf clientId) {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(CERT_FILE_NAME_PARAM, file);
         logData.put(CLIENT_IDENTIFIER_PARAM, clientId);
@@ -478,10 +458,9 @@ public class SignerCLI {
      * Log in token.
      *
      * @param tokenId token id
-     * @throws Exception if an error occurs
      */
     @Command(description = "Log in token", abbrev = "li")
-    public void loginToken(@Param(name = "tokenId", description = "Token ID") String tokenId) throws Exception {
+    public void loginToken(@Param(name = "tokenId", description = "Token ID") String tokenId) {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(TOKEN_ID_PARAM, tokenId);
 
@@ -504,10 +483,9 @@ public class SignerCLI {
      * Log out token.
      *
      * @param tokenId token id
-     * @throws Exception if an error occurs
      */
     @Command(description = "Log out token", abbrev = "lo")
-    public void logoutToken(@Param(name = "tokenId", description = "Token ID") String tokenId) throws Exception {
+    public void logoutToken(@Param(name = "tokenId", description = "Token ID") String tokenId) {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(TOKEN_ID_PARAM, tokenId);
 
@@ -523,10 +501,9 @@ public class SignerCLI {
     /**
      * Initialize software token
      *
-     * @throws Exception if an error occurs
      */
     @Command(description = "Initialize software token")
-    public void initSoftwareToken() throws Exception {
+    public void initSoftwareToken() {
         char[] pin = System.console().readPassword(PIN_PROMPT);
         char[] pin2 = System.console().readPassword("retype PIN: ");
 
@@ -660,12 +637,11 @@ public class SignerCLI {
      * @param tokenId   token id
      * @param label     label
      * @param algorithm algorithm
-     * @throws Exception if an error occurs
      */
     @Command(description = "Generate key on token")
     public void generateKey(@Param(name = "tokenId", description = "Token ID") String tokenId,
                             @Param(name = "label", description = "Key label") String label,
-                            @Param(name = "algorithm", description = "Key algorithm (RSA/EC)") String algorithm) throws Exception {
+                            @Param(name = "algorithm", description = "Key algorithm (RSA/EC)") String algorithm) {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(TOKEN_ID_PARAM, tokenId);
         logData.put(KEY_LABEL_PARAM, label);
@@ -692,14 +668,13 @@ public class SignerCLI {
      * @param usage       usage
      * @param subjectName subject name
      * @param format      request format
-     * @throws Exception if an error occurs
      */
     @Command(description = "Generate certificate request")
     public void generateCertRequest(@Param(name = "keyId", description = "Key ID") String keyId,
                                     @Param(name = "memberId", description = "Member identifier") ClientId.Conf memberId,
                                     @Param(name = "usage", description = "Key usage (a - auth, s - sign)") String usage,
                                     @Param(name = "subjectName", description = "Subject name") String subjectName,
-                                    @Param(name = "format", description = "Format of request (der/pem)") String format) throws Exception {
+                                    @Param(name = "format", description = "Format of request (der/pem)") String format) {
         KeyUsageInfo keyUsage = "a".equals(usage) ? AUTHENTICATION : SIGNING;
 
         CertificateRequestFormat requestFormat = format.equalsIgnoreCase("der") ? DER : PEM;
@@ -756,10 +731,9 @@ public class SignerCLI {
      * Check if batch signing is available on token.
      *
      * @param keyId key id
-     * @throws Exception if an error occurs
      */
     @Command(description = "Check if batch signing is available on token")
-    public void batchSigningEnabled(@Param(name = "keyId", description = "Key ID") String keyId) throws Exception {
+    public void batchSigningEnabled(@Param(name = "keyId", description = "Key ID") String keyId) {
         Boolean enabled = signerRpcClient.isTokenBatchSigningEnabled(keyId);
 
         if (enabled) {
@@ -773,11 +747,9 @@ public class SignerCLI {
      * Show certificate.
      *
      * @param certId certificate id
-     * @throws Exception if an error occurs
      */
     @Command(description = "Show certificate")
-    public void showCertificate(@Param(name = "certId", description = "Certificate ID") String certId)
-            throws Exception {
+    public void showCertificate(@Param(name = "certId", description = "Certificate ID") String certId) {
         List<TokenInfo> tokens = signerRpcClient.getTokens();
 
         for (TokenInfo token : tokens) {

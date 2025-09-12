@@ -28,16 +28,20 @@ package org.niis.xroad.proxy.core.messagelog;
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
+import jakarta.xml.bind.JAXBException;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampResponse;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MessageFileNames.SIGNATURE;
 import static ee.ria.xroad.common.util.MessageFileNames.TS_HASH_CHAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class BatchTimestampRequest extends AbstractTimestampRequest {
 
     private final String[] signatureHashes;
@@ -53,7 +57,7 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
     }
 
     @Override
-    byte[] getRequestData() throws Exception {
+    byte[] getRequestData() throws JAXBException, IOException {
         HashChainBuilder hcBuilder = buildHashChain(signatureHashes);
         hashChainResult = hcBuilder.getHashChainResult(TS_HASH_CHAIN);
         hashChains = hcBuilder.getHashChains(SIGNATURE);
@@ -61,15 +65,15 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
     }
 
     @Override
-    Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url) throws Exception {
+    Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url)
+            throws CertificateEncodingException, IOException, TSPException, CMSException {
         byte[] timestampDer = getTimestampDer(tsResponse);
         return new Timestamper.TimestampSucceeded(logRecords, timestampDer,
                 hashChainResult, hashChains, url);
     }
 
-    private HashChainBuilder buildHashChain(String[] hashes) throws Exception {
-        HashChainBuilder hcBuilder =
-                new HashChainBuilder(MessageLogProperties.getHashAlg());
+    private HashChainBuilder buildHashChain(String[] hashes) throws IOException {
+        HashChainBuilder hcBuilder = new HashChainBuilder(MessageLogProperties.getHashAlg());
 
         for (String signatureHashBase64 : hashes) {
             hcBuilder.addInputHash(decodeBase64(signatureHashBase64));

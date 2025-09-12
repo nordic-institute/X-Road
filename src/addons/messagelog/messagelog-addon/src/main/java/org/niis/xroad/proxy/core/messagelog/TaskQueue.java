@@ -31,7 +31,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.proxy.core.messagelog.Timestamper.TimestampFailed;
 import org.niis.xroad.proxy.core.messagelog.Timestamper.TimestampSucceeded;
 import org.niis.xroad.proxy.core.messagelog.Timestamper.TimestampTask;
@@ -86,8 +85,7 @@ public class TaskQueue {
         }
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    protected void saveTimestampRecord(TimestampSucceeded message) throws Exception {
+    protected void saveTimestampRecord(TimestampSucceeded message)  {
         LogManager.saveTimestampRecord(message);
     }
 
@@ -165,10 +163,10 @@ public class TaskQueue {
 
         final Timestamper.TimestampResult timestampResult = timestamper
                 .handleTimestampTask(createTimestampTask(timestampTasks));
-        if (timestampResult instanceof TimestampSucceeded) {
-            handleTimestampSucceeded((TimestampSucceeded) timestampResult);
-        } else if (timestampResult instanceof TimestampFailed) {
-            handleTimestampFailed((TimestampFailed) timestampResult);
+        if (timestampResult instanceof TimestampSucceeded timestampSucceeded) {
+            handleTimestampSucceeded(timestampSucceeded);
+        } else if (timestampResult instanceof TimestampFailed timestampFailed) {
+            handleTimestampFailed(timestampFailed);
         }
     }
 

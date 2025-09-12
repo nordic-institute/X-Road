@@ -31,9 +31,10 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.keyconf.dto.AuthKey;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,6 @@ import java.util.List;
 /**
  * Declares methods for accessing key configuration.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface KeyConfProvider {
 
     /**
@@ -59,27 +59,23 @@ public interface KeyConfProvider {
      * @param cert the certificate
      * @return the OCSP server response for the given certificate hash,
      * or null, if no response is available for that certificate.
-     * @throws Exception in case of any errors
      */
-    OCSPResp getOcspResponse(X509Certificate cert) throws Exception;
+    OCSPResp getOcspResponse(X509Certificate cert) throws CertificateEncodingException, IOException;
 
     /**
      * @param certHash hash of the certificate
      * @return the OCSP server response for the given certificate hash,
      * or null, if no response is available for that certificate.
-     * @throws Exception in case of any errors
      */
-    OCSPResp getOcspResponse(String certHash) throws Exception;
+    OCSPResp getOcspResponse(String certHash) throws IOException;
 
     /**
      * @param certs list of certificates
      * @return OCSP responses for given certificates.
-     * @throws Exception in case of any errors
      */
-    List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
-            throws Exception;
+    List<OCSPResp> getOcspResponses(List<X509Certificate> certs) throws CertificateEncodingException, IOException;
 
-    default List<OCSPResp> getAllOcspResponses(List<X509Certificate> certs) throws Exception {
+    default List<OCSPResp> getAllOcspResponses(List<X509Certificate> certs) throws CertificateEncodingException, IOException {
         List<String> missingResponses = new ArrayList<>();
         List<OCSPResp> responses = getOcspResponses(certs);
         for (int i = 0; i < certs.size(); i++) {
@@ -103,10 +99,9 @@ public interface KeyConfProvider {
      *
      * @param certs     list of certificates
      * @param responses list of OCSP responses
-     * @throws Exception in case of any errors
      */
     void setOcspResponses(List<X509Certificate> certs,
-                          List<OCSPResp> responses) throws Exception;
+                          List<OCSPResp> responses) throws IOException, CertificateEncodingException;
 
     /**
      * Cleans up any resources hold by KeyConf Provider

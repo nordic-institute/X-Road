@@ -92,6 +92,7 @@ import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
+import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -218,8 +219,8 @@ public final class SignerRpcClient {
         tryToRun(() -> internalActivateToken(tokenId, password));
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private void internalActivateToken(String tokenId, char[] password) throws Exception {
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    private void internalActivateToken(String tokenId, char[] password) throws IOException {
         log.trace("Activating token '{}'", tokenId);
 
         PasswordStore.storePassword(tokenId, password);
@@ -261,8 +262,8 @@ public final class SignerRpcClient {
         tryToRun(() -> internalDeactivateToken(tokenId));
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private void internalDeactivateToken(String tokenId) throws Exception {
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    private void internalDeactivateToken(String tokenId) throws IOException {
         log.trace("Deactivating token '{}'", tokenId);
 
         PasswordStore.storePassword(tokenId, null);
@@ -961,12 +962,12 @@ public final class SignerRpcClient {
     public record KeyIdInfo(String keyId, SignMechanism signMechanismName) {
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private interface ActionWithResult<T> {
         T run() throws Exception;
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private interface Action {
         void run() throws Exception;
     }

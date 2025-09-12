@@ -52,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
-public class MetaserviceTest {
+class MetaserviceTest {
 
     @BeforeAll
     static void beforeAll() throws Exception {

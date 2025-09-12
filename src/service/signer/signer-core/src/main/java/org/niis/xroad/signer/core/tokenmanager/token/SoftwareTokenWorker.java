@@ -42,8 +42,8 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -62,13 +62,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertPath;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -117,7 +124,6 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotInitialize
  * management.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SoftwareTokenWorker extends AbstractTokenWorker {
 
     private static final Set<SignAlgorithm> SUPPORTED_ALGORITHMS = Set.of(
@@ -186,7 +192,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
     @Override
     protected GenerateKeyResult generateKey(GenerateKeyReq message)
-            throws Exception {
+            throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, OperatorCreationException {
         log.trace("generateKeys()");
 
         assertTokenAvailable();
@@ -202,7 +208,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected void deleteKey(String keyId) throws Exception {
+    protected void deleteKey(String keyId) throws IOException {
         log.trace("deleteKey({})", keyId);
 
         assertTokenAvailable();
@@ -220,7 +226,9 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
+    protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data)
+            throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException, UnrecoverableKeyException,
+            CertificateException, IOException, KeyStoreException {
         log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
         assertTokenAvailable();
@@ -251,7 +259,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         return signature.sign();
     }
 
-    private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) throws CodedException {
+    private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) {
         if (!SUPPORTED_ALGORITHMS.contains(signatureAlgorithmId)) {
             throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, UNSUPPORTED_SIGN_ALGORITHM,
                     "Unsupported signature algorithm '%s'", signatureAlgorithmId.name());
@@ -263,9 +271,9 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-
     protected byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
-            throws Exception {
+            throws UnrecoverableKeyException, CertificateException, IOException, KeyStoreException,
+            NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
         log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
         assertTokenAvailable();
         assertKeyAvailable(keyId);
@@ -356,7 +364,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
                 .orElseThrow(() -> new CryptoException("Unsupported key algorithm: " + algorithm));
     }
 
-    private PrivateKey getPrivateKey(String keyId) throws Exception {
+    private PrivateKey getPrivateKey(String keyId)
+            throws UnrecoverableKeyException, CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         PrivateKey pkey = privateKeys.get(keyId);
 
         if (pkey == null) {
@@ -366,7 +375,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         return privateKeys.get(keyId);
     }
 
-    private void initializePrivateKey(String keyId) throws Exception {
+    private void initializePrivateKey(String keyId)
+            throws UnrecoverableKeyException, CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         PrivateKey pkey = loadPrivateKey(keyId);
 
         log.debug("Found usable key '{}'", keyId);
@@ -397,8 +407,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void rewriteKeyStoreWithNewPin(String keyFile, String keyAlias, char[] oldPin, char[] newPin,
-                                           Path tempKeyDir) throws Exception {
+    private void rewriteKeyStoreWithNewPin(String keyFile, String keyAlias, char[] oldPin, char[] newPin, Path tempKeyDir)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
         String keyStoreFile = getKeyStoreFileName(keyFile);
         Path tempKeyStoreFile = tempKeyDir.resolve(keyFile + P12);
 
@@ -417,7 +427,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void verifyOldAndNewPin(char[] oldPin, char[] newPin) throws Exception {
+    private void verifyOldAndNewPin(char[] oldPin, char[] newPin) {
         // Verify that pin is provided and get the correct pin
         char[] oldPinFromStore = getPin();
         try {
@@ -493,7 +503,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
     private void activateToken() {
         try {
-            verifyPin(PasswordStore.getPassword(tokenId));
+            verifyPin(PasswordStore.getPassword(tokenId).orElse(null));
 
             setTokenStatus(tokenId, TokenStatusInfo.OK);
             setTokenActive(tokenId, true);
@@ -518,7 +528,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         setTokenActive(tokenId, false);
     }
 
-    private PrivateKey loadPrivateKey(String keyId) throws Exception {
+    private PrivateKey loadPrivateKey(String keyId)
+            throws UnrecoverableKeyException, CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         String keyStoreFile = getKeyStoreFileName(keyId);
 
         log.trace("Loading pkcs#12 private key '{}' from file '{}'", keyId, keyStoreFile);
@@ -526,7 +537,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         return SoftwareTokenUtil.loadPrivateKey(keyStoreFile, keyId, getPin());
     }
 
-    private Optional<KeyData> loadPublicKeyBase64(String keyId) throws Exception {
+    private Optional<KeyData> loadPublicKeyBase64(String keyId)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         String keyStoreFile = getKeyStoreFileName(keyId);
 
         log.trace("Loading pkcs#12 public key '{}' from file '{}'", keyId, keyStoreFile);
@@ -547,15 +559,17 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         return Optional.empty();
     }
 
-    private static void verifyPin(char[] pin) throws Exception {
+
+    private static void verifyPin(char[] pin)
+            throws UnrecoverableKeyException, CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         verifyPinProvided(pin);
 
         // Attempt to load private key from pin key store.
         SoftwareTokenUtil.loadPrivateKey(getKeyStoreFileName(PIN_FILE), PIN_ALIAS, pin);
     }
 
-    private char[] getPin() throws Exception {
-        final char[] pin = PasswordStore.getPassword(tokenId);
+    private char[] getPin() {
+        final char[] pin = PasswordStore.getPassword(tokenId).orElse(null);
         verifyPinProvided(pin);
 
         return pin;
@@ -568,7 +582,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     private static void savePkcs12Keystore(KeyPair kp, String alias, String keyStoreFile, char[] password)
-            throws Exception {
+            throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, OperatorCreationException {
         KeyStore keyStore = createKeyStore(kp, alias, password);
 
         log.debug("Creating pkcs#12 keystore '{}'", keyStoreFile);

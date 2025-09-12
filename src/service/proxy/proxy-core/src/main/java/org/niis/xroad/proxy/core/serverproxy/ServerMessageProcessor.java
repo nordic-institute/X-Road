@@ -45,11 +45,14 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -64,15 +67,19 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 
 import javax.xml.namespace.QName;
+import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,7 +110,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 class ServerMessageProcessor extends MessageProcessorBase {
 
     private static final String SERVERPROXY_SERVICE_HANDLERS = SystemProperties.PREFIX + "proxy.serverServiceHandlers";
@@ -241,7 +248,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
         return null;
     }
 
-    private void handleRequest() throws Exception {
+    private void handleRequest()
+            throws SOAPException, JAXBException, IOException, URISyntaxException,
+            ParserConfigurationException, HttpClientCreator.HttpClientCreatorException, SAXException {
         ServiceHandler handler = getServiceHandler(requestMessage);
 
         if (handler == null) {
@@ -274,8 +283,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
         originalSoapAction = validateSoapActionHeader(jRequest.getHeaders().get(HEADER_ORIGINAL_SOAP_ACTION));
         requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
-            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-            public void soap(SoapMessageImpl soapMessage, Map<String, String> additionalHeaders) throws Exception {
+            public void soap(SoapMessageImpl soapMessage, Map<String, String> additionalHeaders)
+                    throws CertificateEncodingException, IOException {
                 super.soap(soapMessage, additionalHeaders);
 
                 updateOpMonitoringDataBySoapMessage(opMonitoringData, soapMessage);
@@ -341,7 +350,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifySslClientCert() throws Exception {
+    private void verifySslClientCert() throws CertificateEncodingException, IOException {
         log.trace("verifySslClientCert()");
 
         if (requestMessage.getOcspResponses().isEmpty()) {
@@ -355,7 +364,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 clientSslCerts[clientSslCerts.length - 1]);
 
         if (trustAnchor == null) {
-            throw new Exception("Unable to find trust anchor");
+            throw XrdRuntimeException.systemInternalError("Unable to find trust anchor");
         }
 
         try {
@@ -379,7 +388,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifyAccess() throws Exception {
+    private void verifyAccess() {
         log.trace("verifyAccess()");
 
         if (!commonBeanProxy.serverConfProvider.serviceExists(requestServiceId)) {
@@ -404,19 +413,19 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifySignature() throws Exception {
+    private void verifySignature() {
         log.trace("verifySignature()");
 
         decoder.verify(requestMessage.getSoap().getClient(), requestMessage.getSignature());
     }
 
-    private void logRequestMessage() throws Exception {
+    private void logRequestMessage() {
         log.trace("logRequestMessage()");
 
         MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), requestMessage.getAttachments(), false, xRequestId);
     }
 
-    private void logResponseMessage() throws Exception {
+    private void logResponseMessage() {
         if (responseSoap != null && encoder != null) {
             log.trace("logResponseMessage()");
             // Attachments are not logged here, because response from X-Road 7 server is always batch signed
@@ -424,7 +433,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void sendRequest(String serviceAddress, HttpSender httpSender) throws Exception {
+    private void sendRequest(String serviceAddress, HttpSender httpSender) {
         log.trace("sendRequest({})", serviceAddress);
 
         URI uri;
@@ -448,7 +457,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void parseResponse(ServiceHandler handler) throws Exception {
+    private void parseResponse(ServiceHandler handler) {
         log.trace("parseResponse()");
 
         preprocess();
@@ -540,7 +549,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
         return DigestAlgorithm.ofName(hashAlgoId);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private final class DefaultServiceHandlerImpl extends AbstractServiceHandler {
 
         private HttpSender sender;
@@ -571,7 +579,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         @Override
         public void startHandling(RequestWrapper request, ProxyMessage proxyRequestMessage,
-                                  HttpClient opMonitorClient, OpMonitoringData monitoringData) throws Exception {
+                                  HttpClient opMonitorClient, OpMonitoringData monitoringData) {
             sender = createHttpSender();
 
             log.trace("processRequest({})", requestServiceId);
@@ -595,7 +603,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        public void finishHandling() throws Exception {
+        public void finishHandling() {
             sender.close();
             sender = null;
         }
@@ -611,10 +619,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private final class SoapMessageHandler implements SoapMessageDecoder.Callback {
         @Override
-        public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers) throws UnsupportedEncodingException {
             responseSoap = (SoapMessageImpl) message;
 
             opMonitoringData.setResponseSize(responseSoap.getBytes().length);
@@ -625,7 +632,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         @Override
         public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
-                throws Exception {
+                throws IOException {
             encoder.attachment(contentType, content, additionalHeaders);
         }
 
@@ -640,6 +647,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
+        @ArchUnitSuppressed("NoVanillaExceptions")
         public void onError(Exception t) throws Exception {
             throw t;
         }

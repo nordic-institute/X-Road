@@ -26,7 +26,8 @@
 package org.niis.xroad.globalconf.extension;
 
 import org.apache.commons.io.IOUtils;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
+import java.io.IOException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -34,13 +35,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * OCSP nextUpdate configuration file validator, which reads the configuration
  * from stdin
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class StdinValidator {
 
     /**
      * Program entry point
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         String string = IOUtils.toString(System.in, UTF_8);
         System.out.println(string);
         OcspNextUpdateSchemaValidator.validate(string);

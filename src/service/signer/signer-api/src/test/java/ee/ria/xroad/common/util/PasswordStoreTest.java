@@ -61,11 +61,11 @@ public class PasswordStoreTest {
         storePassword("foo", "fooPwd".toCharArray());
         storePassword("bar", "barPwd".toCharArray());
 
-        assertEquals("fooPwd", new String(getPassword("foo")));
-        assertEquals("barPwd", new String(getPassword("bar")));
+        assertEquals("fooPwd", new String(getPassword("foo").get()));
+        assertEquals("barPwd", new String(getPassword("bar").get()));
 
         storePassword("foo", null);
         assertNull(getPassword("foo"));
-        assertEquals("barPwd", new String(getPassword("bar")));
+        assertEquals("barPwd", new String(getPassword("bar").get()));
     }
 }

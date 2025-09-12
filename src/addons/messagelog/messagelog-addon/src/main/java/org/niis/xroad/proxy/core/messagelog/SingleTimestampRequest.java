@@ -26,14 +26,20 @@
 package org.niis.xroad.proxy.core.messagelog;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.signature.Signature;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.signature.XMLSignatureException;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampResponse;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+
+import javax.xml.transform.TransformerException;
+
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
@@ -43,7 +49,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
  * The data to be time-stamped is the ds:SignatureValue element.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class SingleTimestampRequest extends AbstractTimestampRequest {
     private MessageRecord message;
     private Signature signature;
@@ -53,10 +58,10 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
     }
 
     @Override
-    byte[] getRequestData() throws Exception {
-        LogRecord record = LogRecordManager.get(logRecords[0]);
+    byte[] getRequestData() throws XMLSignatureException {
+        var logRecord = LogRecordManager.get(logRecords[0]);
 
-        if (!(record instanceof MessageRecord mr)) {
+        if (!(logRecord instanceof MessageRecord mr)) {
             throw new CodedException(X_INTERNAL_ERROR, "Could not find message record #" + logRecords[0]);
         }
 
@@ -68,7 +73,8 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
     }
 
     @Override
-    Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url) throws Exception {
+    Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url)
+            throws CertificateEncodingException, IOException, TSPException, CMSException, TransformerException {
         byte[] timestampDer = getTimestampDer(tsResponse);
 
         updateSignatureProperties(timestampDer);
@@ -76,7 +82,7 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
         return new Timestamper.TimestampSucceeded(logRecords, timestampDer, null, null, url);
     }
 
-    private void updateSignatureProperties(byte[] timestampDer) throws Exception {
+    private void updateSignatureProperties(byte[] timestampDer) throws TransformerException, IOException {
         log.trace("Updating unsigned signature properties");
 
         signature.addSignatureTimestamp(timestampDer);

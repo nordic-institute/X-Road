@@ -32,7 +32,8 @@ import ee.ria.xroad.common.util.ResourceUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.ContentSigner;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.util.SignerUtil;
 
 import java.io.File;
@@ -46,8 +47,12 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -68,7 +73,6 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
  * Utility methods for software token.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class SoftwareTokenUtil {
 
     static final String PIN_ALIAS = "pin";
@@ -125,6 +129,7 @@ public final class SoftwareTokenUtil {
 
     /**
      * Create a temp directory for key stores. Used e.g. when changing pin codes for key stores
+     *
      * @throws IOException creating temp dir fails
      */
     public static Path createTempKeyDir() throws IOException {
@@ -147,7 +152,8 @@ public final class SoftwareTokenUtil {
                 + SOFT_TOKEN_KEY_DIR_NAME + File.separator);
     }
 
-    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password) throws Exception {
+    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password)
+            throws OperatorCreationException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         var signALgo = KeyManagers.getFor(kp.getPrivate().getAlgorithm()).getSoftwareTokenKeySignAlgorithm();
         ContentSigner signer = CryptoUtils.createContentSigner(signALgo, kp.getPrivate());
 
@@ -164,7 +170,8 @@ public final class SoftwareTokenUtil {
         return keyStore;
     }
 
-    static PrivateKey loadPrivateKey(String keyStoreFile, String alias, char[] password) throws Exception {
+    static PrivateKey loadPrivateKey(String keyStoreFile, String alias, char[] password)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
         KeyStore ks = loadPkcs12KeyStore(new File(keyStoreFile), password);
         PrivateKey privateKey = (PrivateKey) ks.getKey(alias, password);
 
@@ -181,13 +188,14 @@ public final class SoftwareTokenUtil {
                 }
             }
 
-            throw new RuntimeException("Private key not found in keystore '" + keyStoreFile + "', wrong password?");
+            throw XrdRuntimeException.systemInternalError("Private key not found in keystore '" + keyStoreFile + "', wrong password?");
         }
 
         return privateKey;
     }
 
-    static Certificate loadCertificate(String keyStoreFile, String alias, char[] password) throws Exception {
+    static Certificate loadCertificate(String keyStoreFile, String alias, char[] password)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         KeyStore ks = loadPkcs12KeyStore(new File(keyStoreFile), password);
 
         Certificate cert = ks.getCertificate(alias);

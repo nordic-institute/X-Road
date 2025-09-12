@@ -26,7 +26,6 @@
 package org.niis.xroad.signer.core.tokenmanager.module;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.util.Optional;
 
@@ -37,8 +36,7 @@ import java.util.Optional;
 public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
+    protected AbstractModuleWorker createModuleWorker(ModuleType module) {
         if (module instanceof HardwareModuleType hmt) {
             return createWorker(hmt);
         }
