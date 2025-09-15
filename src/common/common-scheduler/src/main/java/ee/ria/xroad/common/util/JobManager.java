@@ -29,7 +29,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.quartz.CronExpression;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -54,7 +53,6 @@ import static org.quartz.TriggerBuilder.newTrigger;
  * Service to manage periodic jobs.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class JobManager {
 
     static {
@@ -88,12 +86,12 @@ public class JobManager {
     }
 
     @PostConstruct
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() throws SchedulerException {
         jobScheduler.start();
     }
 
     @PreDestroy
-    public void destroy() throws Exception {
+    public void destroy() throws SchedulerException {
         jobScheduler.shutdown();
     }
 
@@ -199,7 +197,7 @@ public class JobManager {
     /**
      * Check if specified job is currently executing/running within any group.
      *
-     * @param ctx      execution context which is verified
+     * @param ctx     execution context which is verified
      * @param jobName job class name to check
      * @return job running state
      * @throws SchedulerException is thrown of there is a failure to fetch running jobs

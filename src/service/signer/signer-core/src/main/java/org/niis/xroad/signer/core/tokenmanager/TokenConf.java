@@ -34,7 +34,7 @@ import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.model.Cert;
 import org.niis.xroad.signer.core.model.CertRequest;
 import org.niis.xroad.signer.core.model.Key;
@@ -55,7 +55,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
@@ -66,7 +65,6 @@ import static java.util.Objects.requireNonNull;
  * Holds the current keys & certificates in XML.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
@@ -110,7 +108,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
 
         return keyConfType.getDevice().stream()
                 .map(TokenConf::from)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -145,9 +143,8 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     /**
      * Loads the tokens from the XML file.
      *
-     * @throws Exception if an error occurs
      */
-    public synchronized void load() throws Exception {
+    public synchronized void load() {
         load(getConfFileName());
     }
 
@@ -155,9 +152,8 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
      * Saves the tokens to the XML file.
      *
      * @param tokens the tokens to save
-     * @throws Exception if an error occurs
      */
-    synchronized void save(List<Token> tokens) throws Exception {
+    synchronized void save(List<Token> tokens) {
         confType.getDevice().clear();
 
         // Only save the token if it has keys which have certificates or
@@ -209,9 +205,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         deviceType.setSlotId(token.getLabel());
 
         token.getKeys().stream().filter(TokenConf::hasCertsOrCertRequests)
-                .forEach(key -> {
-                    deviceType.getKey().add(from(key));
-                });
+                .forEach(key -> deviceType.getKey().add(from(key)));
 
         return deviceType;
     }
@@ -328,7 +322,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         try {
             return DatatypeFactory.newInstance().newXMLGregorianCalendar(nextRenewalTimeGregorianCalendar);
         } catch (DatatypeConfigurationException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -380,7 +374,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

@@ -27,6 +27,7 @@ package org.niis.xroad.proxy.core.messagelog;
 
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.cmp.PKIFreeText;
@@ -40,7 +41,6 @@ import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -56,11 +56,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@UtilityClass
 final class TimestamperUtil {
 
-    private TimestamperUtil() {
-    }
 
     @SuppressWarnings("unchecked")
     static TimeStampToken addSignerCertificate(TimeStampResponse tsResponse,
@@ -107,11 +105,11 @@ final class TimestamperUtil {
         return con.getInputStream();
     }
 
-    static TimeStampResponse getTimestampResponse(InputStream in) throws Exception {
+    static TimeStampResponse getTimestampResponse(InputStream in) throws IOException, TSPException {
         TimeStampResp response = TimeStampResp.getInstance(new ASN1InputStream(in).readObject());
 
         if (response == null) {
-            throw new RuntimeException("Could not read time-stamp response");
+            throw XrdRuntimeException.systemInternalError("Could not read time-stamp response");
         }
 
         BigInteger status = response.getStatus().getStatus();
@@ -135,7 +133,7 @@ final class TimestamperUtil {
             log.error("getTimestampDer() - TimeStampResp.status is not "
                     + "\"granted\" neither \"grantedWithMods\": {}, {}", status, sb);
 
-            throw new RuntimeException("TimeStampResp.status: " + status + ", .statusString: " + sb);
+            throw XrdRuntimeException.systemInternalError("TimeStampResp.status: " + status + ", .statusString: " + sb);
         }
 
         return new TimeStampResponse(response);

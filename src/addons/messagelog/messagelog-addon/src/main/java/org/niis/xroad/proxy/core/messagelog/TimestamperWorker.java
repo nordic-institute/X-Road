@@ -25,12 +25,15 @@
  */
 package org.niis.xroad.proxy.core.messagelog;
 
+import jakarta.xml.bind.JAXBException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.apache.xml.security.signature.XMLSignatureException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.messagelog.Timestamper.TimestampTask;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,7 +42,6 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class TimestamperWorker {
     private final GlobalConfProvider globalConfProvider;
     private final List<String> tspUrls;
@@ -60,20 +62,21 @@ public class TimestamperWorker {
         return new Timestamper.TimestampFailed(message.getMessageRecords(), e);
     }
 
-    private Timestamper.TimestampResult handleTimestampTask(TimestampTask message) throws Exception {
+    private Timestamper.TimestampResult handleTimestampTask(TimestampTask message)
+            throws JAXBException, IOException, XMLSignatureException {
         if (tspUrls.isEmpty()) {
-            throw new RuntimeException("Cannot time-stamp, no TSP URLs configured");
+            throw XrdRuntimeException.systemInternalError("Cannot time-stamp, no TSP URLs configured");
         }
 
         Long[] logRecords = message.getMessageRecords();
         if (logRecords == null || logRecords.length == 0) {
-            throw new RuntimeException("Cannot time-stamp, no log records specified");
+            throw XrdRuntimeException.systemInternalError("Cannot time-stamp, no log records specified");
         }
 
         String[] signatureHashes = message.getSignatureHashes();
         if (signatureHashes == null
                 || logRecords.length != signatureHashes.length) {
-            throw new RuntimeException("Cannot time-stamp, no signature hashes specified");
+            throw XrdRuntimeException.systemInternalError("Cannot time-stamp, no signature hashes specified");
         }
 
         long start = System.currentTimeMillis();

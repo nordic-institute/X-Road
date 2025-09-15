@@ -68,6 +68,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -85,7 +89,7 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.ASIC;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.VERIFICATIONCONF;
 
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
@@ -155,7 +159,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
-    private void handleVerificationConfRequest() throws Exception {
+    private void handleVerificationConfRequest() throws IOException {
         // GlobalConf.verifyValidity() is not necessary here.
 
         VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(SystemProperties.getConfigurationPath());
@@ -179,7 +183,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         handleAsicRequest(clientId);
     }
 
-    private void verifyClientAuthentication(ClientId clientId) throws Exception {
+    private void verifyClientAuthentication(ClientId clientId)
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         log.trace("verifyClientAuthentication({})", clientId);
         try {
             verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest));
@@ -239,7 +244,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-                                 Boolean response) throws Exception {
+                                 Boolean response) throws IOException {
 
         if (encryptionConfigProvider.isEncryptionEnabled()) {
             writeEncryptedContainers(clientId, queryId, nameGen, response);
@@ -258,13 +263,12 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     @FunctionalInterface
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     interface CheckedSupplier<T> {
-        T get() throws Exception;
+        T get() throws IOException;
     }
 
     private void writeEncryptedContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-                                          Boolean response) throws Exception {
+                                          Boolean response) throws IOException {
 
         final String filename = AsicUtils.escapeString(queryId)
                 + (response == null ? "" : (response ? "-response" : "-request")) + ".zip.gpg";
@@ -296,7 +300,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-                                 Boolean response, CheckedSupplier<OutputStream> outputSupplier) throws Exception {
+                                 Boolean response, CheckedSupplier<OutputStream> outputSupplier) {
 
         LogRecordManager.getByQueryId(queryId, clientId, response, records -> {
             if (records.isEmpty()) {
@@ -354,7 +358,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeAsicContainer(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-                                    boolean response) throws Exception {
+                                    boolean response) throws IOException {
 
         final EncryptionConfig encryptionConfig =
                 encryptionConfigProvider.forGrouping(groupingStrategy.forClient(clientId));
@@ -397,7 +401,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         });
     }
 
-    private void encryptContainer(EncryptionConfig encryptionConfig, AsicContainer asicContainer) throws Exception {
+    private void encryptContainer(EncryptionConfig encryptionConfig, AsicContainer asicContainer) throws IOException {
         final Path tempFile = Files.createTempFile(
                 Paths.get(SystemProperties.getTempFilesPath()), "asic", null);
         try {
@@ -413,6 +417,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private ClientId.Conf getClientIdFromRequest() throws Exception {
         String instanceIdentifier = getParameter(PARAM_INSTANCE_IDENTIFIER, false);
         String memberClass = getParameter(PARAM_MEMBER_CLASS, false);
@@ -433,7 +438,6 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         return paramValue;
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private static class VerificationConfWriter implements FileConsumer, Closeable {
 
         private static final String PREFIX = "verificationconf/";
@@ -447,7 +451,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
 
         @Override
-        public void consume(ConfigurationPartMetadata metadata, InputStream contents) throws Exception {
+        public void consume(ConfigurationPartMetadata metadata, InputStream contents) throws IOException {
             if (metadata.getContentIdentifier().equals(ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS)) {
                 zos.putNextEntry(new ZipEntry(buildPath(metadata)));
                 IOUtils.copy(contents, zos);

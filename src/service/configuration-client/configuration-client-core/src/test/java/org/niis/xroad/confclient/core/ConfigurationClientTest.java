@@ -28,6 +28,7 @@ package org.niis.xroad.confclient.core;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.TestCertUtil;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -172,7 +173,8 @@ class ConfigurationClientTest {
             ConfigurationParser getParser() {
                 return new ConfigurationParser(mock(ConfigurationDownloader.class)) {
                     @Override
-                    protected InputStream getInputStream() throws Exception {
+                    @SneakyThrows
+                    protected InputStream getInputStream() {
                         String downloadURL = configuration.getLocation().getDownloadURL();
                         // Because the test case cannot handle query parameters
                         // we need to strip them from download URL.
@@ -203,7 +205,8 @@ class ConfigurationClientTest {
             }
 
             @Override
-            byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) throws Exception {
+            @SneakyThrows
+            byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) {
                 try (InputStream in = Files.newInputStream(
                         Paths.get(confPath, file.getInstanceIdentifier(), file.getContentLocation()))) {
                     return IOUtils.toByteArray(in);

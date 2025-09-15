@@ -38,7 +38,7 @@ import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.Optional;
 
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public interface RequestWrapper {
     InputStream getInputStream();
 
@@ -101,13 +101,13 @@ public interface RequestWrapper {
             }
 
             @Override
-            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+            @ArchUnitSuppressed("NoVanillaExceptions")
             public String getParameter(String name) throws Exception {
                 return Request.getParameters(request).getValue(name);
             }
 
             @Override
-            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+            @ArchUnitSuppressed("NoVanillaExceptions")
             public Map<String, String[]> getParametersMap() throws Exception {
                 return Request.getParameters(request).toStringArrayMap();
             }

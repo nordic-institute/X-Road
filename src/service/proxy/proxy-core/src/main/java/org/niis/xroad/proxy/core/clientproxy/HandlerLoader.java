@@ -35,7 +35,7 @@ import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import java.lang.reflect.Constructor;
 
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 final class HandlerLoader {
     private final CommonBeanProxy commonBeanProxy;
 

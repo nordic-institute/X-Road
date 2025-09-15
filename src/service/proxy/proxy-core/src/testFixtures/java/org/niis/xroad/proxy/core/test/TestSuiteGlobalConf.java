@@ -137,7 +137,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception {
+    public SecurityServerId.Conf getServerId(X509Certificate cert) {
         // For SSL connections AuthTrustManager checks that client certificate
         // belongs to some X-Road member
         return SecurityServerId.Conf.create("FI", "COM", "1111", "SS1");

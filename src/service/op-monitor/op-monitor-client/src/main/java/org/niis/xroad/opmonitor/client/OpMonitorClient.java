@@ -40,13 +40,16 @@ import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.SecurityServerType;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.time.Instant;
 import java.util.List;
 
 public class OpMonitorClient {
     private final RpcClient<OpMonitorRpcExecutionContext> opMonitorRpcClient;
 
-    public OpMonitorClient() throws Exception {
+    public OpMonitorClient() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         this.opMonitorRpcClient = RpcClient.newClient(OpMonitoringSystemProperties.getOpMonitorHost(),
                 OpMonitoringSystemProperties.getOpMonitorGrpcPort(),
                 OpMonitoringSystemProperties.getOpMonitorGrpcClientTimeout(),

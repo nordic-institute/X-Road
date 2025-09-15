@@ -46,7 +46,7 @@ import java.util.Set;
 /**
  * Configuration directory interface.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public interface ConfigurationDirectory {
     String FILES = "files";
     String METADATA_SUFFIX = ".metadata";
@@ -127,7 +127,7 @@ public interface ConfigurationDirectory {
     static void deleteDirectory(Path directory) {
         try {
             Files.walkFileTree(directory,
-                    new SimpleFileVisitor<Path>() {
+                    new SimpleFileVisitor<>() {
                         @Override
                         public FileVisitResult postVisitDirectory(
                                 Path dir, IOException exc) throws IOException {

@@ -44,11 +44,13 @@ import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleConf;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleInstanceProvider;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,12 +70,13 @@ public final class HardwareTokenUtil {
     /**
      * Returns the module instance. The module provider class can be specified
      * by system parameter 'xroad.signer.module-instance-provider'.
+     *
      * @param libraryPath the pkcs11 library path
      * @return the module instance
-     * @throws Exception if an error occurs
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public static Module moduleGetInstance(String libraryPath) throws Exception {
+    public static Module moduleGetInstance(String libraryPath)
+            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
+            InstantiationException, IllegalAccessException, IOException {
         String providerClass = System.getProperty(SystemProperties.SIGNER_MODULE_INSTANCE_PROVIDER);
         if (providerClass != null) {
             Class<?> cl = Class.forName(providerClass);
@@ -83,7 +86,7 @@ public final class HardwareTokenUtil {
 
                 return provider.getInstance(libraryPath);
             } else {
-                throw new RuntimeException("Invalid module provider class (" + cl + "), must be subclass of "
+                throw XrdRuntimeException.systemInternalError("Invalid module provider class (" + cl + "), must be subclass of "
                         + ModuleInstanceProvider.class);
             }
         }

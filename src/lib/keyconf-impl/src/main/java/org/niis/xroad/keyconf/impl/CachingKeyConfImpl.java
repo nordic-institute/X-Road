@@ -38,9 +38,9 @@ import ee.ria.xroad.common.util.filewatcher.FileWatcherStartupListener;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
@@ -51,7 +51,11 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -61,7 +65,6 @@ import java.util.concurrent.TimeUnit;
  * Encapsulates KeyConf related functionality.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class CachingKeyConfImpl extends KeyConfImpl {
 
     // Specifies how long data is cached
@@ -69,7 +72,6 @@ public class CachingKeyConfImpl extends KeyConfImpl {
 
     private final Cache<ClientId, SigningInfo> signingInfoCache;
     private final Cache<SecurityServerId, AuthKeyInfo> authKeyInfoCache;
-    private FileWatcherRunner keyConfChangeWatcher;
 
     public CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
                        SignerRpcClient signerRpcClient) {
@@ -86,9 +88,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     @Override
     public void destroy() {
         invalidateCaches();
-        if (keyConfChangeWatcher != null) {
-            keyConfChangeWatcher.stop();
-        }
+
         super.destroy();
     }
 
@@ -139,7 +139,9 @@ public class CachingKeyConfImpl extends KeyConfImpl {
         }
     }
 
-    protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
+    protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId)
+            throws CertificateException, IOException, UnrecoverableKeyException, KeyStoreException,
+            NoSuchAlgorithmException, OCSPException {
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
         org.niis.xroad.signer.api.dto.AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);

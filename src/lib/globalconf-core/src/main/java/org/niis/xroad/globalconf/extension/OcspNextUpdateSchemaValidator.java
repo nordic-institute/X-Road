@@ -29,20 +29,19 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.SchemaValidator;
 
 import org.apache.commons.io.FileUtils;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 
 /**
  * Validator for Ocsp next update
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class OcspNextUpdateSchemaValidator extends SchemaValidator {
 
     private static Schema schema;
@@ -54,7 +53,7 @@ public class OcspNextUpdateSchemaValidator extends SchemaValidator {
     /**
      * Program entry point
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             throw new IllegalArgumentException(
                     "Please supply one argument, file name of the validated ocsp next update parameters xml.");
@@ -65,7 +64,7 @@ public class OcspNextUpdateSchemaValidator extends SchemaValidator {
     /**
      *  Validates the given XML file
      */
-    public void validateFile(String fileName) throws Exception {
+    public void validateFile(String fileName) throws IOException {
         String xml = FileUtils.readFileToString(new File(fileName),
                 StandardCharsets.UTF_8.toString());
         validate(xml);
@@ -74,18 +73,18 @@ public class OcspNextUpdateSchemaValidator extends SchemaValidator {
     /**
      * Validates the input XML as string against the schema.
      * @param xml the input XML as string
-     * @throws Exception if validation fails
+     * @throws IOException if validation fails
      */
-    public static void validate(String xml) throws Exception {
+    public static void validate(String xml) throws IOException {
         validate(new StreamSource(new StringReader(xml)));
     }
 
     /**
      * Validates the input source against the schema.
      * @param source the input source
-     * @throws Exception if validation fails
+     * @throws IOException if validation fails
      */
-    public static void validate(Source source) throws Exception {
+    public static void validate(Source source) throws IOException {
         validate(schema, source, ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF);
     }
 }

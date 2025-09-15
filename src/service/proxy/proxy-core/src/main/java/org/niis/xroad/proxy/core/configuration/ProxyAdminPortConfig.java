@@ -143,7 +143,7 @@ public class ProxyAdminPortConfig {
     private void addMaintenanceHandler(AdminPort adminPort) {
         adminPort.addHandler("/maintenance", new AdminPort.SynchronousCallback() {
             @Override
-            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+            @ArchUnitSuppressed("NoVanillaExceptions")
             public void handle(RequestWrapper request, ResponseWrapper response) throws Exception {
 
                 String result = "Invalid parameter 'targetState', request ignored";

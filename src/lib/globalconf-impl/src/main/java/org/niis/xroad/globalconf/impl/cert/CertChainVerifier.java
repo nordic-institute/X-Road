@@ -27,19 +27,25 @@ package org.niis.xroad.globalconf.impl.cert;
 
 import ee.ria.xroad.common.CodedException;
 
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertPath;
 import java.security.cert.CertPathBuilder;
 import java.security.cert.CertPathBuilderException;
 import java.security.cert.CertPathValidator;
+import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertPathValidatorResult;
 import java.security.cert.CertStore;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CollectionCertStoreParameters;
 import java.security.cert.PKIXBuilderParameters;
 import java.security.cert.PKIXCertPathValidatorResult;
@@ -62,7 +68,6 @@ import static org.niis.xroad.globalconf.impl.cert.CertHelper.getOcspResponseForC
 /**
  * Certificate chain verifier.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class CertChainVerifier {
 
     /**
@@ -181,7 +186,7 @@ public class CertChainVerifier {
     }
 
     public void verifyOcspResponses(List<OCSPResp> ocspResponses,
-                                     Date atDate) throws Exception {
+                                     Date atDate) {
         pkixParams.setDate(atDate);
         try {
             certPath = buildCertPath(pkixParams);
@@ -195,7 +200,8 @@ public class CertChainVerifier {
 
     private void verifyOcspResponses(List<X509Certificate> certs,
                                      List<OCSPResp> ocspResponses,
-                                     Date atDate) throws Exception {
+                                     Date atDate) throws CertificateEncodingException,
+            IOException, OCSPException, OperatorCreationException {
         for (X509Certificate subject : certs) {
             X509Certificate issuer = globalConfProvider.getCaCert(certChain.getInstanceIdentifier(), subject);
             OCSPResp response = getOcspResponseForCert(subject, issuer, ocspResponses);
@@ -211,7 +217,7 @@ public class CertChainVerifier {
     }
 
     private static CertPath buildCertPath(PKIXBuilderParameters pkixParams)
-            throws Exception {
+            throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, CertPathBuilderException {
         CertPathBuilder certPathBuilder =
                 CertPathBuilder.getInstance(VALIDATION_ALGORITHM);
 
@@ -220,8 +226,8 @@ public class CertChainVerifier {
         return certPathBuilder.build(pkixParams).getCertPath();
     }
 
-    private static PKIXCertPathValidatorResult verifyCertPath(CertPath certPath,
-                                                              PKIXBuilderParameters pkixParams) throws Exception {
+    private static PKIXCertPathValidatorResult verifyCertPath(CertPath certPath, PKIXBuilderParameters pkixParams)
+            throws NoSuchAlgorithmException, CertPathValidatorException, InvalidAlgorithmParameterException {
         CertPathValidator certPathValidator =
                 CertPathValidator.getInstance(VALIDATION_ALGORITHM);
 

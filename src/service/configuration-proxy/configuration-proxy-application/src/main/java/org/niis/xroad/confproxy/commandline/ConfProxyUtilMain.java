@@ -37,6 +37,11 @@ import org.apache.commons.cli.Options;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
+import java.lang.reflect.InvocationTargetException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 
 /**
@@ -44,7 +49,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public final class ConfProxyUtilMain {
 
     static {
@@ -77,7 +82,7 @@ public final class ConfProxyUtilMain {
     /**
      * Initialize configuration proxy utility program components.
      */
-    static void setup() throws Exception {
+    static void setup() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         signerRpcClient = new SignerRpcClient();
         signerRpcClient.init();
 
@@ -104,11 +109,11 @@ public final class ConfProxyUtilMain {
      *
      * @param className name of the utility program class
      * @return an instance of the requested utility program
-     * @throws Exception if class could not be found or an instance could
-     *                   not be created
      */
     @SuppressWarnings("unchecked")
-    static ConfProxyUtil createUtilInstance(final String className) throws Exception {
+    static ConfProxyUtil createUtilInstance(final String className)
+            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
+            InstantiationException, IllegalAccessException {
         Class<ConfProxyUtil> utilClass =
                 (Class<ConfProxyUtil>) Class.forName(className);
         return utilClass.getConstructor(SignerRpcClient.class).newInstance(signerRpcClient);

@@ -68,7 +68,7 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
  * http://<host>:<port>/?cert=hash1&cert=hash2&cert=hash3 ...
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class CertHashBasedOcspResponder implements InitializingBean, DisposableBean {
 
     private static final String METHOD_HEAD = "HEAD";
@@ -166,7 +166,7 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
         }
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private final class RequestHandler extends Handler.Abstract {
         @Override
         public boolean handle(Request request, Response response, Callback callback) {

@@ -30,18 +30,18 @@ import ee.ria.xroad.common.SystemProperties;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Contains method for storing operational monitoring data.
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class OpMonitoring {
 
     private static final String OP_MONITORING_BUFFER_IMPL_CLASS =
@@ -52,9 +52,9 @@ public final class OpMonitoring {
     /**
      * Creates non initialized the operational monitoring using the provided actor system.
      *
-     * @throws Exception if initialization fails
      */
-    public static AbstractOpMonitoringBuffer init(ServerConfProvider serverConfProvider) throws Exception {
+    public static AbstractOpMonitoringBuffer init(ServerConfProvider serverConfProvider)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Class<? extends AbstractOpMonitoringBuffer> clazz = getOpMonitoringManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);

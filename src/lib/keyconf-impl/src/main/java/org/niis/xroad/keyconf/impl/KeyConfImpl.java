@@ -39,7 +39,6 @@ import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.SingleResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -50,8 +49,14 @@ import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,7 +68,6 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class KeyConfImpl implements KeyConfProvider {
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;
@@ -110,12 +114,12 @@ class KeyConfImpl implements KeyConfProvider {
     }
 
     @Override
-    public OCSPResp getOcspResponse(X509Certificate cert) throws Exception {
+    public OCSPResp getOcspResponse(X509Certificate cert) throws CertificateEncodingException, IOException {
         return getOcspResponse(CryptoUtils.calculateCertSha1HexHash(cert));
     }
 
     @Override
-    public OCSPResp getOcspResponse(String certHash) throws Exception {
+    public OCSPResp getOcspResponse(String certHash) throws IOException {
         String[] responses = signerRpcClient.getOcspResponses(new String[]{certHash});
 
         for (String base64Encoded : responses) {
@@ -128,7 +132,7 @@ class KeyConfImpl implements KeyConfProvider {
 
     @Override
     public List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
-            throws Exception {
+            throws CertificateEncodingException, IOException {
         String[] responses = signerRpcClient.getOcspResponses(CertUtils.getSha1Hashes(certs));
 
         List<OCSPResp> ocspResponses = new ArrayList<>();
@@ -145,7 +149,7 @@ class KeyConfImpl implements KeyConfProvider {
 
     @Override
     public void setOcspResponses(List<X509Certificate> certs,
-                                 List<OCSPResp> responses) throws Exception {
+                                 List<OCSPResp> responses) throws IOException, CertificateEncodingException {
         String[] base64EncodedResponses = new String[responses.size()];
 
         for (int i = 0; i < responses.size(); i++) {
@@ -156,7 +160,7 @@ class KeyConfImpl implements KeyConfProvider {
         signerRpcClient.setOcspResponses(CertUtils.getSha1Hashes(certs), base64EncodedResponses);
     }
 
-    protected SigningInfo createSigningInfo(ClientId clientId) throws Exception {
+    protected SigningInfo createSigningInfo(ClientId clientId) throws IOException, OCSPException {
         log.debug("Retrieving signing info for member '{}'", clientId);
 
         SignerRpcClient.MemberSigningInfoDto signingInfo = signerRpcClient.getMemberSigningInfo(clientId);
@@ -206,7 +210,8 @@ class KeyConfImpl implements KeyConfProvider {
         return null;
     }
 
-    static PrivateKey loadAuthPrivateKey(AuthKeyInfo keyInfo) throws Exception {
+    static PrivateKey loadAuthPrivateKey(AuthKeyInfo keyInfo)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
         File keyStoreFile = new File(keyInfo.getKeyStoreFileName());
         log.trace("Loading authentication key from key store '{}'",
                 keyStoreFile);

@@ -58,7 +58,7 @@ import static org.niis.xroad.signer.api.dto.CertificateInfo.STATUS_REGISTERED;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMemberSigningInfoReq, GetMemberSigningInfoResp> {
     private final GlobalConfProvider globalConfProvider;
 

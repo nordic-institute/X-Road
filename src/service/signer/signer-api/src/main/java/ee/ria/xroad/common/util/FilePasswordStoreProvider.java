@@ -30,7 +30,6 @@ import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.util.Arrays;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.File;
 
@@ -42,14 +41,13 @@ import static java.lang.String.format;
  */
 @Slf4j
 @SuppressWarnings("squid:S2068")
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class FilePasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
     private static final String CFG_FILE_PASSWORD_STORE_PATH = SystemProperties.PREFIX + "internal.passwordstore-file-path";
 
     private static final String PATTERN_FILE_PASSWORDSTORE = "%s/.pswd-%s";
 
     @Override
-    public synchronized byte[] read(String pathnameForFtok, String id) throws Exception {
+    public synchronized byte[] read(String pathnameForFtok, String id) {
         var file = getFileById(id);
 
         log.warn("Reading password from {}. File exists? {}", file, file.exists());
@@ -65,7 +63,7 @@ public class FilePasswordStoreProvider implements PasswordStore.PasswordStorePro
     }
 
     @Override
-    public synchronized void write(String pathnameForFtok, String id, byte[] password, int permissions) throws Exception {
+    public synchronized void write(String pathnameForFtok, String id, byte[] password, int permissions) {
         var file = getFileById(id);
 
         log.warn("Writing password to {}", file);
@@ -81,7 +79,7 @@ public class FilePasswordStoreProvider implements PasswordStore.PasswordStorePro
     }
 
     @Override
-    public synchronized void clear(String pathnameForFtok, int permissions) throws Exception {
+    public synchronized void clear(String pathnameForFtok, int permissions) {
         //NO-OP
     }
 

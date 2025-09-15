@@ -25,14 +25,12 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.module;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * Default module manager supporting only software modules.
@@ -41,13 +39,14 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 public class DefaultModuleManagerImpl extends AbstractModuleManager {
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
-        if (module instanceof SoftwareModuleType) {
-            return createSoftwareModule((SoftwareModuleType) module);
+    protected AbstractModuleWorker createModuleWorker(ModuleType module) {
+        if (module instanceof SoftwareModuleType softwareModuleType) {
+            return createSoftwareModule(softwareModuleType);
         }
 
-        throw new CodedException(X_INTERNAL_ERROR, "unrecognized module type found!");
+        throw XrdRuntimeException.systemException(INTERNAL_ERROR)
+                .details("unrecognized module type: " + (module != null ? module.getClass().getName() : "null"))
+                .build();
     }
 
     AbstractModuleWorker createSoftwareModule(SoftwareModuleType softwareModule) {

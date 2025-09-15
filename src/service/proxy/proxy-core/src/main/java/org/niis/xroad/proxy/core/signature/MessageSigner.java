@@ -29,10 +29,10 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import java.util.concurrent.ExecutionException;
 
 public interface MessageSigner {
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    SignatureData sign(String keyId, SignAlgorithm signatureAlgorithm, SigningRequest request) throws Exception;
+    SignatureData sign(String keyId, SignAlgorithm signatureAlgorithm, SigningRequest request)
+            throws ExecutionException, InterruptedException;
 
 }
