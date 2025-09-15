@@ -174,5 +174,5 @@ openapi-generator = { id = "org.openapi.generator", version = "7.14.0" }
 sonarqube = { id = "org.sonarqube", version = "6.2.0.5505" }
 protobuf = { id = "com.google.protobuf", version = "0.9.5" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
-shadow = { id = "com.gradleup.shadow", version = "8.3.8" }
+shadow = { id = "com.gradleup.shadow", version = "8.3.9" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
