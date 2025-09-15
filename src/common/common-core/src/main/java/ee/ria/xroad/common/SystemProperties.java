@@ -96,10 +96,6 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_REGULAR_API_WHITELIST =
             PREFIX + "proxy-ui-api.regular-api-whitelist";
 
-    /** Property name of the flag for enabling automatic time-stamping service URL updates */
-    public static final String PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL =
-            PREFIX + "proxy-ui-api.auto-update-timestamp-service-url";
-
     /** property name of the flag to allow generating csr for key with certificates */
     public static final String PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE =
             PREFIX + "proxy-ui-api.allow-csr-for-key-with-certificate";
@@ -258,8 +254,6 @@ public final class SystemProperties {
     private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = FALSE;
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = FALSE;
-
-    private static final String DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL = FALSE;
 
     private static final String DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE = FALSE;
 
@@ -514,14 +508,6 @@ public final class SystemProperties {
     public static String getRegularApiWhitelist() {
         return getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
                 DEFAULT_REGULAR_API_WHITELIST);
-    }
-
-    /**
-     * @return whether automatic update of timestamp service URLs is enabled, 'false' by default.
-     */
-    public static boolean geUpdateTimestampServiceUrlsAutomatically() {
-        return Boolean.parseBoolean(getProperty(PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL,
-                DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL));
     }
 
     /**

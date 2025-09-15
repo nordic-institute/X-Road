@@ -44,6 +44,7 @@ import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
@@ -87,6 +88,7 @@ public class GlobalConfChecker {
     private final SubsystemNameStatus subsystemNameStatus;
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final MailNotificationHelper mailNotificationHelper;
+    private final AdminServiceProperties adminServiceProperties;
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
@@ -169,7 +171,7 @@ public class GlobalConfChecker {
             log.debug("Security Server ID is \"{}\"", securityServerId);
             updateClientStatuses(serverConf, securityServerId);
             updateAuthCertStatuses(securityServerId);
-            if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
+            if (adminServiceProperties.isAutoUpdateTimestampServiceUrl()) {
                 updateTimestampServiceUrls(globalConfProvider.getApprovedTsps(
                                 globalConfProvider.getInstanceIdentifier()),
                         TimestampingServiceMapper.get().toTargets(serverConf.getTimestampingServices())

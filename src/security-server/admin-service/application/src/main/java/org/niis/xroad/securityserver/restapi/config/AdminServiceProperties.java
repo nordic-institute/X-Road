@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -120,10 +120,14 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      * incompatible identifier.
      */
     private boolean strictIdentifierChecks;
-    /** Configures Api regular request size limit. */
+    /**
+     * Configures Api regular request size limit.
+     */
     private DataSize requestSizeLimitRegular;
 
-    /** Configures Api file upload request size limit. */
+    /**
+     * Configures Api file upload request size limit.
+     */
     private DataSize requestSizeLimitBinaryUpload;
 
     /**
@@ -131,14 +135,23 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      */
     private EnumMap<Role, List<String>> complementaryUserRoleMappings;
 
-    /** Algorithm that will be used when creating authentication certificate. */
+    /**
+     * Algorithm that will be used when creating authentication certificate.
+     */
     private KeyAlgorithm authenticationKeyAlgorithm;
-    /** Algorithm that will be used when creating signing certificate. */
+    /**
+     * Algorithm that will be used when creating signing certificate.
+     */
     private KeyAlgorithm signingKeyAlgorithm;
 
     private AuthenticationProviderType authenticationProvider;
 
     private boolean enforceUserPasswordPolicy;
+
+    /**
+     * whether automatic update of timestamp service URLs is enabled, 'false' by default.
+     */
+    private boolean autoUpdateTimestampServiceUrl;
 
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
