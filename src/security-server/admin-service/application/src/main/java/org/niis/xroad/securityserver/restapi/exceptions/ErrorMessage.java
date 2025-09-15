@@ -85,7 +85,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WRONG_KEY_U
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WRONG_TYPE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_DOWNLOAD_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_EXISTS;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
 
 
 @RequiredArgsConstructor
@@ -136,7 +135,6 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
 
     WSDL_DOWNLOAD_FAILED(ERROR_WSDL_DOWNLOAD_FAILED),
     WSDL_EXISTS(ERROR_WSDL_EXISTS),
-    WSDL_VALIDATOR_INTERRUPTED(ERROR_WSDL_VALIDATOR_INTERRUPTED),
     WRONG_KEY_USAGE(ERROR_WRONG_KEY_USAGE),
 
     MEMBER_NAME_NOT_FOUND("member_name_not_found"),

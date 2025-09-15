@@ -28,9 +28,9 @@ package org.niis.xroad.opmonitor.core.config;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
+import org.niis.xroad.common.vault.quarkus.config.QuarkusCertificateProvisioningProperties;
 
 import java.time.Duration;
-import java.util.List;
 
 @ConfigMapping(prefix = "xroad.op-monitor.tls")
 public interface OpMonitorTlsProperties {
@@ -38,42 +38,10 @@ public interface OpMonitorTlsProperties {
     String DEFAULT_CLIENT_CERTIFICATE_REFRESH_INTERVAL = "0S";
 
     @WithName("certificate-provisioning")
-    CertificateProvisionProperties certificateProvisioning();
+    QuarkusCertificateProvisioningProperties certificateProvisioning();
 
     @WithName("client-certificate-refresh-interval")
     @WithDefault(DEFAULT_CLIENT_CERTIFICATE_REFRESH_INTERVAL)
     Duration clientCertificateRefreshInterval();
-
-    interface CertificateProvisionProperties {
-        String DEFAULT_ISSUANCE_ROLE_NAME = "xrd-internal";
-        String DEFAULT_COMMON_NAME = "localhost";
-        String DEFAULT_SECRET_STORE_PKI_PATH = "xrd-pki";
-        String DEFAULT_TTL = "3650D";
-
-        @WithName("issuance-role-name")
-        @WithDefault(DEFAULT_ISSUANCE_ROLE_NAME)
-        String issuanceRoleName();
-
-        @WithName("common-name")
-        @WithDefault(DEFAULT_COMMON_NAME)
-        String commonName();
-
-        @WithName("alt-names")
-        @WithDefault("[]")
-        List<String> altNames();
-
-        @WithName("ip-subject-alt-names")
-        @WithDefault("[]")
-        List<String> ipSubjectAltNames();
-
-        @WithName("ttl")
-        @WithDefault(DEFAULT_TTL)
-        Duration ttl();
-
-        @WithName("secret-store-pki-path")
-        @WithDefault(DEFAULT_SECRET_STORE_PKI_PATH)
-        String secretStorePkiPath();
-
-    }
 
 }
