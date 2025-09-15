@@ -118,14 +118,14 @@ importers:
         specifier: workspace:*
         version: link:../../../shared-ui
       apexcharts:
-        specifier: ^4.7.0
-        version: 4.7.0
+        specifier: ^5.3.5
+        version: 5.3.5
       maska:
         specifier: ^3.2.0
         version: 3.2.0
       vue3-apexcharts:
         specifier: ^1.8.0
-        version: 1.8.0(apexcharts@4.7.0)(vue@3.5.18(typescript@5.8.3))
+        version: 1.8.0(apexcharts@5.3.5)(vue@3.5.18(typescript@5.8.3))
     devDependencies:
       '@pinia/testing':
         specifier: ^1.0.2
@@ -1133,8 +1133,8 @@ packages:
     resolution: {integrity: sha512-bN798gFfQX+viw3R7yrGWRqnrN2oRkEkUjjl4JNn4E8GxxbjtG3FbrEIIY3l8/hrwUwIeCZvi4QuOTP4MErVug==}
     engines: {node: '>=12'}
 
-  apexcharts@4.7.0:
-    resolution: {integrity: sha512-iZSrrBGvVlL+nt2B1NpqfDuBZ9jX61X9I2+XV0hlYXHtTwhwLTHDKGXjNXAgFBDLuvSYCB/rq2nPWVPRv2DrGA==}
+  apexcharts@5.3.5:
+    resolution: {integrity: sha512-I04DY/WBZbJgJD2uixeV5EzyiL+J5LgKQXEu8rctqAwyRmKv44aDVeofJoLdTJe3ao4r2KEQfCgtVzXn6pqirg==}
 
   argparse@1.0.10:
     resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
@@ -3712,7 +3712,7 @@ snapshots:
 
   ansi-styles@6.2.1: {}
 
-  apexcharts@4.7.0:
+  apexcharts@5.3.5:
     dependencies:
       '@svgdotjs/svg.draggable.js': 3.0.6(@svgdotjs/svg.js@3.2.4)
       '@svgdotjs/svg.filter.js': 3.0.9
@@ -5237,9 +5237,9 @@ snapshots:
       '@vue/language-core': 3.0.3(typescript@5.8.3)
       typescript: 5.8.3
 
-  vue3-apexcharts@1.8.0(apexcharts@4.7.0)(vue@3.5.18(typescript@5.8.3)):
+  vue3-apexcharts@1.8.0(apexcharts@5.3.5)(vue@3.5.18(typescript@5.8.3)):
     dependencies:
-      apexcharts: 4.7.0
+      apexcharts: 5.3.5
       vue: 3.5.18(typescript@5.8.3)
 
   vue@3.5.18(typescript@5.8.3):
