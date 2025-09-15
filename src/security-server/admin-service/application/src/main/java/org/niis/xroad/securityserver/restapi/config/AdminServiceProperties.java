@@ -153,6 +153,11 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      */
     private boolean autoUpdateTimestampServiceUrl;
 
+    /**
+     * whether to automatically activate new authentication certificates after they have been registered on the Central Server.
+     */
+    private boolean automaticActivateAuthCertificate;
+
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
         EnumMap<Role, List<String>> userRoleMappings = new EnumMap<>(Role.class);

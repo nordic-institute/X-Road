@@ -361,7 +361,7 @@ public class GlobalConfChecker {
                               X509Certificate cert,
                               KeyUsageInfo keyUsageInfo,
                               SecurityServerId securityServerId) throws IOException, OperatorCreationException {
-        if (SystemProperties.getAutomaticActivateAuthCertificate()) {
+        if (adminServiceProperties.isAutomaticActivateAuthCertificate()) {
             log.debug("Activating certificate '{}'", CertUtils.identify(cert));
             String ownerMemberId = securityServerId.getOwner().asEncodedId();
             try {

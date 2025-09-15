@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.mail.MailNotificationProperties;
 import org.niis.xroad.common.mail.MailService;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -49,6 +50,7 @@ public class MailNotificationHelper {
     private final MailNotificationProperties mailNotificationProperties;
     private final MessageSourceAccessor notificationMessageSourceAccessor;
     private final MailService mailService;
+    private final AdminServiceProperties adminServiceProperties;
 
     public void sendSuccessNotification(ClientId memberId,
                                         SecurityServerId.Conf securityServerId,
@@ -63,7 +65,7 @@ public class MailNotificationHelper {
             String authCertContent =
                     notificationMessageSourceAccessor.getMessage("acme_auth_cert_renewal_success_content",
                             new String[]{securityServerId.asEncodedId(), newCertInfo.getCertificateDisplayName()});
-            if (!SystemProperties.getAutomaticActivateAuthCertificate()) {
+            if (!adminServiceProperties.isAutomaticActivateAuthCertificate()) {
                 authCertContent += " " + notificationMessageSourceAccessor.getMessage("acme_auth_cert_renewal_success_content_activate");
             }
             String signCertContent =
@@ -114,7 +116,7 @@ public class MailNotificationHelper {
                             new String[]{certInfo.getCertificateDisplayName(), securityServerId.getServerCode()});
             String contentWhitManualActivation =
                     baseContent + " " + notificationMessageSourceAccessor.getMessage("auth_cert_registration_success_content_activate");
-            String content = SystemProperties.getAutomaticActivateAuthCertificate() ? baseContent : contentWhitManualActivation;
+            String content = adminServiceProperties.isAutomaticActivateAuthCertificate() ? baseContent : contentWhitManualActivation;
             Optional.ofNullable(mailNotificationProperties.getContacts())
                     .map(contacts -> contacts.get(securityServerId.getOwner().asEncodedId()))
                     .ifPresent(address -> mailService.sendMailAsync(address, title, content));

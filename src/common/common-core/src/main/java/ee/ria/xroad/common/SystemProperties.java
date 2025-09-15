@@ -146,9 +146,6 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
             PREFIX + "proxy-ui-api.acme-keypair-renewal-time-before-expiration-date";
 
-    public static final String PROXY_UI_API_AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE =
-            PREFIX + "proxy-ui-api.automatic-activate-auth-certificate";
-
     public static final String PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE =
             PREFIX + "proxy-ui-api.automatic-activate-acme-sign-certificate";
 
@@ -685,13 +682,6 @@ public final class SystemProperties {
      */
     public static int getAcmeKeypairRenewalTimeBeforeExpirationDate() {
         return Integer.parseInt(getProperty(PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
-    }
-
-    /**
-     * @return whether to automatically activate new authentication certificates after they have been registered on the Central Server.
-     */
-    public static boolean getAutomaticActivateAuthCertificate() {
-        return Boolean.parseBoolean(getProperty(PROXY_UI_API_AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE, FALSE));
     }
 
     /**
