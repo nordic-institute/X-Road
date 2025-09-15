@@ -337,9 +337,6 @@ public final class SystemProperties {
     /** Property name of the configuration files path. */
     public static final String CONF_PATH = PREFIX + "conf.path";
 
-    /** Property name of the log folder for Log Reader. */
-    public static final String LOG_READER_PATH = PREFIX + "logReader.path";
-
     /** Property name of the application log file path. */
     public static final String LOG_PATH = PREFIX + "appLog.path";
 
@@ -617,13 +614,6 @@ public final class SystemProperties {
                         System.getenv().get(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD_ENV)))
                 .map(String::toCharArray)
                 .orElse(null);
-    }
-
-    /**
-     * @return path to the directory where query logs are archived, '/var/lib/xroad/' by default.
-     */
-    public static String getLogReaderPath() {
-        return getProperty(LOG_READER_PATH, DefaultFilepaths.SECURE_LOG_PATH);
     }
 
     /**
