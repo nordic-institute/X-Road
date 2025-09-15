@@ -24,28 +24,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.application;
 
-import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.TestProfile;
-import jakarta.inject.Inject;
+package org.niis.xroad.configuration.migration;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
+
+import java.io.File;
 
 @Slf4j
-@QuarkusTest
-@TestProfile(SignerUnderCsTestProfile.class)
-@Disabled("todo, fix the hibernate 'Not an entity: org.niis.xroad.signer.jpa.entity.SignerTokenEntity' issue")
-class SignerUnderCsMainTest {
-    @Inject
-    TokenLookup tokenLookup;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class LegacySignerDevicesMigrationCLI {
 
-    @Test
-    void testMain() {
-        var result = tokenLookup.listTokens();
-        Assertions.assertEquals(1, result.size(), "Token lookup should not throw an exception");
+    public static void main(String[] args) {
+        validateArgs(args);
+        try {
+            var input = args[0];
+            var output = args[1];
+            var migrator = new ConfigurationYamlMigrator("xroad.signer.modules");
+            log.info("Migrating Signer devices configuration from {} to {}..", input, output);
+            if (migrator.migrate(input, output)) {
+                log.info("Migration successful");
+            }
+
+        } catch (Exception e) {
+            throw new MigrationException("Migration failed", e);
+        }
     }
+
+    private static void validateArgs(String[] args) {
+        if (args.length != 2) {
+            logUsageAndThrow("Required arguments not provided");
+        }
+        if (!new File(args[0]).exists()) {
+            throw new IllegalArgumentException("Input file does not exist: " + args[0]);
+        }
+        if (new File(args[1]).exists()) {
+            throw new IllegalArgumentException("Output file already exists: " + args[1]);
+        }
+    }
+
+    private static void logUsageAndThrow(String message) {
+        log.error("Usage: <input-devices.ini-file> <output-file>");
+        throw new IllegalArgumentException(message);
+    }
+
 }

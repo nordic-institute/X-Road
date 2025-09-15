@@ -15,7 +15,7 @@ quarkus:
   quarkus:
     log:
       file:
-        enable: true
+        enabled: true
         path: /var/log/xroad/op-monitor.log
 
 xroad:

@@ -15,11 +15,11 @@ quarkus:
   quarkus:
     log:
       file:
-        enable: true
+        enabled: true
         path: /var/log/xroad/message-log-archiver.log
 
 "%test":
   quarkus:
     log:
       file:
-        enable: false
+        enabled: false

@@ -15,12 +15,12 @@ quarkus:
 
   log:
     console:
-      enable: false
+      enabled: false
     file:
-      enable: true
+      enabled: true
       path: /var/log/xroad/signer-console.log
     syslog:
-      enable: true
+      enabled: true
       app-name: signer-console
       format: "%-5p [X-Road Signer Console] %d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} - %m"
 
@@ -28,4 +28,4 @@ quarkus:
   quarkus:
     log:
       file:
-        enable: false
+        enabled: false

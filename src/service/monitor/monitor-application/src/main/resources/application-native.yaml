@@ -1,7 +1,7 @@
 quarkus:
   log:
     console:
-      enable: false
+      enabled: false
     file:
-      enable: true
+      enabled: true
       path: /var/log/xroad/monitor.log
