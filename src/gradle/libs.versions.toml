@@ -8,7 +8,7 @@
 metrics = "4.2.33"
 jetty = "12.0.16"
 jaxb = "4.0.5"
-hibernate = "7.0.9.Final"
+hibernate = "7.1.0.Final"
 mapstruct = "1.6.3"
 jackson = "2.19.2"
 mockito = "5.18.0"
@@ -31,10 +31,10 @@ protobufPlugin = "0.9.5"
 checkstyle = "10.22.0"
 jacoco = "0.8.12"
 resilience4j = "2.3.0"
-quarkus = "3.23.3"
-quarkus-vault = "4.2.1"
+quarkus = "3.26.1"
+quarkus-vault = "4.4.0"
 quarkus-systemd-notify = "1.0.2"
-smallryeConfig = "3.13.2"
+smallryeConfig = "3.13.4"
 microprofile = "3.1"
 
 [libraries]
@@ -44,7 +44,6 @@ metrics-jmx = { module = "io.dropwizard.metrics:metrics-jmx", version.ref = "met
 jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
 jetty-http = { module = "org.eclipse.jetty:jetty-http", version.ref = "jetty" }
 jetty-xml = { module = "org.eclipse.jetty:jetty-xml", version.ref = "jetty" }
-
 
 jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb" }
 jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "jaxb" }
@@ -229,7 +228,7 @@ openapi-generator = { id = "org.openapi.generator", version = "7.14.0" }
 sonarqube = { id = "org.sonarqube", version = "6.2.0.5505" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
-jandex = { id = "org.kordamp.gradle.jandex", version = "2.1.0" }
+jandex = { id = "org.kordamp.gradle.jandex", version = "2.2.0" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
 shadow = { id = "com.gradleup.shadow", version = "8.3.8" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }

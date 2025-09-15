@@ -8,9 +8,6 @@ if [ "$1" = configure ]; then
     chown xroad:xroad /etc/xroad/backup.d/??_xroad-signer
     chmod 0440 /etc/xroad/backup.d/??_xroad-signer
 
-    #local overrides
-    test -f /etc/xroad/devices.ini || cp /usr/share/xroad/doc/devices.ini /etc/xroad/devices.ini && chown xroad:xroad /etc/xroad/devices.ini
-
     test -d /etc/xroad/signer || mkdir -p -m 0750 /etc/xroad/signer && chown xroad:xroad /etc/xroad/signer
 
     # if xroad-proxy is not installed then this directory should be created for signer

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.configuration.migration;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
@@ -47,8 +48,15 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
+@RequiredArgsConstructor
 class ConfigurationYamlMigrator {
-    static final String PREFIX = "xroad";
+    static final String DEFAULT_PREFIX = "xroad";
+
+    final String prefix;
+
+    ConfigurationYamlMigrator() {
+        this(DEFAULT_PREFIX);
+    }
 
     boolean migrate(String inputFilePath, String outputFilePath) throws IOException, ConfigurationException {
         var ini = load(inputFilePath);
@@ -61,24 +69,24 @@ class ConfigurationYamlMigrator {
                 var mappedKey = LegacyConfigPathMapping.map(key);
                 var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
 
-                insertNestedProperty(properties, mappedKey.split("\\."), valueStr);
+                insertNestedProperty(properties, mappedKey.split("\\."), resolveValue(valueStr));
             }
         }
 
         Map<String, Object> root = new HashMap<>();
-        root.put(PREFIX, properties);
+        insertNestedProperty(root, prefix.split("\\."), properties);
 
         saveYamlToFile(ini, root, outputFilePath);
         return true;
     }
 
     @SuppressWarnings("unchecked")
-    private void insertNestedProperty(Map<String, Object> rootMap, String[] keys, String value) {
+    private void insertNestedProperty(Map<String, Object> rootMap, String[] keys, Object value) {
         Map<String, Object> current = rootMap;
         for (int i = 0; i < keys.length - 1; i++) {
             current = (Map<String, Object>) current.computeIfAbsent(keys[i], k -> new HashMap<>());
         }
-        current.put(keys[keys.length - 1], resolveValue(value));
+        current.put(keys[keys.length - 1], value);
     }
 
     private Object resolveValue(String value) {

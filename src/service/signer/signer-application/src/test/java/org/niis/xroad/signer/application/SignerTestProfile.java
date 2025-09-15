@@ -46,7 +46,6 @@ public class SignerTestProfile implements QuarkusTestProfile {
         return Map.of(
                 "quarkus.log.level", "INFO",
                 "xroad.common.rpc.use-tls", "false",
-                "xroad.signer.device-configuration-file", "src/test/resources/test-devices.ini",
                 "xroad.db.serverconf.hibernate.connection.url", "jdbc:hsqldb:mem:testdb",
                 "xroad.db.serverconf.hibernate.connection.username", "testdb",
                 "xroad.db.serverconf.hibernate.connection.password", "testdb",
