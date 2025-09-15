@@ -22,10 +22,10 @@ bao_api "POST" "/v1/sys/mounts/xrd-secret" \
   '{"type": "kv"}' "$ROOT_TOKEN" "Enabling KV engine" >/dev/null
 
 bao_api "POST" "/v1/sys/mounts/xrd-pki/tune" \
-  '{"max_lease_ttl": "87600h"}' "$ROOT_TOKEN" "Configuring PKI lease" >/dev/null
+  '{"max_lease_ttl": "175200h"}' "$ROOT_TOKEN" "Configuring PKI lease" >/dev/null
 
 bao_api "POST" "/v1/xrd-pki/root/generate/internal" \
-  '{"common_name": "localhost", "ttl": "8760h"}' "$ROOT_TOKEN" "Generating root certificate" >/dev/null
+  '{"common_name": "localhost", "ttl": "175200h"}' "$ROOT_TOKEN" "Generating root certificate" >/dev/null
 
 # Configure PKI role
 bao_api "POST" "/v1/xrd-pki/roles/xrd-internal" \
@@ -34,7 +34,7 @@ bao_api "POST" "/v1/xrd-pki/roles/xrd-internal" \
   "allow_subdomains": true,
   "allow_localhost": true,
   "allow_ip_sans": true,
-  "max_ttl": "300h"
+  "max_ttl": "87600h"
 }' "$ROOT_TOKEN" "Creating PKI role xrd-internal" >/dev/null
 
 POLICY=$(
@@ -44,6 +44,9 @@ path "xrd-pki/*" {
 }
 path "xrd-secret/*" {
   capabilities = ["read", "list"]
+}
+path "xrd-secret/tls/*" {
+  capabilities = ["read", "list", "create", "update"]
 }
 path "xrd-secret" {
   capabilities = ["list"]
