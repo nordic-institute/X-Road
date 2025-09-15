@@ -81,6 +81,21 @@ public class IniUtil {
         return root;
     }
 
+    public Map<String, String> loadAndMigrateSignerDevices(String filePath, String rootPrefix) {
+        var ini = load(filePath);
+
+        Map<String, String> properties = new HashMap<>();
+        for (String section : ini.parsedContent().getSections()) {
+            for (Iterator<String> it = ini.parsedContent().getSection(section).getKeys(); it.hasNext(); ) {
+                var sectionKey = it.next();
+                var key = String.join(".", section, sectionKey.replace("_", "-"));
+                var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
+                properties.put(String.join(".", rootPrefix, key), valueStr);
+            }
+        }
+        return properties;
+    }
+
     public Map<String, String> loadToFlatMap(String filePath, String rootPrefix) {
         var ini = load(filePath);
 

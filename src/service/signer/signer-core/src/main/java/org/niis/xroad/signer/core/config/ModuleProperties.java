@@ -43,97 +43,97 @@ public interface ModuleProperties {
     @WithName("library")
     String library();
 
-    @WithName("library_cant_create_os_threads")
+    @WithName("library-cant-create-os-threads")
     @WithDefault("false")
     Optional<Boolean> libraryCantCreateOsThreads();
 
-    @WithName("os_locking_ok")
+    @WithName("os-locking-ok")
     @WithDefault("false")
     Optional<Boolean> osLockingOk();
 
-    @WithName("sign_verify_pin")
+    @WithName("sign-verify-pin")
     @WithDefault("false")
     boolean signVerifyPin();
 
-    @WithName("token_id_format")
+    @WithName("token-id-format")
     @WithDefault("{moduleType}{slotIndex}{serialNumber}{label}")
     String tokenIdFormat();
 
-    @WithName("sign_mechanism")
+    @WithName("sign-mechanism")
     @WithDefault("CKM_RSA_PKCS")
     String signMechanism();
 
-    @WithName("rsa_sign_mechanism")
+    @WithName("rsa-sign-mechanism")
     Optional<String> rsaSignMechanism();
 
-    @WithName("ec_sign_mechanism")
+    @WithName("ec-sign-mechanism")
     @WithDefault("CKM_ECDSA")
     String ecSignMechanism();
 
-    @WithName("pub_key_attribute_encrypt")
+    @WithName("pub-key-attribute-encrypt")
     @WithDefault("true")
     boolean pubKeyAttributeEncrypt();
 
-    @WithName("pub_key_attribute_verify")
+    @WithName("pub-key-attribute-verify")
     @WithDefault("true")
     boolean pubKeyAttributeVerify();
 
-    @WithName("pub_key_attribute_wrap")
+    @WithName("pub-key-attribute-wrap")
     Optional<Boolean> pubKeyAttributeWrap();
 
-    @WithName("pub_key_attribute_allowed_mechanisms")
+    @WithName("pub-key-attribute-allowed-mechanisms")
     Optional<List<String>> pubKeyAttributeAllowedMechanisms();
 
-    @WithName("priv_key_attribute_sensitive")
+    @WithName("priv-key-attribute-sensitive")
     @WithDefault("true")
     boolean privKeyAttributeSensitive();
 
-    @WithName("priv_key_attribute_decrypt")
+    @WithName("priv-key-attribute-decrypt")
     @WithDefault("true")
     boolean privKeyAttributeDecrypt();
 
-    @WithName("priv_key_attribute_sign")
+    @WithName("priv-key-attribute-sign")
     @WithDefault("true")
     boolean privKeyAttributeSign();
 
-    @WithName("priv_key_attribute_unwrap")
+    @WithName("priv-key-attribute-unwrap")
     Optional<Boolean> privKeyAttributeUnwrap();
 
-    @WithName("priv_key_attribute_allowed_mechanisms")
+    @WithName("priv-key-attribute-allowed-mechanisms")
     Optional<List<String>> privKeyAttributeAllowedMechanisms();
 
-    @WithName("slot_ids")
+    @WithName("slot-ids")
     Optional<Set<Long>> slotIds();
 
     // undocumented properties
 
-    @WithName("batch_signing_enabled")
+    @WithName("batch-signing-enabled")
     @WithDefault("true")
     boolean batchSigningEnabled();
 
-    @WithName("read_only")
+    @WithName("read-only")
     @WithDefault("false")
     boolean readOnly();
 
-    @WithName("pub_key_attribute_verify_recover")
+    @WithName("pub-key-attribute-verify-recover")
     Optional<Boolean> pubKeyAttributeVerifyRecover();
 
-    @WithName("pub_key_attribute_trusted")
+    @WithName("pub-key-attribute-trusted")
     Optional<Boolean> pubKeyAttributeTrusted();
 
-    @WithName("priv_key_attribute_sign_recover")
+    @WithName("priv-key-attribute-sign-recover")
     Optional<Boolean> privKeyAttributeSignRecover();
 
-    @WithName("priv_key_attribute_extractable")
+    @WithName("priv-key-attribute-extractable")
     Optional<Boolean> privKeyAttributeExtractable();
 
-    @WithName("priv_key_attribute_always_sensitive")
+    @WithName("priv-key-attribute-always-sensitive")
     Optional<Boolean> privKeyAttributeAlwaysSensitive();
 
-    @WithName("priv_key_attribute_never_extractable")
+    @WithName("priv-key-attribute-never-extractable")
     Optional<Boolean> privKeyAttributeNeverExtractable();
 
-    @WithName("priv_key_attribute_wrap_with_trusted")
+    @WithName("priv-key-attribute-wrap-with-trusted")
     Optional<Boolean> privKeyAttributeWrapWithTrusted();
 
 }

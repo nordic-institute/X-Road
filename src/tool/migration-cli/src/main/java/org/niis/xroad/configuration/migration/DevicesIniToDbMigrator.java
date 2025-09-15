@@ -37,7 +37,7 @@ public class DevicesIniToDbMigrator extends BasePropertiesToDbMigrator {
     @Override
     Map<String, String> loadProperties(String filePath) {
         log.info("Loading devices configuration properties from [{}]", filePath);
-        return new IniUtil().loadToFlatMap(filePath, "xroad.signer.modules");
+        return new IniUtil().loadAndMigrateSignerDevices(filePath, "xroad.signer.modules");
     }
 
     public static void main(String[] args) {
