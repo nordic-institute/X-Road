@@ -66,7 +66,8 @@ public class ConfigurationClientActionExecutor {
                 configurationVersion);
 
         var downloader = new ConfigurationDownloader(httpUrlConnectionConfigurer, configurationPath, configurationVersion);
-        var client = new ConfigurationClient(new FileBasedProvider(configurationAnchorFile), configurationPath, downloader) {
+        var client = new ConfigurationClient(new FileBasedProvider(configurationAnchorFile), configurationPath, downloader,
+                confClientProperties.allowedFederations()) {
             @Override
             protected void deleteExtraConfigurationDirectories(
                     List<? extends ConfigurationSource> configurationSources,
@@ -83,7 +84,8 @@ public class ConfigurationClientActionExecutor {
                 configurationAnchorFile, configurationPath);
 
         var downloader = new ConfigurationDownloader(httpUrlConnectionConfigurer, configurationPath);
-        var client = new ConfigurationClient(new FileBasedProvider(configurationAnchorFile), configurationPath, downloader) {
+        var client = new ConfigurationClient(new FileBasedProvider(configurationAnchorFile), configurationPath, downloader,
+                confClientProperties.allowedFederations()) {
             @Override
             protected void deleteExtraConfigurationDirectories(
                     List<? extends ConfigurationSource> configurationSources,
@@ -128,7 +130,8 @@ public class ConfigurationClientActionExecutor {
 
         var client = new ConfigurationClient(
                 null,
-                confClientProperties.globalConfDir(), configurationDownloader, configurationAnchor) {
+                confClientProperties.globalConfDir(), configurationDownloader, configurationAnchor,
+                confClientProperties.allowedFederations()) {
             @Override
             protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
                                                                FederationConfigurationSourceFilter sourceFilter) {

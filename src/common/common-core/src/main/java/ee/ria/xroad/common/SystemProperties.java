@@ -308,22 +308,6 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_KEY_NAMED_CURVE = "secp256r1";
 
-    // Configuration client ---------------------------------------------------
-
-    public static final String CONFIGURATION_CLIENT_PORT =
-            PREFIX + "configuration-client.port";
-
-    public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
-            PREFIX + "configuration-client.allowed-federations";
-
-    /**
-     * A constant to describe the X-Road instances this security server federates with.
-     * {@link #CUSTOM} means a list of named, comma-separated X-Road instances to allow.
-     * {@link #ALL} naturally means all and {@link #NONE} means federation is disabled.
-     * The configurations for those instances won't be downloaded.
-     */
-    public enum AllowedFederationMode { ALL, NONE, CUSTOM }
-
     // Center -----------------------------------------------------------------
 
     public static final String CENTER_DATABASE_PROPERTIES = CENTER_PREFIX + "database-properties";
@@ -782,18 +766,6 @@ public final class SystemProperties {
      */
     public static String getMailNotificationLocale() {
         return getProperty(PROXY_UI_API_MAIL_NOTIFICATION_LOCALE);
-    }
-
-    /**
-     * @return the gRPC port on which the configuration client is listening, '5665' by default.
-     */
-    public static int getConfigurationClientPort() {
-        return Integer.parseInt(getProperty(CONFIGURATION_CLIENT_PORT,
-                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
-    }
-
-    public static String getConfigurationClientAllowedFederations() {
-        return getProperty(CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS, AllowedFederationMode.NONE.name());
     }
 
     /**

@@ -221,6 +221,6 @@ class ConfigurationClientTest {
         };
 
         return new ConfigurationClient(
-                null, tempDir.getAbsolutePath(), configurations, configurationAnchor);
+                null, tempDir.getAbsolutePath(), configurations, configurationAnchor, "NONE");
     }
 }

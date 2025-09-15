@@ -68,7 +68,7 @@ public class ConfClientRootConfig {
                 configurationClientProperties.globalConfDir());
         return new ConfigurationClient(
                 configurationAnchorProvider,
-                configurationClientProperties.globalConfDir(), downloader);
+                configurationClientProperties.globalConfDir(), downloader, configurationClientProperties.allowedFederations());
     }
 
     @ApplicationScoped
