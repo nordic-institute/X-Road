@@ -45,12 +45,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
@@ -86,6 +88,7 @@ class BatchSignerTest {
     private final GlobalConfProvider globalConf = new TestSuiteGlobalConf();
     private final TestCertUtil.PKCS12 producerP12 = TestCertUtil.getProducer();
     private final ClientId.Conf producerClientId = ClientId.Conf.create("EE", "BUSINESS", "producer");
+    private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
 
     @Mock
     private SignerRpcClient signerClient;
@@ -201,7 +204,7 @@ class BatchSignerTest {
             }
         };
 
-        return new SigningCtxProviderImpl(globalConf, keyConf, batchSigner);
+        return new SigningCtxProviderImpl(globalConf, keyConf, batchSigner, proxyProperties);
     }
 
     private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)

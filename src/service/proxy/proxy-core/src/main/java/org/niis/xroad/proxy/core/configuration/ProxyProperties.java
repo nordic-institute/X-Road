@@ -64,6 +64,10 @@ public interface ProxyProperties {
     @WithName("memory-usage-threshold")
     Optional<Long> memoryUsageThreshold();
 
+    @WithName("message-sign-digest-name")
+    @WithDefault("SHA-512")
+    String messageSignDigestName();
+
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {
         @WithName("connector-host")

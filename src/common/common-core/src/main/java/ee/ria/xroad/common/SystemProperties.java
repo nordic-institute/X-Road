@@ -249,14 +249,8 @@ public final class SystemProperties {
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PROXY_PREFIX + "enforce-client-is-cert-validity-period-check";
 
-    private static final String PROXY_MESSAGE_SIGN_DIGEST_NAME = PROXY_PREFIX + "message-sign-digest-name";
-    public static final String PROXY_MEMORY_USAGE_THRESHOLD = PROXY_PREFIX + "memory-usage-threshold";
-
     private static final String FALSE = Boolean.FALSE.toString();
     private static final String TRUE = Boolean.TRUE.toString();
-    private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = FALSE;
-    private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = FALSE;
-    private static final String DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED = FALSE;
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = FALSE;
@@ -1118,22 +1112,6 @@ public final class SystemProperties {
     public static boolean isClientIsCertValidityPeriodCheckEnforced() {
         return Boolean.parseBoolean(getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
                 DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
-    }
-
-    /**
-     * @return Digest name used for signing proxy messages
-     * 'SHA-512' by default
-     */
-    public static DigestAlgorithm getProxyMessageSignDigestName() {
-        return Optional.ofNullable(getProperty(PROXY_MESSAGE_SIGN_DIGEST_NAME))
-                .map(DigestAlgorithm::ofName)
-                .orElse(DigestAlgorithm.SHA512);
-    }
-
-    public static Long getProxyMemoryUsageThreshold() {
-        return Optional.ofNullable(System.getProperty(PROXY_MEMORY_USAGE_THRESHOLD))
-                .map(Long::parseLong)
-                .orElse(null);
     }
 
     private static String propertyNameToEnvVariable(String propName) {
