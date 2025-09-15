@@ -20,9 +20,9 @@ quarkus:
         - /etc/xroad/db.properties
     log:
       console:
-        enable: false
+        enabled: false
       file:
-        enable: true
+        enabled: true
         path: /var/log/xroad/proxy.log
       category:
         "org.niis.xroad.proxy.core.clientproxy.RequestLog":
@@ -36,7 +36,7 @@ quarkus:
       handler:
         file:
           "clientproxy-access-log":
-            enable: true
+            enabled: true
             path: /var/log/xroad/clientproxy_access.log
             format: "%s%e%n"
             encoding: utf-8
@@ -45,7 +45,7 @@ quarkus:
               file-suffix: .yyyy-MM-dd.zip
               rotate-on-boot: false
           "serverproxy-access-log":
-            enable: true
+            enabled: true
             path: /var/log/xroad/serverproxy_access.log
             format: "%s%e%n"
             encoding: utf-8

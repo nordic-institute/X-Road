@@ -27,7 +27,7 @@ quarkus:
         - /etc/xroad/db.properties
     log:
       file:
-        enable: true
+        enabled: true
         path: /var/log/xroad/signer.log
 
 "%ss":
@@ -39,7 +39,7 @@ quarkus:
   quarkus:
     log:
       file:
-        enable: false
+        enabled: false
   xroad:
     signer:
       rpc:

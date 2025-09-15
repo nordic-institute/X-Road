@@ -25,7 +25,7 @@ xroad:
         - /etc/xroad/db.properties
     log:
       file:
-        enable: true
+        enabled: true
         path: /var/log/xroad/op-monitor.log
 
 "%containerized":
