@@ -39,9 +39,6 @@ mkdir -p %{buildroot}/etc/xroad/conf.d
 
 cp -p %{_sourcedir}/proxy-ui-api/xroad-proxy-ui-api.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../security-server/admin-service/application/build/libs/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/default-configuration/proxy-ui-api.ini %{buildroot}/etc/xroad/conf.d
-cp -p %{srcdir}/default-configuration/proxy-ui-api-logback.xml %{buildroot}/etc/xroad/conf.d
-cp -p %{srcdir}/default-configuration/proxy-ui-api-logback-access.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/acme.example.yml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/mail.example.yml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
@@ -56,9 +53,6 @@ rm -rf %{buildroot}
 %files
 %defattr(0640,xroad,xroad,0751)
 %config /etc/xroad/services/proxy-ui-api.conf
-%config /etc/xroad/conf.d/proxy-ui-api.ini
-%config /etc/xroad/conf.d/proxy-ui-api-logback.xml
-%config /etc/xroad/conf.d/proxy-ui-api-logback-access.xml
 %config /etc/xroad/conf.d/acme.example.yml
 %config /etc/xroad/conf.d/mail.example.yml
 %attr(644,root,root) %{_unitdir}/xroad-proxy-ui-api.service
@@ -119,32 +113,6 @@ if [ $1 -gt 1 ] ; then
   fi
 
   rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :
-fi
-
-if [[ -f /etc/xroad/ssl/nginx.crt && -f /etc/xroad/ssl/nginx.key ]];
-then
-  if [[ ! -r /etc/xroad/ssl/proxy-ui-api.crt || ! -r /etc/xroad/ssl/proxy-ui-api.key || ! -r /etc/xroad/ssl/proxy-ui-api.p12 ]]
-  then
-    echo "found existing nginx.crt and nginx.key, migrating those to proxy-ui-api.crt, key and p12"
-    mv -f /etc/xroad/ssl/nginx.crt /etc/xroad/ssl/proxy-ui-api.crt
-    mv -f /etc/xroad/ssl/nginx.key /etc/xroad/ssl/proxy-ui-api.key
-    rm -f /etc/xroad/ssl/proxy-ui-api.p12
-    openssl pkcs12 -export -in /etc/xroad/ssl/proxy-ui-api.crt -inkey /etc/xroad/ssl/proxy-ui-api.key -name proxy-ui-api -out /etc/xroad/ssl/proxy-ui-api.p12 -passout pass:proxy-ui-api
-    chmod -f 660 /etc/xroad/ssl/proxy-ui-api.key /etc/xroad/ssl/proxy-ui-api.crt /etc/xroad/ssl/proxy-ui-api.p12
-    chown -f xroad:xroad /etc/xroad/ssl/proxy-ui-api.key /etc/xroad/ssl/proxy-ui-api.crt /etc/xroad/ssl/proxy-ui-api.p12
-  else
-    echo "found existing proxy-ui-api.key, crt and p12, keeping those and not migrating nginx.key and crt"
-  fi
-fi
-
-if [[ ! -r /etc/xroad/ssl/proxy-ui-api.crt || ! -r /etc/xroad/ssl/proxy-ui-api.key  || ! -r /etc/xroad/ssl/proxy-ui-api.p12 ]]
-then
-    echo "Generating new proxy-ui-api.[crt|key|p12] files "
-    rm -f /etc/xroad/ssl/proxy-ui-api.crt /etc/xroad/ssl/proxy-ui-api.key /etc/xroad/ssl/proxy-ui-api.p12
-    if ! /usr/share/xroad/scripts/generate_certificate.sh -n proxy-ui-api -S -f -p &>/tmp/generate_cert.$$.log; then
-      echo "Generating certificate failed: "
-      cat /tmp/generate_cert.$$.log
-    fi
 fi
 
 %preun

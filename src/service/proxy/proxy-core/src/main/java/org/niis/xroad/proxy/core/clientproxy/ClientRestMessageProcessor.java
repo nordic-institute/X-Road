@@ -166,7 +166,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void processRequest() throws Exception {
         if (restRequest.getQueryId() == null) {
-            restRequest.setQueryId(commonBeanProxy.globalConfProvider.getInstanceIdentifier() + "-" + UUID.randomUUID());
+            restRequest.setQueryId(commonBeanProxy.getGlobalConfProvider().getInstanceIdentifier() + "-" + UUID.randomUUID());
         }
         updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
         try (HttpSender httpSender = createHttpSender()) {
@@ -194,7 +194,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void parseResponse(HttpSender httpSender) throws Exception {
         response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.globalConfProvider, response,
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(), response,
                 httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
         try {
@@ -314,8 +314,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                 final ProxyMessageEncoder enc = new ProxyMessageEncoder(outstream,
                         Digests.DEFAULT_DIGEST_ALGORITHM, getBoundary(contentType.getValue()));
 
-                final CertChain chain = commonBeanProxy.keyConfProvider.getAuthKey().certChain();
-                commonBeanProxy.keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
+                final CertChain chain = commonBeanProxy.getKeyConfProvider().getAuthKey().certChain();
+                commonBeanProxy.getKeyConfProvider().getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
                         .forEach(enc::ocspResponse);
 
                 enc.restRequest(restRequest);
@@ -331,14 +331,14 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             cache.write(buf, 0, count);
                             enc.restBody(buf, count, tee);
-                            enc.sign(commonBeanProxy.signingCtxProvider.createSigningCtx(senderId));
+                            enc.sign(commonBeanProxy.getSigningCtxProvider().createSigningCtx(senderId));
                             MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
                                     xRequestId);
                         } finally {
                             cache.consume();
                         }
                     } else {
-                        enc.sign(commonBeanProxy.signingCtxProvider.createSigningCtx(senderId));
+                        enc.sign(commonBeanProxy.getSigningCtxProvider().createSigningCtx(senderId));
                         MessageLog.log(restRequest, enc.getSignature(), null, true, xRequestId);
                     }
                 }

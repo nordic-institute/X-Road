@@ -25,11 +25,15 @@
  */
 package org.niis.xroad.signer.core.certmanager;
 
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.signer.core.config.SignerProperties;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,24 +48,40 @@ import java.nio.file.Paths;
 import java.util.Date;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.SystemProperties.getOcspCachePath;
 
 /**
  * OCSP cache that holds the OCSP responses on disk.
  */
 @Slf4j
+@Startup
+@Singleton
 public class FileBasedOcspCache extends OcspCache {
 
-    /** The OCSP response file extension. */
+    /**
+     * The OCSP response file extension.
+     */
     private static final String OCSP_FILE_EXTENSION = ".ocsp";
 
-    public FileBasedOcspCache(GlobalConfProvider globalConfProvider) {
+    private final SignerProperties signerProperties;
+
+    public FileBasedOcspCache(GlobalConfProvider globalConfProvider, SignerProperties signerProperties) {
         super(globalConfProvider);
+        this.signerProperties = signerProperties;
+    }
+
+    @PostConstruct
+    public void init() {
+        try {
+            reloadFromDisk();
+        } catch (Exception e) {
+            log.error("Failed to load OCSP responses from disk", e);
+        }
     }
 
     /**
      * Returns the OCSP response for the given certificate or null, if the
      * response is not available.
+     *
      * @param certHash for which to get the response
      * @return the OCSP response object or null, if no response is available
      */
@@ -75,7 +95,7 @@ public class FileBasedOcspCache extends OcspCache {
             }
         }
 
-        File file = getOcspResponseFile(getOcspCachePath(), key);
+        File file = getOcspResponseFile(signerProperties.ocspCachePath(), key);
         try {
             response = loadResponseFromFileIfNotExpired(file, atDate);
         } catch (Exception e) {
@@ -90,7 +110,7 @@ public class FileBasedOcspCache extends OcspCache {
     public OCSPResp put(String key, OCSPResp value) {
         OCSPResp response = super.put(key, value);
         try {
-            File file = getOcspResponseFile(getOcspCachePath(), key);
+            File file = getOcspResponseFile(signerProperties.ocspCachePath(), key);
             saveResponseToFile(file, value);
         } catch (IOException e) {
             // Failed to save OCSP response to file
@@ -101,7 +121,7 @@ public class FileBasedOcspCache extends OcspCache {
     }
 
     void reloadFromDisk() throws IOException, OCSPException {
-        Path path = Paths.get(getOcspCachePath());
+        Path path = Paths.get(signerProperties.ocspCachePath());
 
         try (DirectoryStream<Path> stream =
                      Files.newDirectoryStream(path, this::isOcspFile)) {

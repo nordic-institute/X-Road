@@ -39,6 +39,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerRpcClient.MemberSigningInfoDto;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -58,6 +59,7 @@ abstract class GenericClientRequest implements ManagementRequest {
             SystemProperties.getAuthCertRegSignatureDigestAlgorithmId();
 
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     private final ClientId client;
     private final SoapMessageImpl requestMessage;
 
@@ -67,8 +69,9 @@ abstract class GenericClientRequest implements ManagementRequest {
 
     private MultiPartOutputStream multipart;
 
-    GenericClientRequest(SignerRpcClient signerRpcClient, ClientId client, SoapMessageImpl request) {
+    GenericClientRequest(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient, ClientId client, SoapMessageImpl request) {
         this.signerRpcClient = signerRpcClient;
+        this.signerSignClient = signerSignClient;
         this.client = client;
         this.requestMessage = request;
 
@@ -144,7 +147,7 @@ abstract class GenericClientRequest implements ManagementRequest {
 
     private byte[] createSignature(String keyId, SignAlgorithm signAlgoId, byte[] digest) {
         try {
-            return Signatures.useAsn1DerFormat(signAlgoId, signerRpcClient.sign(keyId, signAlgoId, digest));
+            return Signatures.useAsn1DerFormat(signAlgoId, signerSignClient.sign(keyId, signAlgoId, digest));
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

@@ -46,6 +46,8 @@ import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
+import javax.net.ssl.X509TrustManager;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -95,7 +97,7 @@ public abstract class MessageProcessorBase {
         this.jResponse = response;
         this.httpClient = httpClient;
 
-        commonBeanProxy.globalConfProvider.verifyValidity();
+        commonBeanProxy.getGlobalConfProvider().verifyValidity();
     }
 
     /**
@@ -161,8 +163,9 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setMessageIssue(request.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
             opMonitoringData.setRepresentedParty(request.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
-            opMonitoringData.setServiceType(Optional.ofNullable(
-                    commonBeanProxy.serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
+            opMonitoringData.setServiceType(Optional
+                    .ofNullable(commonBeanProxy.getServerConfProvider().getDescriptionType(request.getServiceId()))
+                    .orElse(DescriptionType.REST).name());
             opMonitoringData.setRestMethod(request.getVerb().name());
             // we log rest path data only for PRODUCER
             opMonitoringData.setRestPath(opMonitoringData.isProducer()
@@ -184,7 +187,7 @@ public abstract class MessageProcessorBase {
     }
 
     protected String getSecurityServerAddress() {
-        return commonBeanProxy.globalConfProvider.getSecurityServerAddress(commonBeanProxy.serverConfProvider.getIdentifier());
+        return commonBeanProxy.getGlobalConfProvider().getSecurityServerAddress(commonBeanProxy.getServerConfProvider().getIdentifier());
     }
 
     /**
@@ -245,7 +248,7 @@ public abstract class MessageProcessorBase {
                                               IsAuthenticationData auth)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
 
-        IsAuthentication isAuthentication = commonBeanProxy.serverConfProvider.getIsAuthentication(client);
+        IsAuthentication isAuthentication = commonBeanProxy.getServerConfProvider().getIsAuthentication(client);
         if (isAuthentication == null) {
             // Means the client was not found in the server conf.
             // The getIsAuthentication method implemented in ServerConfCommonImpl
@@ -269,12 +272,12 @@ public abstract class MessageProcessorBase {
                                 + " TLS certificate", client);
             }
 
-            if (auth.cert().equals(commonBeanProxy.serverConfProvider.getSSLKey().getCertChain()[0])) {
-                // do not check certificates for local TLS connections
+            // Accept certificates issued by OpenBao (management requests from Proxy UI to ClientProxy within the same security server)
+            if (clientAuthenticationIssuedByVault(auth)) {
                 return;
             }
 
-            List<X509Certificate> isCerts = commonBeanProxy.serverConfProvider.getIsCerts(client);
+            List<X509Certificate> isCerts = commonBeanProxy.getServerConfProvider().getIsCerts(client);
             if (isCerts.isEmpty()) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) has no IS certificates", client);
@@ -287,6 +290,24 @@ public abstract class MessageProcessorBase {
             }
 
             clientIsCertPeriodValidatation(client, auth.cert());
+        }
+    }
+
+    private boolean clientAuthenticationIssuedByVault(IsAuthenticationData auth) {
+        try {
+            var trustManager = (X509TrustManager) commonBeanProxy.getVaultKeyProvider().getTrustManager();
+            for (X509Certificate vaultIssuer : trustManager.getAcceptedIssuers()) {
+                try {
+                    auth.cert().verify(vaultIssuer.getPublicKey());
+                    return true;
+                } catch (Exception e) {
+                    // given issuer is not the one that signed the client cert, try next
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            log.warn("Failed to obtain vault key provider's trust manager", e);
+            return false;
         }
     }
 

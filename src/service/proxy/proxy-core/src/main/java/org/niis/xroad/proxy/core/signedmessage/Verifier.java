@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.signedmessage;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -100,10 +99,6 @@ public class Verifier {
      */
     public void verify(ClientId sender, SignatureData signature) {
         log.trace("Verify, {} parts. Signature: {}", parts.size(), signature);
-
-        if (SystemProperties.IGNORE_SIGNATURE_VERIFICATION) {
-            return;
-        }
 
         try {
             SignatureVerifier signatureVerifier = new SignatureVerifier(globalConfProvider, signature);

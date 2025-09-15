@@ -72,7 +72,9 @@ public class SharedParametersCache {
         return sharedParameters.getInstanceIdentifier();
     }
 
-    SharedParametersCache(@NonNull SharedParameters sharedParameters) throws CertificateEncodingException, IOException {
+    @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
+    public SharedParametersCache(@NonNull SharedParameters sharedParameters) {
         this.sharedParameters = sharedParameters;
 
         cacheCaCerts();

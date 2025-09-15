@@ -26,11 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.SystemProperties;
-
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationTypeDto;
@@ -38,10 +34,10 @@ import org.niis.xroad.securityserver.restapi.openapi.model.MailRecipientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TestMailResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailSendException;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Set;
@@ -55,22 +51,12 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.OWNER_SERVER_
 /**
  * test mail api
  */
-@ActiveProfiles({"test"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"xroad.conf.path=build/resources/test/"})
 public class MailApiControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
     private MailApiController mailApiController;
-
-    @BeforeClass
-    public static void beforeClass() {
-        System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/");
-    }
-
-    @AfterClass
-    public static void afterClass() {
-        System.clearProperty(SystemProperties.CONF_PATH);
-
-    }
 
     @Before
     public void before() {

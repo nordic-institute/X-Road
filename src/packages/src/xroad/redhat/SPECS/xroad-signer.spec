@@ -17,6 +17,7 @@ Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
 Requires: xroad-base = %version-%release
+Requires: (xroad-secret-store-local = %version-%release or xroad-secret-store-remote = %version-%release)
 
 %define src %{_topdir}/..
 
@@ -36,39 +37,32 @@ cp -a * %{buildroot}
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}/usr/share/xroad/jlib
+mkdir -p %{buildroot}/usr/share/xroad/jlib/signer
+mkdir -p %{buildroot}/usr/share/xroad/jlib/signer-console
 mkdir -p %{buildroot}/usr/share/xroad/lib
-mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad
 mkdir -p %{buildroot}/etc/xroad/services
 mkdir -p %{buildroot}/etc/xroad/conf.d/addons
 mkdir -p %{buildroot}/etc/xroad/ssl
 mkdir -p %{buildroot}/etc/xroad/signer
-mkdir -p %{buildroot}/var/lib/xroad/backup
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/bin/signer-console %{buildroot}/usr/bin/signer-console
-ln -s /usr/share/xroad/jlib/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/signer.jar
-ln -s /usr/share/xroad/jlib/signer-console-1.0.jar %{buildroot}/usr/share/xroad/jlib/signer-console.jar
+ln -s /usr/share/xroad/jlib/signer/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/signer.jar
+ln -s /usr/share/xroad/jlib/signer-console/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/signer-console.jar
 
 cp -p %{_sourcedir}/signer/xroad-signer.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/default-configuration/signer.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/default-configuration/devices.ini %{buildroot}/etc/xroad/
-cp -p %{srcdir}/default-configuration/signer-logback.xml %{buildroot}/etc/xroad/conf.d/
-cp -p %{srcdir}/default-configuration/signer-console-logback.xml %{buildroot}/etc/xroad/conf.d/
-cp -p %{srcdir}/../../../service/signer/signer-application/build/libs/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../service/signer/signer-cli/build/libs/signer-console-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
-cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
+cp -p -r %{srcdir}/../../../service/signer/signer-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/signer/
+cp -p -r %{srcdir}/../../../service/signer/signer-cli/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/signer-console/
 
 #Copy arch specific libs
 %ifarch x86_64
 cp -p %{srcdir}/../../../libs/pkcs11wrapper/amd64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
-cp -p %{srcdir}/../../../libs/passwordstore/amd64/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
 %endif
 
 %ifarch aarch64
 cp -p %{srcdir}/../../../libs/pkcs11wrapper/arm64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
-cp -p %{srcdir}/../../../libs/passwordstore/arm64/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
 %endif
 
 %clean
@@ -82,27 +76,21 @@ rm -rf %{buildroot}
 %dir /etc/xroad/services
 %dir /etc/xroad/conf.d
 %dir /etc/xroad/conf.d/addons
-%dir /var/lib/xroad
-%dir /var/lib/xroad/backup
 %config /etc/xroad/devices.ini
 %config /etc/xroad/services/signer.conf
 %config /etc/xroad/services/signer-console.conf
-%config /etc/xroad/conf.d/signer.ini
-%config /etc/xroad/conf.d/signer-logback.xml
-%config /etc/xroad/conf.d/signer-console-logback.xml
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-signer
 
 %defattr(-,root,root,-)
 /usr/bin/signer-console
-/usr/share/xroad/jlib/signer.jar
 /usr/share/xroad/bin/signer-console
-/usr/share/xroad/jlib/signer-*.jar
-/usr/share/xroad/lib/libpasswordstore.so
+/usr/share/xroad/jlib/signer.jar
+/usr/share/xroad/jlib/signer-console.jar
+/usr/share/xroad/jlib/signer/
+/usr/share/xroad/jlib/signer-console/
 /usr/share/xroad/lib/libpkcs11wrapper.so
 %attr(754,root,xroad) /usr/share/xroad/bin/xroad-signer
 %attr(644,root,root) %{_unitdir}/xroad-signer.service
-%doc /usr/share/doc/%{name}/LICENSE.txt
-%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
 %upgrade_check
@@ -116,12 +104,6 @@ fi
 
 %post
 umask 027
-
-# ensure home directory ownership
-mkdir -p /var/lib/xroad/backup
-su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
-chown xroad:xroad /var/lib/xroad/backup
-chmod 0775 /var/lib/xroad
 
 # nicer log directory permissions
 mkdir -p -m1770 /var/log/xroad

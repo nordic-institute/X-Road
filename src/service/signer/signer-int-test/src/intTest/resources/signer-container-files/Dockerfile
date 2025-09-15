@@ -1,19 +1,24 @@
-FROM eclipse-temurin:21-jre-noble
+ARG SIGNER_IMG
 
-ENV DEBIAN_FRONTEND=noninteractive
+FROM $SIGNER_IMG
+
+USER root
 
 RUN apt-get -qq update \
   && apt-get -qq install --no-install-recommends curl softhsm2 \
+                  opensc \
   && apt-get -qq clean
 
-# Create token
 RUN mkdir -p /var/lib/softhsm/tokens/ && \
-    softhsm2-util --init-token --slot 0 --label 'x-road-softhsm2' --so-pin 1234 --pin 1234
+    adduser xroad softhsm
 
-COPY --chown=root:root files/app.jar /root/app.jar
-COPY --chown=root:root files/lib /root/lib
+COPY add-key-into-hsm.sh /add-key-into-hsm.sh
+RUN chmod +x /add-key-into-hsm.sh
 
-COPY --chown=root:root etc /etc
-COPY --chown=root:root var /var
+USER xroad
+RUN softhsm2-util --init-token --slot 0 --label 'x-road-softhsm2' --so-pin 1234 --pin 1234
+
+COPY etc/xroad/signer/devices.ini /etc/xroad/signer/devices.ini
+COPY etc/xroad/conf.d/local.yaml /etc/xroad/conf.d/local.yaml
 
 EXPOSE 5559 5560

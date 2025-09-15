@@ -53,6 +53,7 @@ import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.test.keyconf.TestKeyConf;
 
 import java.io.ByteArrayInputStream;
@@ -69,10 +70,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static ee.ria.xroad.common.SystemProperties.getSoftTokenRsaSignMechanism;
 import static ee.ria.xroad.common.TestCertUtil.getDefaultValidCertDate;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
+import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_RSA_PKCS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -88,13 +89,15 @@ class BatchSignerTest {
 
     @Mock
     private SignerRpcClient signerClient;
+    @Mock
+    private SignerSignClient signerSignClient;
 
     private BatchSigner batchSigner;
 
     @BeforeEach
     void beforeEach() {
         org.apache.xml.security.Init.init();
-        batchSigner = new BatchSigner(signerClient);
+        batchSigner = new BatchSigner(signerClient, signerSignClient);
     }
 
     @AfterEach
@@ -109,7 +112,7 @@ class BatchSignerTest {
 
         when(signerClient.isTokenBatchSigningEnabled(any())).thenReturn(true);
         // Sign with producer private key
-        when(signerClient.sign(any(), any(), any())).thenAnswer(invocation -> {
+        when(signerSignClient.sign(any(), any(), any())).thenAnswer(invocation -> {
             var args = invocation.getArguments();
             var signatureAlgId = (SignAlgorithm) args[1];
             var digest = (byte[]) args[2];
@@ -189,7 +192,7 @@ class BatchSignerTest {
         var keyConf = new TestKeyConf(globalConf) {
             @Override
             public SigningInfo getSigningInfo(ClientId clientId) {
-                return new SigningInfo("keyid", getSoftTokenRsaSignMechanism(), subject, producerP12.certChain[0], null, null) {
+                return new SigningInfo("keyid", CKM_RSA_PKCS, subject, producerP12.certChain[0], null, null) {
                     @Override
                     public boolean verifyValidity(Date atDate) {
                         return true;

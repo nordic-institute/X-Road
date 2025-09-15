@@ -415,7 +415,6 @@
     "wrong_servicedescription_type": "Gullugyň beýanynyň nädogry görnüşi",
     "wsdl_download_failed": "WSDL ýüklenilmedi",
     "wsdl_exists": "WSDL bar",
-    "wsdl_validator_interrupted": "WSDL walidatory bölündi",
     "wsdl_validator_not_executable": "WSDL walidatory ýerine ýetirip bolmaýar"
   },
   "fields": {

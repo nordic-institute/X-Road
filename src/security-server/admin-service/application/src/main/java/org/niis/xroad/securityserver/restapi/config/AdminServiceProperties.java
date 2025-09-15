@@ -35,6 +35,7 @@ import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
+import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -66,7 +67,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         LimitRequestSizesFilter.Config,
         IdentifierValidationConfiguration.Config,
         UserRoleConfig,
-        KeyAlgorithmConfig {
+        KeyAlgorithmConfig,
+        UserAuthenticationConfig {
 
     /**
      * Controls how many requests from an IP address are allowed per minute.
@@ -134,6 +136,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     /** Algorithm that will be used when creating signing certificate. */
     private KeyAlgorithm signingKeyAlgorithm;
 
+    private AuthenticationProviderType authenticationProvider;
+
+    private boolean enforceUserPasswordPolicy;
+
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
         EnumMap<Role, List<String>> userRoleMappings = new EnumMap<>(Role.class);
@@ -150,5 +156,6 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
 
         return userRoleMappings;
     }
+
 }
 

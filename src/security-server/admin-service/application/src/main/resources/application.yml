@@ -1,35 +1,130 @@
 # shared properties for dev/prod runtime
 # test runtime has a separate application.properties
 spring:
+  application:
+    name: proxy-ui-api
   main:
     banner-mode: log
+  datasource:
+    url: ${xroad.db.serverconf.hibernate.connection.url}
+    username: ${xroad.db.serverconf.hibernate.connection.username}
+    password: ${xroad.db.serverconf.hibernate.connection.password}
+    hikari:
+      data-source-properties:
+        currentSchema: ${xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema:public}
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: none
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties:
       hibernate:
-        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
         id:
           db_structure_naming_strategy: single
-  profiles:
-    include: nontest
+  jackson:
+    default-property-inclusion: NON_NULL
+  servlet:
+    multipart:
+      max-file-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload}
+      max-request-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload}
+  config:
+    import:
+      - classpath:/xroad-common.yaml
+      - optional:file:/etc/xroad/db.properties
+      - optional:file:/etc/xroad/conf.d/local.yaml
 
 # TLS
 # (can be overridden with external ssl.properties)
 server:
+  port: 4000
   ssl:
-    key-store: /etc/xroad/ssl/proxy-ui-api.p12
-    key-store-password: proxy-ui-api
     enabled: true
     ciphers: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
     protocol: TLS
     enabled-protocols: TLSv1.2,TLSv1.3
+    bundle: vault # Use TLS key & certificate provided by VaultSslBundleRegistrar
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css,image/jpeg
+  servlet:
+    session:
+      cookie:
+        secure: true
+        same-site: Strict
 
+xroad:
+  common:
+    global-conf:
+      refresh-rate: -1 # UI has its own refresh job.
+  proxy-ui-api:
+    rate-limit-requests-per-second: 20
+    rate-limit-requests-per-minute: 600
+    rate-limit-cache-size: 10_000
+    rate-limit-expire-after-access-minutes: 5
+    cache-default-ttl: 60
+    cache-api-key-ttl: 60
+    strict-identifier-checks: true
+    request-size-limit-regular: 50KB
+    request-size-limit-binary-upload: 10MB
+    authentication-key-algorithm: RSA
+    signing-key-algorithm: RSA
+    security-server-url: https://localhost:8443
+    reserved-service-codes: listClients,listMethods,allowedMethods,getWsdl,getOpenAPI,getSecurityServerMetrics,getSecurityServerOperationalData,getSecurityServerHealthData
+    tls:
+      certificate-provisioning:
+        common-name: ${XROAD_HOST:localhost}
+        ip-subject-alt-names:
+          - 127.0.0.1
+
+file-upload-endpoints:
+  endpoint-definitions:
+    -
+      http-method: POST
+      path-pattern: "/**/backups/upload"
+    -
+      http-method: POST
+      path-pattern: "/**/tls-certificates"
+    -
+      http-method: POST
+      path-pattern: "/**/token-certificates"
+    -
+      http-method: POST
+      path-pattern: "/**/certificate/import"
+
+script:
+  generate-backup:
+    valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.gpg$" # required to init validator, but not used. todo:
+
+common-module-endpoints:
+  base-path: /api/v1
+
+#Profile based configuration
+---
+spring:
+  profiles:
+    group:
+      containerized: nontest
+      native: nontest
+
+---
+spring:
+  config:
+    activate:
+      on-profile: containerized
 logging:
-  config: file:/etc/xroad/conf.d/proxy-ui-api-logback.xml
-  config-access: file:/etc/xroad/conf.d/proxy-ui-api-logback-access.xml
+  config: classpath:logback-containerized.xml
+xroad:
+  common:
+    global-conf:
+      source: REMOTE
+  proxy-ui-api:
+    authentication-provider: DATABASE
+---
+spring:
+  config:
+    activate:
+      on-profile: native
+logging:
+  config: classpath:logback-native.xml
+  config-access: classpath:logback-access-native.xml

@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
@@ -40,13 +41,13 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
-import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
-import org.niis.xroad.globalconf.status.CertificationServiceStatus;
-import org.niis.xroad.globalconf.status.OcspResponderStatus;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
+import org.niis.xroad.signer.api.dto.CertificationServiceStatus;
+import org.niis.xroad.signer.api.dto.OcspResponderStatus;
 import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
-import org.niis.xroad.signer.proto.SetOcspResponsesReq;
+import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -56,8 +57,8 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -66,8 +67,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
-import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static java.util.Collections.emptyList;
 
 /**
@@ -77,6 +77,7 @@ import static java.util.Collections.emptyList;
  * The certificate status is queried from the server at a fixed interval.
  */
 @Slf4j
+@ApplicationScoped
 @RequiredArgsConstructor
 public class OcspClientWorker {
     private static final String OCSP_FRESHNESS_SECONDS = "ocspFreshnessSeconds";
@@ -84,7 +85,8 @@ public class OcspClientWorker {
     private static final String OCSP_FETCH_INTERVAL = "ocspFetchInterval";
 
     private final GlobalConfProvider globalConfProvider;
-    private final OcspResponseManager ocspResponseManager;
+    private final OcspCacheManager ocspCacheManager;
+    private final TokenLookup tokenLookup;
     private final OcspClient ocspClient;
 
     private final GlobalConfChangeChecker changeChecker = new GlobalConfChangeChecker();
@@ -146,7 +148,7 @@ public class OcspClientWorker {
     }
 
     @SuppressWarnings("squid:S3776")
-    public void execute(OcspClientExecuteScheduler ocspClientExecuteScheduler) {
+    public void execute(OcspClientExecuteSchedulerImpl ocspClientExecuteScheduler) {
         log.trace("execute()");
         log.info("OCSP-response refresh cycle started");
 
@@ -176,7 +178,7 @@ public class OcspClientWorker {
                 OCSPResp status = queryCertStatus(subject, new OcspVerifierOptions(
                         globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()));
                 if (status != null) {
-                    String subjectHash = calculateCertSha1HexHash(subject);
+                    String subjectHash = calculateCertHexHash(subject);
                     statuses.put(subjectHash, status);
                 } else {
                     failed = true;
@@ -205,7 +207,7 @@ public class OcspClientWorker {
     List<X509Certificate> getCertsForOcsp() {
         Set<X509Certificate> certs = new HashSet<>();
 
-        for (CertificateInfo certInfo : TokenManager.getAllCerts()) {
+        for (CertificateInfo certInfo : tokenLookup.getAllCerts()) {
             if (!certInfo.isActive()) {
                 // do not download OCSP responses for inactive certificates
                 log.debug("Skipping inactive certificate {}", certInfo.getId());
@@ -324,21 +326,10 @@ public class OcspClientWorker {
         serviceStatus.getOcspResponderStatusMap().put(responderURI, responderStatus);
     }
 
-    void updateCertStatuses(Map<String, OCSPResp> statuses) throws IOException {
-        List<String> hashes = new ArrayList<>(statuses.size());
-        List<String> responses = new ArrayList<>(statuses.size());
-
+    void updateCertStatuses(Map<String, OCSPResp> statuses) {
         for (Entry<String, OCSPResp> e : statuses.entrySet()) {
-            hashes.add(e.getKey());
-            responses.add(encodeBase64(e.getValue().getEncoded()));
+            ocspCacheManager.addToCache(e.getKey(), e.getValue());
         }
-
-        SetOcspResponsesReq setOcspResponsesReq = SetOcspResponsesReq.newBuilder()
-                .addAllCertHashes(hashes)
-                .addAllBase64EncodedResponses(responses)
-                .build();
-
-        ocspResponseManager.handleSetOcspResponses(setOcspResponsesReq);
     }
 
     private boolean isCertValid(X509Certificate subject) {
@@ -348,11 +339,11 @@ public class OcspClientWorker {
                 return false;
             }
 
-            String subjectHash = calculateCertSha1HexHash(subject);
+            String subjectHash = calculateCertHexHash(subject);
             try {
                 // todo this should be separated from isValid check.
                 //  This seems to be the only place where expired Ocsp response is cleared from TokenManager.
-                ocspResponseManager.removeOcspResponseFromTokenManagerIfExpiredOrNotInCache(subjectHash);
+                ocspCacheManager.removeOcspResponseFromTokenManagerIfExpiredOrNotInCache(subjectHash);
                 log.debug("shouldFetchResponse for cert: {} value: {}", subjectHash, true);
             } catch (Exception e) {
                 log.debug("shouldFetchResponse encountered an error, returning true ", e);
@@ -374,7 +365,7 @@ public class OcspClientWorker {
             CertChain chain = globalConfProvider.getCertChain(globalConfProvider.getInstanceIdentifier(), cert);
 
             if (chain == null) {
-                return Arrays.asList(cert);
+                return Collections.singletonList(cert);
             }
 
             return chain.getAllCertsWithoutTrustedRoot();
