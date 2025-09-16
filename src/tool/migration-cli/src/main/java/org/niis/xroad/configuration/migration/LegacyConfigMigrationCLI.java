@@ -41,7 +41,6 @@ public class LegacyConfigMigrationCLI {
         try {
             var input = args[0];
 
-
             if (input.endsWith(".properties")) {
                 var migrator = new LegacyPropertiesMigrator();
                 log.info("Migrating properties from {}..", input);
@@ -92,7 +91,7 @@ public class LegacyConfigMigrationCLI {
         }
     }
 
-    private static void validateFilePath(String path, String fileType) {
+    public static void validateFilePath(String path, String fileType) {
         try {
             var resolvedPath = Paths.get(path);
             if (resolvedPath.toFile().isDirectory()) {

@@ -9,6 +9,7 @@ dependencies {
   implementation(libs.apache.commonsLang3)
   implementation(libs.apache.commonsConfiguration2)
 
+  implementation(libs.postgresql)
   implementation(libs.slf4j.api)
   implementation(libs.logback.classic)
 

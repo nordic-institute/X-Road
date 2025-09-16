@@ -27,46 +27,56 @@
 
 package org.niis.xroad.configuration.migration;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Map;
 
+/**
+ * Used to migrate the whole file contents as a single property value.
+ */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class LegacySignerDevicesMigrationCLI {
+@RequiredArgsConstructor
+public class FileToDbPropertyMigrator extends BasePropertiesToDbMigrator {
 
-    public static void main(String[] args) {
-        validateArgs(args);
+    private final String propertyKey;
+
+    @Override
+    Map<String, String> loadProperties(String filePath) {
+        log.info("Loading file [{}].", filePath);
         try {
-            var input = args[0];
-            var output = args[1];
-            var migrator = new ConfigurationYamlMigrator("xroad.signer.modules");
-            log.info("Migrating Signer devices configuration from {} to {}..", input, output);
-            if (migrator.migrate(input, output)) {
-                log.info("Migration successful");
-            }
+            return Map.of(propertyKey, Files.readString(Paths.get(filePath)));
 
-        } catch (Exception e) {
-            throw new MigrationException("Migration failed", e);
+        } catch (IOException e) {
+            throw new MigrationException("Failed to read input file", e);
         }
     }
 
-    private static void validateArgs(String[] args) {
-        if (args.length != 2) {
-            logUsageAndThrow("Required arguments not provided");
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static void main(String[] args) {
+        validateParams(args);
+        new FileToDbPropertyMigrator(args[2]).migrate(args[0], args[1],
+                args.length > 3 ? args[3] : null);
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private static void validateParams(String[] args) {
+        if (args.length != 3 && args.length != 4) {
+            logUsageAndThrow("Invalid number of arguments provided.");
         }
-        if (!new File(args[0]).exists()) {
-            throw new IllegalArgumentException("Input file does not exist: " + args[0]);
-        }
-        if (new File(args[1]).exists()) {
-            throw new IllegalArgumentException("Output file already exists: " + args[1]);
+        LegacyConfigMigrationCLI.validateFilePath(args[0], "Input file");
+        LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
+        if (StringUtils.isBlank(args[2])) {
+            logUsageAndThrow("Property key cannot be empty");
         }
     }
 
     private static void logUsageAndThrow(String message) {
-        log.error("Usage: <input-devices.ini-file> <output-file>");
+        log.error("Usage: <input file> <db.properties file> <property key> [scope]");
         throw new IllegalArgumentException(message);
     }
 

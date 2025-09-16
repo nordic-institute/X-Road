@@ -30,7 +30,9 @@ package org.niis.xroad.configuration.migration;
 import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Some properties have their paths changed. This class is used to map old paths to new paths.
@@ -39,6 +41,7 @@ import java.util.Map;
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class LegacyConfigPathMapping {
     private static final Map<String, String> MAPPING = new HashMap<>();
+    private static final Set<String> REMOVED_KEYS = new HashSet<>();
 
     static {
         // configuration-client
@@ -107,6 +110,12 @@ public class LegacyConfigPathMapping {
         MAPPING.putAll(addDatabaseMapping("serverconf"));
         MAPPING.putAll(addDatabaseMapping("messagelog"));
         MAPPING.putAll(addDatabaseMapping("op-monitor"));
+
+        // ----- removed keys ------------
+        REMOVED_KEYS.add("proxy-ui-api.ssl-properties");
+        REMOVED_KEYS.add("proxy.configuration-anchor-file");
+        REMOVED_KEYS.add("proxy.database-properties");
+        REMOVED_KEYS.add("signer.device-configuration-file");
     }
 
     private static Map<String, String> addDatabaseMapping(String dbName) {
@@ -140,4 +149,9 @@ public class LegacyConfigPathMapping {
     static String map(String oldPath) {
         return MAPPING.getOrDefault(oldPath, oldPath);
     }
+
+    static boolean shouldKeep(String key) {
+        return !REMOVED_KEYS.contains(key);
+    }
+
 }

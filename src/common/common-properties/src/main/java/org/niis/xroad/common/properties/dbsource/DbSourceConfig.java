@@ -41,6 +41,7 @@ public class DbSourceConfig {
     private static final String ENV_VAR_TABLE_NAME = "DB_CONFIG_SOURCE_TABLE_NAME";
     private static final String ENV_VAR_ENABLED = "DB_CONFIG_SOURCE_ENABLED";
     private static final String ENV_VAR_DB_PASS = "DB_CONFIG_SOURCE_PASSWORD";
+    private static final String ENV_VAR_DB_SCHEMA = "DB_CONFIG_SOURCE_SCHEMA";
 
     private static final String DEFAULT_TABLE_NAME = "configuration_properties";
     private static final String DEFAULT_ENABLED = "false";
@@ -51,6 +52,7 @@ public class DbSourceConfig {
     private String username;
     private char[] password;
     private String tableName;
+    private String schema;
 
     public static DbSourceConfig loadValues(String appName) {
         DbSourceConfig config = new DbSourceConfig();
@@ -63,6 +65,8 @@ public class DbSourceConfig {
 
         config.tableName = ofNullable(getenv(ENV_VAR_TABLE_NAME)).orElse(DEFAULT_TABLE_NAME);
         config.enabled = parseBoolean(ofNullable(getenv(ENV_VAR_ENABLED)).orElse(DEFAULT_ENABLED));
+
+        ofNullable(getenv(ENV_VAR_DB_SCHEMA)).ifPresent(s -> config.schema = s);
 
         return config;
     }
