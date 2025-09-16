@@ -92,6 +92,33 @@
   tags:
     - ca
     - install
+      
+- name: Configure HW tokens (SoftHSM2) for SS
+  hosts: ubuntu_ss
+  become: true
+  strategy: free
+  tags:
+    - ss
+    - hwtokens
+  vars:
+    ss_enable_hwtokens: true
+    hwtokens_label: "x-road-softhsm2"
+    hwtokens_so_pin: "1234"
+    hwtokens_user_pin: "Secret1234"
+  vars_files:
+    - vars_files/local_repo.yml
+  tasks:
+    - block:
+        - name: Ensure SoftHSM2 is installed on SS hosts
+          ansible.builtin.package:
+            name: softhsm2
+            state: present
+
+        - name: Run ubuntu_ss hwtoken tasks
+          ansible.builtin.include_role:
+            name: xroad-ss
+            tasks_from: hwtokens.yml
+      when: ss_enable_hwtokens | default(false)
 
 - name: Install SS servers
   hosts: ss_servers
