@@ -27,13 +27,19 @@
 package org.niis.xroad.proxy.core.addon.opmonitoring;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingDeque;
@@ -49,7 +55,6 @@ import java.util.concurrent.TimeUnit;
  * monitoring daemon (using OpMonitoringDaemonSender).
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
 
     private final ExecutorService executorService;
@@ -69,10 +74,11 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
      */
     public OpMonitoringBufferImpl(ServerConfProvider serverConfProvider,
                                   OpMonitorCommonProperties opMonitorCommonProperties,
-                                  VaultClient vaultClient) throws Exception {
+                                  VaultClient vaultClient)
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
 
         this.opMonitorCommonProperties = opMonitorCommonProperties;
-
         if (ignoreOpMonitoringData()) {
             log.info("Operational monitoring buffer is switched off, no operational monitoring data is stored");
 
@@ -94,11 +100,11 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
         return new OpMonitoringDataProcessor();
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions")
-        //TODO XRDDEV-2962 review and refactor if needed
     OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
                                           OpMonitorCommonProperties opMonCommonProperties,
-                                          VaultClient vaultClient) throws Exception {
+                                          VaultClient vaultClient)
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
         return new OpMonitoringDaemonSender(serverConfProvider, this, opMonCommonProperties, vaultClient);
     }
 

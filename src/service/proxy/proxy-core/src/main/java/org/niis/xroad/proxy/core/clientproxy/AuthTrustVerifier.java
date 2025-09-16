@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.protocol.HttpContext;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
@@ -46,7 +46,10 @@ import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
+import java.io.IOException;
 import java.net.URI;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,7 +75,6 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 @Slf4j
 @RequiredArgsConstructor
 @ApplicationScoped
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AuthTrustVerifier {
 
     public static final String ID_PROVIDERNAME = "request.providerName";
@@ -83,7 +85,7 @@ public class AuthTrustVerifier {
     private final CertHelper certHelper;
 
     protected void verify(HttpContext context, SSLSession sslSession,
-                URI selectedAddress) {
+                          URI selectedAddress) {
         log.debug("verify()");
 
         ServiceId service = (ServiceId) context.getAttribute(ID_PROVIDERNAME);
@@ -105,8 +107,8 @@ public class AuthTrustVerifier {
         }
     }
 
-    private void verifyAuthCert(ClientId serviceProvider,
-                                X509Certificate[] certs, URI address) throws Exception {
+    private void verifyAuthCert(ClientId serviceProvider, X509Certificate[] certs, URI address)
+            throws CertificateEncodingException, IOException, CertificateParsingException, OperatorCreationException {
         CertChain chain;
         List<OCSPResp> ocspResponses;
         try {
@@ -129,7 +131,7 @@ public class AuthTrustVerifier {
      * from the internal OCSP responder that is located at the given address.
      */
     private List<OCSPResp> getOcspResponses(
-            List<X509Certificate> chain, String address) throws Exception {
+            List<X509Certificate> chain, String address) throws CertificateEncodingException, IOException {
         List<X509Certificate> certs = new ArrayList<>();
         List<OCSPResp> responses = new ArrayList<>();
 
@@ -171,7 +173,8 @@ public class AuthTrustVerifier {
     /**
      * Sends the GET request with all cert hashes which need OCSP responses.
      */
-    private List<OCSPResp> getAndCacheOcspResponses(List<X509Certificate> certs, String address) throws Exception {
+    private List<OCSPResp> getAndCacheOcspResponses(List<X509Certificate> certs, String address)
+            throws CertificateEncodingException, IOException {
         List<OCSPResp> receivedResponses;
         try {
             log.trace("get ocsp responses from server {}", address);

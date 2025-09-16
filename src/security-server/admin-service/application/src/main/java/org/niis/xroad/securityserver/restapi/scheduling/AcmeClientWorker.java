@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
@@ -53,6 +54,8 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
@@ -77,7 +80,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 @Component
 @Transactional
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AcmeClientWorker {
 
     private final AcmeService acmeService;
@@ -116,7 +118,7 @@ public class AcmeClientWorker {
         finishRenewal(acmeRenewalScheduler, failed);
     }
 
-    private List<CertificateInfo> getAllCertificates() throws Exception {
+    private List<CertificateInfo> getAllCertificates() {
         List<TokenInfo> allTokens = signerRpcClient.getTokens();
         return allTokens.stream()
                 .flatMap(t -> t.getKeyInfo().stream())
@@ -235,12 +237,14 @@ public class AcmeClientWorker {
         }
     }
 
-    private ApprovedCAInfo getApprovedCA(ClientId clientId, X509Certificate x509Certificate) throws Exception {
+    private ApprovedCAInfo getApprovedCA(ClientId clientId, X509Certificate x509Certificate)
+            throws CertificateEncodingException, IOException {
         X509Certificate caX509Certificate = globalConfProvider.getCaCert(clientId.getXRoadInstance(), x509Certificate);
         return globalConfProvider.getApprovedCA(clientId.getXRoadInstance(), caX509Certificate);
     }
 
-    private ClientId getClientId(CertificateInfo certificateInfo, X509Certificate x509Certificate) throws Exception {
+    private ClientId getClientId(CertificateInfo certificateInfo, X509Certificate x509Certificate)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
         ClientId clientId = certificateInfo.getMemberId();
         if (clientId == null) {
             SecurityServerId securityServerId = globalConfProvider.getServerId(x509Certificate);
@@ -289,9 +293,11 @@ public class AcmeClientWorker {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private X509Certificate renewCertificate(ClientId memberId, ApprovedCAInfo approvedCA,
                                              CertificateInfo oldCertInfo,
-                                             X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws Exception {
+                                             X509Certificate oldX509Certificate, KeyUsageInfo keyUsage)
+            throws Exception {
         log.info("Starting to renew certificate '{}'", oldX509Certificate.getSerialNumber());
         TokenInfoAndKeyId tokenAndOldKeyId = signerRpcClient.getTokenAndKeyIdForCertHash(calculateCertHexHash(oldX509Certificate));
         String tokenId = tokenAndOldKeyId.getTokenInfo().getId();
@@ -349,6 +355,7 @@ public class AcmeClientWorker {
         return newX509Certificate;
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private void finishRenewingCertificate(ClientId memberId,
                                            X509Certificate oldX509Certificate,
                                            KeyUsageInfo keyUsage,
@@ -383,7 +390,7 @@ public class AcmeClientWorker {
                 signerSignClient, sender, receiver, proxyUrl);
     }
 
-    private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws Exception {
+    private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws CertificateParsingException {
         String subjectAltName;
         if (oldX509Certificate.getSubjectAlternativeNames() != null) {
             subjectAltName = (String) oldX509Certificate.getSubjectAlternativeNames().iterator().next().get(1);

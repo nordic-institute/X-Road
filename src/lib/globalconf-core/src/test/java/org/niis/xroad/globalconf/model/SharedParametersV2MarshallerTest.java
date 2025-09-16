@@ -27,8 +27,8 @@
 
 package org.niis.xroad.globalconf.model;
 
-import jakarta.xml.bind.MarshalException;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.List;
 
@@ -60,7 +60,7 @@ class SharedParametersV2MarshallerTest {
         SharedParameters sharedParams = getSharedParams(new SharedParameters.GlobalSettings(null, 60), null);
 
 
-        assertThrows(MarshalException.class, () -> marshaller.marshall(sharedParams));
+        assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(sharedParams));
     }
 
     @Test
@@ -68,7 +68,7 @@ class SharedParametersV2MarshallerTest {
         // missing GlobalSettings
         SharedParameters sharedParams = getSharedParams(null, "CS");
 
-        assertThrows(MarshalException.class, () -> marshaller.marshall(sharedParams));
+        assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(sharedParams));
     }
 
     @Test
@@ -76,7 +76,7 @@ class SharedParametersV2MarshallerTest {
         // missing ocspFreshnessSeconds
         SharedParameters sharedParams = getSharedParams(new SharedParameters.GlobalSettings(null, null), "CS");
 
-        assertThrows(MarshalException.class, () -> marshaller.marshall(sharedParams));
+        assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(sharedParams));
     }
 
 }

@@ -48,8 +48,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.LOGIN_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCode.PIN_INCORRECT;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_PIN_INCORRECT;
 
 /**
  * test token service.
@@ -89,7 +89,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             Object[] args = invocation.getArguments();
             String tokenId = (String) args[0];
             switch (tokenId) {
-                case WRONG_SOFTTOKEN_PIN_TOKEN_ID -> throw XrdRuntimeException.systemException(PIN_INCORRECT).build();
+                case WRONG_SOFTTOKEN_PIN_TOKEN_ID -> throw XrdRuntimeException.systemException(TOKEN_PIN_INCORRECT).build();
                 case UNKNOWN_LOGIN_FAIL_TOKEN_ID -> throw XrdRuntimeException.systemException(LOGIN_FAILED)
                         .origin(ErrorOrigin.SIGNER)
                         .details("dont know what happened").build();
@@ -107,7 +107,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             Object[] args = invocation.getArguments();
             String oldPin = new String((char[]) args[1]);
             if (WRONG_SOFTTOKEN_PIN_TOKEN_ID.equals(oldPin)) {
-                throw XrdRuntimeException.systemException(PIN_INCORRECT).build();
+                throw XrdRuntimeException.systemException(TOKEN_PIN_INCORRECT).build();
             } else {
                 log.debug("activate successful");
             }

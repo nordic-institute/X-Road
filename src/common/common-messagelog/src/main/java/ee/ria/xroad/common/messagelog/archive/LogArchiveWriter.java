@@ -87,9 +87,8 @@ public class LogArchiveWriter implements Closeable {
      *
      * @param logRecord the log record
      * @return true if the a archive file was rotated
-     * @throws Exception in case of any errors
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public boolean write(MessageRecord logRecord) throws Exception {
         if (logRecord == null) {
             throw new IllegalArgumentException("log record must not be null");

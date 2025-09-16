@@ -27,16 +27,20 @@
 
 package org.niis.xroad.signer.core.passwordstore;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class LocalPasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
 
     private static final String ALGORITHM = "AES";
@@ -51,36 +55,46 @@ public class LocalPasswordStoreProvider implements PasswordStore.PasswordStorePr
             keyGen.init(KEY_SIZE);
             this.secretKey = keyGen.generateKey();
         } catch (Exception e) {
-            throw new RuntimeException("Failed initialize LocalPasswordStoreProvider", e);
+            throw XrdRuntimeException.systemInternalError("Failed initialize LocalPasswordStoreProvider", e);
         }
     }
 
-    public byte[] read(String id) throws Exception {
+    public byte[] read(String id) {
         byte[] encrypted = passwords.get(id);
-        return encrypted != null ? decrypt(encrypted) : null;
+        try {
+            return encrypted != null ? decrypt(encrypted) : null;
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemInternalError("Failed to read password", e);
+        }
     }
 
     @Override
-    public void write(String id, byte[] password) throws Exception {
+    public void write(String id, byte[] password) {
         if (password != null) {
-            passwords.put(id, encrypt(password));
+            try {
+                passwords.put(id, encrypt(password));
+            } catch (Exception e) {
+                throw XrdRuntimeException.systemInternalError("Failed to write password", e);
+            }
         } else {
             passwords.remove(id);
         }
     }
 
     @Override
-    public void clear() throws Exception {
+    public void clear() {
         this.passwords.clear();
     }
 
-    private byte[] encrypt(byte[] data) throws Exception {
+    private byte[] encrypt(byte[] data)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
         return cipher.doFinal(data);
     }
 
-    private byte[] decrypt(byte[] data) throws Exception {
+    private byte[] decrypt(byte[] data)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, secretKey);
         return cipher.doFinal(data);

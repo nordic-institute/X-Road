@@ -26,8 +26,8 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import jakarta.xml.bind.MarshalException;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -71,7 +71,7 @@ class SharedParametersV4MarshallerTest {
         sharedParamsBuilder.instanceIdentifier("CS");
         sharedParamsBuilder.sources(List.of(new SharedParameters.ConfigurationSource())); // missing address or cert
         sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
-        assertThrows(MarshalException.class, () -> marshaller.marshall(sharedParamsBuilder.build()));
+        assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(sharedParamsBuilder.build()));
     }
 
 

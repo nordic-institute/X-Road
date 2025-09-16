@@ -32,11 +32,12 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
+
+import java.io.IOException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
@@ -55,9 +56,8 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     protected MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                OpMonitoringData opMonitoringData) throws Exception {
+                                                OpMonitoringData opMonitoringData) throws IOException {
         var target = getTarget(request);
         log.trace("createRequestProcessor({})", target);
 

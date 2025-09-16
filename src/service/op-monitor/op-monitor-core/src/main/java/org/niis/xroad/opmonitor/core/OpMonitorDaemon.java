@@ -38,7 +38,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -57,6 +56,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
@@ -104,7 +104,7 @@ public final class OpMonitorDaemon {
     private final JmxReporter reporter = JmxReporter.forRegistry(healthMetricRegistry).build();
 
     @PostConstruct
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public void init() throws Exception {
         log.info("Creating OpMonitorDaemon.");
         startTimestamp = getEpochMillisecond();
@@ -118,14 +118,15 @@ public final class OpMonitorDaemon {
     }
 
     @PreDestroy
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public void destroy() throws Exception {
         tlsClientCertificateRefreshScheduler.shutdown();
         server.stop();
         reporter.stop();
     }
 
-    private void createConnector() {
+    private void createConnector()
+            throws NoSuchAlgorithmException, KeyManagementException, CertificateException, IOException, InvalidKeySpecException {
         String listenAddress = opMonitorProperties.listenAddress();
         int port = opMonitorCommonProperties.connection().port();
 
@@ -150,9 +151,9 @@ public final class OpMonitorDaemon {
         return new ServerConnector(server);
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    private ServerConnector createDaemonSslConnector() {
+
+    private ServerConnector createDaemonSslConnector()
+            throws NoSuchAlgorithmException, KeyManagementException, CertificateException, IOException, InvalidKeySpecException {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);

@@ -38,7 +38,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeService;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -66,6 +65,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
@@ -97,7 +97,6 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SIGN
 @Transactional
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class TokenCertificateService {
 
     private static final String DUMMY_MEMBER = "dummy";
@@ -453,7 +452,7 @@ public class TokenCertificateService {
     private void setNextPlannedAcmeAutomaticRenewalDate(ClientId memberId,
                                                         X509Certificate x509Certificate,
                                                         KeyUsageInfo keyUsageInfo,
-                                                        CertificateInfo certificateInfo) throws Exception {
+                                                        CertificateInfo certificateInfo) throws CertificateEncodingException, IOException {
         X509Certificate caX509Certificate = globalConfProvider.getCaCert(memberId.getXRoadInstance(), x509Certificate);
         ApprovedCAInfo approvedCA = globalConfProvider.getApprovedCA(memberId.getXRoadInstance(), caX509Certificate);
         if (approvedCA.getAcmeServerDirectoryUrl() != null) {

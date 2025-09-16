@@ -453,7 +453,8 @@ class CachingKeyConfImplTest {
             changed.countDown();
         }
 
-        private void delay(long delayMs) throws Exception {
+        @SneakyThrows
+        private void delay(long delayMs) {
             if (cacheReadDelayMs > 0) {
                 log.debug("simulating a slow read");
                 Thread.sleep(delayMs);
@@ -461,7 +462,7 @@ class CachingKeyConfImplTest {
         }
 
         @Override
-        protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
+        protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) {
             dataRefreshes.incrementAndGet();
             delay(cacheReadDelayMs);
 

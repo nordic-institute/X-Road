@@ -45,10 +45,8 @@ import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
@@ -85,13 +83,8 @@ final class TestUtil {
     static GlobalConfProvider getGlobalConf() {
         return new EmptyGlobalConf() {
             @Override
-            public List<X509Certificate> getTspCertificates()
-                    throws CertificateException {
-                try {
-                    return List.of(CryptoUtils.readCertificate(TSP_CERT));
-                } catch (IOException e) {
-                    throw new CertificateException(e);
-                }
+            public List<X509Certificate> getTspCertificates() {
+                return List.of(CryptoUtils.readCertificate(TSP_CERT));
             }
 
             @Override
@@ -115,7 +108,7 @@ final class TestUtil {
         MessageRecordEncryption.reload();
     }
 
-    static void cleanUpDatabase(DatabaseCtx databaseCtx) throws Exception {
+    static void cleanUpDatabase(DatabaseCtx databaseCtx) {
         databaseCtx.doInTransaction(session -> {
             var q = session.createNativeMutationQuery(
                     // Since we are using HSQLDB for tests, we can use
@@ -166,12 +159,12 @@ final class TestUtil {
         return new SignatureData(signature, null, null);
     }
 
-    static List<Task> getTaskQueue(DatabaseCtx databaseCtx) throws Exception {
+    static List<Task> getTaskQueue(DatabaseCtx databaseCtx) {
         return databaseCtx.doInTransaction(session -> session.createQuery(
                 TaskQueue.getTaskQueueQuery(), Task.class).list());
     }
 
-    static void assertTaskQueueSize(DatabaseCtx databaseCtx, int expectedSize) throws Exception {
+    static void assertTaskQueueSize(DatabaseCtx databaseCtx, int expectedSize) {
         List<Task> taskQueue = getTaskQueue(databaseCtx);
         assertNotNull(taskQueue);
         assertEquals(expectedSize, taskQueue.size());

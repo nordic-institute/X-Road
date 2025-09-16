@@ -32,11 +32,12 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import org.apache.http.client.HttpClient;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
+
+import java.io.IOException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
@@ -47,7 +48,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * the next handler (i.e. throws exception instead), if it cannot process
  * the request itself.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
 
     public ClientSoapMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
@@ -57,7 +57,7 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
     @Override
     protected MessageProcessorBase createRequestProcessor(
             RequestWrapper request, ResponseWrapper response,
-            OpMonitoringData opMonitoringData) throws Exception {
+            OpMonitoringData opMonitoringData) throws IOException {
         verifyCanProcess(request);
 
         return new ClientMessageProcessor(commonBeanProxy,

@@ -47,7 +47,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
  * Main program for the configuration proxy.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public final class ConfProxyMain {
 
     private static final String APP_NAME = "xroad-confproxy";

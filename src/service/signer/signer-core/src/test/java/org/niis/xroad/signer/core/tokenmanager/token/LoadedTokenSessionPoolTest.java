@@ -43,6 +43,7 @@ import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,7 +92,7 @@ class LoadedTokenSessionPoolTest {
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
              MockedStatic<ManagedPKCS11Session> managedSessionStaticMock = mockStatic(ManagedPKCS11Session.class)) {
 
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(PIN);
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
 
             // Configure the static mock to return the pre-defined instance
             managedSessionStaticMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID))
@@ -143,7 +144,7 @@ class LoadedTokenSessionPoolTest {
             try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
                  MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
 
-                passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(PIN);
+                passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
 
                 managedSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID))
                         .thenAnswer(invocation -> {
@@ -172,7 +173,7 @@ class LoadedTokenSessionPoolTest {
             try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
                  MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
 
-                passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(null); // No PIN
+                passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.empty()); // No PIN
 
                 managedSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID))
                         .thenAnswer(invocation -> mock(ManagedPKCS11Session.class));
@@ -200,7 +201,7 @@ class LoadedTokenSessionPoolTest {
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
              MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
 
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(PIN);
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
             ManagedPKCS11Session managedSession = mock(ManagedPKCS11Session.class);
             when(managedSession.get()).thenReturn(session);
             when(managedSession.login()).thenReturn(true);
@@ -243,7 +244,7 @@ class LoadedTokenSessionPoolTest {
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
              MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
 
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(PIN);
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
             ManagedPKCS11Session managedSession = mock(ManagedPKCS11Session.class);
             when(managedSession.get()).thenReturn(session);
             when(managedSession.login()).thenReturn(true);
@@ -334,7 +335,7 @@ class LoadedTokenSessionPoolTest {
     }
 
     @Test
-    void destroyObjectShouldCloseSession() throws Exception {
+    void destroyObjectShouldCloseSession() {
         // Given
         HardwareTokenSessionPool.ManagedPKCS11SessionFactory factory =
                 new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID);
@@ -349,7 +350,7 @@ class LoadedTokenSessionPoolTest {
     }
 
     @Test
-    void destroyObjectShouldHandleCloseException() throws Exception {
+    void destroyObjectShouldHandleCloseException() {
         // Given
         HardwareTokenSessionPool.ManagedPKCS11SessionFactory factory =
                 new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID);

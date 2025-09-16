@@ -58,14 +58,14 @@ import java.util.Map;
 @Startup
 @ApplicationScoped
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class AdminPort {
 
     /**
      * Base class for AdminPort callbacks
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public abstract static class AdminPortCallback {
+        @ArchUnitSuppressed("NoVanillaExceptions")
         public abstract void handle(RequestWrapper request, ResponseWrapper response) throws Exception;
     }
 
@@ -123,7 +123,6 @@ public class AdminPort {
         server.setHandler(handlerCollection);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private final class AdminHandler extends Handler.Abstract {
         @Override
         public boolean handle(Request request, Response response, Callback callback) {
@@ -159,7 +158,7 @@ public class AdminPort {
     private void addMaintenanceHandler() {
         addHandler("/maintenance", new AdminPort.SynchronousCallback() {
             @Override
-            @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+            @ArchUnitSuppressed("NoVanillaExceptions")
             public void handle(RequestWrapper request, ResponseWrapper response) throws Exception {
 
                 String result = "Invalid parameter 'targetState', request ignored";

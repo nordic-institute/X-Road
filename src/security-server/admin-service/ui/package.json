@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@niis/shared-ui": "workspace:*",
-    "apexcharts": "^4.7.0",
+    "apexcharts": "^5.3.5",
     "maska": "^3.2.0",
     "vue3-apexcharts": "^1.8.0"
   },

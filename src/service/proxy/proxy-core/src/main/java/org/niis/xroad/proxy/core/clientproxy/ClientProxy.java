@@ -67,7 +67,7 @@ import java.util.Optional;
 @Startup
 @Singleton
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ClientProxy {
     private static final int ACCEPTOR_COUNT = Runtime.getRuntime().availableProcessors();
 

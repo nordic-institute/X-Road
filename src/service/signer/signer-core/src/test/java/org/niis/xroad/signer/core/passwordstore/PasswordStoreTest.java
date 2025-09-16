@@ -42,16 +42,16 @@ public class PasswordStoreTest {
         storePassword("foo", null);
         storePassword("bar", null);
 
-        assertNull(getPassword("foo"));
+        assertNull(getPassword("foo").orElse(null));
 
         storePassword("foo", "fooPwd".getBytes(UTF_8));
         storePassword("bar", "barPwd".getBytes(UTF_8));
 
-        assertArrayEquals("fooPwd".toCharArray(), getPassword("foo"));
-        assertArrayEquals("barPwd".toCharArray(), getPassword("bar"));
+        assertArrayEquals("fooPwd".toCharArray(), getPassword("foo").orElseThrow());
+        assertArrayEquals("barPwd".toCharArray(), getPassword("bar").orElseThrow());
 
         storePassword("foo", null);
-        assertNull(getPassword("foo"));
-        assertArrayEquals("barPwd".toCharArray(), getPassword("bar"));
+        assertNull(getPassword("foo").orElse(null));
+        assertArrayEquals("barPwd".toCharArray(), getPassword("bar").orElseThrow());
     }
 }

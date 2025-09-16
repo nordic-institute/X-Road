@@ -46,10 +46,12 @@ import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -92,7 +94,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public void process() throws Exception {
         // to nothing
         if (target.equals(LIST_CLIENTS)) {
@@ -100,7 +102,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private void handleListClients() throws Exception {
         log.trace("handleListClients()");
 
@@ -130,20 +132,18 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
         return acceptsJson(jRequest.getHeaders().getValues("Accept"));
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private void writeResponseXml(Object object) throws Exception {
+    private void writeResponseXml(Object object) throws JAXBException {
         jResponse.setContentType(MimeTypes.TEXT_XML_UTF8);
         marshal(object, jResponse.getOutputStream());
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private void writeResponseJson(Object object) throws Exception {
+    private void writeResponseJson(Object object) throws IOException {
         jResponse.setContentType(MimeUtils.contentTypeWithCharset(MimeTypes.JSON,
                 StandardCharsets.UTF_8.name().toLowerCase()));
         MAPPER.writeValue(jResponse.getOutputStream(), object);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private String getInstanceIdentifierFromRequest() throws Exception {
         String instanceIdentifier = jRequest.getParameter(PARAM_INSTANCE_IDENTIFIER);
         if (StringUtils.isBlank(instanceIdentifier)) {
@@ -170,20 +170,17 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
 
     private static final MediaType APPLICATION_JSON = MediaType.JSON_UTF_8.withoutParameters();
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private static void marshal(Object object, OutputStream out)
-            throws Exception {
+    private static void marshal(Object object, OutputStream out) throws JAXBException {
         Marshaller marshaller = JAXB_CTX.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         marshaller.marshal(object, out);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private static JAXBContext initJaxbCtx() {
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

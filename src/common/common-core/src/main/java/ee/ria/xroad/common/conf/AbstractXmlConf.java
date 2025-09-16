@@ -36,10 +36,8 @@ import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.ChangeChecker;
 import org.niis.xroad.common.core.FileSource;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.dto.InMemoryFile;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.util.InMemoryFileSourceChangeChecker;
@@ -71,7 +69,6 @@ import static java.util.Objects.requireNonNull;
  * @param <T> the generated configuration type
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public abstract class AbstractXmlConf<T> implements ConfProvider {
     protected final Class<? extends SchemaValidator> schemaValidator;
 
@@ -157,19 +154,23 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     }
 
     @Override
-    public void load(String fileName) throws IOException, OperatorCreationException, JAXBException, IllegalAccessException {
+    public void load(String fileName) {
         if (fileName == null) {
             return;
         }
 
-        confFileName = fileName;
-        confFileChecker = new FileContentChangeChecker(confFileName);
+        try {
+            confFileName = fileName;
+            confFileChecker = new FileContentChangeChecker(confFileName);
 
-        doValidateConfFile();
+            doValidateConfFile();
 
-        LoadResult<T> result = doLoadConfFile();
-        root = result.getRoot();
-        confType = result.getConfType();
+            LoadResult<T> result = doLoadConfFile();
+            root = result.getRoot();
+            confType = result.getConfType();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     public void load(FileSource<InMemoryFile> fileSource) {
@@ -242,24 +243,32 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     }
 
     @Override
-    public void save() throws Exception {
-        AtomicSave.execute(confFileName, "tmpconf", AbstractXmlConf.this::save,
-                StandardCopyOption.ATOMIC_MOVE);
+    public void save() {
+        try {
+            AtomicSave.execute(confFileName, "tmpconf", AbstractXmlConf.this::save,
+                    StandardCopyOption.ATOMIC_MOVE);
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Override
-    public void save(OutputStream out) throws Exception {
-        Marshaller marshaller = getJAXBContext().createMarshaller();
+    public void save(OutputStream out) {
+        try {
+            Marshaller marshaller = getJAXBContext().createMarshaller();
 
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.marshal(root, out);
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+            marshaller.marshal(root, out);
+        } catch (JAXBException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     /**
      * Loads the configuration from a byte array.
      *
      * @param data the data
-     * @throws Exception if an error occurs
+     *
      */
     @SuppressWarnings("unchecked")
     public void load(byte[] data) throws IOException, JAXBException, IllegalAccessException {
@@ -283,9 +292,8 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     /**
      * Reloads the configuration from the file.
      *
-     * @throws Exception the file cannot be loaded
      */
-    public void reload() throws Exception {
+    public void reload() {
         if (confFileSource != null) {
             load(confFileSource);
         } else {

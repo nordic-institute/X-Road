@@ -46,7 +46,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochSecond;
  */
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 class StoreRequestProcessor {
 
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();

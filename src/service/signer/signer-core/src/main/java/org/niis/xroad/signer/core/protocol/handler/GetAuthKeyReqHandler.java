@@ -33,10 +33,10 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -54,11 +54,12 @@ import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenDefinition;
 import org.niis.xroad.signer.proto.AuthKeyProto;
 import org.niis.xroad.signer.proto.GetAuthKeyReq;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static java.util.Optional.ofNullable;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotActive;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotInitialized;
 
@@ -68,15 +69,13 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotInitialize
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, AuthKeyProto> {
     private final GlobalConfProvider globalConfProvider;
     private final TokenLookup tokenLookup;
     private final TokenPinManager tokenPinManager;
 
     @Override
-    @SuppressWarnings({"squid:S3776", "checkstyle:SneakyThrowsCheck"})//TODO XRDDEV-2390 will be refactored in the future
-    @SneakyThrows
+    @SuppressWarnings({"squid:S3776"})
     protected AuthKeyProto handle(GetAuthKeyReq request) {
         var securityServer = SecurityServerIdMapper.fromDto(request.getSecurityServer());
         log.trace("Selecting authentication key for security server {}", securityServer);
@@ -102,9 +101,13 @@ public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, Auth
                 }
 
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
-                    if (authCertValid(certInfo, securityServer)) {
-                        log.trace("Found suitable authentication key {}", keyInfo.getId());
-                        return resolveResponse(keyInfo, certInfo);
+                    try {
+                        if (authCertValid(certInfo, securityServer)) {
+                            log.trace("Found suitable authentication key {}", keyInfo.getId());
+                            return resolveResponse(keyInfo, certInfo);
+                        }
+                    } catch (Exception e) {
+                        throw XrdRuntimeException.systemException(e);
                     }
                 }
             }
@@ -115,15 +118,15 @@ public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, Auth
                 "Could not find active authentication key for security server '%s'", securityServer);
     }
 
-    private AuthKeyProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) throws Exception {
-        final char[] password = PasswordStore.getPassword(SoftwareTokenDefinition.ID);
+    private AuthKeyProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) {
+        final var password = PasswordStore.getPassword(SoftwareTokenDefinition.ID);
 
         final var builder = AuthKeyProto.newBuilder()
                 .setAlias(keyInfo.getId())
                 .setKeyStore(getKeyStore(keyInfo.getId()))
                 .setCert(certInfo.asMessage());
 
-        ofNullable(password).ifPresent(passwd -> builder.setPassword(new String(passwd)));
+        password.ifPresent(passwd -> builder.setPassword(new String(passwd)));
         return builder.build();
     }
 
@@ -134,8 +137,8 @@ public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, Auth
                 .orElseThrow(() -> XrdRuntimeException.systemInternalError("Key not found in key store: " + keyId));
     }
 
-    private boolean authCertValid(CertificateInfo certInfo,
-                                  SecurityServerId securityServer) throws Exception {
+    private boolean authCertValid(CertificateInfo certInfo, SecurityServerId securityServer)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
         X509Certificate cert = CryptoUtils.readCertificate(certInfo.getCertificateBytes());
 
         if (!certInfo.isActive()) {
@@ -180,7 +183,8 @@ public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, Auth
     }
 
     private void verifyOcspResponse(String instanceIdentifier,
-                                    X509Certificate subject, byte[] ocspBytes, OcspVerifierOptions verifierOptions) throws Exception {
+                                    X509Certificate subject, byte[] ocspBytes, OcspVerifierOptions verifierOptions)
+            throws OCSPException, CertificateException, IOException {
         if (ocspBytes == null) {
             throw new CertificateException("OCSP response not found");
         }

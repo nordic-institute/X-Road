@@ -36,6 +36,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -77,7 +78,7 @@ class BlockingPKCS11SessionManagerTest {
     }
 
     @Test
-    void constructorFailsWhenOpenSessionThrowsTokenException() throws Exception {
+    void constructorFailsWhenOpenSessionThrowsTokenException() {
         // Given
         TokenException expectedException = new TokenException("Open failed");
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
@@ -94,7 +95,7 @@ class BlockingPKCS11SessionManagerTest {
     }
 
     @Test
-    void constructorFailsWhenOpenSessionThrowsOtherException() throws Exception {
+    void constructorFailsWhenOpenSessionThrowsOtherException() {
         // Given
         RuntimeException underlyingException = new RuntimeException("Underlying problem");
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
@@ -238,7 +239,7 @@ class BlockingPKCS11SessionManagerTest {
     @Test
     void executeWithSessionFuncPropagatesException() throws Exception {
         // Given
-        Exception expectedException = new RuntimeException("Operation Failed");
+        var expectedException = XrdRuntimeException.systemInternalError("Operation Failed");
         SessionProvider.FuncWithSession<String> operation = (session) -> {
             throw expectedException;
         };
@@ -279,7 +280,7 @@ class BlockingPKCS11SessionManagerTest {
     @Test
     void executeWithSessionConsumerPropagatesException() throws Exception {
         // Given
-        Exception expectedException = new RuntimeException("Operation Failed");
+        var expectedException = XrdRuntimeException.systemInternalError("Operation Failed");
         SessionProvider.ConsumerWithSession operation = (session) -> {
             throw expectedException;
         };

@@ -90,7 +90,7 @@ class QueryRequestProcessor {
      *
      * @throws Exception in case of any errors
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     void process() throws Exception {
         try (var handler = new QueryRequestHandler(); var requestIn = request.getInputStream()) {
             SoapMessageDecoder soapMessageDecoder =
@@ -101,11 +101,10 @@ class QueryRequestProcessor {
         }
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private final class QueryRequestHandler implements SoapMessageDecoder.Callback {
         @Override
-        public void soap(SoapMessage message, Map<String, String> headers)
-                throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             if (log.isTraceEnabled()) {
                 log.trace("soap({})", message.getXml());
             }
