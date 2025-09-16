@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -34,6 +33,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
@@ -87,6 +87,7 @@ public class AcmeClientWorker {
     private final ServerConfService serverConfService;
     private final VaultKeyProvider vaultKeyProvider;
     private final MailNotificationHelper mailNotificationHelper;
+    private final AcmeConfig acmeConfig;
 
     @Value("${xroad.proxy-ui-api.security-server-url}")
     private String proxyUrl;
@@ -270,7 +271,7 @@ public class AcmeClientWorker {
                             + "expiration date: {}",
                     ex.getMessage());
         }
-        int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeRenewalTimeBeforeExpirationDate();
+        int renewalTimeBeforeExpirationDate = acmeConfig.getAcmeRenewalTimeBeforeExpirationDate();
         return Instant.now().isAfter(x509Certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS));
     }
 
@@ -322,7 +323,7 @@ public class AcmeClientWorker {
             }
             newX509Certificate = newCert.getFirst();
             String certStatus = keyUsage == KeyUsageInfo.AUTHENTICATION ? CertificateInfo.STATUS_SAVED : CertificateInfo.STATUS_REGISTERED;
-            activate = keyUsage == KeyUsageInfo.SIGNING && SystemProperties.getAutomaticActivateAcmeSignCertificate();
+            activate = keyUsage == KeyUsageInfo.SIGNING && acmeConfig.isAutomaticActivateAcmeSignCertificate();
             signerRpcClient.importCert(newX509Certificate.getEncoded(), certStatus, oldCertInfo.getMemberId(), activate);
             signerRpcClient.setRenewedCertHash(oldCertInfo.getId(), calculateCertHexHash(newX509Certificate));
         } catch (Exception ex) {

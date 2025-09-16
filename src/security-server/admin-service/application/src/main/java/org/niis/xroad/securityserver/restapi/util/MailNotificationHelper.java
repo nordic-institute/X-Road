@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.util;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -73,7 +72,7 @@ public class MailNotificationHelper {
             String signCertContent =
                     notificationMessageSourceAccessor.getMessage("acme_sign_cert_renewal_success_content",
                             new String[]{newCertInfo.getCertificateDisplayName(), memberId.asEncodedId(), securityServerId.asEncodedId()});
-            if (!SystemProperties.getAutomaticActivateAcmeSignCertificate()) {
+            if (!adminServiceProperties.isAutomaticActivateAcmeSignCertificate()) {
                 signCertContent += " " + notificationMessageSourceAccessor.getMessage("acme_sign_cert_renewal_success_content_activate");
             }
             String content = KeyUsageInfo.AUTHENTICATION.equals(keyUsageInfo) ? authCertContent : signCertContent;

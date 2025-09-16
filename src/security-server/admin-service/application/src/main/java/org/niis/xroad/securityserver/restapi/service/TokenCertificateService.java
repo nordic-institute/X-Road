@@ -37,6 +37,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -124,6 +125,7 @@ public class TokenCertificateService {
     private final AcmeService acmeService;
     private final MailNotificationHelper mailNotificationHelper;
     private final ServerConfService serverConfService;
+    private final AcmeConfig acmeConfig;
 
     /**
      * Create a CSR
@@ -414,7 +416,7 @@ public class TokenCertificateService {
             byte[] certBytes = x509Certificate.getEncoded();
             String hash = CryptoUtils.calculateCertHexHash(certBytes);
             auditDataHelper.putCertificateHash(hash);
-            boolean activate = !isAuthCert && (!isAcme || SystemProperties.getAutomaticActivateAcmeSignCertificate());
+            boolean activate = !isAuthCert && (!isAcme || acmeConfig.isAutomaticActivateAcmeSignCertificate());
             signerRpcClient.importCert(certBytes, certificateState, clientId, activate);
             certificateInfo = getCertificateInfo(hash);
             ClientId memberId = clientId != null ? clientId : serverConfProvider.getIdentifier().getOwner();

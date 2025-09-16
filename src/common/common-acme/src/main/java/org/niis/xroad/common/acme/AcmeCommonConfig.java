@@ -46,9 +46,9 @@ import java.util.Map;
 public class AcmeCommonConfig {
 
     @Bean
-    public AcmeProperties acmeProperties() {
+    public AcmeProperties acmeProperties(AcmeConfig acmeConfig) {
         Resource resource = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/acme.yml");
-        if (!SystemProperties.isAcmeChallengePortEnabled() && !resource.exists()) {
+        if (!acmeConfig.isAcmeChallengePortEnabled() && !resource.exists()) {
             log.warn("Configuration {} does not exist", resource);
             return new AcmeProperties();
         }

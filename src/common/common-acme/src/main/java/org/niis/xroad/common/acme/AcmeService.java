@@ -113,6 +113,7 @@ public final class AcmeService {
 
     private final AcmeProperties acmeProperties;
     private final MailNotificationProperties mailNotificationProperties;
+    private final AcmeConfig acmeConfig;
 
     public boolean isExternalAccountBindingRequired(String acmeServerDirectoryUrl) {
         Session session = new Session(acmeServerDirectoryUrl);
@@ -166,7 +167,7 @@ public final class AcmeService {
             KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
             String alias = getAlias(memberId, keyUsage, caInfo);
             X509Certificate certificate = (X509Certificate) keyStore.getCertificate(alias);
-            int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeKeypairRenewalTimeBeforeExpirationDate();
+            int renewalTimeBeforeExpirationDate = acmeConfig.getAcmeKeypairRenewalTimeBeforeExpirationDate();
             if (certificate != null && Instant.now()
                     .isAfter(certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS))) {
                 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -174,7 +175,7 @@ public final class AcmeService {
                 KeyPair keyPair = keyPairGenerator.generateKeyPair();
                 login.getAccount().changeKey(keyPair);
 
-                long expirationInDays = SystemProperties.getAcmeAccountKeyPairExpirationInDays();
+                long expirationInDays = acmeConfig.getAcmeCertificateAccountKeyPairExpiration();
                 X509Certificate[] certificateChain = createSelfSignedCertificate(alias, keyPair, expirationInDays);
                 keyStore.setKeyEntry(
                         alias,
@@ -216,7 +217,7 @@ public final class AcmeService {
             keyPairGenerator.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
             keyPair = keyPairGenerator.generateKeyPair();
 
-            long expirationInDays = SystemProperties.getAcmeAccountKeyPairExpirationInDays();
+            long expirationInDays = acmeConfig.getAcmeCertificateAccountKeyPairExpiration();
             X509Certificate[] certificateChain = createSelfSignedCertificate(alias, keyPair, expirationInDays);
 
             keyStore.setKeyEntry(
@@ -351,10 +352,10 @@ public final class AcmeService {
         }
     }
 
-    private static void waitForTheChallengeToBeCompleted(Challenge challenge) {
+    private void waitForTheChallengeToBeCompleted(Challenge challenge) {
         log.debug("Waiting for challenge to be completed");
-        int attempts = SystemProperties.getAcmeAuthorizationWaitAttempts();
-        long interval = SystemProperties.getAcmeAuthorizationWaitInterval();
+        int attempts = acmeConfig.getAcmeAuthorizationWaitAttempts();
+        long interval = acmeConfig.getAcmeAuthorizationWaitInterval();
         waitForTheAcmeResourceToBeCompleted(challenge,
                 challenge::getStatus,
                 attempts,
@@ -391,8 +392,8 @@ public final class AcmeService {
 
     private Certificate getCertificate(Order order) {
         log.debug("Getting the certificate");
-        int attempts = SystemProperties.getAcmeCertificateWaitAttempts();
-        long interval = SystemProperties.getAcmeCertificateWaitInterval();
+        int attempts = acmeConfig.getAcmeCertificateWaitAttempts();
+        long interval = acmeConfig.getAcmeCertificateWaitInterval();
         waitForTheAcmeResourceToBeCompleted(order, order::getStatus, attempts, interval, CERTIFICATE_FAILURE, CERTIFICATE_WAIT_FAILURE);
         return order.getCertificate();
     }
@@ -453,7 +454,7 @@ public final class AcmeService {
                     "Retrieving renewal information from ACME Server failed. "
                             + "Falling back to fixed renewal time based on certificate expiration date: {}", ex.getMessage());
         }
-        int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeRenewalTimeBeforeExpirationDate();
+        int renewalTimeBeforeExpirationDate = acmeConfig.getAcmeRenewalTimeBeforeExpirationDate();
         return x509Certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS);
     }
 

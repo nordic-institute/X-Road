@@ -100,55 +100,6 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE =
             PREFIX + "proxy-ui-api.allow-csr-for-key-with-certificate";
 
-    /** property name of the number of attempts to check whether the acme authorizations have completed */
-    public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_ATTEMPTS =
-            PREFIX + "proxy-ui-api.acme-authorization-wait-attempts";
-
-    /** property name of the amount of seconds to wait between acme authorization completion check attempts */
-    public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL =
-            PREFIX + "proxy-ui-api.acme-authorization-wait-interval";
-
-    /** property name of the number of attempts to check whether the acme certificate is ready */
-    public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_ATTEMPTS =
-            PREFIX + "proxy-ui-api.acme-certificate-wait-attempts";
-
-    /** property name of the amount of seconds to wait between acme certificate completion check attempts */
-    public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL =
-            PREFIX + "proxy-ui-api.acme-certificate-wait-interval";
-
-    /** property name of the amount of days the ACME server account's self-signed certificate is valid */
-    public static final String PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS =
-            PREFIX + "proxy-ui-api.acme-certificate-account-key-pair-expiration";
-
-    /** property name of whether the service should listen on acme challenge port (default 80) for incoming requests */
-    public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED =
-            PREFIX + "proxy-ui-api.acme-challenge-port-enabled";
-    public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED_ENV =
-            propertyNameToEnvVariable(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED);
-
-    /** property name of the acme challenge port, default 80.
-     * When changing this, it still needs to me mapped to port 80 externally (e.g. when running in docker container) */
-    public static final String PROXY_UI_API_ACME_CHALLENGE_PORT = PREFIX + "proxy-ui-api.acme-challenge-port";
-    public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENV = propertyNameToEnvVariable(PROXY_UI_API_ACME_CHALLENGE_PORT);
-
-    public static final String PROXY_UI_API_ACME_RENEWAL_ACTIVE =
-            PREFIX + "proxy-ui-api.acme-renewal-active";
-
-    public static final String PROXY_UI_API_ACME_RENEWAL_RETRY_DELAY =
-            PREFIX + "proxy-ui-api.acme-renewal-retry-delay";
-
-    public static final String PROXY_UI_API_ACME_RENEWAL_INTERVAL =
-            PREFIX + "proxy-ui-api.acme-renewal-interval";
-
-    public static final String PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
-            PREFIX + "proxy-ui-api.acme-renewal-time-before-expiration-date";
-
-    public static final String PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
-            PREFIX + "proxy-ui-api.acme-keypair-renewal-time-before-expiration-date";
-
-    public static final String PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE =
-            PREFIX + "proxy-ui-api.automatic-activate-acme-sign-certificate";
-
     // Proxy ------------------------------------------------------------------
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
@@ -490,38 +441,6 @@ public final class SystemProperties {
                 DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE));
     }
 
-    public static int getAcmeAuthorizationWaitAttempts() {
-        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_ATTEMPTS, "5"));
-    }
-
-    public static long getAcmeAuthorizationWaitInterval() {
-        return Long.parseLong(getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL, "5"));
-    }
-
-    public static int getAcmeCertificateWaitAttempts() {
-        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_ATTEMPTS, "5"));
-    }
-
-    public static long getAcmeCertificateWaitInterval() {
-        return Long.parseLong(getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL, "5"));
-    }
-
-    public static long getAcmeAccountKeyPairExpirationInDays() {
-        return Long.parseLong(getProperty(PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS, "365"));
-    }
-
-    public static boolean isAcmeChallengePortEnabled() {
-        String isAcmeChallengePortEnabled = Optional.ofNullable(System.getenv().get(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED_ENV))
-                .orElse(getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, FALSE));
-        return TRUE.equalsIgnoreCase(isAcmeChallengePortEnabled);
-    }
-
-    public static int getAcmeChallengePort() {
-        String acmeChallengePort = Optional.ofNullable(System.getenv().get(PROXY_UI_API_ACME_CHALLENGE_PORT_ENV))
-                .orElse(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT, "80"));
-        return Integer.parseInt(acmeChallengePort);
-    }
-
     /**
      * @return path to the directory where the downloaded global configuration is placed,
      * '/etc/xroad/globalconf/' by default.
@@ -621,49 +540,6 @@ public final class SystemProperties {
      */
     public static String getSignerKeyNamedCurve() {
         return getProperty(SIGNER_KEY_NAMED_CURVE, DEFAULT_SIGNER_KEY_NAMED_CURVE);
-    }
-
-    /**
-     * @return the ACME certificate renewal toggle
-     */
-    public static boolean isAcmeCertificateRenewalActive() {
-        return Boolean.parseBoolean(getProperty(PROXY_UI_API_ACME_RENEWAL_ACTIVE, "true"));
-    }
-
-    /**
-     * @return the ACME certificate renewal retry delay in seconds
-     */
-    public static int getAcmeCertificateRenewalRetryDelay() {
-        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_RENEWAL_RETRY_DELAY, "60"));
-    }
-
-    /**
-     * @return the ACME certificate renewal job interval in seconds
-     */
-    public static int getAcmeCertificateRenewalInterval() {
-        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_RENEWAL_INTERVAL, "3600"));
-    }
-
-    /**
-     * @return when to trigger automatic renewal subtracted as days from the expiration date of the certificate.
-     * Used when it's not possible to receive the ACME renewal information from the ACME server.
-     */
-    public static int getAcmeRenewalTimeBeforeExpirationDate() {
-        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
-    }
-
-    /**
-     * @return when to trigger automatic acme account keypair renewal subtracted as days from the expiration date of the certificate.
-     */
-    public static int getAcmeKeypairRenewalTimeBeforeExpirationDate() {
-        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
-    }
-
-    /**
-     * @return whether to automatically activate new signing certificates after they are ordered with ACME.
-     */
-    public static boolean getAutomaticActivateAcmeSignCertificate() {
-        return Boolean.parseBoolean(getProperty(PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE, FALSE));
     }
 
     /**

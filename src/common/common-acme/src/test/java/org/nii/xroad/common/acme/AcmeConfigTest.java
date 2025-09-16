@@ -25,8 +25,6 @@
  */
 package org.nii.xroad.common.acme;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -35,15 +33,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.acme.AcmeCommonConfig;
+import org.niis.xroad.common.acme.AcmeConfig;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AcmeConfigTest {
     private AcmeCommonConfig acmeCommonConfig;
 
     private ListAppender<ILoggingEvent> appender;
     private final Logger logger = (Logger) LoggerFactory.getLogger(AcmeCommonConfig.class);
+    private final AcmeConfig config = mock(AcmeConfig.class);
 
     @Before
     public void setup() {
@@ -60,27 +62,25 @@ public class AcmeConfigTest {
         appender.stop();
     }
 
-
     @Test
     public void whenProxyUiApiAcmeChallengePortEnabledAndAcmeYmlNotExists() {
-        System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "true");
+        when(config.isAcmeChallengePortEnabled()).thenReturn(true);
 
-        acmeCommonConfig.acmeProperties();
+        acmeCommonConfig.acmeProperties(config);
 
         assertThat(appender.list).hasSize(1);
-        assertThat(appender.list.get(0).getLevel()).isEqualTo(Level.WARN);
-        assertThat(appender.list.get(0).getMessage()).isEqualTo("Failed to load yaml configuration from {}");
+        assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.WARN);
+        assertThat(appender.list.getFirst().getMessage()).isEqualTo("Failed to load yaml configuration from {}");
     }
 
     @Test
     public void whenProxyUiApiAcmeChallengePortNotEnabledAndAcmeYmlNotExists() {
-        System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "false");
+        when(config.isAcmeChallengePortEnabled()).thenReturn(false);
 
-        acmeCommonConfig.acmeProperties();
+        acmeCommonConfig.acmeProperties(config);
 
         assertThat(appender.list).hasSize(1);
-        assertThat(appender.list.get(0).getLevel()).isEqualTo(Level.WARN);
-        assertThat(appender.list.get(0).getMessage()).isEqualTo("Configuration {} does not exist");
-
+        assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.WARN);
+        assertThat(appender.list.getFirst().getMessage()).isEqualTo("Configuration {} does not exist");
     }
 }

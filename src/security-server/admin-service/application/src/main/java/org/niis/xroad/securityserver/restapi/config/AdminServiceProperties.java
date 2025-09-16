@@ -30,6 +30,7 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.common.mail.NotificationConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
@@ -70,6 +71,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         UserRoleConfig,
         KeyAlgorithmConfig,
         NotificationConfig,
+        AcmeConfig,
         UserAuthenticationConfig {
 
     /**
@@ -161,18 +163,28 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     private boolean automaticActivateAuthCertificate;
 
     boolean acmeRenewalSuccessNotificationEnabled;
-
     boolean acmeRenewalFailureNotificationEnabled;
-
     boolean authCertRegisteredNotificationEnabled;
-
     boolean certAutoActivationNotificationEnabled;
-
     boolean certAutoActivationFailureNotificationEnabled;
 
     /** Locale for mail notifications, which determines the language of the notifications.
      * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
     String mailNotificationLocale;
+
+    boolean acmeRenewalActive;
+    int acmeRenewalRetryDelay;
+    int acmeRenewalInterval;
+    int acmeRenewalTimeBeforeExpirationDate;
+    int acmeKeypairRenewalTimeBeforeExpirationDate;
+    boolean automaticActivateAcmeSignCertificate;
+    int acmeAuthorizationWaitAttempts;
+    int acmeAuthorizationWaitInterval;
+    int acmeCertificateWaitAttempts;
+    int acmeCertificateWaitInterval;
+    int acmeCertificateAccountKeyPairExpiration;
+    boolean acmeChallengePortEnabled;
+    int acmeChallengePort;
 
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
