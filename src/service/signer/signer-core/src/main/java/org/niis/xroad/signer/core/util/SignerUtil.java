@@ -30,7 +30,6 @@ import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.Key;
 import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import jakarta.xml.bind.DatatypeConverter;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;

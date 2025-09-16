@@ -44,9 +44,6 @@ import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.SecurityServerType;
 
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.time.Instant;
 import java.util.List;
 

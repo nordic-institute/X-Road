@@ -79,7 +79,6 @@ import static java.util.stream.Collectors.toSet;
  * Global configuration implementation
  */
 @Slf4j
-@Singleton
 public class GlobalConfImpl implements GlobalConfProvider {
 
     private final GlobalConfSource globalConfSource;

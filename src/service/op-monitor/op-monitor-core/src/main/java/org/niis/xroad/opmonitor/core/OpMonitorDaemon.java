@@ -38,7 +38,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -57,7 +56,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -127,7 +125,8 @@ public final class OpMonitorDaemon {
         reporter.stop();
     }
 
-    private void createConnector() throws NoSuchAlgorithmException, KeyManagementException {
+    private void createConnector()
+            throws NoSuchAlgorithmException, KeyManagementException, CertificateException, IOException, InvalidKeySpecException {
         String listenAddress = opMonitorProperties.listenAddress();
         int port = opMonitorCommonProperties.connection().port();
 
@@ -153,7 +152,8 @@ public final class OpMonitorDaemon {
     }
 
 
-    private ServerConnector createDaemonSslConnector() throws NoSuchAlgorithmException, KeyManagementException {
+    private ServerConnector createDaemonSslConnector()
+            throws NoSuchAlgorithmException, KeyManagementException, CertificateException, IOException, InvalidKeySpecException {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);

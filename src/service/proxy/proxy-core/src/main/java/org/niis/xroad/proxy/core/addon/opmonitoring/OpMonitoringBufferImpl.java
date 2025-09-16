@@ -39,6 +39,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingDeque;
@@ -54,7 +55,6 @@ import java.util.concurrent.TimeUnit;
  * monitoring daemon (using OpMonitoringDaemonSender).
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
 
     private final ExecutorService executorService;
@@ -76,7 +76,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
                                   OpMonitorCommonProperties opMonitorCommonProperties,
                                   VaultClient vaultClient)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchAlgorithmException, KeyManagementException {
+            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
 
         this.opMonitorCommonProperties = opMonitorCommonProperties;
         if (ignoreOpMonitoringData()) {
@@ -104,7 +104,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
                                           OpMonitorCommonProperties opMonCommonProperties,
                                           VaultClient vaultClient)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchAlgorithmException, KeyManagementException {
+            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
         return new OpMonitoringDaemonSender(serverConfProvider, this, opMonCommonProperties, vaultClient);
     }
 

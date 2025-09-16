@@ -38,9 +38,8 @@ import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.AbstractTokenWorker;
@@ -63,9 +62,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class HardwareModuleWorkerFactory {
-    private final SignerProperties signerProperties;
     private final HardwareTokenWorkerFactory tokenWorkerFactory;
     private final TokenManager tokenManager;
     private final TokenLookup tokenLookup;
@@ -74,7 +71,6 @@ public class HardwareModuleWorkerFactory {
         return new HardwareModuleWorker(moduleType);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public class HardwareModuleWorker extends AbstractModuleWorker {
         private final HardwareModuleType module;
 
@@ -96,14 +92,13 @@ public class HardwareModuleWorkerFactory {
             log.info("Initializing module '{}' (library: {})", module.getType(), module.getPkcs11LibraryPath());
 
             try {
-                pkcs11Module = HardwareTokenUtil.moduleGetInstance(module.getPkcs11LibraryPath(),
-                        signerProperties.moduleInstanceProvider().orElse(null));
+                pkcs11Module = HardwareTokenUtil.moduleGetInstance(module.getPkcs11LibraryPath());
 
                 pkcs11Module.initialize(getInitializeArgs(module.getLibraryCantCreateOsThreads(), module.getOsLockingOk()));
             } catch (Throwable t) {
                 // Note that we catch all serious errors here since we do not want Signer to crash if the module could
                 // not be loaded for some reason.
-                throw new RuntimeException(t);
+                throw XrdRuntimeException.systemException(t);
             }
         }
 
@@ -149,7 +144,7 @@ public class HardwareModuleWorkerFactory {
         }
 
         @Override
-        protected List<TokenDefinition> listTokens() throws Exception {
+        protected List<TokenDefinition> listTokens() throws TokenException {
             log.trace("Listing tokens on module '{}'", module.getType());
 
             if (pkcs11Module == null) {
@@ -193,7 +188,7 @@ public class HardwareModuleWorkerFactory {
             return new ArrayList<>(tokens.values());
         }
 
-        private TokenDefinition createToken(Slot[] slots, int slotIndex) throws Exception {
+        private TokenDefinition createToken(Slot[] slots, int slotIndex) throws TokenException {
             Slot slot = slots[slotIndex];
 
             iaik.pkcs.pkcs11.Token pkcs11Token = slot.getToken();

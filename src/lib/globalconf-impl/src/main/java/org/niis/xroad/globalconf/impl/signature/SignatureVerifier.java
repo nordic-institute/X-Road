@@ -278,7 +278,7 @@ public class SignatureVerifier {
      *               the message.
      * @param atDate Date that is used to check validity of the certificates.
      */
-    public void verify(ClientId signer, Date atDate) throws XMLSecurityException, IOException {
+    public void verify(ClientId signer, Date atDate) throws XMLSecurityException, IOException, CertificateEncodingException {
         // first, validate the signature against the Xades schema
         // our asic:XadesSignatures element contains only one Xades signature
         if (verifySchema) {
@@ -369,7 +369,8 @@ public class SignatureVerifier {
         }
     }
 
-    private void verifyCertificateChain(Date atDate, ClientId signer, X509Certificate signingCert) throws Exception {
+    private void verifyCertificateChain(Date atDate, ClientId signer, X509Certificate signingCert)
+            throws CertificateEncodingException, IOException {
         CertChain certChain =
                 CertChainFactory.create(signer.getXRoadInstance(),
                         globalConfProvider.getCaCert(signer.getXRoadInstance(), signingCert),

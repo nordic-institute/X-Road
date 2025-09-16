@@ -43,18 +43,17 @@ import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import jakarta.xml.bind.DatatypeConverter;
 import lombok.NoArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleConf;
-import org.niis.xroad.signer.core.tokenmanager.module.ModuleInstanceProvider;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.HW_MODULE_INTERNAL_ERROR;
 
 /**
  * Utility methods for hardware token.
@@ -65,34 +64,16 @@ public final class HardwareTokenUtil {
     private static final int MAX_OBJECTS = 64;
 
     /**
-     * Returns the module instance. The module provider class can be specified
-     * by system parameter 'xroad.signer.module-instance-provider'.
+     * Returns the module instance.
      *
-     * @param libraryPath   the pkcs11 library path
-     * @param providerClass provider class
+     * @param libraryPath the pkcs11 library path
      * @return the module instance
      */
-    public static Module moduleGetInstance(String libraryPath)
-            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
-            InstantiationException, IllegalAccessException, IOException {
-        String providerClass = System.getProperty(SystemProperties.SIGNER_MODULE_INSTANCE_PROVIDER);
-        if (providerClass != null) {
-            Class<?> cl = Class.forName(providerClass);
-
-            if (ModuleInstanceProvider.class.isAssignableFrom(cl)) {
-                ModuleInstanceProvider provider = (ModuleInstanceProvider) cl.getDeclaredConstructor().newInstance();
-
-                return provider.getInstance(libraryPath);
-            } else {
-                throw XrdRuntimeException.systemInternalError("Invalid module provider class (" + cl + "), must be subclass of "
-                        + ModuleInstanceProvider.class);
-            }
-        }
-
+    public static Module moduleGetInstance(String libraryPath) throws IOException {
         return Module.getInstance(libraryPath);
     }
 
-    static PrivateKey findPrivateKey(ManagedPKCS11Session session, String keyId, Set<Long> allowedMechanisms) throws TokenException {
+    static PrivateKey findPrivateKey(ManagedPKCS11Session session, String keyId, Set<Long> allowedMechanisms) {
         var template = new PrivateKey();
         template.getId().setByteArrayValue(toBinaryKeyId(keyId));
 
@@ -101,7 +82,7 @@ public final class HardwareTokenUtil {
         return find(template, session);
     }
 
-    static List<PrivateKey> findPrivateKeys(ManagedPKCS11Session session, Set<Long> allowedMechanisms) throws TokenException {
+    static List<PrivateKey> findPrivateKeys(ManagedPKCS11Session session, Set<Long> allowedMechanisms) {
         var template = new PrivateKey();
         template.getSign().setBooleanValue(true);
 
@@ -110,7 +91,7 @@ public final class HardwareTokenUtil {
         return find(template, session, MAX_OBJECTS);
     }
 
-    static List<PublicKey> findPublicKeys(ManagedPKCS11Session session, Set<Long> allowedMechanisms) throws TokenException {
+    static List<PublicKey> findPublicKeys(ManagedPKCS11Session session, Set<Long> allowedMechanisms) {
         var template = new PublicKey();
         template.getVerify().setBooleanValue(true);
 
@@ -119,7 +100,7 @@ public final class HardwareTokenUtil {
         return find(template, session, MAX_OBJECTS);
     }
 
-    static PublicKey findPublicKey(ManagedPKCS11Session session, String keyId, Set<Long> allowedMechanisms) throws TokenException {
+    static PublicKey findPublicKey(ManagedPKCS11Session session, String keyId, Set<Long> allowedMechanisms) {
         var template = new PublicKey();
         template.getId().setByteArrayValue(toBinaryKeyId(keyId));
 
@@ -128,7 +109,7 @@ public final class HardwareTokenUtil {
         return find(template, session);
     }
 
-    static List<X509PublicKeyCertificate> findPublicKeyCertificates(ManagedPKCS11Session session) throws TokenException {
+    static List<X509PublicKeyCertificate> findPublicKeyCertificates(ManagedPKCS11Session session) {
         return find(new X509PublicKeyCertificate(), session, MAX_OBJECTS);
     }
 
@@ -177,41 +158,46 @@ public final class HardwareTokenUtil {
     }
 
     @SuppressWarnings("unchecked")
-    static <T extends iaik.pkcs.pkcs11.objects.Object> List<T> find(
-            T template, ManagedPKCS11Session session, int maxObjectCount)
-            throws TokenException {
-        iaik.pkcs.pkcs11.objects.Object[] tmpArray;
+    static <T extends iaik.pkcs.pkcs11.objects.Object> List<T> find(T template, ManagedPKCS11Session session, int maxObjectCount) {
+        try {
+            iaik.pkcs.pkcs11.objects.Object[] tmpArray;
 
-        List<T> foundObjects = new ArrayList<>();
+            List<T> foundObjects = new ArrayList<>();
 
-        var rawSession = session.get();
-        rawSession.findObjectsInit(template);
-        do {
-            tmpArray = rawSession.findObjects(maxObjectCount);
-            for (iaik.pkcs.pkcs11.objects.Object object : tmpArray) {
-                foundObjects.add((T) object);
-            }
-        } while (tmpArray.length != 0);
+            var rawSession = session.get();
+            rawSession.findObjectsInit(template);
+            do {
+                tmpArray = rawSession.findObjects(maxObjectCount);
+                for (iaik.pkcs.pkcs11.objects.Object object : tmpArray) {
+                    foundObjects.add((T) object);
+                }
+            } while (tmpArray.length != 0);
 
-        rawSession.findObjectsFinal();
-        return foundObjects;
+            rawSession.findObjectsFinal();
+            return foundObjects;
+        } catch (TokenException tokenException) {
+            throw XrdRuntimeException.systemException(HW_MODULE_INTERNAL_ERROR).cause(tokenException).build();
+        }
     }
 
     @SuppressWarnings("unchecked")
-    static <T extends iaik.pkcs.pkcs11.objects.Object> T find(
-            T template, ManagedPKCS11Session session) throws TokenException {
-        T foundObject = null;
+    static <T extends iaik.pkcs.pkcs11.objects.Object> T find(T template, ManagedPKCS11Session session) {
+        try {
+            T foundObject = null;
 
-        var rawSession = session.get();
-        rawSession.findObjectsInit(template);
+            var rawSession = session.get();
+            rawSession.findObjectsInit(template);
 
-        iaik.pkcs.pkcs11.objects.Object[] tmpArray = rawSession.findObjects(1);
-        if (tmpArray.length > 0) {
-            foundObject = (T) tmpArray[0];
+            iaik.pkcs.pkcs11.objects.Object[] tmpArray = rawSession.findObjects(1);
+            if (tmpArray.length > 0) {
+                foundObject = (T) tmpArray[0];
+            }
+
+            rawSession.findObjectsFinal();
+            return foundObject;
+        } catch (TokenException tokenException) {
+            throw XrdRuntimeException.systemException(HW_MODULE_INTERNAL_ERROR).cause(tokenException).build();
         }
-
-        rawSession.findObjectsFinal();
-        return foundObject;
     }
 
     static Map<SignAlgorithm, Mechanism> createSignMechanisms(SignMechanism signMechanismName) {

@@ -30,7 +30,6 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
@@ -49,7 +48,6 @@ import java.util.Map;
  */
 @ApplicationScoped
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SoftwareModuleWorkerFactory {
     private final SoftwareTokenWorkerFactory tokenWorkerFactory;
     private final SignerProperties signerProperties;
@@ -60,7 +58,6 @@ public class SoftwareModuleWorkerFactory {
         return new SoftwareModuleWorker(moduleType);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public class SoftwareModuleWorker extends AbstractModuleWorker {
         private final List<TokenDefinition> tokenDefinitions;
 
@@ -78,7 +75,7 @@ public class SoftwareModuleWorkerFactory {
         }
 
         @Override
-        protected List<TokenDefinition> listTokens() throws Exception {
+        protected List<TokenDefinition> listTokens() {
             return tokenDefinitions;
         }
 

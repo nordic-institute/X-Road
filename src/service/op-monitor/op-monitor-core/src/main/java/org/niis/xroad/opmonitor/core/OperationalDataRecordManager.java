@@ -77,7 +77,7 @@ public final class OperationalDataRecordManager {
         databaseCtx.doInTransaction(session -> storeInTransaction(session, records, timestamp));
     }
 
-    OperationalDataRecords queryAllRecords() throws Exception {
+    OperationalDataRecords queryAllRecords() {
         return databaseCtx.doInTransaction(this::queryAllOperationalDataInTransaction);
     }
 
@@ -132,9 +132,9 @@ public final class OperationalDataRecordManager {
 
         records.stream()
                 .map(OperationalDataRecordMapper.get()::toEntity)
-                .forEach(record -> {
-                    record.setMonitoringDataTs(timestamp);
-                    session.persist(record);
+                .forEach(recordEntity -> {
+                    recordEntity.setMonitoringDataTs(timestamp);
+                    session.persist(recordEntity);
 
                     sessionFlusher.flushIfReady();
                 });

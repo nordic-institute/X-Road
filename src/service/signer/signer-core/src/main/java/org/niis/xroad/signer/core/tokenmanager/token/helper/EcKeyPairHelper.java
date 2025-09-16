@@ -37,6 +37,7 @@ import iaik.pkcs.pkcs11.objects.ECDSAPublicKey;
 import iaik.pkcs.pkcs11.objects.KeyPair;
 import iaik.pkcs.pkcs11.objects.PublicKey;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
 import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
 import org.niis.xroad.signer.core.util.SignerUtil;
@@ -55,26 +56,34 @@ public final class EcKeyPairHelper extends AbstractKeyPairBuilder<ECDSAPublicKey
             Session activeSession,
             String keyLabel,
             PubKeyAttributes pubKeyAttributes,
-            PrivKeyAttributes privKeyAttributes) throws TokenException {
+            PrivKeyAttributes privKeyAttributes) {
         byte[] id = SignerUtil.generateId();
         // XXX maybe use: byte[] id = activeSession.generateRandom(RANDOM_ID_LENGTH);
 
-        return activeSession.generateKeyPair(
-                KEY_PAIR_GEN_MECHANISM,
-                buildPublicKeyTemplate(id, keyLabel, pubKeyAttributes),
-                buildPrivateKeyTemplate(id, keyLabel, privKeyAttributes));
+        try {
+            return activeSession.generateKeyPair(
+                    KEY_PAIR_GEN_MECHANISM,
+                    buildPublicKeyTemplate(id, keyLabel, pubKeyAttributes),
+                    buildPrivateKeyTemplate(id, keyLabel, privKeyAttributes));
+        } catch (TokenException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Override
-    public byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException, IOException {
+    public byte[] generateX509PublicKey(PublicKey publicKey) {
         if (!(publicKey instanceof ECDSAPublicKey ecPublicKey)) {
             throw new CryptoException("Invalid type of public key: " + publicKey.getClass());
         }
 
-        return KeyManagers.getForEC().generateX509PublicKey(
-                ecPublicKey.getEcdsaParams().getByteArrayValue(),
-                ecPublicKey.getEcPoint().getByteArrayValue()
-        );
+        try {
+            return KeyManagers.getForEC().generateX509PublicKey(
+                    ecPublicKey.getEcdsaParams().getByteArrayValue(),
+                    ecPublicKey.getEcPoint().getByteArrayValue()
+            );
+        } catch (InvalidKeySpecException | IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Override

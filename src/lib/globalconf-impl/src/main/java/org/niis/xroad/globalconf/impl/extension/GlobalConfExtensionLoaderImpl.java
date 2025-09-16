@@ -29,9 +29,7 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.FileSource;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.dto.InMemoryFile;
 import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;

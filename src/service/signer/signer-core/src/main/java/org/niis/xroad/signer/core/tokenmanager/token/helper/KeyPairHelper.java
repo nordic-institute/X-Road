@@ -27,23 +27,19 @@ package org.niis.xroad.signer.core.tokenmanager.token.helper;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import iaik.pkcs.pkcs11.Session;
-import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.KeyPair;
 import iaik.pkcs.pkcs11.objects.PublicKey;
 import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
 import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
-
-import java.io.IOException;
-import java.security.spec.InvalidKeySpecException;
 
 public sealed interface KeyPairHelper permits RsaKeyPairHelper, EcKeyPairHelper {
 
     KeyPair createKeypair(Session activeSession,
                           String keyLabel,
                           PubKeyAttributes pubKeyAttributes,
-                          PrivKeyAttributes privKeyAttributes) throws TokenException;
+                          PrivKeyAttributes privKeyAttributes);
 
-    byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException, IOException;
+    byte[] generateX509PublicKey(PublicKey publicKey);
 
     static KeyPairHelper of(KeyAlgorithm algorithm) {
         return switch (algorithm) {

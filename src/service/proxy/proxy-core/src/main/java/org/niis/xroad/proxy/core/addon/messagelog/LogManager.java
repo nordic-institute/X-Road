@@ -40,7 +40,6 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import jakarta.annotation.PreDestroy;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;

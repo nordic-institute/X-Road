@@ -54,6 +54,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -93,7 +94,7 @@ class OpMonitoringBufferImplTest {
                                               OpMonitorCommonProperties opMonitorCommonProperties,
                                               VaultClient vaultClient)
                 throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-                NoSuchAlgorithmException, KeyManagementException {
+                NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
             return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorCommonProperties, vaultClient) {
                 @Override
                 CloseableHttpClient createHttpClient() {

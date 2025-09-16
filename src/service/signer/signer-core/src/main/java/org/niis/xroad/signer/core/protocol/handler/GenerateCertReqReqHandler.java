@@ -30,9 +30,7 @@ import ee.ria.xroad.common.CodedException;
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
@@ -74,8 +72,9 @@ public class GenerateCertReqReqHandler extends AbstractRpcHandler<GenerateCertRe
                     "Authentication certificate requests can only be created under software tokens");
         }
 
-        var generatedRequest = certRequestCreationService.buildSignedCertRequest(tokenAndKey, request.getSubjectName(),
-                request.getSubjectAltName(), request.getKeyUsage());
+        try {
+            var generatedRequest = certRequestCreationService.buildSignedCertRequest(tokenAndKey, request.getSubjectName(),
+                    request.getSubjectAltName(), request.getKeyUsage());
 
             String certReqId = certManager.addCertRequest(tokenAndKey.getKeyId(),
                     request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null,

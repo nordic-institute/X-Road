@@ -62,7 +62,6 @@ import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
 import static ee.ria.xroad.common.ErrorCodes.translateException;

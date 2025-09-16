@@ -35,6 +35,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.util.SignerUtil;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -57,7 +58,8 @@ public final class SoftwareTokenUtil {
     private SoftwareTokenUtil() {
     }
 
-    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password) throws Exception {
+    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password)
+            throws OperatorCreationException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException {
         var signALgo = KeyManagers.getFor(kp.getPrivate().getAlgorithm()).getSoftwareTokenKeySignAlgorithm();
         ContentSigner signer = CryptoUtils.createContentSigner(signALgo, kp.getPrivate());
 
@@ -80,7 +82,8 @@ public final class SoftwareTokenUtil {
         return loadPrivateKey(ks, alias, password);
     }
 
-    static PrivateKey loadPrivateKey(KeyStore ks, String alias, char[] password) throws Exception {
+    static PrivateKey loadPrivateKey(KeyStore ks, String alias, char[] password)
+            throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         PrivateKey privateKey = (PrivateKey) ks.getKey(alias, password);
 
         if (privateKey == null) {
@@ -103,7 +106,7 @@ public final class SoftwareTokenUtil {
     }
 
     public static KeyStore rewriteKeyStoreWithNewPin(KeyStore oldKeyStore, String keyAlias, char[] oldPin, char[] newPin)
-            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
         PrivateKey privateKey = loadPrivateKey(oldKeyStore, keyAlias, oldPin);
 
         KeyStore newKeyStore = KeyStore.getInstance("pkcs12");

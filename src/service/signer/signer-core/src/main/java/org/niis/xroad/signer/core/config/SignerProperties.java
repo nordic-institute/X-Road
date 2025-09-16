@@ -32,7 +32,6 @@ import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static java.lang.Math.max;
 
@@ -91,9 +90,6 @@ public interface SignerProperties {
     @WithName("key-named-curve")
     @WithDefault("secp256r1")
     String keyNamedCurve();
-
-    @WithName("module-instance-provider")
-    Optional<String> moduleInstanceProvider();
 
     @WithName("modules")
     Map<String, ModuleProperties> modulesConfig();

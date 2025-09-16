@@ -33,11 +33,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.signer.api.message.GetOcspResponses;
-import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
-import org.niis.xroad.signer.core.model.Cert;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 

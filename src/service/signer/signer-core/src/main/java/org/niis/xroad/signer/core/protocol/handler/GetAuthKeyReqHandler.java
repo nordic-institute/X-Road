@@ -38,7 +38,6 @@ import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -119,8 +118,8 @@ public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, Auth
                 "Could not find active authentication key for security server '%s'", securityServer);
     }
 
-    private AuthKeyProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) throws Exception {
-        final char[] password = PasswordStore.getPassword(SoftwareTokenDefinition.ID);
+    private AuthKeyProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) {
+        final var password = PasswordStore.getPassword(SoftwareTokenDefinition.ID);
 
         final var builder = AuthKeyProto.newBuilder()
                 .setAlias(keyInfo.getId())

@@ -36,7 +36,6 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
@@ -47,12 +46,9 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -152,9 +148,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
         }
     }
 
-    protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId)
-            throws CertificateException, IOException, UnrecoverableKeyException, KeyStoreException,
-            NoSuchAlgorithmException, OCSPException {
+    protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws CertificateException, IOException, OCSPException {
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
         var keyInfo = signerRpcClient.getAuthKey(serverId);

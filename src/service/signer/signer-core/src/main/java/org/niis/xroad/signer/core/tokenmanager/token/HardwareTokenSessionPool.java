@@ -37,28 +37,27 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * SessionProvider implementation using Apache Commons Pool 2 for managing PKCS#11 sessions.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class HardwareTokenSessionPool implements SessionProvider {
     private final GenericObjectPool<ManagedPKCS11Session> pool;
 
-    HardwareTokenSessionPool(SignerHwTokenAddonProperties properties, Token token, String tokenId) throws Exception {
+    HardwareTokenSessionPool(SignerHwTokenAddonProperties properties, Token token, String tokenId) {
         this.pool = createPool(properties, token, tokenId);
     }
 
     @Override
-    public <T> T executeWithSession(FuncWithSession<T> operation) throws Exception {
-        ManagedPKCS11Session session = pool.borrowObject();
+    public <T> T executeWithSession(FuncWithSession<T> operation) {
+        var session = borrowSession();
         try {
             return operation.apply(session);
         } finally {
@@ -67,11 +66,19 @@ class HardwareTokenSessionPool implements SessionProvider {
     }
 
     @Override
-    public void executeWithSession(ConsumerWithSession operation) throws Exception {
+    public void executeWithSession(ConsumerWithSession operation) {
         executeWithSession(session -> {
             operation.accept(session);
             return null;
         });
+    }
+
+    private ManagedPKCS11Session borrowSession() {
+        try {
+            return pool.borrowObject();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemInternalError("failed to borrow HSM session", e);
+        }
     }
 
     @Override
@@ -80,8 +87,8 @@ class HardwareTokenSessionPool implements SessionProvider {
         pool.close();
     }
 
-    private static GenericObjectPool<ManagedPKCS11Session> createPool(SignerHwTokenAddonProperties properties, Token token, String tokenId)
-            throws Exception {
+    private static GenericObjectPool<ManagedPKCS11Session> createPool(SignerHwTokenAddonProperties properties,
+                                                                      Token token, String tokenId) {
         log.info("Initializing Apache Commons session pool with settings {} for token {}", properties, tokenId);
 
         if (token == null) {
@@ -114,7 +121,10 @@ class HardwareTokenSessionPool implements SessionProvider {
             } catch (Exception closeEx) {
                 log.error("Error closing pool after pre-fill failure for token {}", tokenId, closeEx);
             }
-            throw XrdRuntimeException.systemInternalError("Failed to pre-fill session pool for token " + tokenId, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR)
+                    .details("Failed to pre-fill session pool for token " + tokenId)
+                    .cause(e)
+                    .build();
         }
     }
 
@@ -124,19 +134,17 @@ class HardwareTokenSessionPool implements SessionProvider {
         private final String tokenId;
 
         @Override
-        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-        public ManagedPKCS11Session create() throws Exception {
+        public ManagedPKCS11Session create() throws TokenException {
             log.debug("Creating new PKCS#11 session for token {}", tokenId);
 
             var session = ManagedPKCS11Session.openSession(token, tokenId);
 
-            char[] pin = PasswordStore.getPassword(tokenId);
-            if (pin == null) {
+            var pin = PasswordStore.getPassword(tokenId);
+            if (pin.isEmpty()) {
                 throw new CodedException("PIN not available in PasswordStore for auto-login of pooled session on token " + tokenId);
             }
             if (session.login()) {
                 log.debug("Immediate login successful for new pooled session {} on token {}", session.getSessionHandle(), tokenId);
-
             } else {
                 session.close();
                 throw XrdRuntimeException.systemInternalError("Failed to login to session for token " + tokenId);

@@ -45,7 +45,6 @@ import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;

@@ -42,15 +42,9 @@ import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
-import java.io.File;
 import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,7 +62,6 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
  * Encapsulates KeyConf related functionality.
  */
 @Slf4j
-@RequiredArgsConstructor
 class KeyConfImpl implements KeyConfProvider {
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;

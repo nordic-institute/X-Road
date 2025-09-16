@@ -46,7 +46,6 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
 
 import javax.net.ssl.KeyManager;
@@ -71,7 +70,6 @@ import java.security.cert.X509Certificate;
 @Slf4j
 @ApplicationScoped
 @UtilityClass
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class OpMonitoringDaemonHttpClient {
 
     // HttpClient configuration parameters.

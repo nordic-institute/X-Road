@@ -28,7 +28,9 @@ package org.niis.xroad.signer.core.passwordstore;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
+import java.io.IOException;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.util.SignerProtoUtils.byteToChar;
 
@@ -79,18 +81,8 @@ public final class PasswordStore {
      * @param id       identifier of the password
      * @param password password to be stored
      */
-    public static void storePassword(String id, byte[] password)
-            throws IOException {
+    public static void storePassword(String id, byte[] password) {
         PASSWORD_STORE_PROVIDER.write(id, password);
-    }
-
-    /**
-     * Clears the password store. Useful for testing purposes.
-     *
-     * @throws Exception in case of any errors
-     */
-    public static void clearStore() throws Exception {
-        PASSWORD_STORE_PROVIDER.clear();
     }
 
     public interface PasswordStoreProvider {

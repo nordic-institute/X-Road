@@ -39,6 +39,8 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -133,7 +135,7 @@ class ManagedPKCS11SessionTest {
         doNothing().when(session).login(Session.CKUserType.USER, PIN);
 
         try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class)) {
-            psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(PIN);
+            psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
 
             // When
             boolean result = managedSession.login();
@@ -173,7 +175,7 @@ class ManagedPKCS11SessionTest {
         doThrow(expectedException).when(session).login(Session.CKUserType.USER, PIN);
 
         try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class)) {
-            psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(PIN);
+            psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
 
             // When & Assert
             PKCS11Exception thrown = assertThrows(PKCS11Exception.class, managedSession::login);
@@ -193,7 +195,7 @@ class ManagedPKCS11SessionTest {
         doThrow(expectedException).when(session).login(Session.CKUserType.USER, PIN);
 
         try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class)) {
-            psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(PIN);
+            psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
 
             // When
             boolean result = managedSession.login();

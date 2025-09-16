@@ -55,6 +55,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -87,7 +88,7 @@ public class OpMonitoringDaemonSender {
                              OpMonitorCommonProperties opMonitorCommonProperties,
                              VaultClient vaultClient)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchAlgorithmException, KeyManagementException {
+            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
         this.serverConfProvider = serverConfProvider;
         this.opMonitoringBuffer = opMonitoringBuffer;
         this.opMonitorCommonProperties = opMonitorCommonProperties;
@@ -159,7 +160,7 @@ public class OpMonitoringDaemonSender {
 
     CloseableHttpClient createHttpClient()
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchAlgorithmException, KeyManagementException {
+            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
         return OpMonitoringDaemonHttpClient.createHttpClient(
                 opMonitorCommonProperties, serverConfProvider.getSSLKey(), vaultClient,
                 1, 1,
