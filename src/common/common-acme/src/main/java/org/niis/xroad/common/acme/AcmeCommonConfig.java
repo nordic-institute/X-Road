@@ -25,20 +25,16 @@
  */
 package org.niis.xroad.common.acme;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Map;
 
 @Slf4j
@@ -46,18 +42,26 @@ import java.util.Map;
 public class AcmeCommonConfig {
 
     @Bean
-    public AcmeProperties acmeProperties(AcmeConfig acmeConfig) {
-        Resource resource = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/acme.yml");
-        if (!acmeConfig.isAcmeChallengePortEnabled() && !resource.exists()) {
-            log.warn("Configuration {} does not exist", resource);
+    public AcmeProperties acmeProperties(@Value("${xroad.acme:}") String acmeConfiguration, AcmeConfig acmeConfig) {
+        if (StringUtils.isBlank(acmeConfiguration)) {
+            if (acmeConfig.isAcmeChallengePortEnabled()) {
+                log.error("Acme challenge port enabled, but configuration is missing.");
+            } else {
+                log.info("Acme configuration not set, and acme challenge port not enabled. Skipping ACME configuration.");
+            }
             return new AcmeProperties();
         }
-        Constructor constructor = createAcmeYamlConstructor();
-        Yaml yaml = new Yaml(constructor);
-        try (InputStream input = Files.newInputStream(resource.getFile().toPath())) {
-            return yaml.loadAs(input, AcmeProperties.class);
+        try {
+            Constructor constructor = createAcmeYamlConstructor();
+            Yaml yaml = new Yaml(constructor);
+            AcmeProperties properties = yaml.loadAs(acmeConfiguration, AcmeProperties.class);
+            if (properties == null) {
+                log.error("Failed to load Acme yaml configuration, result is null");
+                return new AcmeProperties();
+            }
+            return properties;
         } catch (Exception e) {
-            log.warn("Failed to load yaml configuration from {}", resource, e);
+            log.warn("Failed to load Acme yaml configuration", e);
             return new AcmeProperties();
         }
     }

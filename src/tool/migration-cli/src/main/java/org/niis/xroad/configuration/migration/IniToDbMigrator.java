@@ -25,53 +25,40 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.properties.dbsource;
+package org.niis.xroad.configuration.migration;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static java.util.Optional.ofNullable;
 
 @Slf4j
-public class CachedDbConfigSource {
+public class IniToDbMigrator extends BasePropertiesToDbMigrator {
 
-    private final Map<String, String> cache;
+    private final IniUtil iniUtil = new IniUtil();
 
-    public CachedDbConfigSource(DbSourceConfig config) {
-        DbSourceRepository repository = initRepository(config);
-        this.cache = new ConcurrentHashMap<>(repository.getProperties());
+    @Override
+    Map<String, String> loadProperties(String filePath) {
+        log.info("Loading INI properties from [{}]", filePath);
+        return iniUtil.loadToFlatMap(filePath, "xroad");
     }
 
-    private DbSourceRepository initRepository(DbSourceConfig config) {
-        var hikariConfig = new HikariConfig();
-        hikariConfig.setMaximumPoolSize(1);
-        hikariConfig.setJdbcUrl(config.getUrl());
+    public static void main(String[] args) {
+        validateParams(args);
 
-        ofNullable(config.getUsername()).ifPresent(hikariConfig::setUsername);
-        ofNullable(config.getPassword()).ifPresent(p -> hikariConfig.setPassword(new String(p)));
-        ofNullable(config.getSchema()).ifPresent(hikariConfig::setSchema);
-
-        return new DbSourceRepository(new HikariDataSource(hikariConfig), config);
+        new IniToDbMigrator().migrate(args[0], args[1]);
     }
 
-    public Set<String> getPropertyNames() {
-        log.trace("getPropertyNames()");
-        return cache.keySet();
+    private static void validateParams(String[] args) {
+        if (args.length != 2) {
+            logUsageAndThrow("Invalid number of arguments provided.");
+        }
+        LegacyConfigMigrationCLI.validateFilePath(args[0], "INI input file");
+        LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
     }
 
-    public String getValue(String propertyName) {
-        log.trace("getValue() for property {}", propertyName);
-        return cache.get(propertyName);
-    }
-
-    public Map<String, String> getProperties() {
-        return new HashMap<>(cache);
+    private static void logUsageAndThrow(String message) {
+        log.error("Usage: <input file> <db.properties file>");
+        throw new IllegalArgumentException(message);
     }
 
 }

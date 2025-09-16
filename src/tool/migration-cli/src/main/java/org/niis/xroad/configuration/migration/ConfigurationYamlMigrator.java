@@ -25,94 +25,31 @@
  */
 package org.niis.xroad.configuration.migration;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.configuration2.INIConfiguration;
-import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@RequiredArgsConstructor
 class ConfigurationYamlMigrator {
-    static final String DEFAULT_PREFIX = "xroad";
+    static final String PREFIX = "xroad";
 
-    final String prefix;
+    private final IniUtil iniUtil = new IniUtil();
 
-    ConfigurationYamlMigrator() {
-        this(DEFAULT_PREFIX);
-    }
+    boolean migrate(String inputFilePath, String outputFilePath) throws IOException {
+        var ini = new IniUtil().load(inputFilePath);
 
-    boolean migrate(String inputFilePath, String outputFilePath) throws IOException, ConfigurationException {
-        var ini = load(inputFilePath);
+        Map<String, Object> properties = iniUtil.loadToNestedMap(inputFilePath, PREFIX);
 
-        Map<String, Object> properties = new HashMap<>();
-        for (String section : ini.parsedContent().getSections()) {
-            for (Iterator<String> it = ini.parsedContent().getSection(section).getKeys(); it.hasNext(); ) {
-                var sectionKey = it.next();
-                var key = section + "." + sectionKey;
-                var mappedKey = LegacyConfigPathMapping.map(key);
-                var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
-
-                insertNestedProperty(properties, mappedKey.split("\\."), resolveValue(valueStr));
-            }
-        }
-
-        Map<String, Object> root = new HashMap<>();
-        insertNestedProperty(root, prefix.split("\\."), properties);
-
-        saveYamlToFile(ini, root, outputFilePath);
+        saveYamlToFile(ini, properties, outputFilePath);
         return true;
     }
 
-    @SuppressWarnings("unchecked")
-    private void insertNestedProperty(Map<String, Object> rootMap, String[] keys, Object value) {
-        Map<String, Object> current = rootMap;
-        for (int i = 0; i < keys.length - 1; i++) {
-            current = (Map<String, Object>) current.computeIfAbsent(keys[i], k -> new HashMap<>());
-        }
-        current.put(keys[keys.length - 1], value);
-    }
-
-    private Object resolveValue(String value) {
-        if ("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value)) {
-            return Boolean.parseBoolean(value);
-        } else if (NumberUtils.isParsable(value)) {
-            return NumberUtils.createNumber(value);
-        } else {
-            return value;
-        }
-    }
-
-    private LoadedIniFile load(String filePath) throws IOException, ConfigurationException {
-        INIConfiguration ini = new INIConfiguration();
-        ini.setListDelimiterHandler(DisabledListDelimiterHandler.INSTANCE);
-        var configPath = Paths.get(filePath);
-        var iniStringLines = Files.readAllLines(configPath);
-
-        try (Reader r = new StringReader(String.join("\n", iniStringLines))) {
-            ini.read(r);
-
-            return new LoadedIniFile(configPath, iniStringLines, ini);
-        }
-    }
-
-    public static void saveYamlToFile(LoadedIniFile loadedIniFile,
+    public static void saveYamlToFile(IniUtil.LoadedIniFile loadedIniFile,
                                       final Map<String, Object> properties,
                                       String outputPath) throws IOException {
         final DumperOptions options = new DumperOptions();
@@ -124,7 +61,7 @@ class ConfigurationYamlMigrator {
 
         try (FileWriter writer = new FileWriter(outputPath)) {
             writer.write("# Generated at: " + ZonedDateTime.now() + "\n");
-            writer.write("# Input source: " + loadedIniFile.path.toAbsolutePath() + "\n");
+            writer.write("# Input source: " + loadedIniFile.path().toAbsolutePath() + "\n");
             writer.write("# Original configuration:\n");
             writer.write("###########################\n");
             for (String line : loadedIniFile.rawContentLines()) {
@@ -136,9 +73,4 @@ class ConfigurationYamlMigrator {
         }
     }
 
-
-    record LoadedIniFile(Path path,
-                         List<String> rawContentLines,
-                         INIConfiguration parsedContent) {
-    }
 }

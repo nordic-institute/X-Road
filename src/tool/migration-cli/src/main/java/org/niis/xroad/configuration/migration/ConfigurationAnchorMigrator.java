@@ -25,53 +25,46 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.properties.dbsource;
+package org.niis.xroad.configuration.migration;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static java.util.Optional.ofNullable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @Slf4j
-public class CachedDbConfigSource {
+public class ConfigurationAnchorMigrator {
 
-    private final Map<String, String> cache;
+    void migrate(String anchorFilePath, String dbPropertiesPath) {
+        try (DbRepository dbRepo = new DbRepository(dbPropertiesPath)) {
+            log.info("Reading configuration anchor file from [{}]", anchorFilePath);
+            String configurationAnchor = Files.readString(Paths.get(anchorFilePath));
+            dbRepo.saveConfigurationAnchor(configurationAnchor);
+        } catch (IOException e) {
+            throw new MigrationException("Failed to read configuration anchor file", e);
+        }
 
-    public CachedDbConfigSource(DbSourceConfig config) {
-        DbSourceRepository repository = initRepository(config);
-        this.cache = new ConcurrentHashMap<>(repository.getProperties());
+        log.info("Configuration anchor file saved to DB");
     }
 
-    private DbSourceRepository initRepository(DbSourceConfig config) {
-        var hikariConfig = new HikariConfig();
-        hikariConfig.setMaximumPoolSize(1);
-        hikariConfig.setJdbcUrl(config.getUrl());
+    public static void main(String[] args) {
+        validateParams(args);
 
-        ofNullable(config.getUsername()).ifPresent(hikariConfig::setUsername);
-        ofNullable(config.getPassword()).ifPresent(p -> hikariConfig.setPassword(new String(p)));
-        ofNullable(config.getSchema()).ifPresent(hikariConfig::setSchema);
-
-        return new DbSourceRepository(new HikariDataSource(hikariConfig), config);
+        new ConfigurationAnchorMigrator().migrate(args[0], args[1]);
     }
 
-    public Set<String> getPropertyNames() {
-        log.trace("getPropertyNames()");
-        return cache.keySet();
+    private static void validateParams(String[] args) {
+        if (args.length != 2) {
+            logUsageAndThrow("Invalid number of arguments provided.");
+        }
+        LegacyConfigMigrationCLI.validateFilePath(args[0], "Configuration anchor file");
+        LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
     }
 
-    public String getValue(String propertyName) {
-        log.trace("getValue() for property {}", propertyName);
-        return cache.get(propertyName);
-    }
-
-    public Map<String, String> getProperties() {
-        return new HashMap<>(cache);
+    private static void logUsageAndThrow(String message) {
+        log.error("Usage: <input file> <db.properties file>");
+        throw new IllegalArgumentException(message);
     }
 
 }
