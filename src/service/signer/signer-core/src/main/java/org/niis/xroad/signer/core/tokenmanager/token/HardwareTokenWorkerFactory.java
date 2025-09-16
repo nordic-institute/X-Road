@@ -70,7 +70,12 @@ import java.security.cert.CertPath;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -431,12 +436,13 @@ public class HardwareTokenWorkerFactory {
                 key = tokenLookup.getKeyInfo(keyId);
                 log.debug("Found new key with id '{}' on token '{}'", keyId, getWorkerId());
             }
-
             // update the key label
             char[] label = keyOnToken.getLabel().getCharArrayValue();
-
             if (label != null) {
-                keyManager.setKeyLabel(keyId, new String(label));
+                var labelStr = new String(label);
+                if (!Objects.equals(labelStr, key.getLabel())) {
+                    keyManager.setKeyLabel(keyId, labelStr);
+                }
             }
 
             if (key.getPublicKey() == null) {
