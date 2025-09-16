@@ -42,7 +42,7 @@ import java.util.Map;
 public class AcmeCommonConfig {
 
     @Bean
-    public AcmeProperties acmeProperties(@Value("${xroad.acme:}") String acmeConfiguration, AcmeConfig acmeConfig) {
+    public AcmeProperties acmeProperties(AcmeConfig acmeConfig, @Value("${xroad.acme:}") String acmeConfiguration) {
         if (StringUtils.isBlank(acmeConfiguration)) {
             if (acmeConfig.isAcmeChallengePortEnabled()) {
                 log.error("Acme challenge port enabled, but configuration is missing.");

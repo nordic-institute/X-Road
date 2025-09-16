@@ -70,8 +70,6 @@ public class AcmeConfigTest {
         acmeCommonConfig.acmeProperties(config, "");
 
         assertThat(appender.list).hasSize(1);
-        assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.WARN);
-        assertThat(appender.list.getFirst().getMessage()).isEqualTo("Failed to load yaml configuration from {}");
         assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.ERROR);
         assertThat(appender.list.getFirst().getMessage()).isEqualTo("Acme challenge port enabled, but configuration is missing.");
     }
@@ -83,7 +81,6 @@ public class AcmeConfigTest {
         assertNotNull(acmeCommonConfig.acmeProperties(config, null));
         assertNotNull(acmeCommonConfig.acmeProperties(config, ""));
         assertNotNull(acmeCommonConfig.acmeProperties(config, "not valid"));
-
     }
 
     @Test
