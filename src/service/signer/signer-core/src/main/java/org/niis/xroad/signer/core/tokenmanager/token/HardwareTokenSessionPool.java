@@ -37,6 +37,7 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
@@ -134,6 +135,7 @@ class HardwareTokenSessionPool implements SessionProvider {
         private final String tokenId;
 
         @Override
+        @ArchUnitSuppressed("NoVanillaExceptions")
         public ManagedPKCS11Session create() throws TokenException {
             log.debug("Creating new PKCS#11 session for token {}", tokenId);
 
