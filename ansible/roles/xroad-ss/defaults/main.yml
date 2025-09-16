@@ -7,5 +7,3 @@ variant: vanilla
 xroad_varpkg_fi: xroad-securityserver-fi
 xroad_varpkg_ee: xroad-securityserver-ee
 xroad_varpkg_vanilla: xroad-securityserver
-
-ss_enable_hwtokens: false
