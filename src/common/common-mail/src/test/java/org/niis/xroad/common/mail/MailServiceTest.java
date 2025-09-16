@@ -25,11 +25,11 @@
  */
 package org.niis.xroad.common.mail;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -37,35 +37,37 @@ import org.springframework.mail.javamail.JavaMailSender;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
-public class MailServiceTest {
+@ExtendWith(MockitoExtension.class)
+class MailServiceTest {
 
     private MailService mailService;
+    private final NotificationConfig notificationConfig = new NotificationConfig() {
+    };
 
     @Mock
     private JavaMailSender mailSender;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         MailNotificationProperties mailNotificationConfiguration = new MailNotificationProperties();
         mailNotificationConfiguration.setHost("localhost");
         mailNotificationConfiguration.setPort(587);
         mailNotificationConfiguration.setUsername("admin");
         mailNotificationConfiguration.setPassword("secret");
         mailNotificationConfiguration.setContacts(Map.of("TestMember", "myMail@example.org"));
-        mailService = new MailService(mailNotificationConfiguration, mailSender);
+        mailService = new MailService(mailNotificationConfiguration, notificationConfig, mailSender);
     }
 
     @Test
-    public void getMailNotificationStatus() {
+    void getMailNotificationStatus() {
         MailService.MailNotificationStatus mailNotificationStatus = mailService.getMailNotificationStatus();
         assertTrue(mailNotificationStatus.configurationPresent());
         assertTrue(mailNotificationStatus.enabledNotifications().contains(MailNotificationType.ACME_FAILURE));
@@ -77,14 +79,14 @@ public class MailServiceTest {
     }
 
     @Test
-    public void sendTestMailThrows() {
+    void sendTestMailThrows() {
         doThrow(new MailSendException("Fatal error!")).when(mailSender).send((SimpleMailMessage) any());
         assertThrows(MailSendException.class, () -> mailService.sendTestMail("recipient", "subject", "body"));
         verify(mailSender).send((SimpleMailMessage) any());
     }
 
     @Test
-    public void sendMailAsyncDoesntThrows() {
+    void sendMailAsyncDoesntThrows() {
         doThrow(new MailSendException("Fatal error!")).when(mailSender).send((SimpleMailMessage) any());
         assertDoesNotThrow(() -> mailService.sendMailAsync("recipient", "subject", "body"));
         verify(mailSender).send((SimpleMailMessage) any());

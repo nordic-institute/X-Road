@@ -149,26 +149,6 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE =
             PREFIX + "proxy-ui-api.automatic-activate-acme-sign-certificate";
 
-    /** property name of whether notification e-mail is sent in case of automatic certificate renewal job success */
-    public static final String PROXY_UI_API_ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED =
-            PREFIX + "proxy-ui-api.acme-renewal-success-notification-enabled";
-
-    /** property name of whether notification e-mail is sent in case of automatic certificate renewal job failure */
-    public static final String PROXY_UI_API_ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED =
-            PREFIX + "proxy-ui-api.acme-renewal-failure-notification-enabled";
-
-    /** property name of whether notification e-mail is sent when authentication certificate has been registered in global conf */
-    public static final String PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED =
-            PREFIX + "proxy-ui-api.auth-cert-registered-notification-enabled";
-
-    /** property name of whether notification e-mail is sent when certificate has been automatically activated */
-    public static final String PROXY_UI_API_CERT_AUTO_ACTIVATION_NOTIFICATION_ENABLED =
-            PREFIX + "proxy-ui-api.cert-auto-activation-notification-enabled";
-
-    /** property name of whether notification e-mail is sent when certificate automatic activation has failed  */
-    public static final String PROXY_UI_API_CERT_AUTO_ACTIVATION_FAILURE_NOTIFICATION_ENABLED =
-            PREFIX + "proxy-ui-api.cert-auto-activation-failure-notification-enabled";
-
     /** Locale for mail notifications, which determines the language of the notifications.
      * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
     public static final String PROXY_UI_API_MAIL_NOTIFICATION_LOCALE =
@@ -689,41 +669,6 @@ public final class SystemProperties {
      */
     public static boolean getAutomaticActivateAcmeSignCertificate() {
         return Boolean.parseBoolean(getProperty(PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE, FALSE));
-    }
-
-    /**
-     * @return true if ACME automatic renewal job success notifications are enabled
-     */
-    public static boolean getAcmeRenewalSuccessNotificationEnabled() {
-        return Boolean.parseBoolean(getProperty(PROXY_UI_API_ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED, TRUE));
-    }
-
-    /**
-     * @return true if ACME automatic renewal job failure notifications are enabled
-     */
-    public static boolean getAcmeRenewalFailureNotificationEnabled() {
-        return Boolean.parseBoolean(getProperty(PROXY_UI_API_ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED, TRUE));
-    }
-
-    /**
-     * @return true if authentication certificate registered notifications are enabled
-     */
-    public static boolean getAuthCertRegisteredNotificationEnabled() {
-        return Boolean.parseBoolean(getProperty(PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED, TRUE));
-    }
-
-    /**
-     * @return true if certificate automatic activation success notifications are enabled
-     */
-    public static boolean getAcmeCertAutomaticallyActivatedNotificationEnabled() {
-        return Boolean.parseBoolean(getProperty(PROXY_UI_API_CERT_AUTO_ACTIVATION_NOTIFICATION_ENABLED, TRUE));
-    }
-
-    /**
-     * @return true if certificate automatic activation failure notifications are enabled
-     */
-    public static boolean getAcmeCertAutomaticActivationFailureNotificationEnabled() {
-        return Boolean.parseBoolean(getProperty(PROXY_UI_API_CERT_AUTO_ACTIVATION_FAILURE_NOTIFICATION_ENABLED, TRUE));
     }
 
     /**

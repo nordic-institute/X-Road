@@ -31,6 +31,7 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
+import org.niis.xroad.common.mail.NotificationConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
@@ -68,6 +69,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         IdentifierValidationConfiguration.Config,
         UserRoleConfig,
         KeyAlgorithmConfig,
+        NotificationConfig,
         UserAuthenticationConfig {
 
     /**
@@ -157,6 +159,16 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      * whether to automatically activate new authentication certificates after they have been registered on the Central Server.
      */
     private boolean automaticActivateAuthCertificate;
+
+    boolean acmeRenewalSuccessNotificationEnabled;
+
+    boolean acmeRenewalFailureNotificationEnabled;
+
+    boolean authCertRegisteredNotificationEnabled;
+
+    boolean certAutoActivationNotificationEnabled;
+
+    boolean certAutoActivationFailureNotificationEnabled;
 
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
