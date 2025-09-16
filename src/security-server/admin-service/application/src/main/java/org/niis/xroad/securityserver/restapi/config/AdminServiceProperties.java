@@ -192,6 +192,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     // signature digest algorithm ID used for generating authentication certificate registration request
     String authCertRegSignatureDigestAlgorithmId = "SHA-512";
 
+    String securityServerUrl;
+
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
         EnumMap<Role, List<String>> userRoleMappings = new EnumMap<>(Role.class);

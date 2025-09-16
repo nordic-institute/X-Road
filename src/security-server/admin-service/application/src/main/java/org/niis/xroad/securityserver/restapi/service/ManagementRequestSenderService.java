@@ -39,7 +39,6 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -58,9 +57,6 @@ public class ManagementRequestSenderService {
     private final CurrentSecurityServerId currentSecurityServerId;
     private final VaultKeyProvider vaultKeyProvider;
     private final AdminServiceProperties adminServiceProperties;
-
-    @Value("${xroad.proxy-ui-api.security-server-url}")
-    private String proxyUrl;
 
     private static final String MANAGEMENT_REQUEST_SENDING_FAILED_ERROR = "Sending management request failed";
 
@@ -241,7 +237,7 @@ public class ManagementRequestSenderService {
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
-                signerSignClient, sender, receiver, proxyUrl,
+                signerSignClient, sender, receiver, adminServiceProperties.getSecurityServerUrl(),
                 DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()));
     }
 

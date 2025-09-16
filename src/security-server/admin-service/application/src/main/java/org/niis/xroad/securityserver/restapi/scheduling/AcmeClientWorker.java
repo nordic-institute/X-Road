@@ -52,7 +52,6 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.CertificateParsingException;
@@ -91,9 +90,6 @@ public class AcmeClientWorker {
     private final MailNotificationHelper mailNotificationHelper;
     private final AcmeConfig acmeConfig;
     private final AdminServiceProperties adminServiceProperties;
-
-    @Value("${xroad.proxy-ui-api.security-server-url}")
-    private String proxyUrl;
 
     public void execute(CertificateRenewalScheduler acmeRenewalScheduler) {
         log.info("ACME certificate renewal cycle started");
@@ -384,7 +380,7 @@ public class AcmeClientWorker {
         ClientId sender = serverConfService.getSecurityServerOwnerId();
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
-                signerSignClient, sender, receiver, proxyUrl,
+                signerSignClient, sender, receiver, adminServiceProperties.getSecurityServerUrl(),
                 DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()));
     }
 
