@@ -16,9 +16,9 @@ xroad:
     modules:
       softhsm2:
         library: /usr/lib/softhsm/libsofthsm2.so
-        slot_ids: $slot_id
-        os_locking_ok: true
-        library_cant_create_os_threads: true
+        slot-ids: $slot_id
+        os-locking-ok: true
+        library-cant-create-os-threads: true
 EOF
 fi
 
