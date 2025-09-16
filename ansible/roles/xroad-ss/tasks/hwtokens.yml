@@ -1,9 +1,9 @@
-# roles/ubuntu_ss/tasks/hwtokens.yml
+---
 - name: Configure SoftHSM token for X-Road
   become: true
   when:
     - ss_enable_hwtokens | default(false)
-    - "'ubuntu_ss' in group_names"
+    - "'ubuntu_hsm_ss' in group_names"
   block:
     - name: Ensure apt cache is up to date
       apt:

@@ -94,7 +94,7 @@
     - install
       
 - name: Configure HW tokens (SoftHSM2) for SS
-  hosts: ubuntu_ss
+  hosts: ubuntu_hsm_ss
   become: true
   strategy: free
   tags:
@@ -114,7 +114,7 @@
             name: softhsm2
             state: present
 
-        - name: Run ubuntu_ss hwtoken tasks
+        - name: Run ubuntu_hsm_ss hwtoken tasks
           ansible.builtin.include_role:
             name: xroad-ss
             tasks_from: hwtokens.yml

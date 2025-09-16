@@ -16,7 +16,10 @@ xrd-ca ansible_connection=lxd
 ubuntu_ss
 rhel_ss
 
-[ubuntu_ss]
+[ubuntu_ss:children]
+ubuntu_hsm_ss
+
+[ubuntu_hsm_ss]
 xrd-ss1 ansible_connection=lxd
 
 [rhel_ss]
