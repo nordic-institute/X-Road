@@ -2,9 +2,9 @@
 set -e
 source ./../.scripts/base-script.sh
 
-RECREATE=true
-SKIP_COMPILE=true
-SKIP_TESTS=true
+RECREATE=false
+SKIP_COMPILE=false
+SKIP_TESTS=false
 SKIP_BUILD=false
 SKIP_INITIALIZE=false
 INVENTORY_PATH="config/ansible_hosts.txt"
