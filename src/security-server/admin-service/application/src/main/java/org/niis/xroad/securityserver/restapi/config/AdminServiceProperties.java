@@ -170,6 +170,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
 
     boolean certAutoActivationFailureNotificationEnabled;
 
+    /** Locale for mail notifications, which determines the language of the notifications.
+     * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
+    String mailNotificationLocale;
+
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
         EnumMap<Role, List<String>> userRoleMappings = new EnumMap<>(Role.class);

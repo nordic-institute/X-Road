@@ -50,6 +50,10 @@ class MailServiceTest {
 
     private MailService mailService;
     private final NotificationConfig notificationConfig = new NotificationConfig() {
+        @Override
+        public String getMailNotificationLocale() {
+            return null;
+        }
     };
 
     @Mock

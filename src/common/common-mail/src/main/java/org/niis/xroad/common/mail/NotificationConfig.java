@@ -48,4 +48,9 @@ public interface NotificationConfig {
     default boolean isCertAutoActivationFailureNotificationEnabled() {
         return true;
     }
+
+    /** Locale for mail notifications, which determines the language of the notifications.
+     * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
+    String getMailNotificationLocale();
+
 }

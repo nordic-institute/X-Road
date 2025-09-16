@@ -149,11 +149,6 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE =
             PREFIX + "proxy-ui-api.automatic-activate-acme-sign-certificate";
 
-    /** Locale for mail notifications, which determines the language of the notifications.
-     * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
-    public static final String PROXY_UI_API_MAIL_NOTIFICATION_LOCALE =
-            PREFIX + "proxy-ui-api.mail-notification-locale";
-
     // Proxy ------------------------------------------------------------------
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
@@ -669,14 +664,6 @@ public final class SystemProperties {
      */
     public static boolean getAutomaticActivateAcmeSignCertificate() {
         return Boolean.parseBoolean(getProperty(PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE, FALSE));
-    }
-
-    /**
-     * @return Locale for mail notifications.
-     * No default value here, notifications' resource bundle already has defaults in notifications.properties
-     */
-    public static String getMailNotificationLocale() {
-        return getProperty(PROXY_UI_API_MAIL_NOTIFICATION_LOCALE);
     }
 
     /**

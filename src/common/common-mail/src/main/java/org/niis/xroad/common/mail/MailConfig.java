@@ -117,8 +117,9 @@ public class MailConfig {
     }
 
     @Bean
-    public MessageSourceAccessor notificationMessageSourceAccessor() {
-        String mailNotificationLocale = SystemProperties.getMailNotificationLocale();
+    public MessageSourceAccessor notificationMessageSourceAccessor(NotificationConfig notificationConfig) {
+        String mailNotificationLocale = notificationConfig.getMailNotificationLocale();
+
         return mailNotificationLocale != null
                 ? new MessageSourceAccessor(notificationMessageSource(), Locale.of(mailNotificationLocale))
                 : new MessageSourceAccessor(notificationMessageSource());
