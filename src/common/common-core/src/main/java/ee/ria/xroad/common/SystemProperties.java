@@ -257,13 +257,6 @@ public final class SystemProperties {
     // Proxy UI ---------------------------------------------------------------
 
     /**
-     * Property name of the signature digest algorithm ID used for generating authentication certificate
-     * registration request.
-     */
-    private static final String PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID =
-            PREFIX + "proxy-ui-api.auth-cert-reg-signature-digest-algorithm-id";
-
-    /**
      * Property name of the management request sender client keystore path, used to send management requests from Proxy UI.
      */
     private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE =
@@ -433,16 +426,6 @@ public final class SystemProperties {
      */
     public static String getConfigurationPath() {
         return getProperty(CONFIGURATION_PATH, getConfPath() + DefaultFilepaths.CONFIGURATION_PATH);
-    }
-
-    /**
-     * @return signature digest algorithm ID used for generating authentication certificate registration request,
-     * SHA-512 by default.
-     */
-    public static DigestAlgorithm getAuthCertRegSignatureDigestAlgorithmId() {
-        return Optional.ofNullable(getProperty(PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID))
-                .map(DigestAlgorithm::ofName)
-                .orElse(DigestAlgorithm.SHA512);
     }
 
     /**

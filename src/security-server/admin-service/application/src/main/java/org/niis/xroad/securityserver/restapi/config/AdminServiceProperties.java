@@ -189,6 +189,9 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     // whether generating CSR is allowed for with existing certificate, 'false' by default
     boolean allowCsrForKeyWithCertificate;
 
+    // signature digest algorithm ID used for generating authentication certificate registration request
+    String authCertRegSignatureDigestAlgorithmId = "SHA-512";
+
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
         EnumMap<Role, List<String>> userRoleMappings = new EnumMap<>(Role.class);

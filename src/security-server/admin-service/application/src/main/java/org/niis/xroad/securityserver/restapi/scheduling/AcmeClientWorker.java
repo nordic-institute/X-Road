@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -40,6 +41,7 @@ import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -88,6 +90,7 @@ public class AcmeClientWorker {
     private final VaultKeyProvider vaultKeyProvider;
     private final MailNotificationHelper mailNotificationHelper;
     private final AcmeConfig acmeConfig;
+    private final AdminServiceProperties adminServiceProperties;
 
     @Value("${xroad.proxy-ui-api.security-server-url}")
     private String proxyUrl;
@@ -381,7 +384,8 @@ public class AcmeClientWorker {
         ClientId sender = serverConfService.getSecurityServerOwnerId();
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
-                signerSignClient, sender, receiver, proxyUrl);
+                signerSignClient, sender, receiver, proxyUrl,
+                DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()));
     }
 
     private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws Exception {

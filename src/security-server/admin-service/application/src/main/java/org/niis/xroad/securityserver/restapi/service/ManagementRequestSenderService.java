@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,6 +57,7 @@ public class ManagementRequestSenderService {
     private final GlobalConfService globalConfService;
     private final CurrentSecurityServerId currentSecurityServerId;
     private final VaultKeyProvider vaultKeyProvider;
+    private final AdminServiceProperties adminServiceProperties;
 
     @Value("${xroad.proxy-ui-api.security-server-url}")
     private String proxyUrl;
@@ -238,7 +241,8 @@ public class ManagementRequestSenderService {
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
-                signerSignClient, sender, receiver, proxyUrl);
+                signerSignClient, sender, receiver, proxyUrl,
+                DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()));
     }
 
     public Integer sendMaintenanceModeEnableRequest(String message) {

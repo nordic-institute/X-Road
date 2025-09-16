@@ -27,6 +27,7 @@
 package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.Soap;
@@ -83,6 +84,7 @@ public final class ManagementRequestSender {
     private final SignerSignClient signerSignClient;
     private final String securityServerUrl;
     private final ManagementRequestBuilder builder;
+    private final DigestAlgorithm signatureDigestAlgorithm;
 
     /**
      * Creates the sender for the user ID, client and receiver used in
@@ -93,13 +95,14 @@ public final class ManagementRequestSender {
      */
     public ManagementRequestSender(VaultKeyProvider vaultKeyProvider, GlobalConfProvider globalConfProvider,
                                    SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
-                                   ClientId sender, ClientId receiver, String securityServerUrl) {
+                                   ClientId sender, ClientId receiver, String securityServerUrl, DigestAlgorithm signatureDigestAlgorithm) {
         this.globalConfProvider = globalConfProvider;
         this.signerRpcClient = signerRpcClient;
         this.signerSignClient = signerSignClient;
         this.builder = new ManagementRequestBuilder(sender, receiver);
         this.securityServerUrl = securityServerUrl;
         this.managementRequestClient = new ManagementRequestClient(vaultKeyProvider, globalConfProvider);
+        this.signatureDigestAlgorithm = signatureDigestAlgorithm;
     }
 
     private URI getCentralServiceURI() throws URISyntaxException {
@@ -129,7 +132,8 @@ public final class ManagementRequestSender {
         try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
             return send(sender, getCentralServiceURI(), new AuthCertRegRequest(signerRpcClient, signerSignClient,
                     authCert, securityServer.getOwner(),
-                    builder.buildAuthCertRegRequest(securityServer, address, authCert)));
+                    builder.buildAuthCertRegRequest(securityServer, address, authCert),
+                    signatureDigestAlgorithm));
         }
     }
 
@@ -161,7 +165,7 @@ public final class ManagementRequestSender {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new AddressChangeRequest(signerRpcClient, signerSignClient, securityServer.getOwner(),
-                            builder.buildAddressChangeRequest(securityServer, address)));
+                            builder.buildAddressChangeRequest(securityServer, address), signatureDigestAlgorithm));
         }
     }
 
@@ -177,7 +181,7 @@ public final class ManagementRequestSender {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new MaintenanceModeEnableRequest(signerRpcClient, signerSignClient, securityServer.getOwner(),
-                            builder.buildMaintenanceModeEnableRequest(securityServer, message)));
+                            builder.buildMaintenanceModeEnableRequest(securityServer, message), signatureDigestAlgorithm));
         }
     }
 
@@ -192,7 +196,7 @@ public final class ManagementRequestSender {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new MaintenanceModeDisableRequest(signerRpcClient, signerSignClient, securityServer.getOwner(),
-                            builder.buildMaintenanceModeDisableRequest(securityServer)));
+                            builder.buildMaintenanceModeDisableRequest(securityServer), signatureDigestAlgorithm));
         }
     }
 
@@ -208,7 +212,7 @@ public final class ManagementRequestSender {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new ClientRegRequest(signerRpcClient, signerSignClient,
-                            clientId, builder.buildClientRegRequest(securityServer, clientId, clientName)));
+                            clientId, builder.buildClientRegRequest(securityServer, clientId, clientName), signatureDigestAlgorithm));
         }
     }
 
@@ -239,7 +243,7 @@ public final class ManagementRequestSender {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new OwnerChangeRequest(signerRpcClient, signerSignClient,
-                            clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
+                            clientId, builder.buildOwnerChangeRequest(securityServer, clientId), signatureDigestAlgorithm));
         }
     }
 
@@ -248,7 +252,8 @@ public final class ManagementRequestSender {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new ClientDisableRequest(signerRpcClient, signerSignClient,
-                            clientId, builder.buildClientDisableRequest(securityServer, clientId)));
+                            clientId, builder.buildClientDisableRequest(securityServer, clientId),
+                            signatureDigestAlgorithm));
         }
     }
 
@@ -257,7 +262,7 @@ public final class ManagementRequestSender {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new ClientEnableRequest(signerRpcClient, signerSignClient,
-                            clientId, builder.buildClientEnableRequest(securityServer, clientId)));
+                            clientId, builder.buildClientEnableRequest(securityServer, clientId), signatureDigestAlgorithm));
         }
     }
 
@@ -266,7 +271,7 @@ public final class ManagementRequestSender {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new ClientRenameRequest(signerRpcClient, signerSignClient, clientId,
-                            builder.buildClientRenameRequest(securityServer, clientId, subsystemName)));
+                            builder.buildClientRenameRequest(securityServer, clientId, subsystemName), signatureDigestAlgorithm));
         }
     }
 
