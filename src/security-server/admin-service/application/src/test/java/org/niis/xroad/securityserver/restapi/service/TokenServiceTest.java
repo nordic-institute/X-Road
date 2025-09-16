@@ -35,6 +35,7 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -65,6 +66,9 @@ public class TokenServiceTest extends AbstractServiceTestContext {
 
     @Autowired
     AuditDataHelper auditDataHelper;
+
+    @Autowired
+    AdminServiceProperties adminServiceProperties;
 
     // token ids for mocking
     private static final String WRONG_SOFTTOKEN_PIN_TOKEN_ID = "wrong-soft-pin";
@@ -277,7 +281,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
     }
 
     private void mockPossibleActionsRuleEngineAllowAll() {
-        possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
+        possibleActionsRuleEngine = new PossibleActionsRuleEngine(adminServiceProperties) {
             @Override
             public void requirePossibleTokenAction(PossibleActionEnum action, TokenInfo token) throws
                     ActionNotPossibleException {

@@ -186,6 +186,9 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     boolean acmeChallengePortEnabled;
     int acmeChallengePort;
 
+    // whether generating CSR is allowed for with existing certificate, 'false' by default
+    boolean allowCsrForKeyWithCertificate;
+
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
         EnumMap<Role, List<String>> userRoleMappings = new EnumMap<>(Role.class);

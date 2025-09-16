@@ -25,9 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import org.junit.Test;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -35,6 +34,7 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.EnumSet;
 
@@ -42,12 +42,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.signer.client.SignerRpcClient.SSL_TOKEN_ID;
 
 public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
 
     @Autowired
     PossibleActionsRuleEngine possibleActionsRuleEngine;
+
+    @MockitoBean
+    AdminServiceProperties adminServiceProperties;
 
     @Test
     public void getPossibleCertificateActionUnregister() {
@@ -466,8 +470,7 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
         assertFalse(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
 
         // possible if key has certificate and system property is set to allow csr
-        boolean currValue = SystemProperties.getAllowCsrForKeyWithCertificate();
-        System.setProperty(SystemProperties.PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE, "true");
+        when(adminServiceProperties.isAllowCsrForKeyWithCertificate()).thenReturn(true);
         tokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .id(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)
                 .key(new TokenTestUtils.KeyInfoBuilder()
@@ -478,7 +481,7 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
         actions = getPossibleKeyActions(tokenInfo);
         assertTrue(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
         assertTrue(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
-        System.setProperty(SystemProperties.PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE, String.valueOf(currValue));
+        when(adminServiceProperties.isAllowCsrForKeyWithCertificate()).thenReturn(false);
 
         // not possible if token is not softtoken
         tokenInfo = new TokenTestUtils.TokenInfoBuilder()
@@ -570,8 +573,7 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
         assertFalse(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
 
         // possible if key has certificate and allowed in properties
-        boolean currVal = SystemProperties.getAllowCsrForKeyWithCertificate();
-        System.setProperty(SystemProperties.PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE, "true");
+        when(adminServiceProperties.isAllowCsrForKeyWithCertificate()).thenReturn(true);
         tokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .key(new TokenTestUtils.KeyInfoBuilder()
                         .keyUsageInfo(null)
@@ -581,7 +583,7 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
         assertTrue(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
-        System.setProperty(SystemProperties.PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE, String.valueOf(currVal));
+        when(adminServiceProperties.isAllowCsrForKeyWithCertificate()).thenReturn(false);
 
         // not possible if usage = auth
         tokenInfo = new TokenTestUtils.TokenInfoBuilder()
@@ -634,6 +636,6 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
 
         actions = getPossibleKeyActions(unsaved);
         assertTrue(actions.contains(PossibleActionEnum.EDIT_FRIENDLY_NAME));
-
     }
+
 }

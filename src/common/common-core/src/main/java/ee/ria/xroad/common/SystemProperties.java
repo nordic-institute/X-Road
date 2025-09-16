@@ -96,10 +96,6 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_REGULAR_API_WHITELIST =
             PREFIX + "proxy-ui-api.regular-api-whitelist";
 
-    /** property name of the flag to allow generating csr for key with certificates */
-    public static final String PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE =
-            PREFIX + "proxy-ui-api.allow-csr-for-key-with-certificate";
-
     // Proxy ------------------------------------------------------------------
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
@@ -177,8 +173,6 @@ public final class SystemProperties {
     private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = FALSE;
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = FALSE;
-
-    private static final String DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE = FALSE;
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
@@ -431,14 +425,6 @@ public final class SystemProperties {
     public static String getRegularApiWhitelist() {
         return getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
                 DEFAULT_REGULAR_API_WHITELIST);
-    }
-
-    /**
-     * @return whether generating CSR is allowed for with existing certificate, 'false' by default
-     */
-    public static boolean getAllowCsrForKeyWithCertificate() {
-        return Boolean.parseBoolean(getProperty(PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE,
-                DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE));
     }
 
     /**
