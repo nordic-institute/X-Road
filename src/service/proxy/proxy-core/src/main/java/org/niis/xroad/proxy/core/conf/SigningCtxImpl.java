@@ -32,13 +32,14 @@ import ee.ria.xroad.common.signature.SignatureData;
 
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.signature.SignatureBuilder;
 import org.niis.xroad.proxy.core.signedmessage.SigningKey;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
  * such as currently used signing key and cert.
  */
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SigningCtxImpl implements SigningCtx {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
@@ -71,7 +71,7 @@ public class SigningCtxImpl implements SigningCtx {
     private final X509Certificate cert;
 
     @Override
-    public SignatureData buildSignature(SignatureBuilder builder) throws Exception {
+    public SignatureData buildSignature(SignatureBuilder builder) throws CertificateEncodingException, IOException {
         List<X509Certificate> extraCerts = getIntermediateCaCerts();
         List<OCSPResp> ocspResponses = getOcspResponses(extraCerts);
 
@@ -82,7 +82,7 @@ public class SigningCtxImpl implements SigningCtx {
         return builder.build(key, messageSignDigestAlgorithm);
     }
 
-    private List<OCSPResp> getOcspResponses(List<X509Certificate> certs) throws Exception {
+    private List<OCSPResp> getOcspResponses(List<X509Certificate> certs) throws CertificateEncodingException, IOException {
         List<X509Certificate> allCerts = new ArrayList<>(certs.size() + 1);
         allCerts.add(cert);
         allCerts.addAll(certs);
@@ -90,7 +90,7 @@ public class SigningCtxImpl implements SigningCtx {
         return keyConfProvider.getAllOcspResponses(allCerts);
     }
 
-    private List<X509Certificate> getIntermediateCaCerts() throws Exception {
+    private List<X509Certificate> getIntermediateCaCerts() throws CertificateEncodingException, IOException {
         CertChain chain = globalConfProvider.getCertChain(subject.getXRoadInstance(), cert);
 
         if (chain == null) {

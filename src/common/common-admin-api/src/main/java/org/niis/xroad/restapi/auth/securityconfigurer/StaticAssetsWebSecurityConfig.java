@@ -46,7 +46,7 @@ public class StaticAssetsWebSecurityConfig {
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain staticAssetsSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .securityMatcher(

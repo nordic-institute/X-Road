@@ -131,6 +131,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     SERVICE_MALFORMED_URL("service_malformed_url"),
     ADAPTER_WSDL_NOT_FOUND("adapter_wsdl_not_found"),
     HW_MODULE_NON_OPERATIONAL("hsm_non_operational"),
+    HW_MODULE_INTERNAL_ERROR("hsm_internal_error"),
     MAINTENANCE_MODE("maintenance_mode"),
 
     // ===== SIGNER ERRORS =====
@@ -154,7 +155,6 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     NO_MEMBERID("cannot_find_member"),
     LOGIN_FAILED("login_failed"),
     LOGOUT_FAILED("logout_failed"),
-    PIN_INCORRECT("pin_incorrect"),
     CERT_IMPORT_FAILED("cert_import_failed"),
     TOKEN_PIN_POLICY_FAILURE("token_pin_policy_failure"),
 

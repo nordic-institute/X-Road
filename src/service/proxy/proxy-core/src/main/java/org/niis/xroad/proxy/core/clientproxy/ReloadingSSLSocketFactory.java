@@ -27,7 +27,7 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.SneakyThrows;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
@@ -37,6 +37,8 @@ import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @ApplicationScoped
@@ -52,12 +54,12 @@ public class ReloadingSSLSocketFactory extends SSLSocketFactory {
         reload();
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public void reload() {
         lock.writeLock().lock();
         try {
             internalFactory = SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider).getSocketFactory();
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw XrdRuntimeException.systemException(e);
         } finally {
             lock.writeLock().unlock();
         }

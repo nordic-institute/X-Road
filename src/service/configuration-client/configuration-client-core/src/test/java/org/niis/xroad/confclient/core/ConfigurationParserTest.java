@@ -28,6 +28,7 @@ package org.niis.xroad.confclient.core;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
@@ -158,7 +159,8 @@ class ConfigurationParserTest {
         if (!source.getLocations().isEmpty()) {
             ConfigurationParser parser = new ConfigurationParser(mock(ConfigurationDownloader.class)) {
                 @Override
-                protected InputStream getInputStream() throws Exception {
+                @SneakyThrows
+                protected InputStream getInputStream() {
                     return new FileInputStream(path + ".txt");
                 }
             };

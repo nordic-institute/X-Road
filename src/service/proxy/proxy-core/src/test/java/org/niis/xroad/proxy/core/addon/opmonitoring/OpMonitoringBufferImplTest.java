@@ -48,6 +48,13 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -85,7 +92,9 @@ class OpMonitoringBufferImplTest {
         @Override
         OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
                                               OpMonitorCommonProperties opMonitorCommonProperties,
-                                              VaultClient vaultClient) throws Exception {
+                                              VaultClient vaultClient)
+                throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+                NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
             return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorCommonProperties, vaultClient) {
                 @Override
                 CloseableHttpClient createHttpClient() {

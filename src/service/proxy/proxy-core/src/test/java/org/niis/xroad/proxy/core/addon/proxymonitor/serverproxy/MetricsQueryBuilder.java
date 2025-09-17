@@ -48,7 +48,7 @@ public class MetricsQueryBuilder implements SoapBuilder.SoapBodyCallback {
     }
 
     @Override
-    public void create(SOAPBody soapBody) throws Exception {
+    public void create(SOAPBody soapBody) {
 
         Document doc = soapBody.getOwnerDocument();
         Element metricsNode = doc.createElementNS(NS_MONITORING, "getSecurityServerMetrics");

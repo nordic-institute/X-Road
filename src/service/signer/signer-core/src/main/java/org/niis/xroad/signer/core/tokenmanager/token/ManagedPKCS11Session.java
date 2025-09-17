@@ -73,12 +73,13 @@ public class ManagedPKCS11Session {
      */
     public boolean login() throws PKCS11Exception {
         try {
-            char[] password = PasswordStore.getPassword(tokenId);
-            if (password == null) {
+            var password = PasswordStore.getPassword(tokenId);
+
+            if (password.isEmpty()) {
                 log.warn("Cannot login, no password stored for token {}", tokenId);
                 return false;
             }
-            session.login(Session.CKUserType.USER, password);
+            session.login(Session.CKUserType.USER, password.get());
             log.trace("Successfully logged in to session for token {}", tokenId);
             return true;
         } catch (PKCS11Exception pkcs11Exception) {

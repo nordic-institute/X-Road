@@ -26,12 +26,17 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
+import lombok.SneakyThrows;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.util.List;
 
 import static org.niis.xroad.proxy.core.addon.messagelog.TimestamperUtil.getTimestampResponse;
@@ -57,8 +62,8 @@ class TestTimestamperWorker extends TimestamperWorker {
     protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
         return new SingleTimestampRequest(logRecordManager, globalConfProvider, logRecord) {
             @Override
-            protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
-                    throws Exception {
+            @SneakyThrows
+            protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls) {
                 synchronized (lock()) {
                     if (shouldFail) {
                         shouldFail = false;
@@ -75,7 +80,8 @@ class TestTimestamperWorker extends TimestamperWorker {
             }
 
             @Override
-            protected void verify(TimeStampRequest request, TimeStampResponse response) throws Exception {
+            protected void verify(TimeStampRequest request, TimeStampResponse response)
+                    throws CertificateEncodingException, IOException, OperatorCreationException, CMSException {
                 // do not validate against request
 
                 TimeStampToken token = response.getTimeStampToken();
@@ -88,8 +94,8 @@ class TestTimestamperWorker extends TimestamperWorker {
     protected AbstractTimestampRequest createBatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
         return new BatchTimestampRequest(globalConfProvider, logRecords, signatureHashes) {
             @Override
-            protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
-                    throws Exception {
+            @SneakyThrows
+            protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls) {
                 synchronized (lock()) {
                     if (shouldFail) {
                         shouldFail = false;
@@ -106,7 +112,8 @@ class TestTimestamperWorker extends TimestamperWorker {
             }
 
             @Override
-            protected void verify(TimeStampRequest request, TimeStampResponse response) throws Exception {
+            protected void verify(TimeStampRequest request, TimeStampResponse response)
+                    throws CertificateEncodingException, IOException, OperatorCreationException, CMSException {
                 // do not validate against request
 
                 TimeStampToken token = response.getTimeStampToken();

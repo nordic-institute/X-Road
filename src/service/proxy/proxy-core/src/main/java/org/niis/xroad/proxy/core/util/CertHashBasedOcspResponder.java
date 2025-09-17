@@ -70,7 +70,7 @@ import static org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient.SH
 @Slf4j
 @ApplicationScoped
 @Startup
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class CertHashBasedOcspResponder {
 
     private static final String METHOD_HEAD = "HEAD";
@@ -158,7 +158,7 @@ public class CertHashBasedOcspResponder {
         }
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private final class RequestHandler extends Handler.Abstract {
         @Override
         public boolean handle(Request request, Response response, Callback callback) {

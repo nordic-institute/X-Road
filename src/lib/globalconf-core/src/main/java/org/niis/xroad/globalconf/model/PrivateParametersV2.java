@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import lombok.Getter;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.privateparameters.v2.ObjectFactory;
 import org.niis.xroad.globalconf.schema.privateparameters.v2.PrivateParametersType;
@@ -85,7 +84,7 @@ public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> 
     }
 
     @Override
-    public void load(String fileName) throws IOException, OperatorCreationException, JAXBException, IllegalAccessException {
+    public void load(String fileName) {
         throwIfInitCompleted();
         super.load(fileName);
     }

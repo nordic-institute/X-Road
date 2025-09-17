@@ -46,7 +46,6 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
 
 import javax.net.ssl.KeyManager;
@@ -57,6 +56,8 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import java.net.Socket;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -69,7 +70,6 @@ import java.security.cert.X509Certificate;
 @Slf4j
 @ApplicationScoped
 @UtilityClass
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class OpMonitoringDaemonHttpClient {
 
     // HttpClient configuration parameters.
@@ -83,11 +83,10 @@ public final class OpMonitoringDaemonHttpClient {
      * @param vaultClient trust provider for TLS
      * @param authKey     the client's authentication key
      * @return HTTP client
-     * @throws Exception if creating a HTTPS client and SSLContext initialization fails
      */
     public static CloseableHttpClient createHttpClient(OpMonitorCommonProperties opMonitorCommonProperties,
                                                        VaultClient vaultClient,
-                                                       InternalSSLKey authKey) throws Exception {
+                                                       InternalSSLKey authKey) throws NoSuchAlgorithmException, KeyManagementException {
         int connectionTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().connectionTimeoutSeconds());
         int socketTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().socketTimeoutSeconds());
 
@@ -106,14 +105,14 @@ public final class OpMonitoringDaemonHttpClient {
      * @param connectionTimeoutMilliseconds connection timeout in milliseconds
      * @param socketTimeoutMilliseconds     socket timeout in milliseconds
      * @return HTTP client
-     * @throws Exception if creating a HTTPS client and SSLContext
-     *                   initialization fails
+     * initialization fails
      */
     public static CloseableHttpClient createHttpClient(OpMonitorCommonProperties opMonitorCommonProperties,
                                                        InternalSSLKey authKey,
                                                        VaultClient vaultClient,
                                                        int clientMaxTotalConnections, int clientMaxConnectionsPerRoute,
-                                                       int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
+                                                       int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds)
+            throws NoSuchAlgorithmException, KeyManagementException {
         log.trace("createHttpClient()");
 
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
@@ -145,7 +144,8 @@ public final class OpMonitoringDaemonHttpClient {
     }
 
     private static SSLConnectionSocketFactory createSSLSocketFactory(InternalSSLKey authKey,
-                                                                     VaultClient vaultClient) throws Exception {
+                                                                     VaultClient vaultClient)
+            throws NoSuchAlgorithmException, KeyManagementException {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
 
         ctx.init(new KeyManager[]{new OpMonitorClientKeyManager(authKey)},

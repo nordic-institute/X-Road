@@ -31,7 +31,9 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
-import lombok.SneakyThrows;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
+import java.io.IOException;
 
 @EqualsAndHashCode(doNotUseGetters = true)
 public class CertHash {
@@ -54,11 +56,13 @@ public class CertHash {
         this.cert = null;
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public byte[] getHash(@NonNull DigestAlgorithm algorithmId) {
         if (cert != null) {
-            return Digests.calculateDigest(algorithmId, cert);
+            try {
+                return Digests.calculateDigest(algorithmId, cert);
+            } catch (IOException e) {
+                throw XrdRuntimeException.systemException(e);
+            }
         } else if (algorithmId.equals(this.algorithm)) {
             return hash;
         }

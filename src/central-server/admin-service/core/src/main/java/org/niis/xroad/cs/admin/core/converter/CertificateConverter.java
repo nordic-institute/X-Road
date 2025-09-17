@@ -30,13 +30,15 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.EncoderUtils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.security.PublicKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
@@ -59,43 +61,52 @@ public class CertificateConverter {
         if (cert == null) {
             return null;
         }
-        CertificateDetails certificateDetails = new CertificateDetails();
-        populateCertificateDetails(certificateDetails, cert);
-        return certificateDetails;
+        try {
+            var certificateDetails = new CertificateDetails();
+            populateCertificateDetails(certificateDetails, cert);
+            return certificateDetails;
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     public CertificateDetails toCertificateDetails(final X509Certificate certificate) {
-        CertificateDetails certificateDetails = new CertificateDetails();
-        populateCertificateDetails(certificateDetails, certificate);
-        return certificateDetails;
+        try {
+            var certificateDetails = new CertificateDetails();
+            populateCertificateDetails(certificateDetails, certificate);
+            return certificateDetails;
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     public SecurityServerAuthenticationCertificateDetails toCertificateDetails(final AuthCertEntity authCert) {
-        SecurityServerAuthenticationCertificateDetails authCertificateDetails =
-                new SecurityServerAuthenticationCertificateDetails(authCert.getId());
-        populateCertificateDetails(authCertificateDetails, authCert.getCert());
-        return authCertificateDetails;
+        try {
+            var authCertificateDetails = new SecurityServerAuthenticationCertificateDetails(authCert.getId());
+            populateCertificateDetails(authCertificateDetails, authCert.getCert());
+            return authCertificateDetails;
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    private void populateCertificateDetails(final CertificateDetails certificateDetails, final X509Certificate certificate) {
 
+    private void populateCertificateDetails(final CertificateDetails certificateDetails, final X509Certificate certificate)
+            throws CertificateEncodingException, IOException {
         populateCertificateDetails(certificateDetails, certificate, certificate.getEncoded());
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    private void populateCertificateDetails(final CertificateDetails certificateDetails, byte[] cert) {
+
+    private void populateCertificateDetails(final CertificateDetails certificateDetails, byte[] cert)
+            throws CertificateEncodingException, IOException {
         final X509Certificate[] certificates = CertUtils.readCertificateChain(cert);
         final X509Certificate certificate = certificates[0];
 
         populateCertificateDetails(certificateDetails, certificate, cert);
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    private void populateCertificateDetails(final CertificateDetails certificateDetails, final X509Certificate certificate, byte[] cert) {
+    private void populateCertificateDetails(final CertificateDetails certificateDetails, final X509Certificate certificate, byte[] cert)
+            throws CertificateEncodingException, IOException {
         certificateDetails
                 .setHash(CryptoUtils.calculateCertHexHash(certificate.getEncoded()).toUpperCase())
                 .setVersion(certificate.getVersion())

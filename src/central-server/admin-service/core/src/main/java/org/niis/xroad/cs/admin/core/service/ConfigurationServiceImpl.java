@@ -33,7 +33,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
@@ -58,6 +58,7 @@ import org.niis.xroad.cs.admin.core.validation.ConfigurationPartValidator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -260,10 +261,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         saveConfigurationPart(contentIdentifier, partFileName, data, 0);
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private String getFileHash(byte[] data) {
-        return Digests.hexDigest(DEFAULT_UPLOAD_FILE_HASH_ALGORITHM, data);
+        try {
+            return Digests.hexDigest(DEFAULT_UPLOAD_FILE_HASH_ALGORITHM, data);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     private boolean isForCurrentNode(DistributedFileEntity distributedFile) {

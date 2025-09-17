@@ -25,14 +25,11 @@
  */
 package ee.ria.xroad.common.conf;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-
 import java.io.OutputStream;
 
 /**
  * File based configuration.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public interface ConfProvider {
 
     /**
@@ -45,21 +42,23 @@ public interface ConfProvider {
 
     /**
      * Loads the conf from given file.
+     *
      * @param fileName the file name
-     * @throws Exception if loading fails
+     *
      */
-    void load(String fileName) throws Exception;
+    void load(String fileName);
 
     /**
      * Saves the configuration to the file it was loaded from.
-     * @throws Exception if saving fails
+     *
      */
-    void save() throws Exception;
+    void save();
 
     /**
      * Saves the configuration to the output stream.
+     *
      * @param out the output stream
-     * @throws Exception if saving fails
+     *
      */
-    void save(OutputStream out) throws Exception;
+    void save(OutputStream out);
 }

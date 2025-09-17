@@ -34,7 +34,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.jose4j.jws.AlgorithmIdentifiers;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.mail.MailNotificationProperties;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
@@ -443,7 +442,6 @@ public final class AcmeService {
         return getRenewalInfo(memberId, approvedCA, certificate, keyUsage).getSuggestedWindowStart();
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public Instant getNextRenewalTime(String memberId, ApprovedCAInfo approvedCA, X509Certificate x509Certificate, KeyUsageInfo keyUsage) {
         try {
             if (hasRenewalInfo(memberId, approvedCA, keyUsage)) {

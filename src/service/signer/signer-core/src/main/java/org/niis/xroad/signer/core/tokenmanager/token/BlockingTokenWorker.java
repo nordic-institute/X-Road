@@ -109,19 +109,18 @@ public class BlockingTokenWorker implements TokenWorker, WorkerWithLifecycle {
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public void refresh() throws Exception {
+    public void refresh() {
         writeAction(tokenWorker::refresh);
     }
 
     @FunctionalInterface
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public interface ThrowingSupplier<T, E extends Exception> {
         T get() throws E;
     }
 
     @FunctionalInterface
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public interface ThrowingRunnable<E extends Exception> {
         void run() throws E;
     }

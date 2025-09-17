@@ -34,8 +34,8 @@ import com.google.common.cache.CacheBuilder;
 import jakarta.annotation.PreDestroy;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
@@ -44,8 +44,10 @@ import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.security.PrivateKey;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -62,7 +64,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
  */
 @Slf4j
 @Singleton
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class CachingKeyConfImpl extends KeyConfImpl {
 
     // Specifies how long data is cached
@@ -96,6 +97,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     @PreDestroy
     public void destroy() {
         invalidateCaches();
+
         super.destroy();
     }
 
@@ -146,7 +148,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
         }
     }
 
-    protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
+    protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws CertificateException, IOException, OCSPException {
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
         var keyInfo = signerRpcClient.getAuthKey(serverId);

@@ -26,7 +26,6 @@
 package org.niis.xroad.proxy.core.antidos;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.util.SystemMetrics;
 
@@ -43,7 +42,6 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Manages the incoming connections and prevents system resource exhaustion.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class AntiDosConnectionManager<T extends SocketChannelWrapper> {
 
     // Tiny wrapper class for active connections of a partner
@@ -84,7 +82,7 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
         this.database.put(UNKNOWN_ORG_IP, new HostData());
     }
 
-    void init() throws Exception {
+    void init() {
         // Populate the database based on registered members' IPs.
         syncDatabase();
     }

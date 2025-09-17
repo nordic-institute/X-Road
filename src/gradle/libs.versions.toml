@@ -28,7 +28,7 @@ apacheCxf = "4.1.3"
 liquibase = "4.33.0"
 archUnitPlugin = "4.0.0"
 protobufPlugin = "0.9.5"
-checkstyle = "10.22.0"
+checkstyle = "11.0.1"
 jacoco = "0.8.12"
 resilience4j = "2.3.0"
 quarkus = "3.26.3"
@@ -230,5 +230,5 @@ protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.2.0" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
-shadow = { id = "com.gradleup.shadow", version = "8.3.8" }
+shadow = { id = "com.gradleup.shadow", version = "8.3.9" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }

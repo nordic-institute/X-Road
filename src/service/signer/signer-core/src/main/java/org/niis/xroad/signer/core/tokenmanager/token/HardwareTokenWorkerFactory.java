@@ -45,11 +45,11 @@ import jakarta.xml.bind.DatatypeConverter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -64,8 +64,10 @@ import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
+import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.cert.CertPath;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -73,6 +75,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -99,7 +102,6 @@ import static org.niis.xroad.signer.core.util.SignerUtil.keyId;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class HardwareTokenWorkerFactory {
     private final SignerHwTokenAddonProperties hwTokenAddonProperties;
     private final CertManager certManager;
@@ -111,7 +113,6 @@ public class HardwareTokenWorkerFactory {
         return new HardwareTokenWorker(tokenInfo, tokenDefinition);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public class HardwareTokenWorker extends AbstractTokenWorker implements HardwareTokenSigner.SignPrivateKeyProvider {
         // maps key id (hex) to PrivateKey
         private final Map<String, PrivateKey> privateKeyCache = new HashMap<>();
@@ -173,7 +174,7 @@ public class HardwareTokenWorkerFactory {
         }
 
         @Override
-        public void refresh() throws Exception {
+        public void refresh() {
             log.trace("refresh()");
 
             if (tokenLookup.isTokenAvailable(tokenId) && managementSessionProvider != null) {
@@ -244,7 +245,7 @@ public class HardwareTokenWorkerFactory {
             return tokenLookup.findKeyInfo(keyId);
         }
 
-        private GenerateKeyResult generateKey(GenerateKeyReq message) throws Exception {
+        private GenerateKeyResult generateKey(GenerateKeyReq message) {
             log.trace("generateKeys()");
 
             assertTokenWritable();
@@ -282,7 +283,7 @@ public class HardwareTokenWorkerFactory {
         }
 
         @Override
-        protected void deleteKey(String keyId) throws Exception {
+        protected void deleteKey(String keyId) {
             log.trace("deleteKey({})", keyId);
 
             assertTokenWritable();
@@ -330,7 +331,7 @@ public class HardwareTokenWorkerFactory {
         }
 
         @Override
-        protected void deleteCert(String certId) throws Exception {
+        protected void deleteCert(String certId) {
             log.trace("deleteCert({})", certId);
 
             assertTokenWritable();
@@ -369,7 +370,7 @@ public class HardwareTokenWorkerFactory {
         }
 
         @Override
-        protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
+        protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) {
             assertKeyAvailable(keyId);
 
             return signer.sign(keyId, signatureAlgorithmId, data);
@@ -377,7 +378,7 @@ public class HardwareTokenWorkerFactory {
 
         @Override
         protected byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
-                throws Exception {
+                throws CertIOException, CertificateException, NoSuchProviderException {
             log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
 
             assertKeyAvailable(keyId);
@@ -406,33 +407,27 @@ public class HardwareTokenWorkerFactory {
 
         // ------------------------------------------------------------------------
 
-        private void findKeysNotInConf() throws Exception {
+        private void findKeysNotInConf() {
             log.trace("findKeysNotInConf()");
 
-            try {
-                getActiveManagementSessionProvider().executeWithSession(session -> {
-                    var keysOnToken = findPublicKeys(session, tokenDefinition.pubKeyAttributes().getAllowedMechanisms());
+            getActiveManagementSessionProvider().executeWithSession(session -> {
+                var keysOnToken = findPublicKeys(session, tokenDefinition.pubKeyAttributes().getAllowedMechanisms());
 
-                    for (var keyOnToken : keysOnToken) {
-                        String keyId = keyId(keyOnToken);
+                for (var keyOnToken : keysOnToken) {
+                    String keyId = keyId(keyOnToken);
 
-                        if (keyId == null) {
-                            log.debug("Ignoring public key with no ID");
+                    if (keyId == null) {
+                        log.debug("Ignoring public key with no ID");
 
-                            continue;
-                        }
-
-                        processKey(keyId, keyOnToken);
+                        continue;
                     }
-                });
-            } catch (PKCS11Exception e) {
-                throw e;
-            } catch (Exception e) {
-                log.error("Failed to find keys from token '{}'", getWorkerId(), e);
-            }
+
+                    processKey(keyId, keyOnToken);
+                }
+            });
         }
 
-        private void processKey(String keyId, iaik.pkcs.pkcs11.objects.PublicKey keyOnToken) throws Exception {
+        private void processKey(String keyId, iaik.pkcs.pkcs11.objects.PublicKey keyOnToken) {
             KeyInfo key = tokenLookup.getKeyInfo(keyId);
 
             if (key == null) {
@@ -441,12 +436,13 @@ public class HardwareTokenWorkerFactory {
                 key = tokenLookup.getKeyInfo(keyId);
                 log.debug("Found new key with id '{}' on token '{}'", keyId, getWorkerId());
             }
-
             // update the key label
             char[] label = keyOnToken.getLabel().getCharArrayValue();
-
             if (label != null) {
-                keyManager.setKeyLabel(keyId, new String(label));
+                var labelStr = new String(label);
+                if (!Objects.equals(labelStr, key.getLabel())) {
+                    keyManager.setKeyLabel(keyId, labelStr);
+                }
             }
 
             if (key.getPublicKey() == null) {
@@ -455,7 +451,7 @@ public class HardwareTokenWorkerFactory {
         }
 
         @Override
-        public PrivateKey getPrivateKey(ManagedPKCS11Session session, String keyId) throws TokenException {
+        public PrivateKey getPrivateKey(ManagedPKCS11Session session, String keyId) {
             PrivateKey privateKey = privateKeyCache.get(keyId);
             if (privateKey == null) {
                 log.debug("Key {} not found in cache, trying to find it from hardware token", keyId);
@@ -465,7 +461,7 @@ public class HardwareTokenWorkerFactory {
             return privateKey;
         }
 
-        private void findPublicKeysForPrivateKeys() throws Exception {
+        private void findPublicKeysForPrivateKeys() {
             log.trace("findPublicKeysForPrivateKeys()");
 
             for (KeyInfo key : tokenLookup.listKeys(tokenId)) {
@@ -475,75 +471,65 @@ public class HardwareTokenWorkerFactory {
             }
         }
 
-        private void findCertificatesNotInConf() throws Exception {
+        private void findCertificatesNotInConf() {
             log.trace("findCertificatesNotInConf()");
 
-            try {
-                getActiveManagementSessionProvider().executeWithSession(session -> {
-                    List<X509PublicKeyCertificate> certsOnModule = findPublicKeyCertificates(session);
-                    List<KeyInfo> existingKeys = tokenLookup.listKeys(tokenId);
+            getActiveManagementSessionProvider().executeWithSession(session -> {
+                List<X509PublicKeyCertificate> certsOnModule = findPublicKeyCertificates(session);
+                List<KeyInfo> existingKeys = tokenLookup.listKeys(tokenId);
 
-                    for (X509PublicKeyCertificate certOnModule : certsOnModule) {
-                        byte[] certBytes = certOnModule.getValue().getByteArrayValue();
+                for (X509PublicKeyCertificate certOnModule : certsOnModule) {
+                    byte[] certBytes = certOnModule.getValue().getByteArrayValue();
 
-                        for (KeyInfo key : existingKeys) {
-                            if (key.getId().equals(keyId(certOnModule)) && !hasCert(key, certBytes)) {
-                                log.debug("Found new certificate for key '{}'", key.getId());
+                    for (KeyInfo key : existingKeys) {
+                        if (key.getId().equals(keyId(certOnModule)) && !hasCert(key, certBytes)) {
+                            log.debug("Found new certificate for key '{}'", key.getId());
 
-                                certManager.addTransientCert(key.getId(), certBytes);
-                                putCert(key.getId(), certOnModule);
-                            }
+                            certManager.addTransientCert(key.getId(), certBytes);
+                            putCert(key.getId(), certOnModule);
                         }
                     }
-                });
-            } catch (PKCS11Exception e) {
-                throw e;
-            } catch (Exception e) {
-                log.error("Failed to find certificates not in conf", e);
-            }
+                }
+            });
         }
 
-        private void updatePublicKey(String keyId) throws Exception {
+        private void updatePublicKey(String keyId) {
             log.trace("updatePublicKey({})", keyId);
 
-            try {
-                getActiveManagementSessionProvider().executeWithSession(session -> {
-                    String publicKeyBase64;
 
-                    var publicKey = findPublicKey(session, keyId, tokenDefinition.pubKeyAttributes().getAllowedMechanisms());
+            getActiveManagementSessionProvider().executeWithSession(session -> {
+                String publicKeyBase64;
 
-                    switch (publicKey) {
-                        case RSAPublicKey rsaPublicKey -> {
-                            publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(RSA).generateX509PublicKey(rsaPublicKey));
-                            keyManager.setPublicKey(keyId, publicKeyBase64);
-                        }
-                        case ECDSAPublicKey ecPublicKey -> {
-                            publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(EC).generateX509PublicKey(ecPublicKey));
-                            keyManager.setPublicKey(keyId, publicKeyBase64);
-                        }
-                        case null, default -> {
-                            X509PublicKeyCertificate first = certs.get(keyId).getFirst();
-                            X509Certificate cert = CryptoUtils.readCertificate(first.getValue().getByteArrayValue());
-                            publicKeyBase64 = encodeBase64(cert.getPublicKey().getEncoded());
-                        }
-                    }
+                var publicKey = findPublicKey(session, keyId, tokenDefinition.pubKeyAttributes().getAllowedMechanisms());
 
-                    if (publicKeyBase64 != null) {
-                        log.debug("Found public key for key '{}'...", keyId);
-
+                switch (publicKey) {
+                    case RSAPublicKey rsaPublicKey -> {
+                        publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(RSA).generateX509PublicKey(rsaPublicKey));
                         keyManager.setPublicKey(keyId, publicKeyBase64);
                     }
-                });
-            } catch (PKCS11Exception e) {
-                throw e;
-            } catch (Exception e) {
-                log.error("Failed to find public key for key " + keyId, e);
-            }
+                    case ECDSAPublicKey ecPublicKey -> {
+                        publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(EC).generateX509PublicKey(ecPublicKey));
+                        keyManager.setPublicKey(keyId, publicKeyBase64);
+                    }
+                    case null, default -> {
+                        X509PublicKeyCertificate first = certs.get(keyId).getFirst();
+                        X509Certificate cert = CryptoUtils.readCertificate(first.getValue().getByteArrayValue());
+                        publicKeyBase64 = encodeBase64(cert.getPublicKey().getEncoded());
+                    }
+                }
+
+                if (publicKeyBase64 != null) {
+                    log.debug("Found public key for key '{}'...", keyId);
+
+                    keyManager.setPublicKey(keyId, publicKeyBase64);
+                }
+            });
+
         }
 
         // ------------------------------------------------------------------------
 
-        private void initialize() throws Exception {
+        private void initialize() throws TokenException {
             log.trace("initialize()");
 
             closeActiveSessions();
@@ -555,10 +541,9 @@ public class HardwareTokenWorkerFactory {
             updateTokenInfo();
         }
 
-        private void login() throws Exception {
-            char[] password = PasswordStore.getPassword(tokenId);
+        private void login() throws TokenException {
 
-            if (password == null) {
+            if (PasswordStore.getPassword(tokenId).isEmpty()) {
                 log.debug("Cannot login, no password stored");
 
                 return;
@@ -583,7 +568,7 @@ public class HardwareTokenWorkerFactory {
             }
         }
 
-        private void logout() throws Exception {
+        private void logout() throws TokenException {
             if (managementSessionProvider == null) {
                 return;
             }
@@ -609,7 +594,7 @@ public class HardwareTokenWorkerFactory {
         }
 
 
-        private void loadPrivateKeys(ManagedPKCS11Session session) throws Exception {
+        private void loadPrivateKeys(ManagedPKCS11Session session) {
             if (managementSessionProvider == null) {
                 return;
             }
@@ -687,7 +672,7 @@ public class HardwareTokenWorkerFactory {
             return ((HardwareTokenDefinition) tokenDefinition).token();
         }
 
-        private void setTokenStatusFromErrorCode(long errorCode) throws Exception {
+        private void setTokenStatusFromErrorCode(long errorCode) throws TokenException {
             TokenStatusInfo status = getTokenStatus(getToken().getTokenInfo(), errorCode);
 
             if (status != null) {

@@ -35,7 +35,7 @@ import static org.niis.xroad.confproxy.ConfProxyProperties.CONF_INI;
 /**
  * Utility tool for deleting signing keys from a configuration proxy instance.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfProxyUtilDelSigningKey extends ConfProxyUtil {
 
     /**

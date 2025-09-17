@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
@@ -43,7 +42,6 @@ import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
@@ -57,7 +55,6 @@ import java.util.Set;
  * return nulls. You can extend this class and override only the
  * more interesting methods.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class EmptyGlobalConf implements GlobalConfProvider {
 
     private static final int DEFAULT_TIMESTAMPING_INTERVAL = 60;
@@ -73,14 +70,12 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     private final GlobalConfExtensions globalConfExtensions = new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl());
 
     @Override
-    public List<String> getOcspResponderAddresses(X509Certificate org)
-            throws Exception {
+    public List<String> getOcspResponderAddresses(X509Certificate org) {
         return Collections.emptyList();
     }
 
     @Override
-    public List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert)
-            throws Exception {
+    public List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert) {
         return Collections.emptyList();
     }
 
@@ -90,8 +85,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public X509Certificate getCaCert(String instanceIdentifier,
-                                     X509Certificate orgCert) throws Exception {
+    public X509Certificate getCaCert(String instanceIdentifier, X509Certificate orgCert) {
         return null;
     }
 
@@ -112,8 +106,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<X509Certificate> getTspCertificates()
-            throws CertificateException {
+    public List<X509Certificate> getTspCertificates() {
         return null;
     }
 
@@ -155,7 +148,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public boolean authCertMatchesMember(X509Certificate cert,
-                                         ClientId memberId) throws Exception {
+                                         ClientId memberId) {
         return false;
     }
 
@@ -191,8 +184,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public CertChain getCertChain(String instanceIdentifier,
-                                  X509Certificate subject) throws Exception {
+    public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) {
         return null;
     }
 
@@ -263,7 +255,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception {
+    public SecurityServerId.Conf getServerId(X509Certificate cert) {
         return null;
     }
 
@@ -296,14 +288,14 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public AuthCertificateProfileInfo getAuthCertificateProfileInfo(
             AuthCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception {
+            X509Certificate cert) {
         return null;
     }
 
     @Override
     public SignCertificateProfileInfo getSignCertificateProfileInfo(
             SignCertificateProfileInfo.Parameters parametrers,
-            X509Certificate cert) throws Exception {
+            X509Certificate cert) {
         return null;
     }
 

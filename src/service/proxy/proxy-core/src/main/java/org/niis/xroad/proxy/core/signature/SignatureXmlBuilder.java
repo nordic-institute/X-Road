@@ -36,18 +36,22 @@ import ee.ria.xroad.common.util.XmlUtils;
 import jakarta.xml.bind.DatatypeConverter;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.xml.security.exceptions.XMLSecurityException;
+import org.apache.xml.security.keys.keyresolver.KeyResolverException;
 import org.apache.xml.security.signature.ObjectContainer;
 import org.apache.xml.security.signature.SignedInfo;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
 import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -113,7 +117,6 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 /**
  * Encapsulates the AsiC XAdES signature profile. This class creates the signature used in signing the messages.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 final class SignatureXmlBuilder {
 
     private static final String SIGNATURE_POLICY_IDENTIFIER = "urn:oid:1.3.6.1.4.1.3516.16.2";
@@ -140,7 +143,7 @@ final class SignatureXmlBuilder {
     private ObjectContainer objectContainer;
     private String documentName;
 
-    SignatureXmlBuilder(SigningRequest request, DigestAlgorithm hashAlgorithmId) throws Exception {
+    SignatureXmlBuilder(SigningRequest request, DigestAlgorithm hashAlgorithmId) {
         this.signingCert = request.getSigningCert();
         this.extraCertificates.addAll(request.getExtraCertificates());
         this.ocspResponses.addAll(request.getOcspResponses());
@@ -148,7 +151,7 @@ final class SignatureXmlBuilder {
     }
 
     byte[] createDataToBeSigned(String docName, ResourceResolverSpi resourceResolver, SignAlgorithm signatureAlgorithmUri)
-            throws Exception {
+            throws ParserConfigurationException, XMLSecurityException, IOException, CertificateEncodingException {
         this.documentName = docName;
 
         document = createDocument();
@@ -167,7 +170,7 @@ final class SignatureXmlBuilder {
         return createDataToBeSigned();
     }
 
-    String createSignatureXml(byte[] signatureValue) throws Exception {
+    String createSignatureXml(byte[] signatureValue) throws TransformerException {
         Element signatureValueElement = XmlUtils.getFirstElementByTagName(document, PREFIX_DS + SIGNATURE_VALUE_TAG)
                 .orElseThrow(() -> elementNotFound(PREFIX_DS + SIGNATURE_VALUE_TAG));
 
@@ -193,7 +196,7 @@ final class SignatureXmlBuilder {
         return hashAlgorithmId;
     }
 
-    private byte[] createDataToBeSigned() throws Exception {
+    private byte[] createDataToBeSigned() throws IOException, XMLSignatureException {
         try {
             SignedInfo si = signature.getSignedInfo();
 
@@ -206,12 +209,13 @@ final class SignatureXmlBuilder {
         }
     }
 
-    private void createObjectContainer() throws Exception {
+    private void createObjectContainer() throws XMLSignatureException {
         objectContainer = new ObjectContainer(document);
         signature.appendObject(objectContainer);
     }
 
-    private void createQualifyingProperties() throws Exception {
+    private void createQualifyingProperties()
+            throws KeyResolverException, CertificateEncodingException, IOException, XMLSignatureException {
         Element qualifyingProperties = createXadesElement(QUALIFYING_PROPS_TAG);
         qualifyingProperties.setAttribute(TARGET_ATTR, "#" + ID_SIGNATURE);
 
@@ -221,7 +225,8 @@ final class SignatureXmlBuilder {
         objectContainer.appendChild(qualifyingProperties);
     }
 
-    private Element createSignedProperties() throws Exception {
+    private Element createSignedProperties()
+            throws KeyResolverException, CertificateEncodingException, IOException, XMLSignatureException {
         String id = "signed-properties";
         Element signedProperties = createXadesElement(SIGNED_PROPS_TAG);
         signedProperties.setAttribute(ID_ATTRIBUTE, id);
@@ -235,7 +240,8 @@ final class SignatureXmlBuilder {
         return signedProperties;
     }
 
-    private void createSignedSignatureProperties(Element signedProperties) throws Exception {
+    private void createSignedSignatureProperties(Element signedProperties)
+            throws KeyResolverException, CertificateEncodingException, IOException {
         Element signedSignatureProperties = createXadesElement(signedProperties, SIGNED_SIGNATURE_PROPS_TAG);
 
         createSigningTime(signedSignatureProperties);
@@ -250,14 +256,15 @@ final class SignatureXmlBuilder {
         signingTime.setTextContent(DatatypeConverter.printDateTime(signatureSigningTime));
     }
 
-    private void createSigningCertificate(Element signedSignatureProperties) throws Exception {
+    private void createSigningCertificate(Element signedSignatureProperties)
+            throws KeyResolverException, CertificateEncodingException, IOException {
         Element signingCertificate = createXadesElement(signedSignatureProperties, SIGNING_CERTIFICATE_TAG);
         Element cert = createXadesElement(signingCertificate, CERT_TAG);
 
         createCertDigestAndIssuerSerial(signature.getKeyInfo().getX509Certificate(), cert);
     }
 
-    private void createSignaturePolicyIdentifier(Element signedSignatureProperties) throws Exception {
+    private void createSignaturePolicyIdentifier(Element signedSignatureProperties) {
         Element signaturePolicyIdentifier = createXadesElement(signedSignatureProperties,
                 SIGNATURE_POLICY_IDENTIFIER_TAG);
         Element signaturePolicyId = createXadesElement(signaturePolicyIdentifier, SIGNATURE_POLICY_ID_TAG);
@@ -278,7 +285,7 @@ final class SignatureXmlBuilder {
         description.setTextContent(SIGNATURE_POLICY_DESCRIPTION);
     }
 
-    private void createSigPolicyHash(Element signaturePolicyId) throws Exception {
+    private void createSigPolicyHash(Element signaturePolicyId) {
         Element sigPolicyHash = createXadesElement(signaturePolicyId, SIG_POLICY_HASH_TAG);
 
         createDigestAlgAndValue(SIGNATURE_POLICY_DIGEST_METHOD, SIGNATURE_POLICY_SHA512_DIGEST, sigPolicyHash);
@@ -307,7 +314,8 @@ final class SignatureXmlBuilder {
         }
     }
 
-    private void createCertDigestAndIssuerSerial(X509Certificate cert, Element certElement) throws Exception {
+    private void createCertDigestAndIssuerSerial(X509Certificate cert, Element certElement)
+            throws CertificateEncodingException, IOException {
         Element certDigest = createXadesElement(certElement, CERT_DIGEST_TAG);
         createCertDigestAlgAndValue(cert, certDigest);
 
@@ -315,11 +323,11 @@ final class SignatureXmlBuilder {
         createCertId(cert, issuerSerial);
     }
 
-    private void createCertDigestAlgAndValue(X509Certificate cert, Element element) throws Exception {
+    private void createCertDigestAlgAndValue(X509Certificate cert, Element element) throws CertificateEncodingException, IOException {
         createDigestAlgAndValue(getHashAlgorithmId(), digest(cert, getHashAlgorithmId()), element);
     }
 
-    private void createDigestAlgAndValue(DigestAlgorithm algorithmUri, String digest, Element element) throws Exception {
+    private void createDigestAlgAndValue(DigestAlgorithm algorithmUri, String digest, Element element) {
         Element digestMethod = createDsElement(element, DIGEST_METHOD_TAG);
         digestMethod.setAttribute(ALGORITHM_ATTRIBUTE, algorithmUri.uri());
 
@@ -335,7 +343,7 @@ final class SignatureXmlBuilder {
         issuerNumber.setTextContent(cert.getSerialNumber().toString());
     }
 
-    private Element createUnsignedProperties() throws Exception {
+    private Element createUnsignedProperties() throws CertificateEncodingException, IOException {
         Element unsignedProperties = createXadesElement(UNSIGNED_PROPS_TAG);
         Element unsignedSignatureProperties = createXadesElement(unsignedProperties, UNSIGNED_SIGNATURE_PROPS_TAG);
 
@@ -352,7 +360,7 @@ final class SignatureXmlBuilder {
         return unsignedProperties;
     }
 
-    private void createRevocationValues(Element unsignedSignatureProperties) throws Exception {
+    private void createRevocationValues(Element unsignedSignatureProperties) throws IOException {
         Element revocationValues = createXadesElement(unsignedSignatureProperties, REVOCATION_VALUES_TAG);
         Element ocspValues = createXadesElement(revocationValues, OCSP_VALUES_TAG);
 
@@ -369,7 +377,7 @@ final class SignatureXmlBuilder {
         encapsulatedOcspValue.setTextContent(encodeBase64(ocspResponse.getEncoded()));
     }
 
-    private void createCertificateValues(Element unsignedSignatureProperties) throws Exception {
+    private void createCertificateValues(Element unsignedSignatureProperties) throws CertificateEncodingException {
         Element certificateValues = createXadesElement(unsignedSignatureProperties, CERTIFFICATE_VALUES_TAG);
 
         int c = 1;
@@ -382,7 +390,8 @@ final class SignatureXmlBuilder {
         }
     }
 
-    private void createCompleteCertificateRefs(Element unsignedSignatureProperties) throws Exception {
+    private void createCompleteCertificateRefs(Element unsignedSignatureProperties)
+            throws CertificateEncodingException, IOException {
         Element completeCertificateRefs = createXadesElement(unsignedSignatureProperties,
                 COMPLETE_CERTIFICATE_REFS_TAG);
         completeCertificateRefs.setAttribute(ID_ATTRIBUTE, COMPLETE_CERTIFICATE_REFS_ID/* + masterHash*/);
@@ -421,11 +430,11 @@ final class SignatureXmlBuilder {
         return document.createElement(PREFIX_DS + name);
     }
 
-    private static String digest(X509Certificate cert, DigestAlgorithm method) throws Exception {
+    private static String digest(X509Certificate cert, DigestAlgorithm method) throws CertificateEncodingException, IOException {
         return digest(cert.getEncoded(), method);
     }
 
-    private static String digest(byte[] encoded, DigestAlgorithm method) throws Exception {
+    private static String digest(byte[] encoded, DigestAlgorithm method) throws IOException {
         return encodeBase64(calculateDigest(method, encoded));
     }
 }

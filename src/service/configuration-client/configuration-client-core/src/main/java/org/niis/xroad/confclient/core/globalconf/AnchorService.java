@@ -49,7 +49,6 @@ import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_
 @RequiredArgsConstructor
 @Slf4j
 @ApplicationScoped
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     private final ConfigurationClient configurationClient;
     private final ConfigurationClientActionExecutor configurationClientActionExecutor;
@@ -66,6 +65,7 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private VerificationResult verifyAndSaveConfigurationAnchor(byte[] anchorBytes) throws Exception {
         var configurationAnchor = new ConfigurationAnchor(anchorBytes);
         var paramsValidator = new ConfigurationClientActionExecutor
@@ -92,7 +92,7 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
         }
     }
 
-    private ConfigurationAnchorMessage getConfigurationAnchor() throws Exception {
+    private ConfigurationAnchorMessage getConfigurationAnchor() throws FileNotFoundException {
         return configurationAnchorProvider.get()
                 .map(bytes -> ConfigurationAnchorMessage.newBuilder()
                         .setConfigurationAnchor(ByteString.copyFrom(bytes))

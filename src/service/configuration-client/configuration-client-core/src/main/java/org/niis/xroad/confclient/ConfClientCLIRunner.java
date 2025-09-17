@@ -32,7 +32,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.apache.commons.cli.ParseException;
 import org.niis.xroad.confclient.core.ConfigurationClientActionExecutor;
 
 import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
@@ -41,7 +41,6 @@ import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.O
 @Slf4j
 @RequiredArgsConstructor
 @ApplicationScoped
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfClientCLIRunner {
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
@@ -55,9 +54,8 @@ public class ConfClientCLIRunner {
      * 3) <anchor file> -- in validate mode.
      *
      * @param args the arguments
-     * @throws Exception if an error occurs
      */
-    public int run(String... args) throws Exception {
+    public int run(String... args) throws ParseException {
         if (args.length > 0) {
             CommandLine cmd = getCommandLine(args);
             String[] actualArgs = cmd.getArgs();
@@ -83,7 +81,7 @@ public class ConfClientCLIRunner {
         return 0;
     }
 
-    private static CommandLine getCommandLine(String[] args) throws Exception {
+    private static CommandLine getCommandLine(String[] args) throws ParseException {
         CommandLineParser parser = new DefaultParser();
         Options options = new Options();
 

@@ -30,7 +30,6 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.xml.bind.JAXBElement;
-import lombok.SneakyThrows;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -118,8 +117,6 @@ abstract class SharedParametersV2ToXmlConverter {
                 .toList();
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private byte[] toAuthCertHash(CertHash authCert) {
         return authCert.getHash(DigestAlgorithm.SHA1);
     }

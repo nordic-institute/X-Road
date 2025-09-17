@@ -47,8 +47,15 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -79,7 +86,9 @@ public class OpMonitoringDaemonSender {
     OpMonitoringDaemonSender(ServerConfProvider serverConfProvider,
                              OpMonitoringBuffer opMonitoringBuffer,
                              OpMonitorCommonProperties opMonitorCommonProperties,
-                             VaultClient vaultClient) throws Exception {
+                             VaultClient vaultClient)
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
         this.serverConfProvider = serverConfProvider;
         this.opMonitoringBuffer = opMonitoringBuffer;
         this.opMonitorCommonProperties = opMonitorCommonProperties;
@@ -111,7 +120,7 @@ public class OpMonitoringDaemonSender {
         return Boolean.FALSE.equals(processing.get());
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private void send(String json) throws Exception {
         try (HttpSender sender = new HttpSender(httpClient)) {
             sender.setConnectionTimeout(TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().connectionTimeoutSeconds()));
@@ -149,8 +158,9 @@ public class OpMonitoringDaemonSender {
                 OpMonitoringDaemonEndpoints.STORE_DATA_PATH, null, null);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    CloseableHttpClient createHttpClient() throws Exception {
+    CloseableHttpClient createHttpClient()
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
         return OpMonitoringDaemonHttpClient.createHttpClient(
                 opMonitorCommonProperties, serverConfProvider.getSSLKey(), vaultClient,
                 1, 1,

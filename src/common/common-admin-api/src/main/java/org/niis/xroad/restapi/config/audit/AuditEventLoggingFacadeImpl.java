@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.config.audit;
 import ee.ria.xroad.common.AuditLogger;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.RequestHelper;
 import org.niis.xroad.restapi.util.SecurityHelper;
@@ -220,7 +219,6 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
      *                         {@link org.springframework.security.core.Authentication} is used. For exceptional cases where Authentication
      *                         does not (yet?) contain username
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex, String usernameOverride) {
         String username = usernameOverride;
         if (username == null) {

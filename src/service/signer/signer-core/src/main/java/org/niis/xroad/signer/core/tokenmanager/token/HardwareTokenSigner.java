@@ -35,7 +35,7 @@ import iaik.pkcs.pkcs11.Token;
 import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.PrivateKey;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 
@@ -52,7 +52,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.loginFailed;
 
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class HardwareTokenSigner implements Closeable {
     private final SignPrivateKeyProvider privateKeyProvider;
 
@@ -64,7 +63,7 @@ public class HardwareTokenSigner implements Closeable {
 
     public static HardwareTokenSigner create(SignPrivateKeyProvider privateKeyProvider,
                                              TokenDefinition tokenDefinition,
-                                             Token token, String tokenId, SignerHwTokenAddonProperties properties) throws Exception {
+                                             Token token, String tokenId, SignerHwTokenAddonProperties properties) {
         Supplier<SessionProvider> session;
         if (properties.poolEnabled()) {
             final var sessionPool = new HardwareTokenSessionPool(properties, token, tokenId);
@@ -102,7 +101,7 @@ public class HardwareTokenSigner implements Closeable {
         this.sessionSupplier = sessionSupplier;
     }
 
-    protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
+    protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) {
         log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
         var sessionProvider = sessionSupplier.get();
@@ -110,11 +109,18 @@ public class HardwareTokenSigner implements Closeable {
             throw XrdRuntimeException.systemInternalError("Session provider is null");
         }
         return sessionProvider.executeWithSession(session -> {
-            return doSign(session, keyId, signatureAlgorithmId, data);
+            try {
+                return doSign(session, keyId, signatureAlgorithmId, data);
+            } catch (TokenException e) {
+                throw XrdRuntimeException.systemException(ErrorCode.CANNOT_SIGN)
+                        .cause(e)
+                        .details("Signing failed: " + e.getMessage())
+                        .build();
+            }
         });
     }
 
-    private byte[] doSign(ManagedPKCS11Session session, String keyId, SignAlgorithm signatureAlgorithm, byte[] data) throws Exception {
+    private byte[] doSign(ManagedPKCS11Session session, String keyId, SignAlgorithm signatureAlgorithm, byte[] data) throws TokenException {
         pinVerificationPerSigningLogin(session);
 
         var rawSession = session.get();
@@ -158,7 +164,7 @@ public class HardwareTokenSigner implements Closeable {
         }
     }
 
-    private Mechanism verifyAndReturnSignMechanism(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) throws CodedException {
+    private Mechanism verifyAndReturnSignMechanism(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) {
         Mechanism signMechanism = signMechanisms.get(signatureAlgorithmId);
 
         if (signMechanism == null) {

@@ -30,8 +30,8 @@ import ee.ria.xroad.common.CodedException;
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.protocol.handler.service.CertRequestCreationService;
@@ -58,8 +58,6 @@ public class GenerateCertReqReqHandler extends AbstractRpcHandler<GenerateCertRe
     private final CertManager certManager;
 
     @Override
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     protected GenerateCertRequestResp handle(GenerateCertRequestReq request) {
         TokenAndKey tokenAndKey = tokenLookup.findTokenAndKey(request.getKeyId());
 
@@ -74,19 +72,23 @@ public class GenerateCertReqReqHandler extends AbstractRpcHandler<GenerateCertRe
                     "Authentication certificate requests can only be created under software tokens");
         }
 
-        var generatedRequest = certRequestCreationService.buildSignedCertRequest(tokenAndKey, request.getSubjectName(),
-                request.getSubjectAltName(), request.getKeyUsage());
+        try {
+            var generatedRequest = certRequestCreationService.buildSignedCertRequest(tokenAndKey, request.getSubjectName(),
+                    request.getSubjectAltName(), request.getKeyUsage());
 
-        String certReqId = certManager.addCertRequest(tokenAndKey.getKeyId(),
-                request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null,
-                request.getSubjectName(), request.getSubjectAltName(), request.getKeyUsage(),
-                request.getCertificateProfile());
+            String certReqId = certManager.addCertRequest(tokenAndKey.getKeyId(),
+                    request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null,
+                    request.getSubjectName(), request.getSubjectAltName(), request.getKeyUsage(),
+                    request.getCertificateProfile());
 
-        return GenerateCertRequestResp.newBuilder()
-                .setCertReqId(certReqId)
-                .setCertRequest(ByteString.copyFrom(certRequestCreationService.convert(generatedRequest, request.getFormat())))
-                .setFormat(request.getFormat())
-                .build();
+            return GenerateCertRequestResp.newBuilder()
+                    .setCertReqId(certReqId)
+                    .setCertRequest(ByteString.copyFrom(certRequestCreationService.convert(generatedRequest, request.getFormat())))
+                    .setFormat(request.getFormat())
+                    .build();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
 }
