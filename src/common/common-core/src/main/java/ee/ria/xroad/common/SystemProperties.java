@@ -77,10 +77,6 @@ public final class SystemProperties {
 
     // REST API ---------------------------------------------------------------
 
-    /** Property name of the Proxy UI API's ssl configuration file. */
-    public static final String PROXY_UI_API_SSL_PROPERTIES =
-            PREFIX + "proxy-ui-api.ssl-properties";
-
     /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
     public static final String DEFAULT_KEY_MANAGEMENT_API_WHITELIST = "127.0.0.0/8, ::1";
 
@@ -326,14 +322,6 @@ public final class SystemProperties {
      */
     public static String getConfPath() {
         return getProperty(CONF_PATH, DefaultFilepaths.CONF_PATH);
-    }
-
-    /**
-     * @return path to the proxy ssl configuration file, '/etc/xroad/ssl.properties' by default.
-     */
-    public static String getSslPropertiesFile() {
-        return getProperty(PROXY_UI_API_SSL_PROPERTIES,
-                getConfPath() + DefaultFilepaths.PROXY_UI_API_SSL_PROPERTIES);
     }
 
     /**
