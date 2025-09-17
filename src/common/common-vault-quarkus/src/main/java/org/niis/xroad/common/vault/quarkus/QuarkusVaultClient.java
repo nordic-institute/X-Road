@@ -67,6 +67,11 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
+    public InternalSSLKey getManagementServicesTlsCredentials() {
+        throw new NotImplementedException();
+    }
+
+    @Override
     public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
         createTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH, internalSSLKey);
     }
@@ -78,6 +83,11 @@ public class QuarkusVaultClient implements VaultClient {
 
     @Override
     public void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) {
         throw new NotImplementedException();
     }
 

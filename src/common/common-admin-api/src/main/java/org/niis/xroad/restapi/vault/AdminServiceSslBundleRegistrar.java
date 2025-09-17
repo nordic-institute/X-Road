@@ -49,8 +49,8 @@ import static java.util.Arrays.stream;
 
 @Slf4j
 @RequiredArgsConstructor
-public class VaultSslBundleRegistrar implements SslBundleRegistrar {
-    private static final String BUNDLE_NAME = "vault";
+public class AdminServiceSslBundleRegistrar implements SslBundleRegistrar {
+    public static final String BUNDLE_NAME = "admin-service";
 
     private final VaultKeyClient vaultKeyClient;
     private final VaultClient vaultClient;
@@ -83,7 +83,6 @@ public class VaultSslBundleRegistrar implements SslBundleRegistrar {
                     .toArray(X509Certificate[]::new);
             var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
             vaultClient.createAdminServiceTlsCredentials(internalTlsKey);
-            vaultClient.getAdminServiceTlsCredentials();
             log.info("Successfully created proxy-ui-api TLS credentials");
         }
     }

@@ -24,35 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.config;
+package org.niis.xroad.cs.registrationservice.config;
 
-import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
-import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
-import org.niis.xroad.restapi.vault.AdminServiceSslBundleRegistrar;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
-import org.springframework.context.annotation.Bean;
+import lombok.Getter;
+import lombok.Setter;
+import org.niis.xroad.common.vault.spring.config.SpringCertificateProvisioningProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.vault.core.VaultTemplate;
 
-@ConditionalOnProperty(name = "server.ssl.enabled", havingValue = "true")
 @Configuration
-@Import(SpringVaultClientConfig.class)
-public class VaultPoweredTlsConfiguration {
-
-    @Bean
-    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = AdminServiceSslBundleRegistrar.BUNDLE_NAME)
-    VaultKeyClient vaultKeyClient(VaultTemplate vaultTemplate, AdminServiceTlsProperties properties) {
-        return new SpringVaultKeyClient(vaultTemplate, properties.getCertificateProvisioning());
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = AdminServiceSslBundleRegistrar.BUNDLE_NAME)
-    public SslBundleRegistrar vaultSslBundleRegistrar(VaultKeyClient vaultKeyClient, VaultClient vaultClient) {
-        return new AdminServiceSslBundleRegistrar(vaultKeyClient, vaultClient);
-    }
-
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "xroad.registration-service.tls")
+public class RegistrationServiceTlsProperties {
+    private SpringCertificateProvisioningProperties certificateProvisioning;
 }
