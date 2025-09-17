@@ -111,9 +111,6 @@ public final class SystemProperties {
     public static final String PROXY_SERVER_PORT =
             PROXY_PREFIX + "server-port";
 
-    /** Property name of the flag to turn off proxy client SSL verification. */
-    public static final String PROXY_VERIFY_CLIENT_CERT = PROXY_PREFIX + "verify-client-cert";
-
     /** Property name of the flag to turn on proxy client SSL logging. */
     public static final String PROXY_LOG_CLIENT_CERT = PROXY_PREFIX + "log-client-cert";
 
@@ -580,18 +577,6 @@ public final class SystemProperties {
      */
     public static String getNetStatsFile() {
         return getProperty(NET_STATS_FILE, "/proc/net/dev");
-    }
-
-    /**
-     * This parameter may be set to false for cases where an external
-     * component has already verified the certificate before sending the
-     * request to client proxy.
-     *
-     * @return whether the client proxy should verify client's SSL certificate,
-     * 'true' by default.
-     */
-    public static boolean shouldVerifyClientCert() {
-        return Boolean.parseBoolean(getProperty(PROXY_VERIFY_CLIENT_CERT, TRUE));
     }
 
     /**

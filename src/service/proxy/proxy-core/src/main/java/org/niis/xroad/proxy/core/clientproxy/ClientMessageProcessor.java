@@ -161,10 +161,11 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
     ClientMessageProcessor(CommonBeanProxy commonBeanProxy,
                            RequestWrapper request, ResponseWrapper response,
-                           HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
+                           HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData,
+                           boolean shouldVerifyClientCert)
             throws IOException {
         super(commonBeanProxy, request, response, httpClient, clientCert,
-                opMonitoringData);
+                opMonitoringData, shouldVerifyClientCert);
         this.reqIns = new PipedInputStream();
         this.reqOuts = new PipedOutputStream(reqIns);
         this.xRequestId = UUID.randomUUID().toString();

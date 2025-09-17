@@ -93,12 +93,12 @@ public class MetadataHandlerTest {
     }
 
     @Test
-    public void shouldNotCreateProcessorForPostRequest() throws Exception {
+    public void shouldNotCreateProcessorForPostRequest() {
 
         when(mockRequest.getMethod()).thenReturn("POST");
 
         MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
-                httpClientMock);
+                httpClientMock, true);
 
         MessageProcessorBase returnValue =
                 handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
@@ -107,12 +107,12 @@ public class MetadataHandlerTest {
     }
 
     @Test
-    public void shouldNotCreateProcessorForUnprocessableRequest() throws Exception {
+    public void shouldNotCreateProcessorForUnprocessableRequest() {
 
         when(mockRequest.getMethod()).thenReturn("GET");
 
         MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
-                httpClientMock);
+                httpClientMock, true);
 
         MessageProcessorBase returnValue =
                 handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
@@ -121,10 +121,10 @@ public class MetadataHandlerTest {
     }
 
     @Test
-    public void shouldThrowWhenTargetNull() throws Exception {
+    public void shouldThrowWhenTargetNull() {
 
         MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
-                httpClientMock);
+                httpClientMock, true);
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn(null);
 
@@ -136,13 +136,13 @@ public class MetadataHandlerTest {
 
 
     @Test
-    public void shouldReturnProcessorWhenAbleToProcess() throws Exception {
+    public void shouldReturnProcessorWhenAbleToProcess() {
 
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn("/listClients");
 
         MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
-                httpClientMock);
+                httpClientMock, true);
 
         MessageProcessorBase result = handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 

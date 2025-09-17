@@ -68,6 +68,10 @@ public interface ProxyProperties {
     @WithDefault("SHA-512")
     String messageSignDigestName();
 
+    @WithName("verify-client-cert")
+    @WithDefault("true")
+    boolean verifyClientCert();
+
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {
         @WithName("connector-host")

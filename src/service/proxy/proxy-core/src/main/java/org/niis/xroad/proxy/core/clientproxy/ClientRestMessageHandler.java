@@ -77,8 +77,8 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private static final String APPLICATION_JSON = "application/json";
     private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
-    public ClientRestMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
-        super(commonBeanProxy, client, true);
+    public ClientRestMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client, boolean verifyClientCert) {
+        super(commonBeanProxy, client, true, verifyClientCert);
     }
 
     @Override
@@ -88,7 +88,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
             return new ClientRestMessageProcessor(commonBeanProxy,
-                    request, response, client, getIsAuthenticationData(request), opMonitoringData);
+                    request, response, client, getIsAuthenticationData(request), opMonitoringData, verifyClientCert);
         }
         return null;
     }

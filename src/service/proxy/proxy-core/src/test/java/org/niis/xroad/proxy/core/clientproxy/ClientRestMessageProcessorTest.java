@@ -89,7 +89,8 @@ public class ClientRestMessageProcessorTest {
                 new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null,
                         null, vaultKeyProvider, new NoOpMonitoringBuffer());
         var clientRestMessageProcessor =
-                new ClientRestMessageProcessor(commonBeanProxy, request, respWrapper, httpClient, isAuthenticationData, opMonitoringData);
+                new ClientRestMessageProcessor(commonBeanProxy, request, respWrapper, httpClient, isAuthenticationData,
+                        opMonitoringData, true);
         when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);
         when(serverConfProvider.getIsAuthentication(any())).thenReturn(NOSSL);
         when(serverConfProvider.getMaintenanceMode()).thenReturn(new ServerConfProvider.MaintenanceMode(false, null));

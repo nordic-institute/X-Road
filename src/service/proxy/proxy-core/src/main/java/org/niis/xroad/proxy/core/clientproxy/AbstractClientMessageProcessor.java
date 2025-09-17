@@ -82,6 +82,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
     protected final IsAuthenticationData clientCert;
     protected final OpMonitoringData opMonitoringData;
+    private final boolean shouldVerifyClientCert;
 
     private static final URI DUMMY_SERVICE_ADDRESS;
 
@@ -97,11 +98,12 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     protected AbstractClientMessageProcessor(CommonBeanProxy commonBeanProxy,
                                              RequestWrapper request, ResponseWrapper response,
                                              HttpClient httpClient, IsAuthenticationData clientCert,
-                                             OpMonitoringData opMonitoringData) {
+                                             OpMonitoringData opMonitoringData, boolean shouldVerifyClientCert) {
         super(commonBeanProxy, request, response, httpClient);
 
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
+        this.shouldVerifyClientCert = shouldVerifyClientCert;
     }
 
     protected static URI getServiceAddress(URI[] addresses) {
@@ -290,7 +292,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
     protected void verifyClientAuthentication(ClientId sender)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-        if (!SystemProperties.shouldVerifyClientCert()) {
+        if (!shouldVerifyClientCert) {
             return;
         }
         log.trace("verifyClientAuthentication()");

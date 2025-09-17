@@ -100,9 +100,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     ClientRestMessageProcessor(CommonBeanProxy commonBeanProxy,
                                RequestWrapper request, ResponseWrapper response,
                                HttpClient httpClient, IsAuthenticationData clientCert,
-                               OpMonitoringData opMonitoringData) {
+                               OpMonitoringData opMonitoringData, boolean shouldVerifyClientCert) {
         super(commonBeanProxy, request, response, httpClient,
-                clientCert, opMonitoringData);
+                clientCert, opMonitoringData, shouldVerifyClientCert);
         this.xRequestId = UUID.randomUUID().toString();
     }
 

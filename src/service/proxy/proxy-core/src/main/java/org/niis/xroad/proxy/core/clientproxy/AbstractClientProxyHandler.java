@@ -70,6 +70,7 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
     protected final CommonBeanProxy commonBeanProxy;
     protected final HttpClient client;
     protected final boolean storeOpMonitoringData;
+    protected final boolean verifyClientCert;
 
     protected abstract MessageProcessorBase createRequestProcessor(RequestWrapper request,
                                                          ResponseWrapper response,

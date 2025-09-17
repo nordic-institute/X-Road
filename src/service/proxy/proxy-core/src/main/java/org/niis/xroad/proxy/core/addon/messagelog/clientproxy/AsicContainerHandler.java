@@ -51,8 +51,8 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
     /**
      * Constructor
      */
-    public AsicContainerHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
-        super(commonBeanProxy, client, false);
+    public AsicContainerHandler(CommonBeanProxy commonBeanProxy, HttpClient client, boolean verifyClientCert) {
+        super(commonBeanProxy, client, false, verifyClientCert);
     }
 
     @Override
