@@ -104,10 +104,6 @@ public final class SystemProperties {
     public static final String PROXY_SSL_SUPPORT =
             PROXY_PREFIX + "ssl-enabled";
 
-    /** Property name of the Proxy's local configuration file. */
-    public static final String DATABASE_PROPERTIES =
-            PROXY_PREFIX + "database-properties";
-
     /** Property name of the Client Proxy's timeout (milliseconds). */
     public static final String PROXY_CLIENT_TIMEOUT =
             PROXY_PREFIX + "client-timeout";
@@ -201,16 +197,11 @@ public final class SystemProperties {
 
     // Signer -----------------------------------------------------------------
 
-    /** Property name of the key configuration file. */
-    public static final String KEY_CONFIGURATION_FILE = SIGNER_PREFIX + "key-configuration-file";
-
     /** Property name of the SignerClient's timeout. */
     public static final String SIGNER_CLIENT_TIMEOUT = SIGNER_PREFIX + "client-timeout";
 
     public static final String SIGNER_KEY_LENGTH = SIGNER_PREFIX + "key-length";
     public static final String SIGNER_KEY_NAMED_CURVE = SIGNER_PREFIX + "key-named-curve";
-
-    public static final String PASSWORD_STORE_IPC_KEY_PATHNAME = SIGNER_PREFIX + "password-store-ipc-key-pathname";
 
     public static final int MIN_SIGNER_KEY_LENGTH = 2048;
     public static final int DEFAULT_SIGNER_KEY_LENGTH = MIN_SIGNER_KEY_LENGTH;
@@ -385,13 +376,6 @@ public final class SystemProperties {
      */
     public static String getXROADLogLevel() {
         return getProperty(XROAD_LOG_LEVEL, "DEBUG");
-    }
-
-    /**
-     * @return path to the proxy database configuration file, '/etc/xroad/db.properties' by default.
-     */
-    public static String getDatabasePropertiesFile() {
-        return getProperty(DATABASE_PROPERTIES, getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
     }
 
     /**
@@ -757,7 +741,6 @@ public final class SystemProperties {
     public static int getClientProxyHttpClientTimeout() {
         return Integer.parseInt(getProperty(CLIENTPROXY_HTTPCLIENT_TIMEOUT,
                 DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT));
-
     }
 
     /**
