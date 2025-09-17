@@ -32,6 +32,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
@@ -65,19 +67,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.SystemProperties.NODE_TYPE;
-import static ee.ria.xroad.common.SystemProperties.NodeType.MASTER;
-import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.properties.NodeProperties.NodeType.SECONDARY;
 
 /**
  * Test GlobalConfChecker
@@ -371,15 +372,15 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     }
 
     @Test
-    public void doNotUpdateServerConfOnSlave() {
-        System.setProperty(NODE_TYPE, SLAVE.toString());
+    public void doNotUpdateServerConfOnSecondary() {
+        try (MockedStatic<NodeProperties> nodePropertiesMock = mockStatic(NodeProperties.class)) {
+            nodePropertiesMock.when(NodeProperties::getServerNodeType).thenReturn(SECONDARY);
+            globalConfChecker.checkGlobalConf();
 
-        globalConfChecker.checkGlobalConf();
-
-        verify(globalConfProvider).reload();
-        verify(globalConfProvider).verifyValidity();
-        verifyNoMoreInteractions(globalConfProvider);
-
-        System.setProperty(NODE_TYPE, MASTER.toString());
+            verify(globalConfProvider).reload();
+            verify(globalConfProvider).verifyValidity();
+            verifyNoMoreInteractions(globalConfProvider);
+        }
     }
+
 }

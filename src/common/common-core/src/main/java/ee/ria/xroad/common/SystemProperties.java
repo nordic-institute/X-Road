@@ -27,7 +27,6 @@ package ee.ria.xroad.common;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -303,32 +302,6 @@ public final class SystemProperties {
     /** Property name of the confproxy webserver address. */
     public static final String CONFIGURATION_PROXY_ADDRESS =
             PREFIX + "configuration-proxy.address";
-
-    // Cluster node configuration ------------------------------------------ //
-
-    /**
-     * The type of this server node in the cluster. Default is {@link #STANDALONE} which means this server is not
-     * part of a cluster.
-     */
-    public enum NodeType {
-        STANDALONE, MASTER, SLAVE;
-
-        /**
-         * Parse an enum (ignoring case) from the given String or return the default {@link #STANDALONE}
-         * if the argument is not understood.
-         *
-         * @param name
-         * @return
-         */
-        public static NodeType fromStringIgnoreCaseOrReturnDefault(String name) {
-            return Arrays.stream(NodeType.values())
-                    .filter(e -> e.name().equalsIgnoreCase(name))
-                    .findAny()
-                    .orElse(STANDALONE);
-        }
-    }
-
-    public static final String NODE_TYPE = PREFIX + "node.type";
 
     // Configuration file names and section names -------------------------- //
 
@@ -744,13 +717,6 @@ public final class SystemProperties {
     public static boolean isEnableClientProxyPooledConnectionReuse() {
         return Boolean.parseBoolean(getProperty(CLIENTPROXY_POOL_REUSE_CONNECTIONS,
                 DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS));
-    }
-
-    /**
-     * @return the {@link #NODE_TYPE} in a cluster for this Server.
-     */
-    public static NodeType getServerNodeType() {
-        return NodeType.fromStringIgnoreCaseOrReturnDefault(getProperty(NODE_TYPE));
     }
 
     /**

@@ -37,6 +37,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
@@ -421,8 +422,8 @@ public class SystemService {
      *
      * @return server node type
      */
-    public SystemProperties.NodeType getServerNodeType() {
-        return SystemProperties.getServerNodeType();
+    public NodeProperties.NodeType getServerNodeType() {
+        return NodeProperties.getServerNodeType();
     }
 
     public boolean isManagementServiceProvider() {

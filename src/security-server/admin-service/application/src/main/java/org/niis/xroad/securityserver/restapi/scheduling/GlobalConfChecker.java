@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
@@ -38,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
@@ -67,8 +67,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static java.util.function.Predicate.not;
+import static org.niis.xroad.common.properties.NodeProperties.NodeType.SECONDARY;
 
 /**
  * Job that checks whether globalconf has changed.
@@ -131,8 +131,8 @@ public class GlobalConfChecker {
 
     private void updateServerConf() {
         // In clustered setup slave nodes may skip serverconf updates
-        if (SLAVE.equals(SystemProperties.getServerNodeType())) {
-            log.debug("This is a slave node - skip serverconf updates");
+        if (SECONDARY.equals(NodeProperties.getServerNodeType())) {
+            log.debug("This is a secondary node - skip serverconf updates");
             return;
         }
 
