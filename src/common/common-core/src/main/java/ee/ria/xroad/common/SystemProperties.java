@@ -242,9 +242,6 @@ public final class SystemProperties {
     /** Property name of the application log file path. */
     public static final String LOG_PATH = PREFIX + "appLog.path";
 
-    /** Property name of the application log level of ee.ria.xroad. */
-    public static final String XROAD_LOG_LEVEL = PREFIX + "appLog.xroad.level";
-
     // Proxy UI ---------------------------------------------------------------
 
     /**
@@ -369,13 +366,6 @@ public final class SystemProperties {
      */
     public static String getLogPath() {
         return getProperty(LOG_PATH, DefaultFilepaths.LOG_PATH);
-    }
-
-    /**
-     * @return log level of the 'ee.ria.xroad.*' packages, 'DEBUG' by default.
-     */
-    public static String getXROADLogLevel() {
-        return getProperty(XROAD_LOG_LEVEL, "DEBUG");
     }
 
     /**
