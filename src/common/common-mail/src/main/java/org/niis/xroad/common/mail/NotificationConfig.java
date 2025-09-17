@@ -29,25 +29,15 @@ package org.niis.xroad.common.mail;
 
 public interface NotificationConfig {
 
-    default boolean isAcmeRenewalSuccessNotificationEnabled() {
-        return true;
-    }
+    boolean isAcmeRenewalSuccessNotificationEnabled();
 
-    default boolean isAcmeRenewalFailureNotificationEnabled() {
-        return true;
-    }
+    boolean isAcmeRenewalFailureNotificationEnabled();
 
-    default boolean isAuthCertRegisteredNotificationEnabled() {
-        return true;
-    }
+    boolean isAuthCertRegisteredNotificationEnabled();
 
-    default boolean isCertAutoActivationNotificationEnabled() {
-        return true;
-    }
+    boolean isCertAutoActivationNotificationEnabled();
 
-    default boolean isCertAutoActivationFailureNotificationEnabled() {
-        return true;
-    }
+    boolean isCertAutoActivationFailureNotificationEnabled();
 
     /** Locale for mail notifications, which determines the language of the notifications.
      * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */

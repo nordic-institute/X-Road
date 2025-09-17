@@ -162,29 +162,29 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      */
     private boolean automaticActivateAuthCertificate;
 
-    boolean acmeRenewalSuccessNotificationEnabled;
-    boolean acmeRenewalFailureNotificationEnabled;
-    boolean authCertRegisteredNotificationEnabled;
-    boolean certAutoActivationNotificationEnabled;
-    boolean certAutoActivationFailureNotificationEnabled;
+    boolean acmeRenewalSuccessNotificationEnabled = true;
+    boolean acmeRenewalFailureNotificationEnabled = true;
+    boolean authCertRegisteredNotificationEnabled = true;
+    boolean certAutoActivationNotificationEnabled = true;
+    boolean certAutoActivationFailureNotificationEnabled = true;
 
     /** Locale for mail notifications, which determines the language of the notifications.
      * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
     String mailNotificationLocale;
 
-    boolean acmeRenewalActive;
-    int acmeRenewalRetryDelay;
-    int acmeRenewalInterval;
-    int acmeRenewalTimeBeforeExpirationDate;
-    int acmeKeypairRenewalTimeBeforeExpirationDate;
+    boolean acmeRenewalActive = true;
+    int acmeRenewalRetryDelay = 60;
+    int acmeRenewalInterval = 3600;
+    int acmeRenewalTimeBeforeExpirationDate = 14;
+    int acmeKeypairRenewalTimeBeforeExpirationDate = 14;
     boolean automaticActivateAcmeSignCertificate;
-    int acmeAuthorizationWaitAttempts;
-    int acmeAuthorizationWaitInterval;
-    int acmeCertificateWaitAttempts;
-    int acmeCertificateWaitInterval;
-    int acmeCertificateAccountKeyPairExpiration;
+    int acmeAuthorizationWaitAttempts = 5;
+    int acmeAuthorizationWaitInterval = 5;
+    int acmeCertificateWaitAttempts = 5;
+    int acmeCertificateWaitInterval = 5;
+    int acmeCertificateAccountKeyPairExpiration = 365;
     boolean acmeChallengePortEnabled;
-    int acmeChallengePort;
+    int acmeChallengePort = 80;
 
     // whether generating CSR is allowed for with existing certificate, 'false' by default
     boolean allowCsrForKeyWithCertificate;

@@ -51,6 +51,31 @@ class MailServiceTest {
     private MailService mailService;
     private final NotificationConfig notificationConfig = new NotificationConfig() {
         @Override
+        public boolean isAcmeRenewalSuccessNotificationEnabled() {
+            return true;
+        }
+
+        @Override
+        public boolean isAcmeRenewalFailureNotificationEnabled() {
+            return true;
+        }
+
+        @Override
+        public boolean isAuthCertRegisteredNotificationEnabled() {
+            return true;
+        }
+
+        @Override
+        public boolean isCertAutoActivationNotificationEnabled() {
+            return true;
+        }
+
+        @Override
+        public boolean isCertAutoActivationFailureNotificationEnabled() {
+            return true;
+        }
+
+        @Override
         public String getMailNotificationLocale() {
             return null;
         }
