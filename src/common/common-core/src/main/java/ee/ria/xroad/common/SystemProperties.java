@@ -238,9 +238,6 @@ public final class SystemProperties {
     /** Property name of the configuration files path. */
     public static final String CONF_PATH = PREFIX + "conf.path";
 
-    /** Property name of the application log file path. */
-    public static final String LOG_PATH = PREFIX + "appLog.path";
-
     // Proxy UI ---------------------------------------------------------------
 
     /**
@@ -332,13 +329,6 @@ public final class SystemProperties {
      */
     public static String getConfPath() {
         return getProperty(CONF_PATH, DefaultFilepaths.CONF_PATH);
-    }
-
-    /**
-     * @return path to the directory where application logs are stored, '/var/log/xroad/' by default.
-     */
-    public static String getLogPath() {
-        return getProperty(LOG_PATH, DefaultFilepaths.LOG_PATH);
     }
 
     /**

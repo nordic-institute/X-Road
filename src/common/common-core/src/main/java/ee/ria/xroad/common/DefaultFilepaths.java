@@ -53,8 +53,6 @@ public final class DefaultFilepaths {
 
     static final String CONFIGURATION_PATH = "globalconf";
 
-    static final String LOG_PATH = "/var/log/xroad/";
-
     static final String CONF_BACKUP_PATH = "/var/lib/xroad/backup/";
 
     static final String DISTRIBUTED_GLOBALCONF_PATH = "/var/lib/xroad/public";
