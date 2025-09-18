@@ -3,5 +3,6 @@
   "skip-dev": false,
   "package-manager": "auto",
   "allowlist": [
+    "GHSA-4hjh-wcwx-xvwj|* > axios*"
   ]
 }
