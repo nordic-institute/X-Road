@@ -20,23 +20,19 @@
         append: yes
         groups: softhsm
 
-    - name: Ensure devices.ini exists
-      file:
-        path: "/etc/xroad/devices.ini"
-        state: touch
-        owner: root
-        group: root
-        mode: "0644"
-
-    - name: Configure SoftHSM as a hardware token in X-Road devices.ini
-      blockinfile:
-        path: "/etc/xroad/devices.ini"
-        marker: "# {mark} ANSIBLE MANAGED BLOCK (SoftHSM)"
+    - name: Append SoftHSM2 signer module to end of local.yaml
+      ansible.builtin.blockinfile:
+        path: /etc/xroad/conf.d/local.yaml
+        insertafter: EOF
+        marker: "# {mark} SoftHSM2 signer module"
         block: |
-          [softhsm2]
-          library = /usr/lib/softhsm/libsofthsm2.so
-          os_locking_ok = true
-          library_cant_create_os_threads = true
+          # hardware token configuration:
+            signer:
+              modules:
+                softhsm2:
+                  library: /usr/lib/softhsm/libsofthsm2.so
+                  os-locking-ok: true
+                  library-cant-create-os-threads: true
 
     - name: Check existing SoftHSM slots for token label
       command: softhsm2-util --show-slots
