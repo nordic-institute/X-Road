@@ -69,7 +69,7 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \
-    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-opmonitor xroad-addon-hwtokens \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-opmonitor \
     && apt-get -y -qq install --no-install-recommends softhsm2 \
     && apt-get -qq clean \
     && pg_ctlcluster 16 main stop \
