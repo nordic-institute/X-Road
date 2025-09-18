@@ -75,22 +75,6 @@ public final class SystemProperties {
     private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
             PREFIX + "configuration-proxy.minimum-global-configuration-version";
 
-    // REST API ---------------------------------------------------------------
-
-    /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
-    public static final String DEFAULT_KEY_MANAGEMENT_API_WHITELIST = "127.0.0.0/8, ::1";
-
-    /** Default whitelist for Proxy UI API's regular APIs (allow all) */
-    public static final String DEFAULT_REGULAR_API_WHITELIST = "0.0.0.0/0, ::/0";
-
-    /** Property name of the whitelist for Proxy UI API's key management API */
-    public static final String PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST =
-            PREFIX + "proxy-ui-api.key-management-api-whitelist";
-
-    /** Property name of the whitelist for Proxy UI API's regular APIs */
-    public static final String PROXY_UI_API_REGULAR_API_WHITELIST =
-            PREFIX + "proxy-ui-api.regular-api-whitelist";
-
     // Proxy ------------------------------------------------------------------
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
@@ -310,24 +294,6 @@ public final class SystemProperties {
      */
     public static String getConfPath() {
         return getProperty(CONF_PATH, DefaultFilepaths.CONF_PATH);
-    }
-
-    /**
-     * TO DO: not correct, fix
-     *
-     * @return whitelist for Proxy UI API's key management API, "127.0.0.0/8, ::1" (localhost) by default
-     */
-    public static String getKeyManagementApiWhitelist() {
-        return getProperty(PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST,
-                DEFAULT_KEY_MANAGEMENT_API_WHITELIST);
-    }
-
-    /**
-     * @return whitelist for Proxy UI API's regular APIs, "0.0.0.0/0, ::/0" (allow all) by default
-     */
-    public static String getRegularApiWhitelist() {
-        return getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
-                DEFAULT_REGULAR_API_WHITELIST);
     }
 
     /**

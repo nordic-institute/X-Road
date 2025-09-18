@@ -33,6 +33,7 @@ import lombok.Setter;
 import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.common.mail.NotificationConfig;
+import org.niis.xroad.restapi.auth.AllowListConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
@@ -72,6 +73,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         KeyAlgorithmConfig,
         NotificationConfig,
         AcmeConfig,
+        AllowListConfig,
         UserAuthenticationConfig {
 
     /**
@@ -162,37 +164,42 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      */
     private boolean automaticActivateAuthCertificate;
 
-    boolean acmeRenewalSuccessNotificationEnabled = true;
-    boolean acmeRenewalFailureNotificationEnabled = true;
-    boolean authCertRegisteredNotificationEnabled = true;
-    boolean certAutoActivationNotificationEnabled = true;
-    boolean certAutoActivationFailureNotificationEnabled = true;
+    private boolean acmeRenewalSuccessNotificationEnabled = true;
+    private boolean acmeRenewalFailureNotificationEnabled = true;
+    private boolean authCertRegisteredNotificationEnabled = true;
+    private boolean certAutoActivationNotificationEnabled = true;
+    private boolean certAutoActivationFailureNotificationEnabled = true;
 
     /** Locale for mail notifications, which determines the language of the notifications.
      * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
-    String mailNotificationLocale;
+    private String mailNotificationLocale;
 
-    boolean acmeRenewalActive = true;
-    int acmeRenewalRetryDelay = 60;
-    int acmeRenewalInterval = 3600;
-    int acmeRenewalTimeBeforeExpirationDate = 14;
-    int acmeKeypairRenewalTimeBeforeExpirationDate = 14;
-    boolean automaticActivateAcmeSignCertificate;
-    int acmeAuthorizationWaitAttempts = 5;
-    int acmeAuthorizationWaitInterval = 5;
-    int acmeCertificateWaitAttempts = 5;
-    int acmeCertificateWaitInterval = 5;
-    int acmeCertificateAccountKeyPairExpiration = 365;
-    boolean acmeChallengePortEnabled;
-    int acmeChallengePort = 80;
+    private boolean acmeRenewalActive = true;
+    private int acmeRenewalRetryDelay = 60;
+    private int acmeRenewalInterval = 3600;
+    private int acmeRenewalTimeBeforeExpirationDate = 14;
+    private int acmeKeypairRenewalTimeBeforeExpirationDate = 14;
+    private boolean automaticActivateAcmeSignCertificate;
+    private int acmeAuthorizationWaitAttempts = 5;
+    private int acmeAuthorizationWaitInterval = 5;
+    private int acmeCertificateWaitAttempts = 5;
+    private int acmeCertificateWaitInterval = 5;
+    private int acmeCertificateAccountKeyPairExpiration = 365;
+    private boolean acmeChallengePortEnabled;
+    private int acmeChallengePort = 80;
 
     // whether generating CSR is allowed for with existing certificate, 'false' by default
-    boolean allowCsrForKeyWithCertificate;
+    private boolean allowCsrForKeyWithCertificate;
 
     // signature digest algorithm ID used for generating authentication certificate registration request
-    String authCertRegSignatureDigestAlgorithmId = "SHA-512";
+    private String authCertRegSignatureDigestAlgorithmId = "SHA-512";
 
-    String securityServerUrl;
+    private String securityServerUrl;
+
+    /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
+    private String keyManagementApiWhitelist = "127.0.0.0/8, ::1";
+    /** Default whitelist for Proxy UI API's regular APIs (allow all) */
+    private String regularApiWhitelist = "0.0.0.0/0, ::/0";
 
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
