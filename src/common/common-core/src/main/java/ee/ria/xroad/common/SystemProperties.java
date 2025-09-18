@@ -128,10 +128,6 @@ public final class SystemProperties {
     private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
             PROXY_PREFIX + "server-connector-so-linger";
 
-    /** Property name of the server's minimum supported client version */
-    private static final String SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION =
-            PROXY_PREFIX + "server-min-supported-client-version";
-
     /** Property name of the client connector socket SO_LINGER timer, in seconds, value of -1 means off */
     private static final String CLIENTPROXY_CONNECTOR_SO_LINGER =
             PROXY_PREFIX + "client-connector-so-linger";
@@ -637,10 +633,6 @@ public final class SystemProperties {
                 DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER));
         if (linger >= 0) return linger * 1000;
         return -1;
-    }
-
-    public static String getServerProxyMinSupportedClientVersion() {
-        return getProperty(SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION);
     }
 
     /**

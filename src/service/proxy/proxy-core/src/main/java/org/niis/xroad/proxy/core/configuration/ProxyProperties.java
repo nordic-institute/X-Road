@@ -165,6 +165,8 @@ public interface ProxyProperties {
         @WithDefault("false")
         boolean serverSupportClientsPooledConnections();
 
+        @WithName("min-supported-client-version")
+        Optional<String> minSupportedClientVersion();
     }
 
     @ConfigMapping(prefix = "xroad.proxy.ocsp-responder")

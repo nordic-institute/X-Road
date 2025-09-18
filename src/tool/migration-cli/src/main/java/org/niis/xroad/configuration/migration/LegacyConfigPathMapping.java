@@ -57,6 +57,7 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.server-listen-port", "proxy.server.listen-port");
         MAPPING.put("proxy.server-connector-initial-idle-time", "proxy.server.connector-initial-idle-time");
         MAPPING.put("proxy.server-support-clients-pooled-connections", "proxy.server.support-clients-pooled-connections");
+        MAPPING.put("proxy.server-min-supported-client-version", "proxy.server.min-supported-client-version");
         MAPPING.put("proxy.jetty-serverproxy-configuration-file", "proxy.server.jetty-configuration-file");
         MAPPING.put("proxy.connector-host", "proxy.client-proxy.connector-host");
         MAPPING.put("proxy.client-http-port", "proxy.client-proxy.client-http-port");
