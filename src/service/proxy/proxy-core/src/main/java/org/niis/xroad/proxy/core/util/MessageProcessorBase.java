@@ -26,7 +26,6 @@
 package org.niis.xroad.proxy.core.util;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -48,13 +47,8 @@ import org.niis.xroad.serverconf.model.DescriptionType;
 
 import javax.net.ssl.X509TrustManager;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
@@ -245,8 +239,7 @@ public abstract class MessageProcessorBase {
      * @param auth   the authentication data of the information system
      */
     protected void verifyClientAuthentication(ClientId client,
-                                              IsAuthenticationData auth)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+                                              IsAuthenticationData auth) {
 
         IsAuthentication isAuthentication = commonBeanProxy.getServerConfProvider().getIsAuthentication(client);
         if (isAuthentication == null) {
@@ -289,7 +282,7 @@ public abstract class MessageProcessorBase {
                                 + " IS certificates", client);
             }
 
-            clientIsCertPeriodValidatation(client, auth.cert());
+            clientIsCertPeriodValidation(client, auth.cert());
         }
     }
 
@@ -311,18 +304,18 @@ public abstract class MessageProcessorBase {
         }
     }
 
-    private void clientIsCertPeriodValidatation(ClientId client, X509Certificate cert) {
+    private void clientIsCertPeriodValidation(ClientId client, X509Certificate cert) {
         try {
             cert.checkValidity();
         } catch (CertificateExpiredException e) {
-            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
+            if (commonBeanProxy.getProxyProperties().enforceClientIsCertValidityPeriodCheck()) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) TLS certificate is expired", client);
             } else {
                 log.warn("Client {} TLS certificate is expired", client);
             }
         } catch (CertificateNotYetValidException e) {
-            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
+            if (commonBeanProxy.getProxyProperties().enforceClientIsCertValidityPeriodCheck()) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) TLS certificate is not yet valid", client);
             } else {

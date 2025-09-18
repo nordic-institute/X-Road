@@ -49,8 +49,8 @@ public class MetadataHandler extends AbstractClientProxyHandler {
     /**
      * Constructor
      */
-    public MetadataHandler(CommonBeanProxy commonBeanProxy, HttpClient client, boolean verifyClientCert, boolean logClientCert) {
-        super(commonBeanProxy, client, false, verifyClientCert, logClientCert);
+    public MetadataHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
+        super(commonBeanProxy, client, false);
     }
 
     @Override

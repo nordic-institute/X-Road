@@ -89,13 +89,14 @@ public class TestContext {
             LogRecordManager logRecordManager = mock(LogRecordManager.class);
             VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
             CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
-                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer());
+                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(),
+                    proxyProperties);
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
                     .proxyHttpClient(proxyProperties.clientProxy(), authTrustVerifier, reloadingSSLSocketFactory);
-            MetadataHandler metadataHandler = new MetadataHandler(commonBeanProxy, httpClient, true, false);
-            ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(commonBeanProxy, httpClient, true, false);
+            MetadataHandler metadataHandler = new MetadataHandler(commonBeanProxy, httpClient);
+            ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(commonBeanProxy, httpClient);
 
             clientProxy = new ClientProxy(serverConfProvider, proxyProperties.clientProxy(), reloadingSSLSocketFactory,
                     new ListInstanceWrapper<>(List.of(metadataHandler, soapMessageHandler)));
@@ -106,7 +107,7 @@ public class TestContext {
                 OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
                         monitorRpcClient, proxyProperties.addOn(), opMonitorCommonProperties);
-                serverProxy = new ServerProxy(proxyProperties.server(), antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
+                serverProxy = new ServerProxy(proxyProperties, antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
                         opMonitorCommonProperties, new NoopVaultClient(), new NoopVaultKeyClient());
                 serverProxy.init();
             }
@@ -121,13 +122,13 @@ public class TestContext {
         if (serverProxy != null) {
             try {
                 serverProxy.destroy();
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
 
         try {
             clientProxy.destroy();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
     }
 

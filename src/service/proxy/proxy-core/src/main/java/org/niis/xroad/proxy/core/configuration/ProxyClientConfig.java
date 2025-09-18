@@ -66,32 +66,28 @@ public class ProxyClientConfig {
     @ApplicationScoped
     @Priority(1)
     // must be the last handler
-    AbstractClientProxyHandler clientSoapMessageHandler(CommonBeanProxy commonBeanProxy, ProxyProperties proxyProperties,
-                                                        @Named("proxyHttpClient") HttpClient client) {
-        return new ClientSoapMessageHandler(commonBeanProxy, client, proxyProperties.verifyClientCert(), proxyProperties.logClientCert());
+    AbstractClientProxyHandler clientSoapMessageHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client) {
+        return new ClientSoapMessageHandler(commonBeanProxy, client);
     }
 
     @ApplicationScoped
     @Priority(100)
     @LookupIfProperty(name = "xroad.proxy.addon.meta-services.enabled", stringValue = "true")
-    AbstractClientProxyHandler metadataHandler(CommonBeanProxy commonBeanProxy, ProxyProperties proxyProperties,
-                                               @Named("proxyHttpClient") HttpClient client) {
-        return new MetadataHandler(commonBeanProxy, client, proxyProperties.verifyClientCert(), proxyProperties.logClientCert());
+    AbstractClientProxyHandler metadataHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client) {
+        return new MetadataHandler(commonBeanProxy, client);
     }
 
     @ApplicationScoped
     @Priority(200)
     @LookupIfProperty(name = "xroad.proxy.addon.message-log.enabled", stringValue = "true")
-    AbstractClientProxyHandler asicContainerHandler(CommonBeanProxy commonBeanProxy, ProxyProperties proxyProperties,
-                                                    @Named("proxyHttpClient") HttpClient client) {
-        return new AsicContainerHandler(commonBeanProxy, client, proxyProperties.verifyClientCert(), proxyProperties.logClientCert());
+    AbstractClientProxyHandler asicContainerHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client) {
+        return new AsicContainerHandler(commonBeanProxy, client);
     }
 
     @ApplicationScoped
     @Priority(1000)
-    AbstractClientProxyHandler clientRestMessageHandler(CommonBeanProxy commonBeanProxy, ProxyProperties proxyProperties,
-                                                        @Named("proxyHttpClient") HttpClient client) {
-        return new ClientRestMessageHandler(commonBeanProxy, client, proxyProperties.verifyClientCert(), proxyProperties.logClientCert());
+    AbstractClientProxyHandler clientRestMessageHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client) {
+        return new ClientRestMessageHandler(commonBeanProxy, client);
     }
 
     @ApplicationScoped
@@ -150,7 +146,7 @@ public class ProxyClientConfig {
 
             if (SystemProperties.isSslEnabled()) {
                 sfr.register("https", createSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory,
-                         clientProxyProperties));
+                        clientProxyProperties));
             }
 
             SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);

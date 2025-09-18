@@ -68,10 +68,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -119,17 +115,15 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private static final String CONTENT_DISPOSITION_FILENAME_PREFIX = "attachment; filename=\"";
 
     private final String target;
-    private final boolean logClientCert;
 
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
     private final EncryptionConfigProvider encryptionConfigProvider;
 
     public AsicContainerClientRequestProcessor(CommonBeanProxy commonBeanProxy,
-                                               String target, RequestWrapper request, ResponseWrapper response, boolean logClientCert)
+                                               String target, RequestWrapper request, ResponseWrapper response)
             throws IOException {
         super(commonBeanProxy, request, response, null);
         this.target = target;
-        this.logClientCert = logClientCert;
         this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
     }
 
@@ -185,11 +179,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         handleAsicRequest(clientId);
     }
 
-    private void verifyClientAuthentication(ClientId clientId)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+    private void verifyClientAuthentication(ClientId clientId) {
         log.trace("verifyClientAuthentication({})", clientId);
         try {
-            verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest, logClientCert));
+            verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest, commonBeanProxy.getProxyProperties().logClientCert()));
         } catch (CodedException ex) {
             throw new CodedExceptionWithHttpStatus(UNAUTHORIZED_401, ex);
         }

@@ -49,13 +49,8 @@ import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.model.Client;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -81,7 +76,6 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
     protected final IsAuthenticationData clientCert;
     protected final OpMonitoringData opMonitoringData;
-    private final boolean shouldVerifyClientCert;
 
     private static final URI DUMMY_SERVICE_ADDRESS;
 
@@ -97,12 +91,11 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     protected AbstractClientMessageProcessor(CommonBeanProxy commonBeanProxy,
                                              RequestWrapper request, ResponseWrapper response,
                                              HttpClient httpClient, IsAuthenticationData clientCert,
-                                             OpMonitoringData opMonitoringData, boolean shouldVerifyClientCert) {
+                                             OpMonitoringData opMonitoringData) {
         super(commonBeanProxy, request, response, httpClient);
 
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
-        this.shouldVerifyClientCert = shouldVerifyClientCert;
     }
 
     protected static URI getServiceAddress(URI[] addresses) {
@@ -289,9 +282,8 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    protected void verifyClientAuthentication(ClientId sender)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-        if (!shouldVerifyClientCert) {
+    protected void verifyClientAuthentication(ClientId sender) {
+        if (!commonBeanProxy.getProxyProperties().verifyClientCert()) {
             return;
         }
         log.trace("verifyClientAuthentication()");

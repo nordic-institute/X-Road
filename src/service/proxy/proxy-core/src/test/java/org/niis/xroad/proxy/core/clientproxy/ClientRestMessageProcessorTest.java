@@ -37,12 +37,14 @@ import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.PreEncodedHttpField;
 import org.eclipse.jetty.server.Request;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -50,10 +52,10 @@ import java.net.URI;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -61,11 +63,11 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.C
 import static org.niis.xroad.serverconf.IsAuthentication.NOSSL;
 import static org.niis.xroad.serverconf.model.Client.STATUS_REGISTERED;
 
-public class ClientRestMessageProcessorTest {
+class ClientRestMessageProcessorTest {
 
     @SneakyThrows
     @Test
-    public void processShouldAddOpMonitoringData() {
+    void processShouldAddOpMonitoringData() {
         var opMonitoringData = new OpMonitoringData(CLIENT, 100);
         var clientRestMessageProcessor = createMockedClientRestMessageProcessor(opMonitoringData);
 
@@ -84,12 +86,13 @@ public class ClientRestMessageProcessorTest {
         var respWrapper = mock(ResponseWrapper.class);
         var httpClient = mock(HttpClient.class);
         var isAuthenticationData = mock(IsAuthenticationData.class);
+        var proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
         var commonBeanProxy =
                 new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null,
-                        null, vaultKeyProvider, new NoOpMonitoringBuffer());
+                        null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties);
         var clientRestMessageProcessor =
                 new ClientRestMessageProcessor(commonBeanProxy, request, respWrapper, httpClient, isAuthenticationData,
-                        opMonitoringData, true);
+                        opMonitoringData);
         when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);
         when(serverConfProvider.getIsAuthentication(any())).thenReturn(NOSSL);
         when(serverConfProvider.getMaintenanceMode()).thenReturn(new ServerConfProvider.MaintenanceMode(false, null));
@@ -103,7 +106,7 @@ public class ClientRestMessageProcessorTest {
         assertEquals("GET", data.get("restMethod"));
         assertNull(data.get("restPath"));
         assertEquals(Version.XROAD_VERSION, data.get("xRoadVersion"));
-        assertNotNull("DEV", data.get("clientXRoadInstance"));
+        assertNotNull(data.get("clientXRoadInstance"), "DEV");
         assertEquals("1234", data.get("clientMemberCode"));
         assertEquals("TestService", data.get("clientSubsystemCode"));
         assertEquals("DEV", data.get("serviceXRoadInstance"));

@@ -87,7 +87,7 @@ public class ServerProxy {
 
     private final Server server = new Server();
 
-    private final ProxyProperties.ServerProperties serverProperties;
+    private final ProxyProperties proxyProperties;
     private final AntiDosConfiguration antiDosConfiguration;
     private final CommonBeanProxy commonBeanProxy;
     private final ServiceHandlerLoader serviceHandlerLoader;
@@ -104,7 +104,7 @@ public class ServerProxy {
     private void configureServer() throws Exception {
         log.trace("configureServer()");
 
-        var file = serverProperties.jettyConfigurationFile();
+        var file = proxyProperties.server().jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
 
@@ -139,16 +139,16 @@ public class ServerProxy {
     private void createConnectors() throws Exception {
         log.trace("createConnectors()");
 
-        int port = serverProperties.listenPort();
+        int port = proxyProperties.server().listenPort();
 
         ServerConnector connector = SystemProperties.isSslEnabled()
                 ? createClientProxySslConnector() : createClientProxyConnector();
 
         connector.setName(CLIENT_PROXY_CONNECTOR_NAME);
         connector.setPort(port);
-        connector.setHost(serverProperties.listenAddress());
+        connector.setHost(proxyProperties.server().listenAddress());
 
-        connector.setIdleTimeout(serverProperties.connectorInitialIdleTime());
+        connector.setIdleTimeout(proxyProperties.server().connectorInitialIdleTime());
 
         connector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)
@@ -161,13 +161,13 @@ public class ServerProxy {
 
         server.addConnector(connector);
 
-        log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), serverProperties.listenAddress(), port);
+        log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), proxyProperties.server().listenAddress(), port);
     }
 
     private void createHandlers() {
         log.trace("createHandlers()");
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, serverProperties, client,
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, proxyProperties.server(), client,
                 opMonitorClient, new ClientProxyVersionVerifier(SystemProperties.getServerProxyMinSupportedClientVersion()),
                 serviceHandlerLoader);
 

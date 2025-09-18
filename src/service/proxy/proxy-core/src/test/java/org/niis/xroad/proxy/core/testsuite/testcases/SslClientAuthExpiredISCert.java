@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.proxy.core.testsuite.testcases;
 
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -77,19 +75,12 @@ public class SslClientAuthExpiredISCert extends SslMessageTestCase {
     @Override
     protected void validateNormalResponse(Message receivedResponse)
             throws Exception {
-        if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
-            throw new Exception("Received normal response, fault was expected");
-        }
     }
 
     @Override
     protected void validateFaultResponse(Message response) throws Exception {
-        if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
-            assertErrorCode(ErrorCodes.SERVER_CLIENTPROXY_X, ErrorCodes.X_SSL_AUTH_FAILED);
-        } else {
-            throw new Exception(
-                    "Received fault response, answer was expected");
-        }
+        throw new Exception(
+                "Received fault response, answer was expected");
     }
 
     @Override

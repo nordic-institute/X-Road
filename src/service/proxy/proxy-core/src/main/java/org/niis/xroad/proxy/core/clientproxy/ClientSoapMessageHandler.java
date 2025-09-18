@@ -50,8 +50,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  */
 public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
 
-    public ClientSoapMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client, boolean verifyClientCert, boolean logClientCert) {
-        super(commonBeanProxy, client, true, verifyClientCert, logClientCert);
+    public ClientSoapMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
+        super(commonBeanProxy, client, true);
     }
 
     @Override
@@ -61,7 +61,8 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
         verifyCanProcess(request);
 
         return new ClientMessageProcessor(commonBeanProxy,
-                request, response, client, getIsAuthenticationData(request, logClientCert), opMonitoringData, verifyClientCert);
+                request, response, client, getIsAuthenticationData(request, commonBeanProxy.getProxyProperties().logClientCert()),
+                opMonitoringData);
     }
 
     private void verifyCanProcess(RequestWrapper request) {

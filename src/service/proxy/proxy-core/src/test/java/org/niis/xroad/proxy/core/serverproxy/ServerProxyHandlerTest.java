@@ -32,6 +32,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.junit.Test;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -56,9 +57,10 @@ public class ServerProxyHandlerTest {
         var serverConfProvider = mock(ServerConfProvider.class);
         var checkMock = mock(ClientProxyVersionVerifier.class);
         var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+        var proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
         var commonBeanProxy =
                 new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null,
-                        null, vaultKeyProvider, new NoOpMonitoringBuffer());
+                        null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties);
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(commonBeanProxy, mock(ProxyProperties.ServerProperties.class),
                 mock(HttpClient.class), mock(HttpClient.class),

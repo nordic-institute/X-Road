@@ -156,13 +156,14 @@ public abstract class AbstractProxyIntegrationTest {
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, clientKeyConf);
         VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                clientKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer());
+                clientKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
+                proxyProperties);
 
         ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(TEST_GLOBAL_CONF, clientKeyConf);
         HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
                 .proxyHttpClient(proxyProperties.clientProxy(), clientAuthTrustVerifier, reloadingSSLSocketFactory);
 
-        ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(commonBeanProxy, httpClient, true, false);
+        ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(commonBeanProxy, httpClient);
         clientProxy = new ClientProxy(TEST_SERVER_CONF, proxyProperties.clientProxy(), reloadingSSLSocketFactory,
                 new ListInstanceWrapper<>(List.of(restMessageHandler)));
         clientProxy.init();
@@ -174,12 +175,13 @@ public abstract class AbstractProxyIntegrationTest {
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
         VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                serverKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer());
+                serverKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
+                proxyProperties);
 
         OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
                 mock(MonitorRpcClient.class), proxyProperties.addOn(), opMonitorCommonProperties);
-        serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
+        serverProxy = new ServerProxy(proxyProperties, mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
                 opMonitorCommonProperties, new NoopVaultClient(), new NoopVaultKeyClient());
         serverProxy.init();
     }

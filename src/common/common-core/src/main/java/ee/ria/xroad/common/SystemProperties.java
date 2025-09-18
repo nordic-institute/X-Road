@@ -146,9 +146,6 @@ public final class SystemProperties {
     private static final String CLIENTPROXY_POOL_REUSE_CONNECTIONS =
             PROXY_PREFIX + "pool-enable-connection-reuse";
 
-    private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
-            PROXY_PREFIX + "enforce-client-is-cert-validity-period-check";
-
     private static final String FALSE = Boolean.FALSE.toString();
     private static final String TRUE = Boolean.TRUE.toString();
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
@@ -168,8 +165,6 @@ public final class SystemProperties {
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT = "0";
 
     private static final String DEFAULT_CLIENTPROXY_TIMEOUT = "30000";
-
-    private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = FALSE;
 
     /**
      * The default value of the on/off switch for a group of settings that affect whether or not pooled connections
@@ -708,14 +703,6 @@ public final class SystemProperties {
         if (min > current || min < 1) {
             throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
         }
-    }
-
-    /**
-     * @return Whether to throw an exception about expired or not yet valid certificates, 'false' by default..
-     */
-    public static boolean isClientIsCertValidityPeriodCheckEnforced() {
-        return Boolean.parseBoolean(getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
-                DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
     }
 
     private static String propertyNameToEnvVariable(String propName) {

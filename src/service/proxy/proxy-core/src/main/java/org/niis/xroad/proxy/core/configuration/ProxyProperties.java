@@ -76,6 +76,10 @@ public interface ProxyProperties {
     @WithDefault("false")
     boolean logClientCert();
 
+    @WithName("enforce-client-is-cert-validity-period-check")
+    @WithDefault("false")
+    boolean enforceClientIsCertValidityPeriodCheck();
+
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {
         @WithName("connector-host")

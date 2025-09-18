@@ -51,6 +51,7 @@ import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 
 import java.io.ByteArrayInputStream;
@@ -70,6 +71,7 @@ import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.getServerConf;
 @Slf4j
 abstract class AbstractMessageLogTest {
 
+    ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
     GlobalConfProvider globalConfProvider;
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;
@@ -112,7 +114,7 @@ abstract class AbstractMessageLogTest {
         logRecordManager = new LogRecordManager(databaseCtx);
         var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer());
+                null, null, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties);
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 
@@ -183,7 +185,7 @@ abstract class AbstractMessageLogTest {
         logManager.log(logMessage);
     }
 
-    TimestampRecord timestamp(MessageRecord record) throws Exception {
+    TimestampRecord timestamp(MessageRecord record) {
         return logManager.timestamp(record.getId());
     }
 

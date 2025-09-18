@@ -37,16 +37,18 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteKeyConf;
@@ -67,8 +69,8 @@ import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,7 +80,7 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_CLIENTS;
 /**
  * Unit test for {@link MetadataClientRequestProcessor}
  */
-public class MetadataClientRequestProcessorTest {
+class MetadataClientRequestProcessorTest {
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
 
@@ -94,11 +96,12 @@ public class MetadataClientRequestProcessorTest {
     private KeyConfProvider keyConfProvider;
     private ServerConfProvider serverConfProvider;
     private VaultKeyProvider vaultKeyProvider;
+    private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
 
     /**
      * Init class-wide test instances
      */
-    @BeforeClass
+    @BeforeAll
     public static void initCommon() throws JAXBException {
         unmarshaller = JAXBContext.newInstance(ObjectFactory.class).createUnmarshaller();
     }
@@ -106,7 +109,7 @@ public class MetadataClientRequestProcessorTest {
     /**
      * Init data for tests
      */
-    @Before
+    @BeforeEach
     public void init() {
 
         globalConfProvider = new TestSuiteGlobalConf();
@@ -115,7 +118,7 @@ public class MetadataClientRequestProcessorTest {
         vaultKeyProvider = mock(NoopVaultKeyProvider.class);
 
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer());
+                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties);
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
@@ -130,26 +133,26 @@ public class MetadataClientRequestProcessorTest {
 
 
     @Test
-    public void shouldBeAbleToProcessListClients() {
+    void shouldBeAbleToProcessListClients() {
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(commonBeanProxy,
                         LIST_CLIENTS, mockRequest, mockResponse);
 
-        assertTrue("Wasn't able to process list clients", processorToTest.canProcess());
+        assertTrue(processorToTest.canProcess(), "Wasn't able to process list clients");
     }
 
     @Test
-    public void shouldNotBeAbleToProcessRandomRequest() {
+    void shouldNotBeAbleToProcessRandomRequest() {
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(commonBeanProxy, "getRandom", mockRequest, mockResponse);
 
-        assertFalse("Was able to process a random target", processorToTest.canProcess());
+        assertFalse(processorToTest.canProcess(), "Was able to process a random target");
     }
 
     @Test
-    public void shouldProcessListClients() throws Exception {
+    void shouldProcessListClients() throws Exception {
 
         final List<MemberInfo> expectedMembers = Arrays.asList(
                 createMember("producer", null),
@@ -168,7 +171,7 @@ public class MetadataClientRequestProcessorTest {
 
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer());
+                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties);
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
@@ -201,7 +204,7 @@ public class MetadataClientRequestProcessorTest {
     }
 
     @Test
-    public void shouldProcessListClientsAndReturnJson() throws Exception {
+    void shouldProcessListClientsAndReturnJson() throws Exception {
 
         final List<MemberInfo> expectedMembers = Arrays.asList(
                 createMember("producer", null),
@@ -215,7 +218,7 @@ public class MetadataClientRequestProcessorTest {
             }
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer());
+                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties);
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(commonBeanProxy,
@@ -257,14 +260,14 @@ public class MetadataClientRequestProcessorTest {
     }
 
     @Test
-    public void shouldAcceptJson() {
+    void shouldAcceptJson() {
         final Enumeration<String> accept =
                 Collections.enumeration(Arrays.asList("text/xml;q=1.0", "application/json;q=0.9 , text/*"));
         assertTrue(MetadataClientRequestProcessor.acceptsJson(accept));
     }
 
     @Test
-    public void shouldNotAcceptJson() {
+    void shouldNotAcceptJson() {
         assertFalse(MetadataClientRequestProcessor.acceptsJson(null));
         assertFalse(MetadataClientRequestProcessor.acceptsJson(Collections.emptyEnumeration()));
 

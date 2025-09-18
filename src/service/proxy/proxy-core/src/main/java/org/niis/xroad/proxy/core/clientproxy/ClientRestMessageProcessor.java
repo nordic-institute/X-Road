@@ -47,7 +47,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.TeeInputStream;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.cert.CertChain;
@@ -99,9 +98,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     ClientRestMessageProcessor(CommonBeanProxy commonBeanProxy,
                                RequestWrapper request, ResponseWrapper response,
                                HttpClient httpClient, IsAuthenticationData clientCert,
-                               OpMonitoringData opMonitoringData, boolean shouldVerifyClientCert) {
-        super(commonBeanProxy, request, response, httpClient,
-                clientCert, opMonitoringData, shouldVerifyClientCert);
+                               OpMonitoringData opMonitoringData) {
+        super(commonBeanProxy, request, response, httpClient, clientCert, opMonitoringData);
         this.xRequestId = UUID.randomUUID().toString();
     }
 
@@ -227,7 +225,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void checkConsistency(DigestAlgorithm hashAlgoId) throws IOException, OperatorCreationException {
+    private void checkConsistency(DigestAlgorithm hashAlgoId) throws IOException {
         if (!Objects.equals(restRequest.getClientId(), response.getRestResponse().getClientId())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response client id does not match request message");
         }
