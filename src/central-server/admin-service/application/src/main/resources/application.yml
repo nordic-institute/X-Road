@@ -129,3 +129,5 @@ xroad:
         common-name: ${XROAD_HOST:localhost}
         ip-subject-alt-names:
           - 127.0.0.1
+    key-management-api-whitelist: 127.0.0.0/8, ::1
+    regular-api-whitelist: 0.0.0.0/0, ::/0

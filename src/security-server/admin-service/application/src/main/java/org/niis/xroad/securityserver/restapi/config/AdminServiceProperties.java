@@ -164,42 +164,42 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      */
     private boolean automaticActivateAuthCertificate;
 
-    private boolean acmeRenewalSuccessNotificationEnabled = true;
-    private boolean acmeRenewalFailureNotificationEnabled = true;
-    private boolean authCertRegisteredNotificationEnabled = true;
-    private boolean certAutoActivationNotificationEnabled = true;
-    private boolean certAutoActivationFailureNotificationEnabled = true;
+    private boolean acmeRenewalSuccessNotificationEnabled;
+    private boolean acmeRenewalFailureNotificationEnabled;
+    private boolean authCertRegisteredNotificationEnabled;
+    private boolean certAutoActivationNotificationEnabled;
+    private boolean certAutoActivationFailureNotificationEnabled;
 
     /** Locale for mail notifications, which determines the language of the notifications.
      * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
     private String mailNotificationLocale;
 
-    private boolean acmeRenewalActive = true;
-    private int acmeRenewalRetryDelay = 60;
-    private int acmeRenewalInterval = 3600;
-    private int acmeRenewalTimeBeforeExpirationDate = 14;
-    private int acmeKeypairRenewalTimeBeforeExpirationDate = 14;
+    private boolean acmeRenewalActive;
+    private int acmeRenewalRetryDelay;
+    private int acmeRenewalInterval;
+    private int acmeRenewalTimeBeforeExpirationDate;
+    private int acmeKeypairRenewalTimeBeforeExpirationDate;
     private boolean automaticActivateAcmeSignCertificate;
-    private int acmeAuthorizationWaitAttempts = 5;
-    private int acmeAuthorizationWaitInterval = 5;
-    private int acmeCertificateWaitAttempts = 5;
-    private int acmeCertificateWaitInterval = 5;
-    private int acmeCertificateAccountKeyPairExpiration = 365;
+    private int acmeAuthorizationWaitAttempts;
+    private int acmeAuthorizationWaitInterval;
+    private int acmeCertificateWaitAttempts;
+    private int acmeCertificateWaitInterval;
+    private int acmeCertificateAccountKeyPairExpiration;
     private boolean acmeChallengePortEnabled;
-    private int acmeChallengePort = 80;
+    private int acmeChallengePort;
 
     // whether generating CSR is allowed for with existing certificate, 'false' by default
     private boolean allowCsrForKeyWithCertificate;
 
     // signature digest algorithm ID used for generating authentication certificate registration request
-    private String authCertRegSignatureDigestAlgorithmId = "SHA-512";
+    private String authCertRegSignatureDigestAlgorithmId;
 
     private String securityServerUrl;
 
     /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
-    private String keyManagementApiWhitelist = "127.0.0.0/8, ::1";
+    private String keyManagementApiWhitelist;
     /** Default whitelist for Proxy UI API's regular APIs (allow all) */
-    private String regularApiWhitelist = "0.0.0.0/0, ::/0";
+    private String regularApiWhitelist;
 
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
