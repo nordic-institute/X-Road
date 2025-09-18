@@ -28,19 +28,16 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
 import org.niis.xroad.restapi.vault.AdminServiceSslBundleRegistrar;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.vault.core.VaultTemplate;
 
 @ConditionalOnProperty(name = "server.ssl.enabled", havingValue = "true")
 @Configuration
-@Import(SpringVaultClientConfig.class)
 public class VaultPoweredTlsConfiguration {
 
     @Bean

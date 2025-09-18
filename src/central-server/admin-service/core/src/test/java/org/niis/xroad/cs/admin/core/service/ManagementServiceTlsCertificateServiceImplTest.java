@@ -25,66 +25,81 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.converter.KeyUsageConverter;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ManagementServiceTlsCertificateServiceImplTest {
     @Mock
     private AuditDataHelper auditDataHelper;
+    @Mock
+    private VaultClient vaultClient;
+    @Mock
+    private VaultKeyClient vaultKeyClient;
+
     private ManagementServiceTlsCertificateServiceImpl service;
 
     @BeforeEach
     void setup() {
-        ExternalProcessRunner externalProcessRunner1 = new ExternalProcessRunner();
-        CertificateConverter certificateConverter1 = new CertificateConverter(new KeyUsageConverter());
-        final String generateCertificateScriptPath = "src/test/resources/scripts/generate_certificate.sh";
-        final String certificatesPath = "src/test/resources/ssl/";
-
-        service = new ManagementServiceTlsCertificateServiceImpl(
-                certificateConverter1,
-                externalProcessRunner1,
-                auditDataHelper,
-                generateCertificateScriptPath,
-                certificatesPath
-        );
+        CertificateConverter certificateConverter = new CertificateConverter(new KeyUsageConverter());
+        service = new ManagementServiceTlsCertificateServiceImpl(vaultClient, vaultKeyClient, certificateConverter, auditDataHelper);
     }
 
     @Test
-    void getTlsCertificateShouldThrownValidationFailureException() {
-        setupCertificatePathNotExists();
-        assertThatThrownBy(() -> service.getTlsCertificate())
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("Error[code=invalid_certificate]");
+    void generateCsr() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        when(vaultClient.getManagementServicesTlsCredentials()).thenReturn(
+                mockTlsCredentials("src/test/resources/ssl/management-service.key", "src/test/resources/ssl/management-service.crt"));
+        var csr = service.generateCsr("CN=TEST");
+        try (PemReader pemReader = new PemReader(new InputStreamReader(new ByteArrayInputStream(csr)))) {
+            byte[] csrBytes = pemReader.readPemObject().getContent();
+            assertThat(new PKCS10CertificationRequest(csrBytes)).isNotNull();
+        }
     }
 
     @Test
-    void generateCsrShouldThrownValidationFailureException() {
+    void generateCsrShouldThrownValidationFailureException()
+            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        when(vaultClient.getManagementServicesTlsCredentials()).thenReturn(
+                mockTlsCredentials("src/test/resources/ssl/management-service.key", "src/test/resources/ssl/management-service.crt"));
         assertThatThrownBy(() -> service.generateCsr("TEST"))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Error[code=invalid_distinguished_name]");
     }
 
     @Test
-    void importTlsCertificateShouldThrownValidationFailureException() throws CertificateEncodingException {
+    void importTlsCertificateShouldThrownValidationFailureException()
+            throws CertificateEncodingException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        when(vaultClient.getManagementServicesTlsCredentials()).thenReturn(
+                mockTlsCredentials("src/test/resources/ssl/management-service.key", "src/test/resources/ssl/management-service.crt"));
         var certificateBytes = service.getTlsCertificate().getEncoded();
         assertThatThrownBy(() -> service.importTlsCertificate(certificateBytes))
                 .isInstanceOf(BadRequestException.class)
@@ -100,7 +115,10 @@ class ManagementServiceTlsCertificateServiceImplTest {
     }
 
     @Test
-    void importTlsCertificateShouldThrownValidationFailureException3() throws IOException, CertificateEncodingException {
+    void importTlsCertificateShouldThrownValidationFailureException3()
+            throws IOException, CertificateEncodingException, NoSuchAlgorithmException, InvalidKeySpecException {
+        when(vaultClient.getManagementServicesTlsCredentials()).thenReturn(
+                mockTlsCredentials("src/test/resources/ssl/management-service.key", "src/test/resources/ssl/management-service.crt"));
         var certificate = CryptoUtils.readCertificate(
                 Files.readAllBytes(Path.of("src/test/resources/ssl/invalid-chain.crt"))
         );
@@ -111,24 +129,27 @@ class ManagementServiceTlsCertificateServiceImplTest {
     }
 
     @Test
-    void generateTlsKeyAndCertificateShouldThrownValidationFailureException() {
-        assertThatThrownBy(() -> service.generateTlsKeyAndCertificate())
-                .isInstanceOf(InternalServerErrorException.class)
-                .hasMessage("Error[code=key_and_cert_generation_failed]");
+    void generateTlsKeyAndCertificate() throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        when(vaultKeyClient.provisionNewCerts()).thenReturn(
+                mockVaultKeyCreation("src/test/resources/ssl/management-service.key", "src/test/resources/ssl/management-service.crt"));
+        when(vaultClient.getManagementServicesTlsCredentials()).thenReturn(
+                mockTlsCredentials("src/test/resources/ssl/management-service.key", "src/test/resources/ssl/management-service.crt"));
+        service.generateTlsKeyAndCertificate();
     }
 
-    private void setupCertificatePathNotExists() {
-        ExternalProcessRunner externalProcessRunner1 = new ExternalProcessRunner();
-        CertificateConverter certificateConverter1 = new CertificateConverter(new KeyUsageConverter());
-        final String generateCertificateScriptPath = "src/test/resources/scripts/generate_certificate.sh";
-        final String certificatesPath = "pathNotExists/";
+    private InternalSSLKey mockTlsCredentials(String privateKeyPath, String certificatePath)
+            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        var privateKey = CryptoUtils.getPrivateKey(Files.newInputStream(Path.of(privateKeyPath)));
+        var certChain = CryptoUtils.readCertificates(Files.readAllBytes(Path.of(certificatePath)));
+        return new InternalSSLKey(privateKey, certChain.toArray(new X509Certificate[0]));
 
-        service = new ManagementServiceTlsCertificateServiceImpl(
-                certificateConverter1,
-                externalProcessRunner1,
-                auditDataHelper,
-                generateCertificateScriptPath,
-                certificatesPath
-        );
+    }
+
+    private VaultKeyClient.VaultKeyData mockVaultKeyCreation(String privateKeyPath, String certificatePath)
+            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        var privateKey = CryptoUtils.getPrivateKey(Files.newInputStream(Path.of(privateKeyPath)));
+        var certChain = CryptoUtils.readCertificates(Files.readAllBytes(Path.of(certificatePath)));
+        return new VaultKeyClient.VaultKeyData(
+                certChain.toArray(new X509Certificate[0]), privateKey, certChain.toArray(new X509Certificate[0]));
     }
 }

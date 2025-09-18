@@ -77,13 +77,13 @@ public class AdminServiceSslBundleRegistrar implements SslBundleRegistrar {
         try {
             vaultClient.getAdminServiceTlsCredentials();
         } catch (Exception e) {
-            log.warn("Unable to locate proxy-ui-api TLS credentials, attempting to create new ones", e);
+            log.warn("Unable to locate '{}' TLS credentials, attempting to create new ones", BUNDLE_NAME, e);
             var vaultKeyData = vaultKeyClient.provisionNewCerts();
             var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
                     .toArray(X509Certificate[]::new);
             var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
             vaultClient.createAdminServiceTlsCredentials(internalTlsKey);
-            log.info("Successfully created proxy-ui-api TLS credentials");
+            log.info("Successfully created '{}' TLS credentials", BUNDLE_NAME);
         }
     }
 }

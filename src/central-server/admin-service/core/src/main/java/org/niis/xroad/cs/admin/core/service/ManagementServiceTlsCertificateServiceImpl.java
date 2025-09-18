@@ -26,11 +26,9 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
-import ee.ria.xroad.common.util.process.ProcessFailedException;
-import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import com.google.common.collect.Iterables;
 import jakarta.transaction.Transactional;
@@ -42,27 +40,29 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.service.ManagementServiceTlsCertificateService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.KeyPair;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Stream;
 
+import static java.util.Arrays.stream;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CERTIFICATE;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_DISTINGUISHED_NAME;
 import static org.niis.xroad.common.core.exception.ErrorCode.KEY_CERT_GENERATION_FAILED;
@@ -73,7 +73,6 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_WRI
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CSR_GENERATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.IMPORTED_CERTIFICATE_ALREADY_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.IMPORTED_KEY_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.KEY_CERT_GENERATION_INTERRUPTED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_NAME;
 
 @Service
@@ -85,23 +84,15 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
     private static final String MANAGEMENT_SERVICE = "management-service";
     private static final String CERT_PEM_FILENAME = "./" + MANAGEMENT_SERVICE + ".pem";
     private static final String CERT_CER_FILENAME = "./" + MANAGEMENT_SERVICE + ".cer";
-    private static final String MANAGEMENT_SERVICE_TLS_KEY_PATH = "%s" + MANAGEMENT_SERVICE + ".key";
-    private static final String MANAGEMENT_SERVICE_TLS_CERT_PATH = "%s" + MANAGEMENT_SERVICE + ".crt";
-    private static final String MANAGEMENT_SERVICE_TLS_P12_PATH = "%s" + MANAGEMENT_SERVICE + ".p12";
-    private static final String GENERATE_CERT_SCRIPT_ARGS = "-n " + MANAGEMENT_SERVICE + " -f -S -p 2>&1";
 
+    private final VaultClient vaultClient;
+    private final VaultKeyClient vaultKeyClient;
     private final CertificateConverter certificateConverter;
-    private final ExternalProcessRunner externalProcessRunner;
     private final AuditDataHelper auditDataHelper;
-
-    @Value("${script.generate-certificate.path}")
-    private final String generateCertificateScriptPath;
-    @Value("${certificates.path}")
-    private final String certificatesPath;
 
     public X509Certificate getTlsCertificate() {
         try {
-            return CryptoUtils.readCertificate(Files.readAllBytes(Path.of(getManagementServiceTlsCertPath())));
+            return vaultClient.getManagementServicesTlsCredentials().getCertChain()[0];
         } catch (Exception e) {
             log.error("Cannot read management service TLS certificate", e);
             throw new BadRequestException(e, INVALID_CERTIFICATE.build());
@@ -138,16 +129,16 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
 
     public byte[] generateCsr(String distinguishedName) {
         auditDataHelper.put(SUBJECT_NAME, distinguishedName);
-        byte[] csrBytes;
         try {
-            KeyPair keyPair = CertUtils.readKeyPairFromPemFile(getManagementServiceTlsKeyPath());
-            csrBytes = CertUtils.generateCertRequest(keyPair.getPrivate(), keyPair.getPublic(), distinguishedName);
+            var tlsCredentials = vaultClient.getManagementServicesTlsCredentials();
+            return CertUtils.generateCertRequest(
+                    tlsCredentials.getKey(), tlsCredentials.getCertChain()[0].getPublicKey(), distinguishedName
+            );
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(e, INVALID_DISTINGUISHED_NAME.build());
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | OperatorCreationException e) {
+        } catch (IOException | GeneralSecurityException | OperatorCreationException e) {
             throw new BadRequestException(e, CSR_GENERATION_FAILED.build());
         }
-        return csrBytes;
     }
 
     public CertificateDetails importTlsCertificate(byte[] certificateBytes) {
@@ -162,9 +153,9 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
         verifyCertificateImportability(x509Certificates);
 
         try {
-            // create pkcs12 checks the certificate chain validity
-            CertUtils.createPkcs12(getManagementServiceTlsKeyPath(), certificateBytes, getManagementServiceTlsP12Path());
-            CertUtils.writePemToFile(certificateBytes, getManagementServiceTlsCertPath());
+            var tlsCredentials = vaultClient.getManagementServicesTlsCredentials();
+            var tlsCredentialsWithNewCert = new InternalSSLKey(tlsCredentials.getKey(), x509Certificates.toArray(X509Certificate[]::new));
+            vaultClient.createInternalTlsCredentials(tlsCredentialsWithNewCert);
         } catch (Exception e) {
             log.error("Failed to import management service TLS certificate", e);
             throw new InternalServerErrorException(e, CERTIFICATE_IMPORT_FAILED.build());
@@ -175,13 +166,15 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
 
     public void generateTlsKeyAndCertificate() {
         try {
-            externalProcessRunner.executeAndThrowOnFailure(generateCertificateScriptPath, GENERATE_CERT_SCRIPT_ARGS.split("\\s+"));
-        } catch (ProcessNotExecutableException | ProcessFailedException e) {
+            var vaultKeyData = vaultKeyClient.provisionNewCerts();
+            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
+                    .toArray(X509Certificate[]::new);
+            var tlsCredentials = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
+            vaultClient.createInternalTlsCredentials(tlsCredentials);
+            log.info("Successfully created management service TLS credentials");
+        } catch (CertificateException | IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
             log.error("Failed to generate management service TLS key and certificate", e);
             throw new InternalServerErrorException(e, KEY_CERT_GENERATION_FAILED.build());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new InternalServerErrorException(e, KEY_CERT_GENERATION_INTERRUPTED.build());
         }
 
         // audit log hash of generated cert
@@ -211,23 +204,11 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
     }
 
     private Collection<X509Certificate> getTlsCertificateChain() {
-        try (FileInputStream fileInputStream = new FileInputStream(getManagementServiceTlsCertPath())) {
-            return CryptoUtils.readCertificates(fileInputStream);
-        } catch (Exception e) {
-            log.error("Can't read management service tls certificate");
+        try {
+            return Arrays.asList(vaultClient.getManagementServicesTlsCredentials().getCertChain());
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+            log.error("Can't read management service TLS certificate chain");
             throw new BadRequestException(e, CERTIFICATE_READ_FAILED.build());
         }
-    }
-
-    private String getManagementServiceTlsKeyPath() {
-        return String.format(MANAGEMENT_SERVICE_TLS_KEY_PATH, certificatesPath);
-    }
-
-    private String getManagementServiceTlsCertPath() {
-        return String.format(MANAGEMENT_SERVICE_TLS_CERT_PATH, certificatesPath);
-    }
-
-    private String getManagementServiceTlsP12Path() {
-        return String.format(MANAGEMENT_SERVICE_TLS_P12_PATH, certificatesPath);
     }
 }
