@@ -81,8 +81,8 @@ public class ManagementServiceSslBundleRegistrar implements SslBundleRegistrar {
             var vaultKeyData = vaultKeyClient.provisionNewCerts();
             var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
                     .toArray(X509Certificate[]::new);
-            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createAdminServiceTlsCredentials(internalTlsKey);
+            var tlCredentials = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
+            vaultClient.createManagementServiceTlsCredentials(tlCredentials);
             log.info("Successfully created '{}' TLS credentials", BUNDLE_NAME);
         }
     }

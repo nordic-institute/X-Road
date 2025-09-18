@@ -17,6 +17,7 @@ dependencies {
   intTestImplementation(project(path = ":central-server:admin-service:infra-jpa", configuration = "changelogJar"))
   intTestImplementation(project(":central-server:openapi-model"))
   intTestImplementation(project(":common:common-core"))
+  intTestImplementation(project(":common:common-int-test"))
 
   intTestImplementation(libs.bundles.testAutomation)
   intTestImplementation(libs.testAutomation.assert)

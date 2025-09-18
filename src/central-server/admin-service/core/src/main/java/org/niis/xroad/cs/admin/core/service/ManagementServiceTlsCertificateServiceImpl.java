@@ -155,7 +155,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
         try {
             var tlsCredentials = vaultClient.getManagementServicesTlsCredentials();
             var tlsCredentialsWithNewCert = new InternalSSLKey(tlsCredentials.getKey(), x509Certificates.toArray(X509Certificate[]::new));
-            vaultClient.createInternalTlsCredentials(tlsCredentialsWithNewCert);
+            vaultClient.createManagementServiceTlsCredentials(tlsCredentialsWithNewCert);
         } catch (Exception e) {
             log.error("Failed to import management service TLS certificate", e);
             throw new InternalServerErrorException(e, CERTIFICATE_IMPORT_FAILED.build());
@@ -170,7 +170,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
             var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
                     .toArray(X509Certificate[]::new);
             var tlsCredentials = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createInternalTlsCredentials(tlsCredentials);
+            vaultClient.createManagementServiceTlsCredentials(tlsCredentials);
             log.info("Successfully created management service TLS credentials");
         } catch (CertificateException | IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
             log.error("Failed to generate management service TLS key and certificate", e);

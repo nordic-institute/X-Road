@@ -42,6 +42,7 @@ public class ExtMockServerContainer extends AbstractAuxiliaryContainer<MockServe
 
     private static final String DOCKER_IMAGE = "mockserver/mockserver";
     private static final String NETWORK_ALIAS = "mock-server";
+    private static final String SCHEME = "http";
 
     @NotNull
     @Override
@@ -63,7 +64,19 @@ public class ExtMockServerContainer extends AbstractAuxiliaryContainer<MockServe
     }
 
     public String getEndpoint() {
-        return "http://" + NETWORK_ALIAS + ":" + MockServerContainer.PORT;
+        return SCHEME + "://" + NETWORK_ALIAS + ":" + MockServerContainer.PORT;
+    }
+
+    public String getScheme() {
+        return SCHEME;
+    }
+
+    public String getHost() {
+        return NETWORK_ALIAS;
+    }
+
+    public String getPort() {
+        return String.valueOf(MockServerContainer.PORT);
     }
 
 }

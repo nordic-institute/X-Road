@@ -55,6 +55,7 @@ import java.security.spec.InvalidKeySpecException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -134,7 +135,7 @@ class ManagementServiceTlsCertificateServiceImplTest {
                 mockVaultKeyCreation("src/test/resources/ssl/management-service.key", "src/test/resources/ssl/management-service.crt"));
         when(vaultClient.getManagementServicesTlsCredentials()).thenReturn(
                 mockTlsCredentials("src/test/resources/ssl/management-service.key", "src/test/resources/ssl/management-service.crt"));
-        service.generateTlsKeyAndCertificate();
+        assertDoesNotThrow(() -> service.generateTlsKeyAndCertificate());
     }
 
     private InternalSSLKey mockTlsCredentials(String privateKeyPath, String certificatePath)
@@ -142,7 +143,6 @@ class ManagementServiceTlsCertificateServiceImplTest {
         var privateKey = CryptoUtils.getPrivateKey(Files.newInputStream(Path.of(privateKeyPath)));
         var certChain = CryptoUtils.readCertificates(Files.readAllBytes(Path.of(certificatePath)));
         return new InternalSSLKey(privateKey, certChain.toArray(new X509Certificate[0]));
-
     }
 
     private VaultKeyClient.VaultKeyData mockVaultKeyCreation(String privateKeyPath, String certificatePath)
