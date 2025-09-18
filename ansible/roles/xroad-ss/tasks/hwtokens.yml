@@ -9,11 +9,6 @@
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Install X-Road hardware token addon
-      apt:
-        name: xroad-addon-hwtokens
-        state: present
-
     - name: Install SoftHSM2
       apt:
         name: softhsm2
