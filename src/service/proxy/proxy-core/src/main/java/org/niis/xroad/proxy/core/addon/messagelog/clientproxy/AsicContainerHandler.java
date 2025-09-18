@@ -51,8 +51,8 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
     /**
      * Constructor
      */
-    public AsicContainerHandler(CommonBeanProxy commonBeanProxy, HttpClient client, boolean verifyClientCert) {
-        super(commonBeanProxy, client, false, verifyClientCert);
+    public AsicContainerHandler(CommonBeanProxy commonBeanProxy, HttpClient client, boolean verifyClientCert, boolean logClientCert) {
+        super(commonBeanProxy, client, false, verifyClientCert, logClientCert);
     }
 
     @Override
@@ -76,7 +76,8 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
                 commonBeanProxy,
                 target,
                 request,
-                response);
+                response,
+                logClientCert);
 
         if (processor.canProcess()) {
             log.trace("Processing with AsicContainerRequestProcessor");

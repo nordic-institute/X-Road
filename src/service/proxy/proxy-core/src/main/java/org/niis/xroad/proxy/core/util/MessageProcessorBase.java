@@ -42,8 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.clientproxy.IsAuthenticationData;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import javax.net.ssl.X509TrustManager;

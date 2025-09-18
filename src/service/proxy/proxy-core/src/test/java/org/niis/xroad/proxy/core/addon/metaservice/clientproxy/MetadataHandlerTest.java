@@ -32,8 +32,8 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpURI;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -48,17 +48,17 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * Unit test for {@link MetadataHandler}
  */
-public class MetadataHandlerTest {
+class MetadataHandlerTest {
 
     private HttpClient httpClientMock;
     private RequestWrapper mockRequest;
@@ -74,8 +74,8 @@ public class MetadataHandlerTest {
     /**
      * Init common data for tests
      */
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         globalConfProvider = new TestSuiteGlobalConf();
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
@@ -89,42 +89,41 @@ public class MetadataHandlerTest {
 
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
         when(mockHttpUri.getPath()).thenReturn("/target");
-
     }
 
     @Test
-    public void shouldNotCreateProcessorForPostRequest() {
+    void shouldNotCreateProcessorForPostRequest() {
 
         when(mockRequest.getMethod()).thenReturn("POST");
 
         MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
-                httpClientMock, true);
+                httpClientMock, true, false);
 
         MessageProcessorBase returnValue =
                 handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 
-        assertNull("Was expecting a null return value", returnValue);
+        assertNull(returnValue, "Was expecting a null return value");
     }
 
     @Test
-    public void shouldNotCreateProcessorForUnprocessableRequest() {
+    void shouldNotCreateProcessorForUnprocessableRequest() {
 
         when(mockRequest.getMethod()).thenReturn("GET");
 
         MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
-                httpClientMock, true);
+                httpClientMock, true, false);
 
         MessageProcessorBase returnValue =
                 handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 
-        assertNull("Was expecting a null return value", returnValue);
+        assertNull(returnValue, "Was expecting a null return value");
     }
 
     @Test
-    public void shouldThrowWhenTargetNull() {
+    void shouldThrowWhenTargetNull() {
 
         MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
-                httpClientMock, true);
+                httpClientMock, true, false);
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn(null);
 
@@ -134,21 +133,19 @@ public class MetadataHandlerTest {
         assertTrue(ce.getMessage().contains("Target must not be null"));
     }
 
-
     @Test
-    public void shouldReturnProcessorWhenAbleToProcess() {
+    void shouldReturnProcessorWhenAbleToProcess() {
 
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn("/listClients");
 
         MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
-                httpClientMock, true);
+                httpClientMock, true, false);
 
         MessageProcessorBase result = handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 
         assertThat("Message processor is of wrong type", result,
                 instanceOf(MetadataClientRequestProcessor.class));
-
     }
 
 }

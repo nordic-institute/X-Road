@@ -45,7 +45,6 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
 import java.net.URI;
 import java.util.Map;

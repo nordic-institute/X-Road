@@ -68,7 +68,7 @@ public class ProxyClientConfig {
     // must be the last handler
     AbstractClientProxyHandler clientSoapMessageHandler(CommonBeanProxy commonBeanProxy, ProxyProperties proxyProperties,
                                                         @Named("proxyHttpClient") HttpClient client) {
-        return new ClientSoapMessageHandler(commonBeanProxy, client, proxyProperties.verifyClientCert());
+        return new ClientSoapMessageHandler(commonBeanProxy, client, proxyProperties.verifyClientCert(), proxyProperties.logClientCert());
     }
 
     @ApplicationScoped
@@ -76,7 +76,7 @@ public class ProxyClientConfig {
     @LookupIfProperty(name = "xroad.proxy.addon.meta-services.enabled", stringValue = "true")
     AbstractClientProxyHandler metadataHandler(CommonBeanProxy commonBeanProxy, ProxyProperties proxyProperties,
                                                @Named("proxyHttpClient") HttpClient client) {
-        return new MetadataHandler(commonBeanProxy, client, proxyProperties.verifyClientCert());
+        return new MetadataHandler(commonBeanProxy, client, proxyProperties.verifyClientCert(), proxyProperties.logClientCert());
     }
 
     @ApplicationScoped
@@ -84,14 +84,14 @@ public class ProxyClientConfig {
     @LookupIfProperty(name = "xroad.proxy.addon.message-log.enabled", stringValue = "true")
     AbstractClientProxyHandler asicContainerHandler(CommonBeanProxy commonBeanProxy, ProxyProperties proxyProperties,
                                                     @Named("proxyHttpClient") HttpClient client) {
-        return new AsicContainerHandler(commonBeanProxy, client, proxyProperties.verifyClientCert());
+        return new AsicContainerHandler(commonBeanProxy, client, proxyProperties.verifyClientCert(), proxyProperties.logClientCert());
     }
 
     @ApplicationScoped
     @Priority(1000)
     AbstractClientProxyHandler clientRestMessageHandler(CommonBeanProxy commonBeanProxy, ProxyProperties proxyProperties,
                                                         @Named("proxyHttpClient") HttpClient client) {
-        return new ClientRestMessageHandler(commonBeanProxy, client, proxyProperties.verifyClientCert());
+        return new ClientRestMessageHandler(commonBeanProxy, client, proxyProperties.verifyClientCert(), proxyProperties.logClientCert());
     }
 
     @ApplicationScoped

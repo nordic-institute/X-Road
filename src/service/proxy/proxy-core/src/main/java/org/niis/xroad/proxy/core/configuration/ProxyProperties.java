@@ -72,6 +72,10 @@ public interface ProxyProperties {
     @WithDefault("true")
     boolean verifyClientCert();
 
+    @WithName("log-client-cert")
+    @WithDefault("false")
+    boolean logClientCert();
+
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {
         @WithName("connector-host")

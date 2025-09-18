@@ -107,9 +107,6 @@ public final class SystemProperties {
     public static final String PROXY_SERVER_PORT =
             PROXY_PREFIX + "server-port";
 
-    /** Property name of the flag to turn on proxy client SSL logging. */
-    public static final String PROXY_LOG_CLIENT_CERT = PROXY_PREFIX + "log-client-cert";
-
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
     private static final String PROXY_CLIENT_TLS_PROTOCOLS =
             PROXY_PREFIX + "client-tls-protocols";
@@ -565,16 +562,6 @@ public final class SystemProperties {
      */
     public static String getNetStatsFile() {
         return getProperty(NET_STATS_FILE, "/proc/net/dev");
-    }
-
-    /**
-     * This parameter may be set to true for cases where there is a need to log client's SSL certificate.
-     *
-     * @return whether the client proxy should log client's SSL certificate,
-     * 'false' by default.
-     */
-    public static boolean shouldLogClientCert() {
-        return Boolean.parseBoolean(getProperty(PROXY_LOG_CLIENT_CERT, FALSE));
     }
 
     /**

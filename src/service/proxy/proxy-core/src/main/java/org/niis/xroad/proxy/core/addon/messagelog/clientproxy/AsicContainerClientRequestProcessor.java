@@ -119,15 +119,17 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private static final String CONTENT_DISPOSITION_FILENAME_PREFIX = "attachment; filename=\"";
 
     private final String target;
+    private final boolean logClientCert;
 
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
     private final EncryptionConfigProvider encryptionConfigProvider;
 
     public AsicContainerClientRequestProcessor(CommonBeanProxy commonBeanProxy,
-                                               String target, RequestWrapper request, ResponseWrapper response)
+                                               String target, RequestWrapper request, ResponseWrapper response, boolean logClientCert)
             throws IOException {
         super(commonBeanProxy, request, response, null);
         this.target = target;
+        this.logClientCert = logClientCert;
         this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
     }
 
@@ -187,7 +189,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         log.trace("verifyClientAuthentication({})", clientId);
         try {
-            verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest));
+            verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest, logClientCert));
         } catch (CodedException ex) {
             throw new CodedExceptionWithHttpStatus(UNAUTHORIZED_401, ex);
         }
