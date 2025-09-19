@@ -87,10 +87,6 @@ public final class SystemProperties {
     public static final String PROXY_CLIENT_TIMEOUT =
             PROXY_PREFIX + "client-timeout";
 
-    /** Property name of the Server Proxy's port number. */
-    public static final String PROXY_SERVER_PORT =
-            PROXY_PREFIX + "server-port";
-
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
     private static final String PROXY_CLIENT_TLS_PROTOCOLS =
             PROXY_PREFIX + "client-tls-protocols";
@@ -357,13 +353,6 @@ public final class SystemProperties {
      */
     public static int getClientProxyTimeout() {
         return Integer.parseInt(getProperty(PROXY_CLIENT_TIMEOUT, DEFAULT_CLIENTPROXY_TIMEOUT));
-    }
-
-    /**
-     * @return the HTTP port on which the server proxy listens for messages, '5500' by default.
-     */
-    public static int getServerProxyPort() {
-        return Integer.parseInt(getProperty(PROXY_SERVER_PORT, Integer.toString(PortNumbers.PROXY_PORT)));
     }
 
     /**

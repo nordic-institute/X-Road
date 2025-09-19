@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
@@ -61,7 +60,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     public Collection<String> getProviderAddress(ClientId provider) {
         if (currentTestCase() == null || provider == null) {
             return singleton("http://127.0.0.1:"
-                    + SystemProperties.getServerProxyPort());
+                    + ProxyTestSuiteHelper.proxyProperties.serverProxyPort());
         }
 
         String addr = currentTestCase().getProviderAddress(

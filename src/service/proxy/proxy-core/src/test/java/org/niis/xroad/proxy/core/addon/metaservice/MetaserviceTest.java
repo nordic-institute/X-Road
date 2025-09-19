@@ -77,7 +77,7 @@ class MetaserviceTest {
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
 
         props.put("xroad.proxy.server.listen-port", valueOf(PROXY_PORT));
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
+        props.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
 

@@ -122,14 +122,15 @@ public abstract class AbstractProxyIntegrationTest {
         System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
 
         final String serverPort = String.valueOf(getFreePort());
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
 
         org.apache.xml.security.Init.init();
+
         Map<String, String> properties = Map.of(
                 "xroad.proxy.server.listen-address", "127.0.0.1",
                 "xroad.proxy.server.listen-port", serverPort,
+                "xroad.proxy.server-port", serverPort,
                 "xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml",
                 "xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml",
                 "xroad.proxy.client-proxy.connector-host", "127.0.0.1",

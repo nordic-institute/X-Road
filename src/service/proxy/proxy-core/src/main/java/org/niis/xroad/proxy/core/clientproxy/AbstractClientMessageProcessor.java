@@ -64,7 +64,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
 import static ee.ria.xroad.common.ErrorCodes.X_MAINTENANCE_MODE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
 import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
@@ -77,16 +76,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     protected final IsAuthenticationData clientCert;
     protected final OpMonitoringData opMonitoringData;
 
-    private static final URI DUMMY_SERVICE_ADDRESS;
-
-    static {
-        try {
-            DUMMY_SERVICE_ADDRESS = new URI("https", null, "localhost", getServerProxyPort(), "/", null, null);
-        } catch (URISyntaxException e) {
-            //can not happen
-            throw new IllegalStateException("Unexpected", e);
-        }
-    }
+    private final URI dummyServiceAddress;
 
     protected AbstractClientMessageProcessor(CommonBeanProxy commonBeanProxy,
                                              RequestWrapper request, ResponseWrapper response,
@@ -96,14 +86,22 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
+
+        try {
+            dummyServiceAddress = new URI("https", null, "localhost",
+                   commonBeanProxy.getProxyProperties().serverProxyPort(), "/", null, null);
+        } catch (URISyntaxException e) {
+            //can not happen
+            throw new IllegalStateException("Unexpected", e);
+        }
     }
 
-    protected static URI getServiceAddress(URI[] addresses) {
+    protected URI getServiceAddress(URI[] addresses) {
         if (addresses.length == 1 || !isSslEnabled()) {
             return addresses[0];
         }
         //postpone actual name resolution to the fastest connection selector
-        return DUMMY_SERVICE_ADDRESS;
+        return dummyServiceAddress;
     }
 
     URI[] prepareRequest(HttpSender httpSender, ServiceId requestServiceId, SecurityServerId securityServerId) {
@@ -167,7 +165,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
 
         String protocol = isSslEnabled() ? "https" : "http";
-        int port = getServerProxyPort();
+        int port = commonBeanProxy.getProxyProperties().serverProxyPort();
 
         List<URI> addresses = new ArrayList<>(hostNames.size());
 

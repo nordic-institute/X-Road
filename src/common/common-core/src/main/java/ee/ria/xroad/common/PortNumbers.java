@@ -35,9 +35,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PortNumbers {
 
-    /** Port for connection between client and server proxy. */
-    public static final int PROXY_PORT = 5500;
-
     /**
      * Signer grpc service port.
      */

@@ -78,7 +78,7 @@ public class ProxyTestSuiteHelper {
         properties.putIfAbsent("xroad.proxy.server.listen-address", "127.0.0.1");
 
         properties.putIfAbsent("xroad.proxy.server.listen-port", valueOf(PROXY_PORT));
-        solver.setIfNotSet(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
+        properties.putIfAbsent("xroad.proxy.server-port", valueOf(PROXY_PORT));
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
     }

@@ -80,6 +80,10 @@ public interface ProxyProperties {
     @WithDefault("false")
     boolean enforceClientIsCertValidityPeriodCheck();
 
+    @WithName("server-port")
+    @WithDefault("5500")
+    int serverProxyPort();
+
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {
         @WithName("connector-host")

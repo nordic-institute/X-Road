@@ -64,17 +64,18 @@ import static org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper.PROXY_PORT;
 
 class ProxyTests {
 
+    private static final Map<String, String> PROPS = new HashMap<>();
+
     @BeforeAll
     static void beforeAll() throws Exception {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
 
-        Map<String, String> props = new HashMap<>();
-        props.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
-        props.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
+        PROPS.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
+        PROPS.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
 
-        ProxyTestSuiteHelper.setPropsIfNotSet(props);
+        ProxyTestSuiteHelper.setPropsIfNotSet(PROPS);
 
-        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, props);
+        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
         ProxyTestSuiteHelper.startTestServices();
         ProxyTestSuiteHelper.startDummyProxy();
     }
@@ -96,8 +97,11 @@ class ProxyTests {
                 .toList();
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
+
+
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
+        PROPS.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
+        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
         ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
 
         return createDynamicTests(testCasesToRun);
@@ -112,7 +116,8 @@ class ProxyTests {
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(ProxyTestSuiteHelper.DUMMY_SERVER_PROXY_PORT));
+        PROPS.put("xroad.proxy.server-port", valueOf(ProxyTestSuiteHelper.DUMMY_SERVER_PROXY_PORT));
+        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
         ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, false);
 
         return createDynamicTests(testCasesToRun);
@@ -126,8 +131,9 @@ class ProxyTests {
                 .toList();
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
+        PROPS.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
+        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
         ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, false);
 
         return createDynamicTests(testCasesToRun);
@@ -147,8 +153,8 @@ class ProxyTests {
         };
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
-
+        PROPS.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
+        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
         ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, false);
 
         assertTrue(testCase.execute(ctx));
@@ -163,7 +169,8 @@ class ProxyTests {
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "true");
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
+        PROPS.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
+        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
 
         ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
         return createDynamicTests(testCasesToRun);
@@ -177,7 +184,8 @@ class ProxyTests {
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "true");
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
+        PROPS.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
+        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
 
         ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
         return createDynamicTests(testCasesToRun);
