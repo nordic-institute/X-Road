@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.test;
 
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.restapi.auth.AllowListConfig;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
@@ -109,6 +110,21 @@ public abstract class AbstractSpringMvcTest {
                 @Override
                 public DataSize getRequestSizeLimitBinaryUpload() {
                     return DataSize.ofMegabytes(5);
+                }
+            };
+        }
+
+        @Bean
+        public AllowListConfig allowListConfig() {
+            return new AllowListConfig() {
+                @Override
+                public String getKeyManagementApiWhitelist() {
+                    return "127.0.0.0/8, ::1";
+                }
+
+                @Override
+                public String getRegularApiWhitelist() {
+                    return "0.0.0.0/0, ::/0";
                 }
             };
         }

@@ -34,7 +34,7 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.util.EnumSet;
 
@@ -50,7 +50,7 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
     @Autowired
     PossibleActionsRuleEngine possibleActionsRuleEngine;
 
-    @MockitoBean
+    @MockitoSpyBean
     AdminServiceProperties adminServiceProperties;
 
     @Test
