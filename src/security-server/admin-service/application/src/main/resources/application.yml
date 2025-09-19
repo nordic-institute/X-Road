@@ -69,7 +69,7 @@ xroad:
     request-size-limit-binary-upload: 10MB
     authentication-key-algorithm: RSA
     signing-key-algorithm: RSA
-    security-server-url: https://localhost:8443
+    proxy-server-url: https://localhost:8443
     reserved-service-codes: listClients,listMethods,allowedMethods,getWsdl,getOpenAPI,getSecurityServerMetrics,getSecurityServerOperationalData,getSecurityServerHealthData
     tls:
       certificate-provisioning:

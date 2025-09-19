@@ -67,6 +67,7 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.client-tls-protocols", "proxy.client-proxy.client-tls-protocols");
         MAPPING.put("proxy.client-tls-ciphers", "proxy.client-proxy.client-tls-ciphers");
         MAPPING.put("proxy.client-httpclient-so-linger", "proxy.client-proxy.client-httpclient-so-linger");
+        MAPPING.put("proxy.client-timeout", "proxy.client-proxy.client-timeout");
         MAPPING.put("proxy.client-httpclient-timeout", "proxy.client-proxy.client-httpclient-timeout");
         MAPPING.put("proxy.pool-total-max-connections", "proxy.client-proxy.pool-total-max-connections");
         MAPPING.put("proxy.pool-total-default-max-connections-per-route", "proxy.client-proxy.pool-total-default-max-connections-per-route");
@@ -107,6 +108,9 @@ public class LegacyConfigPathMapping {
         MAPPING.put("op-monitor-buffer.sending-interval-seconds", "op-monitor.buffer.sending-interval-seconds");
         MAPPING.put("op-monitor-buffer.socket-timeout-seconds", "op-monitor.buffer.socket-timeout-seconds");
         MAPPING.put("op-monitor-buffer.connection-timeout-seconds", "op-monitor.buffer.connection-timeout-seconds");
+
+        // proxy-ui
+        MAPPING.put("proxy-ui-api.security-server-url", "proxy-ui-api.proxy-server-url");
 
         MAPPING.putAll(addDatabaseMapping("serverconf"));
         MAPPING.putAll(addDatabaseMapping("messagelog"));

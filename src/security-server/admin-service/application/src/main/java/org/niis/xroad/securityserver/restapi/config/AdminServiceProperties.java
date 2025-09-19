@@ -194,7 +194,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     // signature digest algorithm ID used for generating authentication certificate registration request
     private String authCertRegSignatureDigestAlgorithmId;
 
-    private String securityServerUrl;
+    private String proxyServerUrl;
 
     /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
     private String keyManagementApiWhitelist;

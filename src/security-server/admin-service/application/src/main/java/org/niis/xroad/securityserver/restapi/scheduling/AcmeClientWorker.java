@@ -387,7 +387,7 @@ public class AcmeClientWorker {
         ClientId sender = serverConfService.getSecurityServerOwnerId();
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
-                signerSignClient, sender, receiver, adminServiceProperties.getSecurityServerUrl(),
+                signerSignClient, sender, receiver, adminServiceProperties.getProxyServerUrl(),
                 DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()));
     }
 
