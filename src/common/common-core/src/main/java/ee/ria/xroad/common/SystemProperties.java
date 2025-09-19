@@ -96,20 +96,8 @@ public final class SystemProperties {
 
     private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY = SIGNER_PREFIX + "enforce-token-pin-policy";
 
-    /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
-    private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
-            PROXY_PREFIX + "server-connector-max-idle-time";
-
-    /** Property name of the server Connector socket SO_LINGER timer, in seconds, value of -1 means off */
-    private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
-            PROXY_PREFIX + "server-connector-so-linger";
-
-    /** Property name of the client connector socket SO_LINGER timer, in seconds, value of -1 means off */
-    private static final String CLIENTPROXY_CONNECTOR_SO_LINGER =
-            PROXY_PREFIX + "client-connector-so-linger";
-
     /**
-     * Property name for he connection maximum idle time that should be set for client proxy apache HttpClient,
+     * Property name for the connection maximum idle time that should be set for client proxy apache HttpClient,
      * in milliseconds, value 0 means infinite timeout, -1 means the system default
      */
     private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
@@ -126,12 +114,6 @@ public final class SystemProperties {
     private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = FALSE;
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = FALSE;
-
-    private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
-
-    private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "-1";
-
-    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER = "-1";
 
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT = "0";
 
@@ -559,39 +541,11 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the connection maximum idle time that should be set for server proxy connector
-     */
-    public static int getServerProxyConnectorMaxIdleTime() {
-        return Integer.parseInt(getProperty(SERVERPROXY_CONNECTOR_MAX_IDLE_TIME,
-                DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME));
-    }
-
-    /**
-     * @return the so_linger value in milliseconds that should be set for server proxy connector, -1 (disabled) by
-     * default
-     */
-    @SuppressWarnings("checkstyle:magicnumber")
-    public static int getServerProxyConnectorSoLinger() {
-        final int linger = Integer.parseInt(getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
-                DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER));
-        if (linger >= 0) return linger * 1000;
-        return -1;
-    }
-
-    /**
      * @return the connection maximum idle time that should be set for client proxy apache HttpClient
      */
     public static int getClientProxyHttpClientTimeout() {
         return Integer.parseInt(getProperty(CLIENTPROXY_HTTPCLIENT_TIMEOUT,
                 DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT));
-    }
-
-    /**
-     * @return the so_linger value in seconds that should be set for client proxy connector, 0 by default
-     */
-    public static int getClientProxyConnectorSoLinger() {
-        return Integer.parseInt(getProperty(CLIENTPROXY_CONNECTOR_SO_LINGER,
-                DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER));
     }
 
     public static boolean isEnableClientProxyPooledConnectionReuse() {
