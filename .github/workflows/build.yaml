@@ -305,7 +305,7 @@ jobs:
         with:
           cache-read-only: true
       - name: Initialize docker setup
-        working-directory: ./Docker/centralserver
+        working-directory: ./development/docker/central-server
         run: ./init_context.sh
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -315,13 +315,13 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: debian-packages
-          path: ./Docker/centralserver/build/packages/
+          path: ./development/docker/central-server/build/packages/
       - name: List docker build files
-        run: ls -lah ./Docker/centralserver/build
+        run: ls -lah ./development/docker/central-server/build
       - name: Build CS docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./Docker/centralserver/
+          context: ./development/docker/central-server/
           push: true
           build-args: |
             PACKAGE_SOURCE=internal
@@ -481,17 +481,17 @@ jobs:
           driver-opts: network=host
       # Build Central Server
       - name: Initialize CS docker setup
-        working-directory: ./Docker/centralserver
+        working-directory: ./development/docker/central-server
         run: ./init_context.sh
       - name: Download debian packages for CS
         uses: actions/download-artifact@v5
         with:
           name: debian-packages
-          path: ./Docker/centralserver/build/packages/
+          path: ./development/docker/central-server/build/packages/
       - name: Build CS docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./Docker/centralserver/
+          context: ./development/docker/central-server/
           push: true
           build-args: |
             PACKAGE_SOURCE=internal
