@@ -58,9 +58,9 @@ public final class SoftwareTokenUtil {
     private SoftwareTokenUtil() {
     }
 
-    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password)
+    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password, KeyManagers keyManagers)
             throws OperatorCreationException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException {
-        var signALgo = KeyManagers.getFor(kp.getPrivate().getAlgorithm()).getSoftwareTokenKeySignAlgorithm();
+        var signALgo = keyManagers.getFor(kp.getPrivate().getAlgorithm()).getSoftwareTokenKeySignAlgorithm();
         ContentSigner signer = CryptoUtils.createContentSigner(signALgo, kp.getPrivate());
 
         X509Certificate[] certChain = new X509Certificate[1];

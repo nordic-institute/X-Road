@@ -67,4 +67,6 @@ public interface AcmeConfig {
     boolean isAcmeChallengePortEnabled();
 
     int getAcmeChallengePort();
+
+    int getAcmeKeyLength();
 }

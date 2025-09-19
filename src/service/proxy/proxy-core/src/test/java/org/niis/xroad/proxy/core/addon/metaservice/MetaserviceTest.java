@@ -79,7 +79,7 @@ class MetaserviceTest {
         props.put("xroad.proxy.server.listen-port", valueOf(PROXY_PORT));
         props.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
         props.put("xroad.proxy.ssl-enabled", "false");
-        props.put("xroad.proxy.client-timeout", "15000");
+        props.put("xroad.proxy.client-proxy.client-timeout", "15000");
 
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, props);
 

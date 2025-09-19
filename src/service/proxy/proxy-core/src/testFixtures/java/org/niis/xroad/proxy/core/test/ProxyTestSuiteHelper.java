@@ -80,7 +80,7 @@ public class ProxyTestSuiteHelper {
         properties.putIfAbsent("xroad.proxy.server.listen-port", valueOf(PROXY_PORT));
         properties.putIfAbsent("xroad.proxy.server-port", valueOf(PROXY_PORT));
 
-        properties.putIfAbsent("xroad.proxy.client-timeout", "15000");
+        properties.putIfAbsent("xroad.proxy.client-proxy.client-timeout", "15000");
     }
 
     @Deprecated(forRemoval = true)

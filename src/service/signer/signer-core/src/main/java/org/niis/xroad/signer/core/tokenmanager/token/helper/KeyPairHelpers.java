@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,39 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.config;
 
+package org.niis.xroad.signer.core.tokenmanager.token.helper;
 
-import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
-import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
-import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
-import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
+import lombok.RequiredArgsConstructor;
 
-@Slf4j
-public class SignerConfig {
+@ApplicationScoped
+@RequiredArgsConstructor
+public class KeyPairHelpers {
 
-    @ApplicationScoped
-    @Startup
-    OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker,
-                                                          GlobalConfProvider globalConfProvider,
-                                                          SignerProperties signerProperties) {
-        if (signerProperties.ocspResponseRetrievalActive()) {
-            var scheduler = new OcspClientExecuteSchedulerImpl(ocspClientWorker, globalConfProvider, signerProperties);
-            scheduler.init();
-            return scheduler;
-        } else {
-            return new OcspClientExecuteScheduler.NoopScheduler();
-        }
+    private final RsaKeyPairHelper rsaKeyPairHelper;
+    private final EcKeyPairHelper ecKeyPairHelper;
+
+    public KeyPairHelper of(KeyAlgorithm algorithm) {
+        return switch (algorithm) {
+            case RSA -> rsaKeyPairHelper;
+            case EC -> ecKeyPairHelper;
+        };
     }
-
-    @ApplicationScoped
-    KeyManagers keyManagers(SignerProperties signerProperties) {
-        return new KeyManagers(signerProperties.getKeyLength(), signerProperties.keyNamedCurve());
-    }
-
 }

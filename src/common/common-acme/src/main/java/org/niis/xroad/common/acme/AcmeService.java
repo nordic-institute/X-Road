@@ -170,7 +170,7 @@ public final class AcmeService {
             if (certificate != null && Instant.now()
                     .isAfter(certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS))) {
                 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-                keyPairGenerator.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
+                keyPairGenerator.initialize(acmeConfig.getAcmeKeyLength(), new SecureRandom());
                 KeyPair keyPair = keyPairGenerator.generateKeyPair();
                 login.getAccount().changeKey(keyPair);
 
@@ -213,7 +213,7 @@ public final class AcmeService {
         } else {
             log.debug("Creating keypair");
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
+            keyPairGenerator.initialize(acmeConfig.getAcmeKeyLength(), new SecureRandom());
             keyPair = keyPairGenerator.generateKeyPair();
 
             long expirationInDays = acmeConfig.getAcmeCertificateAccountKeyPairExpiration();

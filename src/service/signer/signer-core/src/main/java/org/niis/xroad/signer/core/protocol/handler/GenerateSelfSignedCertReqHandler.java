@@ -85,6 +85,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
     private final SignReqHandler signReqHandler;
     private final ImportCertReqHandler importCertReqHandler;
     private final TokenLookup tokenLookup;
+    private final KeyManagers keyManagers;
 
     @Override
     protected GenerateSelfSignedCertResp handle(GenerateSelfSignedCertReq request) {
@@ -99,7 +100,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
         }
 
         try {
-            PublicKey pk = KeyManagers.getFor(tokenAndKey.getSignMechanism()).readX509PublicKey(tokenAndKey.key().getPublicKey());
+            PublicKey pk = keyManagers.getFor(tokenAndKey.getSignMechanism()).readX509PublicKey(tokenAndKey.key().getPublicKey());
 
             SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(
                     DigestAlgorithm.ofName(signerProperties.selfsignedCertDigestAlgorithm()),

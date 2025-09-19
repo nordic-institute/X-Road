@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token.helper;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.CryptoException;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.NamedCurves;
@@ -37,7 +36,10 @@ import iaik.pkcs.pkcs11.objects.ECDSAPublicKey;
 import iaik.pkcs.pkcs11.objects.KeyPair;
 import iaik.pkcs.pkcs11.objects.PublicKey;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
 import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
 import org.niis.xroad.signer.core.util.SignerUtil;
@@ -45,11 +47,14 @@ import org.niis.xroad.signer.core.util.SignerUtil;
 import java.io.IOException;
 import java.security.spec.InvalidKeySpecException;
 
+@RequiredArgsConstructor
+@ApplicationScoped
 public final class EcKeyPairHelper extends AbstractKeyPairBuilder<ECDSAPublicKey, ECDSAPrivateKey> implements KeyPairHelper {
 
     private static final Mechanism KEY_PAIR_GEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_ECDSA_KEY_PAIR_GEN);
 
-    static final EcKeyPairHelper INSTANCE = new EcKeyPairHelper();
+    private final SignerProperties signerProperties;
+    private final KeyManagers keyManagers;
 
     @Override
     public KeyPair createKeypair(
@@ -77,7 +82,7 @@ public final class EcKeyPairHelper extends AbstractKeyPairBuilder<ECDSAPublicKey
         }
 
         try {
-            return KeyManagers.getForEC().generateX509PublicKey(
+            return keyManagers.getForEC().generateX509PublicKey(
                     ecPublicKey.getEcdsaParams().getByteArrayValue(),
                     ecPublicKey.getEcPoint().getByteArrayValue()
             );
@@ -88,9 +93,7 @@ public final class EcKeyPairHelper extends AbstractKeyPairBuilder<ECDSAPublicKey
 
     @Override
     protected void setPublicKeyAttributes(ECDSAPublicKey template, PubKeyAttributes attributes) {
-        var curveName = SystemProperties.getSignerKeyNamedCurve();
-
-        template.getEcdsaParams().setByteArrayValue(NamedCurves.getOIDAsBytes(curveName));
+        template.getEcdsaParams().setByteArrayValue(NamedCurves.getOIDAsBytes(signerProperties.keyNamedCurve()));
     }
 
     @Override

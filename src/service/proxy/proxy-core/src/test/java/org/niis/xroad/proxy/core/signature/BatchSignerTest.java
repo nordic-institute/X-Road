@@ -120,7 +120,8 @@ class BatchSignerTest {
             var signatureAlgId = (SignAlgorithm) args[1];
             var digest = (byte[]) args[2];
             byte[] data = SignDataPreparer.of(signatureAlgId).prepare(digest);
-            SignAlgorithm signAlgorithm = KeyManagers.getForRSA().getSoftwareTokenSignAlgorithm();
+            SignAlgorithm signAlgorithm = (new KeyManagers(2048, "secp256r1"))
+                    .getForRSA().getSoftwareTokenSignAlgorithm();
             Signature signature = Signature.getInstance(signAlgorithm.name(), BOUNCY_CASTLE);
             signature.initSign(producerP12.key);
             signature.update(data);

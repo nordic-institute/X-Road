@@ -97,6 +97,7 @@ xroad:
     auth-cert-reg-signature-digest-algorithm-id: SHA-512
     key-management-api-whitelist: 127.0.0.0/8, ::1
     regular-api-whitelist: 0.0.0.0/0, ::/0
+    acme-key-length: 2048
 
 file-upload-endpoints:
   endpoint-definitions:

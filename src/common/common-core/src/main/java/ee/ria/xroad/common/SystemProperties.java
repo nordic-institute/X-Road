@@ -122,15 +122,7 @@ public final class SystemProperties {
     /** Property name of the SignerClient's timeout. */
     public static final String SIGNER_CLIENT_TIMEOUT = SIGNER_PREFIX + "client-timeout";
 
-    public static final String SIGNER_KEY_LENGTH = SIGNER_PREFIX + "key-length";
-    public static final String SIGNER_KEY_NAMED_CURVE = SIGNER_PREFIX + "key-named-curve";
-
-    public static final int MIN_SIGNER_KEY_LENGTH = 2048;
-    public static final int DEFAULT_SIGNER_KEY_LENGTH = MIN_SIGNER_KEY_LENGTH;
-
     public static final String DEFAULT_SIGNER_CLIENT_TIMEOUT = "60000";
-
-    public static final String DEFAULT_SIGNER_KEY_NAMED_CURVE = "secp256r1";
 
     // Center -----------------------------------------------------------------
 
@@ -315,20 +307,6 @@ public final class SystemProperties {
      */
     public static int getSignerClientTimeout() {
         return Integer.parseInt(getProperty(SIGNER_CLIENT_TIMEOUT, DEFAULT_SIGNER_CLIENT_TIMEOUT));
-    }
-
-    /**
-     * @return authentication and signing key length when RSA is used.
-     */
-    public static int getSignerKeyLength() {
-        return Math.max(MIN_SIGNER_KEY_LENGTH, Integer.getInteger(SIGNER_KEY_LENGTH, DEFAULT_SIGNER_KEY_LENGTH));
-    }
-
-    /**
-     * @return authentication and signing key named curve when EC is used.
-     */
-    public static String getSignerKeyNamedCurve() {
-        return getProperty(SIGNER_KEY_NAMED_CURVE, DEFAULT_SIGNER_KEY_NAMED_CURVE);
     }
 
     /**

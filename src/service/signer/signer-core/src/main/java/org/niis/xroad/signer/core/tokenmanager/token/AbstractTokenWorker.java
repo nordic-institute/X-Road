@@ -78,15 +78,17 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     protected final TokenManager tokenManager;
     protected final KeyManager keyManager;
     protected final TokenLookup tokenLookup;
+    protected final KeyManagers keyManagers;
 
     AbstractTokenWorker(TokenInfo tokenInfo, TokenManager tokenManager,
-                        KeyManager keyManager, TokenLookup tokenLookup) {
+                        KeyManager keyManager, TokenLookup tokenLookup, KeyManagers keyManagers) {
         this.tokenId = tokenInfo.getId();
         this.workerId = SignerUtil.getWorkerId(tokenInfo);
 
         this.tokenManager = tokenManager;
         this.keyManager = keyManager;
         this.tokenLookup = tokenLookup;
+        this.keyManagers = keyManagers;
     }
 
     @Override
@@ -153,7 +155,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     public byte[] handleSignCertificate(SignCertificateReq request) {
         try {
             var signatureAlgorithmId = SignAlgorithm.ofName(request.getSignatureAlgorithmId());
-            var publicKey = KeyManagers.getFor(signatureAlgorithmId).readX509PublicKey(request.getPublicKey().toByteArray());
+            var publicKey = keyManagers.getFor(signatureAlgorithmId).readX509PublicKey(request.getPublicKey().toByteArray());
             return signCertificate(request.getKeyId(), signatureAlgorithmId, request.getSubjectName(), publicKey);
         } catch (Exception e) {
             log.error("Error while signing certificate with key '{}'", request.getKeyId(), e);
