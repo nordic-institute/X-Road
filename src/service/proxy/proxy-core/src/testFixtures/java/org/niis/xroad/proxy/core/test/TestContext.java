@@ -94,7 +94,7 @@ public class TestContext {
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
-                    .proxyHttpClient(proxyProperties.clientProxy(), authTrustVerifier, reloadingSSLSocketFactory);
+                    .proxyHttpClient(proxyProperties, authTrustVerifier, reloadingSSLSocketFactory);
             MetadataHandler metadataHandler = new MetadataHandler(commonBeanProxy, httpClient);
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(commonBeanProxy, httpClient);
 

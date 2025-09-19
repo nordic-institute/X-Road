@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -288,7 +287,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
                 responseSigningCtx = commonBeanProxy.getSigningCtxProvider().createSigningCtx(requestServiceId.getClientId());
 
-                if (SystemProperties.isSslEnabled()) {
+                if (commonBeanProxy.getProxyProperties().sslEnabled()) {
                     verifySslClientCert();
                 }
             }

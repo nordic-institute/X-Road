@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -204,7 +203,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     }
 
     @Override
-    protected void preprocess() throws Exception {
+    protected void preprocess() {
         encoder = new ProxyMessageEncoder(jResponse.getOutputStream(), Digests.DEFAULT_DIGEST_ALGORITHM);
         jResponse.setContentType(encoder.getContentType());
         jResponse.putHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId().name());
@@ -268,7 +267,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 requestServiceId = message.getServiceId();
                 verifyClientStatus();
                 responseSigningCtx = commonBeanProxy.getSigningCtxProvider().createSigningCtx(requestServiceId.getClientId());
-                if (SystemProperties.isSslEnabled()) {
+                if (commonBeanProxy.getProxyProperties().sslEnabled()) {
                     verifySslClientCert();
                 }
             }
@@ -373,7 +372,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifySignature() throws Exception {
+    private void verifySignature() {
         log.trace("verifySignature()");
 
         decoder.verify(requestMessage.getRest().getClientId(), requestMessage.getSignature());

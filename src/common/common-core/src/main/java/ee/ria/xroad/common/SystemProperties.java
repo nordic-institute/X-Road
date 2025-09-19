@@ -79,10 +79,6 @@ public final class SystemProperties {
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
 
-    /** Property name of controlling SSL support between Proxies. */
-    public static final String PROXY_SSL_SUPPORT =
-            PROXY_PREFIX + "ssl-enabled";
-
     /** Property name of the Client Proxy's timeout (milliseconds). */
     public static final String PROXY_CLIENT_TIMEOUT =
             PROXY_PREFIX + "client-timeout";
@@ -123,7 +119,6 @@ public final class SystemProperties {
             PROXY_PREFIX + "pool-enable-connection-reuse";
 
     private static final String FALSE = Boolean.FALSE.toString();
-    private static final String TRUE = Boolean.TRUE.toString();
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = FALSE;
@@ -374,13 +369,6 @@ public final class SystemProperties {
      */
     public static String getSignerKeyNamedCurve() {
         return getProperty(SIGNER_KEY_NAMED_CURVE, DEFAULT_SIGNER_KEY_NAMED_CURVE);
-    }
-
-    /**
-     * @return whether SSL should be used between client and server proxies, 'true' by default.
-     */
-    public static boolean isSslEnabled() {
-        return Boolean.parseBoolean(getProperty(PROXY_SSL_SUPPORT, TRUE));
     }
 
     /**

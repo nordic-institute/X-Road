@@ -97,28 +97,28 @@ public class ProxyClientConfig {
 
         @ApplicationScoped
         @Named("proxyHttpClient")
-        public CloseableHttpClient proxyHttpClient(ProxyProperties.ClientProxyProperties clientProxyProperties,
+        public CloseableHttpClient proxyHttpClient(ProxyProperties proxyProperties,
                                                    AuthTrustVerifier authTrustVerifier,
                                                    ReloadingSSLSocketFactory reloadingSSLSocketFactory) {
             log.trace("createClient()");
 
             int timeout = SystemProperties.getClientProxyTimeout();
-            int socketTimeout = clientProxyProperties.clientHttpclientTimeout();
+            int socketTimeout = proxyProperties.clientProxy().clientHttpclientTimeout();
             RequestConfig.Builder rb = RequestConfig.custom();
             rb.setConnectTimeout(timeout);
             rb.setConnectionRequestTimeout(timeout);
             rb.setSocketTimeout(socketTimeout);
 
             HttpClientBuilder cb = HttpClients.custom();
-            HttpClientConnectionManager connectionManager = getClientConnectionManager(clientProxyProperties,
+            HttpClientConnectionManager connectionManager = getClientConnectionManager(proxyProperties,
                     authTrustVerifier, reloadingSSLSocketFactory);
             cb.setConnectionManager(connectionManager);
 
-            if (clientProxyProperties.clientUseIdleConnectionMonitor()) {
+            if (proxyProperties.clientProxy().clientUseIdleConnectionMonitor()) {
                 connectionMonitor = new IdleConnectionMonitorThread(connectionManager);
-                connectionMonitor.setIntervalMilliseconds(clientProxyProperties.clientIdleConnectionMonitorInterval());
+                connectionMonitor.setIntervalMilliseconds(proxyProperties.clientProxy().clientIdleConnectionMonitorInterval());
                 connectionMonitor.setConnectionIdleTimeMilliseconds(
-                        clientProxyProperties.clientIdleConnectionMonitorTimeout());
+                        proxyProperties.clientProxy().clientIdleConnectionMonitorTimeout());
                 connectionMonitor.start();
             }
 
@@ -137,29 +137,29 @@ public class ProxyClientConfig {
             IOUtils.closeQuietly(httpClient);
         }
 
-        private HttpClientConnectionManager getClientConnectionManager(ProxyProperties.ClientProxyProperties clientProxyProperties,
+        private HttpClientConnectionManager getClientConnectionManager(ProxyProperties proxyProperties,
                                                                        AuthTrustVerifier authTrustVerifier,
                                                                        ReloadingSSLSocketFactory reloadingSSLSocketFactory) {
             RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
 
-            if (SystemProperties.isSslEnabled()) {
+            if (proxyProperties.sslEnabled()) {
                 sfr.register("https", createSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory,
-                        clientProxyProperties));
+                        proxyProperties.clientProxy()));
             }
 
             SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
-            sockBuilder.setSoLinger(clientProxyProperties.clientHttpclientSoLinger());
-            sockBuilder.setSoTimeout(clientProxyProperties.clientHttpclientTimeout());
+            sockBuilder.setSoLinger(proxyProperties.clientProxy().clientHttpclientSoLinger());
+            sockBuilder.setSoTimeout(proxyProperties.clientProxy().clientHttpclientTimeout());
             SocketConfig socketConfig = sockBuilder.build();
 
             PoolingHttpClientConnectionManager poolingManager = new PoolingHttpClientConnectionManager(sfr.build());
-            poolingManager.setMaxTotal(clientProxyProperties.poolTotalMaxConnections());
-            poolingManager.setDefaultMaxPerRoute(clientProxyProperties.poolTotalDefaultMaxConnectionsPerRoute());
+            poolingManager.setMaxTotal(proxyProperties.clientProxy().poolTotalMaxConnections());
+            poolingManager.setDefaultMaxPerRoute(proxyProperties.clientProxy().poolTotalDefaultMaxConnectionsPerRoute());
             poolingManager.setDefaultSocketConfig(socketConfig);
             poolingManager.setValidateAfterInactivity(
-                    clientProxyProperties.poolValidateConnectionsAfterInactivityOfMillis());
+                    proxyProperties.clientProxy().poolValidateConnectionsAfterInactivityOfMillis());
 
             return poolingManager;
         }

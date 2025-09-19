@@ -141,7 +141,7 @@ public class ServerProxy {
 
         int port = proxyProperties.server().listenPort();
 
-        ServerConnector connector = SystemProperties.isSslEnabled()
+        ServerConnector connector = proxyProperties.sslEnabled()
                 ? createClientProxySslConnector() : createClientProxyConnector();
 
         connector.setName(CLIENT_PROXY_CONNECTOR_NAME);

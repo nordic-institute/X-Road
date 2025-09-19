@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
@@ -74,7 +73,7 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
 
         commonBeanProxy.getGlobalConfProvider().verifyValidity();
 
-        if (!SystemProperties.isSslEnabled()) {
+        if (!commonBeanProxy.getProxyProperties().sslEnabled()) {
             return;
         }
 

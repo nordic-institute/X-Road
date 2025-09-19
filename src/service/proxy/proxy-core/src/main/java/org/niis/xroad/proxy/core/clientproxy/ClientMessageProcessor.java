@@ -79,7 +79,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -480,7 +479,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             continueProcessing();
 
             // In SSL mode, we need to send the OCSP response of our SSL cert.
-            if (isSslEnabled()) {
+            if (commonBeanProxy.getProxyProperties().sslEnabled()) {
                 writeOcspResponses();
             }
 

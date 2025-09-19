@@ -64,7 +64,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
 import static ee.ria.xroad.common.ErrorCodes.X_MAINTENANCE_MODE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
@@ -97,7 +96,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     }
 
     protected URI getServiceAddress(URI[] addresses) {
-        if (addresses.length == 1 || !isSslEnabled()) {
+        if (addresses.length == 1 || !commonBeanProxy.getProxyProperties().sslEnabled()) {
             return addresses[0];
         }
         //postpone actual name resolution to the fastest connection selector
@@ -108,7 +107,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         // If we're using SSL, we need to include the provider name in
         // the HTTP request so that server proxy could verify the SSL
         // certificate properly.
-        if (isSslEnabled()) {
+        if (commonBeanProxy.getProxyProperties().sslEnabled()) {
             httpSender.setAttribute(AuthTrustVerifier.ID_PROVIDERNAME, requestServiceId);
         }
 
@@ -164,7 +163,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             hostNames = hostNamesBySecurityServer(serverId, hostNames);
         }
 
-        String protocol = isSslEnabled() ? "https" : "http";
+        String protocol = commonBeanProxy.getProxyProperties().sslEnabled() ? "https" : "http";
         int port = commonBeanProxy.getProxyProperties().serverProxyPort();
 
         List<URI> addresses = new ArrayList<>(hostNames.size());

@@ -78,6 +78,7 @@ class MetaserviceTest {
 
         props.put("xroad.proxy.server.listen-port", valueOf(PROXY_PORT));
         props.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
+        props.put("xroad.proxy.ssl-enabled", "false");
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
 
@@ -98,8 +99,6 @@ class MetaserviceTest {
 
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getAllTestCases(getClass().getPackageName() + ".testcases.");
         assertThat(testCasesToRun.size()).isGreaterThan(0);
-
-        System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
 
         ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
 
