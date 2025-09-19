@@ -6,16 +6,17 @@ REGISTRY_URL=${1:-localhost:5555}
 echo "Preparing LICENSE.txt and 3RD-PARTY-NOTICES.txt files"
 rm -rf build/
 mkdir build
-cp ../../../../src/LICENSE.txt build/
-cp ../../../../src/3RD-PARTY-NOTICES.txt build/
+cp ../../../src/LICENSE.txt build/
+cp ../../../src/3RD-PARTY-NOTICES.txt build/
 
-echo "Building baseline"
+echo "Preparing buildx.."
 if ! docker buildx inspect multiarch-builder &>/dev/null; then
   docker buildx create --name multiarch-builder --driver docker-container --driver-opt network=host --bootstrap --use
 else
   docker buildx use multiarch-builder
 fi
 
+echo "Building and pushing multi-arch images to $REGISTRY_URL .."
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   --tag "$REGISTRY_URL"/ss-baseline-runtime \
@@ -36,6 +37,6 @@ docker buildx build \
   --tag "$REGISTRY_URL"/ss-baseline-signer-runtime \
   --file Dockerfile-signer-baseline \
   --build-arg REGISTRY_URL="$REGISTRY_URL" \
-  --build-context pkcs11driver=../../../../src/libs/pkcs11wrapper \
+  --build-context pkcs11driver=../../../src/libs/pkcs11wrapper \
   --push \
   .
