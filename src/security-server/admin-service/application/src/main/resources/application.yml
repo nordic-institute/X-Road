@@ -70,6 +70,8 @@ xroad:
     authentication-key-algorithm: RSA
     signing-key-algorithm: RSA
     proxy-server-url: https://localhost:8443
+    proxy-connect-timeout: 30000
+    proxy-socket-timeout: 0
     reserved-service-codes: listClients,listMethods,allowedMethods,getWsdl,getOpenAPI,getSecurityServerMetrics,getSecurityServerOperationalData,getSecurityServerHealthData
     tls:
       certificate-provisioning:

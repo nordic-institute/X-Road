@@ -79,10 +79,6 @@ public final class SystemProperties {
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
 
-    /** Property name of the Client Proxy's timeout (milliseconds). */
-    public static final String PROXY_CLIENT_TIMEOUT =
-            PROXY_PREFIX + "client-timeout";
-
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
     private static final String PROXY_CLIENT_TLS_PROTOCOLS =
             PROXY_PREFIX + "client-tls-protocols";
@@ -96,13 +92,6 @@ public final class SystemProperties {
 
     private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY = SIGNER_PREFIX + "enforce-token-pin-policy";
 
-    /**
-     * Property name for the connection maximum idle time that should be set for client proxy apache HttpClient,
-     * in milliseconds, value 0 means infinite timeout, -1 means the system default
-     */
-    private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
-            PROXY_PREFIX + "client-httpclient-timeout";
-
     private static final String CLIENTPROXY_POOL_REUSE_CONNECTIONS =
             PROXY_PREFIX + "pool-enable-connection-reuse";
 
@@ -114,10 +103,6 @@ public final class SystemProperties {
     private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = FALSE;
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = FALSE;
-
-    private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT = "0";
-
-    private static final String DEFAULT_CLIENTPROXY_TIMEOUT = "30000";
 
     /**
      * The default value of the on/off switch for a group of settings that affect whether or not pooled connections
@@ -326,13 +311,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the client proxy connect timeout in milliseconds, '30000' by default.
-     */
-    public static int getClientProxyTimeout() {
-        return Integer.parseInt(getProperty(PROXY_CLIENT_TIMEOUT, DEFAULT_CLIENTPROXY_TIMEOUT));
-    }
-
-    /**
      * @return the signer connection timeout in milliseconds, '60000' by default.
      */
     public static int getSignerClientTimeout() {
@@ -538,14 +516,6 @@ public final class SystemProperties {
     public static int getOcspVerifierCachePeriod() {
         int period = Integer.parseInt(getProperty(OCSP_VERIFIER_CACHE_PERIOD, "60"));
         return period < OCSP_VERIFIER_CACHE_PERIOD_MAX ? period : OCSP_VERIFIER_CACHE_PERIOD_MAX;
-    }
-
-    /**
-     * @return the connection maximum idle time that should be set for client proxy apache HttpClient
-     */
-    public static int getClientProxyHttpClientTimeout() {
-        return Integer.parseInt(getProperty(CLIENTPROXY_HTTPCLIENT_TIMEOUT,
-                DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT));
     }
 
     public static boolean isEnableClientProxyPooledConnectionReuse() {

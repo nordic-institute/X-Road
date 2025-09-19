@@ -128,8 +128,8 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             httpSender.setAttribute(HttpClientContext.USER_TOKEN, new TargetHostsUserToken(addresses));
         }
 
-        httpSender.setConnectionTimeout(SystemProperties.getClientProxyTimeout());
-        httpSender.setSocketTimeout(SystemProperties.getClientProxyHttpClientTimeout());
+        httpSender.setConnectionTimeout(commonBeanProxy.getProxyProperties().clientProxy().clientProxyTimeout());
+        httpSender.setSocketTimeout(commonBeanProxy.getProxyProperties().clientProxy().clientHttpclientTimeout());
 
         httpSender.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId().name());
         httpSender.addHeader(HEADER_PROXY_VERSION, Version.XROAD_VERSION);

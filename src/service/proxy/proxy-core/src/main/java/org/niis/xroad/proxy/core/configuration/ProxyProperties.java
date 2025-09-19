@@ -106,6 +106,10 @@ public interface ProxyProperties {
         @WithDefault("30000")
         int clientConnectorInitialIdleTime();
 
+        @WithName("client-timeout")
+        @WithDefault("30000")
+        int clientProxyTimeout();
+
         @WithName("client-httpclient-so-linger")
         @WithDefault("-1")
         int clientHttpclientSoLinger();

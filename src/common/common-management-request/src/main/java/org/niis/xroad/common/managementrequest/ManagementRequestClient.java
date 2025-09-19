@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,6 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
@@ -81,6 +83,8 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
 
     private final VaultKeyProvider vaultKeyProvider;
     private final GlobalConfProvider globalConfProvider;
+    private final int connectTimeout;
+    private final int socketTimeout;
 
     private CloseableHttpClient centralHttpClient;
     private CloseableHttpClient proxyHttpClient;
@@ -94,21 +98,21 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         return createSender(proxyHttpClient);
     }
 
-    private static HttpSender createSender(CloseableHttpClient client) {
+    private HttpSender createSender(CloseableHttpClient client) {
         HttpSender httpSender = new HttpSender(client);
 
-        int timeout = SystemProperties.getClientProxyTimeout();
-        int socketTimeout = SystemProperties.getClientProxyHttpClientTimeout();
-
-        httpSender.setConnectionTimeout(timeout);
+        httpSender.setConnectionTimeout(connectTimeout);
         httpSender.setSocketTimeout(socketTimeout);
 
         return httpSender;
     }
 
-    ManagementRequestClient(VaultKeyProvider vaultKeyProvider, GlobalConfProvider globalConfProvider) {
+    ManagementRequestClient(VaultKeyProvider vaultKeyProvider, GlobalConfProvider globalConfProvider,
+                            int connectTimeout, int socketTimeout) {
         this.vaultKeyProvider = vaultKeyProvider;
         this.globalConfProvider = globalConfProvider;
+        this.connectTimeout = connectTimeout;
+        this.socketTimeout = socketTimeout;
         try {
             createCentralHttpClient();
             createProxyHttpClient();
@@ -216,7 +220,7 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         return createHttpClient(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers());
     }
 
-    private static CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers)
+    private CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers)
             throws NoSuchAlgorithmException, KeyManagementException {
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create();
 
@@ -233,12 +237,9 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         cm.setMaxTotal(CLIENT_MAX_TOTAL_CONNECTIONS);
         cm.setDefaultMaxPerRoute(CLIENT_MAX_CONNECTIONS_PER_ROUTE);
 
-        int timeout = SystemProperties.getClientProxyTimeout();
-        int socketTimeout = SystemProperties.getClientProxyHttpClientTimeout();
-
         RequestConfig.Builder rb = RequestConfig.custom();
-        rb.setConnectTimeout(timeout);
-        rb.setConnectionRequestTimeout(timeout);
+        rb.setConnectTimeout(connectTimeout);
+        rb.setConnectionRequestTimeout(connectTimeout);
         rb.setSocketTimeout(socketTimeout);
 
         HttpClientBuilder cb = HttpClients.custom();

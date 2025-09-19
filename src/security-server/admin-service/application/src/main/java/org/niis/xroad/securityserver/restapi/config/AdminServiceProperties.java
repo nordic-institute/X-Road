@@ -195,6 +195,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     private String authCertRegSignatureDigestAlgorithmId;
 
     private String proxyServerUrl;
+    private int proxyConnectTimeout;
+    private int proxySocketTimeout;
 
     /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
     private String keyManagementApiWhitelist;

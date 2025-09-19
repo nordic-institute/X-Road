@@ -238,7 +238,8 @@ public class ManagementRequestSenderService {
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
                 signerSignClient, sender, receiver, adminServiceProperties.getProxyServerUrl(),
-                DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()));
+                DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()),
+                adminServiceProperties.getProxyConnectTimeout(), adminServiceProperties.getProxySocketTimeout());
     }
 
     public Integer sendMaintenanceModeEnableRequest(String message) {

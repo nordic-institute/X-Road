@@ -95,13 +95,15 @@ public final class ManagementRequestSender {
      */
     public ManagementRequestSender(VaultKeyProvider vaultKeyProvider, GlobalConfProvider globalConfProvider,
                                    SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
-                                   ClientId sender, ClientId receiver, String securityServerUrl, DigestAlgorithm signatureDigestAlgorithm) {
+                                   ClientId sender, ClientId receiver, String securityServerUrl, DigestAlgorithm signatureDigestAlgorithm,
+                                   int connectTimeout, int socketTimeout) {
         this.globalConfProvider = globalConfProvider;
         this.signerRpcClient = signerRpcClient;
         this.signerSignClient = signerSignClient;
         this.builder = new ManagementRequestBuilder(sender, receiver);
         this.securityServerUrl = securityServerUrl;
-        this.managementRequestClient = new ManagementRequestClient(vaultKeyProvider, globalConfProvider);
+        this.managementRequestClient = new ManagementRequestClient(vaultKeyProvider, globalConfProvider,
+                connectTimeout, socketTimeout);
         this.signatureDigestAlgorithm = signatureDigestAlgorithm;
     }
 

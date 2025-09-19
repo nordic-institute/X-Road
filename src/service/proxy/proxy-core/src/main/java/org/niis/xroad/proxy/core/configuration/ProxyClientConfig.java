@@ -27,8 +27,6 @@
 
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import io.quarkus.arc.lookup.LookupIfProperty;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -102,7 +100,7 @@ public class ProxyClientConfig {
                                                    ReloadingSSLSocketFactory reloadingSSLSocketFactory) {
             log.trace("createClient()");
 
-            int timeout = SystemProperties.getClientProxyTimeout();
+            int timeout = proxyProperties.clientProxy().clientProxyTimeout();
             int socketTimeout = proxyProperties.clientProxy().clientHttpclientTimeout();
             RequestConfig.Builder rb = RequestConfig.custom();
             rb.setConnectTimeout(timeout);
