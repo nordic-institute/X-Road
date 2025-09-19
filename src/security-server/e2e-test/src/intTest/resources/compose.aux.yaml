@@ -94,7 +94,7 @@ services:
       - ./wiremock_mappings:/home/wiremock/mappings
   hurl:
     build:
-        context: ../../development/hurl
+        context: ../../../../../../development/hurl
         dockerfile: ./Dockerfile
     command: >
       --insecure
