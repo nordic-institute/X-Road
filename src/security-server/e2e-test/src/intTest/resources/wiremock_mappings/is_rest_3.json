@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/integration/mock_1"
+  },
+  "response": {
+    "status": 200,
+    "body": "{\"message\": \"Greetings from GET service!\" }",
+    "headers": {
+      "Content-Type": "application/json",
+      "mock-response": "true"
+    }
+  }
+}
