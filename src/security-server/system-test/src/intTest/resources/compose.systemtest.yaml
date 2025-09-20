@@ -130,6 +130,8 @@ services:
         aliases:
           - cs
           - mock-server
+    volumes:
+      - ../../../src/security-server/system-test/src/intTest/resources/nginx-container-files/etc/nginx/conf.d:/etc/nginx/conf.d
 
   testmailserver:
     image: axllent/mailpit

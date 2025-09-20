@@ -46,7 +46,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
 
 /**
  * Operations related to internal tls certificates
@@ -76,17 +75,6 @@ public class InternalTlsCertificateService {
             throw e;
         } catch (Exception e) {
             log.error("Failed to obtain TLS certificate", e);
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
-        }
-    }
-
-    public Collection<X509Certificate> getInternalTlsCertificateChain() {
-        try {
-            return proxyRpcClient.getInternalTlsCertificateChain();
-        } catch (CodedException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to obtain TLS certificate chain", e);
             throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
         }
     }
