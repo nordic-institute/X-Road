@@ -84,7 +84,7 @@ public class ContainerSetup {
             @NotNull
             @Override
             public List<Integer> additionalExposedPorts() {
-                return List.of(8085);
+                return List.of(4002);
             }
         };
     }
