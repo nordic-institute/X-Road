@@ -1,5 +1,4 @@
 # properties for test runtime
-
 spring:
   jpa:
     hibernate:
@@ -7,15 +6,11 @@ spring:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
     generate-ddl: true
-    show-sql: true
+    show-sql: false
     defer-datasource-initialization: true
   cloud:
     vault:
       enabled: false
-
-logging:
-  level:
-    ROOT: WARN
 
 ratelimit:
   requests:

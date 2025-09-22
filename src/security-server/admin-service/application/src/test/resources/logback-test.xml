@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <root level="OFF">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <logger name="org.springframework" level="OFF"/>
+</configuration>
