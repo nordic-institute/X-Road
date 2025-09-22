@@ -33,12 +33,18 @@ import io.smallrye.config.WithName;
 
 import java.util.Optional;
 
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
+
 @ConfigMapping(prefix = "xroad.proxy")
 public interface ProxyProperties {
 
     ServerProperties server();
+
     ClientProxyProperties clientProxy();
+
     OcspResponderProperties ocspResponder();
+
     ProxyAddonProperties addOn();
 
     @WithName("admin-port")
@@ -149,6 +155,14 @@ public interface ProxyProperties {
         @WithName("use-fastest-connecting-ssl-socket-autoclose")
         @WithDefault("true")
         boolean useSslSocketAutoClose();
+
+        @WithName("client-tls-protocols")
+        @WithDefault(DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING)
+        String[] clientTlsProtocols();
+
+        @WithName("client-tls-ciphers")
+        @WithDefault(DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING)
+        String[] clientTlsCiphers();
     }
 
     @ConfigMapping(prefix = "xroad.proxy.server")

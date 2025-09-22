@@ -33,6 +33,7 @@ import lombok.Setter;
 import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.common.mail.NotificationConfig;
+import org.niis.xroad.common.properties.DefaultTlsProperties;
 import org.niis.xroad.restapi.auth.AllowListConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
@@ -198,6 +199,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     private String proxyServerUrl;
     private int proxyConnectTimeout;
     private int proxySocketTimeout;
+    private String[] proxyTlsProtocols = DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS;
+    private String[] proxyTlsCipherSuites = DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES;
 
     /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
     private String keyManagementApiWhitelist;

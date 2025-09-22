@@ -79,14 +79,6 @@ public final class SystemProperties {
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
 
-    /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
-    private static final String PROXY_CLIENT_TLS_PROTOCOLS =
-            PROXY_PREFIX + "client-tls-protocols";
-
-    /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS cipher suites */
-    private static final String PROXY_CLIENT_TLS_CIPHERS =
-            PROXY_PREFIX + "client-tls-ciphers";
-
     /** Property name of the ClientProxy HTTPS client and ServerProxy HTTPS connector supported TLS cipher suites */
     private static final String PROXY_XROAD_TLS_CIPHERS = PROXY_PREFIX + "xroad-tls-ciphers";
 
@@ -434,33 +426,6 @@ public final class SystemProperties {
      */
     public static String getNetStatsFile() {
         return getProperty(NET_STATS_FILE, "/proc/net/dev");
-    }
-
-    /**
-     * Get proxy client's TLS protocols.
-     *
-     * @return protocols.
-     */
-    public static String[] getProxyClientTLSProtocols() {
-        return getProperty(PROXY_CLIENT_TLS_PROTOCOLS, "TLSv1.2").trim().split(COMMA_SPLIT);
-    }
-
-    private static final String DEFAULT_CLIENT_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,"
-            + "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,"
-            + "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,"
-            + "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
-            + "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,"
-            + "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,"
-            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,"
-            + "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384";
-
-    /**
-     * Get proxy client's accepted TLS cipher suites (between is and ss).
-     *
-     * @return cipher suites.
-     */
-    public static String[] getProxyClientTLSCipherSuites() {
-        return getProperty(PROXY_CLIENT_TLS_CIPHERS, DEFAULT_CLIENT_SSL_CIPHER_SUITES).trim().split(COMMA_SPLIT);
     }
 
     private static final String DEFAULT_XROAD_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"

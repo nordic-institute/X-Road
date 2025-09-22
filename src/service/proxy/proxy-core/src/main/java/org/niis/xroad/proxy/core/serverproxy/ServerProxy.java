@@ -120,7 +120,8 @@ public class ServerProxy {
 
         ensureInternalTlsKeyPresent();
 
-        HttpClientCreator creator = new HttpClientCreator(commonBeanProxy.getServerConfProvider());
+        HttpClientCreator creator = new HttpClientCreator(commonBeanProxy.getServerConfProvider(),
+                proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
 
         connMonitor = new IdleConnectionMonitorThread(creator.getConnectionManager());
         connMonitor.setIntervalMilliseconds(IDLE_MONITOR_INTERVAL);

@@ -106,7 +106,7 @@ public class TestContext {
                 AntiDosConfiguration antiDosConfiguration = mock(AntiDosConfiguration.class);
                 OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
-                        monitorRpcClient, proxyProperties.addOn(), opMonitorCommonProperties);
+                        monitorRpcClient, proxyProperties.addOn(), proxyProperties.clientProxy(), opMonitorCommonProperties);
                 serverProxy = new ServerProxy(proxyProperties, antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
                         opMonitorCommonProperties, new NoopVaultClient(), new NoopVaultKeyClient());
                 serverProxy.init();

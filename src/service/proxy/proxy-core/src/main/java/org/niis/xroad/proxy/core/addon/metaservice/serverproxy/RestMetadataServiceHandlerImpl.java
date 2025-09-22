@@ -37,7 +37,7 @@ import ee.ria.xroad.common.util.RequestWrapper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -89,7 +89,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     static {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         MAPPER = mapper;
     }
 
@@ -99,9 +99,9 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     private RestResponse restResponse;
     private CachingStream restResponseBody;
 
-    public RestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider) {
+    public RestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, String[] tlsProtocols, String[] tlsCipherSuites) {
         this.serverConfProvider = serverConfProvider;
-        this.httpClientCreator = new HttpClientCreator(serverConfProvider);
+        this.httpClientCreator = new HttpClientCreator(serverConfProvider, tlsProtocols, tlsCipherSuites);
     }
 
     @Override

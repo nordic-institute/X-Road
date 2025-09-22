@@ -47,12 +47,14 @@ public class ServiceHandlerLoader {
     private final GlobalConfProvider globalConfProvider;
     private final MonitorRpcClient monitorRpcClient;
     private final ProxyProperties.ProxyAddonProperties addonProperties;
+    private final ProxyProperties.ClientProxyProperties clientProxyProperties;
     private final OpMonitorCommonProperties opMonitorCommonProperties;
 
     public Collection<ServiceHandler> loadSoapServiceHandlers() {
         Collection<ServiceHandler> handlers = new ArrayList<>();
         if (addonProperties.metaservices().enabled()) {
-            handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider));
+            handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                    clientProxyProperties.clientTlsProtocols(), clientProxyProperties.clientTlsCiphers()));
         }
         if (addonProperties.opMonitor().enabled()) {
             handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, opMonitorCommonProperties));
@@ -66,7 +68,8 @@ public class ServiceHandlerLoader {
     public Collection<RestServiceHandler> loadRestServiceHandlers() {
         Collection<RestServiceHandler> handlers = new ArrayList<>();
         if (addonProperties.metaservices().enabled()) {
-            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider));
+            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, clientProxyProperties.clientTlsProtocols(),
+                    clientProxyProperties.clientTlsCiphers()));
         }
         return handlers;
     }

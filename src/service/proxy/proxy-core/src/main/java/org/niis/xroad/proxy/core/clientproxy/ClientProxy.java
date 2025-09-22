@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
 
@@ -132,8 +131,8 @@ public class ClientProxy {
         cf.setWantClientAuth(true);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-        cf.setIncludeProtocols(SystemProperties.getProxyClientTLSProtocols());
-        cf.setIncludeCipherSuites(SystemProperties.getProxyClientTLSCipherSuites());
+        cf.setIncludeProtocols(clientProxyProperties.clientTlsProtocols());
+        cf.setIncludeCipherSuites(clientProxyProperties.clientTlsCiphers());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, new TrustManager[]{new ClientSslTrustManager()},

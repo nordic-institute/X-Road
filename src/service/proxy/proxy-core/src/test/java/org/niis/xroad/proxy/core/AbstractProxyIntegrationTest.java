@@ -181,7 +181,7 @@ public abstract class AbstractProxyIntegrationTest {
 
         OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
-                mock(MonitorRpcClient.class), proxyProperties.addOn(), opMonitorCommonProperties);
+                mock(MonitorRpcClient.class), proxyProperties.addOn(), proxyProperties.clientProxy(), opMonitorCommonProperties);
         serverProxy = new ServerProxy(proxyProperties, mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
                 opMonitorCommonProperties, new NoopVaultClient(), new NoopVaultKeyClient());
         serverProxy.init();

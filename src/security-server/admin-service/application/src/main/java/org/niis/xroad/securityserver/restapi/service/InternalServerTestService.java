@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.CustomClientTlsSSLSocketFactory;
 import org.niis.xroad.securityserver.restapi.wsdl.HostnameVerifiers;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -75,6 +76,7 @@ import java.util.List;
 public class InternalServerTestService {
     private static final String TLS = "TLS";
     private final ServerConfProvider serverConfProvider;
+    private final AdminServiceProperties adminServiceProperties;
 
     /**
      * Tests if a HTTPS connection can be established to the given URL using
@@ -101,7 +103,8 @@ public class InternalServerTestService {
 
         HttpsURLConnection con = (HttpsURLConnection) (new URL(url).openConnection());
 
-        con.setSSLSocketFactory(new CustomClientTlsSSLSocketFactory(ctx.getSocketFactory()));
+        con.setSSLSocketFactory(new CustomClientTlsSSLSocketFactory(ctx.getSocketFactory(),
+                adminServiceProperties.getProxyTlsProtocols(), adminServiceProperties.getProxyTlsCipherSuites()));
         con.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
 
         con.connect();
