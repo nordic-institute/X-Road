@@ -1,7 +1,7 @@
 services:
   openbao:
     build:
-      context: ../docker/openbao
+      context: openbao/
     environment:
       - BAO_ADDR=http://0.0.0.0:8200
       - BAO_DEV_ROOT_TOKEN_ID=${XROAD_SECRET_STORE_TOKEN}
