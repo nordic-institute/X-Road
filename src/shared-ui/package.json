@@ -12,20 +12,20 @@
   },
   "main": "./src/index.ts",
   "dependencies": {
-    "@fontsource/open-sans": "^5.2.6",
+    "@fontsource/open-sans": "^5.2.7",
     "@mdi/font": "^7.4.47",
     "@vee-validate/i18n": "~4.15.1",
     "@vee-validate/rules": "~4.15.1",
-    "axios": "~1.12.0",
-    "dayjs": "^1.11.13",
+    "axios": "~1.12.2",
+    "dayjs": "^1.11.18",
     "deepmerge": "^4.3.1",
     "pinia": "^3.0.3",
-    "pinia-plugin-persistedstate": "^4.4.1",
+    "pinia-plugin-persistedstate": "^4.5.0",
     "vee-validate": "^4.15.1",
-    "vue": "^3.5.18",
-    "vue-i18n": "^11.1.11",
+    "vue": "^3.5.21",
+    "vue-i18n": "^11.1.12",
     "vue-router": "^4.5.1",
-    "vuetify": "3.8.12"
+    "vuetify": "3.10.2"
   },
   "engines": {
     "npm": "use-pnpm",
