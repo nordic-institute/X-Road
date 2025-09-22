@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.niis.xroad.configuration.migration.ConfigurationYamlMigrator.DEFAULT_PREFIX;
+import static org.niis.xroad.configuration.migration.ConfigurationYamlMigrator.PREFIX;
 
 @Slf4j
 public class LegacyPropertiesMigrator {
@@ -59,8 +59,10 @@ public class LegacyPropertiesMigrator {
 
         Map<String, Object> properties = new HashMap<>();
         props.parsedContent().forEach((key, value) -> {
-            var mappedKey = DEFAULT_PREFIX + "." + LegacyConfigPathMapping.map(key.toString());
-            properties.put(mappedKey, value);
+            if (LegacyConfigPathMapping.shouldKeep(key.toString())) {
+                var mappedKey = PREFIX + "." + LegacyConfigPathMapping.map(key.toString());
+                properties.put(mappedKey, value);
+            }
         });
 
         savePropertiesToFile(props, properties, inputFilePath);

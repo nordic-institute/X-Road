@@ -37,15 +37,14 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class BlockingPKCS11SessionManager implements SessionProvider {
     private final ManagedPKCS11Session session;
 
-    BlockingPKCS11SessionManager(Token token, String tokenId) throws Exception {
+    BlockingPKCS11SessionManager(Token token, String tokenId) throws TokenException {
         this.session = createSession(token, tokenId);
     }
 
-    ManagedPKCS11Session createSession(Token token, String tokenId) throws Exception {
+    ManagedPKCS11Session createSession(Token token, String tokenId) throws TokenException {
         try {
             return ManagedPKCS11Session.openSession(token, tokenId);
         } catch (TokenException e) {
@@ -57,12 +56,14 @@ public class BlockingPKCS11SessionManager implements SessionProvider {
     }
 
     @Override
-    public synchronized <T> T executeWithSession(FuncWithSession<T> operation) throws Exception {
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    public synchronized <T> T executeWithSession(FuncWithSession<T> operation) {
         return operation.apply(session);
     }
 
     @Override
-    public synchronized void executeWithSession(ConsumerWithSession operation) throws Exception {
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    public synchronized void executeWithSession(ConsumerWithSession operation) {
         operation.accept(session);
     }
 

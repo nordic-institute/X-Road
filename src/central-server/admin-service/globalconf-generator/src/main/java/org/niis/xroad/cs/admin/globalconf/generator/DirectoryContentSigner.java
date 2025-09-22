@@ -32,10 +32,12 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.globalconf.util.HashCalculator;
+
+import java.io.IOException;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -54,39 +56,41 @@ public class DirectoryContentSigner {
     @NonNull
     private final DigestAlgorithm certDigestAlgorithmId;
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public String createSignedDirectory(DirectoryContentBuilder.DirectoryContentHolder directoryContent, String keyId, byte[] signingCert) {
         var signAlgorithmId = getSignAlgorithmId(keyId, signDigestAlgorithmId);
         var certHashCalculator = new HashCalculator(certDigestAlgorithmId);
-        return MultipartMessage.builder()
-                .contentType("multipart/related")
-                .part(rawPart(directoryContent.getContent()))
-                .part(partBuilder()
-                        .header(header("Content-Type", "application/octet-stream"))
-                        .header(header("Content-Transfer-Encoding", "base64"))
-                        .header(header("Signature-Algorithm-Id", signAlgorithmId.uri()))
-                        .header(header("Verification-certificate-hash", String.format("%s; hash-algorithm-id=\"%s\"",
-                                certHashCalculator.calculateFromBytes(signingCert), certHashCalculator.getAlgoURI().uri())))
-                        .content(encodeBase64(sign(keyId, directoryContent.getSignableContent().getBytes(UTF_8))))
-                        .build())
-                .build().toString();
+        try {
+            return MultipartMessage.builder()
+                    .contentType("multipart/related")
+                    .part(rawPart(directoryContent.getContent()))
+                    .part(partBuilder()
+                            .header(header("Content-Type", "application/octet-stream"))
+                            .header(header("Content-Transfer-Encoding", "base64"))
+                            .header(header("Signature-Algorithm-Id", signAlgorithmId.uri()))
+                            .header(header("Verification-certificate-hash", String.format("%s; hash-algorithm-id=\"%s\"",
+                                    certHashCalculator.calculateFromBytes(signingCert), certHashCalculator.getAlgoURI().uri())))
+                            .content(encodeBase64(sign(keyId, directoryContent.getSignableContent().getBytes(UTF_8))))
+                            .build())
+                    .build().toString();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private byte[] sign(String keyId, byte[] data) {
         log.trace("sign(dataBytes)");
 
         var signatureAlgorithmId = getSignAlgorithmId(keyId, signDigestAlgorithmId);
 
-        byte[] digest = calculateDigest(signatureAlgorithmId.digest(), data);
+        try {
+            byte[] digest = calculateDigest(signatureAlgorithmId.digest(), data);
 
-        return Signatures.useAsn1DerFormat(signatureAlgorithmId, signerProxy.sign(keyId, signatureAlgorithmId, digest));
+            return Signatures.useAsn1DerFormat(signatureAlgorithmId, signerProxy.sign(keyId, signatureAlgorithmId, digest));
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private SignAlgorithm getSignAlgorithmId(String keyId, DigestAlgorithm digestAlgorithmId) {
         log.trace("getSignAlgorithmId({}, {})", keyId, digestAlgorithmId);
 

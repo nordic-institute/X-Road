@@ -30,13 +30,13 @@ import ee.ria.xroad.common.util.JsonUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataRequest;
 
 import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.List;
 
 import static java.net.NetworkInterface.getNetworkInterfaces;
@@ -61,16 +61,15 @@ public class OpMonitoringDataProcessor {
         return OBJECT_WRITER.writeValueAsString(request);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     String getIpAddress() {
         try {
             if (ipAddress == null) {
                 NetworkInterface ni = list(getNetworkInterfaces()).stream()
                         .filter(OpMonitoringDataProcessor::isNonLoopback)
                         .findFirst()
-                        .orElseThrow(() -> new Exception(NO_INTERFACE_FOUND));
+                        .orElseThrow(() -> XrdRuntimeException.systemInternalError(NO_INTERFACE_FOUND));
 
-                Exception addressNotFound = new Exception(NO_ADDRESS_FOUND + ni.getDisplayName());
+                Exception addressNotFound = XrdRuntimeException.systemInternalError(NO_ADDRESS_FOUND + ni.getDisplayName());
 
                 ipAddress = list(ni.getInetAddresses()).stream()
                         .filter(addr -> !addr.isLinkLocalAddress())
@@ -91,9 +90,11 @@ public class OpMonitoringDataProcessor {
         }
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     private static boolean isNonLoopback(NetworkInterface ni) {
-        return !ni.isLoopback() && ni.isUp();
+        try {
+            return !ni.isLoopback() && ni.isUp();
+        } catch (SocketException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 }

@@ -3,20 +3,11 @@ quarkus:
     name: op-monitor-daemon
   config:
     locations:
-      - /etc/xroad/conf.d/local.yaml
-      - /etc/xroad/db.properties
       - xroad-common.yaml
       - xroad-logging.yaml
   scheduler:
     start-mode: forced
     enabled: true
-
-"%native":
-  quarkus:
-    log:
-      file:
-        enabled: true
-        path: /var/log/xroad/op-monitor.log
 
 xroad:
   op-monitor:
@@ -25,3 +16,20 @@ xroad:
         common-name: ${XROAD_HOST:localhost}
         ip-subject-alt-names:
           - 127.0.0.1
+
+"%native":
+  quarkus:
+    config:
+      locations:
+        - /etc/xroad/conf.d/local.yaml
+        - /etc/xroad/db.properties
+    log:
+      file:
+        enabled: true
+        path: /var/log/xroad/op-monitor.log
+
+"%containerized":
+  xroad:
+    op-monitor:
+      rpc:
+        listen-address: 0.0.0.0

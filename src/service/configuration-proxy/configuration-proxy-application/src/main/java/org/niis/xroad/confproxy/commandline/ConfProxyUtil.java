@@ -64,12 +64,12 @@ public abstract class ConfProxyUtil {
 
     /**
      * Executes the utility program.
+     *
      * @param commandLine holds arguments for the utility program
      * @throws Exception in case of any errors
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    abstract void execute(CommandLine commandLine)
-            throws Exception;
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    abstract void execute(CommandLine commandLine) throws Exception;
 
     /**
      * Prints the available arguments for the utility program.
@@ -85,6 +85,7 @@ public abstract class ConfProxyUtil {
     /**
      * Loads configuration proxy properties based on the instance provided
      * through the commandline.
+     *
      * @param commandLine holds arguments for the utility program
      * @return configuration proxy properties instance
      */
@@ -109,6 +110,7 @@ public abstract class ConfProxyUtil {
     /**
      * Makes sure the configuration proxy instance that is requested from the
      * commandline exists.
+     *
      * @param commandLine holds arguments for the utility program
      */
     protected final void ensureProxyExists(final CommandLine commandLine) {
@@ -126,6 +128,7 @@ public abstract class ConfProxyUtil {
 
     /**
      * Abort the configuration proxy utility program with the provided message.
+     *
      * @param msg the error message to display
      */
     protected final void fail(final String msg, final Exception e) {

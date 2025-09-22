@@ -28,7 +28,9 @@ package org.niis.xroad.signer.core.passwordstore;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
+import java.io.IOException;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.util.SignerProtoUtils.byteToChar;
 
@@ -38,7 +40,6 @@ import static ee.ria.xroad.common.util.SignerProtoUtils.byteToChar;
 @Slf4j
 @SuppressWarnings("squid:S2068")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class PasswordStore {
     private static final String CFG_PASSWORD_STORE_PROVIDER = "xroad.internal.passwordstore-provider";
     private static final String CFG_PASSWORD_STORE_FILE = "file";
@@ -62,11 +63,15 @@ public final class PasswordStore {
      *
      * @param id identifier of the password
      * @return password value or null, if password with this ID was not found.
-     * @throws Exception in case of any errors
      */
-    public static char[] getPassword(String id) throws Exception {
+    public static Optional<char[]> getPassword(String id) {
         byte[] raw = PASSWORD_STORE_PROVIDER.read(id);
-        return raw == null ? null : byteToChar(raw);
+        try {
+            return Optional.ofNullable(byteToChar(raw));
+        } catch (IOException e) {
+            log.error("Failed to decode password for id {}", id, e);
+            return Optional.empty();
+        }
     }
 
     /**
@@ -75,29 +80,17 @@ public final class PasswordStore {
      *
      * @param id       identifier of the password
      * @param password password to be stored
-     * @throws Exception in case of any errors
      */
-    public static void storePassword(String id, byte[] password)
-            throws Exception {
+    public static void storePassword(String id, byte[] password) {
         PASSWORD_STORE_PROVIDER.write(id, password);
     }
 
-    /**
-     * Clears the password store. Useful for testing purposes.
-     *
-     * @throws Exception in case of any errors
-     */
-    public static void clearStore() throws Exception {
-        PASSWORD_STORE_PROVIDER.clear();
-    }
-
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public interface PasswordStoreProvider {
-        byte[] read(String id) throws Exception;
+        byte[] read(String id);
 
-        void write(String id, byte[] password) throws Exception;
+        void write(String id, byte[] password);
 
-        void clear() throws Exception;
+        void clear();
     }
 }
 

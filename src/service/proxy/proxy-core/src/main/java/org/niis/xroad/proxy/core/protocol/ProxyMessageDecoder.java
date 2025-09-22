@@ -55,7 +55,6 @@ import org.apache.james.mime4j.stream.MimeConfig;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.http.HttpField;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.signedmessage.Verifier;
 import org.slf4j.Logger;
@@ -83,7 +82,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * Decodes proxy SOAP messages from an input stream.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ProxyMessageDecoder {
 
     private static final Logger LOG =
@@ -167,10 +165,9 @@ public class ProxyMessageDecoder {
      * Attempts to decode the proxy SOAP message from the given input stream.
      *
      * @param is input stream from which to decode the message
-     * @throws Exception if the stream content type does not match the expected one
      */
     @WithSpan
-    public void parse(InputStream is) throws Exception {
+    public void parse(InputStream is) throws IOException, MimeException {
         LOG.trace("parse()");
 
         String baseContentType = HttpField.getValueParameters(contentType, null);
@@ -189,11 +186,9 @@ public class ProxyMessageDecoder {
      *
      * @param sender        the sender
      * @param signatureData the signature
-     * @throws Exception in case verification fails
      */
     @WithSpan
-    public void verify(ClientId sender, SignatureData signatureData)
-            throws Exception {
+    public void verify(ClientId sender, SignatureData signatureData) {
         verifier.verify(sender, signatureData);
     }
 
@@ -201,7 +196,7 @@ public class ProxyMessageDecoder {
         return attachmentNo;
     }
 
-    private void parseFault(InputStream is) throws Exception {
+    private void parseFault(InputStream is) throws IOException {
         Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
         if (!(soap instanceof SoapFault)) {
             throw new CodedException(X_INVALID_MESSAGE,
@@ -244,13 +239,13 @@ public class ProxyMessageDecoder {
         }
 
         @Override
-        public void startHeader() throws MimeException {
+        public void startHeader() {
             headers = new HashMap<>();
             partContentType = null;
         }
 
         @Override
-        public void field(Field field) throws MimeException {
+        public void field(Field field) {
             if (field.getName().equalsIgnoreCase(HEADER_CONTENT_TYPE)) {
                 partContentType = field.getBody();
             } else {

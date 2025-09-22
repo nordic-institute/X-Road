@@ -59,7 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper.PROXY_PORT;
 
-public class MetaserviceTest {
+class MetaserviceTest {
 
     @BeforeAll
     static void beforeAll() throws Exception {

@@ -30,8 +30,8 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.EncoderUtils;
 
 import lombok.Getter;
-import lombok.SneakyThrows;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +48,7 @@ class LinkingInfoBuilder {
     @Getter
     private String lastDigest;
 
-    private List<DigestEntry> digestsForFiles = new ArrayList<>();
+    private final List<DigestEntry> digestsForFiles = new ArrayList<>();
 
     LinkingInfoBuilder(DigestAlgorithm hashAlgoId) {
         this(hashAlgoId, DigestEntry.empty());
@@ -60,10 +60,9 @@ class LinkingInfoBuilder {
         this.lastDigest = lastArchive.getDigest();
     }
 
-    void addNextFile(String fileName, byte[] digest) {
+    void addNextFile(String fileName, byte[] digest) throws IOException {
         String combinedDigests = lastDigest + EncoderUtils.encodeHex(digest);
-        String currentDigest =
-                hexDigest(combinedDigests.getBytes(StandardCharsets.UTF_8));
+        String currentDigest = hexDigest(combinedDigests.getBytes(StandardCharsets.UTF_8));
 
         digestsForFiles.add(new DigestEntry(currentDigest, fileName));
 
@@ -90,10 +89,7 @@ class LinkingInfoBuilder {
         return builder.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
-    private String hexDigest(byte[] fileBytes) {
+    private String hexDigest(byte[] fileBytes) throws IOException {
         return Digests.hexDigest(hashAlgoId, fileBytes);
     }
 

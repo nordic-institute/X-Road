@@ -36,12 +36,13 @@ import iaik.pkcs.pkcs11.objects.PublicKey;
 import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
 import iaik.pkcs.pkcs11.objects.RSAPublicKey;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
 import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
 import org.niis.xroad.signer.core.util.SignerUtil;
 
 import java.math.BigInteger;
+import java.security.spec.InvalidKeySpecException;
 
 public final class RsaKeyPairHelper extends AbstractKeyPairBuilder<RSAPublicKey, RSAPrivateKey> implements KeyPairHelper {
 
@@ -58,19 +59,21 @@ public final class RsaKeyPairHelper extends AbstractKeyPairBuilder<RSAPublicKey,
             Session activeSession,
             String keyLabel,
             PubKeyAttributes pubKeyAttributes,
-            PrivKeyAttributes privKeyAttributes) throws TokenException {
+            PrivKeyAttributes privKeyAttributes) {
         byte[] id = SignerUtil.generateId();
         // XXX maybe use: byte[] id = activeSession.generateRandom(RANDOM_ID_LENGTH);
-
-        return activeSession.generateKeyPair(
-                KEY_PAIR_GEN_MECHANISM,
-                buildPublicKeyTemplate(id, keyLabel, pubKeyAttributes),
-                buildPrivateKeyTemplate(id, keyLabel, privKeyAttributes));
+        try {
+            return activeSession.generateKeyPair(
+                    KEY_PAIR_GEN_MECHANISM,
+                    buildPublicKeyTemplate(id, keyLabel, pubKeyAttributes),
+                    buildPrivateKeyTemplate(id, keyLabel, privKeyAttributes));
+        } catch (TokenException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public byte[] generateX509PublicKey(PublicKey publicKey) throws Exception {
+    public byte[] generateX509PublicKey(PublicKey publicKey) {
         if (!(publicKey instanceof RSAPublicKey rsaPublicKey)) {
             throw new CryptoException("Invalid type of public key: " + publicKey.getClass());
         }
@@ -78,7 +81,11 @@ public final class RsaKeyPairHelper extends AbstractKeyPairBuilder<RSAPublicKey,
         BigInteger modulus = new BigInteger(1, rsaPublicKey.getModulus().getByteArrayValue());
         BigInteger publicExponent = new BigInteger(1, rsaPublicKey.getPublicExponent().getByteArrayValue());
 
-        return KeyManagers.getForRSA().generateX509PublicKey(modulus, publicExponent);
+        try {
+            return KeyManagers.getForRSA().generateX509PublicKey(modulus, publicExponent);
+        } catch (InvalidKeySpecException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Override

@@ -43,7 +43,7 @@ import java.net.URI;
  * method synchronously.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class HttpSender extends AbstractHttpSender {
     private final HttpClient client;
     private static final String DO_POST_LOG = "doPost(address = {}, connectionTimeout = {}, socketTimeout = {})";

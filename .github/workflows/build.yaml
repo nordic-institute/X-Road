@@ -36,7 +36,7 @@ jobs:
       registry:
         image: registry:2
         ports:
-          - 5000:5000
+          - 5555:5000
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -68,6 +68,9 @@ jobs:
           gradle-home-cache-cleanup: true
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
       - name: Build, test and package code setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -78,19 +81,17 @@ jobs:
         with:
           driver-opts: network=host
       - name: Build base docker images
-        working-directory: ./deployment/security-server/docker/base
+        working-directory: ./deployment/security-server/base-images
         run: |
           chmod +x build-base-images.sh
-          ./build-base-images.sh localhost:5000
+          ./build-base-images.sh localhost:5555
       - name: Build and test source
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src
         run: |
-          mv -f ./service/signer/signer-int-test/src/intTest/resources/.env.github ./service/signer/signer-int-test/src/intTest/resources/.env
-          mv -f ./service/op-monitor/op-monitor-int-test/src/intTest/resources/.env.github ./service/op-monitor/op-monitor-int-test/src/intTest/resources/.env
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5000
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5555
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -181,27 +182,27 @@ jobs:
       - name: Save docker images from registry
         run: |
           mkdir -p ${{ runner.temp }}/docker-images
-          docker pull localhost:5000/ss-backup-manager:latest
-          docker pull localhost:5000/ss-configuration-client:latest
-          docker pull localhost:5000/ss-proxy:latest
-          docker pull localhost:5000/ss-signer:latest
-          docker pull localhost:5000/ss-monitor:latest
-          docker pull localhost:5000/ss-op-monitor:latest
-          docker pull localhost:5000/ss-proxy-ui-api:latest
-          docker pull localhost:5000/ss-db-serverconf-init:latest
-          docker pull localhost:5000/ss-db-messagelog-init:latest
-          docker pull localhost:5000/ss-db-opmonitor-init:latest
+          docker pull localhost:5555/ss-backup-manager:latest
+          docker pull localhost:5555/ss-configuration-client:latest
+          docker pull localhost:5555/ss-proxy:latest
+          docker pull localhost:5555/ss-signer:latest
+          docker pull localhost:5555/ss-monitor:latest
+          docker pull localhost:5555/ss-op-monitor:latest
+          docker pull localhost:5555/ss-proxy-ui-api:latest
+          docker pull localhost:5555/ss-db-serverconf-init:latest
+          docker pull localhost:5555/ss-db-messagelog-init:latest
+          docker pull localhost:5555/ss-db-opmonitor-init:latest
 
-          docker save -o ${{ runner.temp }}/docker-images/ss-backup-manager.tar localhost:5000/ss-backup-manager:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-configuration-client.tar localhost:5000/ss-configuration-client:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-proxy.tar localhost:5000/ss-proxy:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-signer.tar localhost:5000/ss-signer:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-monitor.tar localhost:5000/ss-monitor:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-op-monitor.tar localhost:5000/ss-op-monitor:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-proxy-ui-api.tar localhost:5000/ss-proxy-ui-api:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-db-serverconf-init.tar localhost:5000/ss-db-serverconf-init:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-db-messagelog-init.tar localhost:5000/ss-db-messagelog-init:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-db-opmonitor-init.tar localhost:5000/ss-db-opmonitor-init:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-backup-manager.tar localhost:5555/ss-backup-manager:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-configuration-client.tar localhost:5555/ss-configuration-client:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-proxy.tar localhost:5555/ss-proxy:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-signer.tar localhost:5555/ss-signer:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-monitor.tar localhost:5555/ss-monitor:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-op-monitor.tar localhost:5555/ss-op-monitor:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-proxy-ui-api.tar localhost:5555/ss-proxy-ui-api:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-serverconf-init.tar localhost:5555/ss-db-serverconf-init:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-messagelog-init.tar localhost:5555/ss-db-messagelog-init:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-opmonitor-init.tar localhost:5555/ss-db-opmonitor-init:latest
       - name: Store docker images for other jobs
         uses: actions/upload-artifact@v4
         with:
@@ -289,7 +290,7 @@ jobs:
       registry:
         image: registry:2
         ports:
-          - 5000:5000
+          - 5555:5000
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -307,7 +308,7 @@ jobs:
         with:
           cache-read-only: true
       - name: Initialize docker setup
-        working-directory: ./Docker/centralserver
+        working-directory: ./development/docker/central-server
         run: ./init_context.sh
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -317,17 +318,17 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: debian-packages
-          path: ./Docker/centralserver/build/packages/
+          path: ./development/docker/central-server/build/packages/
       - name: List docker build files
-        run: ls -lah ./Docker/centralserver/build
+        run: ls -lah ./development/docker/central-server/build
       - name: Build CS docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./Docker/centralserver/
+          context: ./development/docker/central-server/
           push: true
           build-args: |
             PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-centralserver:${{ github.sha }}
+          tags: localhost:5555/xrd-centralserver:${{ github.sha }}
       - name: Central Server test setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -335,7 +336,7 @@ jobs:
           label: 'Set up Central Server tests'
       - name: Run Central Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5555/xrd-centralserver:${{ github.sha }}
       - name: Test Central Server measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -383,7 +384,7 @@ jobs:
       registry:
         image: registry:2
         ports:
-          - 5000:5000
+          - 5555:5000
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -420,7 +421,6 @@ jobs:
       - name: Run Security Server system tests
         working-directory: ./src
         run: |
-          mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest
       - name: Test Security Server measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -460,7 +460,7 @@ jobs:
       registry:
         image: registry:2
         ports:
-          - 5000:5000
+          - 5555:5000
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -484,21 +484,21 @@ jobs:
           driver-opts: network=host
       # Build Central Server
       - name: Initialize CS docker setup
-        working-directory: ./Docker/centralserver
+        working-directory: ./development/docker/central-server
         run: ./init_context.sh
       - name: Download debian packages for CS
         uses: actions/download-artifact@v5
         with:
           name: debian-packages
-          path: ./Docker/centralserver/build/packages/
+          path: ./development/docker/central-server/build/packages/
       - name: Build CS docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./Docker/centralserver/
+          context: ./development/docker/central-server/
           push: true
           build-args: |
             PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-centralserver:${{ github.sha }}
+          tags: localhost:5555/xrd-centralserver:${{ github.sha }}
       - name: Download SS docker images
         uses: actions/download-artifact@v4
         with:
@@ -520,9 +520,8 @@ jobs:
       - name: Run E2E tests
         working-directory: ./src
         run: |
-          mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
           docker network create xroad-network
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }}
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest -Pe2eTestCSImage=localhost:5555/xrd-centralserver:${{ github.sha }}
       - name: E2E test measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:

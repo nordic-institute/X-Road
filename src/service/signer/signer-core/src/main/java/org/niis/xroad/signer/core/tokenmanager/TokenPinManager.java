@@ -45,7 +45,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.PIN_INCORRECT;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_PIN_INCORRECT;
 import static org.niis.xroad.common.core.exception.ErrorCode.WRONG_CERT_USAGE;
 
 @Slf4j
@@ -99,7 +99,7 @@ public final class TokenPinManager {
 
     private void validateTokenPin(RuntimeToken token, String tokenId) {
         if (token.softwareTokenPinHash().isEmpty()) {
-            throw XrdRuntimeException.systemException(PIN_INCORRECT)
+            throw XrdRuntimeException.systemException(TOKEN_PIN_INCORRECT)
                     .details("PIN not set for token " + tokenId)
                     .build();
         }

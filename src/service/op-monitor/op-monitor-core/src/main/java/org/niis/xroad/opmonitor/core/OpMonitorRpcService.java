@@ -30,7 +30,6 @@ import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsReq;
@@ -51,7 +50,7 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
 
     @Override
     public void getOperationalDataIntervals(GetOperationalDataIntervalsReq request,
-                                              StreamObserver<GetOperationalDataIntervalsResp> responseObserver) {
+                                            StreamObserver<GetOperationalDataIntervalsResp> responseObserver) {
         try {
             responseObserver.onNext(handleGetMonitoringDataRequest(request));
             responseObserver.onCompleted();
@@ -61,8 +60,7 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
         }
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private GetOperationalDataIntervalsResp handleGetMonitoringDataRequest(GetOperationalDataIntervalsReq request) throws Exception {
+    private GetOperationalDataIntervalsResp handleGetMonitoringDataRequest(GetOperationalDataIntervalsReq request) {
         log.debug("Getting operational data in {} minute intervals, between {} and {}",
                 request.getIntervalInMinutes(),
                 Instant.ofEpochMilli(request.getRecordsFrom()),

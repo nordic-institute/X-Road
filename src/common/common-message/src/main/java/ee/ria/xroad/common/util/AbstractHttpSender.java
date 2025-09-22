@@ -67,7 +67,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
  and then remove older apache http client lib if possible
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public abstract class AbstractHttpSender implements Closeable {
     public static final int CHUNKED_LENGTH = -1;
 
@@ -288,21 +288,21 @@ public abstract class AbstractHttpSender implements Closeable {
         return contentType.getValue();
     }
 
-    protected class ResponseStreamWatcher implements EofSensorWatcher {
+    protected static class ResponseStreamWatcher implements EofSensorWatcher {
         @Override
-        public boolean eofDetected(InputStream wrapped) throws IOException {
+        public boolean eofDetected(InputStream wrapped) {
             return true;
         }
 
         @Override
-        public boolean streamClosed(InputStream wrapped) throws IOException {
+        public boolean streamClosed(InputStream wrapped) {
             log.warn("Stream was closed before EOF was detected");
 
             return true;
         }
 
         @Override
-        public boolean streamAbort(InputStream wrapped) throws IOException {
+        public boolean streamAbort(InputStream wrapped) {
             throw new CodedException(X_IO_ERROR, "Stream was aborted");
         }
     }

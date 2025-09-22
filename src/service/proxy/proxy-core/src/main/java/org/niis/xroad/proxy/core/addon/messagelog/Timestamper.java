@@ -53,7 +53,7 @@ public class Timestamper {
     @Data
     @RequiredArgsConstructor
     @ToString(exclude = "signatureHashes")
-    static final class TimestampTask implements Serializable {
+    public static final class TimestampTask implements Serializable {
         private final Long[] messageRecords;
         private final String[] signatureHashes;
 
@@ -63,12 +63,12 @@ public class Timestamper {
         }
     }
 
-    interface TimestampResult {
+    public interface TimestampResult {
     }
 
     @Data
     @ToString(exclude = {"timestampDer", "hashChains"})
-    static final class TimestampSucceeded implements TimestampResult, Serializable {
+    protected static final class TimestampSucceeded implements TimestampResult, Serializable {
         private final Long[] messageRecords;
         private final byte[] timestampDer;
         private final String hashChainResult;
@@ -77,7 +77,7 @@ public class Timestamper {
     }
 
     @Data
-    static final class TimestampFailed implements TimestampResult, Serializable {
+    protected static final class TimestampFailed implements TimestampResult, Serializable {
         private final Long[] messageRecords;
         private final Exception cause;
     }

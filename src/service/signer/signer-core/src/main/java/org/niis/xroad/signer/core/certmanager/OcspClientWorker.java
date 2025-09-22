@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -54,6 +53,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.security.Principal;
 import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -79,7 +79,6 @@ import static java.util.Collections.emptyList;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class OcspClientWorker {
     private static final String OCSP_FRESHNESS_SECONDS = "ocspFreshnessSeconds";
     private static final String VERIFY_OCSP_NEXT_UPDATE = "verifyOcspNextUpdate";
@@ -246,7 +245,8 @@ public class OcspClientWorker {
         return new ArrayList<>(certs);
     }
 
-    OCSPResp queryCertStatus(X509Certificate subject, OcspVerifierOptions verifierOptions) throws Exception {
+    OCSPResp queryCertStatus(X509Certificate subject, OcspVerifierOptions verifierOptions)
+            throws CertificateEncodingException, IOException {
         X509Certificate issuer = globalConfProvider.getCaCert(globalConfProvider.getInstanceIdentifier(), subject);
 
         PrivateKey signerKey = ocspClient.getOcspRequestKey(subject);

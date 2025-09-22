@@ -27,27 +27,26 @@ package ee.ria.xroad.common.hashchain;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERUTF8String;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
+import java.io.IOException;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static org.bouncycastle.asn1.ASN1Encoding.DER;
 
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class DigestList {
-
-    private DigestList() {
-    }
 
     /**
      * Takes as input a sequence of hashes, combines them using DigestList
      * data structure and computes hash of the data structure.
      */
-    static byte[] digestHashStep(DigestAlgorithm digestMethod, byte[]... items)
-            throws Exception {
+    static byte[] digestHashStep(DigestAlgorithm digestMethod, byte[]... items) throws IOException {
         return calculateDigest(digestMethod,
                 concatDigests(digestMethod, items));
     }
@@ -56,8 +55,7 @@ final class DigestList {
      * Takes as input a sequence of hashes and combines them using DigestList
      * data structure.
      */
-    static byte[] concatDigests(DigestAlgorithm digestMethodUri, byte[]... items)
-            throws Exception {
+    static byte[] concatDigests(DigestAlgorithm digestMethodUri, byte[]... items) throws IOException {
         ASN1Encodable[] digestList = new ASN1Encodable[items.length];
 
         for (int i = 0; i < items.length; ++i) {
@@ -72,7 +70,7 @@ final class DigestList {
      * Takes as input a sequence of hashes and combines them using DigestList
      * data structure.
      */
-    static byte[] concatDigests(DigestValue... items) throws Exception {
+    static byte[] concatDigests(DigestValue... items) throws IOException {
         ASN1Encodable[] digestList = new ASN1Encodable[items.length];
 
         for (int i = 0; i < items.length; ++i) {
@@ -87,8 +85,7 @@ final class DigestList {
     /**
      * Encodes hash value as SingleDigest data structure.
      */
-    private static DERSequence singleDigest(DigestAlgorithm digestMethodUri,
-                                            byte[] digest) {
+    private static DERSequence singleDigest(DigestAlgorithm digestMethodUri, byte[] digest) {
         DEROctetString digestValue = new DEROctetString(digest);
         DERUTF8String digestMethod = new DERUTF8String(digestMethodUri.uri());
 

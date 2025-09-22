@@ -54,7 +54,7 @@ public class ProxyDiagnosticsConfig {
 
         @ApplicationScoped
         @Startup
-        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+        @ArchUnitSuppressed("NoVanillaExceptions")
         HealthCheckPort healthCheckPort(ProxyProperties proxyProperties,
                                         HealthChecks healthChecks) throws Exception {
             if (proxyProperties.healthCheckPort() > 0) {
@@ -66,7 +66,7 @@ public class ProxyDiagnosticsConfig {
             }
         }
 
-        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+        @ArchUnitSuppressed("NoVanillaExceptions")
         public void dispose(@Disposes HealthCheckPort healthCheckPort) throws Exception {
             if (healthCheckPort instanceof HealthCheckPortImpl impl) {
                 impl.destroy();

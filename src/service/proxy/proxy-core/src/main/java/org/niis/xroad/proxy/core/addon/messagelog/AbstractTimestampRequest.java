@@ -29,19 +29,28 @@ package org.niis.xroad.proxy.core.addon.messagelog;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
+import jakarta.xml.bind.JAXBException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.signature.XMLSignatureException;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
 
+import javax.xml.transform.TransformerException;
+
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -53,16 +62,16 @@ import static org.niis.xroad.proxy.core.addon.messagelog.TimestamperUtil.getTime
 
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public abstract class AbstractTimestampRequest {
     protected final GlobalConfProvider globalConfProvider;
     protected final Long[] logRecords;
 
-    abstract byte[] getRequestData() throws Exception;
+    abstract byte[] getRequestData() throws XMLSignatureException, JAXBException, IOException;
 
-    abstract Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url) throws Exception;
+    abstract Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url)
+            throws CertificateEncodingException, IOException, TSPException, CMSException, TransformerException;
 
-    Timestamper.TimestampResult execute(List<String> tspUrls) throws Exception {
+    Timestamper.TimestampResult execute(List<String> tspUrls) throws JAXBException, XMLSignatureException, IOException {
         TimeStampRequest tsRequest = createTimestampRequest(getRequestData());
 
         return makeTsRequest(tsRequest, tspUrls);
@@ -79,8 +88,7 @@ public abstract class AbstractTimestampRequest {
         }
     }
 
-    protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest,
-                                                        List<String> tspUrls) throws Exception {
+    protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)  {
         log.debug("tspUrls: {}", tspUrls);
         for (String url : tspUrls) {
             try {
@@ -101,12 +109,10 @@ public abstract class AbstractTimestampRequest {
         }
 
         // All the URLs failed. Throw exception.
-        throw new RuntimeException(
-                "Failed to get time stamp from any time-stamping providers");
+        throw XrdRuntimeException.systemInternalError("Failed to get time stamp from any time-stamping providers");
     }
 
-    private TimeStampRequest createTimestampRequest(byte[] data)
-            throws Exception {
+    private TimeStampRequest createTimestampRequest(byte[] data) throws IOException {
         TimeStampRequestGenerator reqgen = new TimeStampRequestGenerator();
 
         var tsaHashAlg = MessageLogProperties.getHashAlg();
@@ -122,7 +128,7 @@ public abstract class AbstractTimestampRequest {
     }
 
     protected byte[] getTimestampDer(TimeStampResponse tsResponse)
-            throws Exception {
+            throws CertificateEncodingException, IOException, TSPException, CMSException {
         X509Certificate signerCertificate =
                 TimestampVerifier.getSignerCertificate(
                         tsResponse.getTimeStampToken(),
@@ -137,8 +143,8 @@ public abstract class AbstractTimestampRequest {
         return token.getEncoded();
     }
 
-    protected void verify(TimeStampRequest request,
-                          TimeStampResponse response) throws Exception {
+    protected void verify(TimeStampRequest request, TimeStampResponse response)
+            throws TSPException, CertificateEncodingException, IOException, OperatorCreationException, CMSException {
         response.validate(request);
 
         TimeStampToken token = response.getTimeStampToken();

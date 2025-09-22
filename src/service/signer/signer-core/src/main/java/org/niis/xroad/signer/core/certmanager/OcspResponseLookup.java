@@ -30,8 +30,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
@@ -56,7 +54,6 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class OcspResponseLookup {
     private final GlobalConfProvider globalConfProvider;
     private final OcspCacheManager ocspCacheManager;
@@ -90,7 +87,7 @@ public class OcspResponseLookup {
         return Optional.empty();
     }
 
-    private OCSPResp getOcspResp(String certHash) throws Exception {
+    private OCSPResp getOcspResp(String certHash) throws CertificateEncodingException, IOException {
         var cert = getCertForCertHash(certHash);
         if (cert == null) {
             log.warn("Could not find certificate for hash {}", certHash);
@@ -100,7 +97,7 @@ public class OcspResponseLookup {
         return ocspCacheManager.getFromCacheOrDownload(cert, certHash);
     }
 
-    public void verifyOcspResponses(X509Certificate x509Certificate) throws Exception {
+    public void verifyOcspResponses(X509Certificate x509Certificate) throws CertificateEncodingException, IOException {
         CertChain certChain = globalConfProvider.getCertChain(globalConfProvider.getInstanceIdentifier(), x509Certificate);
 
         var result = handleGetOcspResponses(List.of(getHashes(certChain.getAllCertsWithoutTrustedRoot())));
@@ -120,11 +117,10 @@ public class OcspResponseLookup {
      * @param certHash the certificate SHA-1 hash in HEX
      * @return certificate matching certHash
      * @throws CertificateEncodingException if a certificate encoding error occurs
-     * @throws OperatorCreationException    if digest calculator cannot be created
      * @throws IOException                  if an I/O error occurred
      */
     private X509Certificate getCertForCertHash(String certHash)
-            throws CertificateEncodingException, IOException, OperatorCreationException {
+            throws CertificateEncodingException, IOException {
         X509Certificate cert = getCertificateForCerHash(certHash);
         if (cert != null) {
             return cert;

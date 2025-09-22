@@ -75,7 +75,7 @@ import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
  * as normal X-Road messages.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public final class ManagementRequestSender {
     private final GlobalConfProvider globalConfProvider;
     private final ManagementRequestClient managementRequestClient;
@@ -280,7 +280,8 @@ public final class ManagementRequestSender {
         }
     }
 
-    private static Integer send(HttpSender sender, URI address, ManagementRequest req) throws Exception {
+    private static Integer send(HttpSender sender, URI address, ManagementRequest req)
+            throws Exception {
         sender.doPost(address, req.getRequestContent(), CHUNKED_LENGTH, req.getRequestContentType());
 
         SoapMessageImpl requestMessage = req.getRequestMessage();

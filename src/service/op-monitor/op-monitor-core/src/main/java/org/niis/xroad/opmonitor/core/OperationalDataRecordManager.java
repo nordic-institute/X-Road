@@ -36,7 +36,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
@@ -56,7 +55,6 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.MONI
  */
 @Slf4j
 @Singleton
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class OperationalDataRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;
@@ -75,26 +73,25 @@ public final class OperationalDataRecordManager {
         this.maxRecordsInPayload = maxRecordsInPayload;
     }
 
-    void storeRecords(List<OperationalDataRecord> records, long timestamp) throws Exception {
+    void storeRecords(List<OperationalDataRecord> records, long timestamp) {
         databaseCtx.doInTransaction(session -> storeInTransaction(session, records, timestamp));
     }
 
-    OperationalDataRecords queryAllRecords() throws Exception {
+    OperationalDataRecords queryAllRecords() {
         return databaseCtx.doInTransaction(this::queryAllOperationalDataInTransaction);
     }
 
-    OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) throws Exception {
+    OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) {
         return queryRecords(recordsFrom, recordsTo, null, null, new HashSet<>());
     }
 
-    OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter)
-            throws Exception {
+    OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter) {
         return queryRecords(recordsFrom, recordsTo, clientFilter, null, new HashSet<>());
     }
 
     OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter,
                                         ClientId serviceProviderFilter,
-                                        Set<String> outputFields) throws Exception {
+                                        Set<String> outputFields) {
         OperationalDataRecords records = databaseCtx.doInTransaction(session -> queryOperationalDataInTransaction(session,
                 recordsFrom, recordsTo, clientFilter, serviceProviderFilter, outputFields));
 
@@ -108,7 +105,7 @@ public final class OperationalDataRecordManager {
                                                                                      Integer intervalInMinutes,
                                                                                      OpMonitoringData.SecurityServerType securityServerType,
                                                                                      ClientId memberId,
-                                                                                     ServiceId serviceId) throws Exception {
+                                                                                     ServiceId serviceId) {
         return databaseCtx.doInTransaction(session -> queryRequestMetricsDividedInIntervalsInTransaction(session,
                 startTime,
                 endTime,
@@ -135,9 +132,9 @@ public final class OperationalDataRecordManager {
 
         records.stream()
                 .map(OperationalDataRecordMapper.get()::toEntity)
-                .forEach(record -> {
-                    record.setMonitoringDataTs(timestamp);
-                    session.persist(record);
+                .forEach(recordEntity -> {
+                    recordEntity.setMonitoringDataTs(timestamp);
+                    session.persist(recordEntity);
 
                     sessionFlusher.flushIfReady();
                 });

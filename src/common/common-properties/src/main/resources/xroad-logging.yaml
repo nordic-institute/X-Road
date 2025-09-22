@@ -3,6 +3,8 @@ quarkus:
     level: INFO
     min-level: TRACE
     category:
+      "org.niis.xroad":
+        min-level: TRACE
       "io.quarkus":
         level: INFO #TODO should be reduced to INFO once development is done
       "io.smallrye":

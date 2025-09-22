@@ -66,7 +66,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     public static final String NGINX = "nginx";
     public static final String DB_SERVERCONF_INIT = "db-serverconf-init";
 
-    private static final String COMPOSE_SS_FILE = "../../../deployment/security-server/docker/compose.yaml";
+    private static final String COMPOSE_SS_FILE = "../../../development/docker/security-server/compose.yaml";
     private static final String COMPOSE_SYSTEMTEST_FILE = "src/intTest/resources/compose.systemtest.yaml";
 
     private ComposeContainer env;

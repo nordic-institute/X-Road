@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 
 public interface WorkerWithLifecycle {
 
@@ -53,8 +53,7 @@ public interface WorkerWithLifecycle {
     /**
      * Refreshes underlying worker.
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    default void refresh() throws Exception {
+    default void refresh() throws PKCS11Exception {
         //NO-OP
     }
 }

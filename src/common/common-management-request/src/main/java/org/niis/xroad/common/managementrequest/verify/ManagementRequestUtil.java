@@ -28,6 +28,7 @@ package org.niis.xroad.common.managementrequest.verify;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPElement;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
@@ -37,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import javax.xml.namespace.QName;
+
+import java.io.IOException;
 
 import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
 import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
@@ -53,13 +56,13 @@ public final class ManagementRequestUtil {
     /**
      * Converts the given management request to a response, adding the specified
      * request ID.
-     * @param request the request SOAP message
+     *
+     * @param request   the request SOAP message
      * @param requestId the request ID
      * @return the response SOAP message
-     * @throws Exception in case of any errors
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public static SoapMessageImpl toResponse(SoapMessageImpl request, int requestId) throws Exception {
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    public static SoapMessageImpl toResponse(SoapMessageImpl request, int requestId) throws SOAPException, JAXBException, IOException {
         return SoapUtils.toResponse(request, soap -> addRequestId(requestId, soap));
     }
 

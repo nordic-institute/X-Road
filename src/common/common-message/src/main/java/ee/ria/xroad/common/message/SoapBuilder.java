@@ -37,7 +37,6 @@ import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import lombok.Getter;
 import lombok.Setter;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -45,6 +44,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
+
+import java.io.IOException;
 
 import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
 import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
@@ -59,7 +60,6 @@ import static ee.ria.xroad.common.message.SoapUtils.validateServiceName;
  */
 @Getter
 @Setter
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SoapBuilder {
     public static final String NS_IDENTIFIERS = "http://x-road.eu/xsd/identifiers";
 
@@ -72,11 +72,10 @@ public class SoapBuilder {
     public interface SoapBodyCallback {
         /**
          * Populates the SOAPBody object with content.
+         *
          * @param soapBody the SOAP body that needs to be populated by content.
-         * @throws Exception if errors occur when populating the SOAP body
          */
-        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-        void create(SOAPBody soapBody) throws Exception;
+        void create(SOAPBody soapBody) throws SOAPException, JAXBException;
     }
 
     private static final Logger LOG =
@@ -92,10 +91,10 @@ public class SoapBuilder {
     /**
      * Builds the SOAP message using the currently set header, character set and
      * callback function for populating the SOAP body.
+     *
      * @return SoapMessageImpl
-     * @throws Exception in case errors occur when creating the SOAP message
      */
-    public SoapMessageImpl build() throws Exception {
+    public SoapMessageImpl build() throws IllegalAccessException, SOAPException, JAXBException, IOException {
         if (header == null) {
             throw new IllegalStateException("Header cannot be null");
         }
@@ -130,7 +129,7 @@ public class SoapBuilder {
         return header.getService();
     }
 
-    private void assembleMessageBody(SOAPMessage soap) throws Exception {
+    private void assembleMessageBody(SOAPMessage soap) throws SOAPException, JAXBException {
         SoapBodyCallback cb = createBodyCallback;
         if (cb == null) {
             final String bodyNodeName = getService().getServiceCode();

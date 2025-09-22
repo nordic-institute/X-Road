@@ -40,14 +40,16 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
@@ -74,7 +76,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * The logging system consists of a task queue, timestamper, archiver and log cleaner.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class LogManager extends AbstractLogManager {
 
     static final long MAX_LOGGABLE_BODY_SIZE = MessageLogProperties.getMaxLoggableBodySize();
@@ -186,7 +187,7 @@ public class LogManager extends AbstractLogManager {
         return new Timestamper(globalConfProvider, serverConfProvider, logRecordManager);
     }
 
-    private TimestampRecord timestampImmediately(MessageRecord logRecord) throws Exception {
+    private TimestampRecord timestampImmediately(MessageRecord logRecord) {
         log.trace("timestampImmediately({})", logRecord);
 
         Timestamper.TimestampResult result = timestamper.handleTimestampTask(new Timestamper.TimestampTask(logRecord));
@@ -198,13 +199,14 @@ public class LogManager extends AbstractLogManager {
                 Exception e = ttf.getCause();
                 log.error("Timestamping failed", e);
                 putStatusMapFailures(e);
-                throw e;
+                throw XrdRuntimeException.systemException(e);
             default:
-                throw new RuntimeException("Unexpected result from Timestamper: " + result.getClass());
+                throw XrdRuntimeException.systemInternalError("Unexpected result from Timestamper: " + result.getClass());
         }
     }
 
-    private static MessageRecord createMessageRecord(SoapLogMessage message) throws Exception {
+    private static MessageRecord createMessageRecord(SoapLogMessage message)
+            throws IOException, SOAPException, JAXBException, IllegalAccessException {
         log.trace("createMessageRecord()");
 
         var manipulator = new MessageBodyManipulator();
@@ -254,7 +256,7 @@ public class LogManager extends AbstractLogManager {
         };
     }
 
-    private static MessageRecord createMessageRecord(RestLogMessage message) throws Exception {
+    private static MessageRecord createMessageRecord(RestLogMessage message) throws IOException {
         log.trace("createMessageRecord()");
 
         final MessageBodyManipulator manipulator = new MessageBodyManipulator();
@@ -292,12 +294,12 @@ public class LogManager extends AbstractLogManager {
         return messageRecord;
     }
 
-    protected MessageRecord saveMessageRecord(MessageRecord messageRecord) throws Exception {
+    protected MessageRecord saveMessageRecord(MessageRecord messageRecord) {
         logRecordManager.saveMessageRecord(messageRecord);
         return messageRecord;
     }
 
-    TimestampRecord saveTimestampRecord(Timestamper.TimestampSucceeded message) throws Exception {
+    TimestampRecord saveTimestampRecord(Timestamper.TimestampSucceeded message) {
         log.trace("saveTimestampRecord()");
 
         putStatusMapSuccess(message.getUrl());
@@ -392,11 +394,11 @@ public class LogManager extends AbstractLogManager {
         }
     }
 
-    static String signatureHash(String signatureXml) throws Exception {
+    static String signatureHash(String signatureXml) throws IOException {
         return encodeBase64(getInputHash(signatureXml));
     }
 
-    private static byte[] getInputHash(String str) throws Exception {
+    private static byte[] getInputHash(String str) throws IOException {
         return calculateDigest(getHashAlg(), str.getBytes(UTF_8));
     }
 

@@ -46,6 +46,7 @@ import ee.ria.xroad.common.request.ObjectFactory;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -196,7 +197,7 @@ public class TestManagementRequestBuilder {
         return UUID.randomUUID().toString();
     }
 
-    private static Marshaller getMarshaller() throws Exception {
+    private static Marshaller getMarshaller() throws JAXBException {
         return JAXB_CTX.createMarshaller();
     }
 

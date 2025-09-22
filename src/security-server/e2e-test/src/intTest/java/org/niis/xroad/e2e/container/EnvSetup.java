@@ -50,9 +50,8 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 @Slf4j
 @RequiredArgsConstructor
 public class EnvSetup implements TestableContainerInitializer, DisposableBean {
-    private static final String COMPOSE_AUX_FILE = "../../../Docker/xrd-dev-stack/compose.aux.yaml";
-    private static final String COMPOSE_E2E_FILE = "../../../Docker/xrd-dev-stack/compose.e2e.yaml";
-    private static final String COMPOSE_SS_FILE = "../../../deployment/security-server/docker/compose.yaml";
+    private static final String COMPOSE_AUX_FILE = "src/intTest/resources/compose.aux.yaml";
+    private static final String COMPOSE_SS_FILE = "../../../development/docker/security-server/compose.yaml";
     private static final String COMPOSE_SS_HSM_FILE = "src/intTest/resources/compose.ss-hsm.e2e.yaml";
 
     private static final String CS = "cs";
@@ -79,7 +78,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
             envSs1 = createSSEnvironment("ss1", true);
 
-            envAux = new ComposeContainer("aux-", new File(COMPOSE_AUX_FILE), new File(COMPOSE_E2E_FILE))
+            envAux = new ComposeContainer("aux-", new File(COMPOSE_AUX_FILE))
                     .withLocalCompose(true)
                     .withExposedService(CS, Port.UI, forListeningPort())
                     .withEnv("CS_IMG", customProperties.getCsImage())

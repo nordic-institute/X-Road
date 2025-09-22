@@ -34,7 +34,7 @@
     "resize-observer-polyfill": "^1.5.1",
     "sass": "^1.89.2",
     "typescript": "~5.8.3",
-    "vite": "^7.0.6",
+    "vite": "^7.0.7",
     "vite-plugin-vuetify": "^2.1.1",
     "vitest": "^3.2.4",
     "vue-eslint-parser": "^10.2.0",

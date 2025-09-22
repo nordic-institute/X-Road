@@ -38,6 +38,7 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -64,8 +65,7 @@ class LegacyConfigMigrationCLITest {
         assertEquals(5665, result.getProperty("xroad.configuration-client.port"));
         assertEquals("/var/cache/xroad", result.getProperty("xroad.signer.ocsp-cache-path"));
         assertEquals("", result.getProperty("xroad.proxy.empty-prop"));
-        assertEquals("/etc/xroad/configuration-anchor.xml",
-                result.getProperty("xroad.configuration-client.configuration-anchor-file"));
+        assertNull(result.getProperty("xroad.configuration-client.configuration-anchor-file"));
     }
 
     @Test

@@ -28,8 +28,8 @@ package ee.ria.xroad.common.message;
 import ee.ria.xroad.common.CodedException;
 
 import jakarta.xml.soap.SOAPFault;
-import lombok.SneakyThrows;
 import org.apache.commons.text.StringEscapeUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.UnsupportedEncodingException;
 
@@ -51,12 +51,13 @@ public class SoapFault implements Soap {
 
     /**
      * Creates a new SOAP fault from the given parts.
-     * @param faultCode the fault code
+     *
+     * @param faultCode   the fault code
      * @param faultString the fault string
-     * @param faultActor the fault actor
+     * @param faultActor  the fault actor
      * @param faultDetail the fault detail
-     * @param rawXml the raw XML data
-     * @param charset the charset of the XML
+     * @param rawXml      the raw XML data
+     * @param charset     the charset of the XML
      */
     public SoapFault(String faultCode, String faultString, String faultActor,
                      String faultDetail, byte[] rawXml, String charset) {
@@ -70,6 +71,7 @@ public class SoapFault implements Soap {
 
     /**
      * Creates a new SOAP fault from a SOAPFault DOM element.
+     *
      * @param soapFault the DOM element used in created of the fault
      */
     public SoapFault(SOAPFault soapFault) {
@@ -78,9 +80,10 @@ public class SoapFault implements Soap {
 
     /**
      * Creates a new SOAP fault from a SOAPFault DOM element.
+     *
      * @param soapFault the DOM element used in created of the fault
-     * @param rawXml the raw XML data
-     * @param charset the charset of the XML
+     * @param rawXml    the raw XML data
+     * @param charset   the charset of the XML
      */
     public SoapFault(SOAPFault soapFault, byte[] rawXml, String charset) {
         this.faultCode = soapFault.getFaultCode();
@@ -93,6 +96,7 @@ public class SoapFault implements Soap {
 
     /**
      * Gets the fault code of the SOAP fault.
+     *
      * @return a String with the fault code
      */
     public String getCode() {
@@ -101,6 +105,7 @@ public class SoapFault implements Soap {
 
     /**
      * Gets the fault string of the SOAP fault.
+     *
      * @return a String giving an explanation of the fault
      */
     public String getString() {
@@ -109,6 +114,7 @@ public class SoapFault implements Soap {
 
     /**
      * Gets the fault actor of the SOAP fault.
+     *
      * @return a String giving the actor in the message path that caused this fault
      */
     public String getActor() {
@@ -117,6 +123,7 @@ public class SoapFault implements Soap {
 
     /**
      * Gets the fault detail of the SOAP fault.
+     *
      * @return a String with application-specific error information
      */
     public String getDetail() {
@@ -125,13 +132,16 @@ public class SoapFault implements Soap {
 
     /**
      * Converts this SOAP fault into a coded exception.
+     *
      * @return CodedException
      */
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public CodedException toCodedException() {
-        return CodedException.fromFault(faultCode, faultString, faultActor,
-                faultDetail, new String(rawXml, charset));
+        try {
+            return CodedException.fromFault(faultCode, faultString, faultActor,
+                    faultDetail, new String(rawXml, charset));
+        } catch (UnsupportedEncodingException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Override
@@ -146,6 +156,7 @@ public class SoapFault implements Soap {
 
     /**
      * Creates SOAP fault message from exception.
+     *
      * @param ex exception representing a SOAP fault
      * @return a String containing XML of the SOAP fault represented by the given coded exception
      */
@@ -160,10 +171,11 @@ public class SoapFault implements Soap {
 
     /**
      * Creates a SOAP fault message.
-     * @param faultCode code of the new SOAP fault
+     *
+     * @param faultCode   code of the new SOAP fault
      * @param faultString string of the new SOAP fault
-     * @param faultActor actor of the new SOAP fault
-     * @param detail detail of the new SOAP fault
+     * @param faultActor  actor of the new SOAP fault
+     * @param detail      detail of the new SOAP fault
      * @return a String containing XML of the SOAP fault represented by the given parameters
      */
     public static String createFaultXml(String faultCode, String faultString,

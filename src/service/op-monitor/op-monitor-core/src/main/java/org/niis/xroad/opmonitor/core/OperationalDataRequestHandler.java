@@ -38,10 +38,11 @@ import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataType
 import ee.ria.xroad.opmonitordaemon.message.SearchCriteriaType;
 
 import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
+import jakarta.xml.soap.SOAPException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
@@ -62,7 +63,6 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.OUTP
  */
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 class OperationalDataRequestHandler extends QueryRequestHandler {
     private final GlobalConfProvider globalConfProvider;
     private final OperationalDataRecordManager operationalDataRecordManager;
@@ -72,7 +72,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
 
     @Override
     public void handle(SoapMessageImpl requestSoap, OutputStream out,
-                       Consumer<String> contentTypeCallback) throws Exception {
+                       Consumer<String> contentTypeCallback) throws JAXBException, SOAPException, IOException {
         log.trace("handle()");
 
         ClientId clientId = requestSoap.getClient();
@@ -224,7 +224,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
     }
 
     protected ClientId getClientForFilter(ClientId clientId,
-                                          SecurityServerId serverId) throws Exception {
+                                          SecurityServerId serverId) {
         return !isMonitoringClient(clientId)
                 && !isServerOwner(clientId, serverId) ? clientId : null;
     }

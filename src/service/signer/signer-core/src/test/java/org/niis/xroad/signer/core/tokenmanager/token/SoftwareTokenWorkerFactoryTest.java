@@ -122,7 +122,7 @@ class SoftwareTokenWorkerFactoryTest {
                 IOUtils.toByteArray(getClass().getResourceAsStream("/keystore.p12"))));
 
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn("Secret1234".toCharArray());
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
             tokenWorker.refresh();
         }
 
@@ -149,7 +149,7 @@ class SoftwareTokenWorkerFactoryTest {
         when(pinManager.tokenHasPin(TOKEN_ID)).thenReturn(true);
 
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(null);
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.empty());
             tokenWorker.refresh();
         }
 
@@ -169,7 +169,7 @@ class SoftwareTokenWorkerFactoryTest {
         when(tokenLookup.isTokenActive(TOKEN_ID)).thenReturn(true);
 
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn("pin".toCharArray());
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of("pin".toCharArray()));
 
             tokenWorker.handleGenerateKey(genKeyReq);
 
@@ -209,7 +209,7 @@ class SoftwareTokenWorkerFactoryTest {
         when(pinManager.verifyTokenPin(TOKEN_ID, oldPIN)).thenReturn(true);
 
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(oldPIN);
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(oldPIN));
 
             tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), newPIN);
 
@@ -226,7 +226,7 @@ class SoftwareTokenWorkerFactoryTest {
         when(pinManager.verifyTokenPin(TOKEN_ID, oldPIN)).thenReturn(false);
 
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(oldPIN);
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(oldPIN));
 
             var thrown = assertThrows(CodedException.class, () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), new char[0]));
 
@@ -245,7 +245,7 @@ class SoftwareTokenWorkerFactoryTest {
         doThrow(new CodedException("fail")).when(pinManager).updateTokenPin(TOKEN_ID, oldPIN, newPIN);
 
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(oldPIN);
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of((oldPIN)));
 
             assertThrows(CodedException.class, () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), newPIN));
 
@@ -283,7 +283,7 @@ class SoftwareTokenWorkerFactoryTest {
                 IOUtils.toByteArray(getClass().getResourceAsStream("/keystore.p12"))));
 
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn("Secret1234".toCharArray());
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
 
             var signature = tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3});
             assertNotNull(signature);
@@ -332,7 +332,7 @@ class SoftwareTokenWorkerFactoryTest {
                 Optional.of(IOUtils.toByteArray(getClass().getResourceAsStream("/keystore.p12"))));
 
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn("Secret1234".toCharArray());
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
 
             var result = tokenWorker.signCertificate(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "CN=Test",
                     TestCertUtil.getCaCert().getPublicKey());

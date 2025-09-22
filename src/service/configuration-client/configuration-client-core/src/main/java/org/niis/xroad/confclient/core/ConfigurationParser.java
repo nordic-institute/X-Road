@@ -39,7 +39,6 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationUtils;
 
@@ -72,7 +71,6 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
  */
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class ConfigurationParser {
 
     // We cache the certificates we have found for a given hash
@@ -104,10 +102,9 @@ public class ConfigurationParser {
      * @param contentIdentifiersToBeHandled array of content identifiers that are handled.
      *                                      If null, all content is handled.
      * @return list of downloaded files
-     * @throws Exception if an error occurs
      */
     public synchronized Configuration parse(ConfigurationLocation location, String... contentIdentifiersToBeHandled)
-            throws Exception {
+            throws IOException, MimeException {
         log.trace("parse");
 
         configuration = new Configuration(location);
@@ -126,7 +123,7 @@ public class ConfigurationParser {
         return configuration;
     }
 
-    protected InputStream getInputStream() throws Exception {
+    protected InputStream getInputStream() {
         return getConfigurationInputStream(configuration.getLocation());
     }
 
@@ -164,12 +161,12 @@ public class ConfigurationParser {
         }
 
         @Override
-        public void startHeader() throws MimeException {
+        public void startHeader() {
             headers = new HashMap<>();
         }
 
         @Override
-        public void field(Field field) throws MimeException {
+        public void field(Field field) {
             headers.put(field.getName().toLowerCase(), field.getBody());
         }
 

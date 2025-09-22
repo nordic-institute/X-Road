@@ -87,8 +87,7 @@ public class Verifier {
      * @param soap       the signed message
      */
     public void addMessagePart(DigestAlgorithm hashMethod, SoapMessageImpl soap) {
-        parts.add(new MessagePart(MessageFileNames.MESSAGE, hashMethod,
-                soap.getHash(), soap.getBytes()));
+        parts.add(new MessagePart(MessageFileNames.MESSAGE, hashMethod, soap.getHash(), soap.getBytes()));
     }
 
     /**

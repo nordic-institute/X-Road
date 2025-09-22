@@ -97,7 +97,7 @@ class TestLogManager extends LogManager {
     }
 
     @Override
-    protected MessageRecord saveMessageRecord(MessageRecord messageRecord) throws Exception {
+    protected MessageRecord saveMessageRecord(MessageRecord messageRecord) {
         log.info("saving message record");
 
         if (MessageLogTest.logRecordTime != null) {

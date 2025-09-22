@@ -30,14 +30,20 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.ContentSigner;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.util.SignerUtil;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
@@ -47,13 +53,13 @@ import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
  * Utility methods for software token.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class SoftwareTokenUtil {
 
     private SoftwareTokenUtil() {
     }
 
-    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password) throws Exception {
+    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password)
+            throws OperatorCreationException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException {
         var signALgo = KeyManagers.getFor(kp.getPrivate().getAlgorithm()).getSoftwareTokenKeySignAlgorithm();
         ContentSigner signer = CryptoUtils.createContentSigner(signALgo, kp.getPrivate());
 
@@ -70,12 +76,14 @@ public final class SoftwareTokenUtil {
         return keyStore;
     }
 
-    static PrivateKey loadPrivateKey(byte[] keyStoreFile, String alias, char[] password) throws Exception {
+    static PrivateKey loadPrivateKey(byte[] keyStoreFile, String alias, char[] password)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
         KeyStore ks = loadPkcs12KeyStore(new ByteArrayInputStream(keyStoreFile), password);
         return loadPrivateKey(ks, alias, password);
     }
 
-    static PrivateKey loadPrivateKey(KeyStore ks, String alias, char[] password) throws Exception {
+    static PrivateKey loadPrivateKey(KeyStore ks, String alias, char[] password)
+            throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         PrivateKey privateKey = (PrivateKey) ks.getKey(alias, password);
 
         if (privateKey == null) {
@@ -91,13 +99,14 @@ public final class SoftwareTokenUtil {
                 }
             }
 
-            throw new RuntimeException("Private key not found in keystore '" + ks + "', wrong password?");
+            throw XrdRuntimeException.systemInternalError("Private key not found in keystore '" + ks + "', wrong password?");
         }
 
         return privateKey;
     }
 
-    public static KeyStore rewriteKeyStoreWithNewPin(KeyStore oldKeyStore, String keyAlias, char[] oldPin, char[] newPin) throws Exception {
+    public static KeyStore rewriteKeyStoreWithNewPin(KeyStore oldKeyStore, String keyAlias, char[] oldPin, char[] newPin)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
         PrivateKey privateKey = loadPrivateKey(oldKeyStore, keyAlias, oldPin);
 
         KeyStore newKeyStore = KeyStore.getInstance("pkcs12");

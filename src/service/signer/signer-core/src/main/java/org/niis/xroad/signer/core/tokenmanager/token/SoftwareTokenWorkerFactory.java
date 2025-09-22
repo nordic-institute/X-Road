@@ -40,13 +40,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -65,10 +67,11 @@ import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
@@ -76,6 +79,7 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.CertPath;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -95,7 +99,6 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotFound;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.loginFailed;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.pinIncorrect;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotActive;
-import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotInitialized;
 
 /**
  * Encapsulates the software token worker which handles software signing and key
@@ -131,7 +134,6 @@ public class SoftwareTokenWorkerFactory {
         return new SoftwareTokenWorker(tokenInfo, tokenDefinition);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public class SoftwareTokenWorker extends AbstractTokenWorker {
         private final Map<String, PrivateKey> privateKeys = new ConcurrentHashMap<>();
         private final TokenDefinition tokenDefinition;
@@ -216,7 +218,7 @@ public class SoftwareTokenWorkerFactory {
         }
 
         private GenerateKeyResult generateKey(GenerateKeyReq message)
-                throws Exception {
+                throws CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException {
             log.trace("generateKeys()");
 
             assertTokenAvailable();
@@ -271,7 +273,7 @@ public class SoftwareTokenWorkerFactory {
             return signature.sign();
         }
 
-        private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) throws CodedException {
+        private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) {
             if (!SUPPORTED_ALGORITHMS.contains(signatureAlgorithmId)) {
                 throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, UNSUPPORTED_SIGN_ALGORITHM,
                         "Unsupported signature algorithm '%s'", signatureAlgorithmId.name());
@@ -285,7 +287,7 @@ public class SoftwareTokenWorkerFactory {
 
         @Override
         protected byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
-                throws Exception {
+                throws CertificateException, NoSuchProviderException, CertIOException, OperatorCreationException {
             log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
             assertTokenAvailable();
             assertKeyAvailable(keyId);
@@ -393,7 +395,7 @@ public class SoftwareTokenWorkerFactory {
             }
         }
 
-        private void verifyOldAndNewPin(char[] oldPin, char[] newPin) throws Exception {
+        private void verifyOldAndNewPin(char[] oldPin, char[] newPin) {
             // Verify that pin is provided and get the correct pin
             char[] oldPinFromStore = getPin();
             try {
@@ -440,22 +442,16 @@ public class SoftwareTokenWorkerFactory {
 
         private void activateToken() {
             try {
-                verifyPin(PasswordStore.getPassword(tokenId));
+                verifyPin(PasswordStore.getPassword(tokenId).orElse(null));
 
                 tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
                 tokenManager.setTokenActive(tokenId, true);
-            } catch (FileNotFoundException e) {
-                log.error("Software token not initialized", e);
+            } catch (XrdRuntimeException e) {
+                if (e.isCausedBy(ErrorCode.TOKEN_PIN_INCORRECT)) {
+                    tokenManager.setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
+                }
 
-                tokenManager.setTokenStatus(tokenId, TokenStatusInfo.NOT_INITIALIZED);
-
-                throw tokenNotInitialized(tokenId);
-            } catch (Exception e) {
-                log.error("Error verifying token PIN", e);
-
-                tokenManager.setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
-
-                throw pinIncorrect();
+                throw e;
             }
         }
 
@@ -482,12 +478,14 @@ public class SoftwareTokenWorkerFactory {
             verifyPinProvided(pin);
 
             if (!pinManager.verifyTokenPin(tokenId, pin)) {
-                throw XrdRuntimeException.systemInternalError("PIN verification failed for token " + tokenId);
+                throw XrdRuntimeException.systemException(ErrorCode.TOKEN_PIN_INCORRECT)
+                        .details("PIN verification failed for token " + tokenId)
+                        .build();
             }
         }
 
-        private char[] getPin() throws Exception {
-            final char[] pin = PasswordStore.getPassword(tokenId);
+        private char[] getPin() {
+            final char[] pin = PasswordStore.getPassword(tokenId).orElse(null);
             verifyPinProvided(pin);
 
             return pin;
@@ -500,7 +498,7 @@ public class SoftwareTokenWorkerFactory {
         }
 
         private static byte[] savePkcs12Keystore(KeyPair kp, String alias, char[] password)
-                throws Exception {
+                throws CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException {
             KeyStore keyStore = createKeyStore(kp, alias, password);
 
             log.debug("Creating inmemory pkcs#12 keystore with id'{}'", alias);

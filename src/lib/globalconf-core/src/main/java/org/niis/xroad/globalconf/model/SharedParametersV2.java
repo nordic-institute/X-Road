@@ -31,7 +31,6 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import lombok.AccessLevel;
 import lombok.Getter;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.sharedparameters.v2.ObjectFactory;
 import org.niis.xroad.globalconf.schema.sharedparameters.v2.SharedParametersTypeV2;
@@ -88,7 +87,7 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     }
 
     @Override
-    public void load(String fileName) throws IOException, OperatorCreationException, JAXBException, IllegalAccessException {
+    public void load(String fileName) {
         throwIfInitCompleted();
         super.load(fileName);
     }
