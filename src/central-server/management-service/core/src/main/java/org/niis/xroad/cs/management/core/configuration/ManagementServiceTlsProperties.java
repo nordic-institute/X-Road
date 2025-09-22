@@ -24,50 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.vault;
+package org.niis.xroad.cs.management.core.configuration;
 
-import ee.ria.xroad.common.conf.InternalSSLKey;
+import lombok.Getter;
+import lombok.Setter;
+import org.niis.xroad.common.vault.spring.config.SpringCertificateProvisioningProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-import java.security.cert.X509Certificate;
-
-public class NoopVaultClient implements VaultClient {
-    @Override
-    public InternalSSLKey getInternalTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
-
-    @Override
-    public InternalSSLKey getOpmonitorTlsCredentials()  {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
-
-    @Override
-    public InternalSSLKey getAdminServiceTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
-
-    @Override
-    public InternalSSLKey getManagementServicesTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
-
-    @Override
-    public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
+@Configuration
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "xroad.management-service.tls")
+public class ManagementServiceTlsProperties {
+    private SpringCertificateProvisioningProperties certificateProvisioning;
 }

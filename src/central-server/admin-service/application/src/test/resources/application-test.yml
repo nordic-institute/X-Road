@@ -4,6 +4,9 @@ debug: false
 spring:
   main:
     banner-mode: off
+  cloud:
+    vault:
+      enabled: false
 
 xroad:
   common:

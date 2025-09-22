@@ -155,13 +155,6 @@ public class ProxyRpcClient extends AbstractRpcClient {
         return CryptoUtils.readCertificate(response.getInternalTlsCertificate().toByteArray());
     }
 
-    public List<X509Certificate> getInternalTlsCertificateChain() {
-        var response = exec(() -> internalTlsServiceBlockingStub.getInternalTlsCertificateChain(Empty.getDefaultInstance()));
-        return response.getInternalTlsCertificateList().stream()
-                .map(cert -> CryptoUtils.readCertificate(cert.toByteArray()))
-                .toList();
-    }
-
     public X509Certificate generateInternalTlsKeyAndCertificate() {
         var response = exec(() -> internalTlsServiceBlockingStub.generateInternalTlsKeyAndCertificate(Empty.getDefaultInstance()));
         return CryptoUtils.readCertificate(response.getInternalTlsCertificate().toByteArray());

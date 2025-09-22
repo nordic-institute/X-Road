@@ -44,7 +44,6 @@ import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.proxy.proto.GenerateInternalCsrRequest;
 import org.niis.xroad.proxy.proto.GenerateInternalCsrResponse;
-import org.niis.xroad.proxy.proto.InternalTlsCertificateChainMessage;
 import org.niis.xroad.proxy.proto.InternalTlsCertificateMessage;
 import org.niis.xroad.proxy.proto.InternalTlsServiceGrpc;
 import org.niis.xroad.rpc.common.Empty;
@@ -93,22 +92,11 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
     }
 
     @Override
-    public void getInternalTlsCertificateChain(Empty request, StreamObserver<InternalTlsCertificateChainMessage> responseObserver) {
-        rpcResponseHandler.handleRequest(responseObserver, () -> {
-            try {
-                var internalSslKey = vaultClient.getInternalTlsCredentials();
-                return toCertificateChainMessage(internalSslKey.getCertChain());
-            } catch (Exception e) {
-                throw XrdRuntimeException.systemException(e);
-            }
-        });
-    }
-
-    @Override
     public void generateInternalTlsKeyAndCertificate(Empty request, StreamObserver<InternalTlsCertificateMessage> responseObserver) {
         rpcResponseHandler.handleRequest(responseObserver, () -> {
             try {
                 var cert = generateInternalTlsKeyAndCertificate();
+                serverConfProvider.clearCache();
                 return toCertificateMessage(cert);
             } catch (Exception e) {
                 throw XrdRuntimeException.systemException(e);
@@ -142,18 +130,6 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
             return InternalTlsCertificateMessage.newBuilder()
                     .setInternalTlsCertificate(ByteString.copyFrom(certificate.getEncoded()))
                     .build();
-        } catch (CertificateEncodingException e) {
-            throw new CodedException(INVALID_CERTIFICATE.code(), e);
-        }
-    }
-
-    private InternalTlsCertificateChainMessage toCertificateChainMessage(X509Certificate[] certificates) {
-        try {
-            var messageBuilder = InternalTlsCertificateChainMessage.newBuilder();
-            for (X509Certificate cert : certificates) {
-                messageBuilder.addInternalTlsCertificate(ByteString.copyFrom(cert.getEncoded()));
-            }
-            return messageBuilder.build();
         } catch (CertificateEncodingException e) {
             throw new CodedException(INVALID_CERTIFICATE.code(), e);
         }

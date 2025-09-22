@@ -33,7 +33,6 @@ option java_multiple_files = true;
 
 service InternalTlsService {
   rpc getInternalTlsCertificate(Empty) returns (InternalTlsCertificateMessage) {}
-  rpc getInternalTlsCertificateChain(Empty) returns (InternalTlsCertificateChainMessage) {}
   rpc generateInternalTlsKeyAndCertificate(Empty) returns (InternalTlsCertificateMessage) {}
   rpc generateInternalTlsCsr(GenerateInternalCsrRequest) returns (GenerateInternalCsrResponse) {}
   rpc importInternalTlsCertificate(InternalTlsCertificateMessage) returns (InternalTlsCertificateMessage) {}
@@ -41,10 +40,6 @@ service InternalTlsService {
 
 message InternalTlsCertificateMessage {
   bytes internal_tls_certificate = 1;
-}
-
-message InternalTlsCertificateChainMessage {
-  repeated bytes internal_tls_certificate = 1;
 }
 
 message GenerateInternalCsrRequest {

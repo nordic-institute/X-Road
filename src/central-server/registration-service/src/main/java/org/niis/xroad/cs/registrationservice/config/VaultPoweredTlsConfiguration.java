@@ -24,50 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.vault;
+package org.niis.xroad.cs.registrationservice.config;
 
-import ee.ria.xroad.common.conf.InternalSSLKey;
+import org.niis.xroad.common.managementservice.ManagementServiceSslBundleRegistrar;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.vault.core.VaultTemplate;
 
-import java.security.cert.X509Certificate;
+@ConditionalOnProperty(name = "server.ssl.enabled", havingValue = "true")
+@Configuration
+public class VaultPoweredTlsConfiguration {
 
-public class NoopVaultClient implements VaultClient {
-    @Override
-    public InternalSSLKey getInternalTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
+    @Bean
+    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = ManagementServiceSslBundleRegistrar.BUNDLE_NAME)
+    VaultKeyClient vaultKeyClient(VaultTemplate vaultTemplate, RegistrationServiceTlsProperties properties) {
+        return new SpringVaultKeyClient(vaultTemplate, properties.getCertificateProvisioning());
     }
 
-    @Override
-    public InternalSSLKey getOpmonitorTlsCredentials()  {
-        return new InternalSSLKey(null, new X509Certificate[]{});
+    @Bean
+    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = ManagementServiceSslBundleRegistrar.BUNDLE_NAME)
+    public SslBundleRegistrar vaultSslBundleRegistrar(VaultKeyClient vaultKeyClient, VaultClient vaultClient) {
+        return new ManagementServiceSslBundleRegistrar(vaultKeyClient, vaultClient);
     }
 
-    @Override
-    public InternalSSLKey getAdminServiceTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
-
-    @Override
-    public InternalSSLKey getManagementServicesTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
-
-    @Override
-    public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
 }

@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.vault;
+package org.niis.xroad.common.managementservice;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
@@ -49,8 +49,8 @@ import static java.util.Arrays.stream;
 
 @Slf4j
 @RequiredArgsConstructor
-public class VaultSslBundleRegistrar implements SslBundleRegistrar {
-    private static final String BUNDLE_NAME = "vault";
+public class ManagementServiceSslBundleRegistrar implements SslBundleRegistrar {
+    public static final String BUNDLE_NAME = "management-service";
 
     private final VaultKeyClient vaultKeyClient;
     private final VaultClient vaultClient;
@@ -60,7 +60,7 @@ public class VaultSslBundleRegistrar implements SslBundleRegistrar {
         log.info("Registering '{}' SSL Bundle", BUNDLE_NAME);
         try {
             ensureTlsKeyPresent();
-            var tlsCredentials = vaultClient.getAdminServiceTlsCredentials();
+            var tlsCredentials = vaultClient.getManagementServicesTlsCredentials();
 
             KeyStore keystore = KeyStore.getInstance("PKCS12");
             keystore.load(null, null);
@@ -75,16 +75,15 @@ public class VaultSslBundleRegistrar implements SslBundleRegistrar {
 
     private void ensureTlsKeyPresent() throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         try {
-            vaultClient.getAdminServiceTlsCredentials();
+            vaultClient.getManagementServicesTlsCredentials();
         } catch (Exception e) {
-            log.warn("Unable to locate proxy-ui-api TLS credentials, attempting to create new ones", e);
+            log.warn("Unable to locate '{}' TLS credentials, attempting to create new ones", BUNDLE_NAME, e);
             var vaultKeyData = vaultKeyClient.provisionNewCerts();
             var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
                     .toArray(X509Certificate[]::new);
-            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createAdminServiceTlsCredentials(internalTlsKey);
-            vaultClient.getAdminServiceTlsCredentials();
-            log.info("Successfully created proxy-ui-api TLS credentials");
+            var tlCredentials = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
+            vaultClient.createManagementServiceTlsCredentials(tlCredentials);
+            log.info("Successfully created '{}' TLS credentials", BUNDLE_NAME);
         }
     }
 }
