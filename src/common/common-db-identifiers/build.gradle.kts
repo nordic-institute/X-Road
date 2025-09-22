@@ -10,7 +10,7 @@ dependencies {
 
   api(project(":common:common-db"))
   implementation(project(":common:common-domain"))
-  implementation(libs.quarkus.arc)
+  implementation(libs.jakarta.cdiApi)
   implementation(libs.mapstruct)
 
   testImplementation(libs.logback.classic)
