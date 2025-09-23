@@ -1,6 +1,7 @@
 plugins {
   id("xroad.java-conventions")
   id("xroad.test-fixtures-conventions")
+  id("xroad.jboss-test-logging-conventions")
   alias(libs.plugins.jandex)
 }
 

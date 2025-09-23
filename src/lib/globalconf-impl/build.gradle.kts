@@ -1,6 +1,7 @@
 plugins {
   id("xroad.java-conventions")
   id("xroad.test-fixtures-conventions")
+  id("xroad.jboss-test-logging-conventions")
   alias(libs.plugins.jandex)
 }
 
@@ -13,7 +14,6 @@ dependencies {
   implementation(libs.smallrye.config.core)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(libs.logback.classic)
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.julOverSlf4j)
 
