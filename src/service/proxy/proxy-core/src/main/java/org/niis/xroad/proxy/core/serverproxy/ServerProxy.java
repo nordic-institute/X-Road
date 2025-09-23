@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
@@ -235,7 +234,7 @@ public class ServerProxy {
         sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setNeedClientAuth(true);
         sslContextFactory.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
-        sslContextFactory.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
+        sslContextFactory.setIncludeCipherSuites(proxyProperties.xroadTlsCiphers());
         sslContextFactory.setSessionCachingEnabled(true);
         sslContextFactory.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
         sslContextFactory.setSslContext(

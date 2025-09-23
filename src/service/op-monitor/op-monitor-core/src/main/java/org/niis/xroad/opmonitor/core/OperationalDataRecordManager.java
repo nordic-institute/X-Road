@@ -65,7 +65,7 @@ public final class OperationalDataRecordManager {
 
     @Inject
     public OperationalDataRecordManager(OpMonitorDatabaseCtx databaseCtx, OpMonitorProperties opMonitorProperties) {
-        this(databaseCtx, opMonitorProperties.maxRecordsInPayload());
+        this(databaseCtx, opMonitorProperties.getMaxRecordsInPayload());
     }
 
     public OperationalDataRecordManager(DatabaseCtx databaseCtx, int maxRecordsInPayload) {

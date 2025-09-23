@@ -43,8 +43,6 @@ public final class SystemProperties {
     private static final String SIGNER_PREFIX = PREFIX + "signer.";
     private static final String CENTER_PREFIX = PREFIX + "center.";
 
-    private static final String COMMA_SPLIT = "\\s*,\\s*";
-
     // Common -----------------------------------------------------------------
 
     /** Property name of the temporary files path. */
@@ -78,9 +76,6 @@ public final class SystemProperties {
     // Proxy ------------------------------------------------------------------
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
-
-    /** Property name of the ClientProxy HTTPS client and ServerProxy HTTPS connector supported TLS cipher suites */
-    private static final String PROXY_XROAD_TLS_CIPHERS = PROXY_PREFIX + "xroad-tls-ciphers";
 
     private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY = SIGNER_PREFIX + "enforce-token-pin-policy";
 
@@ -426,19 +421,6 @@ public final class SystemProperties {
      */
     public static String getNetStatsFile() {
         return getProperty(NET_STATS_FILE, "/proc/net/dev");
-    }
-
-    private static final String DEFAULT_XROAD_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
-            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,"
-            + "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384";
-
-    /**
-     * Get X-Road accepted TLS cipher suites (between ss and ss).
-     *
-     * @return cipher suites.
-     */
-    public static String[] getXroadTLSCipherSuites() {
-        return getProperty(PROXY_XROAD_TLS_CIPHERS, DEFAULT_XROAD_SSL_CIPHER_SUITES).trim().split(COMMA_SPLIT);
     }
 
     /**

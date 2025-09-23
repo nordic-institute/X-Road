@@ -144,7 +144,7 @@ public class ProxyClientConfig {
 
             if (proxyProperties.sslEnabled()) {
                 sfr.register("https", createSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory,
-                        proxyProperties.clientProxy()));
+                        proxyProperties));
             }
 
             SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
@@ -164,9 +164,9 @@ public class ProxyClientConfig {
 
         private SSLConnectionSocketFactory createSSLSocketFactory(AuthTrustVerifier authTrustVerifier,
                                                                   ReloadingSSLSocketFactory reloadingSSLSocketFactory,
-                                                                  ProxyProperties.ClientProxyProperties clientProxyProperties) {
+                                                                  ProxyProperties proxyProperties) {
             return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory,
-                    clientProxyProperties);
+                    proxyProperties);
         }
     }
 

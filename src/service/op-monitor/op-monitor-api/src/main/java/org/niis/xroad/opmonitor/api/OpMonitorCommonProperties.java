@@ -33,6 +33,8 @@ import io.smallrye.config.WithParentName;
 
 import java.util.Optional;
 
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
+
 @ConfigMapping(prefix = "xroad.op-monitor")
 public interface OpMonitorCommonProperties {
 
@@ -44,6 +46,10 @@ public interface OpMonitorCommonProperties {
 
     @WithName("buffer")
     OpMonitorBufferProperties buffer();
+
+    @WithName("xroad-tls-ciphers")
+    @WithDefault(DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING)
+    String[] xroadTlsCiphers();
 
     interface OpMonitorConnectionProperties {
         /**

@@ -84,7 +84,6 @@ public class InternalServerTestService {
      *
      * @param trustedCerts certificates used for authentication
      * @param url          the URL for opening the connection
-     * @throws Exception in case connection fails
      */
     public void testHttpsConnection(
             List<CertificateEntity> trustedCerts, String url)
@@ -181,8 +180,7 @@ public class InternalServerTestService {
         }
 
         @Override
-        public void checkClientTrusted(X509Certificate[] chain, String authType)
-                throws CertificateException {
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {
             log.trace("checkClientTrusted()");
         }
 

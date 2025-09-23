@@ -35,6 +35,7 @@ import java.util.Optional;
 
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
 
 @ConfigMapping(prefix = "xroad.proxy")
 public interface ProxyProperties {
@@ -89,6 +90,10 @@ public interface ProxyProperties {
     @WithName("server-port")
     @WithDefault("5500")
     int serverProxyPort();
+
+    @WithName("xroad-tls-ciphers")
+    @WithDefault(DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING)
+    String[] xroadTlsCiphers();
 
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {

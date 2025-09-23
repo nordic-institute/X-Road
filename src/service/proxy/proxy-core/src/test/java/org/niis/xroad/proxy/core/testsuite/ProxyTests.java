@@ -59,6 +59,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+import static org.mockito.Mockito.spy;
 import static org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper.PROXY_PORT;
 
 class ProxyTests {
@@ -167,7 +168,7 @@ class ProxyTests {
 
         PROPS.put("xroad.proxy.ssl-enabled", "true");
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
-        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
+        ProxyTestSuiteHelper.proxyProperties = spy(ConfigUtils.initConfiguration(ProxyProperties.class, PROPS));
 
         ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
         return createDynamicTests(testCasesToRun);

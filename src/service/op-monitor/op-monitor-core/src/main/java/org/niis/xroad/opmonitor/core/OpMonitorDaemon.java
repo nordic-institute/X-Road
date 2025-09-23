@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -159,7 +158,7 @@ public final class OpMonitorDaemon {
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
         cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
-        cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
+        cf.setIncludeCipherSuites(opMonitorCommonProperties.xroadTlsCiphers());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
 

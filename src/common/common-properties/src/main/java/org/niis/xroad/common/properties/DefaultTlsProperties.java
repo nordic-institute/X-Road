@@ -47,6 +47,12 @@ public final class DefaultTlsProperties {
     public static final String[] DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES = DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING
             .trim().split(COMMA_SPLIT);
 
+    public static final String DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING = "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
+            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,"
+            + "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384";
+
+    public static final String[] DEFAULT_XROAD_SSL_CIPHER_SUITES = DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING.trim().split(COMMA_SPLIT);
+
     private DefaultTlsProperties() {
     }
 
