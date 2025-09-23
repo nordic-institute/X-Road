@@ -61,6 +61,36 @@ usage() {
   exit 1
 }
 
+function handlePrepare() {
+  if limactl list | grep -q '^xroad-lxd'; then
+    # Check current status
+    current_status=$(limactl list | grep '^xroad-lxd' | awk '{print $2}')
+    
+    if [ "$current_status" = "Running" ]; then
+        log_info "Lima instance xroad-lxd is already running"
+    elif [ "$current_status" = "Stopped" ]; then
+        log_info "Starting lima instance xroad-lxd"
+        limactl start xroad-lxd
+        
+        # Verify that the instance is running
+        if limactl list | grep '^xroad-lxd' | awk '{print $2}' | grep -q 'Running'; then
+            log_info "Lima instance xroad-lxd started successfully"
+        else
+            log_error "Failed to start lima instance xroad-lxd"
+            exit 1
+        fi
+    else
+        log_info "Lima instance xroad-lxd has status: $current_status - waiting for it to be ready"
+        # Wait for the instance to reach a stable state
+        sleep 5
+        handlePrepare  # Recursive call to check again
+    fi
+  else
+    log_error "Lima instance xroad-lxd not found. Please create it first."
+    exit 1
+  fi
+}
+
 function handleRecreate() {
   if [ "$RECREATE" = true ]; then
     ./scripts/delete-env.sh
@@ -74,7 +104,7 @@ function handleAnsible() {
   fi
 
   ansible-playbook -i "$INVENTORY_PATH" \
-    ../../ansible/xroad_dev.yml \
+    ../../development/ansible/xroad_dev.yml \
     --forks 10 \
     --skip-tags compile,build-packages \
     -e onMacOs=$onMacOs \
@@ -105,6 +135,7 @@ function handleInitialize() {
 function main() {
   parse_arguments "$@"
 
+  handlePrepare
   handleRecreate
   handleBuild
   handleAnsible
