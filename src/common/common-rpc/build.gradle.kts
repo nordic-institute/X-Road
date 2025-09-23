@@ -18,7 +18,7 @@ dependencies {
   api(libs.jakarta.annotationApi)
 
   api(libs.jakarta.cdiApi)
-  api(libs.smallrye.config.core)
+  api(libs.microprofile.config.api)
   api(libs.resilience4j.retry)
 
   testFixturesImplementation(libs.quarkus.junit5)

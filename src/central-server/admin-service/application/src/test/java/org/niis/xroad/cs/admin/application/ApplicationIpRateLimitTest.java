@@ -32,6 +32,7 @@ import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.ResponseEntity;
@@ -68,7 +69,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 )
 @ComponentScan({"org.niis.xroad.cs.admin.core.config"})
 @ActiveProfiles({"test"})
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(print = MockMvcPrint.LOG_DEBUG)
 class ApplicationIpRateLimitTest {
     private static final int RUNS_PER_MINUTE = 11;
     private static final int RUNS_PER_SECOND = 6;

@@ -1,6 +1,7 @@
 plugins {
   id("xroad.java-conventions")
   alias(libs.plugins.jandex)
+  id("xroad.jboss-test-logging-conventions")
 }
 
 dependencies {
@@ -10,10 +11,9 @@ dependencies {
 
   api(project(":common:common-db"))
   implementation(project(":common:common-domain"))
-  implementation(libs.quarkus.arc)
+  implementation(libs.jakarta.cdiApi)
   implementation(libs.mapstruct)
 
-  testImplementation(libs.logback.classic)
   testImplementation(libs.hsqldb)
   testImplementation(project(":common:common-test"))
 }

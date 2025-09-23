@@ -7,7 +7,7 @@ plugins {
 dependencies {
   implementation(project(":common:common-message"))
   implementation(project(":lib:serverconf-core"))
-  implementation(project(":common:common-rpc-quarkus"))
+  implementation(project(":common:common-rpc"))
 
   implementation(libs.smallrye.config.core)
   implementation(libs.jakarta.cdiApi)

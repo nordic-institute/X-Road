@@ -39,6 +39,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -57,7 +58,7 @@ import org.springframework.util.unit.DataSize;
 @AutoConfigureTestDatabase
 @WithMockUser
 @Transactional
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(print = MockMvcPrint.LOG_DEBUG)
 @EnableAutoConfiguration
 @EntityScan("org.niis.xroad.restapi.entity")
 @SpringBootTest(classes = AbstractSpringMvcTest.CommonRestApiTestConfiguration.class,
