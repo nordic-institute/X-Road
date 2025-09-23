@@ -185,7 +185,7 @@ abstract class AbstractMessageLogTest {
     static Object waitForMessageInTaskQueue() throws Exception {
         assertTrue(TestTaskQueue.waitForMessage());
 
-        Object message = TestTaskQueue.getLastMessage();
+        Object message = TestTaskQueue.getLastTimestampResult();
         assertNotNull("Did not get message from task queue", message);
 
         return message;

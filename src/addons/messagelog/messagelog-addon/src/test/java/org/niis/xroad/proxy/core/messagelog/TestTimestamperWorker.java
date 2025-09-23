@@ -26,17 +26,15 @@
 package org.niis.xroad.proxy.core.messagelog;
 
 import lombok.SneakyThrows;
-import org.bouncycastle.cms.CMSException;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
 
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.niis.xroad.proxy.core.messagelog.TimestamperUtil.getTimestampResponse;
 
@@ -65,6 +63,7 @@ class TestTimestamperWorker extends TimestamperWorker {
             @Override
             @SneakyThrows
             protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls) {
+                Map<String, Exception> errorsByUrl = new HashMap<>();
                 synchronized (lock()) {
                     if (shouldFail) {
                         shouldFail = false;
@@ -77,12 +76,13 @@ class TestTimestamperWorker extends TimestamperWorker {
                 TimeStampResponse tsResponse = getTimestampResponse(req.getInputStream());
                 verify(tsRequest, tsResponse);
 
-                return result(tsResponse, req.getUrl());
+                Timestamper.TimestampResult result = result(tsResponse, req.getUrl());
+                result.setErrorsByUrl(errorsByUrl);
+                return result;
             }
 
             @Override
-            protected void verify(TimeStampRequest request, TimeStampResponse response)
-                    throws CertificateEncodingException, IOException, OperatorCreationException, CMSException {
+            protected void verify(TimeStampRequest request, TimeStampResponse response) {
                 // do not validate against request
 
                 TimeStampToken token = response.getTimeStampToken();
@@ -97,6 +97,7 @@ class TestTimestamperWorker extends TimestamperWorker {
             @Override
             @SneakyThrows
             protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls) {
+                Map<String, Exception> errorsByUrl = new HashMap<>();
                 synchronized (lock()) {
                     if (shouldFail) {
                         shouldFail = false;
@@ -109,12 +110,13 @@ class TestTimestamperWorker extends TimestamperWorker {
                 TimeStampResponse tsResponse = getTimestampResponse(req.getInputStream());
                 verify(tsRequest, tsResponse);
 
-                return result(tsResponse, req.getUrl());
+                Timestamper.TimestampResult result = result(tsResponse, req.getUrl());
+                result.setErrorsByUrl(errorsByUrl);
+                return result;
             }
 
             @Override
-            protected void verify(TimeStampRequest request, TimeStampResponse response)
-                    throws CertificateEncodingException, IOException, OperatorCreationException, CMSException {
+            protected void verify(TimeStampRequest request, TimeStampResponse response) {
                 // do not validate against request
 
                 TimeStampToken token = response.getTimeStampToken();

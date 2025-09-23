@@ -41,7 +41,7 @@ class TestTaskQueue extends TaskQueue {
     static List<Integer> successfulMessageSizes = new ArrayList<>();
 
     private static CountDownLatch gate = new CountDownLatch(1);
-    private static Object lastMessage;
+    private static Timestamper.TimestampResult lastTimestampResult;
 
     // Countdownlatch for waiting for next timestamp record save.
     private static CountDownLatch timestampSavedLatch = new CountDownLatch(1);
@@ -74,8 +74,8 @@ class TestTaskQueue extends TaskQueue {
         }
     }
 
-    static Object getLastMessage() {
-        return lastMessage;
+    static Object getLastTimestampResult() {
+        return lastTimestampResult;
     }
 
     /**
@@ -109,24 +109,24 @@ class TestTaskQueue extends TaskQueue {
     }
 
     @Override
-    protected void handleTimestampSucceeded(TimestampSucceeded message) {
+    protected void handleTimestampSucceeded(TimestampSucceeded timestampSucceededResult) {
         log.trace("handleTimestampSucceeded()");
 
         try {
-            lastMessage = message;
-            super.handleTimestampSucceeded(message);
+            lastTimestampResult = timestampSucceededResult;
+            super.handleTimestampSucceeded(timestampSucceededResult);
         } finally {
             gate.countDown();
         }
     }
 
     @Override
-    protected void handleTimestampFailed(TimestampFailed message) {
+    protected void handleTimestampFailed(TimestampFailed timestampFailedResult) {
         log.info("handleTimestampFailed");
 
         try {
-            lastMessage = message;
-            super.handleTimestampFailed(message);
+            lastTimestampResult = timestampFailedResult;
+            super.handleTimestampFailed(timestampFailedResult);
         } finally {
             gate.countDown();
         }
