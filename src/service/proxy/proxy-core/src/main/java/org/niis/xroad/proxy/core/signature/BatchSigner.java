@@ -26,7 +26,6 @@
 package org.niis.xroad.proxy.core.signature;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
@@ -38,6 +37,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 
@@ -75,10 +75,9 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 @ApplicationScoped
 public class BatchSigner implements MessageSigner {
 
-    private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();
-
     private final SignerRpcClient signerClient;
     private final SignerSignClient signerSignClient;
+    private final SignerRpcChannelProperties signerRpcChannelProperties;
 
     private final Map<String, WorkerImpl> workers = new ConcurrentHashMap<>();
 
@@ -106,7 +105,7 @@ public class BatchSigner implements MessageSigner {
         handle(signRequestWrapper);
 
         try {
-            return completableFuture.get(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+            return completableFuture.get(signerRpcChannelProperties.deadlineAfter(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException timeoutException) {
             throw new CodedException(X_INTERNAL_ERROR, "Signature creation timed out");
         }
@@ -180,7 +179,7 @@ public class BatchSigner implements MessageSigner {
 
         private boolean isExpired(SigningRequestWrapper requestWrapper) {
             // do not sign requests if timeout is already passed.
-            return System.currentTimeMillis() - requestWrapper.getCreatedOn() > TIMEOUT_MILLIS;
+            return System.currentTimeMillis() - requestWrapper.getCreatedOn() > signerRpcChannelProperties.deadlineAfter();
         }
 
         private synchronized void process() {

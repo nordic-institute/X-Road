@@ -104,13 +104,6 @@ public final class SystemProperties {
 
     private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
 
-    // Signer -----------------------------------------------------------------
-
-    /** Property name of the SignerClient's timeout. */
-    public static final String SIGNER_CLIENT_TIMEOUT = SIGNER_PREFIX + "client-timeout";
-
-    public static final String DEFAULT_SIGNER_CLIENT_TIMEOUT = "60000";
-
     // Center -----------------------------------------------------------------
 
     public static final String CENTER_DATABASE_PROPERTIES = CENTER_PREFIX + "database-properties";
@@ -222,13 +215,6 @@ public final class SystemProperties {
      */
     public static String getConfBackupPath() {
         return getProperty(CONF_BACKUP_PATH, DefaultFilepaths.CONF_BACKUP_PATH);
-    }
-
-    /**
-     * @return the signer connection timeout in milliseconds, '60000' by default.
-     */
-    public static int getSignerClientTimeout() {
-        return Integer.parseInt(getProperty(SIGNER_CLIENT_TIMEOUT, DEFAULT_SIGNER_CLIENT_TIMEOUT));
     }
 
     /**
