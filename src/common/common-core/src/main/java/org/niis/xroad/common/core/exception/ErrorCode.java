@@ -42,6 +42,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     BAD_REQUEST("bad_request"),
     NOT_FOUND("not_found"),
     HTTP_ERROR("http_error"),
+    UNKNOWN_HOST("unknown_host"),
     DATABASE_ERROR("database_error"),
     INVALID_RESPONSE("invalid_response"),
     INVALID_REQUEST("invalid_request"),
@@ -62,7 +63,6 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_CERT_PATH("invalid_cert_path"),
     SIGNATURE_VERIFICATION("signature_verification"),
     MALFORMED_SOAP("malformed_soap"),
-    TIMESTAMP_VALIDATION("timestamp_validation"),
     INVALID_HASH_CHAIN_RESULT("invalid_hash_chain"),
     MALFORMED_HASH_CHAIN("malformed_hash_chain"),
     HASHCHAIN_UNUSED_INPUTS("hashchain_unused_inputs"),
@@ -154,6 +154,31 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
     // ===== MESSAGE LOG ERRORS =====
     MLOG_TIMESTAMPER_FAILED("timestamper_failed"),
+    TIMESTAMP_REQUEST_TIMED_OUT("mlog.timestamp_request_timed_out"),
+    MALFORMED_TIMESTAMP_SERVER_URL("mlog.malformed_timestamp_server_url"),
+    TIMESTAMPING_NON_OK_RESPONSE("mlog.timestamping_non_ok_response"),
+    MLOG_LOG_MANAGER_UNAVAILABLE("mlog.log_manager_unavailable"),
+    NO_TIMESTAMPING_PROVIDER_FOUND("mlog.no_timestamping_provider_found"),
+    TIMESTAMP_TOKEN_SIGNER_INFO_NOT_FOUND("mlog.timestamp_token_signer_info_not_found"),
+    TSP_CERTIFICATE_NOT_FOUND("mlog.tsp_certificate_not_found"),
+    ADDING_SIGNATURE_TO_TS_TOKEN_FAILED("mlog.adding_signature_to_ts_token_failed"),
+    TIMESTAMP_TOKEN_ENCODING_FAILED("mlog.timestamp_token_encoding_failed"),
+    UPDATING_MESSAGE_SIGNATURE_FAILED("mlog.updating_message_signature_failed"),
+    NO_LOG_RECORDS_SPECIFIED("mlog.no_log_records_specified"),
+    MESSAGE_LOG_RECORD_NOT_FOUND("mlog.message_log_record_not_found"),
+    FAILED_TO_BUILD_SIGNATURE_HASH_CHAIN("mlog.failed_to_build_signature_hash_chain"),
+    FAILED_TO_PREPARE_SIGNATURE_DATA("mlog.failed_to_prepare_signature_data"),
+    NO_SIGNATURE_HASHES_SPECIFIED("mlog.no_signature_hashes_specified"),
+    CALCULATING_MESSAGE_DIGEST_FAILED("mlog.calculating_message_digest_failed"),
+    READING_TIMESTAMP_RESPONSE_FAILED("mlog.reading_timestamp_response_failed"),
+    TIMESTAMP_NON_GRANTED_RESPONSE("mlog.timestamp_non_granted_response"),
+    TIMESTAMP_SIGNER_VERIFICATION_FAILED("mlog.timestamp_signer_verification_failed"),
+
+    // ===== OCSP ERRORS ====='
+    OCSP_CONNECTION_ERROR("ocsp_connection_error"),
+    OCSP_RESPONSE_PARSING_FAILURE("ocsp_response_parsing_failure"),
+    OCSP_FAILED("ocsp_failed"),
+    OCSP_RESPONSE_VERIFICATION_FAILURE("ocsp_response_verification_failure"),
 
     // ===== SECURITY SERVER ERRORS =====
     SECURITY_SERVER_NOT_FOUND("security_server_not_found"),

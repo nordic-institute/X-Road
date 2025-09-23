@@ -25,20 +25,16 @@
  */
 package ee.ria.xroad.common;
 
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
-
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_CANNOT_DOWNLOAD_CONF;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_EXPIRED_CONF;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_INTERNAL;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT;
-import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 
 /**
  * Utilities for configuration client module
@@ -48,23 +44,33 @@ public final class DiagnosticsUtils {
     private DiagnosticsUtils() {
     }
 
-    /**
-     * Translate exception to error code
-     * @param e exception
-     * @return error code
-     */
-    public static int getErrorCode(Exception e) {
-
+    public static ErrorCode getErrorCode(Exception e) {
         return switch (e) {
-            case CodedException ce when X_HTTP_ERROR.equals(ce.getFaultCode()) -> ERROR_CODE_CANNOT_DOWNLOAD_CONF;
-            case CodedException ce when X_OUTDATED_GLOBALCONF.equals(ce.getFaultCode()) -> ERROR_CODE_EXPIRED_CONF;
-            case CodedException ce when X_INVALID_SIGNATURE_VALUE.equals(ce.getFaultCode()) -> ERROR_CODE_INVALID_SIGNATURE_VALUE;
-            case UnknownHostException ignored -> ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT;
-            case TimeoutException ignored -> ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT;
-            case SocketTimeoutException ignored -> ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT;
-            case MalformedURLException ignored -> ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL;
-            case null, default -> ERROR_CODE_INTERNAL;
+            case XrdRuntimeException xre -> getErrorCode(xre);
+            case UnknownHostException ignored -> ErrorCode.UNKNOWN_HOST;
+            case SQLException ignored -> ErrorCode.DATABASE_ERROR;
+            case TimeoutException ignored -> ErrorCode.TIMESTAMP_REQUEST_TIMED_OUT;
+            case SocketTimeoutException ignored -> ErrorCode.TIMESTAMP_REQUEST_TIMED_OUT;
+            case MalformedURLException ignored -> ErrorCode.MALFORMED_TIMESTAMP_SERVER_URL;
+            case null, default -> ErrorCode.INTERNAL_ERROR;
         };
-
     }
+
+    private static ErrorCode getErrorCode(XrdRuntimeException e) {
+        return Arrays.stream(ErrorCode.values())
+                .filter(ec -> ec.code().equals(e.getErrorCode()))
+                .findFirst()
+                .orElse(ErrorCode.INTERNAL_ERROR);
+    }
+
+    public static List<String> getErrorCodeMetadata(Exception e) {
+        if (e instanceof XrdRuntimeException xre) {
+            if (xre.getErrorCodeMetadata() != null) {
+                return xre.getErrorCodeMetadata();
+            }
+        }
+        return null;
+    }
+
+
 }

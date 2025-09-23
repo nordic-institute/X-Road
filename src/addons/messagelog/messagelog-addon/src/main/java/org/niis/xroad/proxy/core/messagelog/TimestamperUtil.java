@@ -49,11 +49,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.READING_TIMESTAMP_RESPONSE_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_NON_GRANTED_RESPONSE;
 
 @Slf4j
 @UtilityClass
@@ -77,7 +81,7 @@ final class TimestamperUtil {
     static InputStream makeTsRequest(TimeStampRequest req, String tspUrl) throws IOException {
         byte[] request = req.getEncoded();
 
-        URL url = new URL(tspUrl);
+        URL url =  URI.create(tspUrl).toURL();
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
         con.setDoOutput(true);
@@ -94,23 +98,22 @@ final class TimestamperUtil {
 
         if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
             con.disconnect();
-            throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
-                    .details("Received HTTP error: " + con.getResponseCode() + " - " + con.getResponseMessage())
+            throw XrdRuntimeException.systemException(ErrorCode.TIMESTAMPING_NON_OK_RESPONSE)
+                    .details("Received HTTP error: %d - %s".formatted(con.getResponseCode(), con.getResponseMessage()))
+                    .metadataItems(con.getResponseCode(), con.getResponseMessage())
                     .build();
         } else if (con.getInputStream() == null) {
             con.disconnect();
-            throw new IOException("Could not get response from TSP");
+            throw XrdRuntimeException.systemException(ErrorCode.IO_ERROR)
+                    .details("Could not get response from TSP")
+                    .build();
         }
 
         return con.getInputStream();
     }
 
-    static TimeStampResponse getTimestampResponse(InputStream in) throws IOException, TSPException {
-        TimeStampResp response = TimeStampResp.getInstance(new ASN1InputStream(in).readObject());
-
-        if (response == null) {
-            throw XrdRuntimeException.systemInternalError("Could not read time-stamp response");
-        }
+    static TimeStampResponse getTimestampResponse(InputStream in) throws TSPException, IOException {
+        TimeStampResp response = readTimestampResponse(in);
 
         BigInteger status = response.getStatus().getStatus();
 
@@ -127,15 +130,35 @@ final class TimestamperUtil {
                     sb.append(", ");
                 }
 
-                sb.append("\"" + statusString.getStringAt(i) + "\"");
+                sb.append("\"").append(statusString.getStringAtUTF8(i)).append("\"");
             }
 
             log.error("getTimestampDer() - TimeStampResp.status is not "
-                    + "\"granted\" neither \"grantedWithMods\": {}, {}", status, sb);
+                    + "\"granted\" nor \"grantedWithMods\": {}, {}", status, sb);
 
-            throw XrdRuntimeException.systemInternalError("TimeStampResp.status: " + status + ", .statusString: " + sb);
+            throw XrdRuntimeException.systemException(TIMESTAMP_NON_GRANTED_RESPONSE)
+                    .details("TimeStampResp.status: " + status + ", .statusString: " + sb)
+                    .build();
         }
 
         return new TimeStampResponse(response);
+    }
+
+    private static TimeStampResp readTimestampResponse(InputStream in) {
+        TimeStampResp response;
+        try {
+            response = TimeStampResp.getInstance(new ASN1InputStream(in).readObject());
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(READING_TIMESTAMP_RESPONSE_FAILED)
+                    .details("Could not read time-stamp response")
+                    .cause(e)
+                    .build();
+        }
+        if (response == null) {
+            throw XrdRuntimeException.systemException(READING_TIMESTAMP_RESPONSE_FAILED)
+                    .details("Could not read time-stamp response")
+                    .build();
+        }
+        return response;
     }
 }

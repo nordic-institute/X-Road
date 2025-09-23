@@ -44,6 +44,7 @@ import java.net.UnknownHostException;
 import java.net.UnknownServiceException;
 import java.nio.channels.UnresolvedAddressException;
 import java.security.cert.CertificateException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -287,12 +288,13 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
     private static DeviationBuilder.ErrorDeviationBuilder resolveExceptionCode(Throwable ex) {
         return switch (ex) {
             case CodedException cex -> ErrorCode.withCode(cex.getFaultCode());
-            case UnknownHostException ignored -> ErrorCode.NETWORK_ERROR;
+            case UnknownHostException ignored -> ErrorCode.UNKNOWN_HOST;
             case MalformedURLException ignored -> ErrorCode.NETWORK_ERROR;
             case SocketException ignored -> ErrorCode.NETWORK_ERROR;
             case UnknownServiceException ignored -> ErrorCode.NETWORK_ERROR;
             case UnresolvedAddressException ignored -> ErrorCode.NETWORK_ERROR;
             case IOException ignored -> ErrorCode.IO_ERROR;
+            case SQLException ignored -> ErrorCode.DATABASE_ERROR;
             case CertificateException ignored -> ErrorCode.INCORRECT_CERTIFICATE;
             case SOAPException ignored -> ErrorCode.INVALID_SOAP;
             case SAXException ignored -> ErrorCode.INVALID_XML;

@@ -25,23 +25,22 @@
  */
 package org.niis.xroad.proxy.core.messagelog;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.signature.Signature;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.signature.XMLSignatureException;
-import org.bouncycastle.cms.CMSException;
-import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import javax.xml.transform.TransformerException;
 
 import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.FAILED_TO_PREPARE_SIGNATURE_DATA;
+import static org.niis.xroad.common.core.exception.ErrorCode.MESSAGE_LOG_RECORD_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.UPDATING_MESSAGE_SIGNATURE_FAILED;
 
 /**
  * Creates a timestamp request for a single message.
@@ -58,26 +57,41 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
     }
 
     @Override
-    byte[] getRequestData() throws XMLSignatureException {
+    byte[] getRequestData() {
         var logRecord = LogRecordManager.get(logRecords[0]);
 
         if (!(logRecord instanceof MessageRecord mr)) {
-            throw new CodedException(X_INTERNAL_ERROR, "Could not find message record #" + logRecords[0]);
+            throw XrdRuntimeException.systemException(MESSAGE_LOG_RECORD_NOT_FOUND)
+                    .details("Could not find message record #" + logRecords[0])
+                    .build();
         }
 
         message = mr;
 
         signature = new Signature(message.getSignature());
 
-        return signature.getXmlSignature().getSignatureValue();
+        try {
+            return signature.getXmlSignature().getSignatureValue();
+        } catch (XMLSignatureException e) {
+            throw XrdRuntimeException.systemException(FAILED_TO_PREPARE_SIGNATURE_DATA)
+                    .details("Failed to create signature for timestamping, record #" + logRecords[0])
+                    .cause(e)
+                    .build();
+        }
     }
 
     @Override
-    Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url)
-            throws CertificateEncodingException, IOException, TSPException, CMSException, TransformerException {
+    Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url)  {
         byte[] timestampDer = getTimestampDer(tsResponse);
 
-        updateSignatureProperties(timestampDer);
+        try {
+            updateSignatureProperties(timestampDer);
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(UPDATING_MESSAGE_SIGNATURE_FAILED)
+                    .details("Updating the message signature properties failed")
+                    .cause(e)
+                    .build();
+        }
 
         return new Timestamper.TimestampSucceeded(logRecords, timestampDer, null, null, url);
     }

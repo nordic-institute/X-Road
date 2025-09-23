@@ -265,7 +265,7 @@ public final class LogRecordManager {
     }
 
     private static AbstractLogRecordEntity getLogRecord(Session session, Long number) {
-        return session.get(AbstractLogRecordEntity.class, number);
+        return session.find(AbstractLogRecordEntity.class, number);
     }
 
     private static MessageRecordEntity getMessageRecord(Session session, String queryId, ClientId clientId,

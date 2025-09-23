@@ -50,7 +50,6 @@ public final class MessageLogDatabaseCtx {
      * @param <T> the type of result.
      * @param callback the callback.
      * @return the result.
-     * @throws Exception if an error occurs.
      */
     public static <T> T doInTransaction(TransactionCallback<T> callback) {
         return CTX.doInTransaction(callback);

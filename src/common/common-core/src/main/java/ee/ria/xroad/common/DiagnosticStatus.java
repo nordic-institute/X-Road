@@ -23,43 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.messagelog;
+package ee.ria.xroad.common;
 
-import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.util.JobManager;
+public enum DiagnosticStatus {
 
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfProvider;
-
-import java.util.Map;
-
-/**
- * A dummy implementation of message log that does nothing.
- * Actual implementation can be provided by addon.
- */
-public class NullLogManager extends AbstractLogManager {
-
-    NullLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(jobManager, globalConfProvider, serverConfProvider);
-    }
-
-    @Override
-    public void log(LogMessage message) {
-        // do nothing
-    }
-
-    @Override
-    public TimestampRecord timestamp(Long messageRecordId) {
-        return null;
-    }
-
-    @Override
-    public Map<String, DiagnosticsStatus> getDiagnosticStatus() {
-        throw XrdRuntimeException.systemInternalError("Status not available while using NullLogManager");
-    }
+    OK,
+    UNINITIALIZED,
+    ERROR,
+    UNKNOWN
 
 }
