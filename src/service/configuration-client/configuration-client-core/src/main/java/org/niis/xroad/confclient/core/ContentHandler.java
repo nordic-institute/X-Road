@@ -26,20 +26,13 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ParametersProviderFactory;
-import org.niis.xroad.globalconf.model.PrivateParameters;
 import org.niis.xroad.globalconf.model.PrivateParametersProvider;
-import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.SharedParametersProvider;
-
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
-
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 
 
 final class ContentHandler {
@@ -53,34 +46,26 @@ final class ContentHandler {
         return new ContentHandler(ParametersProviderFactory.forGlobalConfVersion(version));
     }
 
-    PrivateParametersProvider createPrivateParametersProvider(byte[] content) throws CertificateEncodingException, IOException {
+    PrivateParametersProvider createPrivateParametersProvider(byte[] content) {
         return parametersProviderFactory.privateParametersProvider(content);
     }
-    SharedParametersProvider createSharedParametersProvider(byte[] content) throws CertificateEncodingException, IOException {
+    SharedParametersProvider createSharedParametersProvider(byte[] content) {
         return parametersProviderFactory.sharedParametersProvider(content);
     }
 
-    void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
+    void handleContent(byte[] content, ConfigurationFile file) {
         switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
                 PrivateParametersProvider pp = createPrivateParametersProvider(content);
-                handlePrivateParameters(pp.getPrivateParameters(), file);
+                verifyInstanceIdentifier(pp.getPrivateParameters().getInstanceIdentifier(), file);
                 break;
             case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
                 SharedParametersProvider sp = createSharedParametersProvider(content);
-                handleSharedParameters(sp.getSharedParameters(), file);
+                verifyInstanceIdentifier(sp.getSharedParameters().getInstanceIdentifier(), file);
                 break;
             default:
                 break;
         }
-    }
-
-    private void handlePrivateParameters(PrivateParameters privateParameters, ConfigurationFile file) {
-        verifyInstanceIdentifier(privateParameters.getInstanceIdentifier(), file);
-    }
-
-    private void handleSharedParameters(SharedParameters sharedParameters, ConfigurationFile file) {
-        verifyInstanceIdentifier(sharedParameters.getInstanceIdentifier(), file);
     }
 
     private void verifyInstanceIdentifier(String instanceIdentifier, ConfigurationFile file) {
@@ -89,10 +74,10 @@ final class ContentHandler {
         }
 
         if (!instanceIdentifier.equals(file.getInstanceIdentifier())) {
-            throw new CodedException(X_MALFORMED_GLOBALCONF,
-                    "Content part %s has invalid instance identifier "
-                            + "(expected %s, but was %s)", file,
-                    file.getInstanceIdentifier(), instanceIdentifier);
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER)
+                    .details("Content part %s has invalid instance identifier (expected %s, but was %s)"
+                            .formatted(file, file.getInstanceIdentifier(), instanceIdentifier))
+                    .build();
         }
     }
 }

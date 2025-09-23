@@ -27,10 +27,10 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.niis.xroad.common.exception.ConflictException;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.OUTDATED_GLOBAL_CONF;
+import static org.niis.xroad.common.core.exception.ErrorCode.GLOBAL_CONF_OUTDATED;
 
 public class GlobalConfOutdatedException extends ConflictException {
     public GlobalConfOutdatedException(Throwable t) {
-        super(t, OUTDATED_GLOBAL_CONF.build());
+        super(t, GLOBAL_CONF_OUTDATED.build());
     }
 }

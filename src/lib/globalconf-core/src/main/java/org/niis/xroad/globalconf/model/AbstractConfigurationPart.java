@@ -25,15 +25,14 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 
@@ -60,13 +59,17 @@ public abstract class AbstractConfigurationPart {
                                             String fieldName, String expectedValue) {
         String value = headers.get(fieldName);
         if (StringUtils.isBlank(value)) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Missing field " + fieldName);
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_MISSING)
+                    .details("Missing field %s".formatted(fieldName))
+                    .metadataItems(fieldName)
+                    .build();
         }
 
         if (expectedValue != null && !expectedValue.equals(value)) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Field " + fieldName + " must have value " + expectedValue);
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE)
+                    .details("Field %s must have value %s".formatted(fieldName, expectedValue))
+                    .metadataItems(fieldName, value)
+                    .build();
         }
     }
 }

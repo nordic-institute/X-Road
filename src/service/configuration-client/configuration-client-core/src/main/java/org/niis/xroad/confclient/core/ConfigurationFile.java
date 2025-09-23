@@ -146,6 +146,7 @@ public final class ConfigurationFile extends AbstractConfigurationPart {
         if ((ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS.equals(id)
                 || ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS.equals(id))
                 && StringUtils.isBlank(instance)) {
+
             throw new CodedException(X_INTERNAL_ERROR,
                     "Field " + HEADER_CONTENT_IDENTIFIER
                             + " is missing parameter " + PARAM_INSTANCE);

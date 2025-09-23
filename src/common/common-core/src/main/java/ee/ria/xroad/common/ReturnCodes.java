@@ -28,12 +28,13 @@ package ee.ria.xroad.common;
 /**
  * Configuration client error codes
  */
-public final class DiagnosticsErrorCodes {
+public final class ReturnCodes {
 
-    private DiagnosticsErrorCodes() {
+    private ReturnCodes() {
     }
 
     public static final int RETURN_SUCCESS = 0;
+    public static final int ERROR_CODE_NO_TIMESTAMPING_PROVIDER_FOUND = 134;
     public static final int ERROR_CODE_LOGMANAGER_UNAVAILABLE = 132;
     public static final int ERROR_CODE_OCSP_RESPONSE_UNVERIFIED = 133;
     public static final int ERROR_CODE_OCSP_UNINITIALIZED = 131;
@@ -51,5 +52,8 @@ public final class DiagnosticsErrorCodes {
     public static final int ERROR_CODE_NO_NETWORK_CONNECTION = 119;
     public static final int ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL = 118;
     public static final int ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 117;
-
+    public static final int ERROR_CODE_MALFORMED_ANCHOR = 116;
+    public static final int ERROR_CODE_ANCHOR_FILE_NOT_FOUND = 115;
+    public static final int ERROR_CODE_UNKNOWN_HOST = 114;
+    public static final int ERROR_CODE_DATABASE_ERROR = 113;
 }

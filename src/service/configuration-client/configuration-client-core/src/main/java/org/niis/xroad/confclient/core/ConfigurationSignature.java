@@ -25,18 +25,18 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpField;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.model.AbstractConfigurationPart;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
@@ -96,9 +96,9 @@ final class ConfigurationSignature extends AbstractConfigurationPart {
         String algoUri = p.get(HEADER_HASH_ALGORITHM_ID);
 
         if (StringUtils.isBlank(algoUri)) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Field " + HEADER_VERIFICATION_CERT_HASH
-                            + " is missing parameter " + HEADER_HASH_ALGORITHM_ID);
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_MISSING_VERIFICATION_CERT_HASH_ALGO_ID)
+                    .details("Field %s is missing parameter %s".formatted(HEADER_VERIFICATION_CERT_HASH, HEADER_HASH_ALGORITHM_ID))
+                    .build();
         }
 
         return new VerificationCertHash(hash, DigestAlgorithm.ofUri(algoUri));
