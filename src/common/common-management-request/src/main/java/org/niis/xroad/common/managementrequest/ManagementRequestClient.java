@@ -27,13 +27,11 @@
 
 package org.niis.xroad.common.managementrequest;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -53,23 +51,15 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Objects;
 
 /**
  * Client that sends managements requests to the Central Server.
@@ -181,43 +171,13 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         centralHttpClient = createHttpClient(null, new TrustManager[]{tm});
     }
 
-    private void createProxyHttpClient()
-            throws NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException, CertificateException,
-            IOException, KeyStoreException {
+    private void createProxyHttpClient() throws NoSuchAlgorithmException, KeyManagementException {
         log.trace("createProxyHttpClient()");
 
-        // replace /etc/xroad/ssl/internal.p12 with rotating keys from openbao
-        String keyStore = SystemProperties.getManagementRequestSenderClientKeystore();
-        String trustStore = SystemProperties.getManagementRequestSenderClientTruststore();
-
-        if (StringUtils.isAllEmpty(keyStore, trustStore)) {
-            proxyHttpClient = createHttpClient(
-                    new KeyManager[]{vaultKeyProvider.getKeyManager()},
-                    new TrustManager[]{new NoopTrustManager()}
-            );
-        } else {
-            proxyHttpClient = createHttpClient(keyStore, SystemProperties.getManagementRequestSenderClientKeystorePassword(),
-                    trustStore, SystemProperties.getManagementRequestSenderClientTruststorePassword());
-        }
-    }
-
-    private CloseableHttpClient createHttpClient(String keyStorePath, char[] keyStorePassword, String trustStorePath,
-                                                 char[] trustStorePassword)
-            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException,
-            KeyManagementException {
-
-        Objects.requireNonNull(keyStorePath, "Management request client key store path is not provided.");
-        Objects.requireNonNull(trustStorePath, "Management request client trust store path is not provided.");
-
-        KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(Paths.get(keyStorePath).toFile(), keyStorePassword);
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, keyStorePassword);
-
-        KeyStore trustStore = CryptoUtils.loadPkcs12KeyStore(Paths.get(trustStorePath).toFile(), trustStorePassword);
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(trustStore);
-
-        return createHttpClient(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers());
+        proxyHttpClient = createHttpClient(
+                new KeyManager[]{vaultKeyProvider.getKeyManager()},
+                new TrustManager[]{new NoopTrustManager()}
+        );
     }
 
     private CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers)

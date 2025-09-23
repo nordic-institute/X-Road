@@ -140,38 +140,7 @@ public final class SystemProperties {
     /** Property name of the configuration files path. */
     public static final String CONF_PATH = PREFIX + "conf.path";
 
-    // Proxy UI ---------------------------------------------------------------
-
-    /**
-     * Property name of the management request sender client keystore path, used to send management requests from Proxy UI.
-     */
-    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE =
-            PREFIX + "proxy-ui-api.management-request-sender-client-keystore";
-
-    /**
-     * Property name of the management request sender client keystore password, used to send management requests from Proxy UI.
-     */
-    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD =
-            PREFIX + "proxy-ui-api.management-request-sender-client-keystore-password";
-    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD_ENV =
-            propertyNameToEnvVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD);
-
-    /**
-     * Property name of the management request sender client truststore path, used to send management requests from Proxy UI.
-     */
-    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE =
-            PREFIX + "proxy-ui-api.management-request-sender-client-truststore";
-
-    /**
-     * Property name of the management request sender client truststore password, used to send management requests from Proxy UI.
-     */
-    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD =
-            PREFIX + "proxy-ui-api.management-request-sender-client-truststore-password";
-    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD_ENV =
-            propertyNameToEnvVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD);
-
     // Proxy & Central monitor agent ------------------------------------------
-
 
     public static final String NET_STATS_FILE =
             PREFIX + "proxy-monitor-agent.net-stats-file";
@@ -239,40 +208,6 @@ public final class SystemProperties {
      */
     public static String getConfigurationPath() {
         return getProperty(CONFIGURATION_PATH, getConfPath() + DefaultFilepaths.CONFIGURATION_PATH);
-    }
-
-    /**
-     * @return path to the management request sender client keystore. Uses PKCS#12 format.
-     */
-    public static String getManagementRequestSenderClientKeystore() {
-        return getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE);
-    }
-
-    /**
-     * @return management request sender client keystore password.
-     */
-    public static char[] getManagementRequestSenderClientKeystorePassword() {
-        return Optional.ofNullable(getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD,
-                        System.getenv().get(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD_ENV)))
-                .map(String::toCharArray)
-                .orElse(null);
-    }
-
-    /**
-     * @return path to the management request sender client truststore. Uses PKCS#12 format.
-     */
-    public static String getManagementRequestSenderClientTruststore() {
-        return getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE);
-    }
-
-    /**
-     * @return management request sender client truststore password.
-     */
-    public static char[] getManagementRequestSenderClientTruststorePassword() {
-        return Optional.ofNullable(getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD,
-                        System.getenv().get(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD_ENV)))
-                .map(String::toCharArray)
-                .orElse(null);
     }
 
     /**
@@ -487,10 +422,6 @@ public final class SystemProperties {
         if (min > current || min < 1) {
             throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
         }
-    }
-
-    private static String propertyNameToEnvVariable(String propName) {
-        return propName.toUpperCase().replaceAll("[.-]", "_");
     }
 
     private static String getProperty(String key) {
