@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
 
-package org.niis.xroad.signer.proto;
+package org.niis.xroad.signer.core.protocol.handler;
 
-import "common_messages.proto";
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.proto.IsEnforcedTokenPinPolicyResp;
 
-option java_multiple_files = true;
+@ApplicationScoped
+@RequiredArgsConstructor
+public class IsEnforcedTokenPinPolicyHandler extends AbstractRpcHandler<Empty, IsEnforcedTokenPinPolicyResp> {
 
-service AdminService {
-  rpc GetCertificationServiceDiagnostics(Empty) returns (CertificationServiceDiagnosticsResp) {}
-  rpc GetKeyConfChecksum(Empty) returns (KeyConfChecksum) {}
-  rpc RefreshModules(Empty) returns (Empty) {}
-  rpc IsEnforcedTokenPinPolicy(Empty) returns (IsEnforcedTokenPinPolicyResp) {}
-}
+    private final SignerProperties signerProperties;
 
-message CertificationServiceDiagnosticsResp {
-  map<string, CertificationServiceStatus> certification_service_status_map = 1;
-}
-
-message CertificationServiceStatus {
-  string name = 1;
-  map<string, OcspResponderStatus> ocsp_responder_status_map = 2;
-}
-
-message OcspResponderStatus {
-  int32 status = 1 ;
-  string url = 2;
-  optional int64 prev_update = 3;
-  int64 next_update = 4;
-}
-
-message KeyConfChecksum {
-  int32 checksum = 1;
-}
-
-message IsEnforcedTokenPinPolicyResp {
-  bool enforced = 1;
+    @Override
+    protected IsEnforcedTokenPinPolicyResp handle(Empty request) {
+        return IsEnforcedTokenPinPolicyResp.newBuilder()
+                .setEnforced(signerProperties.enforceTokenPinPolicy())
+                .build();
+    }
+    
 }

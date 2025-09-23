@@ -184,7 +184,6 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             assertEquals("signer.internal_error", expected.getCode());
             assertEquals("bar", expected.getDetails());
         }
-        tokenPinValidator.setTokenPinEnforced(false);
     }
 
     @Test

@@ -33,8 +33,11 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.core.util.DeviationTestUtils;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.DeviationBuilder.TRANSLATABLE_PREFIX;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_WEAK_PIN;
 
@@ -43,7 +46,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_WEAK_PIN;
  */
 @Slf4j
 class TokenPinValidatorImplTest {
-    private final TokenPinValidatorImpl tokenPinValidator = new TokenPinValidatorImpl();
+    private final SignerRpcClient signerRpcClient = mock(SignerRpcClient.class);
+    private final TokenPinValidatorImpl tokenPinValidator = new TokenPinValidatorImpl(signerRpcClient);
 
     private static final String SOFTWARE_TOKEN_PIN = "ABCdef123456.";
     private static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
@@ -51,7 +55,7 @@ class TokenPinValidatorImplTest {
 
     @BeforeEach
     public void setup() {
-        tokenPinValidator.setTokenPinEnforced(true);
+        when(signerRpcClient.isEnforcedTokenPinPolicy()).thenReturn(true);
     }
 
     @Test
@@ -72,7 +76,7 @@ class TokenPinValidatorImplTest {
 
     @Test
     void validateSoftwareTokenPinNotEnforcedSuccess() {
-        tokenPinValidator.setTokenPinEnforced(false);
+        when(signerRpcClient.isEnforcedTokenPinPolicy()).thenReturn(false);
         tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray());
     }
 

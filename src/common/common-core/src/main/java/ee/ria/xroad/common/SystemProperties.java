@@ -77,8 +77,6 @@ public final class SystemProperties {
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
 
-    private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY = SIGNER_PREFIX + "enforce-token-pin-policy";
-
     private static final String CLIENTPROXY_POOL_REUSE_CONNECTIONS =
             PROXY_PREFIX + "pool-enable-connection-reuse";
 
@@ -96,8 +94,6 @@ public final class SystemProperties {
      * for the ClientProxy can be actually reused
      **/
     private static final String DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS = FALSE;
-
-    public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = FALSE;
 
     // Center -----------------------------------------------------------------
 
@@ -337,16 +333,6 @@ public final class SystemProperties {
      */
     public static String getNetStatsFile() {
         return getProperty(NET_STATS_FILE, "/proc/net/dev");
-    }
-
-    /**
-     * Tell whether token PIN policy should be enforced.
-     *
-     * @return true if PIN policy should be enforced.
-     */
-    public static boolean shouldEnforceTokenPinPolicy() {
-        return Boolean.parseBoolean(getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY,
-                DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY));
     }
 
     public static boolean isEnableClientProxyPooledConnectionReuse() {
