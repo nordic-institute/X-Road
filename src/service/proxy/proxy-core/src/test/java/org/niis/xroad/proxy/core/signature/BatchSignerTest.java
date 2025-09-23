@@ -47,6 +47,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
@@ -54,6 +55,7 @@ import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.test.keyconf.TestKeyConf;
@@ -86,6 +88,7 @@ import static org.mockito.Mockito.when;
 class BatchSignerTest {
 
     private final GlobalConfProvider globalConf = new TestSuiteGlobalConf();
+    private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     private final TestCertUtil.PKCS12 producerP12 = TestCertUtil.getProducer();
     private final ClientId.Conf producerClientId = ClientId.Conf.create("EE", "BUSINESS", "producer");
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
@@ -94,13 +97,16 @@ class BatchSignerTest {
     private SignerRpcClient signerClient;
     @Mock
     private SignerSignClient signerSignClient;
+    @Mock
+    private SignerRpcChannelProperties signerRpcChannelProperties;
 
     private BatchSigner batchSigner;
 
     @BeforeEach
     void beforeEach() {
         org.apache.xml.security.Init.init();
-        batchSigner = new BatchSigner(signerClient, signerSignClient);
+        when(signerRpcChannelProperties.deadlineAfter()).thenReturn(60_000);
+        batchSigner = new BatchSigner(signerClient, signerSignClient, signerRpcChannelProperties);
     }
 
     @AfterEach
@@ -221,7 +227,7 @@ class BatchSignerTest {
 
     private void verify(final BatchSignResult batchSignResult)
             throws Exception {
-        SignatureVerifier verifier = new SignatureVerifier(globalConf, batchSignResult.signatureData());
+        SignatureVerifier verifier = new SignatureVerifier(globalConf, ocspVerifierFactory, batchSignResult.signatureData());
         verifier.addParts(batchSignResult.messageParts());
 
         HashChainReferenceResolver resolver = new HashChainReferenceResolver() {

@@ -41,6 +41,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.io.InputStream;
@@ -61,6 +62,7 @@ public class ProxyMessageDecoderTest {
     DummyMessageConsumer callback;
 
     GlobalConfProvider globalConfProvider;
+    OcspVerifierFactory ocspVerifierFactory;
 
     /**
      * Initialize.
@@ -69,6 +71,7 @@ public class ProxyMessageDecoderTest {
     public void initialize() {
         callback = new DummyMessageConsumer();
         globalConfProvider = TestGlobalConfFactory.create();
+        ocspVerifierFactory = new OcspVerifierFactory();
     }
 
     @Rule
@@ -298,7 +301,7 @@ public class ProxyMessageDecoderTest {
     }
 
     private ProxyMessageDecoder createDecoder(String contentType) {
-        return new ProxyMessageDecoder(globalConfProvider, callback, contentType, true,
+        return new ProxyMessageDecoder(globalConfProvider, ocspVerifierFactory, callback, contentType, true,
                 getHashAlgoId());
     }
 

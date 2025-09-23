@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
@@ -60,7 +61,8 @@ public class FileBasedOcspCacheTest {
     static X509Certificate signer;
     static PrivateKey signerKey;
 
-    SignerProperties signerProperties = ConfigUtils.defaultConfiguration(SignerProperties.class);
+    private final SignerProperties signerProperties = ConfigUtils.defaultConfiguration(SignerProperties.class);
+    private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
 
     /**
      * Test.
@@ -73,7 +75,7 @@ public class FileBasedOcspCacheTest {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
-        FileBasedOcspCache cache = new FileBasedOcspCache(globalConfProvider, signerProperties);
+        FileBasedOcspCache cache = new FileBasedOcspCache(globalConfProvider, ocspVerifierFactory, signerProperties);
         FileBasedOcspCache spy = Mockito.spy(cache);
 
         Mockito.doNothing().when(spy).saveResponseToFile(
@@ -98,7 +100,7 @@ public class FileBasedOcspCacheTest {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
-        FileBasedOcspCache cache = new FileBasedOcspCache(globalConfProvider, signerProperties);
+        FileBasedOcspCache cache = new FileBasedOcspCache(globalConfProvider, ocspVerifierFactory, signerProperties);
         FileBasedOcspCache spy = Mockito.spy(cache);
 
         Mockito.doNothing().when(spy).saveResponseToFile(
@@ -122,7 +124,7 @@ public class FileBasedOcspCacheTest {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
-        FileBasedOcspCache cache = new FileBasedOcspCache(globalConfProvider, signerProperties);
+        FileBasedOcspCache cache = new FileBasedOcspCache(globalConfProvider, ocspVerifierFactory, signerProperties);
         FileBasedOcspCache spy = Mockito.spy(cache);
 
         Mockito.doNothing().when(spy).saveResponseToFile(
@@ -148,7 +150,7 @@ public class FileBasedOcspCacheTest {
      */
     @Test
     public void readOcspFromEmptyFile() throws Exception {
-        FileBasedOcspCache cache = new FileBasedOcspCache(globalConfProvider, signerProperties);
+        FileBasedOcspCache cache = new FileBasedOcspCache(globalConfProvider, ocspVerifierFactory, signerProperties);
 
         File f = mock(File.class);
         when(f.exists()).thenReturn(true);
@@ -160,11 +162,9 @@ public class FileBasedOcspCacheTest {
 
     /**
      * Loads test certificates.
-     *
-     * @throws Exception if an error occurs
      */
     @BeforeClass
-    public static void loadCerts() throws Exception {
+    public static void loadCerts() {
         globalConfProvider = new EmptyGlobalConf();
 
         issuer = TestCertUtil.getCertChainCert("root_ca.p12");

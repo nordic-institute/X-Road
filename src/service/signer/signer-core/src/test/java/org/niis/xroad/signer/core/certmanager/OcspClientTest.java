@@ -48,6 +48,7 @@ import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
@@ -91,12 +92,13 @@ class OcspClientTest {
     private final GlobalConfProvider globalConfProvider = globalConfProvider();
     private final OcspClient ocspClient = new OcspClient(globalConfProvider);
     private final TokenLookup tokenManager = mock(TokenLookup.class);
+    private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     private final FileBasedOcspCache fileBasedOcspCache =
-            new FileBasedOcspCache(globalConfProvider, defaultConfiguration(SignerProperties.class));
+            new FileBasedOcspCache(globalConfProvider, ocspVerifierFactory, defaultConfiguration(SignerProperties.class));
     private final OcspCacheManager ocspResponseManager =
             new OcspCacheManager(ocspClient, fileBasedOcspCache);
     private final OcspClientWorker ocspClientWorker =
-            new TestOcspClient(globalConfProvider, ocspResponseManager, tokenManager, ocspClient);
+            new TestOcspClient(globalConfProvider, ocspVerifierFactory, ocspResponseManager, tokenManager, ocspClient);
 
     OcspClientTest() throws Exception {
     }
@@ -120,7 +122,7 @@ class OcspClientTest {
         OCSPResp ocsp = getOcspResponse(subject);
         assertNotNull(ocsp);
 
-        OcspVerifier verifier = new OcspVerifier(globalConfProvider,
+        OcspVerifier verifier = ocspVerifierFactory.create(globalConfProvider,
                 new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, globalConfProvider.getCaCert("EE", subject));
     }
@@ -147,7 +149,7 @@ class OcspClientTest {
         OCSPResp ocsp = getOcspResponse(subject);
         assertNotNull(ocsp);
 
-        OcspVerifier verifier = new OcspVerifier(globalConfProvider,
+        OcspVerifier verifier = ocspVerifierFactory.create(globalConfProvider,
                 new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, globalConfProvider.getCaCert("EE", subject));
     }
@@ -249,8 +251,6 @@ class OcspClientTest {
 
     /**
      * Before
-     *
-     * @throws Exception if an error occurs
      */
     @BeforeEach
     public void startup() {
@@ -300,9 +300,9 @@ class OcspClientTest {
     }
 
     private static class TestOcspClient extends OcspClientWorker {
-        TestOcspClient(GlobalConfProvider globalConfProvider, OcspCacheManager cacheManager,
+        TestOcspClient(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory, OcspCacheManager cacheManager,
                        TokenLookup tokenLookup, OcspClient ocspClient) {
-            super(globalConfProvider, cacheManager, tokenLookup, ocspClient);
+            super(globalConfProvider, ocspVerifierFactory, cacheManager, tokenLookup, ocspClient);
         }
 
         @Override

@@ -25,27 +25,38 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.managementrequest.verify.decode;
+package org.niis.xroad.globalconf.spring;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
-
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
-import org.niis.xroad.globalconf.GlobalConfProvider;
+import lombok.Setter;
+import org.niis.xroad.globalconf.impl.config.OcspVerifierConfig;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public class MaintenanceModeEnableRequestCallback extends BaseServerRequestCallback<MaintenanceModeEnableRequestType> {
+@Configuration
+@EnableConfigurationProperties(SpringOcspVerifierConfig.SpringOcspVerifierProperties.class)
+public class SpringOcspVerifierConfig extends OcspVerifierConfig {
 
-    public MaintenanceModeEnableRequestCallback(GlobalConfProvider globalConfProvider,
-                                               OcspVerifierFactory ocspVerifierFactory,
-                                               ManagementRequestVerifier.DecoderCallback rootCallback) {
-        super(globalConfProvider, ocspVerifierFactory, rootCallback, ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST);
-    }
-
+    @Bean
     @Override
-    protected SecurityServerId getServer() {
-        return getRequest().getServer();
+    public OcspVerifierFactory ocspVerifierFactory(OcspVerifierProperties ocspVerifierProperties) {
+        return super.ocspVerifierFactory(ocspVerifierProperties);
     }
+
+    @Setter
+    @ConfigurationProperties(prefix = OcspVerifierProperties.MAPPING_PREFIX)
+    public static class SpringOcspVerifierProperties implements OcspVerifierProperties {
+
+        int cachePeriod = Integer.parseInt(DEFAULT_OCSP_VERIFIER_CACHE_PERIOD);
+
+        @Override
+        public int cachePeriod() {
+            return cachePeriod;
+        }
+    }
+
 
 }

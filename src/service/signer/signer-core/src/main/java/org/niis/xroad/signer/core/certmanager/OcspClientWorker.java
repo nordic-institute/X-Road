@@ -40,6 +40,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
@@ -85,6 +86,7 @@ public class OcspClientWorker {
     private static final String OCSP_FETCH_INTERVAL = "ocspFetchInterval";
 
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final OcspCacheManager ocspCacheManager;
     private final TokenLookup tokenLookup;
     private final OcspClient ocspClient;
@@ -261,7 +263,7 @@ public class OcspClientWorker {
             throw new ConnectException("No OCSP responder URIs available");
         }
 
-        final OcspVerifier verifier = new OcspVerifier(globalConfProvider, verifierOptions);
+        final OcspVerifier verifier = ocspVerifierFactory.create(globalConfProvider, verifierOptions);
 
         for (String responderURI : responderURIs) {
             final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();

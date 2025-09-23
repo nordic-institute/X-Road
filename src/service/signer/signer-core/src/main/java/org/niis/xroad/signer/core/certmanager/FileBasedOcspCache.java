@@ -33,6 +33,7 @@ import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.signer.core.config.SignerProperties;
 
 import java.io.File;
@@ -64,8 +65,9 @@ public class FileBasedOcspCache extends OcspCache {
 
     private final SignerProperties signerProperties;
 
-    public FileBasedOcspCache(GlobalConfProvider globalConfProvider, SignerProperties signerProperties) {
-        super(globalConfProvider);
+    public FileBasedOcspCache(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                              SignerProperties signerProperties) {
+        super(globalConfProvider, ocspVerifierFactory);
         this.signerProperties = signerProperties;
     }
 

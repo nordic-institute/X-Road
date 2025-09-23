@@ -36,6 +36,7 @@ import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
 import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
+import org.niis.xroad.globalconf.spring.SpringOcspVerifierConfig;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.service.FileVerifier;
@@ -48,6 +49,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.vault.core.VaultTemplate;
 
 @Import({SpringGlobalConfConfig.class,
+        SpringOcspVerifierConfig.class,
         SpringSignerClientConfiguration.class,
         SpringRpcConfig.class,
         SpringVaultClientConfig.class

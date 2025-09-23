@@ -191,7 +191,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void parseResponse(HttpSender httpSender) throws Exception {
         response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(), response,
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(),
+                commonBeanProxy.getOcspVerifierFactory(), response,
                 httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
         try {

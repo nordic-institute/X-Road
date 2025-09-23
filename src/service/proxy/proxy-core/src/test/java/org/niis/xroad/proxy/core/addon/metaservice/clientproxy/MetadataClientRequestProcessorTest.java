@@ -45,6 +45,7 @@ import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
@@ -97,6 +98,7 @@ class MetadataClientRequestProcessorTest {
     private ServerConfProvider serverConfProvider;
     private VaultKeyProvider vaultKeyProvider;
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+    private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
 
     /**
      * Init class-wide test instances
@@ -118,7 +120,8 @@ class MetadataClientRequestProcessorTest {
         vaultKeyProvider = mock(NoopVaultKeyProvider.class);
 
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties);
+                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
+                proxyProperties, ocspVerifierFactory);
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
@@ -171,7 +174,8 @@ class MetadataClientRequestProcessorTest {
 
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties);
+                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
+                ocspVerifierFactory);
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
@@ -218,7 +222,8 @@ class MetadataClientRequestProcessorTest {
             }
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties);
+                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
+                ocspVerifierFactory);
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(commonBeanProxy,
@@ -291,6 +296,5 @@ class MetadataClientRequestProcessorTest {
         return new MemberInfo(ClientId.Conf.create(EXPECTED_XR_INSTANCE, "BUSINESS",
                 member, subsystem), member + "-name", subsystem == null ? null : (subsystem + "-name"));
     }
-
 
 }

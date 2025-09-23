@@ -77,6 +77,7 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.client-use-idle-connection-monitor", "proxy.client-proxy.client-use-idle-connection-monitor");
         MAPPING.put("proxy.client-fastest-connecting-ssl-uri-cache-period", "proxy.client-proxy.fastest-connecting-ssl-uri-cache-period");
         MAPPING.put("proxy.client-use-fastest-connecting-ssl-socket-autoclose", "proxy.client-proxy.use-fastest-connecting-ssl-socket-autoclose");
+        MAPPING.put("proxy.ocsp-verifier-cache-period", "common.ocsp-verifier.cache-period");
 
 
         MAPPING.put("proxy.server-conf-cache-period", "common.server-conf.cache-period");

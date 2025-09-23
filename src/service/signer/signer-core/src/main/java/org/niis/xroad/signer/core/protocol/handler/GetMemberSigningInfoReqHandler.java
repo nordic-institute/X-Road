@@ -37,6 +37,7 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -61,6 +62,7 @@ import static org.niis.xroad.signer.api.dto.CertificateInfo.STATUS_REGISTERED;
 @ArchUnitSuppressed("NoVanillaExceptions")
 public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMemberSigningInfoReq, GetMemberSigningInfoResp> {
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final TokenLookup tokenLookup;
 
     private record SelectedCertificate(KeyInfo key, CertificateInfo cert) {
@@ -139,7 +141,7 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
 
         OCSPResp ocsp = new OCSPResp(ocspBytes);
         X509Certificate issuer = globalConfProvider.getCaCert(instanceIdentifier, subject);
-        OcspVerifier verifier = new OcspVerifier(globalConfProvider, verifierOptions);
+        OcspVerifier verifier = ocspVerifierFactory.create(globalConfProvider, verifierOptions);
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 }

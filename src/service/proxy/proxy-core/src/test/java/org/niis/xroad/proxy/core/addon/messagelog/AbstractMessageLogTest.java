@@ -46,6 +46,7 @@ import org.niis.xroad.common.messagelog.MessageLogDbProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogArchiverProperties;
@@ -72,6 +73,7 @@ import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.getServerConf;
 abstract class AbstractMessageLogTest {
 
     ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+    OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     GlobalConfProvider globalConfProvider;
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;
@@ -114,7 +116,8 @@ abstract class AbstractMessageLogTest {
         logRecordManager = new LogRecordManager(databaseCtx);
         var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties);
+                null, null, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
+                ocspVerifierFactory);
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 

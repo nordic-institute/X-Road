@@ -25,27 +25,17 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.managementrequest.verify.decode;
+package org.niis.xroad.globalconf.impl.config;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
-
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
-import org.niis.xroad.globalconf.GlobalConfProvider;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties;
 
-public class MaintenanceModeEnableRequestCallback extends BaseServerRequestCallback<MaintenanceModeEnableRequestType> {
+public class OcspVerifierConfig {
 
-    public MaintenanceModeEnableRequestCallback(GlobalConfProvider globalConfProvider,
-                                               OcspVerifierFactory ocspVerifierFactory,
-                                               ManagementRequestVerifier.DecoderCallback rootCallback) {
-        super(globalConfProvider, ocspVerifierFactory, rootCallback, ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST);
-    }
-
-    @Override
-    protected SecurityServerId getServer() {
-        return getRequest().getServer();
+    @ApplicationScoped
+    public OcspVerifierFactory ocspVerifierFactory(OcspVerifierProperties ocspVerifierProperties) {
+        return new OcspVerifierFactory(ocspVerifierProperties);
     }
 
 }

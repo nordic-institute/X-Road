@@ -37,6 +37,7 @@ import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.GlobalConfImpl;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,7 +72,8 @@ public final class AsicVerifierMain {
             showUsage();
         } else {
             var globalConfProvider = loadConf(args[0]);
-            verifyAsic(globalConfProvider, args[1]);
+            var ocspVerifierFactory = new OcspVerifierFactory();
+            verifyAsic(globalConfProvider, ocspVerifierFactory, args[1]);
         }
     }
 
@@ -98,12 +100,12 @@ public final class AsicVerifierMain {
         globalConfProvider.getInstanceIdentifier();
     }
 
-    private static void verifyAsic(GlobalConfProvider globalConfProvider, String fileName) {
+    private static void verifyAsic(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory, String fileName) {
         System.out.println("Verifying ASiC container \"" + fileName + "\" ...");
 
         AsicContainerVerifier verifier = null;
         try {
-            verifier = new AsicContainerVerifier(globalConfProvider, fileName);
+            verifier = new AsicContainerVerifier(globalConfProvider, ocspVerifierFactory, fileName);
             verifier.verify();
 
             onVerificationSucceeded(verifier);

@@ -99,11 +99,6 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = FALSE;
 
-    private static final String OCSP_VERIFIER_CACHE_PERIOD =
-            PROXY_PREFIX + "ocsp-verifier-cache-period";
-
-    private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
-
     // Center -----------------------------------------------------------------
 
     public static final String CENTER_DATABASE_PROPERTIES = CENTER_PREFIX + "database-properties";
@@ -352,16 +347,6 @@ public final class SystemProperties {
     public static boolean shouldEnforceTokenPinPolicy() {
         return Boolean.parseBoolean(getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY,
                 DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY));
-    }
-
-    /**
-     * @return the interval in seconds at which verifier caches results.
-     * Max value is 180 seconds and cannot be exceeded in configuration.
-     * Default is 60 s.
-     */
-    public static int getOcspVerifierCachePeriod() {
-        int period = Integer.parseInt(getProperty(OCSP_VERIFIER_CACHE_PERIOD, "60"));
-        return period < OCSP_VERIFIER_CACHE_PERIOD_MAX ? period : OCSP_VERIFIER_CACHE_PERIOD_MAX;
     }
 
     public static boolean isEnableClientProxyPooledConnectionReuse() {

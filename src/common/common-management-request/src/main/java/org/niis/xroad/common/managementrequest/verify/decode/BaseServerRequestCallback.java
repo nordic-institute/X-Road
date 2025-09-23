@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.util.Objects;
 
@@ -42,9 +43,10 @@ import static org.niis.xroad.common.managementrequest.verify.decode.util.Managem
 public abstract class BaseServerRequestCallback<T> extends BaseSignedRequestCallback<T> {
 
     public BaseServerRequestCallback(GlobalConfProvider globalConfProvider,
+                                     OcspVerifierFactory ocspVerifierFactory,
                                      ManagementRequestVerifier.DecoderCallback rootCallback,
                                      ManagementRequestType requestType) {
-        super(globalConfProvider, rootCallback, requestType);
+        super(globalConfProvider, ocspVerifierFactory, rootCallback, requestType);
     }
 
     protected abstract SecurityServerId getServer();

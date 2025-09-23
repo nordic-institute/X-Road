@@ -34,6 +34,7 @@ import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
@@ -64,6 +65,7 @@ import static org.mockito.Mockito.mock;
 
 public class TestContext {
     TestGlobalConfWrapper globalConfProvider = new TestGlobalConfWrapper(new TestSuiteGlobalConf());
+    OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     KeyConfProvider keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
     TestServerConfWrapper serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf());
 
@@ -83,14 +85,14 @@ public class TestContext {
             org.apache.xml.security.Init.init();
             SigningCtxProvider signingCtxProvider = new TestSuiteSigningCtxProvider(globalConfProvider, keyConfProvider);
 
-            CertHelper certHelper = new CertHelper(globalConfProvider);
+            CertHelper certHelper = new CertHelper(globalConfProvider, ocspVerifierFactory);
             AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
                     globalConfProvider, keyConfProvider, certHelper);
             LogRecordManager logRecordManager = mock(LogRecordManager.class);
             VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
             CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
                     keyConfProvider, signingCtxProvider, certHelper, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                    proxyProperties);
+                    proxyProperties, ocspVerifierFactory);
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()

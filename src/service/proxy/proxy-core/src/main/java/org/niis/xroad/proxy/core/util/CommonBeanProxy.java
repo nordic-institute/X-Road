@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
@@ -57,4 +58,5 @@ public class CommonBeanProxy {
     private final VaultKeyProvider vaultKeyProvider;
     private final OpMonitoringBuffer opMonitoringBuffer;
     private final ProxyProperties proxyProperties;
+    private final OcspVerifierFactory ocspVerifierFactory;
 }

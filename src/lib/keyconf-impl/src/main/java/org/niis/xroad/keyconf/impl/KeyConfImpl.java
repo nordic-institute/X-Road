@@ -36,6 +36,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.SingleResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.keyconf.dto.AuthKey;
@@ -64,11 +65,14 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 @Slf4j
 class KeyConfImpl implements KeyConfProvider {
     protected final GlobalConfProvider globalConfProvider;
+    protected final OcspVerifierFactory ocspVerifierFactory;
     protected final ServerConfProvider serverConfProvider;
     protected final SignerRpcClient signerRpcClient;
 
-    KeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
+    KeyConfImpl(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
         this.globalConfProvider = globalConfProvider;
+        this.ocspVerifierFactory = ocspVerifierFactory;
         this.serverConfProvider = serverConfProvider;
         this.signerRpcClient = signerRpcClient;
     }

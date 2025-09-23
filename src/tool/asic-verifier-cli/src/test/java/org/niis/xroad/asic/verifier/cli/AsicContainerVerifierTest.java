@@ -39,6 +39,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.util.Arrays;
@@ -58,6 +59,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 public class AsicContainerVerifierTest {
 
     private static GlobalConfProvider globalConfProvider;
+    private static final OcspVerifierFactory OCSP_VERIFIER_FACTORY = new OcspVerifierFactory();
 
     private final String containerFile;
     private final String errorCode;
@@ -113,7 +115,8 @@ public class AsicContainerVerifierTest {
         log.info("Verifying ASiC container \"" + fileName + "\" ...");
 
         try {
-            AsicContainerVerifier verifier = new AsicContainerVerifier(globalConfProvider, "src/test/resources/" + fileName);
+            AsicContainerVerifier verifier = new AsicContainerVerifier(globalConfProvider, OCSP_VERIFIER_FACTORY,
+                    "src/test/resources/" + fileName);
             verifier.verify();
 
             log.info(AsicUtils.buildSuccessOutput(verifier));

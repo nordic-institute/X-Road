@@ -25,27 +25,21 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.managementrequest.verify.decode;
+package org.niis.xroad.globalconf.impl.ocsp;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import static org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties.MAPPING_PREFIX;
 
-public class MaintenanceModeEnableRequestCallback extends BaseServerRequestCallback<MaintenanceModeEnableRequestType> {
+@ConfigMapping(prefix = MAPPING_PREFIX)
+public interface OcspVerifierProperties {
+    String MAPPING_PREFIX = "xroad.common.ocsp-verifier";
+    String DEFAULT_OCSP_VERIFIER_CACHE_PERIOD = "60";
 
-    public MaintenanceModeEnableRequestCallback(GlobalConfProvider globalConfProvider,
-                                               OcspVerifierFactory ocspVerifierFactory,
-                                               ManagementRequestVerifier.DecoderCallback rootCallback) {
-        super(globalConfProvider, ocspVerifierFactory, rootCallback, ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST);
-    }
-
-    @Override
-    protected SecurityServerId getServer() {
-        return getRequest().getServer();
-    }
+    @WithName("cache-period")
+    @WithDefault(DEFAULT_OCSP_VERIFIER_CACHE_PERIOD)
+    int cachePeriod();
 
 }

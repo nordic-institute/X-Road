@@ -293,7 +293,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
             }
         };
 
-        decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(), requestMessage, jRequest.getContentType(), false,
+        decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(), commonBeanProxy.getOcspVerifierFactory(),
+                requestMessage, jRequest.getContentType(), false,
                 getHashAlgoId(jRequest));
         try {
             decoder.parse(jRequest.getInputStream());
