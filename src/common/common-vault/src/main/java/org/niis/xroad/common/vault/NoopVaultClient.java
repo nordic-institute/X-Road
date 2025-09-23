@@ -47,6 +47,11 @@ public class NoopVaultClient implements VaultClient {
     }
 
     @Override
+    public InternalSSLKey getManagementServicesTlsCredentials() {
+        return new InternalSSLKey(null, new X509Certificate[]{});
+    }
+
+    @Override
     public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) {
         throw new UnsupportedOperationException("Not supported");
     }
@@ -58,6 +63,11 @@ public class NoopVaultClient implements VaultClient {
 
     @Override
     public void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) {
         throw new UnsupportedOperationException("Not supported");
     }
 }
