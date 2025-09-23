@@ -26,7 +26,7 @@
 package org.niis.xroad.signer.core.certmanager;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -265,7 +266,7 @@ public class OcspClientWorker {
             final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
             final OffsetDateTime nextUpdate = prevUpdate
                     .plusSeconds(globalConfProvider.getGlobalConfExtensions().getOcspFetchInterval());
-            int errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID;
+            ErrorCode errorCode = null;
 
             try {
                 log.debug("Fetching response from: {}", responderURI);
@@ -277,35 +278,38 @@ public class OcspClientWorker {
                     verifier.verifyValidity(response, subject, issuer);
                     log.debug("Verified OCSP response for certificate '{}'", subject.getSubjectX500Principal());
 
-                    reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.RETURN_SUCCESS, prevUpdate,
-                            nextUpdate);
+                    reportOcspDiagnostics(issuer, responderURI, DiagnosticStatus.OK, prevUpdate,
+                            nextUpdate, null);
 
                     return response;
                 }
             } catch (OCSPException e) {
                 log.error("Parsing OCSP response from {} failed", responderURI, e);
-                errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID;
+                errorCode = ErrorCode.OCSP_RESPONSE_PARSING_FAILURE;
             } catch (IOException e) {
                 log.error("Unable to connect to responder at {}", responderURI, e);
-                errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_CONNECTION_ERROR;
+                errorCode = ErrorCode.OCSP_CONNECTION_ERROR;
             } catch (CodedException e) {
                 log.warn("Received OCSP response that failed verification", e);
-                errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_UNVERIFIED;
+                errorCode = ErrorCode.OCSP_RESPONSE_VERIFICATION_FAILURE;
             } catch (Exception e) {
                 log.error("Unable to fetch response from responder at {}", responderURI, e);
-                errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID;
+                errorCode = ErrorCode.OCSP_FAILED;
             }
 
-            reportOcspDiagnostics(issuer, responderURI, errorCode, prevUpdate, nextUpdate);
+            reportOcspDiagnostics(issuer, responderURI, DiagnosticStatus.ERROR, prevUpdate, nextUpdate, errorCode);
         }
 
         return null;
     }
 
-    private void reportOcspDiagnostics(X509Certificate issuer, String responderURI, int statusCode,
-                                       OffsetDateTime prevUpdate, OffsetDateTime nextUpdate) {
+    private void reportOcspDiagnostics(X509Certificate issuer, String responderURI, DiagnosticStatus statusCode,
+                                       OffsetDateTime prevUpdate, OffsetDateTime nextUpdate, ErrorCode errorCode) {
 
         OcspResponderStatus responderStatus = new OcspResponderStatus(statusCode, responderURI, prevUpdate, nextUpdate);
+        if (errorCode != null) {
+            responderStatus.setErrorCode(errorCode);
+        }
 
         String subjectName = issuer.getSubjectDN().toString();
 
@@ -393,13 +397,13 @@ public class OcspClientWorker {
 
         final Collection<X509Certificate> caCerts = globalConfProvider.getAllCaCerts();
         serviceStatusMap.keySet().retainAll(caCerts.stream()
-                .map(X509Certificate::getSubjectDN)
+                .map(X509Certificate::getSubjectX500Principal)
                 .map(Principal::toString)
                 .collect(Collectors.toSet()));
 
         for (X509Certificate caCertificate : caCerts) {
             try {
-                final String key = caCertificate.getSubjectDN().toString();
+                final String key = caCertificate.getSubjectX500Principal().toString();
                 final CertificationServiceStatus serviceStatus = serviceStatusMap
                         .computeIfAbsent(key, CertificationServiceStatus::new);
 
@@ -408,7 +412,7 @@ public class OcspClientWorker {
                 responderStatusMap.keySet().retainAll(addresses);
 
                 addresses.forEach(responderURI -> responderStatusMap.computeIfAbsent(responderURI,
-                        uri -> new OcspResponderStatus(DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED, uri, null,
+                        uri -> new OcspResponderStatus(DiagnosticStatus.UNINITIALIZED, uri, null,
                                 TimeUtils.offsetDateTimeNow().plusSeconds(fetchInterval))));
             } catch (Exception e) {
                 log.error("Error while initializing diagnostics", e);
