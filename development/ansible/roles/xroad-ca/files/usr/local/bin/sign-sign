@@ -1,0 +1,5 @@
+#!/bin/sh
+tmp=$(mktemp -dt "sign-sign-XXXXX") || exit 1
+cat - > "$tmp/sign-csr.csr"
+/usr/local/bin/sign "$tmp/sign-csr.csr"
+rm -fd "$tmp"/* "$tmp"

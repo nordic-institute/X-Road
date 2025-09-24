@@ -7,7 +7,7 @@
         name: xroad-deb-{{ ubuntu_releasever }}
         source: build
         build:
-          path: ../../src/packages/docker/deb-{{ ubuntu_releasever }}
+          path: ../../deployment/native-packages/docker/deb-{{ ubuntu_releasever }}
 
     - name: build {{ ubuntu_releasever }} deb packages in docker
       docker_container:
@@ -19,12 +19,12 @@
         cleanup: yes
         user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
         env:
-            HOME: "/workspace/src/packages"
+            HOME: "/workspace/deployment/native-packages"
         volumes:
           - ..:/workspace
           - /etc/passwd:/etc/passwd:ro
           - /etc/group:/etc/group:ro
-        command: "/workspace/src/packages/build-deb.sh {{ ubuntu_releasever }}"
+        command: "/workspace/deployment/native-packages/build-deb.sh {{ ubuntu_releasever }}"
 
 - name: "build RHEL {{ rhel_releasever }} packages"
   tags: rpm
@@ -36,7 +36,7 @@
         name: xroad-rpm{{ rpm_version_suffix }}
         source: build
         build:
-          path: ../../src/packages/docker/rpm{{ rpm_version_suffix }}
+          path: ../../deployment/native-packages/docker/rpm{{ rpm_version_suffix }}
 
     - name: "build RHEL {{ rhel_releasever }} packages in docker"
       docker_container:
@@ -48,9 +48,9 @@
         cleanup: yes
         user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
         env:
-            HOME: "/workspace/src/packages"
+            HOME: "/workspace/deployment/native-packages"
         volumes:
           - ..:/workspace
           - /etc/passwd:/etc/passwd:ro
           - /etc/group:/etc/group:ro
-        command: "/workspace/src/packages/build-rpm.sh"
+        command: "/workspace/deployment/native-packages/build-rpm.sh"
