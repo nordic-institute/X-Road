@@ -35,6 +35,10 @@ dependencies {
     exclude(module = "spring-boot-starter-tomcat")
   }
 
+  implementation(project(":common:common-management-service")) {
+    exclude( module = "spring-boot-starter-tomcat")
+  }
+
   implementation("org.springframework.boot:spring-boot-starter-web") {
     exclude(module = "spring-boot-starter-tomcat")
   }

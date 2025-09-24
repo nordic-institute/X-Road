@@ -24,50 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.vault;
+package org.niis.xroad.common.managementservice;
 
-import ee.ria.xroad.common.conf.InternalSSLKey;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.security.cert.X509Certificate;
-
-public class NoopVaultClient implements VaultClient {
-    @Override
-    public InternalSSLKey getInternalTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
+@Configuration
+public class ManagementServiceMvcConfig implements WebMvcConfigurer {
 
     @Override
-    public InternalSSLKey getOpmonitorTlsCredentials()  {
-        return new InternalSSLKey(null, new X509Certificate[]{});
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new EndpointAccessInterceptor());
     }
 
-    @Override
-    public InternalSSLKey getAdminServiceTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
-
-    @Override
-    public InternalSSLKey getManagementServicesTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
-
-    @Override
-    public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
 }

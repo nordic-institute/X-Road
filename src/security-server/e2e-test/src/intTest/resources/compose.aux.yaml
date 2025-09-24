@@ -1,6 +1,8 @@
 services:
   cs:
     image: ${CS_IMG}
+    environment:
+      - XROAD_HOST=cs
     deploy:
       resources:
         reservations:

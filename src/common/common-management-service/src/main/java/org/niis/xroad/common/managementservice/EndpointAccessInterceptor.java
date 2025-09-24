@@ -24,50 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.vault;
+package org.niis.xroad.common.managementservice;
 
-import ee.ria.xroad.common.conf.InternalSSLKey;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerInterceptor;
 
-import java.security.cert.X509Certificate;
+import java.io.IOException;
 
-public class NoopVaultClient implements VaultClient {
-    @Override
-    public InternalSSLKey getInternalTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
-
-    @Override
-    public InternalSSLKey getOpmonitorTlsCredentials()  {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
+public class EndpointAccessInterceptor implements HandlerInterceptor {
 
     @Override
-    public InternalSSLKey getAdminServiceTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+        if (handler instanceof HandlerMethod) {
+            // Allowed: request is successfully mapped to a controller method
+            return true;
+        }
 
-    @Override
-    public InternalSSLKey getManagementServicesTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
-
-    @Override
-    public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
+        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+        return false;
     }
 }

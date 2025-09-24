@@ -66,6 +66,11 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
+    public InternalSSLKey getManagementServicesTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        return getTlsCredentials(MANAGERMENT_SERVICES_TLS_CREDENTIALS_PATH);
+    }
+
+    @Override
     public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) {
         throw new NotImplementedException();
     }
@@ -78,6 +83,11 @@ public class SpringVaultClient implements VaultClient {
     @Override
     public void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
         createTlsCredentials(ADMIN_SERVICE_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
+    public void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
+        createTlsCredentials(MANAGERMENT_SERVICES_TLS_CREDENTIALS_PATH, internalSSLKey);
     }
 
     private InternalSSLKey getTlsCredentials(String path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
