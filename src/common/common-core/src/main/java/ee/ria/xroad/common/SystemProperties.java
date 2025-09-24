@@ -124,11 +124,6 @@ public final class SystemProperties {
     /** Property name of the configuration files path. */
     public static final String CONF_PATH = PREFIX + "conf.path";
 
-    // Proxy & Central monitor agent ------------------------------------------
-
-    public static final String NET_STATS_FILE =
-            PREFIX + "proxy-monitor-agent.net-stats-file";
-
     // Configuration proxy ------------------------------------------------- //
 
     /** Property name of the confproxy download script path. */
@@ -325,14 +320,6 @@ public final class SystemProperties {
      */
     public static String getConfigurationProxyAddress() {
         return getProperty(CONFIGURATION_PROXY_ADDRESS, DEFAULT_CONNECTOR_HOST);
-    }
-
-    /**
-     * @return path to the file containing network statistics,
-     * '/proc/net/dev' by default.
-     */
-    public static String getNetStatsFile() {
-        return getProperty(NET_STATS_FILE, "/proc/net/dev");
     }
 
     public static boolean isEnableClientProxyPooledConnectionReuse() {
