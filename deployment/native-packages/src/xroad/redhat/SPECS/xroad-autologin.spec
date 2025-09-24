@@ -16,8 +16,6 @@ Requires(postun):   systemd
 Requires:   xroad-proxy = %version-%release, expect, systemd
 Obsoletes: aux-xroad-autologin < 1.4-1
 
-%define src %{_topdir}/../../../../autologin/source
-
 %description
 Optional utility that automatically enters the software token pin code on xroad-signer start
 
@@ -28,8 +26,8 @@ Optional utility that automatically enters the software token pin code on xroad-
 %install
 mkdir -p %{buildroot}/usr/share/xroad/autologin
 mkdir -p %{buildroot}%{_unitdir}
-cp -a %{src}/common/* %{buildroot}/usr/share/xroad/autologin
-cp -a %{src}/redhat/%{name}.service %{buildroot}%{_unitdir}
+cp -a %{srcdir}/common/autologin/* %{buildroot}/usr/share/xroad/autologin
+cp -a %{_sourcedir}/autologin/%{name}.service %{buildroot}%{_unitdir}
 
 %clean
 rm -rf %{buildroot}

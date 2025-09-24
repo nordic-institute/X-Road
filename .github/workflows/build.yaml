@@ -137,32 +137,32 @@ jobs:
             !**/executionHistory/**
       - name: Build RHEL8 packages
         run: |
-          docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
+          docker build -t rhel8 ${{ github.workspace }}/deployment/native-packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./deployment/native-packages/build-rpm.sh
           echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/src/packages/build/rhel/8
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/8
       - name: Build RHEL9 packages
         run: |
-          docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
+          docker build -t rhel9 ${{ github.workspace }}/deployment/native-packages/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./deployment/native-packages/build-rpm.sh
           echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/src/packages/build/rhel/9
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
       - name: Build 22.04 (Jammy) packages
         env:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh jammy -release
+        run: ./deployment/native-packages/build-deb.sh jammy -release
       - name: Build 24.04 (Noble) packages
         env:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
         run: |
-          ./src/packages/build-deb.sh noble -release
+          ./deployment/native-packages/build-deb.sh noble -release
           echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/src/packages/build/ubuntu24.04
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04
       - name: Store deb files for system tests
         uses: actions/upload-artifact@v4
         with:
           name: debian-packages
-          path: src/packages/build/ubuntu22.04/*.deb
+          path: deployment/native-packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
       - name: Packaging and upload artifacts measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -243,32 +243,32 @@ jobs:
           label: 'Set up arm packaging'
       - name: Build RHEL8 packages
         run: |
-          docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
+          docker build -t rhel8 ${{ github.workspace }}/deployment/native-packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./deployment/native-packages/build-rpm.sh
           echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/src/packages/build/rhel/8
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/8
       - name: Build RHEL9 packages
         run: |
-          docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
+          docker build -t rhel9 ${{ github.workspace }}/deployment/native-packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./deployment/native-packages/build-rpm.sh
           echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/src/packages/build/rhel/9
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
       - name: Build 22.04 (Jammy) packages
         env:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh jammy -release
+        run: ./deployment/native-packages/build-deb.sh jammy -release
       - name: Build 24.04 (Noble) packages
         env:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
         run: |
-          ./src/packages/build-deb.sh noble -release
+          ./deployment/native-packages/build-deb.sh noble -release
           echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/src/packages/build/ubuntu24.04
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04
       - name: Store deb files for Docker dev images
         uses: actions/upload-artifact@v4
         with:
           name: debian-packages-arm
-          path: src/packages/build/ubuntu22.04/*.deb
+          path: deployment/native-packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
       - name: Measurement for arm packaging
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0

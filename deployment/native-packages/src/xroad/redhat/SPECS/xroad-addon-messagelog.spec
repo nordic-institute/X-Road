@@ -36,20 +36,20 @@ mkdir -p %{buildroot}%{_unitdir}
 
 cp -p %{_sourcedir}/messagelog/xroad-addon-messagelog.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/default-configuration/addons/message-log.ini %{buildroot}/etc/xroad/conf.d/addons/
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-db/src/main/resources/liquibase/messagelog-changelog.xml %{buildroot}/usr/share/xroad/db/
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-db/src/main/resources/liquibase//messagelog/* %{buildroot}/usr/share/xroad/db/messagelog
+cp -p %{srcdir}/../../../../src/addons/messagelog/messagelog-db/src/main/resources/liquibase/messagelog-changelog.xml %{buildroot}/usr/share/xroad/db/
+cp -p %{srcdir}/../../../../src/addons/messagelog/messagelog-db/src/main/resources/liquibase//messagelog/* %{buildroot}/usr/share/xroad/db/messagelog
 cp -p %{srcdir}/common/addon/proxy/setup_messagelog_db.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{srcdir}/common/addon/proxy/xroad-messagelog-archiver %{buildroot}/usr/share/xroad/bin/
 cp -p %{srcdir}/common/addon/proxy/messagelog-archiver.conf %{buildroot}/etc/xroad/services/
 
-cp -p -r %{srcdir}/../../../service/message-log-archiver/message-log-archiver-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/addon/proxy/messagelog-archiver/
-cp -p %{srcdir}/../../../service/message-log-archiver/message-log-archiver-application/scripts/archive-http-transporter.sh %{buildroot}/usr/share/xroad/scripts
-cp -p %{srcdir}/../../../service/message-log-archiver/message-log-archiver-application/scripts/demo-upload.pl %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-server/
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-archive-verifier/build/libs/messagelog-archive-verifier.jar %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-archive-verifier/README.md %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
-cp -p %{srcdir}/../../../tool/asic-verifier-cli/build/libs/asicverifier.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
-cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
+cp -p -r %{srcdir}/../../../../src/service/message-log-archiver/message-log-archiver-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/addon/proxy/messagelog-archiver/
+cp -p %{srcdir}/../../../../src/service/message-log-archiver/message-log-archiver-application/scripts/archive-http-transporter.sh %{buildroot}/usr/share/xroad/scripts
+cp -p %{srcdir}/../../../../src/service/message-log-archiver/message-log-archiver-application/scripts/demo-upload.pl %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-server/
+cp -p %{srcdir}/../../../../src/addons/messagelog/messagelog-archive-verifier/build/libs/messagelog-archive-verifier.jar %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
+cp -p %{srcdir}/../../../../src/addons/messagelog/messagelog-archive-verifier/README.md %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
+cp -p %{srcdir}/../../../../src/tool/asic-verifier-cli/build/libs/asicverifier.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
+cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/
 
 ln -s /usr/share/xroad/jlib/addon/proxy/messagelog-archiver/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/messagelog-archiver.jar

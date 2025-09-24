@@ -50,7 +50,7 @@ mkdir -p %{buildroot}/usr/share/xroad/bin
 ln -s /usr/share/xroad/jlib/configuration-client/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/configuration-client.jar
 
 cp -p %{_sourcedir}/confclient/xroad-confclient.service %{buildroot}%{_unitdir}
-cp -p -r %{srcdir}/../../../service/configuration-client/configuration-client-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/configuration-client/
+cp -p -r %{srcdir}/../../../../src/service/configuration-client/configuration-client-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/configuration-client/
 cp -p %{srcdir}/common/confclient/etc/xroad/backup.d/??_xroad-confclient %{buildroot}/etc/xroad/backup.d/
 
 %clean

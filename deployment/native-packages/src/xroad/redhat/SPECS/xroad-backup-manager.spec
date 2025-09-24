@@ -45,9 +45,9 @@ mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 
 cp -p %{_sourcedir}/backup-manager/xroad-*.service %{buildroot}%{_unitdir}
-cp -p -r %{srcdir}/../../../service/backup-manager/backup-manager-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/backup-manager
-cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
-cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
+cp -p -r %{srcdir}/../../../../src/service/backup-manager/backup-manager-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/backup-manager
+cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
+cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
 
 ln -s /usr/share/xroad/jlib/backup-manager/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/backup-manager.jar

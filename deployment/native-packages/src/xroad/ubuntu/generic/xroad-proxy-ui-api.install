@@ -3,5 +3,5 @@
 
 ../../../../src/xroad/default-configuration/acme.example.yml etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/mail.example.yml etc/xroad/conf.d
-../../../../../security-server/admin-service/application/build/libs/proxy-ui-api-1.0.jar usr/share/xroad/jlib/
-../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-proxy-ui-api
+../../../../../../src/security-server/admin-service/application/build/libs/proxy-ui-api-1.0.jar usr/share/xroad/jlib/
+../../../../../../src/3RD-PARTY-NOTICES.txt usr/share/doc/xroad-proxy-ui-api

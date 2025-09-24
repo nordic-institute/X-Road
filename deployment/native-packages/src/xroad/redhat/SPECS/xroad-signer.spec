@@ -52,16 +52,16 @@ ln -s /usr/share/xroad/jlib/signer/quarkus-run.jar %{buildroot}/usr/share/xroad/
 ln -s /usr/share/xroad/jlib/signer-console/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/signer-console.jar
 
 cp -p %{_sourcedir}/signer/xroad-signer.service %{buildroot}%{_unitdir}
-cp -p -r %{srcdir}/../../../service/signer/signer-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/signer/
-cp -p -r %{srcdir}/../../../service/signer/signer-cli/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/signer-console/
+cp -p -r %{srcdir}/../../../../src/service/signer/signer-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/signer/
+cp -p -r %{srcdir}/../../../../src/service/signer/signer-cli/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/signer-console/
 
 #Copy arch specific libs
 %ifarch x86_64
-cp -p %{srcdir}/../../../libs/pkcs11wrapper/amd64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
+cp -p %{srcdir}/../../../../src/libs/pkcs11wrapper/amd64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
 %endif
 
 %ifarch aarch64
-cp -p %{srcdir}/../../../libs/pkcs11wrapper/arm64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
+cp -p %{srcdir}/../../../../src/libs/pkcs11wrapper/arm64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
 %endif
 
 %clean

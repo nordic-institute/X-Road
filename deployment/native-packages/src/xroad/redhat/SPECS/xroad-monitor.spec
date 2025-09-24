@@ -35,7 +35,7 @@ mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
-cp -p -r %{srcdir}/../../../service/monitor/monitor-application/build/quarkus-app/* %{buildroot}%{jlib}/monitor/
+cp -p -r %{srcdir}/../../../../src/service/monitor/monitor-application/build/quarkus-app/* %{buildroot}%{jlib}/monitor/
 cp -a %{srcdir}/common/monitor/etc/* %{buildroot}%{_sysconfdir}
 cp -p %{srcdir}/common/monitor/systemd/%{name}.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/common/monitor/usr/share/xroad/bin/xroad-monitor %{buildroot}/usr/share/xroad/bin
