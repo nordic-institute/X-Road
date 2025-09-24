@@ -72,7 +72,7 @@ public class ProxyMessageEncoderTest {
     public void initialize() {
         out = new ByteArrayOutputStream();
         encoder = new ProxyMessageEncoder(out, getHashAlgoId());
-        globalConfProvider = TestGlobalConfFactory.create();
+        globalConfProvider = TestGlobalConfFactory.create("dummy");
         ocspVerifierFactory = new OcspVerifierFactory();
         ocspVerifierFactory = new OcspVerifierFactory();
     }

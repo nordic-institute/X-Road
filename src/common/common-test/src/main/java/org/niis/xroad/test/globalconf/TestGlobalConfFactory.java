@@ -40,7 +40,6 @@ import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 
 /**
  * Test globalconf implementation.
@@ -50,19 +49,19 @@ public class TestGlobalConfFactory {
     /**
      * Constructs a new test globalconf.
      */
-    public static GlobalConfImpl create() {
-        return create(false);
+    public static GlobalConfImpl create(String configurationPath) {
+        return create(false, configurationPath);
     }
 
-    public static GlobalConfImpl create(boolean useTestCaCert) {
-        var source = globalConfSource();
+    public static GlobalConfImpl create(boolean useTestCaCert, String configurationPath) {
+        var source = globalConfSource(configurationPath);
 
         return new TestGlobalConfImpl(source, new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()), useTestCaCert);
     }
 
-    private static GlobalConfSource globalConfSource() {
+    private static GlobalConfSource globalConfSource(String configurationPath) {
         try {
-            return new FileSystemGlobalConfSource(getConfigurationPath());
+            return new FileSystemGlobalConfSource(configurationPath);
         } catch (Exception e) {
             throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
         }

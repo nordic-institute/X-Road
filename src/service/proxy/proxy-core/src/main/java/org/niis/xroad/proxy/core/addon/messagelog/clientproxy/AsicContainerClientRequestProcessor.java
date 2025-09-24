@@ -157,7 +157,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void handleVerificationConfRequest() throws IOException {
         // GlobalConf.verifyValidity() is not necessary here.
-
+        // todo XRDDEV-3005
         VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(SystemProperties.getConfigurationPath());
 
         jResponse.setContentType(MimeTypes.ZIP);

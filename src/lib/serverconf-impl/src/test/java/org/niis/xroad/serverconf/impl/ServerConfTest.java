@@ -97,7 +97,7 @@ public class ServerConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        var globalConfProvider = TestGlobalConfFactory.create();
+        var globalConfProvider = TestGlobalConfFactory.create("dummy-path-will-not-be-initialized");
         serverConfProvider = new ServerConfImpl(DATABASE_CTX, globalConfProvider, null);
 
         prepareDB(DATABASE_CTX);
@@ -273,11 +273,9 @@ public class ServerConfTest {
 
     /**
      * Tests getting IS certificates,
-     *
-     * @throws Exception if an error coccurs
      */
     @Test
-    public void getIsCerts() throws Exception {
+    public void getIsCerts() {
         List<X509Certificate> isCerts =
                 serverConfProvider.getIsCerts(createTestClientId(client(1)));
         assertEquals(1, isCerts.size());
@@ -304,11 +302,9 @@ public class ServerConfTest {
 
     /**
      * Tests getting members.
-     *
-     * @throws Exception if an error coccurs
      */
     @Test
-    public void getMembers() throws Exception {
+    public void getMembers() {
         List<ClientId.Conf> members = serverConfProvider.getMembers();
         assertNotNull(members);
         assertEquals(NUM_CLIENTS, members.size());
@@ -316,11 +312,9 @@ public class ServerConfTest {
 
     /**
      * Tests getting TSPs.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getTsps() throws Exception {
+    public void getTsps() {
         List<String> tspUrls = serverConfProvider.getTspUrl();
         assertEquals(NUM_TSPS, tspUrls.size());
         for (int i = 0; i < NUM_TSPS; i++) {
@@ -330,11 +324,9 @@ public class ServerConfTest {
 
     /**
      * Tests getting services.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getServices() throws Exception {
+    public void getServices() {
         ClientId serviceProvider = createTestClientId(client(1), null);
 
         List<ServiceId.Conf> allServices = getServices(serviceProvider);

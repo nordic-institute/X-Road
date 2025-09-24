@@ -51,6 +51,13 @@ import static java.util.Collections.singleton;
  */
 public class TestSuiteGlobalConf extends EmptyGlobalConf {
 
+    public TestSuiteGlobalConf() {
+        super();
+    }
+    public TestSuiteGlobalConf(String confPath) {
+        super(confPath);
+    }
+
     @Override
     public String getInstanceIdentifier() {
         return "EE";

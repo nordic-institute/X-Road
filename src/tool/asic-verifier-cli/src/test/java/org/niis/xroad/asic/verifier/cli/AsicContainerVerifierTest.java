@@ -26,7 +26,6 @@
 package org.niis.xroad.asic.verifier.cli;
 
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 
@@ -71,9 +70,7 @@ public class AsicContainerVerifierTest {
      */
     @BeforeClass
     public static void setUpConf() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../../lib/globalconf-core/src/test/resources/globalconf_good2_v3");
-
-        globalConfProvider = TestGlobalConfFactory.create();
+        globalConfProvider = TestGlobalConfFactory.create("../../lib/globalconf-core/src/test/resources/globalconf_good2_v3");
     }
 
     /**

@@ -44,6 +44,8 @@ public class LegacyConfigPathMapping {
     private static final Set<String> REMOVED_KEYS = new HashSet<>();
 
     static {
+        MAPPING.put("common.configuration-path", "common.global-conf.configuration-path");
+
         // configuration-client
         MAPPING.put("proxy.configuration-anchor-file", "configuration-client.configuration-anchor-file");
 

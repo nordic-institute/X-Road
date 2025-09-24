@@ -70,7 +70,7 @@ public class ProxyMessageDecoderTest {
     @Before
     public void initialize() {
         callback = new DummyMessageConsumer();
-        globalConfProvider = TestGlobalConfFactory.create();
+        globalConfProvider = TestGlobalConfFactory.create("dummy");
         ocspVerifierFactory = new OcspVerifierFactory();
     }
 

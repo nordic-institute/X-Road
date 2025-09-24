@@ -26,7 +26,6 @@
 package org.niis.xroad.globalconf.impl.signature;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -453,8 +452,6 @@ class SignatureVerifierTest {
     }
 
     void loadGlobalConf(String globalConfPath, boolean useTestCaCert) {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, globalConfPath);
-
-        globalConfProvider = TestGlobalConfFactory.create(useTestCaCert);
+        globalConfProvider = TestGlobalConfFactory.create(useTestCaCert, globalConfPath);
     }
 }

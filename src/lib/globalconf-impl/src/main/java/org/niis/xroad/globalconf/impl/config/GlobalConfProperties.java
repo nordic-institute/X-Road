@@ -40,6 +40,7 @@ public interface GlobalConfProperties {
     String MAPPING_PREFIX = "xroad.common.global-conf";
     String DEFAULT_SOURCE = "FILESYSTEM";
     String DEFAULT_RATE_INTERVAL = "60S";
+    String DEFAULT_GLOBALCONF_DIR = "/etc/xroad/globalconf";
 
     @WithName("source")
     @WithDefault(DEFAULT_SOURCE)
@@ -48,6 +49,10 @@ public interface GlobalConfProperties {
     @WithName("refresh-rate")
     @WithDefault(DEFAULT_RATE_INTERVAL)
     Duration refreshRate();
+
+    @WithName("configuration-path")
+    @WithDefault(DEFAULT_GLOBALCONF_DIR)
+    String configurationPath();
 
     enum GlobalConfSource {
         FILESYSTEM,

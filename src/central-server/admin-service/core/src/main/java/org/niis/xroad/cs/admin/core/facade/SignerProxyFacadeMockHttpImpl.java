@@ -99,6 +99,11 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     @Override
+    public boolean isEnforcedTokenPinPolicy() {
+        return true;
+    }
+
+    @Override
     public void initSoftwareToken(char[] password) {
         restTemplate.put("/initSoftwareToken/", password);
     }

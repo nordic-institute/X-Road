@@ -31,8 +31,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.DeviationBuilder;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
-import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -53,11 +53,11 @@ public class TokenPinValidatorImpl implements TokenPinValidator {
             String.valueOf(PasswordPolicy.MIN_CHARACTER_CLASS_COUNT)
     };
 
-    private final SignerRpcClient signerRpcClient;
+    private final SignerProxyFacade signerProxyFacade;
 
     @Override
     public void validateSoftwareTokenPin(char[] softwareTokenPin) throws BadRequestException {
-        if (signerRpcClient.isEnforcedTokenPinPolicy()) {
+        if (signerProxyFacade.isEnforcedTokenPinPolicy()) {
             PasswordPolicy.Description description = PasswordPolicy.describe(softwareTokenPin);
             if (!description.isValid()) {
                 if (description.hasInvalidCharacters()) {

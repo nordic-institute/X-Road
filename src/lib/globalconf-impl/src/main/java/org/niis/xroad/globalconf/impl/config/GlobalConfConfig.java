@@ -40,7 +40,6 @@ import org.niis.xroad.globalconf.impl.RemoteGlobalConfDataLoader;
 import org.niis.xroad.globalconf.impl.RemoteGlobalConfSource;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static org.niis.xroad.globalconf.impl.config.GlobalConfProperties.GlobalConfSource.REMOTE;
 
 @Slf4j
@@ -67,12 +66,11 @@ public class GlobalConfConfig {
             }
         } else {
             log.info("GlobalConf source is set to: VersionedConfigurationDirectory(FS)");
-            globalConfSource = new FileSystemGlobalConfSource(getConfigurationPath());
+            globalConfSource = new FileSystemGlobalConfSource(globalConfProperties.configurationPath());
         }
 
         globalConfSource.init();
         return globalConfSource;
-
     }
 
     private GlobalConfExtensions globalConfExtensions(GlobalConfSource source) {

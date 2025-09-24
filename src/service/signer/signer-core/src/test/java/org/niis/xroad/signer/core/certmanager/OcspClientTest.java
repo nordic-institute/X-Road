@@ -65,7 +65,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
@@ -348,7 +347,7 @@ class OcspClientTest {
         when(testConf.isOcspResponderCert(Mockito.any(X509Certificate.class),
                 Mockito.any(X509Certificate.class))).thenReturn(true);
 
-        FileSystemGlobalConfSource source = new FileSystemGlobalConfSource(getConfigurationPath());
+        FileSystemGlobalConfSource source = new FileSystemGlobalConfSource("will-not-be-initialized");
         when(testConf.getGlobalConfExtensions()).thenReturn(new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
         return testConf;
     }

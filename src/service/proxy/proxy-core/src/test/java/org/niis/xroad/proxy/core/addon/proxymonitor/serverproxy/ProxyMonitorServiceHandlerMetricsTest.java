@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -46,9 +45,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.common.Metrics;
@@ -106,11 +103,6 @@ public class ProxyMonitorServiceHandlerMetricsTest {
 
     private static Unmarshaller unmarshaller;
     private static MessageFactory messageFactory;
-
-    @Rule
-    public final ProvideSystemProperty configurationPathProperty
-            = new ProvideSystemProperty(SystemProperties.CONFIGURATION_PATH,
-            "src/test/resources/");
 
     private ServerConfProvider serverConfProvider;
     private GlobalConfProvider globalConfProvider;
@@ -219,6 +211,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
 
     /**
      * As above but only environmental parameters defined in outputSpec.
+     *
      * @throws Exception
      */
     @Test

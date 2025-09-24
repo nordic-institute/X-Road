@@ -75,13 +75,13 @@ public class TokenPinValidatorTest {
     }
 
     @Test
-    void validateSoftwareTokenPinNotEnforcedSuccess(){
+    void validateSoftwareTokenPinNotEnforcedSuccess() {
         when(signerRpcClient.isEnforcedTokenPinPolicy()).thenReturn(false);
         tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray());
     }
 
     @Test
-    void validateSoftwareTokenPinInvalid()  {
+    void validateSoftwareTokenPinInvalid() {
         assertThrows(
                 InvalidCharactersException.class,
                 () -> tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_INVALID_PIN.toCharArray())
