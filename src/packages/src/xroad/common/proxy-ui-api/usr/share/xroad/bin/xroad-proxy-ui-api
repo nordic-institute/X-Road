@@ -1,3 +1,0 @@
-#!/bin/bash
-. /etc/xroad/services/proxy-ui-api.conf
-exec java $XROAD_PARAMS ${XROAD_PROXY_UI_API_PARAMS} -jar ${JAR}

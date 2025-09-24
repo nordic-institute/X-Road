@@ -1,4 +1,0 @@
-#!/bin/bash
-. /etc/xroad/services/confclient.conf
-exec java ${XROAD_PARAMS} ${XROAD_CONFCLIENT_PARAMS} -jar /usr/share/xroad/jlib/configuration-client.jar
-
