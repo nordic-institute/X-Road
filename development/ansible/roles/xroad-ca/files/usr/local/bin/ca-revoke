@@ -1,0 +1,9 @@
+#!/bin/sh
+# make it possible to pipe the cert to revoke
+tmp=$(mktemp -dt "ca-XXXXXX") || exit 1
+set -e
+cat - > "$tmp"/revoke.crt
+chmod o+x "$tmp"
+chmod o+r "$tmp"/revoke.crt
+sudo -u ca /home/ca/CA/revoke.sh "$tmp"/revoke.crt
+rm -Ifd "$tmp"/revoke.crt "$tmp"

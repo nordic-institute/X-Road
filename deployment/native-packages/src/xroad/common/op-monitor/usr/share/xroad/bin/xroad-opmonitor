@@ -1,0 +1,3 @@
+#!/bin/bash
+. /etc/xroad/services/opmonitor.conf
+exec java ${XROAD_PARAMS} ${XROAD_OPMON_PARAMS} -jar /usr/share/xroad/jlib/op-monitor-daemon.jar
