@@ -28,7 +28,6 @@ package org.niis.xroad.securityserver.restapi.auth;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import jakarta.servlet.http.Cookie;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -69,16 +69,14 @@ import java.util.stream.Collectors;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig.FORM_LOGIN_AUTHENTICATION;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(print = MockMvcPrint.LOG_DEBUG)
 @AutoConfigureTestDatabase
-@Slf4j
 @ActiveProfiles("test")
 public class CsrfWebMvcTest {
     public static final String XSRF_HEADER = "X-XSRF-TOKEN";
@@ -137,7 +135,6 @@ public class CsrfWebMvcTest {
     public void login() throws Exception {
         MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.post("/login");
         mockMvc.perform(mockRequest)
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(cookie().exists(XSRF_COOKIE))
                 .andReturn()
@@ -160,7 +157,6 @@ public class CsrfWebMvcTest {
                 .header(XSRF_HEADER, tokenValue)
                 .cookie(new Cookie(XSRF_COOKIE, tokenValue));
         mockMvc.perform(mockRequest)
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(expectedUserJsonString));
     }
@@ -177,7 +173,6 @@ public class CsrfWebMvcTest {
                 .header(XSRF_HEADER, "wrong-value")
                 .cookie(new Cookie(XSRF_COOKIE, tokenValue));
         mockMvc.perform(mockRequest)
-                .andDo(print())
                 .andExpect(status().isForbidden());
     }
 
@@ -193,7 +188,6 @@ public class CsrfWebMvcTest {
                 .header(XSRF_HEADER, tokenValue)
                 .cookie(new Cookie(XSRF_COOKIE, "wrong-value"));
         mockMvc.perform(mockRequest)
-                .andDo(print())
                 .andExpect(status().isForbidden());
     }
 
@@ -211,7 +205,6 @@ public class CsrfWebMvcTest {
         String expectedUserJsonString = JsonUtils.getObjectWriter().writeValueAsString(expectedUser);
         MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("http://localhost:4000/api/v1/user");
         mockMvc.perform(mockRequest)
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(expectedUserJsonString))
                 .andExpect(cookie().doesNotExist(XSRF_COOKIE));

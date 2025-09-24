@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.jboss-test-logging-conventions")
   alias(libs.plugins.jandex)
 }
 
@@ -8,6 +9,8 @@ dependencies {
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:serverconf-core"))
   implementation(project(":lib:asic-core"))
+
+  implementation(libs.smallrye.config.core)
 
   api(project(":service:configuration-client:configuration-client-model")) //TODO this is due to diagnostic status, might be dropped
   // if messagelog moves to proxy

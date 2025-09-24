@@ -6,7 +6,7 @@ plugins {
 
 dependencies {
   implementation(libs.slf4j.api)
-  implementation(libs.smallrye.config.core)
+  implementation(libs.microprofile.config.api)
   implementation(libs.hikariCP)
 
   testImplementation(libs.h2database)

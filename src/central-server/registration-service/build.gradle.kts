@@ -32,7 +32,7 @@ dependencies {
   implementation(project(":lib:globalconf-spring"))
 
   implementation(project(":common:common-management-request")) {
-    exclude( module = "spring-boot-starter-tomcat")
+    exclude(module = "spring-boot-starter-tomcat")
   }
 
   implementation(project(":common:common-management-service")) {
