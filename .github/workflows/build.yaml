@@ -98,7 +98,7 @@ jobs:
           docker system prune -f --volumes
           df -h
           echo "Deleting Quarkus-Build folders..."
-          find . -type d -name 'quarkus-build' -exec rm -rf
+          find . -type d -name 'quarkus-build' -exec rm -rf {} +
           df -h
       - name: Test report
         env:
