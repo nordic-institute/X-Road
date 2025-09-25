@@ -43,7 +43,7 @@ public class BaseTestUsingDB {
             "xroad.db.op-monitor.hibernate.jdbc.batch_size", "100",
             "xroad.db.op-monitor.hibernate.dialect", "org.hibernate.dialect.HSQLDialect",
             "xroad.db.op-monitor.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
-            "xroad.db.op-monitor.hibernate.connection.url", "jdbc:hsqldb:mem:op-monitor;hsqldb.sqllog=3",
+            "xroad.db.op-monitor.hibernate.connection.url", "jdbc:hsqldb:mem:op-monitor;hsqldb.sqllog=0",
             "xroad.db.op-monitor.hibernate.connection.username", "opmonitor",
             "xroad.db.op-monitor.hibernate.connection.password", "opmonitor",
             "xroad.db.op-monitor.hibernate.hbm2ddl.auto", "create-drop"
