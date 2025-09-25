@@ -91,7 +91,8 @@ jobs:
         run: |
           echo "Available disk space pre-build:"
           df -h
-          docker builder prune
+          docker system df
+          docker builder prune -f
           df -h
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5555
           echo "Available disk space post-build:"
