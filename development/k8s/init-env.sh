@@ -10,6 +10,7 @@ if ! command -v kubectl &>/dev/null; then
   exit 1
 fi
 
+
 tofu -chdir=terraform/environments/dev init
 
 echo "Destroying existing dev environment..."
