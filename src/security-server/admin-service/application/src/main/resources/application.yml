@@ -58,6 +58,7 @@ xroad:
     global-conf:
       refresh-rate: -1 # UI has its own refresh job.
   proxy-ui-api:
+    authentication-provider: PAM
     rate-limit-requests-per-second: 20
     rate-limit-requests-per-minute: 600
     rate-limit-cache-size: 10_000

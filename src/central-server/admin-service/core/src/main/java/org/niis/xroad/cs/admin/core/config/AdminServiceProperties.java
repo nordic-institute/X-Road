@@ -171,6 +171,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     /** Algorithm that will be used when creating internal configuration signing key. */
     private KeyAlgorithm internalKeyAlgorithm;
 
+    private AuthenticationProviderType authenticationProvider;
+
+    private boolean enforceUserPasswordPolicy;
+
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
         EnumMap<Role, List<String>> userRoleMappings = new EnumMap<>(Role.class);

@@ -5,7 +5,8 @@ spring:
     import:
       - classpath:/xroad-common.yaml
   servlet:
-    multipart.enabled: false
+    multipart:
+      enabled: false
   jackson:
     default-property-inclusion: NON_NULL
 
@@ -19,6 +20,7 @@ server:
       max-queue-capacity: 10000
       max: 32
       acceptors: 2
+    max-http-form-post-size: 51200
   servlet:
     jsp:
       registered: false
