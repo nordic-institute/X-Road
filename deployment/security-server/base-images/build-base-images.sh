@@ -182,22 +182,6 @@ construct_version() {
     fi
 }
 
-get_image_size() {
-    local image="$1"
-    local size_info
-    if size_info=$(docker buildx imagetools inspect "$image" --format '{{json .}}' 2>/dev/null); then
-        local total_bytes
-        total_bytes=$(echo "$size_info" | grep -o '"size":[0-9]*' | grep -o '[0-9]*' | awk '{sum += $1} END {print sum}')
-        
-        if [[ -n "$total_bytes" && $total_bytes -gt 0 ]]; then
-            echo "$total_bytes" | awk '{printf "%.1f MB", $1/1024/1024}'
-        else
-            echo "Unknown"
-        fi
-    else
-        echo "Unknown"
-    fi
-}
 
 # Function to format duration
 format_duration() {
@@ -254,7 +238,6 @@ IMAGES="ss-baseline-runtime:Dockerfile-baseline ss-baseline-backup-manager-runti
 
 # Build summary data
 BUILD_TIMES=""
-IMAGE_SIZES=""
 BUILD_SUMMARY=""
 
 log_info "=== X-Road Base Images Build ==="
@@ -295,16 +278,6 @@ get_build_time() {
     echo "$BUILD_TIMES" | tr ' ' '\n' | grep "^${image_name}:" | cut -d':' -f2
 }
 
-add_image_size() {
-    local image_name="$1"
-    local image_size="$2"
-    IMAGE_SIZES="${IMAGE_SIZES}${image_name}:${image_size} "
-}
-
-get_image_size_data() {
-    local image_name="$1"
-    echo "$IMAGE_SIZES" | tr ' ' '\n' | grep "^${image_name}:" | cut -d':' -f2-
-}
 
 # Build images
 log_info "Building base images..."
@@ -357,11 +330,7 @@ for image_entry in $IMAGES; do
         build_end=$(date +%s)
         build_duration=$((build_end - build_start))
         add_build_time "$image_name" "$build_duration"
-        
-        # Get image size
-        image_size=$(get_image_size "${full_image_name}:${VERSION}")
-        add_image_size "$image_name" "$image_size"
-        
+
         log_success "Built $image_name in $(format_duration $build_duration)"
     else
         log_error "Failed to build $image_name"
@@ -387,8 +356,8 @@ generate_build_summary() {
     summary+="**Total Build Time:** $(format_duration $TOTAL_BUILD_TIME)\n\n"
     
     summary+="## Images Built\n\n"
-    summary+="| Image | Version Tags | Size | Build Time |\n"
-    summary+="|-------|-------------|------|------------|\n"
+    summary+="| Image | Version Tags | Build Time |\n"
+    summary+="|-------|-------------|------------|\n"
     
     for image_entry in $IMAGES; do
         local image_name=$(echo "$image_entry" | cut -d':' -f1)
@@ -399,16 +368,10 @@ generate_build_summary() {
             tags="\`${VERSION}\`, \`${BASE_VERSION}-SNAPSHOT\`"
         fi
         
-        local size=$(get_image_size_data "$image_name")
         local build_time_seconds=$(get_build_time "$image_name")
         local build_time=$(format_duration $build_time_seconds)
         
-        # Ensure size is never empty for table formatting
-        if [[ -z "$size" ]]; then
-            size="Unknown"
-        fi
-        
-        summary+="| \`$image_name\` | $tags | $size | $build_time |\n"
+        summary+="| \`$image_name\` | $tags | $build_time |\n"
     done
     
     echo -e "$summary"
