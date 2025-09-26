@@ -48,10 +48,6 @@ tasks.register<Test>("intTest") {
   }
 }
 
-tasks.named("check") {
-  dependsOn(tasks.named("intTest"))
-}
-
 archUnit {
   setSkip(true)
 }

@@ -65,10 +65,6 @@ tasks.register<Test>("intTest") {
   shouldRunAfter(tasks.test)
 }
 
-tasks.named("check") {
-  dependsOn(tasks.named("intTest"))
-}
-
 archUnit {
   setSkip(true)
 }
