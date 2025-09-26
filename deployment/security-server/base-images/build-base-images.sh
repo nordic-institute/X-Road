@@ -202,6 +202,36 @@ get_image_size() {
     fi
 }
 
+# Function to get image size from registry using manifest inspection
+get_registry_image_size() {
+    local image="$1"
+    if command -v docker &>/dev/null; then
+        # Try to get manifest and calculate size using standard tools
+        local manifest_output
+        if manifest_output=$(docker manifest inspect "$image" 2>/dev/null); then
+            # Parse JSON using grep and basic tools to extract layer sizes
+            local total_bytes=0
+            
+            # Extract size values from JSON (works without jq)
+            while IFS= read -r line; do
+                if [[ $line =~ \"size\":[[:space:]]*([0-9]+) ]]; then
+                    total_bytes=$((total_bytes + ${BASH_REMATCH[1]}))
+                fi
+            done <<< "$manifest_output"
+            
+            if [[ $total_bytes -gt 0 ]]; then
+                echo "$total_bytes" | awk '{printf "%.1f MB", $1/1024/1024}'
+            else
+                echo "Unknown"
+            fi
+        else
+            echo "Unknown"
+        fi
+    else
+        echo "Unknown"
+    fi
+}
+
 # Function to format duration
 format_duration() {
     local duration=$1
@@ -365,11 +395,13 @@ for image_entry in $IMAGES; do
         build_duration=$((build_end - build_start))
         add_build_time "$image_name" "$build_duration"
         
-        # Get image size (only for loaded images)
+        # Get image size
         if [[ "$PUSH" == "false" ]]; then
             add_image_size "$image_name" "$(get_image_size "${full_image_name}:${VERSION}")"
         else
-            add_image_size "$image_name" "Pushed to registry"
+            # Get size from registry using manifest inspection
+            local pushed_size=$(get_registry_image_size "${full_image_name}:${VERSION}")
+            add_image_size "$image_name" "$pushed_size"
         fi
         
         log_success "Built $image_name in $(format_duration $build_duration)"
@@ -415,29 +447,6 @@ generate_build_summary() {
         
         summary+="| \`$image_name\` | $tags | $size | $build_time |\n"
     done
-    
-    summary+="\n## Usage\n\n"
-    if [[ "$BUILD_TYPE" == "RELEASE" ]]; then
-        summary+="To use these release images:\n"
-        summary+="\`\`\`bash\n"
-        summary+="export XROAD_IMAGE_REGISTRY=$IMAGE_PREFIX\n"
-        summary+="export BASE_IMAGE_TAG=$VERSION\n"
-        summary+="\`\`\`\n"
-    else
-        summary+="To use these snapshot images:\n"
-        summary+="\`\`\`bash\n"
-        summary+="export XROAD_IMAGE_REGISTRY=$IMAGE_PREFIX\n"
-        summary+="export BASE_IMAGE_TAG=$VERSION\n"
-        summary+="# Or use the snapshot latest:\n"
-        summary+="export BASE_IMAGE_TAG=${BASE_VERSION}-SNAPSHOT\n"
-        summary+="\`\`\`\n"
-    fi
-    
-    if [[ "$ENVIRONMENT" == "ci" ]]; then
-        summary+="\n## Registry Details\n\n"
-        summary+="Images are stored in GitHub Container Registry with internal visibility.\n"
-        summary+="Authentication is handled automatically in CI workflows.\n"
-    fi
     
     echo -e "$summary"
 }
