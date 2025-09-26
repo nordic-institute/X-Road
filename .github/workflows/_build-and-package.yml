@@ -1,0 +1,263 @@
+name: Build and Package
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: true
+        type: string
+      sha:
+        description: 'Git SHA for the build'
+        required: true
+        type: string
+
+jobs:
+  build-and-package:
+    name: Build, test and package code
+    runs-on: ubuntu-22.04
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5555:5000
+    outputs:
+      base-image-tag: ${{ steps.base-images.outputs.base-image-tag }}
+      xroad-version: ${{ steps.base-images.outputs.xroad-version }}
+      xroad-build-type: ${{ steps.base-images.outputs.xroad-build-type }}
+    steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: start-measurement
+          label: 'Build, unit tests and packaging'
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build-env
+        with:
+          gradle-cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+          setup-docker: true
+          free-disk-space: true
+
+      - name: Build, test and package code setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Build environment setup'
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine base image version
+        id: base-images
+        working-directory: ./src
+        run: |
+          # Read version from gradle.properties
+          XROAD_VERSION=$(grep "^xroadVersion=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          XROAD_BUILD_TYPE=$(grep "^xroadBuildType=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          
+          echo "X-Road Version: $XROAD_VERSION"
+          echo "X-Road Build Type: $XROAD_BUILD_TYPE"
+          
+          # Determine which version of base images to use
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            # For release tags, use the exact version
+            BASE_IMAGE_TAG="$XROAD_VERSION"
+            echo "Using release base images: ${BASE_IMAGE_TAG}"
+          elif [[ "$XROAD_BUILD_TYPE" == "RELEASE" ]]; then
+            # For release builds, use the version
+            BASE_IMAGE_TAG="$XROAD_VERSION"
+            echo "Using release base images: ${BASE_IMAGE_TAG}"
+          else
+            # For snapshot builds, use snapshot latest
+            BASE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT"
+            echo "Using snapshot base images: ${BASE_IMAGE_TAG}"
+          fi
+          
+          echo "base-image-tag=${BASE_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "xroad-version=${XROAD_VERSION}" >> $GITHUB_OUTPUT
+          echo "xroad-build-type=${XROAD_BUILD_TYPE}" >> $GITHUB_OUTPUT
+
+      - name: Pull base images from GHCR
+        run: |
+          GHCR_PREFIX="ghcr.io/${{ github.repository }}/base-images"
+          BASE_TAG="${{ steps.base-images.outputs.base-image-tag }}"
+          
+          echo "🔍 Pulling base images with tag: ${BASE_TAG}"
+          echo "📍 Registry: ${GHCR_PREFIX}"
+          echo
+          
+          # Base images we need
+          IMAGES="ss-baseline-runtime ss-baseline-backup-manager-runtime ss-baseline-signer-runtime"
+          
+          # Pull each base image (fail-fast approach)
+          for image in $IMAGES; do
+            ghcr_image="${GHCR_PREFIX}/${image}:${BASE_TAG}"
+            local_image="localhost:5555/${image}:latest"
+            
+            echo "📦 Pulling ${image}:${BASE_TAG}..."
+            
+            if docker pull "$ghcr_image"; then
+              echo "✅ Successfully pulled ${image}:${BASE_TAG}"
+              docker tag "$ghcr_image" "$local_image"
+              docker push "$local_image"
+            else
+              echo ""
+              echo "❌ Failed to pull base image: ${image}:${BASE_TAG}"
+              echo ""
+              echo "🔧 Troubleshooting steps:"
+              echo "   1. Check if base images workflow has run for this version"
+              echo "   2. Verify the version in src/gradle.properties"
+              echo "   3. Manually trigger the base images workflow:"
+              echo "      https://github.com/${{ github.repository }}/actions/workflows/build-base-images.yaml"
+              echo ""
+              echo "🔍 Expected image: ${ghcr_image}"
+              echo "💡 Version source: xroadVersion=${{ steps.base-images.outputs.xroad-version }}, xroadBuildType=${{ steps.base-images.outputs.xroad-build-type }}"
+              echo ""
+              exit 1
+            fi
+          done
+          
+          echo ""
+          echo "✅ All base images pulled successfully!"
+          echo "🏷️  Version: ${BASE_TAG}"
+
+      - name: Build and test source
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: ./src
+        run: |
+          echo "Available disk space pre-build:"
+          df -h
+          docker system df
+          docker builder prune -f
+          df -h
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE build sonar test jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5555 -PbaseImageTag=${{ steps.base-images.outputs.base-image-tag }}
+          echo "Available disk space post-build:"
+          df -h
+          echo "Available disk space post-prune:"
+          docker system prune -f --volumes
+          df -h
+          echo "Deleting Quarkus-Build folders..."
+          find . -type d -name 'quarkus-build' -exec rm -rf {} +
+          df -h
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: Unit and integration tests
+          path: src/**/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+          list-suites: 'failed'
+          list-tests: 'failed'
+
+      - name: Upload intTest reports
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: Integration Test reports
+          path: |
+            src/service/signer/signer-int-test/build/allure-report/
+            src/service/signer/signer-int-test/build/container-logs/
+            src/service/op-monitor/op-monitor-int-test/build/allure-report/
+            src/service/op-monitor/op-monitor-int-test/build/container-logs/
+
+      - name: Build, test and package code execution measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Build, unit tests and packaging'
+
+      - name: Build RHEL8 packages
+        run: |
+          docker build -t rhel8 ${{ github.workspace }}/deployment/native-packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./deployment/native-packages/build-rpm.sh
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/8
+
+      - name: Build RHEL9 packages
+        run: |
+          docker build -t rhel9 ${{ github.workspace }}/deployment/native-packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./deployment/native-packages/build-rpm.sh
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
+
+      - name: Build 22.04 (Jammy) packages
+        env:
+          DEBEMAIL: 'info@niis.org'
+          DEBFULLNAME: 'NIIS'
+        run: ./deployment/native-packages/build-deb.sh jammy -release
+
+      - name: Build 24.04 (Noble) packages
+        env:
+          DEBEMAIL: 'info@niis.org'
+          DEBFULLNAME: 'NIIS'
+        run: |
+          ./deployment/native-packages/build-deb.sh noble -release
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04
+
+      - name: Store deb files for system tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-packages
+          path: deployment/native-packages/build/ubuntu22.04/*.deb
+          compression-level: 0 #No point in compressing these
+
+      - name: Packaging and upload artifacts measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Packaging and upload artifacts'
+
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: display-results
+          pr-comment: true
+
+      - name: Clean up workspace #otherwise might run out of disk space in the next steps
+        working-directory: ./src
+        run: ./gradlew clean
+
+      - name: Save docker images from registry
+        run: |
+          mkdir -p ${{ runner.temp }}/docker-images
+          docker pull localhost:5555/ss-backup-manager:latest
+          docker pull localhost:5555/ss-configuration-client:latest
+          docker pull localhost:5555/ss-proxy:latest
+          docker pull localhost:5555/ss-signer:latest
+          docker pull localhost:5555/ss-monitor:latest
+          docker pull localhost:5555/ss-op-monitor:latest
+          docker pull localhost:5555/ss-proxy-ui-api:latest
+          docker pull localhost:5555/ss-db-serverconf-init:latest
+          docker pull localhost:5555/ss-db-messagelog-init:latest
+          docker pull localhost:5555/ss-db-opmonitor-init:latest
+
+          docker save -o ${{ runner.temp }}/docker-images/ss-backup-manager.tar localhost:5555/ss-backup-manager:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-configuration-client.tar localhost:5555/ss-configuration-client:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-proxy.tar localhost:5555/ss-proxy:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-signer.tar localhost:5555/ss-signer:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-monitor.tar localhost:5555/ss-monitor:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-op-monitor.tar localhost:5555/ss-op-monitor:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-proxy-ui-api.tar localhost:5555/ss-proxy-ui-api:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-serverconf-init.tar localhost:5555/ss-db-serverconf-init:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-messagelog-init.tar localhost:5555/ss-db-messagelog-init:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-opmonitor-init.tar localhost:5555/ss-db-opmonitor-init:latest
+
+      - name: Store docker images for other jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: ${{ runner.temp }}/docker-images

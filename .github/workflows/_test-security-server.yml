@@ -1,0 +1,101 @@
+name: Security Server System Tests
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: true
+        type: string
+      sha:
+        description: 'Git SHA for the build'
+        required: true
+        type: string
+
+jobs:
+  test-security-server:
+    name: Run Security Server system tests
+    runs-on: ubuntu-22.04
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5555:5000
+    steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: start-measurement
+          label: 'Security Server system tests'
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build-env
+        with:
+          gradle-cache-read-only: true
+          free-disk-space: true
+
+      - name: Download SS docker images
+        uses: actions/download-artifact@v5
+        with:
+          name: docker-images
+          path: ${{ runner.temp }}/docker-images
+
+      - name: Load SS docker images into registry
+        run: |
+          for tar in ${{ runner.temp }}/docker-images/*.tar; do
+            echo "Processing $tar..."
+            IMAGE_ID=$(docker load -i "$tar" | awk '/Loaded image:/ {print $NF}')
+            docker push "$IMAGE_ID"
+          done
+
+      - name: Security Server test setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Set up Security Server tests'
+
+      - name: Run Security Server system tests
+        working-directory: ./src
+        run: |
+          echo "Available disk space pre-build:"
+          df -h
+          docker system df
+          docker images
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest
+
+      - name: Test Security Server measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Test Security Server'
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: Security Server system tests
+          path: src/security-server/system-test/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+
+      - name: Upload SS report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: SS System Test report
+          path: |
+            src/security-server/system-test/build/a2c_logs/
+            src/security-server/system-test/build/allure-report/
+            src/security-server/system-test/build/container-logs/
+            src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
+
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: display-results
+          pr-comment: true

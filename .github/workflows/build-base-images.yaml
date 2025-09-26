@@ -20,11 +20,6 @@ on:
         description: 'Override version (optional)'
         required: false
         type: string
-      force_rebuild:
-        description: 'Force rebuild even if no changes detected'
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -94,4 +89,14 @@ jobs:
         run: |
           if [[ -f /tmp/build-summary.md ]]; then
             cat /tmp/build-summary.md >> $GITHUB_STEP_SUMMARY
+          else
+            cat >> $GITHUB_STEP_SUMMARY << EOF
+          # Base Images Build
+          
+          **Status:** Build completed
+          **Trigger:** ${{ github.event_name }}
+          **Branch/Tag:** ${{ github.ref_name }}
+          
+          Build summary file was not generated. Check workflow logs for details.
+          EOF
           fi

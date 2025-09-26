@@ -1,0 +1,124 @@
+name: Central Server System Tests
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: true
+        type: string
+      sha:
+        description: 'Git SHA for the build'
+        required: true
+        type: string
+
+jobs:
+  test-central-server:
+    name: Run Central Server system tests
+    runs-on: ubuntu-22.04
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5555:5000
+    steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: start-measurement
+          label: 'Central Server system tests'
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build-env
+        with:
+          gradle-cache-read-only: true
+          setup-docker: true
+          free-disk-space: true
+
+      - name: Initialize docker setup
+        working-directory: ./development/docker/central-server
+        run: ./init_context.sh
+
+      - name: Download debian packages
+        uses: actions/download-artifact@v5
+        with:
+          name: debian-packages
+          path: ./development/docker/central-server/build/packages/
+
+      - name: List docker build files
+        run: ls -lah ./development/docker/central-server/build
+
+      - name: Build CS docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./development/docker/central-server/
+          push: true
+          build-args: |
+            PACKAGE_SOURCE=internal
+          tags: localhost:5555/xrd-centralserver:${{ inputs.sha }}
+
+      - name: Central Server test setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Set up Central Server tests'
+
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: true
+          dotnet: true
+          haskell: true
+
+      - name: Run Central Server system tests
+        working-directory: ./src
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5555/xrd-centralserver:${{ inputs.sha }}
+
+      - name: Test Central Server measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Test Central Server'
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: Central Server system test
+          path: src/central-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+
+      - name: Upload CS screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CS System Test screenshots
+          path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
+
+      - name: Upload CS report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: CS System Test report
+          path: |
+            src/central-server/admin-service/ui-system-test/build/allure-report/
+
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: display-results
+          pr-comment: true
+
+      - name: Upload GMT jsons
+        uses: actions/upload-artifact@v4
+        with:
+          name: CS System Test GMT jsons
+          path: |
+            /tmp/eco-ci/lap-data.json
+            /tmp/eco-ci/total-data.json
