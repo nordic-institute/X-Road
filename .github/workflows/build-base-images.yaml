@@ -66,23 +66,80 @@ jobs:
       - name: Set packages as internal
         run: |
           # Set all base image packages as internal
+          # Convert repository name to lowercase for consistency
+          REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2 | tr '[:upper:]' '[:lower:]')
+          
           IMAGES=(
             "ss-baseline-runtime"
             "ss-baseline-backup-manager-runtime" 
             "ss-baseline-signer-runtime"
           )
           
+          echo "Repository: ${REPO_LOWERCASE}"
+          echo "Repository owner: ${REPO_OWNER}"
+          echo "Repository name: ${REPO_NAME}"
+          echo "Waiting for packages to be fully available..."
+          sleep 15  # Give time for packages to be created and indexed after push
+          
           for image in "${IMAGES[@]}"; do
-            PACKAGE_NAME="base-images/${image}"
-            echo "Setting ${PACKAGE_NAME} as internal..."
+            # The package name in GitHub API corresponds to the full image path after ghcr.io/
+            # For ghcr.io/nordic-institute/x-road/base-images/ss-baseline-runtime
+            # The package name should be: x-road/base-images/ss-baseline-runtime (without the org prefix)
+            PACKAGE_NAME="${REPO_NAME}%2Fbase-images%2F${image}"  # URL encode the slashes
+            echo "Setting package ${REPO_NAME}/base-images/${image} as internal..."
             
-            # Update package visibility to internal
-            curl -X PATCH \
+            # Try organization packages API (most common for org repositories)
+            echo "Checking organization packages API..."
+            RESPONSE=$(curl -s -w "HTTP_STATUS:%{http_code}" \
               -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
-              -H "Content-Type: application/json" \
-              "https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/${PACKAGE_NAME}" \
-              -d '{"visibility":"internal"}' || true
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/orgs/${REPO_OWNER}/packages/container/${PACKAGE_NAME}")
+            
+            HTTP_STATUS=$(echo $RESPONSE | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+            
+            if [[ "$HTTP_STATUS" == "200" ]]; then
+              echo "✅ Package found in organization, setting visibility..."
+              curl -s -X PATCH \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                -H "Content-Type: application/json" \
+                "https://api.github.com/orgs/${REPO_OWNER}/packages/container/${PACKAGE_NAME}" \
+                -d '{"visibility":"internal"}' && echo "✅ Visibility set to internal" || echo "❌ Failed to set visibility"
+            else
+              echo "⚠️  Package not found via org API (HTTP $HTTP_STATUS)"
+              
+              # Try user packages API as fallback
+              echo "Trying user packages API as fallback..."
+              RESPONSE=$(curl -s -w "HTTP_STATUS:%{http_code}" \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "https://api.github.com/user/packages/container/${PACKAGE_NAME}")
+              
+              HTTP_STATUS=$(echo $RESPONSE | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+              
+              if [[ "$HTTP_STATUS" == "200" ]]; then
+                echo "✅ Package found in user packages, setting visibility..."
+                curl -s -X PATCH \
+                  -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                  -H "Accept: application/vnd.github.v3+json" \
+                  -H "X-GitHub-Api-Version: 2022-11-28" \
+                  -H "Content-Type: application/json" \
+                  "https://api.github.com/user/packages/container/${PACKAGE_NAME}" \
+                  -d '{"visibility":"internal"}' && echo "✅ Visibility set to internal" || echo "❌ Failed to set visibility"
+              else
+                echo "⚠️  Package not found via user API either (HTTP $HTTP_STATUS)"
+                echo "📋 Manual setup required:"
+                echo "   1. Go to https://github.com/${REPO_OWNER}?tab=packages"
+                echo "   2. Find '${REPO_NAME}/base-images/${image}' package"
+                echo "   3. Click Settings → Change visibility → Internal"
+              fi
+            fi
+            echo
           done
 
       - name: Add build summary to step summary
