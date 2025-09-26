@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - develop-8.x
+      - XRDDEV-3003
     paths:
       - 'deployment/security-server/base-images/**'
       - 'src/libs/pkcs11wrapper/**'
