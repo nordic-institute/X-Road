@@ -88,11 +88,15 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src
         run: |
-          # Setup GHCR registry prefix for Gradle
+          # Setup GHCR registry URL (unified for both base images and application images)
           REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          GHCR_PREFIX="ghcr.io/${REPO_LOWERCASE}/base-images"
+          IMAGE_REGISTRY="ghcr.io/${REPO_LOWERCASE}"
           
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE build sonar test jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=${GHCR_PREFIX} -PbaseImageTag=${{ steps.base-images.outputs.base-image-tag }}
+          echo "🏗️ Build configuration:"
+          echo "  Registry: ${IMAGE_REGISTRY}"
+          echo "  Base Image Tag: ${{ steps.base-images.outputs.base-image-tag }}"
+          
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE build sonar test jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=${IMAGE_REGISTRY} -PbaseImageTag=${{ steps.base-images.outputs.base-image-tag }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'

@@ -25,7 +25,7 @@ quarkus {
       put("quarkus.jib.working-directory", "/opt/app")
 
       val baseImageTag = project.findProperty("baseImageTag") ?: "latest"
-      put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/ss-baseline-runtime:${baseImageTag}")
+      put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/base-images/ss-baseline-runtime:${baseImageTag}")
       put("quarkus.jib.platforms", "linux/amd64,linux/arm64/v8")
       put("quarkus.jib.user", "xroad")
 
