@@ -206,18 +206,37 @@ get_image_size() {
 get_registry_image_size() {
     local image="$1"
     if command -v docker &>/dev/null; then
-        # Try to get manifest and calculate size using standard tools
+        # Method 1: Try docker image inspect (if image was built locally)
+        if docker image inspect "$image" &>/dev/null; then
+            docker image inspect "$image" --format='{{.Size}}' | awk '{printf "%.1f MB", $1/1024/1024}'
+            return
+        fi
+        
+        # Method 2: Try buildkit image tools
+        if command -v docker &>/dev/null; then
+            local size_info
+            if size_info=$(docker buildx imagetools inspect "$image" --format '{{json .}}' 2>/dev/null); then
+                # Extract size from buildkit imagetools output
+                local total_bytes
+                total_bytes=$(echo "$size_info" | grep -o '"size":[0-9]*' | grep -o '[0-9]*' | awk '{sum += $1} END {print sum}')
+                if [[ -n "$total_bytes" && $total_bytes -gt 0 ]]; then
+                    echo "$total_bytes" | awk '{printf "%.1f MB", $1/1024/1024}'
+                    return
+                fi
+            fi
+        fi
+        
+        # Method 3: Fallback - estimate from layers in manifest  
         local manifest_output
         if manifest_output=$(docker manifest inspect "$image" 2>/dev/null); then
-            # Parse JSON using grep and basic tools to extract layer sizes
+            # Look for both "size" and "compressedSize" fields
             local total_bytes=0
+            local sizes
+            sizes=$(echo "$manifest_output" | grep -E '"(size|compressedSize)"' | grep -o '[0-9][0-9]*')
             
-            # Extract size values from JSON (works without jq)
-            while IFS= read -r line; do
-                if [[ $line =~ \"size\":[[:space:]]*([0-9]+) ]]; then
-                    total_bytes=$((total_bytes + ${BASH_REMATCH[1]}))
-                fi
-            done <<< "$manifest_output"
+            for size in $sizes; do
+                total_bytes=$((total_bytes + size))
+            done
             
             if [[ $total_bytes -gt 0 ]]; then
                 echo "$total_bytes" | awk '{printf "%.1f MB", $1/1024/1024}'
