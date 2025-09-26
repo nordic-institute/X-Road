@@ -73,7 +73,7 @@ excludes:
       reason: "BUILD_TOOL_OF"
       comment: "This is a build tool."
 
-    - pattern: "src/packages/**"
+    - pattern: "deployment/native-packages/**"
       reason: "BUILD_TOOL_OF"
       comment: "This directory contains packaging scripts."
 

@@ -35,6 +35,12 @@ if (!buildImages.toBoolean()) {
   tasks.withType<com.google.cloud.tools.jib.gradle.JibTask>().configureEach {
     enabled = false
   }
+} else {
+  tasks.withType<com.google.cloud.tools.jib.gradle.JibTask>().configureEach {
+    doFirst {
+      System.setProperty("jib.console", "plain")
+    }
+  }
 }
 
 tasks.register<Copy>("prepareLicenseFiles") {

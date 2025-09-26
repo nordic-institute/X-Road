@@ -1,0 +1,5 @@
+#!/bin/sh
+tmp=$(mktemp -dt "sign-auth-XXXXX") || exit 1
+cat - > "$tmp/auth-csr.csr"
+/usr/local/bin/sign "$tmp/auth-csr.csr"
+rm -fd "$tmp"/* "$tmp"

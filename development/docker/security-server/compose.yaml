@@ -12,7 +12,7 @@ services:
     networks:
       - xrd-ss-network
     volumes:
-      - ../../../src/packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts/:/scripts
+      - ../../../deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts/:/scripts
   db-serverconf:
     image: postgres:16
     environment:

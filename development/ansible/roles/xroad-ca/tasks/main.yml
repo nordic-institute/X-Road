@@ -167,7 +167,7 @@
 
 - name: copy acme2certifier conf
   copy:
-    src: "../acme2certifier/{{ item }}"
+    src: "../../../acme2certifier/{{ item }}"
     dest: /var/www/acme2certifier/acme_srv/acme_srv.cfg
     group: "www-data"
     owner: "www-data"
@@ -177,7 +177,7 @@
 
 - name: copy acme2certifier external account binding conf
   copy:
-    src: "../acme2certifier/{{ item }}"
+    src: "../../../acme2certifier/{{ item }}"
     dest: /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
     group: "www-data"
     owner: "www-data"
@@ -187,7 +187,7 @@
 
 - name: copy acme2certifier openssl handler
   copy:
-    src: "../acme2certifier/{{ item }}"
+    src: "../../../acme2certifier/{{ item }}"
     dest: /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
     group: "www-data"
     owner: "www-data"
