@@ -196,9 +196,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     // signature digest algorithm ID used for generating authentication certificate registration request
     private String authCertRegSignatureDigestAlgorithmId;
 
-    private String proxyServerUrl;
-    private int proxyConnectTimeout;
-    private int proxySocketTimeout;
+    private String managementProxyServerUrl;
+    private int managementProxyServerConnectTimeout;
+    private int managementProxyServerSocketTimeout;
+    private boolean managementProxyServerEnableConnectionReuse;
     private String[] proxyTlsProtocols = DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS;
     private String[] proxyTlsCipherSuites = DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES;
 

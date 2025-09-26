@@ -98,13 +98,14 @@ public abstract class MessageProcessorBase {
      * Returns a new instance of http sender.
      */
     protected HttpSender createHttpSender() {
-        return new HttpSender(httpClient);
+        return new HttpSender(httpClient,
+                commonBeanProxy.getProxyProperties().clientProxy().poolEnableConnectionReuse());
     }
 
     /**
      * Called when processing started.
      */
-    protected void preprocess() throws Exception {
+    protected void preprocess() {
     }
 
     /**

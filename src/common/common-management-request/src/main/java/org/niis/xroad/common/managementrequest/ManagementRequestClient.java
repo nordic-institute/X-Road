@@ -75,6 +75,7 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
     private final GlobalConfProvider globalConfProvider;
     private final int connectTimeout;
     private final int socketTimeout;
+    private final boolean isEnabledPooledConnectionReuse;
 
     private CloseableHttpClient centralHttpClient;
     private CloseableHttpClient proxyHttpClient;
@@ -89,7 +90,7 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
     }
 
     private HttpSender createSender(CloseableHttpClient client) {
-        HttpSender httpSender = new HttpSender(client);
+        HttpSender httpSender = new HttpSender(client, isEnabledPooledConnectionReuse);
 
         httpSender.setConnectionTimeout(connectTimeout);
         httpSender.setSocketTimeout(socketTimeout);
@@ -98,11 +99,12 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
     }
 
     ManagementRequestClient(VaultKeyProvider vaultKeyProvider, GlobalConfProvider globalConfProvider,
-                            int connectTimeout, int socketTimeout) {
+                            int connectTimeout, int socketTimeout, boolean isEnabledPooledConnectionReuse) {
         this.vaultKeyProvider = vaultKeyProvider;
         this.globalConfProvider = globalConfProvider;
         this.connectTimeout = connectTimeout;
         this.socketTimeout = socketTimeout;
+        this.isEnabledPooledConnectionReuse = isEnabledPooledConnectionReuse;
         try {
             createCentralHttpClient();
             createProxyHttpClient();

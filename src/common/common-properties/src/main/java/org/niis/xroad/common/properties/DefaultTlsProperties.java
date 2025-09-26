@@ -57,7 +57,3 @@ public final class DefaultTlsProperties {
     }
 
 }
-
-
-
-

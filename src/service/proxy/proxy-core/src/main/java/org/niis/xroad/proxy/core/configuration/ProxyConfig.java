@@ -66,17 +66,18 @@ public class ProxyConfig {
 
         @Startup
         @ApplicationScoped
-        public OpMonitoringBuffer opMonitoringBuffer(ProxyProperties.ProxyAddonProperties addonProperties,
-                                                     OpMonitorCommonProperties opMonitorCommonProperties,
+        public OpMonitoringBuffer opMonitoringBuffer(OpMonitorCommonProperties opMonitorCommonProperties,
                                                      ServerConfProvider serverConfProvider,
+                                                     ProxyProperties proxyProperties,
                                                      VaultClient vaultClient)
                 throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
                 InvalidKeySpecException, KeyManagementException {
 
-            if (addonProperties.opMonitor().enabled()) {
+            if (proxyProperties.addOn().opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
                 var opMonitoringBuffer = new OpMonitoringBufferImpl(
-                        serverConfProvider, opMonitorCommonProperties, vaultClient);
+                        serverConfProvider, opMonitorCommonProperties, vaultClient,
+                        proxyProperties.clientProxy().poolEnableConnectionReuse());
                 opMonitoringBuffer.init();
                 return opMonitoringBuffer;
             } else {

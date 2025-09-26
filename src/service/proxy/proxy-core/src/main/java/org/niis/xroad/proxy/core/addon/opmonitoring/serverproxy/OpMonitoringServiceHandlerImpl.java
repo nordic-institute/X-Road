@@ -32,7 +32,6 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -60,20 +59,22 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SER
  */
 @Slf4j
 
-@ApplicationScoped
 public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private final OpMonitorCommonProperties commonProperties;
 
     private final String opMonitorAddress;
 
+    private final boolean isEnabledPooledConnectionReuse;
+
     private HttpSender sender;
 
     public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
-                                          OpMonitorCommonProperties opMonitorCommonProperties) {
+                                          OpMonitorCommonProperties opMonitorCommonProperties, boolean isEnabledPooledConnectionReuse) {
         super(serverConfProvider, globalConfProvider);
         this.commonProperties = opMonitorCommonProperties;
         this.opMonitorAddress = getOpMonitorAddress();
+        this.isEnabledPooledConnectionReuse = isEnabledPooledConnectionReuse;
     }
 
     @Override
@@ -130,8 +131,8 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         return sender.getResponseContent();
     }
 
-    private static HttpSender createHttpSender(HttpClient opMonitorClient) {
-        return new HttpSender(opMonitorClient);
+    private HttpSender createHttpSender(HttpClient opMonitorClient) {
+        return new HttpSender(opMonitorClient, isEnabledPooledConnectionReuse);
     }
 
     private void sendRequest(ProxyMessage proxyRequestMessage, OpMonitoringData opMonitoringData) {

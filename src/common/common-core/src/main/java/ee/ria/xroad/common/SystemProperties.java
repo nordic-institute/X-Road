@@ -40,7 +40,6 @@ public final class SystemProperties {
 
     /** The prefix for all properties. */
     public static final String PREFIX = "xroad.";
-    private static final String SIGNER_PREFIX = PREFIX + "signer.";
     private static final String CENTER_PREFIX = PREFIX + "center.";
 
     // Common -----------------------------------------------------------------
@@ -73,14 +72,10 @@ public final class SystemProperties {
     private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
             PREFIX + "configuration-proxy.minimum-global-configuration-version";
 
-    // Proxy ------------------------------------------------------------------
-
-    private static final String PROXY_PREFIX = PREFIX + "proxy.";
-
-    private static final String CLIENTPROXY_POOL_REUSE_CONNECTIONS =
-            PROXY_PREFIX + "pool-enable-connection-reuse";
-
     private static final String FALSE = Boolean.FALSE.toString();
+
+    // Center -----------------------------------------------------------------
+
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = FALSE;
@@ -88,14 +83,6 @@ public final class SystemProperties {
     private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = FALSE;
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = FALSE;
-
-    /**
-     * The default value of the on/off switch for a group of settings that affect whether or not pooled connections
-     * for the ClientProxy can be actually reused
-     **/
-    private static final String DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS = FALSE;
-
-    // Center -----------------------------------------------------------------
 
     public static final String CENTER_DATABASE_PROPERTIES = CENTER_PREFIX + "database-properties";
 
@@ -320,11 +307,6 @@ public final class SystemProperties {
      */
     public static String getConfigurationProxyAddress() {
         return getProperty(CONFIGURATION_PROXY_ADDRESS, DEFAULT_CONNECTOR_HOST);
-    }
-
-    public static boolean isEnableClientProxyPooledConnectionReuse() {
-        return Boolean.parseBoolean(getProperty(CLIENTPROXY_POOL_REUSE_CONNECTIONS,
-                DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS));
     }
 
     /**

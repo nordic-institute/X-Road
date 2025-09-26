@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -122,7 +121,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
         httpSender.setAttribute(ID_TARGETS, addresses);
 
-        if (SystemProperties.isEnableClientProxyPooledConnectionReuse()) {
+        if (commonBeanProxy.getProxyProperties().clientProxy().poolEnableConnectionReuse()) {
             // set the servers with this subsystem as the user token, this will pool the connections per groups of
             // security servers.
             httpSender.setAttribute(HttpClientContext.USER_TOKEN, new TargetHostsUserToken(addresses));

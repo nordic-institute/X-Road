@@ -46,20 +46,20 @@ public class ServiceHandlerLoader {
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final MonitorRpcClient monitorRpcClient;
-    private final ProxyProperties.ProxyAddonProperties addonProperties;
-    private final ProxyProperties.ClientProxyProperties clientProxyProperties;
+    private final ProxyProperties proxyProperties;
     private final OpMonitorCommonProperties opMonitorCommonProperties;
 
     public Collection<ServiceHandler> loadSoapServiceHandlers() {
         Collection<ServiceHandler> handlers = new ArrayList<>();
-        if (addonProperties.metaservices().enabled()) {
+        if (proxyProperties.addOn().metaservices().enabled()) {
             handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                    clientProxyProperties.clientTlsProtocols(), clientProxyProperties.clientTlsCiphers()));
+                    proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers()));
         }
-        if (addonProperties.opMonitor().enabled()) {
-            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, opMonitorCommonProperties));
+        if (proxyProperties.addOn().opMonitor().enabled()) {
+            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, opMonitorCommonProperties,
+                    proxyProperties.clientProxy().poolEnableConnectionReuse()));
         }
-        if (addonProperties.proxyMonitor().enabled()) {
+        if (proxyProperties.addOn().proxyMonitor().enabled()) {
             handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider, monitorRpcClient));
         }
         return handlers;
@@ -67,9 +67,9 @@ public class ServiceHandlerLoader {
 
     public Collection<RestServiceHandler> loadRestServiceHandlers() {
         Collection<RestServiceHandler> handlers = new ArrayList<>();
-        if (addonProperties.metaservices().enabled()) {
-            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, clientProxyProperties.clientTlsProtocols(),
-                    clientProxyProperties.clientTlsCiphers()));
+        if (proxyProperties.addOn().metaservices().enabled()) {
+            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties.clientProxy().clientTlsProtocols(),
+                    proxyProperties.clientProxy().clientTlsCiphers()));
         }
         return handlers;
     }

@@ -70,6 +70,7 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.client-tls-ciphers", "proxy.client-proxy.client-tls-ciphers");
         MAPPING.put("proxy.client-httpclient-so-linger", "proxy.client-proxy.client-httpclient-so-linger");
         MAPPING.put("proxy.client-timeout", "proxy.client-proxy.client-timeout");
+        MAPPING.put("proxy.pool-enable-connection-reuse", "proxy.client-proxy.pool-enable-connection-reuse");
         MAPPING.put("proxy.client-httpclient-timeout", "proxy.client-proxy.client-httpclient-timeout");
         MAPPING.put("proxy.pool-total-max-connections", "proxy.client-proxy.pool-total-max-connections");
         MAPPING.put("proxy.pool-total-default-max-connections-per-route", "proxy.client-proxy.pool-total-default-max-connections-per-route");

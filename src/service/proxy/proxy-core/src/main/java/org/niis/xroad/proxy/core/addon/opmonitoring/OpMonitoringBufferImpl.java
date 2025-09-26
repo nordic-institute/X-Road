@@ -67,14 +67,9 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
 
     final BlockingDeque<OpMonitoringData> buffer = new LinkedBlockingDeque<>();
 
-    /**
-     * Constructor.
-     *
-     * @throws Exception if an error occurs
-     */
     public OpMonitoringBufferImpl(ServerConfProvider serverConfProvider,
                                   OpMonitorCommonProperties opMonitorCommonProperties,
-                                  VaultClient vaultClient)
+                                  VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
             NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
 
@@ -88,7 +83,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
             opMonitoringDataProcessor = null;
             savedServiceEndpoint = null;
         } else {
-            sender = createSender(serverConfProvider, opMonitorCommonProperties, vaultClient);
+            sender = createSender(serverConfProvider, opMonitorCommonProperties, vaultClient, isEnabledPooledConnectionReuse);
             executorService = Executors.newSingleThreadExecutor();
             taskScheduler = Executors.newSingleThreadScheduledExecutor();
             opMonitoringDataProcessor = createDataProcessor();
@@ -102,10 +97,11 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
 
     OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
                                           OpMonitorCommonProperties opMonCommonProperties,
-                                          VaultClient vaultClient)
+                                          VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
             NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
-        return new OpMonitoringDaemonSender(serverConfProvider, this, opMonCommonProperties, vaultClient);
+        return new OpMonitoringDaemonSender(serverConfProvider, this, opMonCommonProperties,
+                vaultClient, isEnabledPooledConnectionReuse);
     }
 
     @Override

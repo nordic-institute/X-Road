@@ -168,6 +168,10 @@ public interface ProxyProperties {
         @WithName("client-tls-ciphers")
         @WithDefault(DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING)
         String[] clientTlsCiphers();
+
+        @WithName("pool-enable-connection-reuse")
+        @WithDefault("false")
+        boolean poolEnableConnectionReuse();
     }
 
     @ConfigMapping(prefix = "xroad.proxy.server")
