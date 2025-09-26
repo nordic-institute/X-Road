@@ -132,7 +132,8 @@ tasks.named("jib") {
 
 jib {
   from {
-    image = "${project.property("xroadImageRegistry")}/ss-baseline-runtime"
+    val baseImageTag = project.findProperty("baseImageTag") ?: "latest"
+    image = "${project.property("xroadImageRegistry")}/ss-baseline-runtime:${baseImageTag}"
   }
   to {
     image = "${project.property("xroadImageRegistry")}/ss-proxy-ui-api"

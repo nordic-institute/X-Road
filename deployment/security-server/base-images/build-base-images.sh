@@ -205,48 +205,69 @@ get_image_size() {
 # Function to get image size from registry using manifest inspection
 get_registry_image_size() {
     local image="$1"
+    echo "[DEBUG] Attempting to get size for: $image" >&2
+    
     if command -v docker &>/dev/null; then
         # Method 1: Try docker image inspect (if image was built locally)
+        echo "[DEBUG] Method 1: Checking local docker image..." >&2
         if docker image inspect "$image" &>/dev/null; then
-            docker image inspect "$image" --format='{{.Size}}' | awk '{printf "%.1f MB", $1/1024/1024}'
+            local size_result
+            size_result=$(docker image inspect "$image" --format='{{.Size}}' | awk '{printf "%.1f MB", $1/1024/1024}')
+            echo "[DEBUG] Method 1 success: $size_result" >&2
+            echo "$size_result"
             return
         fi
+        echo "[DEBUG] Method 1 failed: Image not found locally" >&2
         
         # Method 2: Try buildkit image tools
-        if command -v docker &>/dev/null; then
-            local size_info
-            if size_info=$(docker buildx imagetools inspect "$image" --format '{{json .}}' 2>/dev/null); then
-                # Extract size from buildkit imagetools output
-                local total_bytes
-                total_bytes=$(echo "$size_info" | grep -o '"size":[0-9]*' | grep -o '[0-9]*' | awk '{sum += $1} END {print sum}')
-                if [[ -n "$total_bytes" && $total_bytes -gt 0 ]]; then
-                    echo "$total_bytes" | awk '{printf "%.1f MB", $1/1024/1024}'
-                    return
-                fi
+        echo "[DEBUG] Method 2: Trying buildx imagetools..." >&2
+        local size_info
+        if size_info=$(docker buildx imagetools inspect "$image" --format '{{json .}}' 2>/dev/null); then
+            echo "[DEBUG] Method 2: Got imagetools output" >&2
+            # Extract size from buildkit imagetools output
+            local total_bytes
+            total_bytes=$(echo "$size_info" | grep -o '"size":[0-9]*' | grep -o '[0-9]*' | awk '{sum += $1} END {print sum}')
+            echo "[DEBUG] Method 2: total_bytes='$total_bytes'" >&2
+            if [[ -n "$total_bytes" && $total_bytes -gt 0 ]]; then
+                local size_result
+                size_result=$(echo "$total_bytes" | awk '{printf "%.1f MB", $1/1024/1024}')
+                echo "[DEBUG] Method 2 success: $size_result" >&2
+                echo "$size_result"
+                return
             fi
         fi
+        echo "[DEBUG] Method 2 failed: imagetools inspect failed or no size found" >&2
         
         # Method 3: Fallback - estimate from layers in manifest  
+        echo "[DEBUG] Method 3: Trying manifest inspect..." >&2
         local manifest_output
         if manifest_output=$(docker manifest inspect "$image" 2>/dev/null); then
+            echo "[DEBUG] Method 3: Got manifest output" >&2
             # Look for both "size" and "compressedSize" fields
             local total_bytes=0
             local sizes
             sizes=$(echo "$manifest_output" | grep -E '"(size|compressedSize)"' | grep -o '[0-9][0-9]*')
+            echo "[DEBUG] Method 3: Found sizes: $sizes" >&2
             
             for size in $sizes; do
                 total_bytes=$((total_bytes + size))
             done
+            echo "[DEBUG] Method 3: total_bytes=$total_bytes" >&2
             
             if [[ $total_bytes -gt 0 ]]; then
-                echo "$total_bytes" | awk '{printf "%.1f MB", $1/1024/1024}'
-            else
-                echo "Unknown"
+                local size_result
+                size_result=$(echo "$total_bytes" | awk '{printf "%.1f MB", $1/1024/1024}')
+                echo "[DEBUG] Method 3 success: $size_result" >&2
+                echo "$size_result"
+                return
             fi
-        else
-            echo "Unknown"
         fi
+        echo "[DEBUG] Method 3 failed: manifest inspect failed or no size found" >&2
+        
+        echo "[DEBUG] All methods failed, returning Unknown" >&2
+        echo "Unknown"
     else
+        echo "[DEBUG] Docker command not available" >&2
         echo "Unknown"
     fi
 }
@@ -352,7 +373,11 @@ add_image_size() {
 
 get_image_size_data() {
     local image_name="$1"
-    echo "$IMAGE_SIZES" | tr ' ' '\n' | grep "^${image_name}:" | cut -d':' -f2-
+    echo "[DEBUG] Getting stored size for: $image_name" >&2
+    echo "[DEBUG] IMAGE_SIZES content: '$IMAGE_SIZES'" >&2
+    local result=$(echo "$IMAGE_SIZES" | tr ' ' '\n' | grep "^${image_name}:" | cut -d':' -f2-)
+    echo "[DEBUG] Retrieved size: '$result'" >&2
+    echo "$result"
 }
 
 # Build images
@@ -419,7 +444,9 @@ for image_entry in $IMAGES; do
             add_image_size "$image_name" "$(get_image_size "${full_image_name}:${VERSION}")"
         else
             # Get size from registry using manifest inspection
+            echo "[DEBUG] Getting size for pushed image: ${full_image_name}:${VERSION}"
             pushed_size=$(get_registry_image_size "${full_image_name}:${VERSION}")
+            echo "[DEBUG] Size result: '$pushed_size'"
             add_image_size "$image_name" "$pushed_size"
         fi
         
@@ -463,6 +490,12 @@ generate_build_summary() {
         local size=$(get_image_size_data "$image_name")
         local build_time_seconds=$(get_build_time "$image_name")
         local build_time=$(format_duration $build_time_seconds)
+        
+        # Ensure size is never empty for table formatting
+        if [[ -z "$size" ]]; then
+            size="Unknown"
+        fi
+        echo "[DEBUG] Final size for $image_name: '$size'" >&2
         
         summary+="| \`$image_name\` | $tags | $size | $build_time |\n"
     done
