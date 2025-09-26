@@ -107,7 +107,7 @@ resource "helm_release" "security_server" {
   namespace = var.namespace
   create_namespace = true
 
-  chart = "${path.module}/../../../charts/security-server"
+  chart = "${path.module}/../../../../../deployment/security-server/k8s/charts/security-server"
   timeout = 90 # TODO make it configurable
 
   wait = true
