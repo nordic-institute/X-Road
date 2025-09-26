@@ -89,7 +89,9 @@ jobs:
 
       - name: Pull base images from GHCR
         run: |
-          GHCR_PREFIX="ghcr.io/${{ github.repository }}/base-images"
+          # Convert repository name to lowercase for Docker registry compatibility
+          REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          GHCR_PREFIX="ghcr.io/${REPO_LOWERCASE}/base-images"
           BASE_TAG="${{ steps.base-images.outputs.base-image-tag }}"
           
           echo "🔍 Pulling base images with tag: ${BASE_TAG}"

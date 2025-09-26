@@ -237,7 +237,9 @@ fi
 # Determine image prefix based on registry and environment
 if [[ "$ENVIRONMENT" == "ci" && "$REGISTRY" == "ghcr.io" ]]; then
     if [[ -n "$GITHUB_REPOSITORY" ]]; then
-        IMAGE_PREFIX="${REGISTRY}/${GITHUB_REPOSITORY}/base-images"
+        # Convert repository name to lowercase for Docker registry compatibility
+        REPO_LOWERCASE=$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')
+        IMAGE_PREFIX="${REGISTRY}/${REPO_LOWERCASE}/base-images"
     else
         log_error "GITHUB_REPOSITORY environment variable not set for CI environment"
         exit 1
