@@ -328,6 +328,8 @@ for image_entry in $IMAGES; do
     # Add build args for images that need them
     if [[ "$image_name" == "ss-baseline-backup-manager-runtime" || "$image_name" == "ss-baseline-signer-runtime" ]]; then
         build_cmd+=(--build-arg "REGISTRY_URL=$IMAGE_PREFIX")
+        # Pass the version tag so dependent images use the exact version just built
+        build_cmd+=(--build-arg "BASE_IMAGE_TAG=$VERSION")
     fi
     
     # Add build context for signer

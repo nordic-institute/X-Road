@@ -1,5 +1,7 @@
 ARG REGISTRY_URL=localhost:5555
-FROM ${REGISTRY_URL}/ss-baseline-runtime:latest
+ARG BASE_IMAGE_TAG=latest
+
+FROM ${REGISTRY_URL}/ss-baseline-runtime:${BASE_IMAGE_TAG}
 
 ARG TARGETARCH
 COPY --from=pkcs11driver ${TARGETARCH}/libpkcs11wrapper.so /usr/share/xroad/lib/libpkcs11wrapper.so

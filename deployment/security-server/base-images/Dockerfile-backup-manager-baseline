@@ -1,6 +1,7 @@
 ARG REGISTRY_URL=localhost:5555
+ARG BASE_IMAGE_TAG=latest
 
-FROM ${REGISTRY_URL}/ss-baseline-runtime:latest
+FROM ${REGISTRY_URL}/ss-baseline-runtime:${BASE_IMAGE_TAG}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
