@@ -12,6 +12,10 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build-and-package:
     name: Build, test and package code
