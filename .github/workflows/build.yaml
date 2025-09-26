@@ -457,6 +457,10 @@ jobs:
       - name: Run Security Server system tests
         working-directory: ./src
         run: |
+          echo "Available disk space pre-build:"
+          df -h
+          docker system df
+          docker images
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest
       - name: Test Security Server measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
