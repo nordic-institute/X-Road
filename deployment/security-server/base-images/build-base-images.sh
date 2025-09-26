@@ -400,7 +400,7 @@ for image_entry in $IMAGES; do
             add_image_size "$image_name" "$(get_image_size "${full_image_name}:${VERSION}")"
         else
             # Get size from registry using manifest inspection
-            local pushed_size=$(get_registry_image_size "${full_image_name}:${VERSION}")
+            pushed_size=$(get_registry_image_size "${full_image_name}:${VERSION}")
             add_image_size "$image_name" "$pushed_size"
         fi
         
