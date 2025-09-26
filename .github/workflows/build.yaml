@@ -316,6 +316,12 @@ jobs:
           task: start-measurement
           label: 'Central Server system tests'
       - uses: actions/checkout@v5
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: true
+          dotnet: true
+          haskell: true
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -352,6 +358,12 @@ jobs:
         with:
           task: get-measurement
           label: 'Set up Central Server tests'
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: true
+          dotnet: true
+          haskell: true
       - name: Run Central Server system tests
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5555/xrd-centralserver:${{ github.sha }}
@@ -410,6 +422,12 @@ jobs:
           task: start-measurement
           label: 'Security Server system tests'
       - uses: actions/checkout@v5
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: true
+          dotnet: true
+          haskell: true
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
