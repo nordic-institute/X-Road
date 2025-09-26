@@ -49,7 +49,7 @@ public interface VaultClient {
     String INTERNAL_TLS_CREDENTIALS_PATH = "tls/internal";
     String OPMONITOR_TLS_CREDENTIALS_PATH = "tls/opmonitor";
     String ADMIN_SERVICE_TLS_CREDENTIALS_PATH = "tls/admin-service";
-    String MANAGERMENT_SERVICES_TLS_CREDENTIALS_PATH = "tls/management-services";
+    String MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH = "tls/management-service";
 
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
