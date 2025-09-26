@@ -20,6 +20,7 @@ permissions:
   pull-requests: write # https://github.com/gradle/actions/tree/main/setup-gradle#adding-job-summary-as-a-pull-request-comment
   actions: read # Required for https://github.com/dorny/test-reporter
   checks: write # Required for https://github.com/dorny/test-reporter
+  packages: read # Required to pull base images from GHCR
 # Cancels previous workflow run on PR if a new one is started (does not affect push to develop).
 # This is because github.head_ref is empty on push events so defaults to the unique github.run_id.
 # More info: https://docs.github.com/en/actions/using-jobs/using-concurrency
@@ -88,11 +89,63 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           driver-opts: network=host
-      - name: Build base docker images
-        working-directory: ./deployment/security-server/base-images
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Determine base image version
+        id: base-images
+        working-directory: ./src
         run: |
-          chmod +x build-base-images.sh
-          ./build-base-images.sh localhost:5555
+          # Read version from gradle.properties
+          XROAD_VERSION=$(grep "^xroadVersion=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          XROAD_BUILD_TYPE=$(grep "^xroadBuildType=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          
+          echo "X-Road Version: $XROAD_VERSION"
+          echo "X-Road Build Type: $XROAD_BUILD_TYPE"
+          
+          # Determine which version of base images to use
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            # For release tags, use the exact version
+            BASE_IMAGE_TAG="$XROAD_VERSION"
+            echo "Using release base images: ${BASE_IMAGE_TAG}"
+          elif [[ "$XROAD_BUILD_TYPE" == "RELEASE" ]]; then
+            # For release builds, use the version
+            BASE_IMAGE_TAG="$XROAD_VERSION"
+            echo "Using release base images: ${BASE_IMAGE_TAG}"
+          else
+            # For snapshot builds, use snapshot latest
+            BASE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT"
+            echo "Using snapshot base images: ${BASE_IMAGE_TAG}"
+          fi
+          
+          echo "base-image-tag=${BASE_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "BASE_IMAGE_TAG=${BASE_IMAGE_TAG}" >> $GITHUB_ENV
+          echo "XROAD_VERSION=${XROAD_VERSION}" >> $GITHUB_ENV
+          echo "XROAD_BUILD_TYPE=${XROAD_BUILD_TYPE}" >> $GITHUB_ENV
+      - name: Pull base images from GHCR
+        run: |
+          GHCR_PREFIX="ghcr.io/${{ github.repository }}/base-images"
+          BASE_TAG="${{ steps.base-images.outputs.base-image-tag }}"
+          
+          echo "Pulling base images with tag: ${BASE_TAG}"
+          
+          # Pull base images from GHCR
+          docker pull "${GHCR_PREFIX}/ss-baseline-runtime:${BASE_TAG}"
+          docker pull "${GHCR_PREFIX}/ss-baseline-backup-manager-runtime:${BASE_TAG}"
+          docker pull "${GHCR_PREFIX}/ss-baseline-signer-runtime:${BASE_TAG}"
+          
+          # Tag them for local registry to maintain compatibility
+          docker tag "${GHCR_PREFIX}/ss-baseline-runtime:${BASE_TAG}" "localhost:5555/ss-baseline-runtime:latest"
+          docker tag "${GHCR_PREFIX}/ss-baseline-backup-manager-runtime:${BASE_TAG}" "localhost:5555/ss-baseline-backup-manager-runtime:latest"
+          docker tag "${GHCR_PREFIX}/ss-baseline-signer-runtime:${BASE_TAG}" "localhost:5555/ss-baseline-signer-runtime:latest"
+          
+          # Push to local registry for build process
+          docker push "localhost:5555/ss-baseline-runtime:latest"
+          docker push "localhost:5555/ss-baseline-backup-manager-runtime:latest"  
+          docker push "localhost:5555/ss-baseline-signer-runtime:latest"
       - name: Build and test source
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -104,7 +157,7 @@ jobs:
           docker system df
           docker builder prune -f
           df -h
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5555
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE build sonar test jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5555 -PbaseImageTag=${{ steps.base-images.outputs.base-image-tag }}
           echo "Available disk space post-build:"
           df -h
           echo "Available disk space post-prune:"

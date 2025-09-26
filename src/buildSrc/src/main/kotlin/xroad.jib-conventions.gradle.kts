@@ -6,7 +6,8 @@ plugins {
 jib {
   setAllowInsecureRegistries(true)
   from {
-    image = "${project.property("xroadImageRegistry")}/ss-baseline-runtime:latest"
+    val baseImageTag = project.findProperty("baseImageTag") ?: "latest"
+    image = "${project.property("xroadImageRegistry")}/ss-baseline-runtime:${baseImageTag}"
     platforms {
       platform {
         architecture = "arm64"
