@@ -16,11 +16,6 @@ jobs:
   build-and-package:
     name: Build, test and package code
     runs-on: ubuntu-22.04
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5555:5000
     outputs:
       base-image-tag: ${{ steps.base-images.outputs.base-image-tag }}
       xroad-version: ${{ steps.base-images.outputs.xroad-version }}
@@ -87,73 +82,17 @@ jobs:
           echo "xroad-version=${XROAD_VERSION}" >> $GITHUB_OUTPUT
           echo "xroad-build-type=${XROAD_BUILD_TYPE}" >> $GITHUB_OUTPUT
 
-      - name: Pull base images from GHCR
-        run: |
-          # Convert repository name to lowercase for Docker registry compatibility
-          REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          GHCR_PREFIX="ghcr.io/${REPO_LOWERCASE}/base-images"
-          BASE_TAG="${{ steps.base-images.outputs.base-image-tag }}"
-          
-          echo "🔍 Pulling base images with tag: ${BASE_TAG}"
-          echo "📍 Registry: ${GHCR_PREFIX}"
-          echo
-          
-          # Base images we need
-          IMAGES="ss-baseline-runtime ss-baseline-backup-manager-runtime ss-baseline-signer-runtime"
-          
-          # Pull each base image (fail-fast approach)
-          for image in $IMAGES; do
-            ghcr_image="${GHCR_PREFIX}/${image}:${BASE_TAG}"
-            local_image="localhost:5555/${image}:latest"
-            
-            echo "📦 Pulling ${image}:${BASE_TAG}..."
-            
-            if docker pull "$ghcr_image"; then
-              echo "✅ Successfully pulled ${image}:${BASE_TAG}"
-              docker tag "$ghcr_image" "$local_image"
-              docker push "$local_image"
-            else
-              echo ""
-              echo "❌ Failed to pull base image: ${image}:${BASE_TAG}"
-              echo ""
-              echo "🔧 Troubleshooting steps:"
-              echo "   1. Check if base images workflow has run for this version"
-              echo "   2. Verify the version in src/gradle.properties"
-              echo "   3. Manually trigger the base images workflow:"
-              echo "      https://github.com/${{ github.repository }}/actions/workflows/build-base-images.yaml"
-              echo ""
-              echo "🔍 Expected image: ${ghcr_image}"
-              echo "💡 Version source: xroadVersion=${{ steps.base-images.outputs.xroad-version }}, xroadBuildType=${{ steps.base-images.outputs.xroad-build-type }}"
-              echo ""
-              exit 1
-            fi
-          done
-          
-          echo ""
-          echo "✅ All base images pulled successfully!"
-          echo "🏷️  Version: ${BASE_TAG}"
-
       - name: Build and test source
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src
         run: |
-          echo "Available disk space pre-build:"
-          df -h
-          docker system df
-          docker builder prune -f
-          df -h
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE build sonar test jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5555 -PbaseImageTag=${{ steps.base-images.outputs.base-image-tag }}
-          echo "Available disk space post-build:"
-          df -h
-          echo "Available disk space post-prune:"
-          docker system prune -f --volumes
-          df -h
-          echo "Deleting Quarkus-Build folders..."
-          find . -type d -name 'quarkus-build' -exec rm -rf {} +
-          df -h
-
+          # Setup GHCR registry prefix for Gradle
+          REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          GHCR_PREFIX="ghcr.io/${REPO_LOWERCASE}/base-images"
+          
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE build sonar test jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=${GHCR_PREFIX} -PbaseImageTag=${{ steps.base-images.outputs.base-image-tag }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -232,34 +171,3 @@ jobs:
       - name: Clean up workspace #otherwise might run out of disk space in the next steps
         working-directory: ./src
         run: ./gradlew clean
-
-      - name: Save docker images from registry
-        run: |
-          mkdir -p ${{ runner.temp }}/docker-images
-          docker pull localhost:5555/ss-backup-manager:latest
-          docker pull localhost:5555/ss-configuration-client:latest
-          docker pull localhost:5555/ss-proxy:latest
-          docker pull localhost:5555/ss-signer:latest
-          docker pull localhost:5555/ss-monitor:latest
-          docker pull localhost:5555/ss-op-monitor:latest
-          docker pull localhost:5555/ss-proxy-ui-api:latest
-          docker pull localhost:5555/ss-db-serverconf-init:latest
-          docker pull localhost:5555/ss-db-messagelog-init:latest
-          docker pull localhost:5555/ss-db-opmonitor-init:latest
-
-          docker save -o ${{ runner.temp }}/docker-images/ss-backup-manager.tar localhost:5555/ss-backup-manager:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-configuration-client.tar localhost:5555/ss-configuration-client:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-proxy.tar localhost:5555/ss-proxy:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-signer.tar localhost:5555/ss-signer:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-monitor.tar localhost:5555/ss-monitor:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-op-monitor.tar localhost:5555/ss-op-monitor:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-proxy-ui-api.tar localhost:5555/ss-proxy-ui-api:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-db-serverconf-init.tar localhost:5555/ss-db-serverconf-init:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-db-messagelog-init.tar localhost:5555/ss-db-messagelog-init:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-db-opmonitor-init.tar localhost:5555/ss-db-opmonitor-init:latest
-
-      - name: Store docker images for other jobs
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-images
-          path: ${{ runner.temp }}/docker-images

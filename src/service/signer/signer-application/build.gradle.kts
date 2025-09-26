@@ -7,7 +7,8 @@ quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
       put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-signer")
-      put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/ss-baseline-signer-runtime:latest")
+      val baseImageTag = project.findProperty("baseImageTag") ?: "latest"
+      put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/ss-baseline-signer-runtime:${baseImageTag}")
     }
   )
 }

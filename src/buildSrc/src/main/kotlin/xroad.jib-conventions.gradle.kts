@@ -4,7 +4,10 @@ plugins {
 }
 
 jib {
-  setAllowInsecureRegistries(true)
+  val registryUrl = project.property("xroadImageRegistry").toString()
+  if (registryUrl.contains("localhost")) {
+    setAllowInsecureRegistries(true)
+  }
   from {
     val baseImageTag = project.findProperty("baseImageTag") ?: "latest"
     image = "${project.property("xroadImageRegistry")}/ss-baseline-runtime:${baseImageTag}"

@@ -17,8 +17,9 @@ quarkus {
     buildMap {
       put("quarkus.package.jar.type", "fast-jar")
       put("quarkus.container-image.build", buildImages)
-      put("quarkus.container-image.registry", "${project.property("xroadImageRegistry")}")
-      put("quarkus.container-image.insecure", "true")
+      val registryUrl = project.property("xroadImageRegistry").toString()
+      put("quarkus.container-image.registry", registryUrl)
+      put("quarkus.container-image.insecure", registryUrl.contains("localhost").toString())
       put("quarkus.container-image.push", buildImages)
       put("quarkus.container-image.builder", "jib")
       put("quarkus.jib.working-directory", "/opt/app")

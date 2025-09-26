@@ -7,7 +7,8 @@ plugins {
 quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
-      put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/ss-baseline-backup-manager-runtime:latest")
+      val baseImageTag = project.findProperty("baseImageTag") ?: "latest"
+      put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/ss-baseline-backup-manager-runtime:${baseImageTag}")
       put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-backup-manager")
     }
   )
