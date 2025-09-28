@@ -28,6 +28,15 @@ quarkus {
       put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/base-images/ss-baseline-runtime:${baseImageTag}")
       put("quarkus.jib.platforms", "linux/amd64,linux/arm64/v8")
       put("quarkus.jib.user", "xroad")
+      
+      // Add branch-aware tagging for service images
+      val serviceImageSuffix = project.findProperty("serviceImageSuffix")?.toString()
+      if (serviceImageSuffix != null && serviceImageSuffix != "latest") {
+        put("quarkus.container-image.tag", serviceImageSuffix)
+        put("quarkus.container-image.additional-tags", "latest")
+      } else {
+        put("quarkus.container-image.tag", "latest")
+      }
 
       val jvmArgs = mutableListOf(
         "-Dquarkus.profile=containerized",

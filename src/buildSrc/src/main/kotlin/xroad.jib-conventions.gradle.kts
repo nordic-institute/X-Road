@@ -24,7 +24,13 @@ jib {
   }
 
   to {
-    tags = setOf("latest")
+    val serviceImageSuffix = project.findProperty("serviceImageSuffix")?.toString()
+    val tags = if (serviceImageSuffix != null && serviceImageSuffix != "latest") {
+      setOf(serviceImageSuffix, "latest")
+    } else {
+      setOf("latest")
+    }
+    setTags(tags)
   }
 
   container {

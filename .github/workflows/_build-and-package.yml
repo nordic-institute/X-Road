@@ -37,7 +37,7 @@ jobs:
         with:
           gradle-cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           setup-docker: true
-          free-disk-space: true
+          free-disk-space: false
 
       - name: Build, test and package code setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -73,8 +73,11 @@ jobs:
             BASE_IMAGE_TAG="$XROAD_VERSION"
             echo "Using release base images: ${BASE_IMAGE_TAG}"
           else
-            # For snapshot builds, use snapshot latest
-            BASE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT"
+            # For snapshot builds, base images use simple format (no branch name)
+            COMMIT_HASH="${{ github.sha }}"
+            SHORT_HASH="${COMMIT_HASH:0:10}"
+            BASE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT-${SHORT_HASH}"
+            
             echo "Using snapshot base images: ${BASE_IMAGE_TAG}"
           fi
           
@@ -92,11 +95,43 @@ jobs:
           REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_REGISTRY="ghcr.io/${REPO_LOWERCASE}"
           
+          # Function to get branch name for service image tagging
+          get_branch_name() {
+            local branch_name=""
+            if [[ -n "${{ github.ref_name }}" ]]; then
+              branch_name="${{ github.ref_name }}"
+            elif [[ -n "${{ github.head_ref }}" ]]; then
+              branch_name="${{ github.head_ref }}"
+            else
+              branch_name="unknown"
+            fi
+            # Clean up branch name for Docker tag compatibility
+            echo "$branch_name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g'
+          }
+          
+          # Determine service image suffix for branch-aware tagging
+          BRANCH_NAME=$(get_branch_name)
+          COMMIT_HASH="${{ github.sha }}"
+          SHORT_HASH="${COMMIT_HASH:0:10}"
+          
+          if [[ "${{ github.ref_type }}" == "tag" || "${{ steps.base-images.outputs.xroad-build-type }}" == "RELEASE" ]]; then
+            # For releases, use simple version
+            SERVICE_IMAGE_SUFFIX="${{ steps.base-images.outputs.xroad-version }}"
+          elif [[ "$BRANCH_NAME" == "develop-8.x" ]]; then
+            # For develop branch, keep compatibility
+            SERVICE_IMAGE_SUFFIX="${{ steps.base-images.outputs.xroad-version }}-SNAPSHOT-${SHORT_HASH}"
+          else
+            # For feature branches, include branch name
+            SERVICE_IMAGE_SUFFIX="${{ steps.base-images.outputs.xroad-version }}-SNAPSHOT-${BRANCH_NAME}-${SHORT_HASH}"
+          fi
+          
           echo "🏗️ Build configuration:"
           echo "  Registry: ${IMAGE_REGISTRY}"
           echo "  Base Image Tag: ${{ steps.base-images.outputs.base-image-tag }}"
+          echo "  Service Image Suffix: ${SERVICE_IMAGE_SUFFIX}"
+          echo "  Branch: ${BRANCH_NAME}"
           
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE build sonar test jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=${IMAGE_REGISTRY} -PbaseImageTag=${{ steps.base-images.outputs.base-image-tag }}
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE build sonar test jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=${IMAGE_REGISTRY} -PbaseImageTag=${{ steps.base-images.outputs.base-image-tag }} -PserviceImageSuffix=${SERVICE_IMAGE_SUFFIX}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
