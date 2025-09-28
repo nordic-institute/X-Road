@@ -73,11 +73,8 @@ jobs:
             BASE_IMAGE_TAG="$XROAD_VERSION"
             echo "Using release base images: ${BASE_IMAGE_TAG}"
           else
-            # For snapshot builds, base images use simple format (no branch name)
-            COMMIT_HASH="${{ github.sha }}"
-            SHORT_HASH="${COMMIT_HASH:0:10}"
-            BASE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT-${SHORT_HASH}"
-            
+            # For snapshot builds, use simple SNAPSHOT tag
+            BASE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT"
             echo "Using snapshot base images: ${BASE_IMAGE_TAG}"
           fi
           

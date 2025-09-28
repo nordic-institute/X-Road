@@ -177,8 +177,7 @@ construct_version() {
     if [[ "$build_type" == "RELEASE" ]]; then
         echo "$base_version"
     else
-        local commit_hash=$(get_git_commit_hash)
-        echo "${base_version}-SNAPSHOT-${commit_hash}"
+        echo "${base_version}-SNAPSHOT"
     fi
 }
 
@@ -318,7 +317,6 @@ for image_entry in $IMAGES; do
     else
         build_cmd+=(
             --tag "${full_image_name}:${VERSION}"
-            --tag "${full_image_name}:${BASE_VERSION}-SNAPSHOT"
         )
     fi
 
