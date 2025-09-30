@@ -27,7 +27,6 @@ package org.niis.xroad.proxy.core.configuration;
 
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
-import io.quarkus.runtime.Startup;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
@@ -64,7 +63,6 @@ public class ProxyConfig {
             return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
         }
 
-        @Startup
         @ApplicationScoped
         public OpMonitoringBuffer opMonitoringBuffer(OpMonitorCommonProperties opMonitorCommonProperties,
                                                      ServerConfProvider serverConfProvider,
@@ -73,7 +71,7 @@ public class ProxyConfig {
                 throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
                 InvalidKeySpecException, KeyManagementException {
 
-            if (proxyProperties.addOn().opMonitor().enabled()) {
+            if (proxyProperties.addon().opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
                 var opMonitoringBuffer = new OpMonitoringBufferImpl(
                         serverConfProvider, opMonitorCommonProperties, vaultClient,

@@ -46,7 +46,7 @@ public interface ProxyProperties {
 
     OcspResponderProperties ocspResponder();
 
-    ProxyAddonProperties addOn();
+    ProxyAddonProperties addon();
 
     @WithName("admin-port")
     @WithDefault("5566")

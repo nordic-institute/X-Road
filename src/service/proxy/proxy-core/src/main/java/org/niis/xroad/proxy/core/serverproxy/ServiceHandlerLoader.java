@@ -53,15 +53,15 @@ public class ServiceHandlerLoader {
 
     public Collection<ServiceHandler> loadSoapServiceHandlers() {
         Collection<ServiceHandler> handlers = new ArrayList<>();
-        if (proxyProperties.addOn().metaservices().enabled()) {
+        if (proxyProperties.addon().metaservices().enabled()) {
             handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
                     proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers()));
         }
-        if (proxyProperties.addOn().opMonitor().enabled()) {
+        if (proxyProperties.addon().opMonitor().enabled()) {
             handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, opMonitorCommonProperties,
                     proxyProperties.clientProxy().poolEnableConnectionReuse()));
         }
-        if (proxyProperties.addOn().proxyMonitor().enabled()) {
+        if (proxyProperties.addon().proxyMonitor().enabled()) {
             handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider, monitorRpcClient));
         }
         return handlers;
@@ -69,7 +69,7 @@ public class ServiceHandlerLoader {
 
     public Collection<RestServiceHandler> loadRestServiceHandlers() {
         Collection<RestServiceHandler> handlers = new ArrayList<>();
-        if (proxyProperties.addOn().metaservices().enabled()) {
+        if (proxyProperties.addon().metaservices().enabled()) {
             handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties.clientProxy().clientTlsProtocols(),
                     proxyProperties.clientProxy().clientTlsCiphers(), commonProperties.tempFilesPath()));
         }
