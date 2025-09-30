@@ -68,8 +68,8 @@ public final class DefaultFilepaths {
      * @return path to the created temporary file
      * @throws IOException if an error occurs
      */
-    public static Path createTempFile(String prefix, String suffix) throws IOException {
-        Path tempDirPath = Paths.get(SystemProperties.getTempFilesPath());
+    public static Path createTempFile(String prefix, String suffix, String tmpDir) throws IOException {
+        Path tempDirPath = Paths.get(tmpDir);
 
         return createTempFile(tempDirPath, prefix, suffix);
     }

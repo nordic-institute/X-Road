@@ -60,6 +60,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class ProxyMessageEncoderTest {
 
+    private final String tmpDir = "build/tmp";
+
     ByteArrayOutputStream out;
     ProxyMessageEncoder encoder;
     GlobalConfProvider globalConfProvider;
@@ -189,7 +191,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private ProxyMessage decode() throws Exception {
-        ProxyMessage proxyMessage = new ProxyMessage("text/xml");
+        ProxyMessage proxyMessage = new ProxyMessage("text/xml", tmpDir);
         ProxyMessageDecoder decoder = new ProxyMessageDecoder(globalConfProvider, new OcspVerifierFactory(),
                 proxyMessage, encoder.getContentType(), getHashAlgoId());
         decoder.parse(new ByteArrayInputStream(out.toByteArray()));

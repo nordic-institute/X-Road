@@ -234,7 +234,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void handleRequest() throws Exception {
         RestServiceHandler handler = getServiceHandler(requestMessage);
         if (handler == null) {
-            handler = new DefaultRestServiceHandlerImpl(commonBeanProxy.getServerConfProvider());
+            handler = new DefaultRestServiceHandlerImpl(commonBeanProxy.getServerConfProvider(),
+                    commonBeanProxy.getCommonProperties().tempFilesPath());
         }
         log.trace("handler={}", handler);
         if (handler.shouldVerifyAccess()) {
@@ -260,7 +261,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void readMessage() throws Exception {
         log.trace("readMessage()");
 
-        requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE)) {
+        requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
+                commonBeanProxy.getCommonProperties().tempFilesPath()) {
             @Override
             public void rest(RestRequest message) throws CertificateEncodingException, IOException {
                 super.rest(message);
@@ -442,6 +444,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     @RequiredArgsConstructor
     private static final class DefaultRestServiceHandlerImpl implements RestServiceHandler {
         private final ServerConfProvider serverConfProvider;
+        private final String tempFilesPath;
 
         private RestResponse restResponse;
         private CachingStream restResponseBody;
@@ -552,7 +555,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             messageEncoder.restResponse(restResponse);
 
             if (response.getEntity() != null) {
-                restResponseBody = new CachingStream();
+                restResponseBody = new CachingStream(tempFilesPath);
                 TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), restResponseBody);
                 messageEncoder.restBody(tee);
                 EntityUtils.consume(response.getEntity());

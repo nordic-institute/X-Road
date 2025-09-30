@@ -27,6 +27,7 @@ package org.niis.xroad.proxy.core.serverproxy;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
@@ -46,6 +47,7 @@ public class ServiceHandlerLoader {
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final MonitorRpcClient monitorRpcClient;
+    private final CommonProperties commonProperties;
     private final ProxyProperties proxyProperties;
     private final OpMonitorCommonProperties opMonitorCommonProperties;
 
@@ -69,7 +71,7 @@ public class ServiceHandlerLoader {
         Collection<RestServiceHandler> handlers = new ArrayList<>();
         if (proxyProperties.addOn().metaservices().enabled()) {
             handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties.clientProxy().clientTlsProtocols(),
-                    proxyProperties.clientProxy().clientTlsCiphers()));
+                    proxyProperties.clientProxy().clientTlsCiphers(), commonProperties.tempFilesPath()));
         }
         return handlers;
     }

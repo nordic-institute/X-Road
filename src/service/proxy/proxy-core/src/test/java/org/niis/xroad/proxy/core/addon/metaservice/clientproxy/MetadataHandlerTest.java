@@ -34,6 +34,7 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpURI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -74,6 +75,7 @@ class MetadataHandlerTest {
     private ServerConfProvider serverConfProvider;
     private VaultKeyProvider vaultKeyProvider;
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+    private final CommonProperties commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
 
     /**
      * Init common data for tests
@@ -86,7 +88,7 @@ class MetadataHandlerTest {
         vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
                 null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                proxyProperties, new OcspVerifierFactory());
+                proxyProperties, new OcspVerifierFactory(), commonProperties);
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);

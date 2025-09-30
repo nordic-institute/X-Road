@@ -38,6 +38,7 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.PreEncodedHttpField;
 import org.eclipse.jetty.server.Request;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -88,9 +89,11 @@ class ClientRestMessageProcessorTest {
         var httpClient = mock(HttpClient.class);
         var isAuthenticationData = mock(IsAuthenticationData.class);
         var proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+        var commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
         var commonBeanProxy =
                 new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null,
-                        null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties, new OcspVerifierFactory());
+                        null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties, new OcspVerifierFactory(),
+                        commonProperties);
         var clientRestMessageProcessor =
                 new ClientRestMessageProcessor(commonBeanProxy, request, respWrapper, httpClient, isAuthenticationData,
                         opMonitoringData);

@@ -272,7 +272,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
         log.trace("readMessage()");
 
         originalSoapAction = validateSoapActionHeader(jRequest.getHeaders().get(HEADER_ORIGINAL_SOAP_ACTION));
-        requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE)) {
+        requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
+                commonBeanProxy.getCommonProperties().tempFilesPath()) {
             @Override
             public void soap(SoapMessageImpl soapMessage, Map<String, String> additionalHeaders)
                     throws CertificateEncodingException, IOException {

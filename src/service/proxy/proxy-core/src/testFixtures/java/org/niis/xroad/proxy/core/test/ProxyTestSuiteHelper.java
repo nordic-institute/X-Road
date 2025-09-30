@@ -27,13 +27,11 @@
 
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.experimental.UtilityClass;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import java.util.Map;
-import java.util.Set;
 
 import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static java.lang.String.valueOf;
@@ -48,6 +46,7 @@ public class ProxyTestSuiteHelper {
 
     public static volatile MessageTestCase currentTestCase;
     public static ProxyProperties proxyProperties;
+    public static CommonProperties commonProperties;
 
     private static DummyService dummyService;
     private static DummyServerProxy dummyServerProxy;
@@ -68,31 +67,12 @@ public class ProxyTestSuiteHelper {
     }
 
     public static void setPropsIfNotSet(Map<String, String> properties) {
-        PropsSolver solver = new PropsSolver();
-
         properties.putIfAbsent("xroad.proxy.client-proxy.client-http-port", valueOf(findRandomPort()));
         properties.putIfAbsent("xroad.proxy.client-proxy.client-https-port", valueOf(findRandomPort()));
-
-        solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
-
         properties.putIfAbsent("xroad.proxy.server.listen-address", "127.0.0.1");
-
         properties.putIfAbsent("xroad.proxy.server.listen-port", valueOf(PROXY_PORT));
         properties.putIfAbsent("xroad.proxy.server-port", valueOf(PROXY_PORT));
-
         properties.putIfAbsent("xroad.proxy.client-proxy.client-timeout", "15000");
-    }
-
-    @Deprecated(forRemoval = true)
-    private static final class PropsSolver {
-        private final Set<String> setProperties = System.getProperties().stringPropertyNames();
-
-        @Deprecated(forRemoval = true)
-        void setIfNotSet(String property, String defaultValue) {
-            if (!setProperties.contains(property)) {
-                System.setProperty(property, defaultValue);
-            }
-        }
     }
 
 }

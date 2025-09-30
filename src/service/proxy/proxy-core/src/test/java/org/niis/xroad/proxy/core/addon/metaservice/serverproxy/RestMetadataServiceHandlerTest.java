@@ -95,6 +95,7 @@ public class RestMetadataServiceHandlerTest {
             "1234TEST_CLIENT", SUBSYSTEM_FOR_UNSUPPORTED_YAML_FILE);
     private static final byte[] REQUEST_HASH = "foobar1234".getBytes();
     private static final int MOCK_SERVER_PORT = findRandomPort();
+    private static final String TMP_DIR = "build/tmp";
 
     static final ObjectMapper MAPPER;
 
@@ -160,7 +161,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldBeAbleToHandleListMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
@@ -171,7 +172,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldBeAbleToHandleAllowedMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
@@ -184,7 +185,7 @@ public class RestMetadataServiceHandlerTest {
     public void shouldHandleListMethods() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -214,7 +215,7 @@ public class RestMetadataServiceHandlerTest {
     public void shouldHandleAllowedMethods() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -244,7 +245,7 @@ public class RestMetadataServiceHandlerTest {
     public void shouldHandleGetOpenApi() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_OPENAPI);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -270,7 +271,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldOverrideServerUrlsForYaml() throws Exception {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
         ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
@@ -310,7 +311,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldOverrideServerUrlsForJson() throws Exception {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
         ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
@@ -342,7 +343,7 @@ public class RestMetadataServiceHandlerTest {
     @Test(expected = CodedException.class)
     public void shouldDetectUnsupportedOpenapiVersion() throws Exception {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
         ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 

@@ -34,6 +34,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
@@ -82,6 +83,9 @@ public class ProxyMonitorMetaserviceTest {
         ProxyTestSuiteHelper.setPropsIfNotSet(proxyProps);
 
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, proxyProps);
+        ProxyTestSuiteHelper.commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
+                "xroad.common.temp-files-path", "build/"
+        ));
 
         ProxyTestSuiteHelper.startTestServices();
         monitorRpcClient = new MonitorRpcClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()),
@@ -101,7 +105,8 @@ public class ProxyMonitorMetaserviceTest {
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getAllTestCases(getClass().getPackageName() + ".testcases.");
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, true, monitorRpcClient);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, ProxyTestSuiteHelper.commonProperties,
+                true, monitorRpcClient);
 
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),

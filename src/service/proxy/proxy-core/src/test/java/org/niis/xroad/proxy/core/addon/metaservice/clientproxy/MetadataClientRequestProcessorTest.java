@@ -41,6 +41,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -98,6 +99,7 @@ class MetadataClientRequestProcessorTest {
     private ServerConfProvider serverConfProvider;
     private VaultKeyProvider vaultKeyProvider;
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+    private final CommonProperties commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
     private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
 
     /**
@@ -121,7 +123,7 @@ class MetadataClientRequestProcessorTest {
 
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
                 null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                proxyProperties, ocspVerifierFactory);
+                proxyProperties, ocspVerifierFactory, commonProperties);
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
@@ -175,7 +177,7 @@ class MetadataClientRequestProcessorTest {
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
                 null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
-                ocspVerifierFactory);
+                ocspVerifierFactory, commonProperties);
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
@@ -223,7 +225,7 @@ class MetadataClientRequestProcessorTest {
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
                 null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
-                ocspVerifierFactory);
+                ocspVerifierFactory, commonProperties);
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(commonBeanProxy,

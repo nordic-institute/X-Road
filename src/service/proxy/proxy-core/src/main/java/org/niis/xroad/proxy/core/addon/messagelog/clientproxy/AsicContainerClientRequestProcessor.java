@@ -271,7 +271,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         final EncryptionConfig encryptionConfig =
                 encryptionConfigProvider.forGrouping(groupingStrategy.forClient(clientId));
 
-        final Path tempFile = Files.createTempFile(Paths.get(SystemProperties.getTempFilesPath()), "asic", null);
+        final Path tempFile = Files.createTempFile(Paths.get(commonBeanProxy.getCommonProperties().tempFilesPath()), "asic", null);
 
         try {
             final CheckedSupplier<OutputStream> supplier = () -> {
@@ -279,7 +279,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
                 return new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
-                        encryptionConfig.getEncryptionKeys());
+                        encryptionConfig.getEncryptionKeys(), commonBeanProxy.getCommonProperties().tempFilesPath());
             };
 
             writeContainers(clientId, queryId, nameGen, response, supplier);
@@ -398,10 +398,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void encryptContainer(EncryptionConfig encryptionConfig, AsicContainer asicContainer) throws IOException {
         final Path tempFile = Files.createTempFile(
-                Paths.get(SystemProperties.getTempFilesPath()), "asic", null);
+                Paths.get(commonBeanProxy.getCommonProperties().tempFilesPath()), "asic", null);
         try {
             try (OutputStream os = new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
-                    encryptionConfig.getEncryptionKeys())) {
+                    encryptionConfig.getEncryptionKeys(), commonBeanProxy.getCommonProperties().tempFilesPath())) {
                 asicContainer.write(os);
             }
             try (InputStream is = Files.newInputStream(tempFile); var out = jResponse.getOutputStream()) {

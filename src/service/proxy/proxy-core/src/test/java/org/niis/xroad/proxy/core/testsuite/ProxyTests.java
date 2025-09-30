@@ -35,6 +35,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.Message;
@@ -76,6 +77,9 @@ class ProxyTests {
         ProxyTestSuiteHelper.setPropsIfNotSet(PROPS);
 
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
+        ProxyTestSuiteHelper.commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
+                "temp-files-path", "build/"
+        ));
         ProxyTestSuiteHelper.startTestServices();
         ProxyTestSuiteHelper.startDummyProxy();
     }
@@ -100,7 +104,7 @@ class ProxyTests {
         PROPS.put("xroad.proxy.ssl-enabled", "false");
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, ProxyTestSuiteHelper.commonProperties);
 
         return createDynamicTests(testCasesToRun);
     }
@@ -116,7 +120,7 @@ class ProxyTests {
         PROPS.put("xroad.proxy.ssl-enabled", "false");
         PROPS.put("xroad.proxy.server-port", valueOf(ProxyTestSuiteHelper.DUMMY_SERVER_PROXY_PORT));
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, false);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, ProxyTestSuiteHelper.commonProperties, false);
 
         return createDynamicTests(testCasesToRun);
     }
@@ -132,7 +136,7 @@ class ProxyTests {
         PROPS.put("xroad.proxy.ssl-enabled", "false");
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, false);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, ProxyTestSuiteHelper.commonProperties, false);
 
         return createDynamicTests(testCasesToRun);
     }
@@ -153,7 +157,7 @@ class ProxyTests {
         PROPS.put("xroad.proxy.ssl-enabled", "false");
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, false);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, ProxyTestSuiteHelper.commonProperties, false);
 
         assertTrue(testCase.execute(ctx));
     }
@@ -170,7 +174,7 @@ class ProxyTests {
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
         ProxyTestSuiteHelper.proxyProperties = spy(ConfigUtils.initConfiguration(ProxyProperties.class, PROPS));
 
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, ProxyTestSuiteHelper.commonProperties);
         return createDynamicTests(testCasesToRun);
     }
 
@@ -185,7 +189,7 @@ class ProxyTests {
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
 
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, ProxyTestSuiteHelper.commonProperties);
         return createDynamicTests(testCasesToRun);
     }
 

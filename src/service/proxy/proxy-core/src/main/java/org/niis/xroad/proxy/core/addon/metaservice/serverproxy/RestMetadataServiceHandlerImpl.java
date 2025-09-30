@@ -95,13 +95,16 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
     private final ServerConfProvider serverConfProvider;
     private final HttpClientCreator httpClientCreator;
+    private final String tmpDir;
 
     private RestResponse restResponse;
     private CachingStream restResponseBody;
 
-    public RestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, String[] tlsProtocols, String[] tlsCipherSuites) {
+    public RestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, String[] tlsProtocols, String[] tlsCipherSuites,
+                                          String tmpDir) {
         this.serverConfProvider = serverConfProvider;
         this.httpClientCreator = new HttpClientCreator(serverConfProvider, tlsProtocols, tlsCipherSuites);
+        this.tmpDir = tmpDir;
     }
 
     @Override
@@ -143,7 +146,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                 servletRequest.getHeaders().get(HEADER_REQUEST_ID)
         );
 
-        restResponseBody = new CachingStream();
+        restResponseBody = new CachingStream(tmpDir);
         if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(LIST_METHODS)) {
             handleListMethods(requestProxyMessage);
         } else if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(ALLOWED_METHODS)) {

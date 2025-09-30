@@ -24,38 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.addon.messagelog;
 
+package org.niis.xroad.common.properties;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.messagelog.archiver.core.LogArchiver;
-import org.niis.xroad.messagelog.archiver.core.LogArchiverProperties;
+@ConfigMapping(prefix = "xroad.common")
+public interface CommonProperties {
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+    @WithName("temp-files-path")
+    @WithDefault("/var/tmp/xroad/")
+    String tempFilesPath();
 
-class TestLogArchiver extends LogArchiver {
-
-    private static CountDownLatch gate = new CountDownLatch(1);
-
-    TestLogArchiver(LogArchiverProperties logArchiverProperties, GlobalConfProvider globalConfProvider,
-                    CommonProperties commonProperties, DatabaseCtx messageLogDatabaseCtx) {
-        super(logArchiverProperties, globalConfProvider, commonProperties, messageLogDatabaseCtx);
-    }
-
-    public static void waitForArchiveSuccessful() throws Exception {
-        try {
-            gate.await(5, TimeUnit.SECONDS);
-        } finally {
-            gate = new CountDownLatch(1);
-        }
-    }
-
-    @Override
-    protected void onArchivingDone() {
-        gate.countDown();
-    }
 }

@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.core.globalconf.FileBasedProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
@@ -58,6 +59,7 @@ public class ConfigurationClientActionExecutor {
 
     private final HttpUrlConnectionConfigurer httpUrlConnectionConfigurer;
     private final ConfigurationClientProperties confClientProperties;
+    private final CommonProperties commonProperties;
 
     public int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
         log.debug("Downloading configuration using anchor {} path = {} version {}",
@@ -66,7 +68,8 @@ public class ConfigurationClientActionExecutor {
                 configurationVersion);
 
         var downloader = new ConfigurationDownloader(httpUrlConnectionConfigurer, configurationPath, configurationVersion);
-        var client = new ConfigurationClient(new FileBasedProvider(configurationAnchorFile), configurationPath, downloader,
+        var client = new ConfigurationClient(new FileBasedProvider(configurationAnchorFile, commonProperties.tempFilesPath()),
+                configurationPath, downloader,
                 confClientProperties.allowedFederations()) {
             @Override
             protected void deleteExtraConfigurationDirectories(
@@ -84,7 +87,8 @@ public class ConfigurationClientActionExecutor {
                 configurationAnchorFile, configurationPath);
 
         var downloader = new ConfigurationDownloader(httpUrlConnectionConfigurer, configurationPath);
-        var client = new ConfigurationClient(new FileBasedProvider(configurationAnchorFile), configurationPath, downloader,
+        var client = new ConfigurationClient(new FileBasedProvider(configurationAnchorFile, commonProperties.tempFilesPath()),
+                configurationPath, downloader,
                 confClientProperties.allowedFederations()) {
             @Override
             protected void deleteExtraConfigurationDirectories(

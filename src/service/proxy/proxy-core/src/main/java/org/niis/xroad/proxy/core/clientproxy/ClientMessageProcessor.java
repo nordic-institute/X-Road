@@ -278,7 +278,8 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     private void parseResponse(HttpSender httpSender) throws Exception {
         log.trace("parseResponse()");
 
-        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
+        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
+                commonBeanProxy.getCommonProperties().tempFilesPath());
 
         ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(),
                 commonBeanProxy.getOcspVerifierFactory(), response,

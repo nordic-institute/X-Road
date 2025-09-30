@@ -190,7 +190,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     private void parseResponse(HttpSender httpSender) throws Exception {
-        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
+        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
+                commonBeanProxy.getCommonProperties().tempFilesPath());
         ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(),
                 commonBeanProxy.getOcspVerifierFactory(), response,
                 httpSender.getResponseContentType(),
@@ -325,7 +326,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     byte[] buf = new byte[4096];
                     int count = in.read(buf);
                     if (count >= 0) {
-                        final CachingStream cache = new CachingStream();
+                        final CachingStream cache = new CachingStream(commonBeanProxy.getCommonProperties().tempFilesPath());
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             cache.write(buf, 0, count);
                             enc.restBody(buf, count, tee);
