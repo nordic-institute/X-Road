@@ -9,8 +9,7 @@ jib {
     setAllowInsecureRegistries(true)
   }
   from {
-    val baseImageTag = project.findProperty("baseImageTag") ?: "latest"
-    image = "${project.property("xroadImageRegistry")}/base-images/ss-baseline-runtime:${baseImageTag}"
+    image = "${project.property("xroadImageRegistry")}/base-images/ss-baseline-runtime:${project.findProperty("xroadBaseImageTag")}"
     platforms {
       platform {
         architecture = "arm64"
