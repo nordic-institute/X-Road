@@ -15,7 +15,7 @@ on:
 jobs:
   build-and-package:
     name: Build, test and package code
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
