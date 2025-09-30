@@ -3,7 +3,8 @@ spring:
     import:
       - classpath:/xroad-common.yaml
   servlet:
-    multipart.enabled: false
+    multipart:
+      enabled: false
 server:
   error:
     whitelabel:
