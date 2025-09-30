@@ -103,6 +103,7 @@ file-upload-endpoints:
 
 xroad:
   admin-service:
+    authentication-provider: PAM
     global-configuration-generation-rate-in-seconds: 60
     rate-limit-enabled: true
     rate-limit-requests-per-second: 20

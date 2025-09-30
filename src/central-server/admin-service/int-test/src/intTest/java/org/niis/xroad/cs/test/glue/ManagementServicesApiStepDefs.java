@@ -189,7 +189,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
         mockServerService.client()
                 .when(request()
                         .withMethod("POST")
-                        .withPath("/v1/xrd-secret/tls/management-services"))
+                        .withPath("/v1/xrd-secret/tls/management-service"))
                 .respond(response()
                         .withStatusCode(OK.value())
                         .withContentType(APPLICATION_JSON));
@@ -209,7 +209,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
         mockServerService.client()
                 .when(request()
                         .withMethod("POST")
-                        .withPath("/v1/xrd-secret/tls/management-services"))
+                        .withPath("/v1/xrd-secret/tls/management-service"))
                 .respond(response()
                         .withStatusCode(OK.value())
                         .withContentType(APPLICATION_JSON));
@@ -220,7 +220,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
         mockServerService.client()
                 .when(request()
                         .withMethod("GET")
-                        .withPath("/v1/xrd-secret/tls/management-services"))
+                        .withPath("/v1/xrd-secret/tls/management-service"))
                 .respond(response()
                         .withStatusCode(OK.value())
                         .withContentType(APPLICATION_JSON)

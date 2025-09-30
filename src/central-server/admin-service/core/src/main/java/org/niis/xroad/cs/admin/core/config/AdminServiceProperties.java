@@ -173,6 +173,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     /** Algorithm that will be used when creating internal configuration signing key. */
     private KeyAlgorithm internalKeyAlgorithm;
 
+    private AuthenticationProviderType authenticationProvider;
+
+    private boolean enforceUserPasswordPolicy;
+
     /** Default whitelist for key management API (allow only localhost access, ipv4 and ipv6) */
     private String keyManagementApiWhitelist = "127.0.0.0/8, ::1";
     /** Default whitelist for regular APIs (allow all) */
