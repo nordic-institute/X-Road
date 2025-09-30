@@ -95,7 +95,8 @@ public final class ManagementRequestSender {
      */
     public ManagementRequestSender(VaultKeyProvider vaultKeyProvider, GlobalConfProvider globalConfProvider,
                                    SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
-                                   ClientId sender, ClientId receiver, String managementProxyServerUrl, DigestAlgorithm signatureDigestAlgorithm,
+                                   ClientId sender, ClientId receiver, String managementProxyServerUrl,
+                                   DigestAlgorithm signatureDigestAlgorithm,
                                    int connectTimeout, int socketTimeout, boolean isEnabledPooledConnectionReuse) {
         this.globalConfProvider = globalConfProvider;
         this.signerRpcClient = signerRpcClient;
