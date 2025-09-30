@@ -24,11 +24,17 @@ jib {
   }
 
   to {
-    val serviceImageSuffix = project.findProperty("serviceImageSuffix")?.toString()
-    val tags = if (serviceImageSuffix != null && serviceImageSuffix != "latest") {
-      setOf(serviceImageSuffix, "latest")
-    } else {
-      setOf("latest")
+    val serviceImageTag = project.findProperty("serviceImageTag")?.toString() ?: "SNAPSHOT"
+    val xroadBuildType = project.findProperty("xroadBuildType")?.toString() ?: "SNAPSHOT"
+
+    val tags = when {
+      xroadBuildType == "RELEASE" -> {
+        setOf(serviceImageTag, "latest")
+      }
+
+      else -> {
+        setOf(serviceImageTag)
+      }
     }
     setTags(tags)
   }
