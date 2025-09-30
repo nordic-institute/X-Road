@@ -16,10 +16,6 @@ jobs:
   build-and-package:
     name: Build, test and package code
     runs-on: ubuntu-22.04
-    outputs:
-      base-image-tag: ${{ steps.base-images.outputs.base-image-tag }}
-      xroad-version: ${{ steps.base-images.outputs.xroad-version }}
-      xroad-build-type: ${{ steps.base-images.outputs.xroad-build-type }}
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -52,38 +48,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Determine base image version
-        id: base-images
-        working-directory: ./src
-        run: |
-          # Read version from gradle.properties
-          XROAD_VERSION=$(grep "^xroadVersion=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
-          XROAD_BUILD_TYPE=$(grep "^xroadBuildType=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
-          
-          echo "X-Road Version: $XROAD_VERSION"
-          echo "X-Road Build Type: $XROAD_BUILD_TYPE"
-          
-          # Determine which version of base images to use
-          # Base images use stable tags: 'latest' for both release and snapshot builds
-          # This allows all branches to use the most recent base images without branch-specific builds
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            # For release tags, use latest stable base images
-            BASE_IMAGE_TAG="latest"
-            echo "Using release base images: ${BASE_IMAGE_TAG}"
-          elif [[ "$XROAD_BUILD_TYPE" == "RELEASE" ]]; then
-            # For release builds, use latest stable base images
-            BASE_IMAGE_TAG="latest"
-            echo "Using release base images: ${BASE_IMAGE_TAG}"
-          else
-            # For snapshot builds, use latest to ensure compatibility across branches
-            BASE_IMAGE_TAG="latest"
-            echo "Using snapshot base images: ${BASE_IMAGE_TAG}"
-          fi
-          
-          echo "base-image-tag=${BASE_IMAGE_TAG}" >> $GITHUB_OUTPUT
-          echo "xroad-version=${XROAD_VERSION}" >> $GITHUB_OUTPUT
-          echo "xroad-build-type=${XROAD_BUILD_TYPE}" >> $GITHUB_OUTPUT
-
       - name: Build and test source
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -93,6 +57,10 @@ jobs:
           # Setup GHCR registry URL (unified for both base images and application images)
           REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_REGISTRY="ghcr.io/${REPO_LOWERCASE}"
+          
+          # Read version and build type from gradle.properties for service image tagging
+          XROAD_VERSION=$(grep "^xroadVersion=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          XROAD_BUILD_TYPE=$(grep "^xroadBuildType=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
           
           # Function to get branch name for service image tagging
           get_branch_name() {
@@ -115,27 +83,28 @@ jobs:
           # Determine service image suffix for branch-aware tagging
           BRANCH_NAME=$(get_branch_name)
           
-          if [[ "${{ github.ref_type }}" == "tag" || "${{ steps.base-images.outputs.xroad-build-type }}" == "RELEASE" ]]; then
+          if [[ "${{ github.ref_type }}" == "tag" || "$XROAD_BUILD_TYPE" == "RELEASE" ]]; then
             # For releases, use simple version
-            SERVICE_IMAGE_TAG="${{ steps.base-images.outputs.xroad-version }}"
+            SERVICE_IMAGE_TAG="${XROAD_VERSION}"
           elif [[ "$BRANCH_NAME" == "develop-8.x" ]]; then
             # For develop branch, keep compatibility
-            SERVICE_IMAGE_TAG="${{ steps.base-images.outputs.xroad-version }}-SNAPSHOT"
+            SERVICE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT"
           else
             # For feature branches, include branch name
-            SERVICE_IMAGE_TAG="${{ steps.base-images.outputs.xroad-version }}-SNAPSHOT-${BRANCH_NAME}"
+            SERVICE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT-${BRANCH_NAME}"
           fi
           
           echo "🏗️ Build configuration:"
           echo "  Registry: ${IMAGE_REGISTRY}"
-          echo "  Base Image Tag: ${{ steps.base-images.outputs.base-image-tag }}"
-          echo "  Service Image Suffix: ${SERVICE_IMAGE_TAG}"
+          echo "  Service Image Tag: ${SERVICE_IMAGE_TAG}"
           echo "  Branch: ${BRANCH_NAME}"
           
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g \
           -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute \
           build sonar test jacocoTestReport -Pfrontend-npm-audit \
-          -PbuildImages=true -PxroadImageRegistry=${IMAGE_REGISTRY} -PbaseImageTag=${{ steps.base-images.outputs.base-image-tag }} -PserviceImageTag=${SERVICE_IMAGE_TAG}
+          -PbuildImages=true \
+          -PxroadImageRegistry=${IMAGE_REGISTRY} \
+          -PxroadServiceImageTag=${SERVICE_IMAGE_TAG}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'

@@ -30,7 +30,7 @@ jib {
   }
   to {
     image = "${project.property("xroadImageRegistry")}/ss-db-opmonitor-init"
-    tags = setOf("latest")
+    tags = setOf(project.findProperty("xroadServiceImageTag")?.toString())
   }
   container {
     entrypoint = listOf("/liquibase/docker-entrypoint.sh")

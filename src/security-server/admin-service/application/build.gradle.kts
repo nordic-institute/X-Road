@@ -137,19 +137,7 @@ jib {
   }
   to {
     image = "${project.property("xroadImageRegistry")}/ss-proxy-ui-api"
-
-    val serviceImageTag = project.findProperty("serviceImageTag")?.toString() ?: "SNAPSHOT"
-    val xroadBuildType = project.findProperty("xroadBuildType")?.toString() ?: "SNAPSHOT"
-
-    tags = when {
-      xroadBuildType == "RELEASE" -> {
-        setOf(serviceImageTag, "latest")
-      }
-
-      else -> {
-        setOf(serviceImageTag)
-      }
-    }
+    tags = setOf(project.findProperty("xroadServiceImageTag")?.toString())
   }
   container {
     entrypoint = listOf("/bin/bash", "/opt/app/entrypoint.sh")

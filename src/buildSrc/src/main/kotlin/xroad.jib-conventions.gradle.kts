@@ -24,19 +24,7 @@ jib {
   }
 
   to {
-    val serviceImageTag = project.findProperty("serviceImageTag")?.toString() ?: "SNAPSHOT"
-    val xroadBuildType = project.findProperty("xroadBuildType")?.toString() ?: "SNAPSHOT"
-
-    val tags = when {
-      xroadBuildType == "RELEASE" -> {
-        setOf(serviceImageTag, "latest")
-      }
-
-      else -> {
-        setOf(serviceImageTag)
-      }
-    }
-    setTags(tags)
+    tags = setOf(project.findProperty("xroadServiceImageTag")?.toString())
   }
 
   container {

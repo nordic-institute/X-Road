@@ -22,22 +22,13 @@ quarkus {
       put("quarkus.container-image.insecure", registryUrl.contains("localhost").toString())
       put("quarkus.container-image.push", buildImages)
       put("quarkus.container-image.builder", "jib")
+      put("quarkus.container-image.tag", project.findProperty("xroadServiceImageTag")?.toString()!!)
       put("quarkus.jib.working-directory", "/opt/app")
 
       val baseImageTag = project.findProperty("baseImageTag") ?: "latest"
       put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/base-images/ss-baseline-runtime:${baseImageTag}")
       put("quarkus.jib.platforms", "linux/amd64,linux/arm64/v8")
       put("quarkus.jib.user", "xroad")
-
-      val serviceImageTag = project.findProperty("serviceImageTag")?.toString() ?: "SNAPSHOT"
-      val xroadBuildType = project.findProperty("xroadBuildType")?.toString() ?: "SNAPSHOT"
-
-      put("quarkus.container-image.tag", serviceImageTag)
-      if (xroadBuildType == "RELEASE") {
-        put("quarkus.container-image.additional-tags", "latest")
-      }
-
-
       val jvmArgs = mutableListOf(
         "-Dquarkus.profile=containerized",
         "-Djava.library.path=/usr/share/xroad/lib"

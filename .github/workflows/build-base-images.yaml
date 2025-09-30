@@ -13,14 +13,6 @@ on:
       - '.github/workflows/build-base-images.yaml'
   schedule:
     - cron: '0 2 * * *'
-  
-  # Allow manual triggering
-  workflow_dispatch:
-    inputs:
-      version_override:
-        description: 'Override version (optional)'
-        required: false
-        type: string
 
 permissions:
   contents: read
@@ -36,8 +28,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0  # Need full history for git commit information
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -49,18 +39,10 @@ jobs:
       - name: Build base images
         working-directory: ./deployment/security-server/base-images
         run: |
-          # Determine version override if provided
-          VERSION_ARG=""
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.version_override }}" ]]; then
-            VERSION_ARG="--version ${{ inputs.version_override }}"
-          fi
-          
-          # Build with unified script
           ./build-base-images.sh \
             --environment ci \
             --registry ${{ env.REGISTRY }} \
-            --summary-file /tmp/build-summary.md \
-            $VERSION_ARG
+            --summary-file /tmp/build-summary.md
 
       - name: Add build summary to step summary
         if: always()
