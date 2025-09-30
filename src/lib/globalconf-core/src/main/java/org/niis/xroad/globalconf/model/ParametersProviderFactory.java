@@ -26,9 +26,7 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
@@ -83,8 +81,7 @@ public final class ParametersProviderFactory {
         return paramsConstructors.sharedByContent.create(content);
     }
 
-    public SharedParametersProvider sharedParametersProvider(Path sharedParametersPath, OffsetDateTime expiresOn)
-            throws CertificateEncodingException, IOException {
+    public SharedParametersProvider sharedParametersProvider(Path sharedParametersPath, OffsetDateTime expiresOn) {
         return paramsConstructors.sharedByPath.create(sharedParametersPath, expiresOn);
     }
 

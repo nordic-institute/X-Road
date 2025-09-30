@@ -317,13 +317,6 @@ public class LogManager extends AbstractLogManager {
         statusMap.put(url, new DiagnosticsStatus(DiagnosticStatus.OK, TimeUtils.offsetDateTimeNow()));
     }
 
-    /**
-     * Put failure state into statusMap (used for diagnostics).
-     * Timestamping ({@link AbstractTimestampRequest} attempts to use all TSAs, and failure means that
-     * all were tried and failed, so all TSAs will be marked with failed status
-     *
-     * @param e exception which is used to determine diagnostics error code
-     */
     void putStatusMapFailures(Timestamper.TimestampFailed timestampFailedResult) {
         timestampFailedResult.getErrorsByUrl().forEach((tspUrl, ex) -> {
             ErrorCode errorCode = DiagnosticsUtils.getErrorCode(ex);
@@ -333,7 +326,6 @@ public class LogManager extends AbstractLogManager {
             statusMap.put(tspUrl, diagnosticsStatus);
         });
     }
-
 
     private static TimestampRecord createTimestampRecord(Timestamper.TimestampSucceeded message) {
         TimestampRecord timestampRecord = new TimestampRecord();

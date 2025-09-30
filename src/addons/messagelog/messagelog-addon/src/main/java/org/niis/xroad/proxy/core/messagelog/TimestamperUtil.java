@@ -58,6 +58,7 @@ import java.util.List;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.READING_TIMESTAMP_RESPONSE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_NON_GRANTED_RESPONSE;
+import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_RESPONSE_OBJECT_CREATION_FAILED;
 
 @Slf4j
 @UtilityClass
@@ -82,15 +83,7 @@ final class TimestamperUtil {
         byte[] request = req.getEncoded();
 
         URL url =  URI.create(tspUrl).toURL();
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-
-        con.setDoOutput(true);
-        con.setDoInput(true);
-        con.setConnectTimeout(MessageLogProperties.getTimestamperClientConnectTimeout());
-        con.setReadTimeout(MessageLogProperties.getTimestamperClientReadTimeout());
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-type", "application/timestamp-query");
-        con.setRequestProperty("Content-length", String.valueOf(request.length));
+        HttpURLConnection con = getHttpURLConnectionToTimestampingProvider(url, request);
 
         OutputStream out = con.getOutputStream();
         out.write(request);
@@ -104,12 +97,25 @@ final class TimestamperUtil {
                     .build();
         } else if (con.getInputStream() == null) {
             con.disconnect();
-            throw XrdRuntimeException.systemException(ErrorCode.IO_ERROR)
+
+            throw XrdRuntimeException.systemException(ErrorCode.TIMESTAMP_PROVIDER_CONNECTION_FAILED)
                     .details("Could not get response from TSP")
                     .build();
         }
 
         return con.getInputStream();
+    }
+
+    private static HttpURLConnection getHttpURLConnectionToTimestampingProvider(URL url, byte[] request) throws IOException {
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setDoOutput(true);
+        con.setDoInput(true);
+        con.setConnectTimeout(MessageLogProperties.getTimestamperClientConnectTimeout());
+        con.setReadTimeout(MessageLogProperties.getTimestamperClientReadTimeout());
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-type", "application/timestamp-query");
+        con.setRequestProperty("Content-length", String.valueOf(request.length));
+        return con;
     }
 
     static TimeStampResponse getTimestampResponse(InputStream in) throws TSPException, IOException {
@@ -138,10 +144,18 @@ final class TimestamperUtil {
 
             throw XrdRuntimeException.systemException(TIMESTAMP_NON_GRANTED_RESPONSE)
                     .details("TimeStampResp.status: " + status + ", .statusString: " + sb)
+                    .metadataItems(status, sb.toString(), response.getStatus().getFailInfo())
                     .build();
         }
 
-        return new TimeStampResponse(response);
+        try {
+            return new TimeStampResponse(response);
+        } catch (TSPException | IOException e) {
+            throw XrdRuntimeException.systemException(TIMESTAMP_RESPONSE_OBJECT_CREATION_FAILED)
+                    .details("Could not create RFC 3161 TimeStampResponse object")
+                    .cause(e)
+                    .build();
+        }
     }
 
     private static TimeStampResp readTimestampResponse(InputStream in) {

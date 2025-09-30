@@ -47,11 +47,10 @@ import java.util.List;
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @AllArgsConstructor
 public class DiagnosticsStatus implements Serializable {
-    private int returnCode;
+    private DiagnosticStatus status;
     private OffsetDateTime prevUpdate;
     private OffsetDateTime nextUpdate;
     private ErrorCode errorCode;
-    private DiagnosticStatus status;
     @Setter
     private String description;
     @Setter

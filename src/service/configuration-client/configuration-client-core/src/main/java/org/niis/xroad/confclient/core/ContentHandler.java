@@ -77,6 +77,7 @@ final class ContentHandler {
             throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER)
                     .details("Content part %s has invalid instance identifier (expected %s, but was %s)"
                             .formatted(file, file.getInstanceIdentifier(), instanceIdentifier))
+                    .metadataItems(file.getContentLocation())
                     .build();
         }
     }

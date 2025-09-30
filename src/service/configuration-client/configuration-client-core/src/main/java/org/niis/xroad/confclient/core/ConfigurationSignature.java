@@ -96,8 +96,9 @@ final class ConfigurationSignature extends AbstractConfigurationPart {
         String algoUri = p.get(HEADER_HASH_ALGORITHM_ID);
 
         if (StringUtils.isBlank(algoUri)) {
-            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_MISSING_VERIFICATION_CERT_HASH_ALGO_ID)
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_MISSING_PARAMETER)
                     .details("Field %s is missing parameter %s".formatted(HEADER_VERIFICATION_CERT_HASH, HEADER_HASH_ALGORITHM_ID))
+                    .metadataItems(HEADER_VERIFICATION_CERT_HASH, HEADER_HASH_ALGORITHM_ID)
                     .build();
         }
 

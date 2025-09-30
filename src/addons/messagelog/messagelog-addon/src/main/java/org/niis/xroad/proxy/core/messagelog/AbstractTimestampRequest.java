@@ -40,6 +40,7 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
@@ -59,6 +60,7 @@ import static ee.ria.xroad.common.crypto.Digests.getAlgorithmIdentifier;
 import static org.niis.xroad.common.core.exception.ErrorCode.ADDING_SIGNATURE_TO_TS_TOKEN_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.CALCULATING_MESSAGE_DIGEST_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMPING_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_RESPONSE_VALIDATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_TOKEN_ENCODING_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.TSP_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.proxy.core.messagelog.TimestamperUtil.addSignerCertificate;
@@ -99,7 +101,7 @@ public abstract class AbstractTimestampRequest {
             try {
                 log.debug("Sending time-stamp request to {}", url);
 
-                TsRequest req = new TsRequest(TimestamperUtil.makeTsRequest(tsRequest, url), url);
+                TsRequest req = new TsRequest(getTsRequestInputStream(tsRequest, url), url);
 
                 TimeStampResponse tsResponse = getTimestampResponse(req.getInputStream());
                 log.info("tsresponse {}", tsResponse);
@@ -123,6 +125,16 @@ public abstract class AbstractTimestampRequest {
         );
         timestampFailed.setErrorsByUrl(errorsByUrl);
         return timestampFailed;
+    }
+
+    private static InputStream getTsRequestInputStream(TimeStampRequest tsRequest, String url) {
+        try {
+            return TimestamperUtil.makeTsRequest(tsRequest, url);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(ErrorCode.TIMESTAMP_PROVIDER_CONNECTION_FAILED)
+                    .details("Could not get response from TSP")
+                    .build();
+        }
     }
 
     private TimeStampRequest createTimestampRequest(byte[] data) {
@@ -183,8 +195,16 @@ public abstract class AbstractTimestampRequest {
         }
     }
 
-    protected void verify(TimeStampRequest request, TimeStampResponse response) throws TSPException {
-        response.validate(request);
+    protected void verify(TimeStampRequest request, TimeStampResponse response) {
+        try {
+            response.validate(request);
+        } catch (TSPException e) {
+            throw XrdRuntimeException.systemException(TIMESTAMP_RESPONSE_VALIDATION_FAILED)
+                    .details("Timestamp response validation against the request failed")
+                    .metadataItems(e.getMessage())
+                    .cause(e)
+                    .build();
+        }
 
         TimeStampToken token = response.getTimeStampToken();
         TimestampVerifier.verify(token, globalConfProvider.getTspCertificates());

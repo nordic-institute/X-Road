@@ -113,6 +113,7 @@ public class ConfigurationParser {
         } catch (MimeException | IOException e) {
             throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PARSING_DOWNLOADED_CONF_DIRECTORY_FAILURE)
                     .details("Failed to parse configuration from %s: %s".formatted(location.getDownloadURL(), e.getMessage()))
+                    .metadataItems(location.getDownloadURL())
                     .cause(e)
                     .build();
         }
@@ -215,6 +216,7 @@ public class ConfigurationParser {
                                           + "certificate hash %s").formatted(
                                             getInstanceIdentifier(),
                                             parameters.getVerificationCertHash()))
+                            .metadataItems(parameters.getVerificationCertHash())
                             .build();
                 }
 

@@ -68,7 +68,7 @@ public abstract class AbstractConfigurationPart {
         if (expectedValue != null && !expectedValue.equals(value)) {
             throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE)
                     .details("Field %s must have value %s".formatted(fieldName, expectedValue))
-                    .metadataItems(fieldName, value)
+                    .metadataItems(fieldName, value, expectedValue)
                     .build();
         }
     }

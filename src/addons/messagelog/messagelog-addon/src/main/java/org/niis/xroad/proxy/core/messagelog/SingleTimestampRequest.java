@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.messagelog;
 
+import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.signature.Signature;
 
@@ -58,7 +59,15 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
 
     @Override
     byte[] getRequestData() {
-        var logRecord = LogRecordManager.get(logRecords[0]);
+        LogRecord logRecord;
+        try {
+            logRecord = LogRecordManager.get(logRecords[0]);
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(MESSAGE_LOG_RECORD_NOT_FOUND)
+                    .details("Could not find message record #" + logRecords[0])
+                    .cause(e)
+                    .build();
+        }
 
         if (!(logRecord instanceof MessageRecord mr)) {
             throw XrdRuntimeException.systemException(MESSAGE_LOG_RECORD_NOT_FOUND)

@@ -55,9 +55,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.SequencedSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -126,7 +128,7 @@ public class ConfigurationDownloader {
 
         List<ConfigurationLocation> sharedParameterLocations = sharedParametersConfigurationLocations.get(source);
 
-        List<ConfigurationLocation> locations = new ArrayList<>();
+        SequencedSet<ConfigurationLocation> locations = new LinkedHashSet<>();
         if (!sharedParameterLocations.isEmpty()) {
             locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sharedParameterLocations));
             log.debug("sharedParameterLocations.size = {}", sharedParameterLocations.size());
@@ -144,7 +146,7 @@ public class ConfigurationDownloader {
         return downloadResult(prevCachedKey.orElse(null), locations, contentIdentifiers);
     }
 
-    private DownloadResult downloadResult(String prevCachedKey, List<ConfigurationLocation> locations, String... contentIdentifiers) {
+    private DownloadResult downloadResult(String prevCachedKey, Set<ConfigurationLocation> locations, String... contentIdentifiers) {
         DownloadResult result = new DownloadResult();
         for (ConfigurationLocation location : locations) {
             String cacheKey = prevCachedKey != null ? prevCachedKey : location.getDownloadURL();
@@ -163,7 +165,7 @@ public class ConfigurationDownloader {
         return result.failure(lastSuccessfulLocationUrl);
     }
 
-    private Optional<ConfigurationLocation> findLocationWithPreviousSuccess(List<ConfigurationLocation> locations) {
+    private Optional<ConfigurationLocation> findLocationWithPreviousSuccess(Set<ConfigurationLocation> locations) {
         for (ConfigurationLocation location : locations) {
             ConfigurationLocation successfulLocation = successfulLocations.get(location.getDownloadURL());
             if (successfulLocation != null) {
@@ -180,22 +182,14 @@ public class ConfigurationDownloader {
         lastSuccessfulLocationUrl = location.getDownloadURL();
     }
 
-    Configuration download(ConfigurationLocation location, String[] contentIdentifiers) throws Exception {
+    Configuration download(ConfigurationLocation location, String[] contentIdentifiers) {
         log.info("Downloading configuration from {}", location.getDownloadURL());
 
         Configuration configuration = getParser().parse(location, contentIdentifiers);
 
         List<DownloadedContent> downloadedContents = downloadAllContent(configuration);
 
-        Set<Path> neededFiles;
-        try {
-            // when everything is ok save contents and/or update expiry dates
-            neededFiles = persistAllContent(downloadedContents);
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF)
-                    .details("Failed to parse configuration from %s: %s".formatted(location.getDownloadURL(), e.getMessage()))
-                    .build();
-        }
+        Set<Path> neededFiles = persistAllContent(downloadedContents);
 
         deleteExtraFiles(configuration.getInstanceIdentifier(), neededFiles);
 
@@ -207,9 +201,8 @@ public class ConfigurationDownloader {
      *
      * @param configuration configuration object with details about the configuration download location
      * @return list of downloaded content
-     * @throws Exception in case downloading or handling a file fails
      */
-    List<DownloadedContent> downloadAllContent(Configuration configuration) throws Exception {
+    List<DownloadedContent> downloadAllContent(Configuration configuration) {
         log.trace("downloadAllContent");
 
         List<DownloadedContent> result = new ArrayList<>();
@@ -237,7 +230,7 @@ public class ConfigurationDownloader {
         return result;
     }
 
-    Set<Path> persistAllContent(List<DownloadedContent> downloadedContents) throws Exception {
+    Set<Path> persistAllContent(List<DownloadedContent> downloadedContents) {
         Set<Path> result = new HashSet<>();
         for (DownloadedContent downloadedContent : downloadedContents) {
             Path contentFileName = fileNameProvider.getFileName(downloadedContent.file);
@@ -378,6 +371,7 @@ public class ConfigurationDownloader {
             log.trace("Content {} hash {} does not match expected hash {}", file, encodeBase64(contentHash), file.getHash());
             throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_DOWNLOADED_FILE_INTEGRITY_FAILURE)
                     .details("Failed to verify content integrity (%s)".formatted(file))
+                    .metadataItems(file.getContentLocation())
                     .build();
         }
     }
@@ -394,6 +388,7 @@ public class ConfigurationDownloader {
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_FILE_SAVE_FAILURE)
                     .details("Failed to save global configuration part to %s".formatted(destination))
+                    .metadataItems(destination.toString())
                     .cause(e)
                     .build();
         }

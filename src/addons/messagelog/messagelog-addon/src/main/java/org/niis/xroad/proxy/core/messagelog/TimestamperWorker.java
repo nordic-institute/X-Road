@@ -52,12 +52,12 @@ public class TimestamperWorker {
     private final GlobalConfProvider globalConfProvider;
     private final List<String> tspUrls;
 
-    public Timestamper.TimestampResult timestamp(TimestampTask message) {
-        log.trace("timestamp({})", message.getClass());
+    public Timestamper.TimestampResult timestamp(TimestampTask timestampTask) {
+        log.trace("timestamp({})", timestampTask.getClass());
         try {
-            return handleTimestampTask(message);
+            return handleTimestampTask(timestampTask);
         } catch (Exception e) {
-            return handleFailure(message, e);
+            return handleFailure(timestampTask, e);
         }
     }
 

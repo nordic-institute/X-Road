@@ -124,6 +124,8 @@ public final class TimestampVerifier {
         try {
             SignerInformationVerifier verifier = createVerifier(cert);
             if (!signerInfo.verify(verifier)) {
+                // With the current implementation of BouncyCastle, this should not happen -
+                // The method should only return true or throw exception.
                 throw XrdRuntimeException.systemException(TIMESTAMP_SIGNER_VERIFICATION_FAILED)
                         .details("Failed to verify timestamp signer information")
                         .build();
@@ -131,6 +133,7 @@ public final class TimestampVerifier {
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(TIMESTAMP_SIGNER_VERIFICATION_FAILED)
                     .details("Failed to verify timestamp signer information")
+                    .metadataItems(e.getMessage())
                     .cause(e)
                     .build();
         }

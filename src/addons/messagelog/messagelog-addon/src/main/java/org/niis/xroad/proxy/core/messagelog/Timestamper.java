@@ -98,12 +98,12 @@ public class Timestamper {
         return new TimestamperWorker(globalConfProvider, serverConfProvider.getTspUrl());
     }
 
-    public TimestampResult handleTimestampTask(TimestampTask message) {
+    public TimestampResult handleTimestampTask(TimestampTask timestampTask) {
         if (!globalConfProvider.isValid()) {
-            return new TimestampFailed(message.getMessageRecords(),
+            return new TimestampFailed(timestampTask.getMessageRecords(),
                     XrdRuntimeException.systemException(GLOBAL_CONF_OUTDATED).details("Global configuration is not valid").build());
         }
 
-        return getWorkerImpl().timestamp(message);
+        return getWorkerImpl().timestamp(timestampTask);
     }
 }
