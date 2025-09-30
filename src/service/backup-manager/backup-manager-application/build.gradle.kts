@@ -11,7 +11,10 @@ quarkus {
         "quarkus.jib.base-jvm-image",
         "${project.property("xroadImageRegistry")}/base-images/ss-baseline-backup-manager-runtime:${project.findProperty("xroadBaseImageTag")}"
       )
-      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-backup-manager")
+      put(
+        "quarkus.container-image.image",
+        "${project.property("xroadImageRegistry")}/ss-backup-manager:${project.findProperty("xroadServiceImageTag")}"
+      )
     }
   )
 }

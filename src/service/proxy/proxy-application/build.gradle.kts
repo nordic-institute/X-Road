@@ -7,7 +7,10 @@ plugins {
 quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
-      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-proxy")
+      put(
+        "quarkus.container-image.image",
+        "${project.property("xroadImageRegistry")}/ss-proxy:${project.findProperty("xroadServiceImageTag")}"
+      )
       put("quarkus.jib.jvm-entrypoint", "/bin/sh,/opt/app/entrypoint.sh")
     }
   )

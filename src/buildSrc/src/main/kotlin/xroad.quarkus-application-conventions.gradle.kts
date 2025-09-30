@@ -22,7 +22,6 @@ quarkus {
       put("quarkus.container-image.insecure", registryUrl.contains("localhost").toString())
       put("quarkus.container-image.push", buildImages)
       put("quarkus.container-image.builder", "jib")
-      put("quarkus.container-image.tag", project.findProperty("xroadServiceImageTag")?.toString()!!)
       put("quarkus.jib.working-directory", "/opt/app")
 
       put(

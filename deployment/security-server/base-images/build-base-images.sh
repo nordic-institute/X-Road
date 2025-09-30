@@ -181,7 +181,7 @@ if [[ "$ENVIRONMENT" == "ci" && "$REGISTRY" == "ghcr.io" ]]; then
     exit 1
   fi
 else
-  IMAGE_PREFIX="$REGISTRY"
+  IMAGE_PREFIX="$REGISTRY/base-images"
 fi
 
 # Define images to build: "image-name:dockerfile" pairs

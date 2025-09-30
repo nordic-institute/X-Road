@@ -7,7 +7,10 @@ plugins {
 quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
-      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-configuration-client")
+      put(
+        "quarkus.container-image.image",
+        "${project.property("xroadImageRegistry")}/ss-configuration-client:${project.findProperty("xroadServiceImageTag")}"
+      )
     }
   )
 }

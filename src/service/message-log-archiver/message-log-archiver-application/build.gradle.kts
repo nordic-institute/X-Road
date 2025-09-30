@@ -6,7 +6,10 @@ plugins {
 quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
-      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-message-log-archiver")
+      put(
+        "quarkus.container-image.image",
+        "${project.property("xroadImageRegistry")}/ss-message-log-archiver:${project.findProperty("xroadServiceImageTag")}"
+      )
     }
   )
 }
