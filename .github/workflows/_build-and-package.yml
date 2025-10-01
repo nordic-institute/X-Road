@@ -136,6 +136,14 @@ jobs:
           -PbuildImages=true \
           -PxroadImageRegistry=${IMAGE_REGISTRY} \
           -PxroadServiceImageTag=${SERVICE_IMAGE_TAG}
+
+      - name: Log storage after build
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'Storage After Build'
+          show-build-dirs: 'true'
+
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -205,6 +213,13 @@ jobs:
             --platforms "linux/amd64" \
             --packages-path "${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04"
 
+      - name: Log storage after all packaging
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'Storage After All Packaging'
+          show-packages: 'true'
+
       - name: Packaging and upload artifacts measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -216,3 +231,9 @@ jobs:
         with:
           task: display-results
           pr-comment: true
+
+      - name: Log final storage
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'Final Storage Utilization'

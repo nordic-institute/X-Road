@@ -39,7 +39,7 @@ jobs:
         uses: ./.github/actions/setup-build-env
         with:
           gradle-cache-read-only: true
-          free-disk-space: true
+          free-disk-space: false
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -81,11 +81,14 @@ jobs:
       - name: Run Security Server system tests
         working-directory: ./src
         run: |
-          echo "Available disk space pre-build:"
-          df -h
-          docker system df
-          docker images
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest
+
+      - name: Log storage after tests
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'Storage After Security Server Tests'
+          show-docker-images: 'true'
 
       - name: Test Security Server measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0

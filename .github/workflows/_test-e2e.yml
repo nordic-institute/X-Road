@@ -88,6 +88,13 @@ jobs:
             :security-server:e2e-test:e2eTest \
             -Pe2eTestCSImage=${{ inputs.image_registry }}/central-server-dev:${{ inputs.service_image_tag }}
 
+      - name: Log storage after tests
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'Storage After E2E Tests'
+          show-docker-images: 'true'
+
       - name: E2E test measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:

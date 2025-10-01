@@ -62,6 +62,12 @@ jobs:
           :central-server:admin-service:ui-system-test:systemTest \
           -PsystemTestCsImageName=${{ inputs.image_registry }}/central-server-dev:${{ inputs.service_image_tag }}
 
+      - name: Log storage after tests
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'Storage After Central Server Tests'
+
       - name: Test Central Server measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
