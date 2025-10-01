@@ -31,7 +31,7 @@ import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 import java.time.Duration;
 
 public interface RpcProperties {
-    String PREFIX = "xroad.common.rpc";
+    String PREFIX = "xroad.common-rpc";
     String DEFAULT_USE_TLS = "true";
 
     boolean useTls();

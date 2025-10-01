@@ -37,7 +37,7 @@ import static org.niis.xroad.globalconf.impl.config.GlobalConfProperties.MAPPING
 
 @ConfigMapping(prefix = MAPPING_PREFIX)
 public interface GlobalConfProperties {
-    String MAPPING_PREFIX = "xroad.common.global-conf";
+    String MAPPING_PREFIX = "xroad.common-global-conf";
     String DEFAULT_SOURCE = "FILESYSTEM";
     String DEFAULT_RATE_INTERVAL = "60S";
     String DEFAULT_GLOBALCONF_DIR = "/etc/xroad/globalconf";

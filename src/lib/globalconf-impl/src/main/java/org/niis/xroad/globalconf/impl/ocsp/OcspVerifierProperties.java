@@ -35,7 +35,7 @@ import static org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties.MAPPING
 
 @ConfigMapping(prefix = MAPPING_PREFIX)
 public interface OcspVerifierProperties {
-    String MAPPING_PREFIX = "xroad.common.ocsp-verifier";
+    String MAPPING_PREFIX = "xroad.common-ocsp-verifier";
     String DEFAULT_OCSP_VERIFIER_CACHE_PERIOD = "60";
 
     @WithName("cache-period")

@@ -54,9 +54,8 @@ server:
         same-site: Strict
 
 xroad:
-  common:
-    global-conf:
-      refresh-rate: -1 # UI has its own refresh job.
+  common-global-conf:
+    refresh-rate: -1 # UI has its own refresh job.
   proxy-ui-api:
     authentication-provider: PAM
     rate-limit-requests-per-second: 20
@@ -139,9 +138,8 @@ spring:
 logging:
   config: classpath:logback-containerized.xml
 xroad:
-  common:
-    global-conf:
-      source: REMOTE
+  common-global-conf:
+    source: REMOTE
   proxy-ui-api:
     authentication-provider: DATABASE
 ---

@@ -44,7 +44,7 @@ public class LegacyConfigPathMapping {
     private static final Set<String> REMOVED_KEYS = new HashSet<>();
 
     static {
-        MAPPING.put("common.configuration-path", "common.global-conf.configuration-path");
+        MAPPING.put("common.configuration-path", "common-global-conf.configuration-path");
 
         // configuration-client
         MAPPING.put("proxy.configuration-anchor-file", "configuration-client.configuration-anchor-file");
@@ -80,14 +80,14 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.client-use-idle-connection-monitor", "proxy.client-proxy.client-use-idle-connection-monitor");
         MAPPING.put("proxy.client-fastest-connecting-ssl-uri-cache-period", "proxy.client-proxy.fastest-connecting-ssl-uri-cache-period");
         MAPPING.put("proxy.client-use-fastest-connecting-ssl-socket-autoclose", "proxy.client-proxy.use-fastest-connecting-ssl-socket-autoclose");
-        MAPPING.put("proxy.ocsp-verifier-cache-period", "common.ocsp-verifier.cache-period");
+        MAPPING.put("proxy.ocsp-verifier-cache-period", "common-ocsp-verifier.cache-period");
 
 
-        MAPPING.put("proxy.server-conf-cache-period", "common.server-conf.cache-period");
-        MAPPING.put("proxy.server-conf-client-cache-size", "common.server-conf.client-cache-size");
-        MAPPING.put("proxy.server-conf-service-cache-size", "common.server-conf.service-cache-size");
-        MAPPING.put("proxy.server-conf-service-endpoints-cache-size", "common.server-conf.service-endpoints-cache-size");
-        MAPPING.put("proxy.server-conf-acl-cache-size", "common.server-conf.acl-cache-size");
+        MAPPING.put("proxy.server-conf-cache-period", "common-server-conf.cache-period");
+        MAPPING.put("proxy.server-conf-client-cache-size", "common-server-conf.client-cache-size");
+        MAPPING.put("proxy.server-conf-service-cache-size", "common-server-conf.service-cache-size");
+        MAPPING.put("proxy.server-conf-service-endpoints-cache-size", "common-server-conf.service-endpoints-cache-size");
+        MAPPING.put("proxy.server-conf-acl-cache-size", "common-server-conf.acl-cache-size");
         MAPPING.put("proxy.grpc-port", "proxy.rpc.port");
 
         MAPPING.put("proxy.backup-encryption-enabled", "backup-manager.backup-encryption-enabled");

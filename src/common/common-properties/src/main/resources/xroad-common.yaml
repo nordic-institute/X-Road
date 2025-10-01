@@ -36,9 +36,8 @@ spring:
       port: 4099
       host-enabled: true
   xroad:
-    common:
-      global-conf:
-        source: REMOTE
+    common-global-conf:
+      source: REMOTE
 
 logging:
   level:
@@ -46,9 +45,8 @@ logging:
     org.springframework: INFO
 
 xroad:
-  common:
-    rpc:
-      certificate-provisioning:
-        common-name: ${XROAD_HOST:localhost}
-        ip-subject-alt-names:
-          - 127.0.0.1
+  common-rpc:
+    certificate-provisioning:
+      common-name: ${XROAD_HOST:localhost}
+      ip-subject-alt-names:
+        - 127.0.0.1

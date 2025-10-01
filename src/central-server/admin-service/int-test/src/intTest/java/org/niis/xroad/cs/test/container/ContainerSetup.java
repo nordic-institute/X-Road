@@ -75,7 +75,7 @@ public class ContainerSetup {
                         "-Xmx600m",
                         "-XX:MaxMetaspaceSize=200m",
                         "-Dlogging.config=/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
-                        "-Dxroad.common.rpc.use-tls=false");
+                        "-Dxroad.common-rpc.use-tls=false");
             }
 
             @NotNull

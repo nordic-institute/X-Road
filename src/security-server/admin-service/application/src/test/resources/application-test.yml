@@ -32,9 +32,8 @@ xroad:
         jdbc:
           use_streams_for_binary: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  common:
-    rpc:
-      use-tls: false
+  common-rpc:
+    use-tls: false
 
   mail-notification: |
     host: mailpit

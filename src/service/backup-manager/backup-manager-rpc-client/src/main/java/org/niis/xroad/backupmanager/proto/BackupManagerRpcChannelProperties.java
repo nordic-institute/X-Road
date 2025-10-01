@@ -34,7 +34,7 @@ import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
 @ConfigMapping(prefix = BackupManagerRpcChannelProperties.PREFIX)
 public interface BackupManagerRpcChannelProperties extends RpcChannelProperties  {
-    String PREFIX = "xroad.common.rpc.channel.backup-manager";
+    String PREFIX = "xroad.common-rpc.channel.backup-manager";
     String DEFAULT_HOST = "127.0.0.1";
     String DEFAULT_PORT = "7665";
     String DEFAULT_DEADLINE_AFTER = "60000";
