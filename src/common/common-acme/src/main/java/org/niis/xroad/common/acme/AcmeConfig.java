@@ -29,41 +29,65 @@ package org.niis.xroad.common.acme;
 
 public interface AcmeConfig {
 
-    // raw usage with default in org.niis.xroad.securityserver.restapi.config.AcmeBeanConfig.IsAcmeCertRenewalJobsActive
+    /**
+     * raw usage with default in org.niis.xroad.securityserver.restapi.config.AcmeBeanConfig.IsAcmeCertRenewalJobsActive
+     */
     boolean isAcmeRenewalActive();
 
-    // ACME certificate renewal retry delay in seconds
+    /**
+     * ACME certificate renewal retry delay in seconds
+     */
     int getAcmeRenewalRetryDelay();
 
-    // ACME certificate renewal job interval in seconds
+    /**
+     * ACME certificate renewal job interval in seconds
+     */
     int getAcmeRenewalInterval();
 
-    // when to trigger automatic renewal subtracted as days from the expiration date of the certificate.
-    // Used when it's not possible to receive the ACME renewal information from the ACME server.
+    /**
+     * when to trigger automatic renewal subtracted as days from the expiration date of the certificate.
+     * Used when it's not possible to receive the ACME renewal information from the ACME server.
+     */
     int getAcmeRenewalTimeBeforeExpirationDate();
 
-    // when to trigger automatic acme account keypair renewal subtracted as days from the expiration date of the certificate.
+    /**
+     * when to trigger automatic acme account keypair renewal subtracted as days from the expiration date of the certificate.
+     */
     int getAcmeKeypairRenewalTimeBeforeExpirationDate();
 
-    // whether to automatically activate new signing certificates after they are ordered with ACME.
+    /**
+     * whether to automatically activate new signing certificates after they are ordered with ACME.
+     */
     boolean isAutomaticActivateAcmeSignCertificate();
 
-    // the number of attempts to check whether the acme authorizations have completed
+    /**
+     * the number of attempts to check whether the acme authorizations have completed
+     */
     int getAcmeAuthorizationWaitAttempts();
 
-    // the amount of seconds to wait between acme authorization completion check attempts
+    /**
+     * the amount of seconds to wait between acme authorization completion check attempts
+     */
     int getAcmeAuthorizationWaitInterval();
 
-    // number of attempts to check whether the acme certificate is ready
+    /**
+     * number of attempts to check whether the acme certificate is ready
+     */
     int getAcmeCertificateWaitAttempts();
 
-    // amount of seconds to wait between acme certificate completion check attempts
+    /**
+     * amount of seconds to wait between acme certificate completion check attempts
+     */
     int getAcmeCertificateWaitInterval();
 
-    // the amount of days the ACME server account's self-signed certificate is valid
+    /**
+     * the amount of days the ACME server account's self-signed certificate is valid
+     */
     int getAcmeCertificateAccountKeyPairExpiration();
 
-    // whether the service should listen on acme challenge port (default 80) for incoming requests
+    /**
+     * whether the service should listen on acme challenge port (default 80) for incoming requests
+     */
     boolean isAcmeChallengePortEnabled();
 
     int getAcmeChallengePort();

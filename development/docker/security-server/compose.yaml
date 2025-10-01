@@ -14,7 +14,7 @@ services:
     volumes:
       - ../../../deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts/:/scripts
   db-serverconf:
-    image: postgres:16
+    image: postgres:17
     environment:
       - POSTGRES_PASSWORD=admin_secret
       - POSTGRES_USER=postgres
@@ -56,7 +56,7 @@ services:
         wait
       "
   db-messagelog:
-    image: postgres:16
+    image: postgres:17
     environment:
       - POSTGRES_PASSWORD=admin_secret
       - POSTGRES_USER=postgres
