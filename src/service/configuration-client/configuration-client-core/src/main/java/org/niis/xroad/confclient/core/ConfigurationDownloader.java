@@ -275,22 +275,22 @@ public class ConfigurationDownloader {
     }
 
     /**
-     * Checks if the configuration oldConfigurationFile should be downloaded. The rules to download:
-     * i) Configuration oldConfigurationFile does not exist in the system
-     * ii) Configuration oldConfigurationFile hash is different from the one that system has
+     * Checks if the configuration currentConfigurationFile should be downloaded. The rules to download:
+     * i) Configuration currentConfigurationFile does not exist in the system
+     * ii) Configuration currentConfigurationFile hash is different from the one that system has
      *
      * @param newConfigurationFile new configuration file
-     * @param oldConfigurationFile current configuration file
+     * @param currentConfigurationFile current configuration file
      * @return boolean value of whether the files should be downloaded or not
      */
-    boolean shouldDownload(ConfigurationFile newConfigurationFile, Path oldConfigurationFile) {
+    boolean shouldDownload(ConfigurationFile newConfigurationFile, Path currentConfigurationFile) {
         log.trace("shouldDownload({}, {})", newConfigurationFile.getContentLocation(), newConfigurationFile.getHash());
 
-        if (Files.exists(oldConfigurationFile)) {
+        if (Files.exists(currentConfigurationFile)) {
             String contentHash = newConfigurationFile.getHash();
             byte[] fileHash;
             try {
-                fileHash = getFileHash(oldConfigurationFile, newConfigurationFile.getHashAlgorithmId());
+                fileHash = getFileHash(currentConfigurationFile, newConfigurationFile.getHashAlgorithmId());
             } catch (IOException e) {
                 throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_FILE_HASH_FAILURE)
                         .details("Failed to get hash for existing global configuration file")
@@ -301,14 +301,14 @@ public class ConfigurationDownloader {
             if (StringUtils.equals(existingHash, contentHash)) {
                 return false;
             } else {
-                log.trace("Downloading {} because oldConfigurationFile has changed ({} != {})",
+                log.trace("Downloading {} because currentConfigurationFile has changed ({} != {})",
                         newConfigurationFile.getContentLocation(), existingHash, contentHash);
                 return true;
             }
         }
 
-        log.trace("Downloading {} because oldConfigurationFile {} does not exist locally",
-                newConfigurationFile.getContentLocation(), oldConfigurationFile);
+        log.trace("Downloading {} because currentConfigurationFile {} does not exist locally",
+                newConfigurationFile.getContentLocation(), currentConfigurationFile);
         return true;
     }
 
