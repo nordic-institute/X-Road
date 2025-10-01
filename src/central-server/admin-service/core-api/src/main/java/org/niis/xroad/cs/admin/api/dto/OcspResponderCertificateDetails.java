@@ -25,25 +25,16 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.rest.api.converter;
+package org.niis.xroad.cs.admin.api.dto;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.niis.xroad.cs.admin.api.converter.GenericMapper;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
-import org.niis.xroad.cs.admin.api.dto.OcspResponderCertificateDetails;
-import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
-import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
-import org.niis.xroad.cs.openapi.model.OcspResponderCertificateDetailsDto;
-import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface CertificateDetailsDtoConverter extends GenericMapper {
+@Data
+@Accessors(chain = true)
+public class OcspResponderCertificateDetails extends CertificateDetails {
 
-    CertificateDetailsDto convert(CertificateDetails certificateDetails);
-
-    OcspResponderCertificateDetailsDto convert(OcspResponderCertificateDetails certificateDetails);
-
-    SecurityServerAuthenticationCertificateDetailsDto convert(SecurityServerAuthenticationCertificateDetails certificateDetails);
+    private Integer certificationServiceId;
+    private Integer intermediateCaId;
 
 }

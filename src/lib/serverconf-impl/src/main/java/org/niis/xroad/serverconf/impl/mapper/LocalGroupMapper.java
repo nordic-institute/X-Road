@@ -34,7 +34,7 @@ import org.niis.xroad.serverconf.model.LocalGroup;
 
 import java.util.List;
 
-@Mapper(uses = {GroupMemberMapper.class})
+@Mapper(uses = {GroupMemberMapper.class, ClientMapper.class})
 public interface LocalGroupMapper extends GenericUniDirectionalMapper<LocalGroupEntity, LocalGroup> {
     LocalGroupMapper INSTANCE = Mappers.getMapper(LocalGroupMapper.class);
     static LocalGroupMapper get() {

@@ -34,9 +34,10 @@ import org.niis.xroad.serverconf.model.Endpoint;
 
 import java.util.List;
 
-@Mapper
+@Mapper(uses = {ClientMapper.class})
 public interface EndpointMapper extends GenericUniDirectionalMapper<EndpointEntity, Endpoint> {
     EndpointMapper INSTANCE = Mappers.getMapper(EndpointMapper.class);
+
     static EndpointMapper get() {
         return INSTANCE;
     }
