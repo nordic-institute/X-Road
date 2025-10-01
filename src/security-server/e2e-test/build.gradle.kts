@@ -27,9 +27,6 @@ tasks.register<Test>("e2eTest") {
   if (project.hasProperty("e2eTestCSImage")) {
     systemTestArgs += "-Dtest-automation.custom.cs-image=${project.property("e2eTestCSImage")}"
   }
-  if (project.hasProperty("e2eTestSSImage")) {
-    systemTestArgs += "-Dtest-automation.custom.ss-image=${project.property("e2eTestSSImage")}"
-  }
   if (project.hasProperty("e2eTestCAImage")) {
     systemTestArgs += "-Dtest-automation.custom.cs-image=${project.property("e2eTestCAImage")}"
   }
