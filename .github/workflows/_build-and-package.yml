@@ -11,11 +11,21 @@ on:
         description: 'Git SHA for the build'
         required: true
         type: string
+    outputs:
+      image_registry:
+        description: 'Image registry URL used for builds'
+        value: ${{ jobs.build-and-package.outputs.image_registry }}
+      service_image_tag:
+        description: 'Service image tag used for builds'
+        value: ${{ jobs.build-and-package.outputs.service_image_tag }}
 
 jobs:
   build-and-package:
     name: Build, test and package code
     runs-on: ubuntu-24.04
+    outputs:
+      image_registry: ${{ steps.build-config.outputs.image_registry }}
+      service_image_tag: ${{ steps.build-config.outputs.service_image_tag }}
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -48,10 +58,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and test source
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Setup build configuration
+        id: build-config
         working-directory: ./src
         run: |
           # Setup GHCR registry URL (unified for both base images and application images)
@@ -83,22 +91,45 @@ jobs:
           # Determine service image suffix for branch-aware tagging
           BRANCH_NAME=$(get_branch_name)
           
+          # Use GitHub run number for build uniqueness (handles re-runs of same commit)
+          BUILD_NUMBER="${{ github.run_number }}"
+          
           if [[ "${{ github.ref_type }}" == "tag" || "$XROAD_BUILD_TYPE" == "RELEASE" ]]; then
             # For releases, use simple version
             SERVICE_IMAGE_TAG="${XROAD_VERSION}"
           elif [[ "$BRANCH_NAME" == "develop-8.x" ]]; then
-            # For develop branch, keep compatibility
-            SERVICE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT"
+            # For develop branch, include build number for uniqueness
+            SERVICE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT-${BUILD_NUMBER}"
           else
-            # For feature branches, include branch name
-            SERVICE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT-${BRANCH_NAME}"
+            # For feature branches, include branch name and build number
+            SERVICE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT-${BRANCH_NAME}-${BUILD_NUMBER}"
           fi
+          
+          # Export to GITHUB_ENV for subsequent steps
+          echo "IMAGE_REGISTRY=${IMAGE_REGISTRY}" >> $GITHUB_ENV
+          echo "SERVICE_IMAGE_TAG=${SERVICE_IMAGE_TAG}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+          echo "XROAD_VERSION=${XROAD_VERSION}" >> $GITHUB_ENV
+          echo "XROAD_BUILD_TYPE=${XROAD_BUILD_TYPE}" >> $GITHUB_ENV
+          
+          # Export to GITHUB_OUTPUT for job outputs
+          echo "image_registry=${IMAGE_REGISTRY}" >> $GITHUB_OUTPUT
+          echo "service_image_tag=${SERVICE_IMAGE_TAG}" >> $GITHUB_OUTPUT
           
           echo "🏗️ Build configuration:"
           echo "  Registry: ${IMAGE_REGISTRY}"
           echo "  Service Image Tag: ${SERVICE_IMAGE_TAG}"
           echo "  Branch: ${BRANCH_NAME}"
-          
+          echo "  X-Road Version: ${XROAD_VERSION}"
+          echo "  Build Type: ${XROAD_BUILD_TYPE}"
+          echo "  Build Number: ${BUILD_NUMBER}"
+          echo "  Commit SHA: ${{ inputs.sha }}"
+
+      - name: Build and test source
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: ./src
+        run: |
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g \
           -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute \
           build sonar test jacocoTestReport -Pfrontend-npm-audit \
@@ -156,17 +187,23 @@ jobs:
         env:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
-        run: |
-          ./deployment/native-packages/build-deb.sh noble -release
-          echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04
+        run: ./deployment/native-packages/build-deb.sh noble -release
 
-      - name: Store deb files for system tests
-        uses: actions/upload-artifact@v4
-        with:
-          name: debian-packages
-          path: deployment/native-packages/build/ubuntu22.04/*.deb
-          compression-level: 0 #No point in compressing these
+      - name: Build and push Central Server dev image
+        run: |
+          echo "🏗️ Building Central Server dev image:"
+          echo "  Registry: ${IMAGE_REGISTRY}"
+          echo "  Version: ${SERVICE_IMAGE_TAG}"
+          echo "  Branch: ${BRANCH_NAME}"
+          
+          # Build the image for multiple platforms
+          cd development/docker/central-server
+          ./build-cs-dev-image.sh \
+            --environment ci \
+            --registry "${IMAGE_REGISTRY}" \
+            --version "${SERVICE_IMAGE_TAG}" \
+            --platforms "linux/amd64" \
+            --packages-path "${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04"
 
       - name: Packaging and upload artifacts measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -179,7 +216,3 @@ jobs:
         with:
           task: display-results
           pr-comment: true
-
-      - name: Clean up workspace #otherwise might run out of disk space in the next steps
-        working-directory: ./src
-        run: ./gradlew clean

@@ -47,6 +47,8 @@ jobs:
     with:
       ref: ${{ github.ref }}
       sha: ${{ github.sha }}
+      image_registry: ${{ needs.build-and-package.outputs.image_registry }}
+      service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
   test-security-server:
     name: Run Security Server system tests  

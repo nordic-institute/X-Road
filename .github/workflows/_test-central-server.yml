@@ -11,16 +11,19 @@ on:
         description: 'Git SHA for the build'
         required: true
         type: string
+      image_registry:
+        description: 'Image registry URL'
+        required: true
+        type: string
+      service_image_tag:
+        description: 'Service image tag to use'
+        required: true
+        type: string
 
 jobs:
   test-central-server:
     name: Run Central Server system tests
     runs-on: ubuntu-22.04
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5555:5000
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -37,29 +40,14 @@ jobs:
         with:
           gradle-cache-read-only: true
           setup-docker: true
-          free-disk-space: true
+          free-disk-space: false
 
-      - name: Initialize docker setup
-        working-directory: ./development/docker/central-server
-        run: ./init_context.sh
-
-      - name: Download debian packages
-        uses: actions/download-artifact@v5
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          name: debian-packages
-          path: ./development/docker/central-server/build/packages/
-
-      - name: List docker build files
-        run: ls -lah ./development/docker/central-server/build
-
-      - name: Build CS docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./development/docker/central-server/
-          push: true
-          build-args: |
-            PACKAGE_SOURCE=internal
-          tags: localhost:5555/xrd-centralserver:${{ inputs.sha }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Central Server test setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -67,16 +55,12 @@ jobs:
           task: get-measurement
           label: 'Set up Central Server tests'
 
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: true
-          dotnet: true
-          haskell: true
-
       - name: Run Central Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5555/xrd-centralserver:${{ inputs.sha }}
+        run: |
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g \
+          :central-server:admin-service:ui-system-test:systemTest \
+          -PsystemTestCsImageName=${{ inputs.image_registry }}/central-server-dev:${{ inputs.service_image_tag }}
 
       - name: Test Central Server measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
