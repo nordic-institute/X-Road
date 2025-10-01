@@ -51,7 +51,7 @@ services:
       - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/backup-keys:/etc/xroad/backup-keys
 
   db-opmonitor:
-    image: postgres:17
+    image: postgres:16
     environment:
       - POSTGRES_DB=op-monitor
       - POSTGRES_PASSWORD=secret
