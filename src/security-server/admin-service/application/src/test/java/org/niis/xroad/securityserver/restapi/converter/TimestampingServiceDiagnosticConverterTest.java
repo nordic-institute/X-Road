@@ -25,15 +25,15 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatusDto;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -59,13 +59,12 @@ public class TimestampingServiceDiagnosticConverterTest {
     @Test
     public void convertSingleTimestampingServiceDiagnostics() {
         final OffsetDateTime now = TimeUtils.offsetDateTimeNow();
-        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, now);
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticStatus.OK, now);
         diagnosticsStatus.setDescription(URL_1);
         TimestampingServiceDiagnosticsDto timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter.convert(
                 diagnosticsStatus
         );
 
-        assertEquals(TimestampingStatusDto.SUCCESS, timestampingServiceDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClassDto.OK, timestampingServiceDiagnostics.getStatusClass());
         assertEquals(now, timestampingServiceDiagnostics.getPrevUpdateAt());
     }
@@ -75,11 +74,8 @@ public class TimestampingServiceDiagnosticConverterTest {
         final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
         final OffsetDateTime prevUpdate2 = prevUpdate.plusSeconds(60);
         DiagnosticsStatus diagnosticsStatus1 =
-                new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, prevUpdate);
-        diagnosticsStatus1.setDescription(URL_1);
-        DiagnosticsStatus diagnosticsStatus2 =
-                new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED, prevUpdate2);
-        diagnosticsStatus2.setDescription(URL_2);
+                new DiagnosticsStatus(DiagnosticStatus.ERROR, prevUpdate, URL_1, ErrorCode.TIMESTAMP_TOKEN_SIGNER_INFO_NOT_FOUND);
+        DiagnosticsStatus diagnosticsStatus2 = new DiagnosticsStatus(DiagnosticStatus.UNINITIALIZED, prevUpdate2, URL_2);
         List<DiagnosticsStatus> list = new ArrayList<>(Arrays.asList(diagnosticsStatus1, diagnosticsStatus2));
         Set<TimestampingServiceDiagnosticsDto> timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter
                 .convert(list);
@@ -96,11 +92,10 @@ public class TimestampingServiceDiagnosticConverterTest {
                 .filter(item -> item.getUrl().equals(URL_2))
                 .findFirst()
                 .orElse(null);
-        assertEquals(TimestampingStatusDto.ERROR_CODE_INTERNAL, firstDiagnostic.getStatusCode());
+        assertEquals(ErrorCode.TIMESTAMP_TOKEN_SIGNER_INFO_NOT_FOUND.code(), firstDiagnostic.getError().getCode());
         assertEquals(DiagnosticStatusClassDto.FAIL, firstDiagnostic.getStatusClass());
         assertEquals(prevUpdate, firstDiagnostic.getPrevUpdateAt());
 
-        assertEquals(TimestampingStatusDto.ERROR_CODE_TIMESTAMP_UNINITIALIZED, secondDiagnostic.getStatusCode());
         assertEquals(DiagnosticStatusClassDto.WAITING, secondDiagnostic.getStatusClass());
         assertEquals(prevUpdate2, secondDiagnostic.getPrevUpdateAt());
     }

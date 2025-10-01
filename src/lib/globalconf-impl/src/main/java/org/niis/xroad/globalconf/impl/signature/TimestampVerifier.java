@@ -36,6 +36,7 @@ import org.bouncycastle.cms.SignerInformationVerifier;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -43,12 +44,15 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_TIMESTAMP_VALIDATION;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_SIGNER_VERIFICATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_TOKEN_SIGNER_INFO_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.TSP_CERTIFICATE_NOT_FOUND;
 
 /**
  * Contains methods for verifying various time-stamp characteristics.
@@ -73,11 +77,9 @@ public final class TimestampVerifier {
             throws IOException, OperatorCreationException, CertificateEncodingException, CMSException {
         String thatHash = encodeBase64(calculateDigest(
                 tsToken.getTimeStampInfo().getHashAlgorithm(), stampedData));
-        String thisHash = encodeBase64(
-                tsToken.getTimeStampInfo().getMessageImprintDigest());
+        String thisHash = encodeBase64(tsToken.getTimeStampInfo().getMessageImprintDigest());
         if (!thisHash.equals(thatHash)) {
-            throw new CodedException(X_MALFORMED_SIGNATURE,
-                    "Timestamp hashes do not match");
+            throw new CodedException(X_MALFORMED_SIGNATURE, "Timestamp hashes do not match");
         }
 
         verify(tsToken, tspCerts);
@@ -92,34 +94,48 @@ public final class TimestampVerifier {
      * @throws Exception if the verification failed
      */
     public static void verify(TimeStampToken tsToken,
-                              List<X509Certificate> tspCerts)
-            throws CertificateEncodingException, IOException, OperatorCreationException, CMSException {
+                              List<X509Certificate> tspCerts) {
         if (tspCerts.isEmpty()) {
-            throw new CodedException(
-                    X_INTERNAL_ERROR,
-                    "No TSP service providers are configured.");
+            throw XrdRuntimeException.systemException(NO_TIMESTAMPING_PROVIDER_FOUND)
+                    .details("No TSP service providers are configured.")
+                    .build();
         }
 
         SignerId signerId = tsToken.getSID();
 
         X509Certificate cert = getTspCertificate(signerId, tspCerts);
         if (cert == null) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Could not find TSP certificate for timestamp");
+            throw XrdRuntimeException.systemException(TSP_CERTIFICATE_NOT_FOUND)
+                    .details("Could not find TSP certificate for timestamp")
+                    .build();
         }
 
-        SignerInformation signerInfo =
-                tsToken.toCMSSignedData().getSignerInfos().get(signerId);
+        SignerInformation signerInfo = tsToken.toCMSSignedData().getSignerInfos().get(signerId);
         if (signerInfo == null) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Could not get signer information for "
-                            + signerId.getSerialNumber());
+            throw XrdRuntimeException.systemException(TIMESTAMP_TOKEN_SIGNER_INFO_NOT_FOUND)
+                    .details("Could not get signer information for " + signerId.getSerialNumber())
+                    .build();
         }
 
-        SignerInformationVerifier verifier = createVerifier(cert);
-        if (!signerInfo.verify(verifier)) {
-            throw new CodedException(X_TIMESTAMP_VALIDATION,
-                    "Failed to verify timestamp");
+        verifySignerInfo(cert, signerInfo);
+    }
+
+    private static void verifySignerInfo(X509Certificate cert, SignerInformation signerInfo) {
+        try {
+            SignerInformationVerifier verifier = createVerifier(cert);
+            if (!signerInfo.verify(verifier)) {
+                // With the current implementation of BouncyCastle, this should not happen -
+                // The method should only return true or throw exception.
+                throw XrdRuntimeException.systemException(TIMESTAMP_SIGNER_VERIFICATION_FAILED)
+                        .details("Failed to verify timestamp signer information")
+                        .build();
+            }
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(TIMESTAMP_SIGNER_VERIFICATION_FAILED)
+                    .details("Failed to verify timestamp signer information")
+                    .metadataItems(e.getMessage())
+                    .cause(e)
+                    .build();
         }
     }
 
@@ -132,22 +148,29 @@ public final class TimestampVerifier {
      * @throws Exception in case of any errors
      */
     public static X509Certificate getSignerCertificate(
-            TimeStampToken tsToken, List<X509Certificate> tspCerts) throws CertificateEncodingException, IOException {
+            TimeStampToken tsToken, List<X509Certificate> tspCerts) {
         SignerId signerId = tsToken.getSID();
 
         return getTspCertificate(signerId, tspCerts);
     }
 
     private static X509Certificate getTspCertificate(SignerId signerId,
-                                                     List<X509Certificate> tspCerts) throws IOException, CertificateEncodingException {
+                                                     List<X509Certificate> tspCerts) {
         log.trace("getTspCertificate({}, {}, {})",
-                new Object[]{signerId.getIssuer(), signerId.getSerialNumber(),
-                        Arrays.toString(signerId.getSubjectKeyIdentifier())});
+                signerId.getIssuer(), signerId.getSerialNumber(),
+                Arrays.toString(signerId.getSubjectKeyIdentifier()));
         for (X509Certificate cert : tspCerts) {
             log.trace("Comparing with cert: {}, {}",
-                    cert.getIssuerDN(), cert.getSerialNumber());
-            if (signerId.match(new X509CertificateHolder(cert.getEncoded()))) {
-                return cert;
+                    cert.getIssuerX500Principal(), cert.getSerialNumber());
+            try {
+                if (signerId.match(new X509CertificateHolder(cert.getEncoded()))) {
+                    return cert;
+                }
+            } catch (IOException | CertificateEncodingException e) {
+                throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE)
+                        .details("Malformed TSP certificate")
+                        .cause(e)
+                        .build();
             }
         }
 

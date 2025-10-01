@@ -6638,20 +6638,6 @@ components:
         - ENABLING_IN_PROGRESS
     CodeWithDetails:
       $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
-    ConfigurationStatus:
-      type: string
-      format: enum
-      description: configuration status
-      example: SUCCESS
-      enum:
-        - SUCCESS # Everything ok
-        - ERROR_CODE_INTERNAL # Internal error occurred.
-        - ERROR_CODE_INVALID_SIGNATURE_VALUE # Invalid signature value.
-        - ERROR_CODE_EXPIRED_CONF # The downloaded global configuration has expired.
-        - ERROR_CODE_CANNOT_DOWNLOAD_CONF # Unable to download global configuration. Check network connection to global configuration provider.
-        - ERROR_CODE_MISSING_PRIVATE_PARAMS # The downloaded global configuration did not contain private parameters
-        - ERROR_CODE_UNINITIALIZED # The configuration client is initializing.
-        - UNKNOWN
     ConnectionType:
       type: string
       format: enum
@@ -6929,7 +6915,6 @@ components:
       description: global configuration diagnostics
       required:
         - status_class
-        - status_code
         - prev_update_at
         - next_update_at
       properties:
@@ -6938,11 +6923,6 @@ components:
           description: diagnostics status class
           allOf:
             - $ref: '#/components/schemas/DiagnosticStatusClass'
-        status_code:
-          readOnly: true
-          description: diagnostics status code
-          allOf:
-            - $ref: '#/components/schemas/ConfigurationStatus'
         prev_update_at:
           type: string
           format: date-time
@@ -6959,6 +6939,16 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
+        last_successful_url:
+          type: string
+          format: uri
+          description: last successful configuration source URL
+          example: https://example.org/configuration
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+        error:
+          $ref: '#/components/schemas/CodeWithDetails'
     GroupMember:
       type: object
       description: group member
@@ -7245,7 +7235,6 @@ components:
       required:
         - url
         - status_class
-        - status_code
         - next_update_at
       properties:
         url:
@@ -7258,8 +7247,6 @@ components:
           readOnly: true
         status_class:
           $ref: '#/components/schemas/DiagnosticStatusClass'
-        status_code:
-          $ref: '#/components/schemas/OcspStatus'
         prev_update_at:
           type: string
           format: date-time
@@ -7276,19 +7263,8 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
-    OcspStatus:
-      type: string
-      format: enum
-      description: OCSP responder status
-      example: SUCCESS
-      enum:
-        - SUCCESS # Everything ok
-        - ERROR_CODE_OCSP_CONNECTION_ERROR # Unable to connect to the OCSP responder.
-        - ERROR_CODE_OCSP_FAILED # Unable to fetch response from the OCSP responder.
-        - ERROR_CODE_OCSP_RESPONSE_INVALID # Unable to parse the OCSP response.
-        - ERROR_CODE_OCSP_UNINITIALIZED # Status request not sent yet.
-        - ERROR_CODE_OCSP_RESPONSE_UNVERIFIED # Unable to verify OCSP response.
-        - UNKNOWN
+        error:
+          $ref: '#/components/schemas/CodeWithDetails'
     OrphanInformation:
       type: object
       properties:
@@ -7796,7 +7772,6 @@ components:
       required:
         - url
         - status_class
-        - status_code
         - prev_update_at
       properties:
         url:
@@ -7809,8 +7784,6 @@ components:
           readOnly: true
         status_class:
           $ref: '#/components/schemas/DiagnosticStatusClass'
-        status_code:
-          $ref: '#/components/schemas/TimestampingStatus'
         prev_update_at:
           type: string
           format: date-time
@@ -7819,18 +7792,8 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
-    TimestampingStatus:
-      type: string
-      format: enum
-      description: timestamping status
-      example: SUCCESS
-      enum:
-        - SUCCESS # Everything ok
-        - ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT # Connection to the timestamp server timed out. Check the network connection to the timestamp server.
-        - ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL # Malformed timestamp server URL. Check the URL.
-        - ERROR_CODE_TIMESTAMP_UNINITIALIZED # Connection ok, no timestamp request made yet.
-        - ERROR_CODE_INTERNAL # Internal error occurred.
-        - UNKNOWN
+        error:
+          $ref: '#/components/schemas/CodeWithDetails'
     Token:
       type: object
       description: Token. Also includes the possible actions that can be done to this object,

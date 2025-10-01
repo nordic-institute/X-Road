@@ -277,9 +277,9 @@ public class GlobalConfChecker {
                         // do nothing
                         break;
                     case Client.STATUS_SAVED,
-                         Client.STATUS_REGINPROG,
-                         Client.STATUS_GLOBALERR,
-                         Client.STATUS_ENABLING_INPROG:
+                            Client.STATUS_REGINPROG,
+                            Client.STATUS_GLOBALERR,
+                            Client.STATUS_ENABLING_INPROG:
                         updateClientStatus(client, Client.STATUS_REGISTERED);
                         break;
                     default:

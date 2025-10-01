@@ -32,15 +32,18 @@ import jakarta.xml.bind.JAXBException;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
+import java.util.Arrays;
 
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MessageFileNames.SIGNATURE;
 import static ee.ria.xroad.common.util.MessageFileNames.TS_HASH_CHAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.niis.xroad.common.core.exception.ErrorCode.FAILED_TO_BUILD_SIGNATURE_HASH_CHAIN;
 
 class BatchTimestampRequest extends AbstractTimestampRequest {
 
@@ -57,10 +60,17 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
     }
 
     @Override
-    byte[] getRequestData() throws JAXBException, IOException {
-        HashChainBuilder hcBuilder = buildHashChain(signatureHashes);
-        hashChainResult = hcBuilder.getHashChainResult(TS_HASH_CHAIN);
-        hashChains = hcBuilder.getHashChains(SIGNATURE);
+    byte[] getRequestData() {
+        try {
+            HashChainBuilder hcBuilder = buildHashChain(signatureHashes);
+            hashChainResult = hcBuilder.getHashChainResult(TS_HASH_CHAIN);
+            hashChains = hcBuilder.getHashChains(SIGNATURE);
+        } catch (IOException | JAXBException e) {
+            throw XrdRuntimeException.systemException(FAILED_TO_BUILD_SIGNATURE_HASH_CHAIN)
+                    .details("Failed to build hash chain for log records " + Arrays.toString(logRecords))
+                    .cause(e)
+                    .build();
+        }
         return hashChainResult.getBytes(UTF_8);
     }
 
