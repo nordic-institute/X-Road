@@ -82,8 +82,6 @@ jobs:
       # Execute and report
       - name: Run E2E tests
         working-directory: ./src
-        env:
-          IMAGE_REGISTRY: ${{ inputs.image_registry }}
         run: |
           docker network create xroad-network
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g \
