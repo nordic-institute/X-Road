@@ -41,6 +41,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -79,6 +80,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, ImportCertResp> {
     private final DeleteCertRequestReqHandler deleteCertRequestReqHandler;
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final OcspResponseLookup ocspResponseLookup;
     private final CertOcspManager certOcspManager;
     private final TokenLookup tokenLookup;
@@ -150,7 +152,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
 
     private void importCertificateToKey(KeyInfo keyInfo, X509Certificate cert,
                                         String initialStatus, ClientId.Conf memberId, boolean activate)
-            throws CertificateEncodingException, IOException, OperatorCreationException, CertificateParsingException {
+            throws CertificateEncodingException, IOException, CertificateParsingException {
         String certHash = calculateCertHexHash(cert);
 
         CertificateInfo existingCert = tokenLookup.getCertificateInfoForCertHash(certHash);
@@ -249,7 +251,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
             CertChain chain = CertChainFactory.create(instanceIdentifier,
                     globalConfProvider.getCaCert(instanceIdentifier, cert),
                     cert, null);
-            new CertChainVerifier(globalConfProvider, chain).verifyChainOnly(new Date());
+            new CertChainVerifier(globalConfProvider, ocspVerifierFactory, chain).verifyChainOnly(new Date());
         } catch (Exception e) {
             log.error("Failed to import certificate", e);
             throw CodedException.tr(X_CERT_IMPORT_FAILED,

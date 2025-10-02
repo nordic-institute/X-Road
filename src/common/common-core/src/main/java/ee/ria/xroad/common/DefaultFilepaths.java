@@ -49,13 +49,7 @@ public final class DefaultFilepaths {
 
     static final String SERVER_DATABASE_PROPERTIES = "db.properties";
 
-    static final String PROXY_UI_API_SSL_PROPERTIES = "ssl.properties";
-
     static final String CONFIGURATION_PATH = "globalconf";
-
-    static final String LOG_PATH = "/var/log/xroad/";
-
-    static final String SECURE_LOG_PATH = "/var/lib/xroad/";
 
     static final String CONF_BACKUP_PATH = "/var/lib/xroad/backup/";
 
@@ -74,8 +68,8 @@ public final class DefaultFilepaths {
      * @return path to the created temporary file
      * @throws IOException if an error occurs
      */
-    public static Path createTempFile(String prefix, String suffix) throws IOException {
-        Path tempDirPath = Paths.get(SystemProperties.getTempFilesPath());
+    public static Path createTempFile(String prefix, String suffix, String tmpDir) throws IOException {
+        Path tempDirPath = Paths.get(tmpDir);
 
         return createTempFile(tempDirPath, prefix, suffix);
     }

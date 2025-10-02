@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -56,7 +56,6 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
-import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,7 +79,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -163,8 +161,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
                            RequestWrapper request, ResponseWrapper response,
                            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws IOException {
-        super(commonBeanProxy, request, response, httpClient, clientCert,
-                opMonitoringData);
+        super(commonBeanProxy, request, response, httpClient, clientCert, opMonitoringData);
         this.reqIns = new PipedInputStream();
         this.reqOuts = new PipedOutputStream(reqIns);
         this.xRequestId = UUID.randomUUID().toString();
@@ -281,9 +278,11 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     private void parseResponse(HttpSender httpSender) throws Exception {
         log.trace("parseResponse()");
 
-        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
+        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
+                commonBeanProxy.getCommonProperties().tempFilesPath());
 
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(), response,
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(),
+                commonBeanProxy.getOcspVerifierFactory(), response,
                 httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
         try {
@@ -329,7 +328,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void checkConsistency() throws Exception {
+    private void checkConsistency() {
         log.trace("checkConsistency()");
 
         try {
@@ -482,7 +481,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             continueProcessing();
 
             // In SSL mode, we need to send the OCSP response of our SSL cert.
-            if (isSslEnabled()) {
+            if (commonBeanProxy.getProxyProperties().sslEnabled()) {
                 writeOcspResponses();
             }
 

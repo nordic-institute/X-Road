@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token.helper;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.CryptoException;
 import ee.ria.xroad.common.crypto.KeyManagers;
 
@@ -36,7 +35,10 @@ import iaik.pkcs.pkcs11.objects.PublicKey;
 import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
 import iaik.pkcs.pkcs11.objects.RSAPublicKey;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
 import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
 import org.niis.xroad.signer.core.util.SignerUtil;
@@ -44,15 +46,15 @@ import org.niis.xroad.signer.core.util.SignerUtil;
 import java.math.BigInteger;
 import java.security.spec.InvalidKeySpecException;
 
+@RequiredArgsConstructor
+@ApplicationScoped
 public final class RsaKeyPairHelper extends AbstractKeyPairBuilder<RSAPublicKey, RSAPrivateKey> implements KeyPairHelper {
 
     private static final byte[] PUBLIC_EXPONENT_BYTES = {0x01, 0x00, 0x01}; // 2^16 + 1
     private static final Mechanism KEY_PAIR_GEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_RSA_PKCS_KEY_PAIR_GEN);
 
-    static final RsaKeyPairHelper INSTANCE = new RsaKeyPairHelper();
-
-    private RsaKeyPairHelper() {
-    }
+    private final SignerProperties signerProperties;
+    private final KeyManagers keyManagers;
 
     @Override
     public KeyPair createKeypair(
@@ -82,7 +84,7 @@ public final class RsaKeyPairHelper extends AbstractKeyPairBuilder<RSAPublicKey,
         BigInteger publicExponent = new BigInteger(1, rsaPublicKey.getPublicExponent().getByteArrayValue());
 
         try {
-            return KeyManagers.getForRSA().generateX509PublicKey(modulus, publicExponent);
+            return keyManagers.getForRSA().generateX509PublicKey(modulus, publicExponent);
         } catch (InvalidKeySpecException e) {
             throw XrdRuntimeException.systemException(e);
         }
@@ -90,7 +92,7 @@ public final class RsaKeyPairHelper extends AbstractKeyPairBuilder<RSAPublicKey,
 
     @Override
     protected void setPublicKeyAttributes(RSAPublicKey template, PubKeyAttributes attributes) {
-        template.getModulusBits().setLongValue((long) SystemProperties.getSignerKeyLength());
+        template.getModulusBits().setLongValue((long) signerProperties.getKeyLength());
         template.getPublicExponent().setByteArrayValue(PUBLIC_EXPONENT_BYTES);
     }
 

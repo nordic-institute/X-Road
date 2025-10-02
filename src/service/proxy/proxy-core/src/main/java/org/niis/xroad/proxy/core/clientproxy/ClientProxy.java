@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
 
@@ -56,7 +55,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 
@@ -73,8 +71,6 @@ public class ClientProxy {
 
     // SSL session timeout
     private static final int SSL_SESSION_TIMEOUT = 600;
-
-    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getClientProxyConnectorSoLinger() * 1000;
 
     private static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
     private static final String CLIENT_HTTPS_CONNECTOR_NAME = "ClientSSLConnector";
@@ -134,8 +130,8 @@ public class ClientProxy {
         cf.setWantClientAuth(true);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-        cf.setIncludeProtocols(SystemProperties.getProxyClientTLSProtocols());
-        cf.setIncludeCipherSuites(SystemProperties.getProxyClientTLSCipherSuites());
+        cf.setIncludeProtocols(clientProxyProperties.clientTlsProtocols());
+        cf.setIncludeCipherSuites(clientProxyProperties.clientTlsCiphers());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, new TrustManager[]{new ClientSslTrustManager()},
@@ -210,12 +206,12 @@ public class ClientProxy {
     private static final class ClientSslTrustManager implements X509TrustManager {
 
         @Override
-        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {
             // Trusts all cause ClientMessageProcessor#verifyClientAuthentication checks if the client certificate
         }
 
         @Override
-        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        public void checkServerTrusted(X509Certificate[] chain, String authType) {
             // Never called cause TrustManager is used by ServerConnector
         }
 

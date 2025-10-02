@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.common.managementrequest.model;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
@@ -59,13 +58,13 @@ import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 
 @Slf4j
 public class AuthCertRegRequest implements ManagementRequest {
-    private static final DigestAlgorithm SIGNATURE_DIGEST_ALGORITHM_ID = SystemProperties.getAuthCertRegSignatureDigestAlgorithmId();
 
     private final SignerRpcClient signerRpcClient;
     private final SignerSignClient signerSignClient;
     private final byte[] authCert;
     private final ClientId owner;
     private final SoapMessageImpl requestMessage;
+    private final DigestAlgorithm signatureDigestAlgorithm;
 
     private CertificateInfo ownerCert;
 
@@ -74,12 +73,13 @@ public class AuthCertRegRequest implements ManagementRequest {
     private MultipartOutputStream multipart;
 
     public AuthCertRegRequest(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
-                              byte[] authCert, ClientId owner, SoapMessageImpl request) {
+                              byte[] authCert, ClientId owner, SoapMessageImpl request, DigestAlgorithm signatureDigestAlgorithm) {
         this.signerRpcClient = signerRpcClient;
         this.signerSignClient = signerSignClient;
         this.authCert = authCert;
         this.owner = owner;
         this.requestMessage = request;
+        this.signatureDigestAlgorithm = signatureDigestAlgorithm;
 
         this.dataToSign = request.getBytes();
     }
@@ -140,15 +140,15 @@ public class AuthCertRegRequest implements ManagementRequest {
         KeyIdInfo authKeyId = getAuthKeyId();
         MemberSigningInfoDto memberSigningInfo = getMemberSigningInfo();
 
-        var authKeySignAlogId = SignAlgorithm.ofDigestAndMechanism(SIGNATURE_DIGEST_ALGORITHM_ID,
+        var authKeySignAlogId = SignAlgorithm.ofDigestAndMechanism(signatureDigestAlgorithm,
                 authKeyId.signMechanismName());
-        var ownerSignAlgoId = SignAlgorithm.ofDigestAndMechanism(SIGNATURE_DIGEST_ALGORITHM_ID,
+        var ownerSignAlgoId = SignAlgorithm.ofDigestAndMechanism(signatureDigestAlgorithm,
                 memberSigningInfo.signMechanismName());
 
         String[] authSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + authKeySignAlogId.name()};
         String[] ownerSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + ownerSignAlgoId.name()};
 
-        byte[] digest = calculateDigest(SIGNATURE_DIGEST_ALGORITHM_ID, dataToSign);
+        byte[] digest = calculateDigest(signatureDigestAlgorithm, dataToSign);
 
         multipart.startPart(MimeTypes.BINARY, authSignaturePartHeaders);
         multipart.write(createSignature(authKeyId.keyId(), authKeySignAlogId, digest));

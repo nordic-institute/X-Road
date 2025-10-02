@@ -26,7 +26,6 @@
 package org.niis.xroad.globalconf.impl;
 
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
@@ -61,7 +60,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.TestCertUtil.getCertChainCert;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,10 +88,8 @@ public class GlobalConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, GOOD_CONF_DIR);
-
         createConfigurationFiles();
-        var source = new FileSystemGlobalConfSource(getConfigurationPath());
+        var source = new FileSystemGlobalConfSource(GOOD_CONF_DIR);
         globalConfProvider = new GlobalConfImpl(source, new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
     }
 
@@ -308,11 +304,9 @@ public class GlobalConfTest {
 
     /**
      * Tests getting the owner of a security server.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getServerOwner() throws Exception {
+    public void getServerOwner() {
         SecurityServerId serverId = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "producerServerCode");
 
         ClientId owner = ClientId.Conf.create("EE", "BUSINESS", "producer");
@@ -342,11 +336,9 @@ public class GlobalConfTest {
 
     /**
      * Tests getting the subject name from a certificate.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getSubjectName() throws Exception {
+    public void getSubjectName() {
         X509Certificate cert = TestCertUtil.getProducer().certChain[0];
 
         ClientId expected = ClientId.Conf.create("EE", "BUSINESS", "producer");
@@ -383,11 +375,9 @@ public class GlobalConfTest {
 
     /**
      * Tests getting the TSP certificates.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getTspCerts() throws Exception {
+    public void getTspCerts() {
         List<X509Certificate> tspCertificates = globalConfProvider.getTspCertificates();
 
         assertEquals(4, tspCertificates.size());

@@ -68,10 +68,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -161,7 +157,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void handleVerificationConfRequest() throws IOException {
         // GlobalConf.verifyValidity() is not necessary here.
-
+        // todo XRDDEV-3005
         VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(SystemProperties.getConfigurationPath());
 
         jResponse.setContentType(MimeTypes.ZIP);
@@ -183,11 +179,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         handleAsicRequest(clientId);
     }
 
-    private void verifyClientAuthentication(ClientId clientId)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+    private void verifyClientAuthentication(ClientId clientId) {
         log.trace("verifyClientAuthentication({})", clientId);
         try {
-            verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest));
+            verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest, commonBeanProxy.getProxyProperties().logClientCert()));
         } catch (CodedException ex) {
             throw new CodedExceptionWithHttpStatus(UNAUTHORIZED_401, ex);
         }
@@ -276,7 +271,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         final EncryptionConfig encryptionConfig =
                 encryptionConfigProvider.forGrouping(groupingStrategy.forClient(clientId));
 
-        final Path tempFile = Files.createTempFile(Paths.get(SystemProperties.getTempFilesPath()), "asic", null);
+        final Path tempFile = Files.createTempFile(Paths.get(commonBeanProxy.getCommonProperties().tempFilesPath()), "asic", null);
 
         try {
             final CheckedSupplier<OutputStream> supplier = () -> {
@@ -284,7 +279,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
                 return new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
-                        encryptionConfig.getEncryptionKeys());
+                        encryptionConfig.getEncryptionKeys(), commonBeanProxy.getCommonProperties().tempFilesPath());
             };
 
             writeContainers(clientId, queryId, nameGen, response, supplier);
@@ -403,10 +398,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void encryptContainer(EncryptionConfig encryptionConfig, AsicContainer asicContainer) throws IOException {
         final Path tempFile = Files.createTempFile(
-                Paths.get(SystemProperties.getTempFilesPath()), "asic", null);
+                Paths.get(commonBeanProxy.getCommonProperties().tempFilesPath()), "asic", null);
         try {
             try (OutputStream os = new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
-                    encryptionConfig.getEncryptionKeys())) {
+                    encryptionConfig.getEncryptionKeys(), commonBeanProxy.getCommonProperties().tempFilesPath())) {
                 asicContainer.write(os);
             }
             try (InputStream is = Files.newInputStream(tempFile); var out = jResponse.getOutputStream()) {

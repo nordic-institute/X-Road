@@ -28,12 +28,15 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.util.PasswordPolicy;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_WEAK_PIN;
 
 /**
@@ -41,24 +44,25 @@ import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_WEAK_PIN;
  */
 @Slf4j
 public class TokenPinValidatorTest {
-    private final TokenPinValidator tokenPinValidator = new TokenPinValidator();
+    private final SignerRpcClient signerRpcClient = mock(SignerRpcClient.class);
+    private final TokenPinValidator tokenPinValidator = new TokenPinValidator(signerRpcClient);
 
     private static final String SOFTWARE_TOKEN_PIN = "ABCdef123456.";
     private static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
     private static final String SOFTWARE_TOKEN_INVALID_PIN = "‘œ‘–ßçıı–ç˛®ç†é®ß";
 
-    @Before
-    public void setup() {
-        tokenPinValidator.setTokenPinEnforced(true);
+    @BeforeEach
+    void setup() {
+        when(signerRpcClient.isEnforcedTokenPinPolicy()).thenReturn(true);
     }
 
     @Test
-    public void validateSoftwareTokenPinSuccess() throws Exception {
+    void validateSoftwareTokenPinSuccess() {
         tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_PIN.toCharArray());
     }
 
     @Test
-    public void validateSoftwareTokenPinWeak() throws Exception {
+    void validateSoftwareTokenPinWeak() {
         WeakPinException exception = assertThrows(
                 WeakPinException.class,
                 () -> tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray())
@@ -71,13 +75,13 @@ public class TokenPinValidatorTest {
     }
 
     @Test
-    public void validateSoftwareTokenPinNotEnforcedSuccess() throws Exception {
-        tokenPinValidator.setTokenPinEnforced(false);
+    void validateSoftwareTokenPinNotEnforcedSuccess() {
+        when(signerRpcClient.isEnforcedTokenPinPolicy()).thenReturn(false);
         tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray());
     }
 
     @Test
-    public void validateSoftwareTokenPinInvalid() throws Exception {
+    void validateSoftwareTokenPinInvalid() {
         assertThrows(
                 InvalidCharactersException.class,
                 () -> tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_INVALID_PIN.toCharArray())

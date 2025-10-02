@@ -1,10 +1,9 @@
 xroad:
-  common:
-    rpc:
-      certificate-provisioning:
-        # To ensure vault-powered mTLS certificate rotation
-        ttl: 120S
-        refresh-interval: 60S
+  common-rpc:
+    certificate-provisioning:
+      # To ensure vault-powered mTLS certificate rotation
+      ttl: 120S
+      refresh-interval: 60S
   configuration-client:
     update-interval: 3
     global-conf-tls-cert-verification: false

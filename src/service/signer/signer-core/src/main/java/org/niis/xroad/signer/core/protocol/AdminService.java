@@ -34,9 +34,11 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.handler.GetCertificationServiceDiagnosticsReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetKeyConfChecksumHandler;
+import org.niis.xroad.signer.core.protocol.handler.IsEnforcedTokenPinPolicyHandler;
 import org.niis.xroad.signer.core.protocol.handler.RefreshReqHandler;
 import org.niis.xroad.signer.proto.AdminServiceGrpc;
 import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
+import org.niis.xroad.signer.proto.IsEnforcedTokenPinPolicyResp;
 import org.niis.xroad.signer.proto.KeyConfChecksum;
 
 @ApplicationScoped
@@ -46,6 +48,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private final GetCertificationServiceDiagnosticsReqHandler getCertificationServiceDiagnosticsReqHandler;
     private final GetKeyConfChecksumHandler getKeyConfChecksumHandler;
     private final RefreshReqHandler refreshReqHandler;
+    private final IsEnforcedTokenPinPolicyHandler isEnforcedTokenPinPolicyHandler;
 
     @Override
     public void getCertificationServiceDiagnostics(Empty request, StreamObserver<CertificationServiceDiagnosticsResp> responseObserver) {
@@ -60,6 +63,11 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     @Override
     public void refreshModules(Empty request, StreamObserver<Empty> responseObserver) {
         refreshReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void isEnforcedTokenPinPolicy(Empty request, StreamObserver<IsEnforcedTokenPinPolicyResp> responseObserver) {
+        isEnforcedTokenPinPolicyHandler.processSingle(request, responseObserver);
     }
 
 }

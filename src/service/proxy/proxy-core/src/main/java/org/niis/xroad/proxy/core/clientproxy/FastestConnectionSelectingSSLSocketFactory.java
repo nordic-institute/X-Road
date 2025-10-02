@@ -26,7 +26,6 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.google.common.cache.Cache;
@@ -88,19 +87,19 @@ public class FastestConnectionSelectingSSLSocketFactory
 
     private final Cache<CacheKey, URI> selectedHosts;
     private final boolean cachingEnabled;
-    private final ProxyProperties.ClientProxyProperties clientProxyProperties;
+    private final ProxyProperties proxyProperties;
 
     public FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, SSLSocketFactory socketfactory,
-                                                      ProxyProperties.ClientProxyProperties clientProxyProperties) {
-        super(socketfactory, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier) null);
+                                                      ProxyProperties proxyProperties) {
+        super(socketfactory, null, proxyProperties.xroadTlsCiphers(), (HostnameVerifier) null);
         this.authTrustVerifier = authTrustVerifier;
         this.socketfactory = socketfactory;
         this.selectedHosts = CacheBuilder.newBuilder()
-                .expireAfterWrite(clientProxyProperties.clientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
+                .expireAfterWrite(proxyProperties.clientProxy().clientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
                 .maximumSize(CACHE_MAXIMUM_SIZE)
                 .build();
-        this.cachingEnabled = clientProxyProperties.clientProxyFastestConnectingSslUriCachePeriod() > 0;
-        this.clientProxyProperties = clientProxyProperties;
+        this.cachingEnabled = proxyProperties.clientProxy().clientProxyFastestConnectingSslUriCachePeriod() > 0;
+        this.proxyProperties = proxyProperties;
     }
 
     @Override
@@ -193,9 +192,9 @@ public class FastestConnectionSelectingSSLSocketFactory
     }
 
     @Override
-    protected void prepareSocket(final SSLSocket socket) throws IOException {
+    protected void prepareSocket(final SSLSocket socket) {
         socket.setEnabledProtocols(new String[]{CryptoUtils.SSL_PROTOCOL});
-        socket.setEnabledCipherSuites(SystemProperties.getXroadTLSCipherSuites());
+        socket.setEnabledCipherSuites(proxyProperties.xroadTlsCiphers());
     }
 
     static void closeQuietly(Closeable closeable) {
@@ -237,9 +236,9 @@ public class FastestConnectionSelectingSSLSocketFactory
      * @throws SocketException
      */
     private void configureSocket(Socket socket) throws SocketException {
-        socket.setSoTimeout(clientProxyProperties.clientHttpclientTimeout());
+        socket.setSoTimeout(proxyProperties.clientProxy().clientHttpclientTimeout());
 
-        int linger = clientProxyProperties.clientHttpclientSoLinger();
+        int linger = proxyProperties.clientProxy().clientHttpclientSoLinger();
         socket.setSoLinger(linger >= 0, linger);
 
         socket.setKeepAlive(true);
@@ -270,7 +269,7 @@ public class FastestConnectionSelectingSSLSocketFactory
         socket.setSoLinger(false, 0);
         Socket sslSocket = socketfactory.createSocket(socket,
                 socket.getInetAddress().getHostName(), socket.getPort(),
-                clientProxyProperties.useSslSocketAutoClose());
+                proxyProperties.clientProxy().useSslSocketAutoClose());
         if (sslSocket instanceof SSLSocket) {
             return (SSLSocket) sslSocket;
         }

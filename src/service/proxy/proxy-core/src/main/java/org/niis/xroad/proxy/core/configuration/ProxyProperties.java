@@ -33,13 +33,20 @@ import io.smallrye.config.WithName;
 
 import java.util.Optional;
 
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
+
 @ConfigMapping(prefix = "xroad.proxy")
 public interface ProxyProperties {
 
     ServerProperties server();
+
     ClientProxyProperties clientProxy();
+
     OcspResponderProperties ocspResponder();
-    ProxyAddonProperties addOn();
+
+    ProxyAddonProperties addon();
 
     @WithName("admin-port")
     @WithDefault("5566")
@@ -64,6 +71,30 @@ public interface ProxyProperties {
     @WithName("memory-usage-threshold")
     Optional<Long> memoryUsageThreshold();
 
+    @WithName("message-sign-digest-name")
+    @WithDefault("SHA-512")
+    String messageSignDigestName();
+
+    @WithName("verify-client-cert")
+    @WithDefault("true")
+    boolean verifyClientCert();
+
+    @WithName("log-client-cert")
+    @WithDefault("false")
+    boolean logClientCert();
+
+    @WithName("enforce-client-is-cert-validity-period-check")
+    @WithDefault("false")
+    boolean enforceClientIsCertValidityPeriodCheck();
+
+    @WithName("server-port")
+    @WithDefault("5500")
+    int serverProxyPort();
+
+    @WithName("xroad-tls-ciphers")
+    @WithDefault(DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING)
+    String[] xroadTlsCiphers();
+
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {
         @WithName("connector-host")
@@ -85,6 +116,10 @@ public interface ProxyProperties {
         @WithName("client-connector-initial-idle-time")
         @WithDefault("30000")
         int clientConnectorInitialIdleTime();
+
+        @WithName("client-timeout")
+        @WithDefault("30000")
+        int clientProxyTimeout();
 
         @WithName("client-httpclient-so-linger")
         @WithDefault("-1")
@@ -125,6 +160,18 @@ public interface ProxyProperties {
         @WithName("use-fastest-connecting-ssl-socket-autoclose")
         @WithDefault("true")
         boolean useSslSocketAutoClose();
+
+        @WithName("client-tls-protocols")
+        @WithDefault(DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING)
+        String[] clientTlsProtocols();
+
+        @WithName("client-tls-ciphers")
+        @WithDefault(DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING)
+        String[] clientTlsCiphers();
+
+        @WithName("pool-enable-connection-reuse")
+        @WithDefault("false")
+        boolean poolEnableConnectionReuse();
     }
 
     @ConfigMapping(prefix = "xroad.proxy.server")
@@ -149,6 +196,8 @@ public interface ProxyProperties {
         @WithDefault("false")
         boolean serverSupportClientsPooledConnections();
 
+        @WithName("min-supported-client-version")
+        Optional<String> minSupportedClientVersion();
     }
 
     @ConfigMapping(prefix = "xroad.proxy.ocsp-responder")

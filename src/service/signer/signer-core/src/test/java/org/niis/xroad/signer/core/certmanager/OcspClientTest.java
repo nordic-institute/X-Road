@@ -48,6 +48,7 @@ import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
@@ -64,7 +65,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
@@ -91,12 +91,13 @@ class OcspClientTest {
     private final GlobalConfProvider globalConfProvider = globalConfProvider();
     private final OcspClient ocspClient = new OcspClient(globalConfProvider);
     private final TokenLookup tokenManager = mock(TokenLookup.class);
+    private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     private final FileBasedOcspCache fileBasedOcspCache =
-            new FileBasedOcspCache(globalConfProvider, defaultConfiguration(SignerProperties.class));
+            new FileBasedOcspCache(globalConfProvider, ocspVerifierFactory, defaultConfiguration(SignerProperties.class));
     private final OcspCacheManager ocspResponseManager =
             new OcspCacheManager(ocspClient, fileBasedOcspCache);
     private final OcspClientWorker ocspClientWorker =
-            new TestOcspClient(globalConfProvider, ocspResponseManager, tokenManager, ocspClient);
+            new TestOcspClient(globalConfProvider, ocspVerifierFactory, ocspResponseManager, tokenManager, ocspClient);
 
     OcspClientTest() throws Exception {
     }
@@ -120,7 +121,7 @@ class OcspClientTest {
         OCSPResp ocsp = getOcspResponse(subject);
         assertNotNull(ocsp);
 
-        OcspVerifier verifier = new OcspVerifier(globalConfProvider,
+        OcspVerifier verifier = ocspVerifierFactory.create(globalConfProvider,
                 new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, globalConfProvider.getCaCert("EE", subject));
     }
@@ -147,7 +148,7 @@ class OcspClientTest {
         OCSPResp ocsp = getOcspResponse(subject);
         assertNotNull(ocsp);
 
-        OcspVerifier verifier = new OcspVerifier(globalConfProvider,
+        OcspVerifier verifier = ocspVerifierFactory.create(globalConfProvider,
                 new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, globalConfProvider.getCaCert("EE", subject));
     }
@@ -249,8 +250,6 @@ class OcspClientTest {
 
     /**
      * Before
-     *
-     * @throws Exception if an error occurs
      */
     @BeforeEach
     public void startup() {
@@ -300,9 +299,9 @@ class OcspClientTest {
     }
 
     private static class TestOcspClient extends OcspClientWorker {
-        TestOcspClient(GlobalConfProvider globalConfProvider, OcspCacheManager cacheManager,
+        TestOcspClient(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory, OcspCacheManager cacheManager,
                        TokenLookup tokenLookup, OcspClient ocspClient) {
-            super(globalConfProvider, cacheManager, tokenLookup, ocspClient);
+            super(globalConfProvider, ocspVerifierFactory, cacheManager, tokenLookup, ocspClient);
         }
 
         @Override
@@ -348,7 +347,7 @@ class OcspClientTest {
         when(testConf.isOcspResponderCert(Mockito.any(X509Certificate.class),
                 Mockito.any(X509Certificate.class))).thenReturn(true);
 
-        FileSystemGlobalConfSource source = new FileSystemGlobalConfSource(getConfigurationPath());
+        FileSystemGlobalConfSource source = new FileSystemGlobalConfSource("will-not-be-initialized");
         when(testConf.getGlobalConfExtensions()).thenReturn(new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
         return testConf;
     }

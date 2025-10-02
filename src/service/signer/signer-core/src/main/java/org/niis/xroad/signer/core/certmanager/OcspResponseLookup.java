@@ -33,6 +33,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 
 import java.io.IOException;
@@ -56,6 +57,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 @RequiredArgsConstructor
 public class OcspResponseLookup {
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final OcspCacheManager ocspCacheManager;
     private final TokenRegistry tokenRegistry;
 
@@ -109,7 +111,7 @@ public class OcspResponseLookup {
                 throw new IllegalStateException("OCSP Response was null");
             }
         }
-        new CertChainVerifier(globalConfProvider, certChain).verifyOcspResponses(ocspResponses, new Date());
+        new CertChainVerifier(globalConfProvider, ocspVerifierFactory, certChain).verifyOcspResponses(ocspResponses, new Date());
     }
 
 

@@ -132,6 +132,7 @@ LAST_SUPPORTED_VERSION=${lastVersion:-$LAST_SUPPORTED_VERSION_CANDIDATE}
 validate_version "$LAST_SUPPORTED_VERSION"
 echo "Setting the last supported version to $LAST_SUPPORTED_VERSION"
 
+#todo xrd 8 (note: prop name changed)
 set_last_supported_version "server-min-supported-client-version" "$LAST_SUPPORTED_VERSION" packages/src/xroad/default-configuration/override-securityserver-ee.ini
 set_last_supported_version "server-min-supported-client-version" "$LAST_SUPPORTED_VERSION" packages/src/xroad/default-configuration/override-securityserver-fi.ini
 

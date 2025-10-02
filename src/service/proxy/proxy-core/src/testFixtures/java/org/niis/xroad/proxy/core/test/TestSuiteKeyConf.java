@@ -41,6 +41,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.keyconf.dto.AuthKey;
@@ -62,6 +63,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 @RequiredArgsConstructor
 public class TestSuiteKeyConf extends EmptyKeyConf {
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
 
     Map<String, OCSPResp> ocspResponses = new HashMap<>();
 
@@ -102,7 +104,7 @@ public class TestSuiteKeyConf extends EmptyKeyConf {
                         globalConfProvider.getCaCert("EE", cert), getOcspSignerCert(),
                         getOcspRequestKey(), CertificateStatus.GOOD,
                         thisUpdate, null);
-                OcspVerifier verifier = new OcspVerifier(globalConfProvider,
+                OcspVerifier verifier = ocspVerifierFactory.create(globalConfProvider,
                         new OcspVerifierOptions(true));
                 verifier.verifyValidityAndStatus(resp, cert,
                         globalConfProvider.getCaCert("EE", cert));
@@ -115,11 +117,11 @@ public class TestSuiteKeyConf extends EmptyKeyConf {
         return ocspResponses.get(certHash);
     }
 
-    private X509Certificate getOcspSignerCert() throws Exception {
+    private X509Certificate getOcspSignerCert() {
         return TestCertUtil.getOcspSigner().certChain[0];
     }
 
-    private PrivateKey getOcspRequestKey() throws Exception {
+    private PrivateKey getOcspRequestKey() {
         return TestCertUtil.getOcspSigner().key;
     }
 }

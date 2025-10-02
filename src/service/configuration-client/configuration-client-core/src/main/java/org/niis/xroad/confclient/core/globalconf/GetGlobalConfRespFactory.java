@@ -26,13 +26,14 @@
 package org.niis.xroad.confclient.core.globalconf;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.core.dto.InMemoryFile;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.proto.GetGlobalConfResp;
 import org.niis.xroad.confclient.proto.GlobalConfFile;
 import org.niis.xroad.confclient.proto.GlobalConfInstance;
@@ -58,6 +59,7 @@ import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.ge
 
 @Slf4j
 @ApplicationScoped
+@RequiredArgsConstructor
 public class GetGlobalConfRespFactory {
     private static final Set<String> GLOBAL_CONF_FILES = Set.of(
             ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS,
@@ -66,8 +68,10 @@ public class GetGlobalConfRespFactory {
             OcspFetchInterval.FILE_NAME_OCSP_FETCH_INTERVAL_PARAMETERS,
             MonitoringParameters.FILE_NAME_MONITORING_PARAMETERS);
 
+    private final ConfigurationClientProperties configurationClientProperties;
+
     GetGlobalConfResp createGlobalConfResp() {
-        var confDir = Paths.get(SystemProperties.getConfigurationPath());
+        var confDir = Paths.get(configurationClientProperties.globalConfDir());
 
         var builder = GetGlobalConfResp.newBuilder();
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(confDir, Files::isDirectory)) {
@@ -112,7 +116,7 @@ public class GetGlobalConfRespFactory {
     }
 
     private String loadInstanceIdentifier() {
-        var file = Paths.get(SystemProperties.getConfigurationPath(), INSTANCE_IDENTIFIER_FILE);
+        var file = Paths.get(configurationClientProperties.globalConfDir(), INSTANCE_IDENTIFIER_FILE);
 
         log.trace("Loading instance identifier from {}", file);
 
@@ -136,6 +140,5 @@ public class GetGlobalConfRespFactory {
             return Optional.empty();
         }
     }
-
 
 }

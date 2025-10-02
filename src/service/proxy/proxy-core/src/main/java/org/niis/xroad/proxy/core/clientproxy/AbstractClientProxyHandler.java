@@ -27,7 +27,6 @@ package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -46,7 +45,6 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.proxy.core.util.PerformanceLogger;
-import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -201,13 +199,13 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
         return request.getMethod().equalsIgnoreCase("POST");
     }
 
-    public static IsAuthenticationData getIsAuthenticationData(RequestWrapper request) {
+    public static IsAuthenticationData getIsAuthenticationData(RequestWrapper request, boolean logClientCert) {
         var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
         var cert = request.getPeerCertificates()
                 .filter(ArrayUtils::isNotEmpty)
                 .map(arr -> arr[0]);
 
-        if (SystemProperties.shouldLogClientCert()) {
+        if (logClientCert) {
             cert.map(X509Certificate::getSubjectX500Principal)
                     .ifPresentOrElse(
                             subject -> log.info("Client certificate's subject: {}", subject),

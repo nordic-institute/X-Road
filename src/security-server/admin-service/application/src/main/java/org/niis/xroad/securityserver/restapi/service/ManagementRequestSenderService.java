@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
@@ -35,9 +36,9 @@ import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -55,9 +56,7 @@ public class ManagementRequestSenderService {
     private final GlobalConfService globalConfService;
     private final CurrentSecurityServerId currentSecurityServerId;
     private final VaultKeyProvider vaultKeyProvider;
-
-    @Value("${xroad.proxy-ui-api.security-server-url}")
-    private String proxyUrl;
+    private final AdminServiceProperties adminServiceProperties;
 
     private static final String MANAGEMENT_REQUEST_SENDING_FAILED_ERROR = "Sending management request failed";
 
@@ -238,7 +237,11 @@ public class ManagementRequestSenderService {
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
-                signerSignClient, sender, receiver, proxyUrl);
+                signerSignClient, sender, receiver, adminServiceProperties.getManagementProxyServerUrl(),
+                DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()),
+                adminServiceProperties.getManagementProxyServerConnectTimeout(),
+                adminServiceProperties.getManagementProxyServerSocketTimeout(),
+                adminServiceProperties.isManagementProxyServerEnableConnectionReuse());
     }
 
     public Integer sendMaintenanceModeEnableRequest(String message) {

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,39 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.util;
 
-import ee.ria.xroad.common.SystemProperties;
+package org.niis.xroad.common.properties;
 
-import org.junit.Before;
-import org.junit.Test;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-import static org.junit.Assert.assertEquals;
+@ConfigMapping(prefix = "xroad.common")
+public interface CommonProperties {
 
-/**
- * Tests to verify correct system metrics behavior.
- */
-public class SystemMetricsBehavior {
+    @WithName("temp-files-path")
+    @WithDefault("/var/tmp/xroad/")
+    String tempFilesPath();
 
-    /**
-     * Set up test file location.
-     */
-    @Before
-    public void setUp() {
-        System.setProperty(
-                SystemProperties.NET_STATS_FILE, "src/test/resources/dev");
-    }
-
-    /**
-     * Test to ensure network statistics are read correctly.
-     */
-    @Test
-    public void shouldGetNetStats() {
-        // Given/when
-        NetStats actualStats = SystemMetrics.getNetStats();
-
-        // Then
-        NetStats expectedStats = new NetStats(12345678, 87654321);
-        assertEquals(expectedStats, actualStats);
-    }
 }

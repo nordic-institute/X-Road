@@ -34,7 +34,7 @@ import io.smallrye.config.WithName;
 
 @ConfigMapping(prefix = ServerConfCommonProperties.PREFIX)
 public interface ServerConfCommonProperties {
-    String PREFIX = "xroad.common.server-conf";
+    String PREFIX = "xroad.common-server-conf";
     String DEFAULT_CACHE_PERIOD = "60";
     String DEFAULT_CLIENT_CACHE_SIZE = "100";
     String DEFAULT_SERVICE_CACHE_SIZE = "1000";

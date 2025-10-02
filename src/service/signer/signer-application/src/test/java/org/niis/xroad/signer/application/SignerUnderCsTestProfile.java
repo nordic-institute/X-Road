@@ -45,7 +45,7 @@ public class SignerUnderCsTestProfile implements QuarkusTestProfile {
     public Map<String, String> getConfigOverrides() {
         return Map.of(
                 "quarkus.log.level", "INFO",
-                "xroad.common.rpc.use-tls", "false",
+                "xroad.common-rpc.use-tls", "false",
                 "spring.datasource.url", "jdbc:hsqldb:mem:testdb2",
                 "spring.datasource.username", "testdb2",
                 "spring.datasource.password", "testdb2",

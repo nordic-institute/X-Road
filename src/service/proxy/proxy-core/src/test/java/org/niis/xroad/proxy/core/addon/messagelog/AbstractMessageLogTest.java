@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
@@ -43,14 +42,17 @@ import ee.ria.xroad.messagelog.database.MessageLogDatabaseConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.messagelog.MessageLogDbProperties;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 
 import java.io.ByteArrayInputStream;
@@ -70,6 +72,8 @@ import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.getServerConf;
 @Slf4j
 abstract class AbstractMessageLogTest {
 
+    ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+    OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     GlobalConfProvider globalConfProvider;
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;
@@ -91,8 +95,6 @@ abstract class AbstractMessageLogTest {
     }
 
     protected void testSetUp(boolean timestampImmediately) throws Exception {
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
-
         globalConfProvider = getGlobalConf();
         keyConfProvider = mock(KeyConfProvider.class);
         serverConfProvider = new TestServerConfWrapper(getServerConf());
@@ -108,11 +110,15 @@ abstract class AbstractMessageLogTest {
                 "xroad.db.messagelog.hibernate.show_sql", "false"
         );
         var props = ConfigUtils.initConfiguration(MessageLogDbProperties.class, hibernateProperties);
+        CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
+                "xroad.common.temp-files-path", "build/tmp"
+        ));
         databaseCtx = MessageLogDatabaseConfig.create(props);
         logRecordManager = new LogRecordManager(databaseCtx);
         var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer());
+                null, null, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
+                ocspVerifierFactory, commonProperties);
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 
@@ -132,7 +138,7 @@ abstract class AbstractMessageLogTest {
                 "xroad.message-log-archiver.archive-path", archivesDir,
                 "xroad.message-log-archiver.keep-records-for", "0"));
 
-        logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider, databaseCtx);
+        logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider, commonProperties, databaseCtx);
         logCleanerRef = new TestLogCleaner(logArchiverProperties, databaseCtx);
     }
 
@@ -183,7 +189,7 @@ abstract class AbstractMessageLogTest {
         logManager.log(logMessage);
     }
 
-    TimestampRecord timestamp(MessageRecord record) throws Exception {
+    TimestampRecord timestamp(MessageRecord record) {
         return logManager.timestamp(record.getId());
     }
 

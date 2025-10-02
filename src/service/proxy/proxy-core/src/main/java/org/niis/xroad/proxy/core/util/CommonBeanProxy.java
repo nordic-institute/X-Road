@@ -28,13 +28,16 @@ package org.niis.xroad.proxy.core.util;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 /**
@@ -55,4 +58,7 @@ public class CommonBeanProxy {
     private final LogRecordManager logRecordManager;
     private final VaultKeyProvider vaultKeyProvider;
     private final OpMonitoringBuffer opMonitoringBuffer;
+    private final ProxyProperties proxyProperties;
+    private final OcspVerifierFactory ocspVerifierFactory;
+    private final CommonProperties commonProperties;
 }

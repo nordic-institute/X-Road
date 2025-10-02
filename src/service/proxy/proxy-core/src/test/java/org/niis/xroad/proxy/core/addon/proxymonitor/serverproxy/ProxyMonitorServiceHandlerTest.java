@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -35,9 +34,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
@@ -71,13 +68,6 @@ public class ProxyMonitorServiceHandlerTest {
     private static final ServiceId.Conf MONITOR_SERVICE_ID = ServiceId.Conf.create(DEFAULT_OWNER_CLIENT,
             ProxyMonitorServiceHandlerImpl.SERVICE_CODE);
 
-
-
-    @Rule
-    public final ProvideSystemProperty configurationPathProperty
-            = new ProvideSystemProperty(SystemProperties.CONFIGURATION_PATH,
-            "src/test/resources/");
-
     private ServerConfProvider serverConfProvider;
     private GlobalConfProvider globalConfProvider;
     private ProxyMessage mockProxyMessage;
@@ -95,7 +85,7 @@ public class ProxyMonitorServiceHandlerTest {
                 return DEFAULT_OWNER_SERVER;
             }
         };
-        globalConfProvider = new TestSuiteGlobalConf();
+        globalConfProvider = new TestSuiteGlobalConf("src/test/resources/");
 
         mockProxyMessage = mock(ProxyMessage.class);
 

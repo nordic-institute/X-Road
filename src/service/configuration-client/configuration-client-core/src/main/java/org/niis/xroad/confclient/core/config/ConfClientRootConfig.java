@@ -27,6 +27,7 @@ package org.niis.xroad.confclient.core.config;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Provider;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.confclient.core.ConfigurationClient;
 import org.niis.xroad.confclient.core.ConfigurationDownloader;
 import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepository;
@@ -44,9 +45,11 @@ public class ConfClientRootConfig {
 
     @ApplicationScoped
     ConfigurationAnchorProvider configurationAnchorProvider(ConfigurationClientProperties configurationClientProperties,
+                                                            CommonProperties commonProperties,
                                                             Provider<DataSource> dataSource) {
         return switch (configurationClientProperties.configurationAnchorStorage()) {
-            case FILE -> new FileBasedProvider(configurationClientProperties.configurationAnchorFile());
+            case FILE -> new FileBasedProvider(configurationClientProperties.configurationAnchorFile(),
+                    commonProperties.tempFilesPath());
             case DB -> new DBBasedProvider(dataSource.get());
         };
     }
@@ -68,7 +71,7 @@ public class ConfClientRootConfig {
                 configurationClientProperties.globalConfDir());
         return new ConfigurationClient(
                 configurationAnchorProvider,
-                configurationClientProperties.globalConfDir(), downloader);
+                configurationClientProperties.globalConfDir(), downloader, configurationClientProperties.allowedFederations());
     }
 
     @ApplicationScoped

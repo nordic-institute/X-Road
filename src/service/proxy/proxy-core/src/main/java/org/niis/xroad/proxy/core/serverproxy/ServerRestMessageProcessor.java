@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -204,7 +203,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     }
 
     @Override
-    protected void preprocess() throws Exception {
+    protected void preprocess() {
         encoder = new ProxyMessageEncoder(jResponse.getOutputStream(), Digests.DEFAULT_DIGEST_ALGORITHM);
         jResponse.setContentType(encoder.getContentType());
         jResponse.putHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId().name());
@@ -235,7 +234,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void handleRequest() throws Exception {
         RestServiceHandler handler = getServiceHandler(requestMessage);
         if (handler == null) {
-            handler = new DefaultRestServiceHandlerImpl(commonBeanProxy.getServerConfProvider());
+            handler = new DefaultRestServiceHandlerImpl(commonBeanProxy.getServerConfProvider(),
+                    commonBeanProxy.getCommonProperties().tempFilesPath());
         }
         log.trace("handler={}", handler);
         if (handler.shouldVerifyAccess()) {
@@ -261,20 +261,22 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void readMessage() throws Exception {
         log.trace("readMessage()");
 
-        requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE)) {
+        requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
+                commonBeanProxy.getCommonProperties().tempFilesPath()) {
             @Override
             public void rest(RestRequest message) throws CertificateEncodingException, IOException {
                 super.rest(message);
                 requestServiceId = message.getServiceId();
                 verifyClientStatus();
                 responseSigningCtx = commonBeanProxy.getSigningCtxProvider().createSigningCtx(requestServiceId.getClientId());
-                if (SystemProperties.isSslEnabled()) {
+                if (commonBeanProxy.getProxyProperties().sslEnabled()) {
                     verifySslClientCert();
                 }
             }
         };
 
-        decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(), requestMessage, jRequest.getContentType(), false,
+        decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(), commonBeanProxy.getOcspVerifierFactory(),
+                requestMessage, jRequest.getContentType(), false,
                 getHashAlgoId(jRequest));
         try {
             decoder.parse(jRequest.getInputStream());
@@ -373,7 +375,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifySignature() throws Exception {
+    private void verifySignature() {
         log.trace("verifySignature()");
 
         decoder.verify(requestMessage.getRest().getClientId(), requestMessage.getSignature());
@@ -442,6 +444,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     @RequiredArgsConstructor
     private static final class DefaultRestServiceHandlerImpl implements RestServiceHandler {
         private final ServerConfProvider serverConfProvider;
+        private final String tempFilesPath;
 
         private RestResponse restResponse;
         private CachingStream restResponseBody;
@@ -552,7 +555,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             messageEncoder.restResponse(restResponse);
 
             if (response.getEntity() != null) {
-                restResponseBody = new CachingStream();
+                restResponseBody = new CachingStream(tempFilesPath);
                 TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), restResponseBody);
                 messageEncoder.restBody(tee);
                 EntityUtils.consume(response.getEntity());

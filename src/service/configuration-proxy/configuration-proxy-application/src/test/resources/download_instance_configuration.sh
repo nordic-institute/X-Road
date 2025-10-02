@@ -12,9 +12,7 @@ die () {
 
 CP="../configuration-client/configuration-client-application/build/libs/configuration-client-1.0.jar"
 
-XROAD_LOG_LEVEL="INFO"
-
-XROAD_CONFCLIENT_PARAMS=" -Xmx50m -Dee.ria.xroad.appLog.xroad.level=$XROAD_LOG_LEVEL "
+XROAD_CONFCLIENT_PARAMS=" -Xmx50m "
 
 java ${XROAD_PARAMS} ${XROAD_CONFCLIENT_PARAMS} -cp ${CP} org.niis.xroad.confclient.ConfClientMain $@
 

@@ -65,8 +65,20 @@ public interface ConfigurationClientProperties {
     @WithDefault("30000")
     int downloaderReadTimeout();
 
+    @WithName("allowed-federations")
+    @WithDefault("NONE")
+    String allowedFederations();
+
     enum ConfigurationAnchorStorage {
         FILE,
         DB
     }
+
+    /**
+     * A constant to describe the X-Road instances this security server federates with.
+     * {@link #CUSTOM} means a list of named, comma-separated X-Road instances to allow.
+     * {@link #ALL} naturally means all and {@link #NONE} means federation is disabled.
+     * The configurations for those instances won't be downloaded.
+     */
+    enum AllowedFederationMode { ALL, NONE, CUSTOM }
 }

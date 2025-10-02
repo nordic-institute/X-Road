@@ -190,7 +190,6 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        tokenPinValidator.setTokenPinEnforced(true);
         try {
             initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                     SOFTWARE_TOKEN_VALID_PIN, true);

@@ -27,6 +27,7 @@
 
 package org.niis.xroad.common.managementrequest.model;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
@@ -37,7 +38,8 @@ public class MaintenanceModeEnableRequest extends GenericClientRequest {
     public MaintenanceModeEnableRequest(SignerRpcClient signerRpcClient,
                                         SignerSignClient signerSignClient,
                                         ClientId client,
-                                        SoapMessageImpl request) {
-        super(signerRpcClient, signerSignClient, client, request);
+                                        SoapMessageImpl request,
+                                        DigestAlgorithm signatureDigestAlgorithm) {
+        super(signerRpcClient, signerSignClient, client, request, signatureDigestAlgorithm);
     }
 }

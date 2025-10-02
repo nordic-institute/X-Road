@@ -54,9 +54,8 @@ server:
         same-site: Strict
 
 xroad:
-  common:
-    global-conf:
-      refresh-rate: -1 # UI has its own refresh job.
+  common-global-conf:
+    refresh-rate: -1 # UI has its own refresh job.
   proxy-ui-api:
     authentication-provider: PAM
     rate-limit-requests-per-second: 20
@@ -70,13 +69,36 @@ xroad:
     request-size-limit-binary-upload: 10MB
     authentication-key-algorithm: RSA
     signing-key-algorithm: RSA
-    security-server-url: https://localhost:8443
+    management-proxy-server-url: https://localhost:8443
+    management-proxy-server-connect-timeout: 30000
+    management-proxy-server-socket-timeout: 0
+    management-proxy-server-enable-connection-reuse: false
     reserved-service-codes: listClients,listMethods,allowedMethods,getWsdl,getOpenAPI,getSecurityServerMetrics,getSecurityServerOperationalData,getSecurityServerHealthData
     tls:
       certificate-provisioning:
         common-name: ${XROAD_HOST:localhost}
         ip-subject-alt-names:
           - 127.0.0.1
+    acme-renewal-success-notification-enabled: true
+    acme-renewal-failure-notification-enabled: true
+    auth-cert-registered-notification-enabled: true
+    cert-auto-activation-notification-enabled: true
+    cert-auto-activation-failure-notification-enabled: true
+    acme-renewal-active: true
+    acme-renewal-retry-delay: 60
+    acme-renewal-interval: 3600
+    acme-renewal-time-before-expiration-date: 14
+    acme-keypair-renewal-time-before-expiration-date: 14
+    acme-authorization-wait-attempts: 5
+    acme-authorization-wait-interval: 5
+    acme-certificate-wait-attempts: 5
+    acme-certificate-wait-interval: 5
+    acme-certificate-account-key-pair-expiration: 365
+    acme-challenge-port: 80
+    auth-cert-reg-signature-digest-algorithm-id: SHA-512
+    key-management-api-whitelist: 127.0.0.0/8, ::1
+    regular-api-whitelist: 0.0.0.0/0, ::/0
+    acme-key-length: 2048
 
 file-upload-endpoints:
   endpoint-definitions:
@@ -116,9 +138,8 @@ spring:
 logging:
   config: classpath:logback-containerized.xml
 xroad:
-  common:
-    global-conf:
-      source: REMOTE
+  common-global-conf:
+    source: REMOTE
   proxy-ui-api:
     authentication-provider: DATABASE
 ---

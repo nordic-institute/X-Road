@@ -27,6 +27,7 @@
 
 package org.niis.xroad.common.managementrequest.model;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
@@ -35,7 +36,7 @@ import org.niis.xroad.signer.client.SignerSignClient;
 
 public class AddressChangeRequest extends GenericClientRequest {
     public AddressChangeRequest(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
-                                ClientId client, SoapMessageImpl request) {
-        super(signerRpcClient, signerSignClient, client, request);
+                                ClientId client, SoapMessageImpl request, DigestAlgorithm signatureDigestAlgorithm) {
+        super(signerRpcClient, signerSignClient, client, request, signatureDigestAlgorithm);
     }
 }

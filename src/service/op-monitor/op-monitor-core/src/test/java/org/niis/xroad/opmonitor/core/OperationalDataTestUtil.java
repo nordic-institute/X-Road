@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.JsonUtils;
@@ -46,8 +45,6 @@ final class OperationalDataTestUtil {
     }
 
     static void prepareDatabase(DatabaseCtx databaseCtx) throws Exception {
-        System.setProperty(SystemProperties.DATABASE_PROPERTIES,
-                "src/test/resources/hibernate.properties");
         databaseCtx.doInTransaction(session -> {
             var q = session.createNativeMutationQuery(
                     // Completely wipe out the database. Assuming that HSQLDB

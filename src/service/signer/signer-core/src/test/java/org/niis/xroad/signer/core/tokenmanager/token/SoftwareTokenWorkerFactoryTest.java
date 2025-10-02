@@ -29,17 +29,14 @@ package org.niis.xroad.signer.core.tokenmanager.token;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -77,28 +74,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class SoftwareTokenWorkerFactoryTest {
 
-    @Mock
-    private SignerProperties signerProperties;
-    @Mock
-    private TokenManager tokenManager;
-    @Mock
-    private KeyManager keyManager;
-    @Mock
-    private CertManager certManager;
-    @Mock
-    private TokenLookup tokenLookup;
-    @Mock
-    private TokenPinManager pinManager;
-    @Mock
-    private TokenRegistry tokenRegistry;
-    @Mock
-    private TokenInfo tokenInfo;
+    private final SignerProperties signerProperties = mock(SignerProperties.class);
+    private final TokenManager tokenManager = mock(TokenManager.class);
+    private final KeyManager keyManager = mock(KeyManager.class);
+    private final CertManager certManager = mock(CertManager.class);
+    private final TokenLookup tokenLookup = mock(TokenLookup.class);
+    private final TokenPinManager pinManager = mock(TokenPinManager.class);
+    private final TokenRegistry tokenRegistry = mock(TokenRegistry.class);
+    private final TokenInfo tokenInfo = mock(TokenInfo.class);
 
-    @InjectMocks
-    private SoftwareTokenWorkerFactory factory;
+    private final KeyManagers keyManagers = new KeyManagers(2048, "secp256r1");
+
+    private final SoftwareTokenWorkerFactory factory = new SoftwareTokenWorkerFactory(signerProperties, tokenManager, keyManager,
+            certManager, tokenLookup, pinManager, tokenRegistry, keyManagers);
 
     private static final String TOKEN_ID = "token-id";
     private static final String KEY_ID = "key-id";

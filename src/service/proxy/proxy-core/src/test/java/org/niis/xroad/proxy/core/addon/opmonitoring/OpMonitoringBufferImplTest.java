@@ -86,16 +86,17 @@ class OpMonitoringBufferImplTest {
     @SuppressWarnings("checkstyle:FinalClass")
     private class TestOpMonitoringBufferImpl extends OpMonitoringBufferImpl {
         TestOpMonitoringBufferImpl(OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
-            super(mock(ServerConfProvider.class), opMonitorCommonProperties, mock(VaultClient.class));
+            super(mock(ServerConfProvider.class), opMonitorCommonProperties, mock(VaultClient.class), false);
         }
 
         @Override
         OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
                                               OpMonitorCommonProperties opMonitorCommonProperties,
-                                              VaultClient vaultClient)
+                                              VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
                 throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
                 NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
-            return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorCommonProperties, vaultClient) {
+            return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorCommonProperties,
+                    vaultClient, isEnabledPooledConnectionReuse) {
                 @Override
                 CloseableHttpClient createHttpClient() {
                     return httpClient;
@@ -176,7 +177,8 @@ class OpMonitoringBufferImplTest {
             @Override
             OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
                                                   OpMonitorCommonProperties opMonitorCommonProperties,
-                                                  VaultClient baultTlsCredentialsProvider) {
+                                                  VaultClient baultTlsCredentialsProvider,
+                                                  boolean isEnabledPooledConnectionReuse) {
                 var mockedSender = mock(OpMonitoringDaemonSender.class);
                 when(mockedSender.isReady()).thenReturn(false);
                 return mockedSender;
@@ -212,7 +214,7 @@ class OpMonitoringBufferImplTest {
                 ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
                         "xroad.op-monitor.buffer.size", "0"
                 )),
-                vaultTlsCredentialsProvider);
+                vaultTlsCredentialsProvider, false);
         verifyNoInteractions(serverConfProvider);
     }
 

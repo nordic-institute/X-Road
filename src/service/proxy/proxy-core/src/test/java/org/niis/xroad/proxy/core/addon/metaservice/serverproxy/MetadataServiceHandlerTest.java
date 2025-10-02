@@ -112,6 +112,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES;
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS;
 import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.ALLOWED_METHODS_REQUEST;
 import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.GET_WSDL_REQUEST;
 import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.LIST_METHODS_REQUEST;
@@ -204,7 +206,7 @@ public class MetadataServiceHandlerTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         this.mockServer.stop();
     }
 
@@ -213,7 +215,8 @@ public class MetadataServiceHandlerTest {
 
         // setup
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
 
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
@@ -236,7 +239,8 @@ public class MetadataServiceHandlerTest {
 
         // setup
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
 
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
@@ -260,7 +264,8 @@ public class MetadataServiceHandlerTest {
 
         // setup
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
 
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
 
@@ -298,7 +303,8 @@ public class MetadataServiceHandlerTest {
             }
         });
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
 
         InputStream soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -361,7 +367,8 @@ public class MetadataServiceHandlerTest {
             }
         });
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
 
         InputStream soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -403,7 +410,8 @@ public class MetadataServiceHandlerTest {
 
         final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
 
-        var handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        var handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
 
         var soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -431,7 +439,8 @@ public class MetadataServiceHandlerTest {
         final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
         final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithoutWsdl");
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
 
         WsdlRequestData wsdlRequestData = new WsdlRequestData();
         wsdlRequestData.setServiceCode(requestingWsdlForService.getServiceCode());
@@ -462,7 +471,8 @@ public class MetadataServiceHandlerTest {
         final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
         final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
 
         WsdlRequestData wsdlRequestData = new WsdlRequestData();
         wsdlRequestData.setServiceCode(requestingWsdlForService.getServiceCode());
@@ -495,7 +505,7 @@ public class MetadataServiceHandlerTest {
         private OverwriteAttributeFilter filter;
 
         TestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
-            super(serverConfProvider, globalConfProvider);
+            super(serverConfProvider, globalConfProvider, DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
         }
 
         @Override
@@ -613,7 +623,7 @@ public class MetadataServiceHandlerTest {
      * Prepare TestMetadataServiceHandlerImpl, wiremock, et al for get WSDL tests
      */
     private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId, boolean isRest) throws
-                                                                                                             Exception {
+            Exception {
         final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
         TestMetadataServiceHandlerImpl handlerToTest = new TestMetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);

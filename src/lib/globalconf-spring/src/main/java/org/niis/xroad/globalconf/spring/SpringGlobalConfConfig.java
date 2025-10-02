@@ -71,8 +71,8 @@ public class SpringGlobalConfConfig extends GlobalConfConfig {
     @ConfigurationProperties(prefix = MAPPING_PREFIX)
     public static class SpringCommonGlobalConfProperties implements GlobalConfProperties {
         private GlobalConfSource source = GlobalConfSource.valueOf(DEFAULT_SOURCE);
-
         private Duration refreshRate = DurationConverter.parseDuration(DEFAULT_RATE_INTERVAL);
+        private String configurationPath = DEFAULT_GLOBALCONF_DIR;
 
         @Override
         public GlobalConfSource source() {
@@ -82,6 +82,11 @@ public class SpringGlobalConfConfig extends GlobalConfConfig {
         @Override
         public Duration refreshRate() {
             return refreshRate;
+        }
+
+        @Override
+        public String configurationPath() {
+            return configurationPath;
         }
     }
 

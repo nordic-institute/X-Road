@@ -74,6 +74,7 @@ import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 public class CertRequestCreationService {
     private final SignerProperties signerProperties;
     private final TokenWorkerProvider tokenWorkerProvider;
+    private final KeyManagers keyManagers;
 
     public PKCS10CertificationRequest buildSignedCertRequest(TokenAndKey tokenAndKey, String subjectName,
                                                              String subjectAltName, KeyUsageInfo keyUsage)
@@ -83,7 +84,7 @@ public class CertRequestCreationService {
             throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", tokenAndKey.getKeyId());
         }
 
-        PublicKey publicKey = KeyManagers.getFor(tokenAndKey.getSignMechanism())
+        PublicKey publicKey = keyManagers.getFor(tokenAndKey.getSignMechanism())
                 .readX509PublicKey(tokenAndKey.key().getPublicKey());
 
         JcaPKCS10CertificationRequestBuilder certRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
