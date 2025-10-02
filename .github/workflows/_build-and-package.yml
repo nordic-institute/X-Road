@@ -43,7 +43,7 @@ jobs:
         with:
           gradle-cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           setup-docker-buildx: true
-          setup-packaging-tools: true
+          setup-packaging-tools: false
           free-disk-space: false
 
       - name: Cache SonarCloud packages
@@ -77,6 +77,7 @@ jobs:
           # Read version and build type from gradle.properties for service image tagging
           XROAD_VERSION=$(grep "^xroadVersion=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
           XROAD_BUILD_TYPE=$(grep "^xroadBuildType=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          XROAD_BASE_IMAGE_TAG=$(grep "^xroadBaseImageTag=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
           
           # Function to get branch name for service image tagging
           get_branch_name() {
@@ -119,6 +120,7 @@ jobs:
           echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
           echo "XROAD_VERSION=${XROAD_VERSION}" >> $GITHUB_ENV
           echo "XROAD_BUILD_TYPE=${XROAD_BUILD_TYPE}" >> $GITHUB_ENV
+          echo "PACKAGE_BUILDER_IMAGE_TAG=${XROAD_BASE_IMAGE_TAG}" >> $GITHUB_ENV
           
           # Export to GITHUB_OUTPUT for job outputs
           echo "image_registry=${IMAGE_REGISTRY}" >> $GITHUB_OUTPUT
@@ -127,6 +129,7 @@ jobs:
           echo "🏗️ Build configuration:"
           echo "  Registry: ${IMAGE_REGISTRY}"
           echo "  Service Image Tag: ${SERVICE_IMAGE_TAG}"
+          echo "  Package Builder Image Tag: ${XROAD_BASE_IMAGE_TAG}"
           echo "  Branch: ${BRANCH_NAME}"
           echo "  X-Road Version: ${XROAD_VERSION}"
           echo "  Build Type: ${XROAD_BUILD_TYPE}"
@@ -182,28 +185,41 @@ jobs:
           label: 'Build, unit tests and packaging'
 
       - name: Build RHEL8 packages
+        working-directory: ./src
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
         run: |
-          docker build -t rhel8 ${{ github.workspace }}/deployment/native-packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./deployment/native-packages/build-rpm.sh
+          ./build_packages.sh -d -r rpm-el8 --package-only
           echo "Packages built successfully, removing packages.."
           rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/8
 
       - name: Build RHEL9 packages
+        working-directory: ./src
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
         run: |
-          docker build -t rhel9 ${{ github.workspace }}/deployment/native-packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./deployment/native-packages/build-rpm.sh
+          ./build_packages.sh -d -r rpm-el9 --package-only
           echo "Packages built successfully, removing packages.."
           rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
 
-      - name: Build 22.04 (Jammy) packages
+      - name: Build Ubuntu 22.04 (Jammy) packages
+        working-directory: ./src
         env:
-          DEBEMAIL: 'info@niis.org'
-          DEBFULLNAME: 'NIIS'
-        run: ./deployment/native-packages/build-deb.sh jammy -release
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: |
+          ./build_packages.sh -d -r jammy --package-only
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu22.04
 
-      - name: Build 24.04 (Noble) packages
+      - name: Build Ubuntu 24.04 (Noble) packages
+        working-directory: ./src
         env:
-          DEBEMAIL: 'info@niis.org'
-          DEBFULLNAME: 'NIIS'
-        run: ./deployment/native-packages/build-deb.sh noble -release
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: ./build_packages.sh -d -r noble --package-only
 
       - name: Build and push Central Server dev image
         run: |

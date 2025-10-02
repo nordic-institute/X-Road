@@ -1,0 +1,82 @@
+name: Build Package Builder Images
+
+on:
+  # Build on changes to package builder Dockerfiles or preparation script
+  push:
+    branches:
+      - develop-8.x
+      - XRDDEV-3003
+    paths:
+      - 'deployment/native-packages/docker/**/Dockerfile'
+      - 'deployment/native-packages/docker/prepare-builder-image.sh'
+      - 'src/gradle.properties'
+      - '.github/workflows/build-package-builder-images.yaml'
+  # Allow manual trigger
+  workflow_dispatch:
+  # Nightly build
+  schedule:
+    - cron: '0 3 * * *'
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-package-builder-images:
+    name: Build and push package builder images
+    runs-on: ubuntu-24.04
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Read version from gradle.properties
+        id: version
+        working-directory: ./src
+        run: |
+          XROAD_BASE_IMAGE_TAG=$(grep "^xroadBaseImageTag=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          echo "tag=${XROAD_BASE_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "Using tag: ${XROAD_BASE_IMAGE_TAG}"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push all builder images
+        working-directory: ./deployment/native-packages/docker
+        env:
+          IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ github.repository }}
+          IMAGE_TAG: ${{ steps.version.outputs.tag }}
+          BUILD_PLATFORMS: linux/amd64,linux/arm64
+        run: |
+          # Convert repository name to lowercase for GHCR
+          export IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
+          
+          ./prepare-builder-image.sh all
+
+      - name: Add build summary
+        if: always()
+        run: |
+          REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          # Package Builder Images Build
+          
+          **Status:** ✅ Build completed
+          **Trigger:** ${{ github.event_name }}
+          **Branch/Tag:** ${{ github.ref_name }}
+          **Version Tag:** \`${{ steps.version.outputs.tag }}\`
+          **Registry:** \`${{ env.REGISTRY }}/${REPO_LOWERCASE}\`
+          **Platforms:** linux/amd64, linux/arm64
+          
+          ## Built Images
+          - \`package-builder-deb-jammy:${{ steps.version.outputs.tag }}\`
+          - \`package-builder-deb-noble:${{ steps.version.outputs.tag }}\`
+          - \`package-builder-rpm-el8:${{ steps.version.outputs.tag }}\`
+          - \`package-builder-rpm-el9:${{ steps.version.outputs.tag }}\`
+          EOF
