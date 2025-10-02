@@ -9,8 +9,12 @@ inputs:
     description: 'Whether Gradle cache should be read-only'
     required: false
     default: 'false'
-  setup-docker:
-    description: 'Whether to set up Docker Buildx'
+  setup-docker-buildx:
+    description: 'Whether to set up Docker Buildx for multi-platform image building'
+    required: false
+    default: 'false'
+  setup-packaging-tools:
+    description: 'Whether to install packaging tools (debhelper, devscripts)'
     required: false
     default: 'false'
   free-disk-space:
@@ -27,8 +31,8 @@ runs:
         label: 'Initial Storage Utilization'
         show-top-dirs: 'true'
 
-    - name: Ensure required packages
-      if: runner.os == 'Linux'
+    - name: Install packaging tools
+      if: inputs.setup-packaging-tools == 'true' && runner.os == 'Linux'
       shell: bash
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -48,13 +52,6 @@ runs:
         java-version: ${{ inputs.java-version }}
         distribution: 'temurin'
 
-    - name: Cache SonarCloud packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.sonar/cache
-        key: ${{ runner.os }}-sonar
-        restore-keys: ${{ runner.os }}-sonar
-
     - name: Set up Gradle
       uses: gradle/actions/setup-gradle@v4
       with:
@@ -67,7 +64,7 @@ runs:
         build-scan-terms-of-use-agree: "yes"
 
     - name: Set up Docker Buildx
-      if: inputs.setup-docker == 'true'
+      if: inputs.setup-docker-buildx == 'true'
       uses: docker/setup-buildx-action@v3
       with:
         driver-opts: network=host

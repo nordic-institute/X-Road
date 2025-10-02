@@ -42,8 +42,16 @@ jobs:
         uses: ./.github/actions/setup-build-env
         with:
           gradle-cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
-          setup-docker: true
+          setup-docker-buildx: true
+          setup-packaging-tools: true
           free-disk-space: false
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
       - name: Build, test and package code setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0

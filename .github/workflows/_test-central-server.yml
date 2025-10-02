@@ -39,7 +39,6 @@ jobs:
         uses: ./.github/actions/setup-build-env
         with:
           gradle-cache-read-only: true
-          setup-docker: true
           free-disk-space: false
 
       - name: Login to GitHub Container Registry
