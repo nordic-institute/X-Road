@@ -47,6 +47,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerHandler;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
 import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
@@ -78,8 +79,9 @@ public class ProxyClientConfig {
     @ApplicationScoped
     @Priority(200)
     @LookupIfProperty(name = "xroad.proxy.addon.message-log.enabled", stringValue = "true")
-    AbstractClientProxyHandler asicContainerHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client) {
-        return new AsicContainerHandler(commonBeanProxy, client);
+    AbstractClientProxyHandler asicContainerHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client,
+                                                    ConfClientRpcClient confClientRpcClient) {
+        return new AsicContainerHandler(commonBeanProxy, client, confClientRpcClient);
     }
 
     @ApplicationScoped
