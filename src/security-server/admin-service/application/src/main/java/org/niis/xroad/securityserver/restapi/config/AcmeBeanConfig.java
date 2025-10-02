@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
+import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.securityserver.restapi.scheduling.AcmeClientWorker;
 import org.niis.xroad.securityserver.restapi.scheduling.CertificateRenewalScheduler;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -47,52 +46,45 @@ import org.springframework.scheduling.TaskScheduler;
 
 @Slf4j
 @Configuration
-public class AcmeConfig {
+public class AcmeBeanConfig {
 
     @Profile("nontest")
-    @Conditional(IsAcmeChallengePortEnabled.class)
     @Bean
-    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> acmeChallengeCustomizer() {
-        return this::acmeChallengeCustomizer;
-    }
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    private void acmeChallengeCustomizer(TomcatServletWebServerFactory factory) {
-        var connector = new Connector(Http11NioProtocol.class.getName());
-        int acmeChallengePort = SystemProperties.getAcmeChallengePort();
-        connector.setScheme("http");
-        connector.setPort(acmeChallengePort);
-        log.info("ACME challenge port enabled, listening on port {}", acmeChallengePort);
-        factory.addAdditionalTomcatConnectors(connector);
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> acmeChallengeCustomizer(AcmeConfig acmeConfig) {
+        if (acmeConfig.isAcmeChallengePortEnabled()) {
+            return factory -> {
+                var connector = new Connector(Http11NioProtocol.class.getName());
+                int acmeChallengePort = acmeConfig.getAcmeChallengePort();
+                connector.setScheme("http");
+                connector.setPort(acmeChallengePort);
+                log.info("ACME challenge port enabled, listening on port {}", acmeChallengePort);
+                factory.addAdditionalTomcatConnectors(connector);
+            };
+        } else {
+            log.info("ACME challenge port is disabled");
+            return factory -> {
+                // no-op
+            };
+        }
     }
 
     @Order(Ordered.LOWEST_PRECEDENCE - 99)
     @Bean
     @Conditional(IsAcmeCertRenewalJobsActive.class)
     @Profile("!test")
-    CertificateRenewalScheduler certificateRenewalScheduler(AcmeClientWorker acmeClientWorker, TaskScheduler taskScheduler) {
-        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, taskScheduler);
+    CertificateRenewalScheduler certificateRenewalScheduler(AcmeClientWorker acmeClientWorker, TaskScheduler taskScheduler,
+                                                            AcmeConfig acmeConfig) {
+        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, acmeConfig, taskScheduler);
         scheduler.init();
         return scheduler;
-    }
-
-    @Slf4j
-    public static class IsAcmeChallengePortEnabled implements Condition {
-        @Override
-        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            boolean isEnabled = SystemProperties.isAcmeChallengePortEnabled();
-            if (!isEnabled) {
-                log.info("ACME challenge port is disabled");
-            }
-            return isEnabled;
-        }
     }
 
     @Slf4j
     public static class IsAcmeCertRenewalJobsActive implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            boolean isActive = SystemProperties.isAcmeCertificateRenewalActive();
+            boolean isActive = Boolean.parseBoolean(context.getEnvironment()
+                    .getProperty("xroad.proxy-ui-api.acme-renewal-active", "true"));
             if (!isActive) {
                 log.info("ACME certificate renewal configured to be inactive, job auto-scheduling disabled");
             }

@@ -17,5 +17,6 @@ dependencies {
   api(libs.commons.cli)
 
   testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":common:common-properties")))
   testImplementation(libs.wiremock.standalone)
 }

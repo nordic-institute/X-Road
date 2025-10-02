@@ -26,7 +26,6 @@
 package org.niis.xroad.globalconf.impl.ocsp;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
@@ -39,9 +38,8 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.SingleResp;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
@@ -57,16 +55,15 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests the OCSP verifier.
  */
 public class OcspVerifierTest {
 
-    @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
 
     static {
         TestSecurityUtil.initSecurity();
@@ -83,11 +80,11 @@ public class OcspVerifierTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void errorCertMismatch() throws Exception {
+    void errorCertMismatch() throws Exception {
         Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
-        var verifier = new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
+        var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         assertThatThrownBy(() -> verifier.verifyValidityAndStatus(ocsp, subject, subject))
                 .isInstanceOfSatisfying(CodedException.class,
                         ce -> assertThat(ce.getFaultCode()).isEqualTo(X_INCORRECT_VALIDATION_INFO));
@@ -98,11 +95,11 @@ public class OcspVerifierTest {
      * fails.
      */
     @Test
-    public void errorInvalidResponseSignature() {
+    void errorInvalidResponseSignature() {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD);
 
-        var verifier = new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
+        var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         assertThatThrownBy(() -> verifier.verifyValidityAndStatus(ocsp, issuer, issuer))
                 .isInstanceOfSatisfying(CodedException.class,
                         ce -> assertThat(ce.getFaultCode()).isEqualTo(X_INCORRECT_VALIDATION_INFO));
@@ -112,11 +109,11 @@ public class OcspVerifierTest {
      * Tests that verifying fails if signer info mismatches.
      */
     @Test
-    public void errorSignerIdentityMismatch() {
+    void errorSignerIdentityMismatch() {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 issuer, signerKey, CertificateStatus.GOOD);
 
-        var verifier = new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
+        var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         assertThatThrownBy(() -> verifier.verifyValidityAndStatus(ocsp, issuer, signer))
                 .isInstanceOfSatisfying(CodedException.class,
                         ce -> assertThat(ce.getFaultCode()).isEqualTo(X_INCORRECT_VALIDATION_INFO));
@@ -126,7 +123,7 @@ public class OcspVerifierTest {
      * Tests that verifying fails if signer is unauthorized.
      */
     @Test
-    public void errorSignerUnauthorized() {
+    void errorSignerUnauthorized() {
         // we now sign the response with a cert that has been
         // issued by another CA
         X509Certificate anotherSignerCert = TestCertUtil.getCa2TestOrg().certChain[0];
@@ -137,7 +134,7 @@ public class OcspVerifierTest {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 anotherSignerCert, anotherSignerKey, CertificateStatus.GOOD);
 
-        var verifier = new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
+        var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         assertThatThrownBy(() -> verifier.verifyValidityAndStatus(ocsp, subject, issuer))
                 .isInstanceOfSatisfying(CodedException.class,
                         ce -> assertThat(ce.getFaultCode()).isEqualTo(X_INCORRECT_VALIDATION_INFO));
@@ -148,13 +145,13 @@ public class OcspVerifierTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void errorThisUpdateAfterNow() throws Exception {
+    void errorThisUpdateAfterNow() throws Exception {
         Date thisUpdate = Date.from(TimeUtils.now().plusMillis(12345L));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 thisUpdate, new Date());
 
-        var verifier = new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
+        var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         assertThatThrownBy(() -> verifier.verifyValidityAndStatus(ocsp, subject, issuer))
                 .isInstanceOfSatisfying(CodedException.class,
                         ce -> assertThat(ce.getFaultCode()).isEqualTo(X_INCORRECT_VALIDATION_INFO));
@@ -165,13 +162,13 @@ public class OcspVerifierTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void errorNextUpdateBeforeNow() throws Exception {
+    void errorNextUpdateBeforeNow() throws Exception {
         Date nextUpdate = Date.from(TimeUtils.now().minusMillis(12345L));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 new Date(), nextUpdate);
 
-        var verifier = new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
+        var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         assertThatThrownBy(() -> verifier.verifyValidityAndStatus(ocsp, subject, issuer))
                 .isInstanceOfSatisfying(CodedException.class,
                         ce -> assertThat(ce.getFaultCode()).isEqualTo(X_INCORRECT_VALIDATION_INFO));
@@ -183,12 +180,12 @@ public class OcspVerifierTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void nextUpdateBeforeNow() throws Exception {
+    void nextUpdateBeforeNow() throws Exception {
         Date nextUpdate = Date.from(TimeUtils.now().minusMillis(12345L));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 new Date(), nextUpdate);
-        var verifier = new OcspVerifier(globalConfProvider, new OcspVerifierOptions(false));
+        var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(false));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -197,13 +194,13 @@ public class OcspVerifierTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void certStatusGood() throws Exception {
+    void certStatusGood() throws Exception {
         Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 thisUpdate, null);
 
-        var verifier = new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
+        var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -212,14 +209,14 @@ public class OcspVerifierTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void certStatusRevoked() throws Exception {
+    void certStatusRevoked() throws Exception {
         Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey,
                 new RevokedStatus(new Date(), CRLReason.unspecified),
                 thisUpdate, null);
 
-        var verifier = new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
+        var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         assertThatThrownBy(() -> verifier.verifyValidityAndStatus(ocsp, subject, issuer))
                 .isInstanceOfSatisfying(CodedException.class,
                         ce -> assertThat(ce.getFaultCode()).isEqualTo(X_CERT_VALIDATION));
@@ -230,40 +227,39 @@ public class OcspVerifierTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void certStatusUnknown() throws Exception {
+    void certStatusUnknown() throws Exception {
         Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, new UnknownStatus(),
                 thisUpdate, null);
 
-        var verifier = new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
+        var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         assertThatThrownBy(() -> verifier.verifyValidityAndStatus(ocsp, subject, issuer))
                 .isInstanceOfSatisfying(CodedException.class,
                         ce -> assertThat(ce.getFaultCode()).isEqualTo(X_CERT_VALIDATION));
     }
 
     @Test
-    public void responseValidityCache() throws Exception {
+    void responseValidityCache() throws Exception {
         Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 thisUpdate, null);
 
         OcspVerifier verifier =
-                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
+                ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidity(ocsp, subject, issuer);
-        Field field = OcspVerifier.class.getDeclaredField("RESPONSE_VALIDITY_CACHE");
+        Field field = OcspVerifierFactory.class.getDeclaredField("responseValidityCache");
         field.setAccessible(true);
-        Cache<String, SingleResp> cache = (Cache<String, SingleResp>) field.get(verifier);
-        assertTrue("Cache should be filled", cache != null && cache.size() > 0);
-
+        Cache<String, SingleResp> cache = (Cache<String, SingleResp>) field.get(ocspVerifierFactory);
+        assertTrue(cache != null && cache.size() > 0,  "Cache should be filled");
     }
 
     /**
      * Loads the test certificates.
      * @throws Exception if an error occurs
      */
-    @Before
+    @BeforeEach
     public void loadCerts() {
         globalConfProvider = new TestGlobalConf();
 

@@ -43,6 +43,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -50,6 +51,7 @@ import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
@@ -108,6 +110,7 @@ public abstract class AbstractProxyIntegrationTest {
 
     protected static final TestServerConfWrapper TEST_SERVER_CONF = new TestServerConfWrapper(new TestServiceServerConf());
     protected static final TestGlobalConfWrapper TEST_GLOBAL_CONF = new TestGlobalConfWrapper(new TestGlobalConf());
+    protected static final OcspVerifierFactory OCSP_VERIFIER_FACTORY = new OcspVerifierFactory();
     protected static TestKeyConf clientKeyConf;
     protected static TestKeyConf serverKeyConf;
     protected static LoggingAuthTrustVerifier clientAuthTrustVerifier;
@@ -122,15 +125,15 @@ public abstract class AbstractProxyIntegrationTest {
         System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
 
         final String serverPort = String.valueOf(getFreePort());
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
-        System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
 
         org.apache.xml.security.Init.init();
+
         Map<String, String> properties = Map.of(
                 "xroad.proxy.server.listen-address", "127.0.0.1",
                 "xroad.proxy.server.listen-port", serverPort,
+                "xroad.proxy.server-port", serverPort,
                 "xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml",
+                "xroad.proxy.client-proxy.client-timeout", "15000",
                 "xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml",
                 "xroad.proxy.client-proxy.connector-host", "127.0.0.1",
                 "xroad.proxy.client-proxy.client-http-port", valueOf(proxyClientPort),
@@ -138,29 +141,33 @@ public abstract class AbstractProxyIntegrationTest {
         );
 
         ProxyProperties proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, properties);
-        startServices(proxyProperties);
+        CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
+                "xroad.common.temp-files-path", "build/"
+        ));
+        startServices(proxyProperties, commonProperties);
     }
 
-    static void startServices(ProxyProperties proxyProperties) throws Exception {
-        startClientProxy(proxyProperties);
-        startServerProxy(proxyProperties);
+    static void startServices(ProxyProperties proxyProperties, CommonProperties commonProperties) throws Exception {
+        startClientProxy(proxyProperties, commonProperties);
+        startServerProxy(proxyProperties, commonProperties);
 
         MessageLog.init(new NullLogManager(TEST_GLOBAL_CONF, TEST_SERVER_CONF));
     }
 
-    private static void startClientProxy(ProxyProperties proxyProperties) throws Exception {
+    private static void startClientProxy(ProxyProperties proxyProperties, CommonProperties commonProperties) throws Exception {
         clientKeyConf = new TestKeyConf(TEST_GLOBAL_CONF);
-        CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF);
+        CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF, OCSP_VERIFIER_FACTORY);
         clientAuthTrustVerifier = new LoggingAuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
                 TEST_GLOBAL_CONF, clientKeyConf, certHelper);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, clientKeyConf);
         VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                clientKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer());
+                clientKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
+                proxyProperties, OCSP_VERIFIER_FACTORY, commonProperties);
 
         ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(TEST_GLOBAL_CONF, clientKeyConf);
         HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
-                .proxyHttpClient(proxyProperties.clientProxy(), clientAuthTrustVerifier, reloadingSSLSocketFactory);
+                .proxyHttpClient(proxyProperties, clientAuthTrustVerifier, reloadingSSLSocketFactory);
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(commonBeanProxy, httpClient);
         clientProxy = new ClientProxy(TEST_SERVER_CONF, proxyProperties.clientProxy(), reloadingSSLSocketFactory,
@@ -168,18 +175,19 @@ public abstract class AbstractProxyIntegrationTest {
         clientProxy.init();
     }
 
-    private static void startServerProxy(ProxyProperties proxyProperties) throws Exception {
+    private static void startServerProxy(ProxyProperties proxyProperties, CommonProperties commonProperties) throws Exception {
         serverKeyConf = new TestKeyConf(TEST_GLOBAL_CONF);
-        CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF);
+        CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF, OCSP_VERIFIER_FACTORY);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
         VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                serverKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer());
+                serverKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
+                proxyProperties, OCSP_VERIFIER_FACTORY, commonProperties);
 
         OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
-                mock(MonitorRpcClient.class), proxyProperties.addOn(), opMonitorCommonProperties);
-        serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
+                mock(MonitorRpcClient.class), commonProperties, proxyProperties, opMonitorCommonProperties);
+        serverProxy = new ServerProxy(proxyProperties, mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
                 opMonitorCommonProperties, new NoopVaultClient(), new NoopVaultKeyClient());
         serverProxy.init();
     }

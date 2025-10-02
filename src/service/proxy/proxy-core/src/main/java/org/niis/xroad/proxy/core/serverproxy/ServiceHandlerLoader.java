@@ -27,6 +27,7 @@ package org.niis.xroad.proxy.core.serverproxy;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
@@ -46,18 +47,21 @@ public class ServiceHandlerLoader {
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final MonitorRpcClient monitorRpcClient;
-    private final ProxyProperties.ProxyAddonProperties addonProperties;
+    private final CommonProperties commonProperties;
+    private final ProxyProperties proxyProperties;
     private final OpMonitorCommonProperties opMonitorCommonProperties;
 
     public Collection<ServiceHandler> loadSoapServiceHandlers() {
         Collection<ServiceHandler> handlers = new ArrayList<>();
-        if (addonProperties.metaservices().enabled()) {
-            handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider));
+        if (proxyProperties.addon().metaservices().enabled()) {
+            handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                    proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers()));
         }
-        if (addonProperties.opMonitor().enabled()) {
-            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, opMonitorCommonProperties));
+        if (proxyProperties.addon().opMonitor().enabled()) {
+            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, opMonitorCommonProperties,
+                    proxyProperties.clientProxy().poolEnableConnectionReuse()));
         }
-        if (addonProperties.proxyMonitor().enabled()) {
+        if (proxyProperties.addon().proxyMonitor().enabled()) {
             handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider, monitorRpcClient));
         }
         return handlers;
@@ -65,8 +69,9 @@ public class ServiceHandlerLoader {
 
     public Collection<RestServiceHandler> loadRestServiceHandlers() {
         Collection<RestServiceHandler> handlers = new ArrayList<>();
-        if (addonProperties.metaservices().enabled()) {
-            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider));
+        if (proxyProperties.addon().metaservices().enabled()) {
+            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties.clientProxy().clientTlsProtocols(),
+                    proxyProperties.clientProxy().clientTlsCiphers(), commonProperties.tempFilesPath()));
         }
         return handlers;
     }

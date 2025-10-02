@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,15 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.common.managementrequest;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -51,23 +51,15 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Objects;
 
 /**
  * Client that sends managements requests to the Central Server.
@@ -81,6 +73,9 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
 
     private final VaultKeyProvider vaultKeyProvider;
     private final GlobalConfProvider globalConfProvider;
+    private final int connectTimeout;
+    private final int socketTimeout;
+    private final boolean isEnabledPooledConnectionReuse;
 
     private CloseableHttpClient centralHttpClient;
     private CloseableHttpClient proxyHttpClient;
@@ -94,21 +89,22 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         return createSender(proxyHttpClient);
     }
 
-    private static HttpSender createSender(CloseableHttpClient client) {
-        HttpSender httpSender = new HttpSender(client);
+    private HttpSender createSender(CloseableHttpClient client) {
+        HttpSender httpSender = new HttpSender(client, isEnabledPooledConnectionReuse);
 
-        int timeout = SystemProperties.getClientProxyTimeout();
-        int socketTimeout = SystemProperties.getClientProxyHttpClientTimeout();
-
-        httpSender.setConnectionTimeout(timeout);
+        httpSender.setConnectionTimeout(connectTimeout);
         httpSender.setSocketTimeout(socketTimeout);
 
         return httpSender;
     }
 
-    ManagementRequestClient(VaultKeyProvider vaultKeyProvider, GlobalConfProvider globalConfProvider) {
+    ManagementRequestClient(VaultKeyProvider vaultKeyProvider, GlobalConfProvider globalConfProvider,
+                            int connectTimeout, int socketTimeout, boolean isEnabledPooledConnectionReuse) {
         this.vaultKeyProvider = vaultKeyProvider;
         this.globalConfProvider = globalConfProvider;
+        this.connectTimeout = connectTimeout;
+        this.socketTimeout = socketTimeout;
+        this.isEnabledPooledConnectionReuse = isEnabledPooledConnectionReuse;
         try {
             createCentralHttpClient();
             createProxyHttpClient();
@@ -177,46 +173,16 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         centralHttpClient = createHttpClient(null, new TrustManager[]{tm});
     }
 
-    private void createProxyHttpClient()
-            throws NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException, CertificateException,
-            IOException, KeyStoreException {
+    private void createProxyHttpClient() throws NoSuchAlgorithmException, KeyManagementException {
         log.trace("createProxyHttpClient()");
 
-        // replace /etc/xroad/ssl/internal.p12 with rotating keys from openbao
-        String keyStore = SystemProperties.getManagementRequestSenderClientKeystore();
-        String trustStore = SystemProperties.getManagementRequestSenderClientTruststore();
-
-        if (StringUtils.isAllEmpty(keyStore, trustStore)) {
-            proxyHttpClient = createHttpClient(
-                    new KeyManager[]{vaultKeyProvider.getKeyManager()},
-                    new TrustManager[]{new NoopTrustManager()}
-            );
-        } else {
-            proxyHttpClient = createHttpClient(keyStore, SystemProperties.getManagementRequestSenderClientKeystorePassword(),
-                    trustStore, SystemProperties.getManagementRequestSenderClientTruststorePassword());
-        }
+        proxyHttpClient = createHttpClient(
+                new KeyManager[]{vaultKeyProvider.getKeyManager()},
+                new TrustManager[]{new NoopTrustManager()}
+        );
     }
 
-    private CloseableHttpClient createHttpClient(String keyStorePath, char[] keyStorePassword, String trustStorePath,
-                                                 char[] trustStorePassword)
-            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException,
-            KeyManagementException {
-
-        Objects.requireNonNull(keyStorePath, "Management request client key store path is not provided.");
-        Objects.requireNonNull(trustStorePath, "Management request client trust store path is not provided.");
-
-        KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(Paths.get(keyStorePath).toFile(), keyStorePassword);
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, keyStorePassword);
-
-        KeyStore trustStore = CryptoUtils.loadPkcs12KeyStore(Paths.get(trustStorePath).toFile(), trustStorePassword);
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(trustStore);
-
-        return createHttpClient(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers());
-    }
-
-    private static CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers)
+    private CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers)
             throws NoSuchAlgorithmException, KeyManagementException {
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create();
 
@@ -233,12 +199,9 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         cm.setMaxTotal(CLIENT_MAX_TOTAL_CONNECTIONS);
         cm.setDefaultMaxPerRoute(CLIENT_MAX_CONNECTIONS_PER_ROUTE);
 
-        int timeout = SystemProperties.getClientProxyTimeout();
-        int socketTimeout = SystemProperties.getClientProxyHttpClientTimeout();
-
         RequestConfig.Builder rb = RequestConfig.custom();
-        rb.setConnectTimeout(timeout);
-        rb.setConnectionRequestTimeout(timeout);
+        rb.setConnectTimeout(connectTimeout);
+        rb.setConnectionRequestTimeout(connectTimeout);
         rb.setSocketTimeout(socketTimeout);
 
         HttpClientBuilder cb = HttpClients.custom();

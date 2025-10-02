@@ -46,6 +46,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.AuthKeyManager;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -130,7 +131,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                     }
                 });
         authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, globalConfProvider, keyConfProvider,
-                new CertHelper(globalConfProvider));
+                new CertHelper(globalConfProvider, new OcspVerifierFactory()));
 
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
     }
@@ -169,7 +170,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     }
 
     private void testWithSender(URI... addresses) throws Exception {
-        try (HttpSender sender = new HttpSender(client)) {
+        try (HttpSender sender = new HttpSender(client, false)) {
             sender.setAttribute(ID_TARGETS, addresses);
             sender.setAttribute(ID_PROVIDERNAME, ServiceId.Conf.create("INSTANCE", "CLASS", "CODE", "SUB", "SERVICE"));
             sender.setConnectionTimeout(1000);
@@ -213,7 +214,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                 new SecureRandom());
 
         return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx.getSocketFactory(),
-                defaultConfiguration(ProxyProperties.ClientProxyProperties.class));
+                defaultConfiguration(ProxyProperties.class));
     }
 
     static class NoopTrustManager implements X509TrustManager {

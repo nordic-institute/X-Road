@@ -27,7 +27,6 @@ package org.niis.xroad.globalconf.impl.signature;
 
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestSecurityUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -63,10 +62,7 @@ public class TimestampVerifierTest {
     @BeforeClass
     public static void setUpBeforeClass() {
         TestSecurityUtil.initSecurity();
-
-        System.setProperty(SystemProperties.CONFIGURATION_PATH,
-                "../globalconf-core/src/test/resources/globalconf_good_v2");
-        globalConfProvider = TestGlobalConfFactory.create();
+        globalConfProvider = TestGlobalConfFactory.create("../globalconf-core/src/test/resources/globalconf_good_v2");
     }
 
     /**

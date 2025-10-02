@@ -28,12 +28,14 @@
 package org.niis.xroad.proxy.core.test;
 
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
@@ -64,36 +66,39 @@ import static org.mockito.Mockito.mock;
 
 public class TestContext {
     TestGlobalConfWrapper globalConfProvider = new TestGlobalConfWrapper(new TestSuiteGlobalConf());
+    OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     KeyConfProvider keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
     TestServerConfWrapper serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf());
 
     public ServerProxy serverProxy;
     ClientProxy clientProxy;
 
-    public TestContext(ProxyProperties proxyProperties) {
-        this(proxyProperties, true);
+    public TestContext(ProxyProperties proxyProperties, CommonProperties commonProperties) {
+        this(proxyProperties, commonProperties, true);
     }
 
-    public TestContext(ProxyProperties proxyProperties, boolean startServerProxy) {
-        this(proxyProperties, startServerProxy, mock(MonitorRpcClient.class));
+    public TestContext(ProxyProperties proxyProperties, CommonProperties commonProperties, boolean startServerProxy) {
+        this(proxyProperties, commonProperties, startServerProxy, mock(MonitorRpcClient.class));
     }
 
-    public TestContext(ProxyProperties proxyProperties, boolean startServerProxy, MonitorRpcClient monitorRpcClient) {
+    public TestContext(ProxyProperties proxyProperties, CommonProperties commonProperties,
+                       boolean startServerProxy, MonitorRpcClient monitorRpcClient) {
         try {
             org.apache.xml.security.Init.init();
             SigningCtxProvider signingCtxProvider = new TestSuiteSigningCtxProvider(globalConfProvider, keyConfProvider);
 
-            CertHelper certHelper = new CertHelper(globalConfProvider);
+            CertHelper certHelper = new CertHelper(globalConfProvider, ocspVerifierFactory);
             AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
                     globalConfProvider, keyConfProvider, certHelper);
             LogRecordManager logRecordManager = mock(LogRecordManager.class);
             VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
             CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
-                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer());
+                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(),
+                    proxyProperties, ocspVerifierFactory, commonProperties);
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
-                    .proxyHttpClient(proxyProperties.clientProxy(), authTrustVerifier, reloadingSSLSocketFactory);
+                    .proxyHttpClient(proxyProperties, authTrustVerifier, reloadingSSLSocketFactory);
             MetadataHandler metadataHandler = new MetadataHandler(commonBeanProxy, httpClient);
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(commonBeanProxy, httpClient);
 
@@ -105,8 +110,8 @@ public class TestContext {
                 AntiDosConfiguration antiDosConfiguration = mock(AntiDosConfiguration.class);
                 OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
-                        monitorRpcClient, proxyProperties.addOn(), opMonitorCommonProperties);
-                serverProxy = new ServerProxy(proxyProperties.server(), antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
+                        monitorRpcClient, commonProperties, proxyProperties, opMonitorCommonProperties);
+                serverProxy = new ServerProxy(proxyProperties, antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
                         opMonitorCommonProperties, new NoopVaultClient(), new NoopVaultKeyClient());
                 serverProxy.init();
             }
@@ -121,13 +126,13 @@ public class TestContext {
         if (serverProxy != null) {
             try {
                 serverProxy.destroy();
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
 
         try {
             clientProxy.destroy();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
     }
 

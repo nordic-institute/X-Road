@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -35,12 +35,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -51,7 +53,6 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -89,9 +90,8 @@ public class AcmeClientWorker {
     private final ServerConfService serverConfService;
     private final VaultKeyProvider vaultKeyProvider;
     private final MailNotificationHelper mailNotificationHelper;
-
-    @Value("${xroad.proxy-ui-api.security-server-url}")
-    private String proxyUrl;
+    private final AcmeConfig acmeConfig;
+    private final AdminServiceProperties adminServiceProperties;
 
     public void execute(CertificateRenewalScheduler acmeRenewalScheduler) {
         log.info("ACME certificate renewal cycle started");
@@ -274,7 +274,7 @@ public class AcmeClientWorker {
                             + "expiration date: {}",
                     ex.getMessage());
         }
-        int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeRenewalTimeBeforeExpirationDate();
+        int renewalTimeBeforeExpirationDate = acmeConfig.getAcmeRenewalTimeBeforeExpirationDate();
         return Instant.now().isAfter(x509Certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS));
     }
 
@@ -328,7 +328,7 @@ public class AcmeClientWorker {
             }
             newX509Certificate = newCert.getFirst();
             String certStatus = keyUsage == KeyUsageInfo.AUTHENTICATION ? CertificateInfo.STATUS_SAVED : CertificateInfo.STATUS_REGISTERED;
-            activate = keyUsage == KeyUsageInfo.SIGNING && SystemProperties.getAutomaticActivateAcmeSignCertificate();
+            activate = keyUsage == KeyUsageInfo.SIGNING && acmeConfig.isAutomaticActivateAcmeSignCertificate();
             signerRpcClient.importCert(newX509Certificate.getEncoded(), certStatus, oldCertInfo.getMemberId(), activate);
             signerRpcClient.setRenewedCertHash(oldCertInfo.getId(), calculateCertHexHash(newX509Certificate));
         } catch (Exception ex) {
@@ -387,7 +387,11 @@ public class AcmeClientWorker {
         ClientId sender = serverConfService.getSecurityServerOwnerId();
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
-                signerSignClient, sender, receiver, proxyUrl);
+                signerSignClient, sender, receiver, adminServiceProperties.getManagementProxyServerUrl(),
+                DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()),
+                adminServiceProperties.getManagementProxyServerConnectTimeout(),
+                adminServiceProperties.getManagementProxyServerSocketTimeout(),
+                adminServiceProperties.isManagementProxyServerEnableConnectionReuse());
     }
 
     private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws CertificateParsingException {

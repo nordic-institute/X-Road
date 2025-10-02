@@ -31,13 +31,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
 import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PATH;
+import java.util.Map;
+
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,19 +51,20 @@ class GlobalConfRpcCacheTest {
     @Spy
     FSGlobalConfValidator globalConfValidator = new FSGlobalConfValidator();
     @Spy
-    GetGlobalConfRespFactory getGlobalConfRespFactory = new GetGlobalConfRespFactory();
+    ConfigurationClientProperties configurationClientProperties = ConfigUtils.initConfiguration(ConfigurationClientProperties.class,
+            Map.of("xroad.configuration-client.global-conf-dir", GOOD_CONF_DIR));
+    @Spy
+    GetGlobalConfRespFactory getGlobalConfRespFactory = new GetGlobalConfRespFactory(configurationClientProperties);
 
     @InjectMocks
     GlobalConfRpcCache globalConfRpcCache;
 
     @Test
     void shouldLoadValidData() {
-        System.setProperty(CONFIGURATION_PATH, GOOD_CONF_DIR);
-
         globalConfRpcCache.refreshCache();
         var result = globalConfRpcCache.getGlobalConf().globalConf();
 
-        verify(globalConfValidator, times(1)).getReadinessState(anyString());
+        verify(globalConfValidator).getReadinessState(anyString());
 
         assertThat(result).isPresent();
         result.ifPresent(globalConfResp -> {
@@ -75,7 +78,7 @@ class GlobalConfRpcCacheTest {
         when(globalConfValidator.getReadinessState(anyString())).thenThrow(new IllegalStateException("random exception"));
         globalConfRpcCache.refreshCache();
 
-        verify(globalConfValidator, times(1)).getReadinessState(anyString());
+        verify(globalConfValidator).getReadinessState(anyString());
     }
 
     @Test

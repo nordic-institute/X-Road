@@ -926,6 +926,13 @@ public class SignerRpcClient extends AbstractRpcClient {
         exec(() -> adminServiceBlockingStub.refreshModules(Empty.getDefaultInstance()));
     }
 
+    public boolean isEnforcedTokenPinPolicy() {
+        return exec(
+                () -> adminServiceBlockingStub.isEnforcedTokenPinPolicy(Empty.getDefaultInstance())
+                        .getEnforced()
+        );
+    }
+
     private static final class CertificationServiceDiagnosticsMapper {
 
         public static CertificationServiceDiagnostics fromDto(CertificationServiceDiagnosticsResp dto) {

@@ -50,6 +50,7 @@ import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.IOException;
@@ -77,14 +78,17 @@ public class LogArchiver {
     public static final int FETCH_SIZE = 10;
 
     private final LogArchiverProperties logArchiverProperties;
+    private final CommonProperties commonProperties;
     private final GlobalConfProvider globalConfProvider;
     private final DatabaseCtx databaseCtx;
 
     public LogArchiver(LogArchiverProperties logArchiverProperties, GlobalConfProvider globalConfProvider,
+                       CommonProperties commonProperties,
                        @Named(MessageLogDatabaseConfig.MESSAGE_LOG_DB_CTX) DatabaseCtx databaseCtx) {
         this.logArchiverProperties = logArchiverProperties;
         this.globalConfProvider = globalConfProvider;
         this.databaseCtx = databaseCtx;
+        this.commonProperties = commonProperties;
     }
 
     public void execute() {
@@ -161,7 +165,8 @@ public class LogArchiver {
     private LogArchiveWriter createLogArchiveWriter(Session session) throws IOException {
         return new LogArchiveWriter(globalConfProvider,
                 getArchivePath(),
-                new HibernateLogArchiveBase(session)
+                new HibernateLogArchiveBase(session),
+                commonProperties.tempFilesPath()
         );
     }
 

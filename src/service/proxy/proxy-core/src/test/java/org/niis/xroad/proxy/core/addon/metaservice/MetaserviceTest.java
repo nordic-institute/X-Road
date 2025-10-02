@@ -27,7 +27,6 @@
 
 package org.niis.xroad.proxy.core.addon.metaservice;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.jupiter.api.AfterAll;
@@ -35,6 +34,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
@@ -74,14 +74,15 @@ class MetaserviceTest {
         props.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
         props.put("xroad.proxy.server.listen-address", "127.0.0.1");
 
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
-
         props.put("xroad.proxy.server.listen-port", valueOf(PROXY_PORT));
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
-
-        System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
+        props.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
+        props.put("xroad.proxy.ssl-enabled", "false");
+        props.put("xroad.proxy.client-proxy.client-timeout", "15000");
 
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, props);
+        ProxyTestSuiteHelper.commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
+                "xroad.common.temp-files-path", "build/"
+        ));
 
         ProxyTestSuiteHelper.startTestServices();
     }
@@ -99,9 +100,7 @@ class MetaserviceTest {
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getAllTestCases(getClass().getPackageName() + ".testcases.");
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
-        System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
-
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, ProxyTestSuiteHelper.commonProperties);
 
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),

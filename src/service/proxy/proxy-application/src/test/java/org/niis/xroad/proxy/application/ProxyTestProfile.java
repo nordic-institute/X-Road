@@ -40,12 +40,12 @@ public class ProxyTestProfile implements QuarkusTestProfile {
     public Map<String, String> getConfigOverrides() {
         return Map.of(
                 "quarkus.log.level", "INFO",
-                "xroad.common.global-conf.source", "FILESYSTEM",
+                "xroad.common-global-conf.source", "FILESYSTEM",
 
                 "xroad.proxy.client-proxy.client-http-port", valueOf(findRandomPort()),
                 "xroad.proxy.client-proxy.client-https-port", valueOf(findRandomPort()),
                 "xroad.proxy.server.listen-port", valueOf(findRandomPort()),
-                "xroad.common.rpc.use-tls", "false"
+                "xroad.common-rpc.use-tls", "false"
         );
     }
 

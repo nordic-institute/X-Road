@@ -103,6 +103,7 @@ file-upload-endpoints:
 
 xroad:
   admin-service:
+    authentication-provider: PAM
     global-configuration-generation-rate-in-seconds: 60
     rate-limit-enabled: true
     rate-limit-requests-per-second: 20
@@ -124,3 +125,5 @@ xroad:
         common-name: ${XROAD_HOST:localhost}
         ip-subject-alt-names:
           - 127.0.0.1
+    key-management-api-whitelist: 127.0.0.0/8, ::1
+    regular-api-whitelist: 0.0.0.0/0, ::/0

@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.common.acme;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,9 +42,9 @@ import java.util.Map;
 public class AcmeCommonConfig {
 
     @Bean
-    public AcmeProperties acmeProperties(@Value("${xroad.acme:}") String acmeConfiguration) {
+    public AcmeProperties acmeProperties(AcmeConfig acmeConfig, @Value("${xroad.acme:}") String acmeConfiguration) {
         if (StringUtils.isBlank(acmeConfiguration)) {
-            if (SystemProperties.isAcmeChallengePortEnabled()) {
+            if (acmeConfig.isAcmeChallengePortEnabled()) {
                 log.error("Acme challenge port enabled, but configuration is missing.");
             } else {
                 log.info("Acme configuration not set, and acme challenge port not enabled. Skipping ACME configuration.");

@@ -41,6 +41,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -71,6 +72,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotInitialize
 @RequiredArgsConstructor
 public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, AuthKeyProto> {
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final TokenLookup tokenLookup;
     private final TokenPinManager tokenPinManager;
 
@@ -190,10 +192,8 @@ public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, Auth
         }
 
         OCSPResp ocsp = new OCSPResp(ocspBytes);
-        X509Certificate issuer =
-                globalConfProvider.getCaCert(instanceIdentifier, subject);
-        OcspVerifier verifier =
-                new OcspVerifier(globalConfProvider, verifierOptions);
+        X509Certificate issuer = globalConfProvider.getCaCert(instanceIdentifier, subject);
+        OcspVerifier verifier = ocspVerifierFactory.create(globalConfProvider, verifierOptions);
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 

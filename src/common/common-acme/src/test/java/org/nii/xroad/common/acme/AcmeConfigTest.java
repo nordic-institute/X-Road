@@ -25,8 +25,6 @@
  */
 package org.nii.xroad.common.acme;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -35,16 +33,20 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.acme.AcmeCommonConfig;
+import org.niis.xroad.common.acme.AcmeConfig;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AcmeConfigTest {
     private AcmeCommonConfig acmeCommonConfig;
 
     private ListAppender<ILoggingEvent> appender;
     private final Logger logger = (Logger) LoggerFactory.getLogger(AcmeCommonConfig.class);
+    private final AcmeConfig config = mock(AcmeConfig.class);
 
     @BeforeEach
     public void setup() {
@@ -61,12 +63,11 @@ public class AcmeConfigTest {
         appender.stop();
     }
 
-
     @Test
     void whenProxyUiApiAcmeChallengePortEnabledAndAcmeYmlNotExists() {
-        System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "true");
+        when(config.isAcmeChallengePortEnabled()).thenReturn(true);
 
-        acmeCommonConfig.acmeProperties("");
+        acmeCommonConfig.acmeProperties(config, "");
 
         assertThat(appender.list).hasSize(1);
         assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.ERROR);
@@ -75,19 +76,18 @@ public class AcmeConfigTest {
 
     @Test
     void testAcmePropertiesBeanIsCreatedWhenPropNotSet() {
-        System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "true");
+        when(config.isAcmeChallengePortEnabled()).thenReturn(true);
 
-        assertNotNull(acmeCommonConfig.acmeProperties(null));
-        assertNotNull(acmeCommonConfig.acmeProperties(""));
-        assertNotNull(acmeCommonConfig.acmeProperties("not valid"));
-
+        assertNotNull(acmeCommonConfig.acmeProperties(config, null));
+        assertNotNull(acmeCommonConfig.acmeProperties(config, ""));
+        assertNotNull(acmeCommonConfig.acmeProperties(config, "not valid"));
     }
 
     @Test
     void whenProxyUiApiAcmeChallengePortNotEnabledAndAcmeYmlNotExists() {
-        System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "false");
+        when(config.isAcmeChallengePortEnabled()).thenReturn(false);
 
-        acmeCommonConfig.acmeProperties(null);
+        acmeCommonConfig.acmeProperties(config, null);
 
         assertThat(appender.list).hasSize(1);
         assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.INFO);

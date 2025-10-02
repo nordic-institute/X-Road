@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.api;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -118,7 +117,7 @@ public final class OpMonitoringDaemonHttpClient {
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
         if ("https".equalsIgnoreCase(opMonitorCommonProperties.connection().scheme())) {
-            sfr.register("https", createSSLSocketFactory(authKey, vaultClient));
+            sfr.register("https", createSSLSocketFactory(authKey, vaultClient, opMonitorCommonProperties));
         } else {
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
         }
@@ -144,7 +143,8 @@ public final class OpMonitoringDaemonHttpClient {
     }
 
     private static SSLConnectionSocketFactory createSSLSocketFactory(InternalSSLKey authKey,
-                                                                     VaultClient vaultClient)
+                                                                     VaultClient vaultClient,
+                                                                     OpMonitorCommonProperties opMonitorCommonProperties)
             throws NoSuchAlgorithmException, KeyManagementException {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
 
@@ -153,7 +153,7 @@ public final class OpMonitoringDaemonHttpClient {
                 new SecureRandom());
 
         return new SSLConnectionSocketFactory(ctx.getSocketFactory(), new String[]{CryptoUtils.SSL_PROTOCOL},
-                SystemProperties.getXroadTLSCipherSuites(), NoopHostnameVerifier.INSTANCE);
+                opMonitorCommonProperties.xroadTlsCiphers(), NoopHostnameVerifier.INSTANCE);
         // We don't need hostname verification
     }
 

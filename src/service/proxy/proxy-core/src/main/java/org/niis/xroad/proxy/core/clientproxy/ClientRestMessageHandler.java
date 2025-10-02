@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -88,7 +87,8 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
             return new ClientRestMessageProcessor(commonBeanProxy,
-                    request, response, client, getIsAuthenticationData(request), opMonitoringData);
+                    request, response, client, getIsAuthenticationData(request, commonBeanProxy.getProxyProperties().logClientCert()),
+                    opMonitoringData);
         }
         return null;
     }
@@ -96,7 +96,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private void verifyCanProcess() {
         commonBeanProxy.getGlobalConfProvider().verifyValidity();
 
-        if (!SystemProperties.isSslEnabled()) {
+        if (!commonBeanProxy.getProxyProperties().sslEnabled()) {
             return;
         }
 

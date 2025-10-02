@@ -25,12 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.PasswordPolicy;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -45,11 +44,10 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PI
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class TokenPinValidator {
-    @Setter
-    private boolean isTokenPinEnforced = SystemProperties.shouldEnforceTokenPinPolicy();
+    private final SignerRpcClient signerRpcClient;
 
     public void validateSoftwareTokenPin(char[] softwareTokenPin) throws InvalidCharactersException, WeakPinException {
-        if (isTokenPinEnforced) {
+        if (signerRpcClient.isEnforcedTokenPinPolicy()) {
             PasswordPolicy.Description description = PasswordPolicy.describe(softwareTokenPin);
             if (!description.isValid()) {
                 if (description.hasInvalidCharacters()) {

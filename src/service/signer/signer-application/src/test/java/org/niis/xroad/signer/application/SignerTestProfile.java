@@ -45,7 +45,7 @@ public class SignerTestProfile implements QuarkusTestProfile {
     public Map<String, String> getConfigOverrides() {
         return Map.of(
                 "quarkus.log.level", "INFO",
-                "xroad.common.rpc.use-tls", "false",
+                "xroad.common-rpc.use-tls", "false",
                 "xroad.db.serverconf.hibernate.connection.url", "jdbc:hsqldb:mem:testdb",
                 "xroad.db.serverconf.hibernate.connection.username", "testdb",
                 "xroad.db.serverconf.hibernate.connection.password", "testdb",

@@ -120,9 +120,10 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     private static final SAXTransformerFactory TRANSFORMER_FACTORY = createSaxTransformerFactory();
 
-    public MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+    public MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
+                                      String[] tlsProtocols, String[] tlsCipherSuites) {
         super(serverConfProvider, globalConfProvider);
-        wsdlHttpClientCreator = new HttpClientCreator(serverConfProvider);
+        wsdlHttpClientCreator = new HttpClientCreator(serverConfProvider, tlsProtocols, tlsCipherSuites);
     }
 
     private static SAXTransformerFactory createSaxTransformerFactory() {

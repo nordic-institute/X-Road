@@ -51,11 +51,11 @@ public class CachingStream extends FilterOutputStream {
      *
      * @throws IOException if I/O errors occurred
      */
-    public CachingStream() throws IOException {
+    public CachingStream(String tmpDir) throws IOException {
         // Construct the parent class with null stream and replace it later.
         super(null);
 
-        tempFile = DefaultFilepaths.createTempFile("tmpattach", null);
+        tempFile = DefaultFilepaths.createTempFile("tmpattach", null, tmpDir);
         channel = Files.newByteChannel(tempFile, StandardOpenOption.CREATE,
                 StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING,
                 StandardOpenOption.READ, StandardOpenOption.DELETE_ON_CLOSE);

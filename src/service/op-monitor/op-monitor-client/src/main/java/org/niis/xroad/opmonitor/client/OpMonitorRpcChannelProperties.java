@@ -35,7 +35,7 @@ import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 @SuppressWarnings("checkstyle:InterfaceIsType")
 @ConfigMapping(prefix = OpMonitorRpcChannelProperties.PREFIX)
 public interface OpMonitorRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.common.rpc.channel.op-monitor";
+    String PREFIX = "xroad.common-rpc.channel.op-monitor";
 
     String DEFAULT_HOST = "127.0.0.1";
     String DEFAULT_PORT = "2081";

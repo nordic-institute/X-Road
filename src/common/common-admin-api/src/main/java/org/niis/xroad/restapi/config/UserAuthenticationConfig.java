@@ -28,22 +28,13 @@ package org.niis.xroad.restapi.config;
 
 public interface UserAuthenticationConfig {
 
-    AuthenticationProviderType DEFAULT_AUTHENTICATION_PROVIDER = AuthenticationProviderType.PAM;
-
-    boolean DEFAULT_ENFORCE_USER_PASSWORD_POLICY = false;
-
-
     enum AuthenticationProviderType {
         PAM,
         DATABASE
     }
 
-    default AuthenticationProviderType getAuthenticationProvider() {
-        return DEFAULT_AUTHENTICATION_PROVIDER;
-    }
+    AuthenticationProviderType getAuthenticationProvider();
 
-    default boolean isEnforceUserPasswordPolicy() {
-        return DEFAULT_ENFORCE_USER_PASSWORD_POLICY;
-    }
+    boolean isEnforceUserPasswordPolicy();
 
 }

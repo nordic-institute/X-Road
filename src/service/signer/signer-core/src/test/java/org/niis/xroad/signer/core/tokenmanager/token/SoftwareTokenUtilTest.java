@@ -41,12 +41,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class SoftwareTokenUtilTest {
 
     private static final String KEY_LABEL = "3A480F9A822DB1AF0349A1184AB84B5B74ED23EF";
+    private final KeyManagers keyManagers = new KeyManagers(2048, "secp256r1");
 
     @Test
     void createKeyStore() throws Exception {
-        var keyPair = KeyManagers.getFor(KeyAlgorithm.RSA).generateKeyPair();
+        var keyPair = keyManagers.getFor(KeyAlgorithm.RSA).generateKeyPair();
 
-        KeyStore keyStore = SoftwareTokenUtil.createKeyStore(keyPair, KEY_LABEL, "Secret1234".toCharArray());
+        KeyStore keyStore = SoftwareTokenUtil.createKeyStore(keyPair, KEY_LABEL, "Secret1234".toCharArray(), keyManagers);
 
         assertNotNull(keyStore.getKey(KEY_LABEL, "Secret1234".toCharArray()));
     }

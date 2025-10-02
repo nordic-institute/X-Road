@@ -25,14 +25,13 @@
  */
 package org.niis.xroad.confclient.core.globalconf;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.proto.GetGlobalConfResp;
 import org.niis.xroad.confclient.proto.GetGlobalConfRespStatus;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
@@ -48,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 public class GlobalConfRpcCache {
     private final FSGlobalConfValidator fsGlobalConfValidator;
     private final GetGlobalConfRespFactory getGlobalConfRespFactory;
+    private final ConfigurationClientProperties configurationClientProperties;
 
     private CachedGlobalConf cachedGlobalConf = new CachedGlobalConf(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_UNSPECIFIED,
             Optional.empty());
@@ -72,7 +72,7 @@ public class GlobalConfRpcCache {
     }
 
     private synchronized void loadGlobalConf() {
-        if (fsGlobalConfValidator.getReadinessState(SystemProperties.getConfigurationPath()) != GlobalConfInitState.READY_TO_INIT) {
+        if (fsGlobalConfValidator.getReadinessState(configurationClientProperties.globalConfDir()) != GlobalConfInitState.READY_TO_INIT) {
             log.warn("GlobalConf is not ready to be initialized. Skipping cache refresh.");
             cachedGlobalConf = new CachedGlobalConf(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_UNINITIALIZED,
                     Optional.empty());

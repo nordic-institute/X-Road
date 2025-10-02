@@ -43,6 +43,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -92,6 +93,7 @@ class CachingKeyConfImplTest {
 
     private GlobalConfProvider globalConfProvider;
     private ServerConfProvider serverConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
 
     @BeforeEach
     public void before() throws IOException {
@@ -438,6 +440,7 @@ class CachingKeyConfImplTest {
                                BooleanSupplier signingInfoIsValid,
                                int cacheReadDelayMs) {
             super(CachingKeyConfImplTest.this.globalConfProvider,
+                    CachingKeyConfImplTest.this.ocspVerifierFactory,
                     CachingKeyConfImplTest.this.serverConfProvider,
                     CachingKeyConfImplTest.this.signerRpcClient);
             this.dataRefreshes = dataRefreshes;

@@ -58,6 +58,10 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade {
     private final SignerRpcClient signerRpcClient;
     private final SignerSignClient signerSignClient;
 
+    public boolean isEnforcedTokenPinPolicy() {
+        return signerRpcClient.isEnforcedTokenPinPolicy();
+    }
+
     public void initSoftwareToken(char[] password) {
         signerRpcClient.initSoftwareToken(password);
     }

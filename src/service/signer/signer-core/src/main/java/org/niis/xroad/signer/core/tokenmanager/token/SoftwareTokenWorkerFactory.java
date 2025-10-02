@@ -129,6 +129,7 @@ public class SoftwareTokenWorkerFactory {
     private final TokenLookup tokenLookup;
     private final TokenPinManager pinManager;
     private final TokenRegistry tokenRegistry;
+    private final KeyManagers keyManagers;
 
     public SoftwareTokenWorker create(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
         return new SoftwareTokenWorker(tokenInfo, tokenDefinition);
@@ -149,7 +150,8 @@ public class SoftwareTokenWorkerFactory {
             super(tokenInfo,
                     SoftwareTokenWorkerFactory.this.tokenManager,
                     SoftwareTokenWorkerFactory.this.keyManager,
-                    SoftwareTokenWorkerFactory.this.tokenLookup);
+                    SoftwareTokenWorkerFactory.this.tokenLookup,
+                    SoftwareTokenWorkerFactory.this.keyManagers);
 
             this.tokenDefinition = tokenDefinition;
         }
@@ -223,7 +225,7 @@ public class SoftwareTokenWorkerFactory {
 
             assertTokenAvailable();
 
-            var keyPair = KeyManagers.getFor(mapAlgorithm(message.getAlgorithm())).generateKeyPair();
+            var keyPair = keyManagers.getFor(mapAlgorithm(message.getAlgorithm())).generateKeyPair();
 
             String keyId = SignerUtil.randomId();
             var privateKeyStore = savePkcs12Keystore(keyPair, keyId, getPin());
@@ -265,7 +267,7 @@ public class SoftwareTokenWorkerFactory {
             log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
 
 
-            SignAlgorithm signAlgorithm = KeyManagers.getFor(keyAlgorithm).getSoftwareTokenSignAlgorithm();
+            SignAlgorithm signAlgorithm = keyManagers.getFor(keyAlgorithm).getSoftwareTokenSignAlgorithm();
             Signature signature = Signature.getInstance(signAlgorithm.name(), BOUNCY_CASTLE);
             signature.initSign(key);
             signature.update(data);
@@ -497,9 +499,9 @@ public class SoftwareTokenWorkerFactory {
             }
         }
 
-        private static byte[] savePkcs12Keystore(KeyPair kp, String alias, char[] password)
+        private byte[] savePkcs12Keystore(KeyPair kp, String alias, char[] password)
                 throws CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException {
-            KeyStore keyStore = createKeyStore(kp, alias, password);
+            KeyStore keyStore = createKeyStore(kp, alias, password, keyManagers);
 
             log.debug("Creating inmemory pkcs#12 keystore with id'{}'", alias);
 

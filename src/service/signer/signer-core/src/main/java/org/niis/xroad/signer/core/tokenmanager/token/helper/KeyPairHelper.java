@@ -24,8 +24,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token.helper;
 
-import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
-
 import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.objects.KeyPair;
 import iaik.pkcs.pkcs11.objects.PublicKey;
@@ -41,10 +39,4 @@ public sealed interface KeyPairHelper permits RsaKeyPairHelper, EcKeyPairHelper 
 
     byte[] generateX509PublicKey(PublicKey publicKey);
 
-    static KeyPairHelper of(KeyAlgorithm algorithm) {
-        return switch (algorithm) {
-            case RSA -> RsaKeyPairHelper.INSTANCE;
-            case EC -> EcKeyPairHelper.INSTANCE;
-        };
-    }
 }

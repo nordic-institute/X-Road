@@ -33,7 +33,7 @@ import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
 @ConfigMapping(prefix = ConfClientRpcChannelProperties.PREFIX)
 public interface ConfClientRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.common.rpc.channel.configuration-client";
+    String PREFIX = "xroad.common-rpc.channel.configuration-client";
 
     String DEFAULT_HOST = "127.0.0.1";
     String DEFAULT_PORT = "5665";

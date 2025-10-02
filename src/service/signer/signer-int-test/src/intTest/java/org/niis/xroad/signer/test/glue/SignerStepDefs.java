@@ -784,6 +784,12 @@ public class SignerStepDefs extends BaseSignerStepDefs {
                 .hasMessageMatching("\\[.*?\\] \\[SYSTEM\\] signer\\.network_error: gRPC client timed out\\..*");
     }
 
+    @Step("Policy enforcement status endpoint returns false")
+    public void checkPolicyEnforcement() {
+        assertThat(clientHolder.get().isEnforcedTokenPinPolicy())
+                .isFalse();
+    }
+
     @Step("secondary node sync is forced")
     public void secondaryNodeSyncIsForced() {
         clientHolder.get(SECONDARY).refreshModules();

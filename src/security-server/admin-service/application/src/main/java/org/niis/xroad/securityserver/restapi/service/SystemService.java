@@ -26,17 +26,15 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Digests;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
@@ -56,8 +54,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -99,8 +95,6 @@ public class SystemService {
     private final ConfClientRpcClient confClientRpcClient;
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final GlobalConfProvider globalConfProvider;
-    @Setter
-    private String tempFilesPath = SystemProperties.getTempFilesPath();
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
@@ -335,29 +329,6 @@ public class SystemService {
     }
 
     /**
-     * Create a temporary anchor file on the filesystem. This is needed for verifying the anchor with
-     * configuration-client module (this might be changed in the future). This method does not delete the created
-     * temporary file. Remember to delete the file after it is no longer needed.
-     *
-     * @param anchorBytes
-     * @return temporary anchor file
-     * @throws IOException if temp file creation fails
-     */
-    private File createTemporaryAnchorFile(byte[] anchorBytes) throws IOException {
-        try {
-            String tempAnchorPrefix = "temp-internal-anchor-";
-            String tempAnchorSuffix = ".xml";
-            File tempDirectory = tempFilesPath != null ? new File(tempFilesPath) : null;
-            File tempAnchor = File.createTempFile(tempAnchorPrefix, tempAnchorSuffix, tempDirectory);
-            FileUtils.writeByteArrayToFile(tempAnchor, anchorBytes);
-            return tempAnchor;
-        } catch (Exception e) {
-            log.error("Creating temporary anchor file failed", e);
-            throw e;
-        }
-    }
-
-    /**
      * Verify that the anchor has been generated in the current instance
      *
      * @param anchor
@@ -421,8 +392,8 @@ public class SystemService {
      *
      * @return server node type
      */
-    public SystemProperties.NodeType getServerNodeType() {
-        return SystemProperties.getServerNodeType();
+    public NodeProperties.NodeType getServerNodeType() {
+        return NodeProperties.getServerNodeType();
     }
 
     public boolean isManagementServiceProvider() {

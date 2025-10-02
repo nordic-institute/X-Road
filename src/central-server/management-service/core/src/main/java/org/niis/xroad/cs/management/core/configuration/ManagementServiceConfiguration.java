@@ -31,7 +31,9 @@ import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.common.managementservice.ManagementServiceMvcConfig;
 import org.niis.xroad.cs.admin.client.configuration.AdminServiceClientConfiguration;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
+import org.niis.xroad.globalconf.spring.SpringOcspVerifierConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -40,6 +42,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Import({
         AdminServiceClientConfiguration.class,
         SpringGlobalConfConfig.class,
+        SpringOcspVerifierConfig.class,
         ManagementServiceMvcConfig.class,
         VaultPoweredTlsConfiguration.class
 })
@@ -48,8 +51,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class ManagementServiceConfiguration {
 
     @Bean
-    ManagementRequestVerifier managementRequestVerifier(GlobalConfProvider globalConfProvider) {
-        return new ManagementRequestVerifier(globalConfProvider);
+    ManagementRequestVerifier managementRequestVerifier(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory) {
+        return new ManagementRequestVerifier(globalConfProvider, ocspVerifierFactory);
     }
 
     @Bean

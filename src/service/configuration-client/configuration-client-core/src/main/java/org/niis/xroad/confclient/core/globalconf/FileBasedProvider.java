@@ -27,7 +27,6 @@
 
 package org.niis.xroad.confclient.core.globalconf;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.AtomicSave;
 
 import lombok.RequiredArgsConstructor;
@@ -48,6 +47,7 @@ import java.util.Optional;
 public class FileBasedProvider implements ConfigurationAnchorProvider {
 
     private final String filePath;
+    private final String tmpDir;
 
     @Override
     public Optional<byte[]> get() {
@@ -87,7 +87,7 @@ public class FileBasedProvider implements ConfigurationAnchorProvider {
     }
 
     private File createTemporaryAnchorFile(byte[] anchorBytes) throws IOException {
-        String tempFilesPath = SystemProperties.getTempFilesPath();
+        String tempFilesPath = tmpDir;
         try {
             String tempAnchorPrefix = "temp-internal-anchor-";
             String tempAnchorSuffix = ".xml";

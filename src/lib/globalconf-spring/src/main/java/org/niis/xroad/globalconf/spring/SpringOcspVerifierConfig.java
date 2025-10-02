@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,44 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.SystemProperties;
+package org.niis.xroad.globalconf.spring;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.PropertyFileReadingEnvironmentPostProcessor;
-import org.springframework.context.annotation.Profile;
+import lombok.Setter;
+import org.niis.xroad.globalconf.impl.config.OcspVerifierConfig;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * Load SSL properties from ssl.properties file.
- * Supported properties are ones starting with "server.ssl."
- */
-@Slf4j
-@Profile("nontest")
-public class SslPropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
+@Configuration
+@EnableConfigurationProperties(SpringOcspVerifierConfig.SpringOcspVerifierProperties.class)
+public class SpringOcspVerifierConfig extends OcspVerifierConfig {
 
+    @Bean
     @Override
-    protected String getPropertySourceName() {
-        return "fromSslPropertiesFile";
+    public OcspVerifierFactory ocspVerifierFactory(OcspVerifierProperties ocspVerifierProperties) {
+        return super.ocspVerifierFactory(ocspVerifierProperties);
     }
 
-    @Override
-    protected String getPropertyFilePath() {
-        return SystemProperties.getSslPropertiesFile();
+    @Setter
+    @ConfigurationProperties(prefix = OcspVerifierProperties.MAPPING_PREFIX)
+    public static class SpringOcspVerifierProperties implements OcspVerifierProperties {
+
+        int cachePeriod = Integer.parseInt(DEFAULT_OCSP_VERIFIER_CACHE_PERIOD);
+
+        @Override
+        public int cachePeriod() {
+            return cachePeriod;
+        }
     }
 
-    @Override
-    protected boolean isSupported(String propertyName) {
-        return propertyName.startsWith("server.ssl.");
-    }
 
-    @Override
-    protected String mapToSpringPropertyName(String originalPropertyName) {
-        return originalPropertyName;
-    }
-
-    @Override
-    protected boolean isPropertyFileMandatory() {
-        return false;
-    }
 }

@@ -44,6 +44,8 @@ public class LegacyConfigPathMapping {
     private static final Set<String> REMOVED_KEYS = new HashSet<>();
 
     static {
+        MAPPING.put("common.configuration-path", "common-global-conf.configuration-path");
+
         // configuration-client
         MAPPING.put("proxy.configuration-anchor-file", "configuration-client.configuration-anchor-file");
 
@@ -57,6 +59,7 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.server-listen-port", "proxy.server.listen-port");
         MAPPING.put("proxy.server-connector-initial-idle-time", "proxy.server.connector-initial-idle-time");
         MAPPING.put("proxy.server-support-clients-pooled-connections", "proxy.server.support-clients-pooled-connections");
+        MAPPING.put("proxy.server-min-supported-client-version", "proxy.server.min-supported-client-version");
         MAPPING.put("proxy.jetty-serverproxy-configuration-file", "proxy.server.jetty-configuration-file");
         MAPPING.put("proxy.connector-host", "proxy.client-proxy.connector-host");
         MAPPING.put("proxy.client-http-port", "proxy.client-proxy.client-http-port");
@@ -66,6 +69,8 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.client-tls-protocols", "proxy.client-proxy.client-tls-protocols");
         MAPPING.put("proxy.client-tls-ciphers", "proxy.client-proxy.client-tls-ciphers");
         MAPPING.put("proxy.client-httpclient-so-linger", "proxy.client-proxy.client-httpclient-so-linger");
+        MAPPING.put("proxy.client-timeout", "proxy.client-proxy.client-timeout");
+        MAPPING.put("proxy.pool-enable-connection-reuse", "proxy.client-proxy.pool-enable-connection-reuse");
         MAPPING.put("proxy.client-httpclient-timeout", "proxy.client-proxy.client-httpclient-timeout");
         MAPPING.put("proxy.pool-total-max-connections", "proxy.client-proxy.pool-total-max-connections");
         MAPPING.put("proxy.pool-total-default-max-connections-per-route", "proxy.client-proxy.pool-total-default-max-connections-per-route");
@@ -75,13 +80,14 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.client-use-idle-connection-monitor", "proxy.client-proxy.client-use-idle-connection-monitor");
         MAPPING.put("proxy.client-fastest-connecting-ssl-uri-cache-period", "proxy.client-proxy.fastest-connecting-ssl-uri-cache-period");
         MAPPING.put("proxy.client-use-fastest-connecting-ssl-socket-autoclose", "proxy.client-proxy.use-fastest-connecting-ssl-socket-autoclose");
+        MAPPING.put("proxy.ocsp-verifier-cache-period", "common-ocsp-verifier.cache-period");
 
 
-        MAPPING.put("proxy.server-conf-cache-period", "common.server-conf.cache-period");
-        MAPPING.put("proxy.server-conf-client-cache-size", "common.server-conf.client-cache-size");
-        MAPPING.put("proxy.server-conf-service-cache-size", "common.server-conf.service-cache-size");
-        MAPPING.put("proxy.server-conf-service-endpoints-cache-size", "common.server-conf.service-endpoints-cache-size");
-        MAPPING.put("proxy.server-conf-acl-cache-size", "common.server-conf.acl-cache-size");
+        MAPPING.put("proxy.server-conf-cache-period", "common-server-conf.cache-period");
+        MAPPING.put("proxy.server-conf-client-cache-size", "common-server-conf.client-cache-size");
+        MAPPING.put("proxy.server-conf-service-cache-size", "common-server-conf.service-cache-size");
+        MAPPING.put("proxy.server-conf-service-endpoints-cache-size", "common-server-conf.service-endpoints-cache-size");
+        MAPPING.put("proxy.server-conf-acl-cache-size", "common-server-conf.acl-cache-size");
         MAPPING.put("proxy.grpc-port", "proxy.rpc.port");
 
         MAPPING.put("proxy.backup-encryption-enabled", "backup-manager.backup-encryption-enabled");
@@ -106,6 +112,9 @@ public class LegacyConfigPathMapping {
         MAPPING.put("op-monitor-buffer.sending-interval-seconds", "op-monitor.buffer.sending-interval-seconds");
         MAPPING.put("op-monitor-buffer.socket-timeout-seconds", "op-monitor.buffer.socket-timeout-seconds");
         MAPPING.put("op-monitor-buffer.connection-timeout-seconds", "op-monitor.buffer.connection-timeout-seconds");
+
+        // proxy-ui
+        MAPPING.put("proxy-ui-api.security-server-url", "proxy-ui-api.proxy-server-url");
 
         MAPPING.putAll(addDatabaseMapping("serverconf"));
         MAPPING.putAll(addDatabaseMapping("messagelog"));

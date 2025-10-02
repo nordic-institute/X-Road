@@ -33,7 +33,7 @@ import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
 @ConfigMapping(prefix = SignerRpcChannelProperties.PREFIX)
 public interface SignerRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.common.rpc.channel.signer";
+    String PREFIX = "xroad.common-rpc.channel.signer";
 
     String DEFAULT_HOST = "127.0.0.1";
     String DEFAULT_PORT = "5560";

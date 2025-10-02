@@ -26,7 +26,6 @@
 package org.niis.xroad.globalconf.impl.signature;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -42,6 +41,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -364,14 +364,16 @@ class SignatureVerifierTest {
     }
 
     private SignatureVerifier createSignatureVerifier(String signaturePath) throws Exception {
-        return new SignatureVerifier(globalConfProvider, signature(signaturePath));
+        return new SignatureVerifier(globalConfProvider, new OcspVerifierFactory(),
+                signature(signaturePath));
     }
 
     private SignatureVerifier createSignatureVerifier(String signatureFileName, String hashChainResultFileName,
                                                       HashChainReferenceResolver resolver) throws Exception {
         Signature signature = signature(signatureFileName);
 
-        SignatureVerifier verifier = new SignatureVerifier(globalConfProvider, signature, loadFile(hashChainResultFileName), null);
+        SignatureVerifier verifier = new SignatureVerifier(globalConfProvider, new OcspVerifierFactory(),
+                signature, loadFile(hashChainResultFileName), null);
 
         verifier.setHashChainResourceResolver(resolver);
 
@@ -450,8 +452,6 @@ class SignatureVerifierTest {
     }
 
     void loadGlobalConf(String globalConfPath, boolean useTestCaCert) {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, globalConfPath);
-
-        globalConfProvider = TestGlobalConfFactory.create(useTestCaCert);
+        globalConfProvider = TestGlobalConfFactory.create(useTestCaCert, globalConfPath);
     }
 }

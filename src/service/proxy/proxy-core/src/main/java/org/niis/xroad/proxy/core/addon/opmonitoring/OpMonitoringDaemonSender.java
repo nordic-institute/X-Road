@@ -79,6 +79,7 @@ public class OpMonitoringDaemonSender {
     private final OpMonitoringBuffer opMonitoringBuffer;
     private final VaultClient vaultClient;
     private final CloseableHttpClient httpClient;
+    private final boolean isEnabledPooledConnectionReuse;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private final AtomicBoolean processing = new AtomicBoolean(false);
@@ -86,13 +87,14 @@ public class OpMonitoringDaemonSender {
     OpMonitoringDaemonSender(ServerConfProvider serverConfProvider,
                              OpMonitoringBuffer opMonitoringBuffer,
                              OpMonitorCommonProperties opMonitorCommonProperties,
-                             VaultClient vaultClient)
+                             VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
             NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
         this.serverConfProvider = serverConfProvider;
         this.opMonitoringBuffer = opMonitoringBuffer;
         this.opMonitorCommonProperties = opMonitorCommonProperties;
         this.vaultClient = vaultClient;
+        this.isEnabledPooledConnectionReuse = isEnabledPooledConnectionReuse;
 
         this.httpClient = createHttpClient();
     }
@@ -122,7 +124,7 @@ public class OpMonitoringDaemonSender {
 
     @ArchUnitSuppressed("NoVanillaExceptions")
     private void send(String json) throws Exception {
-        try (HttpSender sender = new HttpSender(httpClient)) {
+        try (HttpSender sender = new HttpSender(httpClient, isEnabledPooledConnectionReuse)) {
             sender.setConnectionTimeout(TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().connectionTimeoutSeconds()));
             sender.setSocketTimeout(TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().socketTimeoutSeconds()));
 

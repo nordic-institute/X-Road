@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
@@ -82,12 +81,11 @@ public class ServerProxy {
     // SSL session timeout in seconds
     private static final int SSL_SESSION_TIMEOUT = 600;
 
-    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getServerProxyConnectorSoLinger();
     private static final String CLIENT_PROXY_CONNECTOR_NAME = "ClientProxyConnector";
 
     private final Server server = new Server();
 
-    private final ProxyProperties.ServerProperties serverProperties;
+    private final ProxyProperties proxyProperties;
     private final AntiDosConfiguration antiDosConfiguration;
     private final CommonBeanProxy commonBeanProxy;
     private final ServiceHandlerLoader serviceHandlerLoader;
@@ -104,7 +102,7 @@ public class ServerProxy {
     private void configureServer() throws Exception {
         log.trace("configureServer()");
 
-        var file = serverProperties.jettyConfigurationFile();
+        var file = proxyProperties.server().jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
 
@@ -121,7 +119,8 @@ public class ServerProxy {
 
         ensureInternalTlsKeyPresent();
 
-        HttpClientCreator creator = new HttpClientCreator(commonBeanProxy.getServerConfProvider());
+        HttpClientCreator creator = new HttpClientCreator(commonBeanProxy.getServerConfProvider(),
+                proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
 
         connMonitor = new IdleConnectionMonitorThread(creator.getConnectionManager());
         connMonitor.setIntervalMilliseconds(IDLE_MONITOR_INTERVAL);
@@ -139,16 +138,16 @@ public class ServerProxy {
     private void createConnectors() throws Exception {
         log.trace("createConnectors()");
 
-        int port = serverProperties.listenPort();
+        int port = proxyProperties.server().listenPort();
 
-        ServerConnector connector = SystemProperties.isSslEnabled()
+        ServerConnector connector = proxyProperties.sslEnabled()
                 ? createClientProxySslConnector() : createClientProxyConnector();
 
         connector.setName(CLIENT_PROXY_CONNECTOR_NAME);
         connector.setPort(port);
-        connector.setHost(serverProperties.listenAddress());
+        connector.setHost(proxyProperties.server().listenAddress());
 
-        connector.setIdleTimeout(serverProperties.connectorInitialIdleTime());
+        connector.setIdleTimeout(proxyProperties.server().connectorInitialIdleTime());
 
         connector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)
@@ -161,14 +160,14 @@ public class ServerProxy {
 
         server.addConnector(connector);
 
-        log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), serverProperties.listenAddress(), port);
+        log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), proxyProperties.server().listenAddress(), port);
     }
 
     private void createHandlers() {
         log.trace("createHandlers()");
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, serverProperties, client,
-                opMonitorClient, new ClientProxyVersionVerifier(SystemProperties.getServerProxyMinSupportedClientVersion()),
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, proxyProperties.server(), client,
+                opMonitorClient, new ClientProxyVersionVerifier(proxyProperties.server().minSupportedClientVersion().orElse(null)),
                 serviceHandlerLoader);
 
         var handler = new Handler.Sequence();
@@ -235,7 +234,7 @@ public class ServerProxy {
         sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setNeedClientAuth(true);
         sslContextFactory.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
-        sslContextFactory.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
+        sslContextFactory.setIncludeCipherSuites(proxyProperties.xroadTlsCiphers());
         sslContextFactory.setSessionCachingEnabled(true);
         sslContextFactory.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
         sslContextFactory.setSslContext(

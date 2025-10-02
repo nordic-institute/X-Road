@@ -39,6 +39,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -79,9 +80,9 @@ public class CachingKeyConfImpl extends KeyConfImpl {
 
     private final List<WeakReference<KeyConfChangeListener>> listeners = new ArrayList<>();
 
-    public CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                              SignerRpcClient signerRpcClient) {
-        super(globalConfProvider, serverConfProvider, signerRpcClient);
+    public CachingKeyConfImpl(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                              ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
+        super(globalConfProvider, ocspVerifierFactory, serverConfProvider, signerRpcClient);
         signingInfoCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
                 .build();
@@ -162,7 +163,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
 
         // Lower bound for validity is "now", verify validity of the chain at that time.
         final Date notBefore = new Date();
-        CertChainVerifier verifier = new CertChainVerifier(globalConfProvider, certChain);
+        CertChainVerifier verifier = new CertChainVerifier(globalConfProvider, ocspVerifierFactory, certChain);
         verifier.verify(ocspResponses, notBefore);
 
         final Date notAfter = calculateNotAfter(ocspResponses, certChain.notAfter());

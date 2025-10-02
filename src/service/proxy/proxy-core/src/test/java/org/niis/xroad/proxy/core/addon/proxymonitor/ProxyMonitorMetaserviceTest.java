@@ -27,7 +27,6 @@
 
 package org.niis.xroad.proxy.core.addon.proxymonitor;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.jupiter.api.AfterAll;
@@ -35,6 +34,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
@@ -78,10 +78,14 @@ public class ProxyMonitorMetaserviceTest {
         Map<String, String> proxyProps = new HashMap<>();
         proxyProps.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
         proxyProps.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
+        proxyProps.put("xroad.proxy.ssl-enabled", "false");
 
         ProxyTestSuiteHelper.setPropsIfNotSet(proxyProps);
 
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, proxyProps);
+        ProxyTestSuiteHelper.commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
+                "xroad.common.temp-files-path", "build/"
+        ));
 
         ProxyTestSuiteHelper.startTestServices();
         monitorRpcClient = new MonitorRpcClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()),
@@ -101,8 +105,8 @@ public class ProxyMonitorMetaserviceTest {
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getAllTestCases(getClass().getPackageName() + ".testcases.");
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
-        System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, true, monitorRpcClient);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, ProxyTestSuiteHelper.commonProperties,
+                true, monitorRpcClient);
 
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),

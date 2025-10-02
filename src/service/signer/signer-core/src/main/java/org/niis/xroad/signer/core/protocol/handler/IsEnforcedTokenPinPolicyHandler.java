@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,17 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl;
 
-import java.security.cert.X509Certificate;
+package org.niis.xroad.signer.core.protocol.handler;
 
-/**
- * The client information system authentication data contains
- * the client IS certificate (optional) and flag indicating whether
- * the client made plaintext connection.
- *
- * @param cert
- * @param isPlaintextConnection
- */
-public record IsAuthenticationData(X509Certificate cert, boolean isPlaintextConnection) {
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.proto.IsEnforcedTokenPinPolicyResp;
+
+@ApplicationScoped
+@RequiredArgsConstructor
+public class IsEnforcedTokenPinPolicyHandler extends AbstractRpcHandler<Empty, IsEnforcedTokenPinPolicyResp> {
+
+    private final SignerProperties signerProperties;
+
+    @Override
+    protected IsEnforcedTokenPinPolicyResp handle(Empty request) {
+        return IsEnforcedTokenPinPolicyResp.newBuilder()
+                .setEnforced(signerProperties.enforceTokenPinPolicy())
+                .build();
+    }
+    
 }

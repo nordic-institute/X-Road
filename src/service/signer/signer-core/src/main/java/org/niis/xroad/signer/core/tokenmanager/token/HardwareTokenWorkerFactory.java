@@ -27,6 +27,7 @@ package org.niis.xroad.signer.core.tokenmanager.token;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.CryptoException;
+import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
@@ -59,7 +60,7 @@ import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.core.tokenmanager.KeyManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
-import org.niis.xroad.signer.core.tokenmanager.token.helper.KeyPairHelper;
+import org.niis.xroad.signer.core.tokenmanager.token.helper.KeyPairHelpers;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -108,6 +109,8 @@ public class HardwareTokenWorkerFactory {
     private final TokenManager tokenManager;
     private final KeyManager keyManager;
     private final TokenLookup tokenLookup;
+    private final KeyManagers keyManagers;
+    private final KeyPairHelpers keyPairHelpers;
 
     public HardwareTokenWorker create(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
         return new HardwareTokenWorker(tokenInfo, tokenDefinition);
@@ -130,7 +133,8 @@ public class HardwareTokenWorkerFactory {
             super(tokenInfo,
                     HardwareTokenWorkerFactory.this.tokenManager,
                     HardwareTokenWorkerFactory.this.keyManager,
-                    HardwareTokenWorkerFactory.this.tokenLookup);
+                    HardwareTokenWorkerFactory.this.tokenLookup,
+                    HardwareTokenWorkerFactory.this.keyManagers);
 
             this.tokenDefinition = tokenDefinition;
         }
@@ -251,7 +255,7 @@ public class HardwareTokenWorkerFactory {
             assertTokenWritable();
 
             return getActiveManagementSessionProvider().executeWithSession(session -> {
-                var keyPairHelper = KeyPairHelper.of(mapAlgorithm(message.getAlgorithm()));
+                var keyPairHelper = keyPairHelpers.of(mapAlgorithm(message.getAlgorithm()));
                 var generatedKP = keyPairHelper.createKeypair(
                         session.get(),
                         message.getKeyLabel(),
@@ -504,11 +508,11 @@ public class HardwareTokenWorkerFactory {
 
                 switch (publicKey) {
                     case RSAPublicKey rsaPublicKey -> {
-                        publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(RSA).generateX509PublicKey(rsaPublicKey));
+                        publicKeyBase64 = EncoderUtils.encodeBase64(keyPairHelpers.of(RSA).generateX509PublicKey(rsaPublicKey));
                         keyManager.setPublicKey(keyId, publicKeyBase64);
                     }
                     case ECDSAPublicKey ecPublicKey -> {
-                        publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(EC).generateX509PublicKey(ecPublicKey));
+                        publicKeyBase64 = EncoderUtils.encodeBase64(keyPairHelpers.of(EC).generateX509PublicKey(ecPublicKey));
                         keyManager.setPublicKey(keyId, publicKeyBase64);
                     }
                     case null, default -> {

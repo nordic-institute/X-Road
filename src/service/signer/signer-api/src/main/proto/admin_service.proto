@@ -35,6 +35,7 @@ service AdminService {
   rpc GetCertificationServiceDiagnostics(Empty) returns (CertificationServiceDiagnosticsResp) {}
   rpc GetKeyConfChecksum(Empty) returns (KeyConfChecksum) {}
   rpc RefreshModules(Empty) returns (Empty) {}
+  rpc IsEnforcedTokenPinPolicy(Empty) returns (IsEnforcedTokenPinPolicyResp) {}
 }
 
 message CertificationServiceDiagnosticsResp {
@@ -55,4 +56,8 @@ message OcspResponderStatus {
 
 message KeyConfChecksum {
   int32 checksum = 1;
+}
+
+message IsEnforcedTokenPinPolicyResp {
+  bool enforced = 1;
 }

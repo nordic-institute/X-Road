@@ -54,6 +54,7 @@ public class LogArchiveWriter implements Closeable {
 
     private final GlobalConfProvider globalConfProvider;
     private final Path outputPath;
+    private final String tmpDir;
     private final LogArchiveBase archiveBase;
 
     private final LinkingInfoBuilder linkingInfoBuilder;
@@ -72,12 +73,14 @@ public class LogArchiveWriter implements Closeable {
      * @param outputPath  directory where the log archive is created.
      * @param archiveBase interface to archive database.
      */
-    public LogArchiveWriter(GlobalConfProvider globalConfProvider, Path outputPath, LogArchiveBase archiveBase) throws IOException {
+    public LogArchiveWriter(GlobalConfProvider globalConfProvider, Path outputPath, LogArchiveBase archiveBase,
+                            String tmpDir) throws IOException {
         this.globalConfProvider = globalConfProvider;
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
         this.linkingInfoBuilder = new LinkingInfoBuilder(MessageLogProperties.getHashAlg());
         this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
+        this.tmpDir = tmpDir;
     }
 
     /**
@@ -124,7 +127,7 @@ public class LogArchiveWriter implements Closeable {
         logArchiveCache = new LogArchiveCache(
                 linkingInfoBuilder,
                 encryptionConfigProvider.forGrouping(grouping),
-                outputPath);
+                outputPath, tmpDir);
     }
 
     private Grouping forRecord(MessageRecord record) {

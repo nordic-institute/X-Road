@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.wsdl;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.CustomClientTlsSSLSocketFactory;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.beans.factory.InitializingBean;
@@ -50,6 +51,7 @@ import java.security.cert.X509Certificate;
 final class HttpUrlConnectionConfig implements InitializingBean {
     private static final String TLS = "TLS";
     private final ServerConfProvider serverConfProvider;
+    private final AdminServiceProperties adminServiceProperties;
 
     void apply(HttpURLConnection conn) {
         if (conn instanceof HttpsURLConnection httpsURLConnection) {
@@ -69,10 +71,11 @@ final class HttpUrlConnectionConfig implements InitializingBean {
     public void afterPropertiesSet() {
         try {
             final SSLContext ctx = SSLContext.getInstance(TLS);
-            ctx.init(new KeyManager[] {new ClientSslKeyManager(serverConfProvider)},
-                    new TrustManager[] {new NoopTrustManager()},
+            ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)},
+                    new TrustManager[]{new NoopTrustManager()},
                     new SecureRandom());
-            sslSocketFactory = new CustomClientTlsSSLSocketFactory(ctx.getSocketFactory());
+            sslSocketFactory = new CustomClientTlsSSLSocketFactory(ctx.getSocketFactory(),
+                    adminServiceProperties.getProxyTlsProtocols(), adminServiceProperties.getProxyTlsCipherSuites());
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new IllegalStateException("FATAL: Unable to create socket factory", e);
         }

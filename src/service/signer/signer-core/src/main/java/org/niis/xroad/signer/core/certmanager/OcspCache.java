@@ -26,11 +26,13 @@
 package org.niis.xroad.signer.core.certmanager;
 
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 
 import java.util.Date;
@@ -43,14 +45,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * response is removed from the cache and null is returned.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class OcspCache {
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
 
     protected final Map<String, OCSPResp> cache = new ConcurrentHashMap<>();
-
-    public OcspCache(GlobalConfProvider globalConfProvider) {
-        this.globalConfProvider = globalConfProvider;
-    }
 
     /**
      * @param key the key
@@ -102,7 +102,7 @@ public class OcspCache {
     }
 
     protected boolean isExpired(OCSPResp response, Date atDate) throws OCSPException {
-        OcspVerifier verifier = new OcspVerifier(globalConfProvider,
+        OcspVerifier verifier = ocspVerifierFactory.create(globalConfProvider,
                 new OcspVerifierOptions(globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()));
         return verifier.isExpired(response, atDate);
     }

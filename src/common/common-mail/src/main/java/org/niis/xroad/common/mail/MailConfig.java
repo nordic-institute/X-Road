@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.common.mail;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -119,8 +117,9 @@ public class MailConfig {
     }
 
     @Bean
-    public MessageSourceAccessor notificationMessageSourceAccessor() {
-        String mailNotificationLocale = SystemProperties.getMailNotificationLocale();
+    public MessageSourceAccessor notificationMessageSourceAccessor(NotificationConfig notificationConfig) {
+        String mailNotificationLocale = notificationConfig.getMailNotificationLocale();
+
         return mailNotificationLocale != null
                 ? new MessageSourceAccessor(notificationMessageSource(), Locale.of(mailNotificationLocale))
                 : new MessageSourceAccessor(notificationMessageSource());

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.common.managementrequest.model;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
@@ -55,13 +54,12 @@ import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 
 @Slf4j
 abstract class GenericClientRequest implements ManagementRequest {
-    private static final DigestAlgorithm SIGNATURE_DIGEST_ALGORITHM_ID =
-            SystemProperties.getAuthCertRegSignatureDigestAlgorithmId();
 
     private final SignerRpcClient signerRpcClient;
     private final SignerSignClient signerSignClient;
     private final ClientId client;
     private final SoapMessageImpl requestMessage;
+    private final DigestAlgorithm signatureDigestAlgorithm;
 
     private CertificateInfo clientCert;
 
@@ -69,11 +67,13 @@ abstract class GenericClientRequest implements ManagementRequest {
 
     private MultiPartOutputStream multipart;
 
-    GenericClientRequest(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient, ClientId client, SoapMessageImpl request) {
+    GenericClientRequest(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient, ClientId client, SoapMessageImpl request,
+                         DigestAlgorithm signatureDigestAlgorithm) {
         this.signerRpcClient = signerRpcClient;
         this.signerSignClient = signerSignClient;
         this.client = client;
         this.requestMessage = request;
+        this.signatureDigestAlgorithm = signatureDigestAlgorithm;
 
         this.dataToSign = request.getBytes();
     }
@@ -117,12 +117,12 @@ abstract class GenericClientRequest implements ManagementRequest {
     private void writeSignature() throws IOException, OperatorCreationException {
         MemberSigningInfoDto memberSigningInfo = getMemberSigningInfo();
 
-        var clientSignAlgoId = SignAlgorithm.ofDigestAndMechanism(SIGNATURE_DIGEST_ALGORITHM_ID,
+        var clientSignAlgoId = SignAlgorithm.ofDigestAndMechanism(signatureDigestAlgorithm,
                 memberSigningInfo.signMechanismName());
 
         String[] clientSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + clientSignAlgoId.name()};
 
-        byte[] digest = calculateDigest(SIGNATURE_DIGEST_ALGORITHM_ID, dataToSign);
+        byte[] digest = calculateDigest(signatureDigestAlgorithm, dataToSign);
 
         multipart.startPart(MimeTypes.BINARY, clientSignaturePartHeaders);
         multipart.write(createSignature(memberSigningInfo.keyId(), clientSignAlgoId, digest));
