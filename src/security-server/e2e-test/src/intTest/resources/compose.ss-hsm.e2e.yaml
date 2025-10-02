@@ -1,8 +1,7 @@
 services:
   signer:
-    image: ""
     build:
-        context: ../../../development/docker/security-server/signer-with-hsm
-        args:
-          - REGISTRY_URL=localhost:5555
-        dockerfile: Dockerfile
+      context: ../../../development/docker/security-server/signer-with-hsm
+      args:
+        - REGISTRY_URL=${IMAGE_REGISTRY:-localhost:5555}
+      dockerfile: Dockerfile
