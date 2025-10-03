@@ -61,8 +61,6 @@ quarkus-rest = { group = "io.quarkus", name = "quarkus-rest", version.ref = "qua
 quarkus-kubernetes = { group = "io.quarkus", name = "quarkus-kubernetes", version.ref = "quarkus" }
 quarkus-kubernetesConfig = { group = "io.quarkus", name = "quarkus-kubernetes-config", version.ref = "quarkus" }
 quarkus-health = { group = "io.quarkus", name = "quarkus-smallrye-health", version.ref = "quarkus" }
-quarkus-containerImage-docker = { group = "io.quarkus", name = "quarkus-container-image-docker", version.ref = "quarkus" } #TODO remove one once finalized which to use
-quarkus-containerImage-jib = { group = "io.quarkus", name = "quarkus-container-image-jib", version.ref = "quarkus" }
 quarkus-config-yaml = { group = "io.quarkus", name = "quarkus-config-yaml", version.ref = "quarkus" }
 quarkus-scheduler = { group = "io.quarkus", name = "quarkus-scheduler", version.ref = "quarkus" }
 quarkus-quartz = { group = "io.quarkus", name = "quarkus-quartz", version.ref = "quarkus" }
@@ -203,7 +201,6 @@ archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-p
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
 archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
 protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref = "protobufPlugin" }
-jibGradlePlugin = { module = "com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin", version = "3.4.5" }
 quarkusGradlePlugin = { module = "io.quarkus:gradle-application-plugin", version.ref = "quarkus" }
 
 [bundles]
@@ -219,7 +216,6 @@ quarkus-core = [
 quarkus-containerized = [
   "quarkus-kubernetes",
   "quarkus-health",
-  "quarkus-containerImage-jib"
 ]
 
 [plugins]

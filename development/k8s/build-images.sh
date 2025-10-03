@@ -1,14 +1,10 @@
 #!/bin/bash
-source ./../.scripts/base-script.sh
+source "${BASH_SOURCE%/*}/../../.scripts/base-script.sh"
 
 REGISTRY_URL=${1:-localhost:5555}
 
-
-echo "Building baseline images.."
-(cd $XROAD_HOME/deployment/security-server/base-images && ./build-base-images.sh $REGISTRY_URL)
-
-echo "Building Security Server images.."
-(cd $XROAD_HOME/src && ./gradlew assemble -PxroadImageRegistry=$REGISTRY_URL -PbuildImages=true)
+echo "Building Security Server images (including base).."
+(cd $XROAD_HOME/deployment/security-server/images && IMAGE_REGISTRY=$REGISTRY_URL ./build-images.sh all --push)
 
 echo "Building OpenBao init-runner"
 docker buildx build \

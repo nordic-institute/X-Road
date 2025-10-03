@@ -142,6 +142,7 @@ services:
     image: ${CONFIGURATION_CLIENT_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - XROAD_HOST=configuration-client
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -174,6 +175,7 @@ services:
     image: ${MONITOR_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - XROAD_HOST=monitor
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -201,6 +203,7 @@ services:
     image: ${SIGNER_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - XROAD_HOST=signer
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -232,6 +235,7 @@ services:
     image: ${PROXY_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - XROAD_HOST=proxy
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -269,6 +273,7 @@ services:
     image: ${PROXY_UI_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - XROAD_HOST=ui
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -311,6 +316,7 @@ services:
     image: ${BACKUP_MANAGER_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - XROAD_HOST=backup-manager
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}

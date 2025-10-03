@@ -143,10 +143,16 @@ jobs:
         run: |
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g \
           -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute \
-          build sonar test jacocoTestReport -Pfrontend-npm-audit \
-          -PbuildImages=true \
-          -PxroadImageRegistry=${IMAGE_REGISTRY} \
-          -PxroadServiceImageTag=${SERVICE_IMAGE_TAG}
+          build sonar test jacocoTestReport -Pfrontend-npm-audit
+
+      - name: Build Security Server images
+        working-directory: ./deployment/security-server/images
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.SERVICE_IMAGE_TAG }}
+          BASE_IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: |
+          ./build-images.sh --platforms linux/amd64,linux/arm64 --push
 
       - name: Log storage after build
         if: always()
@@ -222,20 +228,20 @@ jobs:
         run: ./build_packages.sh -d -r noble --package-only
 
       - name: Build and push Central Server dev image
+        working-directory: ./development/docker/central-server
         run: |
           echo "🏗️ Building Central Server dev image:"
           echo "  Registry: ${IMAGE_REGISTRY}"
           echo "  Version: ${SERVICE_IMAGE_TAG}"
           echo "  Branch: ${BRANCH_NAME}"
           
-          # Build the image for multiple platforms
           cd development/docker/central-server
           ./build-cs-dev-image.sh \
             --environment ci \
-            --registry "${IMAGE_REGISTRY}" \
-            --version "${SERVICE_IMAGE_TAG}" \
-            --platforms "linux/amd64" \
-            --packages-path "${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04"
+            --registry ${{ env.IMAGE_REGISTRY }} \
+            --version ${{ env.SERVICE_IMAGE_TAG }} \
+            --packages-path ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04 \
+            --platforms linux/amd64,linux/arm64
 
       - name: Log storage after all packaging
         if: always()

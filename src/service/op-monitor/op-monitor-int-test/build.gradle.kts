@@ -26,7 +26,8 @@ tasks.register<Test>("intTest") {
 
   val intTestArgs = mutableListOf<String>()
 
-  intTestArgs += "-Dtest-automation.custom.image-name=${project.property("xroadImageRegistry")}/ss-op-monitor:latest"
+  // TODO: make it configurable when fixing int tests
+  intTestArgs += "-Dtest-automation.custom.image-name=localhost:5555/ss-op-monitor:latest"
 
   if (project.hasProperty("intTestProfilesInclude")) {
     intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"

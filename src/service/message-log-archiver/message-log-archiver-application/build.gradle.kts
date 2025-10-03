@@ -3,17 +3,6 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-quarkus {
-  quarkusBuildProperties.putAll(
-    buildMap {
-      put(
-        "quarkus.container-image.image",
-        "${project.property("xroadImageRegistry")}/ss-message-log-archiver:${project.findProperty("xroadServiceImageTag")}"
-      )
-    }
-  )
-}
-
 dependencies {
   implementation(platform(libs.quarkus.bom))
 

@@ -15,7 +15,8 @@ isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null &
 # Set XROAD_HOME to repository root using the script's location
 if [ -z "$XROAD_HOME" ]; then
   # Use the script's location instead of pwd to find repo root
-  XROAD_HOME=$(realpath "$(dirname "${BASH_SOURCE[0]}")/../..")
+  # This script is now at .scripts/base-script.sh, so go up one level
+  XROAD_HOME=$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")
   echo "XROAD_HOME is not set. Setting it to $XROAD_HOME"
 fi
 
@@ -117,3 +118,4 @@ read_gradle_property() {
   # Read property value, handling comments and empty lines
   grep "^${property_name}=" "$property_file" | cut -d'=' -f2- | tr -d ' \t'
 }
+

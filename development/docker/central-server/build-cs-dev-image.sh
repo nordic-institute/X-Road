@@ -16,7 +16,7 @@ set -e
 
 # Source base script for common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../../.scripts/base-script.sh"
+source "${SCRIPT_DIR}/../../../.scripts/base-script.sh"
 
 # Default configuration
 GRADLE_PROPERTIES="${XROAD_HOME}/src/gradle.properties"
@@ -59,7 +59,7 @@ EXAMPLES:
     ./build-cs-dev-image.sh --environment ci --registry ghcr.io/org/repo --version 8.0.0-SNAPSHOT --platforms linux/amd64,linux/arm64
 
 VERSIONING:
-    For local builds, the script reads xroadServiceImageTag from src/gradle.properties.
+    For local builds, the script constructs version from xroadVersion-xroadBuildType in src/gradle.properties.
     For CI builds, pass --version with the SERVICE_IMAGE_TAG value from the CI workflow.
 
 PACKAGE REQUIREMENTS:
@@ -131,14 +131,20 @@ if [[ -z "$VERSION" ]]; then
   fi
 
   log_info "Reading version from gradle.properties..."
-  XROAD_SERVICE_IMAGE_TAG=$(read_gradle_property "xroadServiceImageTag" "$GRADLE_PROPERTIES")
+  XROAD_VERSION=$(read_gradle_property "xroadVersion" "$GRADLE_PROPERTIES")
+  XROAD_BUILD_TYPE=$(read_gradle_property "xroadBuildType" "$GRADLE_PROPERTIES")
   
-  if [[ -z "$XROAD_SERVICE_IMAGE_TAG" ]]; then
-    log_error "xroadServiceImageTag not found in gradle.properties"
+  if [[ -z "$XROAD_VERSION" ]]; then
+    log_error "xroadVersion not found in gradle.properties"
     exit 1
   fi
   
-  VERSION="${XROAD_SERVICE_IMAGE_TAG}"
+  if [[ -z "$XROAD_BUILD_TYPE" ]]; then
+    log_error "xroadBuildType not found in gradle.properties"
+    exit 1
+  fi
+  
+  VERSION="${XROAD_VERSION}-${XROAD_BUILD_TYPE}"
   log_info "Using version from gradle.properties: ${VERSION}"
 fi
 
