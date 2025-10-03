@@ -233,7 +233,6 @@ jobs:
           echo "  Version: ${SERVICE_IMAGE_TAG}"
           echo "  Branch: ${BRANCH_NAME}"
           
-          cd development/docker/central-server
           ./build-cs-dev-image.sh \
             --environment ci \
             --registry ${{ env.IMAGE_REGISTRY }} \
