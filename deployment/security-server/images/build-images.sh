@@ -34,7 +34,6 @@ OPTIONS:
 ENVIRONMENT VARIABLES:
     IMAGE_REGISTRY          Docker registry URL (default: localhost:5555)
     IMAGE_TAG               Image tag to use (default: xroadVersion-xroadBuildType)
-    BASE_IMAGE_TAG          Base image tag (default: xroadVersion-xroadBuildType)
 
 EXAMPLES:
     # Build all services for host platform (local dev)
@@ -126,12 +125,10 @@ fi
 
 # Construct image tags from version and build type (can be overridden via environment)
 IMAGE_TAG="${IMAGE_TAG:-${XROAD_VERSION}-${XROAD_BUILD_TYPE}}"
-BASE_IMAGE_TAG="${BASE_IMAGE_TAG:-${XROAD_VERSION}-${XROAD_BUILD_TYPE}}"
 
 log_info "=== X-Road Security Server Images Build ==="
 log_info "Registry: $REGISTRY"
 log_info "Image Tag: $IMAGE_TAG"
-log_info "Base Image Tag: $BASE_IMAGE_TAG"
 log_info "Platforms: ${PLATFORMS:-host platform}"
 log_info "Push: $PUSH"
 log_info "Services: ${SERVICES[*]}"
@@ -234,7 +231,7 @@ for service in "${SERVICES[@]}"; do
     docker buildx build
     --file "${SCRIPT_DIR}/${dockerfile}"
     --build-arg "REGISTRY=${REGISTRY}"
-    --build-arg "BASE_IMAGE_TAG=${BASE_IMAGE_TAG}"
+    --build-arg "IMAGE_TAG=${IMAGE_TAG}"
     --build-context "build=${BUILD_DIR}"
     --build-context "license=${BUILD_DIR}"
     --build-context "pkcs11driver=${PKCS11_DIR}"

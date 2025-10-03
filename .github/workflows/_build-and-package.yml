@@ -128,7 +128,7 @@ jobs:
           echo "🏗️ Build configuration:"
           echo "  Registry: ${IMAGE_REGISTRY}"
           echo "  Service Image Tag: ${SERVICE_IMAGE_TAG}"
-          echo "  Package Builder Image Tag: ${XROAD_BASE_IMAGE_TAG}"
+          echo "  Package Builder Image Tag: ${PACKAGE_BUILDER_IMAGE_TAG}"
           echo "  Branch: ${BRANCH_NAME}"
           echo "  X-Road Version: ${XROAD_VERSION}"
           echo "  Build Type: ${XROAD_BUILD_TYPE}"
@@ -149,7 +149,6 @@ jobs:
         env:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
           IMAGE_TAG: ${{ env.SERVICE_IMAGE_TAG }}
-          BASE_IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
         run: |
           ./build-images.sh --platforms linux/amd64,linux/arm64 --push
 
