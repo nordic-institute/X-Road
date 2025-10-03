@@ -97,12 +97,6 @@ fi
 # Determine environment and defaults
 REGISTRY="${IMAGE_REGISTRY:-localhost:5555}"
 
-# Include repository path in registry for GHCR
-if [[ "$REGISTRY" == "ghcr.io"* && -n "$GITHUB_REPOSITORY" ]]; then
-  REPO_LOWERCASE=$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')
-  REGISTRY="${REGISTRY}/${REPO_LOWERCASE}"
-fi
-
 if [[ -z "$PUSH" ]]; then
   if [[ "$REGISTRY" == "localhost:"* ]]; then
     PUSH="false"
