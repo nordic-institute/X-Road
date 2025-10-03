@@ -238,7 +238,7 @@ jobs:
             --registry ${{ env.IMAGE_REGISTRY }} \
             --version ${{ env.SERVICE_IMAGE_TAG }} \
             --packages-path ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04 \
-            --platforms linux/amd64,linux/arm64
+            --platforms linux/amd64
 
       - name: Log storage after all packaging
         if: always()
