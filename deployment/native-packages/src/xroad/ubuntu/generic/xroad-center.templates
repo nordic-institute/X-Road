@@ -7,10 +7,10 @@ Description: Insert database server connection string
 
 Template: xroad-common/admin-subject
 Type: string
-Description: Insert admin interface TLS certificate subject name
+Description: Insert admin interface TLS certificate subject common name
  This certificate will be used to secure admin WebUI connections.
  .
- Include most used hostname or IP address as as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
+ Include most used hostname or IP address as as common name (CN=..) value.
  .
  Server reports full hostname as: ${HOST}
 
@@ -27,10 +27,10 @@ Description: Insert admin interface TLS certificate subject name alternatives
 
 Template: xroad-common/service-subject
 Type: string
-Description: Insert management service TLS certificate subject name [default=/CN=${HOST}]
+Description: Insert management service TLS certificate subject common name [default=${HOST}]
  This certificate will be used to secure management Security Server and management services.
  .
- Include most used hostname or IP address as as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
+ Include most used hostname or IP address as as common name (CN=..) value.
  .
  Server reports full hostname as: ${HOST}
 
