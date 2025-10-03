@@ -12,4 +12,4 @@ backup-manager,quarkus/Dockerfile,service/backup-manager/backup-manager-applicat
 admin-service,admin-service/Dockerfile,security-server/admin-service/application,ss-proxy-ui-api,build/libs,base-images/ss-baseline-runtime
 db-messagelog-init,init-db/Dockerfile,addons/messagelog/messagelog-db,ss-db-messagelog-init,src/main/resources/liquibase,-
 db-opmonitor-init,init-db/Dockerfile,service/op-monitor/op-monitor-db,ss-db-opmonitor-init,src/main/resources/liquibase,-
-db-serverconf-init,init-db/Dockerfile,security-server/admin-service/infra-jpa,ss-db-serverconf-init,src/main/resources/liquibase,-
+db-serverconf-init,init-db/Dockerfile,security-server/admin-service/infra-jpa,ss-db-serverconf-init,build/resources/main/liquibase,-
