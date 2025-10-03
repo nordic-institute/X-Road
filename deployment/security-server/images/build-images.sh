@@ -88,7 +88,7 @@ if [[ ${#SERVICES[@]} -eq 0 ]]; then
     line_number=$((line_number + 1))
     [[ $line_number -eq 1 ]] && continue # Skip header
     [[ -z "${line// /}" ]] && continue
-    IFS=',' read -r svc_name _ _ _ _ _ <<<"$line"
+    IFS=',' read -r svc_name _ _ _ _ _ _ <<<"$line"
     SERVICES+=("$svc_name")
   done <"$SERVICE_CONFIG_CSV"
 fi
@@ -161,12 +161,12 @@ get_service_def() {
     [[ $line_number -eq 1 ]] && continue
     [[ -z "${line// /}" ]] && continue
 
-    # Parse CSV: service_name,dockerfile,gradle_path,image_name,build_artifact,base_image
-    IFS=',' read -r svc_name dockerfile gradle_path img_name build_artifact base_img <<<"$line"
+    # Parse CSV: service_name,dockerfile,gradle_path,image_name,build_artifact,base_image,extra_build_arg
+    IFS=',' read -r svc_name dockerfile gradle_path img_name build_artifact base_img extra_arg <<<"$line"
 
     if [[ "$svc_name" == "$service" ]]; then
-      # Return in expected order: image_name gradle_path dockerfile build_artifact base_image
-      echo "$img_name $gradle_path $dockerfile $build_artifact $base_img"
+      # Return in expected order: image_name gradle_path dockerfile build_artifact base_image extra_build_arg
+      echo "$img_name $gradle_path $dockerfile $build_artifact $base_img $extra_arg"
       return 0
     fi
   done <"$SERVICE_CONFIG_CSV"
@@ -199,7 +199,7 @@ for service in "${SERVICES[@]}"; do
     continue
   fi
 
-  read -r image_name gradle_path dockerfile build_artifact base_image <<<"$service_def"
+  read -r image_name gradle_path dockerfile build_artifact base_image extra_build_arg <<<"$service_def"
 
   log_info "Building $service ($image_name)..."
   build_start=$(date +%s)
@@ -243,12 +243,9 @@ for service in "${SERVICES[@]}"; do
     build_cmd+=(--build-arg "BASE_IMAGE=${base_image}")
   fi
 
-  # Add CHANGELOG_FILE build arg for DB init services
-  if [[ "$service" == db-* ]]; then
-    # Extract changelog name from service name: db-messagelog-init -> messagelog
-    changelog_name="${service#db-}"      # Remove "db-" prefix
-    changelog_name="${changelog_name%-init}"  # Remove "-init" suffix
-    build_cmd+=(--build-arg "CHANGELOG_FILE=${changelog_name}-changelog.xml")
+  # Add extra build arg if specified in CSV (e.g., CHANGELOG_FILE=messagelog-changelog.xml)
+  if [[ "$extra_build_arg" != "-" && -n "$extra_build_arg" ]]; then
+    build_cmd+=(--build-arg "$extra_build_arg")
   fi
 
   # Add platform if specified
