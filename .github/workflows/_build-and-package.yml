@@ -77,7 +77,6 @@ jobs:
           # Read version and build type from gradle.properties for service image tagging
           XROAD_VERSION=$(grep "^xroadVersion=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
           XROAD_BUILD_TYPE=$(grep "^xroadBuildType=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
-          XROAD_BASE_IMAGE_TAG=$(grep "^xroadBaseImageTag=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
           
           # Function to get branch name for service image tagging
           get_branch_name() {
@@ -120,7 +119,7 @@ jobs:
           echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
           echo "XROAD_VERSION=${XROAD_VERSION}" >> $GITHUB_ENV
           echo "XROAD_BUILD_TYPE=${XROAD_BUILD_TYPE}" >> $GITHUB_ENV
-          echo "PACKAGE_BUILDER_IMAGE_TAG=${XROAD_BASE_IMAGE_TAG}" >> $GITHUB_ENV
+          echo "PACKAGE_BUILDER_IMAGE_TAG=${XROAD_VERSION}-${XROAD_BUILD_TYPE}" >> $GITHUB_ENV
           
           # Export to GITHUB_OUTPUT for job outputs
           echo "image_registry=${IMAGE_REGISTRY}" >> $GITHUB_OUTPUT

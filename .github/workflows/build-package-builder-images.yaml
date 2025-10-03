@@ -39,9 +39,11 @@ jobs:
         id: version
         working-directory: ./src
         run: |
-          XROAD_BASE_IMAGE_TAG=$(grep "^xroadBaseImageTag=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
-          echo "tag=${XROAD_BASE_IMAGE_TAG}" >> $GITHUB_OUTPUT
-          echo "Using tag: ${XROAD_BASE_IMAGE_TAG}"
+          XROAD_VERSION=$(grep "^xroadVersion=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          XROAD_BUILD_TYPE=$(grep "^xroadBuildType=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          IMAGE_TAG="${XROAD_VERSION}-${XROAD_BUILD_TYPE}"
+          echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "Using tag: ${IMAGE_TAG}"
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -72,9 +74,11 @@ jobs:
         id: version
         working-directory: ./src
         run: |
-          XROAD_BASE_IMAGE_TAG=$(grep "^xroadBaseImageTag=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
-          echo "tag=${XROAD_BASE_IMAGE_TAG}" >> $GITHUB_OUTPUT
-          echo "Using tag: ${XROAD_BASE_IMAGE_TAG}"
+          XROAD_VERSION=$(grep "^xroadVersion=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          XROAD_BUILD_TYPE=$(grep "^xroadBuildType=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          IMAGE_TAG="${XROAD_VERSION}-${XROAD_BUILD_TYPE}"
+          echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "Using tag: ${IMAGE_TAG}"
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
