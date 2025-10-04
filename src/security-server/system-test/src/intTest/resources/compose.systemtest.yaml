@@ -62,7 +62,7 @@ services:
       start_period: 5s
       interval: 5s
       retries: 40
-      test: [ "CMD", "sh", "-c", "pg_isready -U postgres -h localhost" ]
+      test: [ "CMD", "sh", "-c", "pg_isready -U opmonitor -d op-monitor -h localhost" ]
     deploy:
       resources:
         reservations:
@@ -95,6 +95,7 @@ services:
     image: ${OP_MONITOR_IMG}
     pull_policy: always
     environment:
+      - QUARKUS_LOG_LEVEL=INFO
       - XROAD_HOST=op-monitor
       - XROAD_OP_MONITOR_LISTEN_ADDRESS=0.0.0.0
       - XROAD_OP_MONITOR_SCHEME=https
