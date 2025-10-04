@@ -104,10 +104,10 @@ services:
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
       - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
-      - xroad.db.op-monitor.hibernate.connection.url=jdbc:postgresql://db-opmonitor:5432/op-monitor
-      - xroad.db.op-monitor.hibernate.connection.driver_class=org.postgresql.Driver
-      - xroad.db.op-monitor.hibernate.connection.username=opmonitor
-      - xroad.db.op-monitor.hibernate.connection.password=secret
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME=opmonitor
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_PASSWORD=secret
       # we shorten here messages processing from 1 min to 1 second
       - xroad.op-monitor.records-available-timestamp-offset-seconds=1
     healthcheck:
