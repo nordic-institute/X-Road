@@ -43,11 +43,11 @@ public class OpMonitorTestProfile implements QuarkusTestProfile {
         return Map.of(
                 "quarkus.log.level", "INFO",
                 "xroad.common-rpc.use-tls", "false",
-                "xroad.db.op-monitor.hibernate.connection.url", "jdbc:hsqldb:mem:testdb",
-                "xroad.db.op-monitor.hibernate.connection.username", "testdb",
-                "xroad.db.op-monitor.hibernate.connection.password", "testdb",
-                "xroad.db.op-monitor.hibernate.connection.driver_class", "org.hsqldb.jdbc.JDBCDriver",
-                "xroad.db.op-monitor.hibernate.hbm2ddl.auto", "create-drop"
+                "xroad.db.opmonitor.hibernate.connection.url", "jdbc:hsqldb:mem:testdb",
+                "xroad.db.opmonitor.hibernate.connection.username", "testdb",
+                "xroad.db.opmonitor.hibernate.connection.password", "testdb",
+                "xroad.db.opmonitor.hibernate.connection.driver_class", "org.hsqldb.jdbc.JDBCDriver",
+                "xroad.db.opmonitor.hibernate.hbm2ddl.auto", "create-drop"
         );
     }
 
