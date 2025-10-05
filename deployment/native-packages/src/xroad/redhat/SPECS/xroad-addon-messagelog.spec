@@ -57,7 +57,6 @@ rm -rf %{buildroot}
 /usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/messagelog-archive-verifier.jar
 /usr/share/xroad/db/messagelog-changelog.xml
 /usr/share/xroad/db/messagelog
-/usr/share/xroad/scripts/archive-http-transporter.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/setup_messagelog_db.sh
 /usr/share/xroad/jlib/asicverifier.jar
 %doc /usr/share/doc/%{name}/LICENSE.txt

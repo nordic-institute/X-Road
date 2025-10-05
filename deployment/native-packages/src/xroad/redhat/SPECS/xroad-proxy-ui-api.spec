@@ -67,6 +67,7 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
+/usr/share/xroad/scripts/archive-http-transporter.sh
 /usr/share/doc/xroad/archive-server/demo-upload.pl
 
 %pre -p /bin/bash
