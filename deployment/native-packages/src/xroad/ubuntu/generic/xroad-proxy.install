@@ -6,3 +6,6 @@
 ../../../../../../src/3RD-PARTY-NOTICES.txt usr/share/doc/xroad-proxy
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-proxy
 ../../../../../../src/security-server/admin-service/infra-jpa/build/resources/main/liquibase/* /usr/share/xroad/db/
+
+../../../../../../src/security-server/admin-service/message-log-archiver/scripts/archive-http-transporter.sh usr/share/xroad/scripts/
+../../../../../../src/security-server/admin-service/message-log-archiver/scripts/demo-upload.pl usr/share/doc/xroad/archive-server/

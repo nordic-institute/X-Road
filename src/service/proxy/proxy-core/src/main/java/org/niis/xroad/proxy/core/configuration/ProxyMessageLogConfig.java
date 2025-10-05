@@ -51,7 +51,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static ee.ria.xroad.messagelog.database.MessageLogDatabaseConfig.MESSAGE_LOG_DB_CTX;
+import static org.niis.xroad.proxy.core.configuration.MessageLogDatabaseConfig.MESSAGE_LOG_DB_CTX;
 
 @Slf4j
 public class ProxyMessageLogConfig {

@@ -24,22 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.messagelog.archiver.core.config;
 
-package org.niis.xroad.common.properties;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-import static org.niis.xroad.common.properties.CommonProperties.PREFIX;
+import java.util.Optional;
 
-@ConfigMapping(prefix = PREFIX)
-public interface CommonProperties {
-    String PREFIX = "xroad.common";
-    String DEFAULT_TEMP_FILES_PATH = "/var/tmp/xroad/";
+@Getter
+@Setter
+@Configuration
+@ConfigurationProperties(prefix = "xroad.proxy-ui-api.message-log-archiver")
+public class LogArchiverProperties {
+    private static final int DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE = 10000;
+    private static final int DEFAULT_CLEAN_KEEP_RECORDS_FOR = 30;
+    private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
 
-    @WithName("temp-files-path")
-    @WithDefault(DEFAULT_TEMP_FILES_PATH)
-    String tempFilesPath();
-
+    private boolean enabled = true;
+    private String archiveInterval = "0 0 0/6 1/1 * ? *";
+    private String cleanInterval = "0 0 0/12 1/1 * ? *";
+    private int cleanTransactionBatchSize = DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE;
+    private int cleanKeepRecordsFor = DEFAULT_CLEAN_KEEP_RECORDS_FOR;
+    private int archiveTransactionBatchSize = DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE;
+    private String archivePath = "/var/lib/xroad";
+    private Optional<String> archiveTransferCommand = Optional.empty();
 }

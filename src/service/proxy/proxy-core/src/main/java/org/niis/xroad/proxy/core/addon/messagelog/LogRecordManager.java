@@ -56,7 +56,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import static ee.ria.xroad.messagelog.database.MessageLogDatabaseConfig.MESSAGE_LOG_DB_CTX;
+import static org.niis.xroad.proxy.core.configuration.MessageLogDatabaseConfig.MESSAGE_LOG_DB_CTX;
 
 /**
  * Log record manager handles saving of log records to database.
