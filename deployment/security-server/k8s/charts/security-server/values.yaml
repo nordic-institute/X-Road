@@ -287,14 +287,14 @@ services:
       XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
       XROAD_SECRET_STORE_SCHEME: "http"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client.ss.svc.cluster.local"
-      "xroad.db.opmonitor.hibernate.connection.url": "jdbc:postgresql://db-opmonitor.ss.svc.cluster.local:5432/op-monitor"
-      "xroad.db.opmonitor.hibernate.connection.username": "opmonitor"
-      "xroad.db.opmonitor.hibernate.connection.driver_class": "org.postgresql.Driver"
+      "xroad.db.op-monitor.hibernate.connection.url": "jdbc:postgresql://db-opmonitor.ss.svc.cluster.local:5432/op-monitor"
+      "xroad.db.op-monitor.hibernate.connection.username": "opmonitor"
+      "xroad.db.op-monitor.hibernate.connection.driver_class": "org.postgresql.Driver"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
-      - name: "xroad.db.opmonitor.hibernate.connection.password"
+      - name: "xroad.db.op-monitor.hibernate.connection.password"
         secretName: "db-opmonitor"
         key: "password"
   backup-manager:
