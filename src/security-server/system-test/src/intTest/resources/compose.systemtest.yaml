@@ -109,7 +109,7 @@ services:
       - XROAD_DB_OPMONITOR_HIBERNATE_CONNECTION_USERNAME=opmonitor
       - XROAD_DB_OPMONITOR_HIBERNATE_CONNECTION_PASSWORD=secret
       # we shorten here messages processing from 1 min to 1 second
-      - xroad.op-monitor.records-available-timestamp-offset-seconds=1
+      - XROAD_OP_MONITOR_RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS=1
     healthcheck:
       interval: 5s
       retries: 40
