@@ -29,7 +29,6 @@ package org.niis.xroad.proxy.core.addon.messagelog.clientproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.asic.AsicUtils;
@@ -49,17 +48,11 @@ import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.globalconf.model.ConfigurationConstants;
-import org.niis.xroad.globalconf.model.ConfigurationDirectory;
-import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
-import org.niis.xroad.globalconf.model.FileConsumer;
-import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 
-import java.io.ByteArrayInputStream;
-import java.io.Closeable;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,7 +72,6 @@ import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 import static org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404;
 import static org.eclipse.jetty.http.HttpStatus.UNAUTHORIZED_401;
-import static org.niis.xroad.globalconf.model.ConfigurationDirectory.METADATA_SUFFIX;
 import static org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.ASIC;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.VERIFICATIONCONF;
@@ -114,17 +106,19 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private static final String CONTENT_DISPOSITION_FILENAME_PREFIX = "attachment; filename=\"";
 
-    private final String target;
-
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
-    private final EncryptionConfigProvider encryptionConfigProvider;
 
-    public AsicContainerClientRequestProcessor(CommonBeanProxy commonBeanProxy,
+    private final String target;
+    private final EncryptionConfigProvider encryptionConfigProvider;
+    private final ConfClientRpcClient confClientRpcClient;
+
+    public AsicContainerClientRequestProcessor(CommonBeanProxy commonBeanProxy, ConfClientRpcClient confClientRpcClient,
                                                String target, RequestWrapper request, ResponseWrapper response)
             throws IOException {
         super(commonBeanProxy, request, response, null);
         this.target = target;
         this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
+        this.confClientRpcClient = confClientRpcClient;
     }
 
     public boolean canProcess() {
@@ -156,19 +150,11 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void handleVerificationConfRequest() throws IOException {
-        // GlobalConf.verifyValidity() is not necessary here.
-        // todo XRDDEV-3005
-        VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(SystemProperties.getConfigurationPath());
-
         jResponse.setContentType(MimeTypes.ZIP);
         jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
-        try (var writer = verificationConfWriter(confDir.getInstanceIdentifier())) {
-            confDir.eachFile(writer);
+        try (OutputStream out = jResponse.getOutputStream()) {
+            out.write(confClientRpcClient.getVerificationConfZip());
         }
-    }
-
-    private VerificationConfWriter verificationConfWriter(String instanceIdentifier) {
-        return new VerificationConfWriter(instanceIdentifier, jResponse.getOutputStream());
     }
 
     private void handleAsicRequest() throws Exception {
@@ -433,49 +419,4 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         return paramValue;
     }
 
-    private static class VerificationConfWriter implements FileConsumer, Closeable {
-
-        private static final String PREFIX = "verificationconf/";
-
-        private final String instanceIdentifier;
-        private final ZipOutputStream zos;
-
-        VerificationConfWriter(String instanceIdentifier, OutputStream out) {
-            this.instanceIdentifier = instanceIdentifier;
-            zos = new ZipOutputStream(out);
-        }
-
-        @Override
-        public void consume(ConfigurationPartMetadata metadata, InputStream contents) throws IOException {
-            if (metadata.getContentIdentifier().equals(ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS)) {
-                zos.putNextEntry(new ZipEntry(buildPath(metadata)));
-                IOUtils.copy(contents, zos);
-                zos.closeEntry();
-
-                zos.putNextEntry(new ZipEntry(buildPath(metadata) + METADATA_SUFFIX));
-                var verificationConfMetaData = toVerificationConfMetaData(metadata);
-                IOUtils.copy(new ByteArrayInputStream(verificationConfMetaData.toJson()), zos);
-                zos.closeEntry();
-            }
-        }
-
-        private String buildPath(ConfigurationPartMetadata metadata) {
-            return PREFIX + metadata.getInstanceIdentifier() + "/" + ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
-        }
-
-        private ConfigurationPartMetadata toVerificationConfMetaData(ConfigurationPartMetadata source) {
-            var metaData = new ConfigurationPartMetadata();
-            metaData.setConfigurationVersion(source.getConfigurationVersion());
-            return metaData;
-        }
-
-        @Override
-        public void close() throws IOException {
-            zos.putNextEntry(new ZipEntry(PREFIX + ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE));
-            zos.write(instanceIdentifier.getBytes());
-            zos.closeEntry();
-
-            zos.close();
-        }
-    }
 }

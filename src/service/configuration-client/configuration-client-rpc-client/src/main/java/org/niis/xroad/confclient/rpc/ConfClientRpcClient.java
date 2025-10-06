@@ -99,6 +99,12 @@ public class ConfClientRpcClient extends AbstractRpcClient {
                 .getConfigurationAnchor().toByteArray();
     }
 
+    public byte[] getVerificationConfZip() {
+        return exec(() -> globalConfServiceBlockingStub
+                .getVerificationConf(Empty.getDefaultInstance()))
+                .getContent().toByteArray();
+    }
+
     public int verifyAndSaveConfigurationAnchor(byte[] anchorBytes) {
         try {
             var response = exec(() -> anchorServiceBlockingStub

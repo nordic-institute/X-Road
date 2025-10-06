@@ -26,10 +26,11 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
+import ee.ria.xroad.common.util.HttpHeaders;
+import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
@@ -46,6 +47,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerClientRequestProcessor;
 
 import java.io.ByteArrayInputStream;
@@ -53,8 +55,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -66,6 +66,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.cleanUpDatabase;
 import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.createRestRequest;
@@ -83,6 +84,8 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
     @Parameterized.Parameter()
     public boolean encrypted;
 
+    private final ConfClientRpcClient confClientRpcClient = mock(ConfClientRpcClient.class);
+
     @Test
     public void assertVerificationConfiguration() throws IOException {
         final var request = mock(RequestWrapper.class);
@@ -91,23 +94,19 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         final MockOutputStream mockOutputStream = new MockOutputStream();
 
         final AsicContainerClientRequestProcessor proc =
-                new AsicContainerClientRequestProcessor(commonBeanProxy,
+                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient,
                         "/verificationconf", request, response);
 
+        byte[] mockZipResponse = new byte[]{'v', 'e', 'r', 'i', 'f', 'i', 'c', 'a', 't', 'i', 'o', 'n', 'c', 'o', 'n', 'f', 'z', 'i', 'p'};
+
+        when(confClientRpcClient.getVerificationConfZip()).thenReturn(mockZipResponse);
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         proc.process();
 
-
-        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(mockOutputStream.bos.toByteArray()))) {
-            ZipEntry entry = zip.getNextEntry();
-            assertEquals("verificationconf/CS/shared-params.xml", entry.getName());
-            assertArrayEquals(Files.readAllBytes(Path.of("src/test/resources/globalconf/CS/shared-params.xml")), zip.readAllBytes());
-
-            entry = zip.getNextEntry();
-            assertEquals("verificationconf/CS/shared-params.xml.metadata", entry.getName());
-            assertArrayEquals("{\"configurationVersion\":\"3\"}".getBytes(), zip.readAllBytes());
-        }
+        verify(response).setContentType(MimeTypes.ZIP);
+        verify(response).putHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
+        assertArrayEquals(mockZipResponse, mockOutputStream.bos.toByteArray());
     }
 
     @Test
@@ -139,7 +138,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(commonBeanProxy,
+                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient,
                         "/asic", request, response);
 
         processor.process();
@@ -196,7 +195,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(commonBeanProxy,
+                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient,
                         "/asic", request, response);
 
         processor.process();
@@ -246,7 +245,6 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
     @Before
     public void setUp() throws Exception {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "src/test/resources/globalconf");
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, "false");
         System.setProperty(MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1800");
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.SUBSYSTEM.name());
