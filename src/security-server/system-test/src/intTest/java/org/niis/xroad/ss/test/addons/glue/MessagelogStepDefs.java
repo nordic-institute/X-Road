@@ -28,16 +28,22 @@ package org.niis.xroad.ss.test.addons.glue;
 
 import com.nortal.test.asserts.Assertion;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
 import org.niis.xroad.ss.test.ui.container.service.TestDatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.ByteArrayInputStream;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class MessagelogStepDefs extends BaseStepDefs {
 
     @Autowired
     private TestDatabaseService testDatabaseService;
+    @Autowired
+    private FeignXRoadRestRequestsApi feignXRoadRestRequestsApi;
 
     @Step("Messagelog contains {int} entries with queryId {string}")
     public void messageLogContainsNEntries(int expectedCount, String queryId) {
@@ -52,6 +58,33 @@ public class MessagelogStepDefs extends BaseStepDefs {
                         .expression("=")
                         .actualValue(recordsCount)
                         .expectedValue(expectedCount)
+                        .build())
+                .execute();
+    }
+
+    @Step("verification configuration can be downloaded")
+    public void downloadVerificationConfiguration() throws Exception {
+        byte[] response = feignXRoadRestRequestsApi.getVerificationConf();
+
+        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(response))) {
+            ZipEntry entry = zip.getNextEntry();
+            assertContentName("verificationconf/DEV/shared-params.xml", entry.getName());
+
+            entry = zip.getNextEntry();
+            assertContentName("verificationconf/DEV/shared-params.xml.metadata", entry.getName());
+
+            entry = zip.getNextEntry();
+            assertContentName("verificationconf/instance-identifier", entry.getName());
+        }
+    }
+
+    private void assertContentName(String expected, String actual) {
+        validate(actual)
+                .assertion(new Assertion.Builder()
+                        .message("Verify content file name")
+                        .expression("=")
+                        .actualValue(actual)
+                        .expectedValue(expected)
                         .build())
                 .execute();
     }

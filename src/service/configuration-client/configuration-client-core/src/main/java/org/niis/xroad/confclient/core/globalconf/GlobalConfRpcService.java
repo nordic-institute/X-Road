@@ -29,27 +29,37 @@ import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.confclient.proto.GetGlobalConfReq;
 import org.niis.xroad.confclient.proto.GetGlobalConfRespWrapped;
+import org.niis.xroad.confclient.proto.GetVerificationConfResp;
 import org.niis.xroad.confclient.proto.GlobalConfServiceGrpc;
+import org.niis.xroad.rpc.common.Empty;
 
 @Slf4j
 @RequiredArgsConstructor
 @ApplicationScoped
 public class GlobalConfRpcService extends GlobalConfServiceGrpc.GlobalConfServiceImplBase {
+    private final RpcResponseHandler rpcResponseHandler = new RpcResponseHandler();
     private final GlobalConfRpcCache globalConfRpcCache;
+    private final VerificationConfHandler verificationConfHandler;
 
     @Override
     public void getGlobalConf(GetGlobalConfReq request, StreamObserver<GetGlobalConfRespWrapped> responseObserver) {
+        rpcResponseHandler.handleRequest(responseObserver, () -> {
+            GlobalConfRpcCache.CachedGlobalConf cachedGlobalConf = globalConfRpcCache.getGlobalConf();
 
-        GlobalConfRpcCache.CachedGlobalConf cachedGlobalConf = globalConfRpcCache.getGlobalConf();
+            GetGlobalConfRespWrapped.Builder builder = GetGlobalConfRespWrapped.newBuilder();
+            builder.setStatus(cachedGlobalConf.status());
+            cachedGlobalConf.globalConf().ifPresent(builder::setData);
 
-        GetGlobalConfRespWrapped.Builder builder = GetGlobalConfRespWrapped.newBuilder();
-        builder.setStatus(cachedGlobalConf.status());
-        cachedGlobalConf.globalConf().ifPresent(builder::setData);
+            return builder.build();
+        });
+    }
 
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
+    @Override
+    public void getVerificationConf(Empty request, StreamObserver<GetVerificationConfResp> responseObserver) {
+        rpcResponseHandler.handleRequest(responseObserver, verificationConfHandler::getVerificationConf);
     }
 
 }
