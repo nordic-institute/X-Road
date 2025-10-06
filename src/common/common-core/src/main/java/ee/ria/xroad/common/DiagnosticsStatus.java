@@ -23,7 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+<<<<<<<< HEAD:src/common/common-core/src/main/java/ee/ria/xroad/common/DiagnosticsStatus.java
 package ee.ria.xroad.common;
+========
+package org.niis.xroad.confclient.model;
+>>>>>>>> develop-8.x:src/service/configuration-client/configuration-client-model/src/main/java/org/niis/xroad/confclient/model/DiagnosticsStatus.java
 
 import ee.ria.xroad.common.util.TimeUtils;
 

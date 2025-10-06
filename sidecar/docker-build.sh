@@ -33,7 +33,7 @@ copy_variant_conf() {
   local build_conf_dir="$dir/build/etc/xroad/conf.d"
   rm -rf build
   mkdir -p "$build_conf_dir"
-  cp "$dir/../src/packages/src/xroad/default-configuration/override-securityserver-$variant.ini" "$build_conf_dir"
+  cp "$dir/../deployment/native-packages/src/xroad/default-configuration/override-securityserver-$variant.ini" "$build_conf_dir"
 }
 
 

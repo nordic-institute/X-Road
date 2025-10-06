@@ -69,6 +69,7 @@ class LogArchiveCache implements Closeable {
 
     private final LinkingInfoBuilder linkingInfoBuilder;
     private final Path workingDir;
+    private final String tmpDir;
 
     private AsicContainerNameGenerator nameGenerator;
     private State state = State.NEW;
@@ -85,10 +86,11 @@ class LogArchiveCache implements Closeable {
 
     LogArchiveCache(LinkingInfoBuilder linkingInfoBuilder,
                     EncryptionConfig encryptionConfig,
-                    Path workingDir) {
+                    Path workingDir, String tmpDir) {
         this.linkingInfoBuilder = linkingInfoBuilder;
         this.encryptionConfig = encryptionConfig;
         this.workingDir = workingDir;
+        this.tmpDir = tmpDir;
         resetCacheState();
     }
 
@@ -220,7 +222,7 @@ class LogArchiveCache implements Closeable {
         archiveTmpFile = Files.createTempFile(workingDir, "tmp-mlog-", ".tmp");
         if (encryptionConfig.isEnabled()) {
             outputStream = new GPGOutputStream(encryptionConfig.getGpgHomeDir(), archiveTmpFile,
-                    encryptionConfig.getEncryptionKeys());
+                    encryptionConfig.getEncryptionKeys(), tmpDir);
         } else {
             outputStream = Files.newOutputStream(archiveTmpFile);
         }

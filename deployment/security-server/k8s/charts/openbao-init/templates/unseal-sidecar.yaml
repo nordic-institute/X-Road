@@ -1,0 +1,49 @@
+# templates/unseal-sidecar.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openbao-unseal-sidecar
+spec:
+  selector:
+    matchLabels:
+      app: openbao-unseal-sidecar
+  template:
+    metadata:
+      labels:
+        app: openbao-unseal-sidecar
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      automountServiceAccountToken: true
+      containers:
+        - name: openbao-unseal-sidecar
+          image: localhost:5555/init-runner:latest
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/sh", "-c" ]
+          args:
+            - |
+              while true; do
+                if curl -s $OPENBAO_ADDR/v1/sys/health; then
+                  /scripts/unseal.sh
+                fi
+                sleep 5
+              done
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: OPENBAO_ADDR
+              value: {{ .Values.openbao.addr }}
+            - name: SECRET_NAME
+              value: {{ .Values.serviceAccount.name }}
+            - name: THRESHOLD
+              value: {{ .Values.openbao.threshold | quote }}
+          volumeMounts:
+            - name: init-script
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        - name: init-script
+          configMap:
+            name: {{ .Values.serviceAccount.name }}-script
+            defaultMode: 0755

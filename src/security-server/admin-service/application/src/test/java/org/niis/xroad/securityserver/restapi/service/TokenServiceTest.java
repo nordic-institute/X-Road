@@ -35,6 +35,7 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -48,8 +49,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.LOGIN_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCode.PIN_INCORRECT;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_PIN_INCORRECT;
 
 /**
  * test token service.
@@ -65,6 +66,9 @@ public class TokenServiceTest extends AbstractServiceTestContext {
 
     @Autowired
     AuditDataHelper auditDataHelper;
+
+    @Autowired
+    AdminServiceProperties adminServiceProperties;
 
     // token ids for mocking
     private static final String WRONG_SOFTTOKEN_PIN_TOKEN_ID = "wrong-soft-pin";
@@ -89,7 +93,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             Object[] args = invocation.getArguments();
             String tokenId = (String) args[0];
             switch (tokenId) {
-                case WRONG_SOFTTOKEN_PIN_TOKEN_ID -> throw XrdRuntimeException.systemException(PIN_INCORRECT).build();
+                case WRONG_SOFTTOKEN_PIN_TOKEN_ID -> throw XrdRuntimeException.systemException(TOKEN_PIN_INCORRECT).build();
                 case UNKNOWN_LOGIN_FAIL_TOKEN_ID -> throw XrdRuntimeException.systemException(LOGIN_FAILED)
                         .origin(ErrorOrigin.SIGNER)
                         .details("dont know what happened").build();
@@ -107,7 +111,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             Object[] args = invocation.getArguments();
             String oldPin = new String((char[]) args[1]);
             if (WRONG_SOFTTOKEN_PIN_TOKEN_ID.equals(oldPin)) {
-                throw XrdRuntimeException.systemException(PIN_INCORRECT).build();
+                throw XrdRuntimeException.systemException(TOKEN_PIN_INCORRECT).build();
             } else {
                 log.debug("activate successful");
             }
@@ -180,7 +184,6 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             assertEquals("signer.internal_error", expected.getCode());
             assertEquals("bar", expected.getDetails());
         }
-        tokenPinValidator.setTokenPinEnforced(false);
     }
 
     @Test
@@ -277,7 +280,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
     }
 
     private void mockPossibleActionsRuleEngineAllowAll() {
-        possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
+        possibleActionsRuleEngine = new PossibleActionsRuleEngine(adminServiceProperties) {
             @Override
             public void requirePossibleTokenAction(PossibleActionEnum action, TokenInfo token) throws
                     ActionNotPossibleException {

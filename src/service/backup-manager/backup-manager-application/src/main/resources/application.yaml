@@ -1,0 +1,42 @@
+quarkus:
+  application:
+    name: backup-manager
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-logging.yaml
+  scheduler:
+    start-mode: forced
+    enabled: true
+  quartz:
+    thread-count: 3
+
+"%containerized":
+  xroad:
+    backup-manager:
+      rpc:
+        listen-address: 0.0.0.0
+      autobackup-script-path: /usr/share/xroad/scripts/containerised/autobackup.sh
+      backup-script-path: /usr/share/xroad/scripts/containerised/create_backup.sh
+      restore-script-path: /usr/share/xroad/scripts/containerised/restore_backup.sh
+
+"%native":
+  quarkus:
+    config:
+      locations:
+        - /etc/xroad/conf.d/local.yaml
+        - /etc/xroad/db.properties
+    log:
+      file:
+        enabled: true
+        path: /var/log/xroad/backup_manager.log
+
+"%test":
+  quarkus:
+    log:
+      file:
+        enabled: false
+  xroad:
+    backup-manager:
+      rpc:
+        enabled: false

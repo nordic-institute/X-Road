@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import com.google.common.base.Splitter;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -90,16 +88,16 @@ public class AuthenticationIpWhitelist {
     }
 
     @Bean(KEY_MANAGEMENT_API_WHITELIST)
-    public AuthenticationIpWhitelist keyManagementWhitelist() {
+    public AuthenticationIpWhitelist keyManagementWhitelist(AllowListConfig allowListConfig) {
         AuthenticationIpWhitelist authenticationIpWhitelist = new AuthenticationIpWhitelist();
-        authenticationIpWhitelist.setWhitelistEntriesProperty(SystemProperties.getKeyManagementApiWhitelist());
+        authenticationIpWhitelist.setWhitelistEntriesProperty(allowListConfig.getKeyManagementApiWhitelist());
         return authenticationIpWhitelist;
     }
 
     @Bean(REGULAR_API_WHITELIST)
-    public AuthenticationIpWhitelist regularWhitelist() {
+    public AuthenticationIpWhitelist regularWhitelist(AllowListConfig allowListConfig) {
         AuthenticationIpWhitelist authenticationIpWhitelist = new AuthenticationIpWhitelist();
-        authenticationIpWhitelist.setWhitelistEntriesProperty(SystemProperties.getRegularApiWhitelist());
+        authenticationIpWhitelist.setWhitelistEntriesProperty(allowListConfig.getRegularApiWhitelist());
         return authenticationIpWhitelist;
     }
 

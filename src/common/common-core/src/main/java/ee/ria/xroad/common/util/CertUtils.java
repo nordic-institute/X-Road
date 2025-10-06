@@ -104,7 +104,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
 import static ee.ria.xroad.common.util.CryptoUtils.CERT_FACTORY;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.toDERObject;
 
 /**
@@ -358,27 +357,6 @@ public final class CertUtils {
         }
 
         return null;
-    }
-
-    /**
-     * @param certs list of certificates
-     * @return array of certificate SHA-1 hashes for given list of certificates.
-     * @throws CertificateEncodingException if a certificate encoding error occurs
-     * @throws OperatorCreationException    if digest calculator cannot be created
-     * @throws IOException                  if an I/O error occurred
-     * @deprecated This method should be applicable until 7.3.x is no longer supported
-     * <p> From that point onward its usages should be replaced with {@link #getHashes(List)} instead.
-     */
-    @Deprecated
-    public static String[] getSha1Hashes(List<X509Certificate> certs)
-            throws CertificateEncodingException, IOException {
-        String[] certHashes = new String[certs.size()];
-
-        for (int i = 0; i < certs.size(); i++) {
-            certHashes[i] = calculateCertSha1HexHash(certs.get(i));
-        }
-
-        return certHashes;
     }
 
     /**

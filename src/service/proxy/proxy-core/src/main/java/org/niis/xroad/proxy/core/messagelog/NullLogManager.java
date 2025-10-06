@@ -29,9 +29,9 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.util.JobManager;
 
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -43,8 +43,8 @@ import java.util.Map;
  */
 public class NullLogManager extends AbstractLogManager {
 
-    NullLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(jobManager, globalConfProvider, serverConfProvider);
+    public NullLogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        super(globalConfProvider, serverConfProvider);
     }
 
     @Override

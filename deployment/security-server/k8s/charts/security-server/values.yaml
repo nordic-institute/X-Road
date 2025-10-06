@@ -1,0 +1,372 @@
+init:
+  serverconf:
+    image: localhost:5555/ss-db-serverconf-init:latest
+    imagePullPolicy: IfNotPresent
+    host: "db-serverconf.ss.svc.cluster.local"
+    port: "5432"
+    database: "serverconf"
+    username: "serverconf"
+    schema: "public"
+    proxyUiSuperuser: "xrd"
+#    proxyUiSuperuserPassword:
+  messagelog:
+    image: localhost:5555/ss-db-messagelog-init:latest
+    imagePullPolicy: IfNotPresent
+    host: "db-messagelog.ss.svc.cluster.local"
+    port: "5432"
+    database: "messagelog"
+    username: "messagelog"
+    schema: "public"
+  opmonitor:
+    image: localhost:5555/ss-db-opmonitor-init:latest
+    imagePullPolicy: IfNotPresent
+    host: "db-opmonitor.ss.svc.cluster.local"
+    port: "5432"
+    database: "op-monitor"
+    username: "opmonitor"
+    schema: "public"
+
+serviceAccount:
+  name: "ss-init-sa"
+  create: true
+
+services:
+  configuration-client:
+    image: localhost:5555/ss-configuration-client:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 320Mi
+    ports:
+      - port: 4099
+        name: http
+      - port: 5665
+        name: grpc
+    readinessProbe:
+      path: "/q/health"
+      scheme: "HTTP"
+    serviceAccount:
+      annotations: { }
+    env:
+      XROAD_HOST: "configuration-client.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+      XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL: "60"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
+      DB_CONFIG_SOURCE_ENABLED: "true"
+      DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf"
+      DB_CONFIG_SOURCE_USERNAME: "serverconf"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+      - name: "DB_CONFIG_SOURCE_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+
+  signer:
+    image: localhost:5555/ss-signer:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 320Mi
+    ports:
+      - port: 4099
+        name: http
+      - port: 5560
+        name: grpc
+    readinessProbe:
+      path: "/q/health"
+      scheme: "HTTP"
+    serviceAccount:
+      annotations: { }
+    env:
+      XROAD_HOST: "signer.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client.ss.svc.cluster.local"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+  proxy:
+    image: localhost:5555/ss-proxy:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 4099
+        name: http
+      - port: 5567
+        name: grpc
+      - port: 5500
+        name: proxy-server
+      - port: 5577
+        name: proxy-ocsp
+      - port: 8080
+        name: proxy-http
+      - port: 8443
+        name: proxy-https
+    readinessProbe:
+      path: "/q/health"
+      scheme: "HTTP"
+    serviceAccount:
+      annotations: { }
+    env:
+      XROAD_HOST: "proxy.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client.ss.svc.cluster.local"
+      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer.ss.svc.cluster.local"
+      XROAD_OP_MONITOR_HOST: "op-monitor.ss.svc.cluster.local"
+      XROAD_OP_MONITOR_SCHEME: https
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+      XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-messagelog.ss.svc.cluster.local:5432/messagelog"
+      XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME: "messagelog"
+      XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+      - name: "XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-messagelog"
+        key: "password"
+  proxy-ui-api:
+    image: localhost:5555/ss-proxy-ui-api:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 4000
+        name: https
+    readinessProbe:
+      path: "" # Replace with "/actuator/health" once it's working again
+      scheme: "HTTPS"
+    debugPort: 9999
+    serviceAccount:
+      annotations: { }
+    env:
+      DEBUG_PORT: "9999"
+      XROAD_HOST: "proxy-ui-api.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client.ss.svc.cluster.local"
+      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer.ss.svc.cluster.local"
+      XROAD_COMMON_RPC_CHANNEL_PROXY_HOST: "proxy.ss.svc.cluster.local"
+      XROAD_COMMON_RPC_CHANNEL_BACKUP_MANAGER_HOST: "backup-manager.ss.svc.cluster.local"
+      XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST: "monitor.ss.svc.cluster.local"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+      XROAD_PROXY_UI_API_MANAGEMENT_PROXY_SERVER_URL: "https://proxy.ss.svc.cluster.local:8443"
+      DB_CONFIG_SOURCE_ENABLED: "true"
+      DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf"
+      DB_CONFIG_SOURCE_USERNAME: "serverconf"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+      - name: "DB_CONFIG_SOURCE_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+  messagelog-archiver:
+    image: localhost:5555/ss-message-log-archiver:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 4099
+        name: http
+    readinessProbe:
+      path: "/q/health"
+      scheme: "HTTP"
+    debugPort: 9999
+    serviceAccount:
+      annotations: { }
+    env:
+      DEBUG_PORT: "9999"
+      XROAD_HOST: "messagelog-archiver.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+  monitor:
+    image: localhost:5555/ss-monitor:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 4099
+        name: http
+    debugPort: 9999
+    readinessProbe:
+      path: "/q/health"
+      scheme: "HTTP"
+    serviceAccount:
+      annotations: { }
+    env:
+      DEBUG_PORT: "9999"
+      XROAD_HOST: "monitor.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client.ss.svc.cluster.local"
+      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer.ss.svc.cluster.local"
+      XROAD_COMMON_RPC_CHANNEL_PROXY_HOST: "proxy.ss.svc.cluster.local"
+      XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST: "monitor.ss.svc.cluster.local"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+  op-monitor:
+    enabled: false
+    image: localhost:5555/ss-op-monitor:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 4099
+        name: http
+      - port: 2080
+        name: opmon-daemon
+    debugPort: 9999
+    readinessProbe:
+      path: "/q/health"
+      scheme: "HTTP"
+    serviceAccount:
+      annotations: { }
+    env:
+      DEBUG_PORT: "9999"
+      XROAD_HOST: "opmonitor.ss.svc.cluster.local"
+      XROAD_OP_MONITOR_LISTEN_ADDRESS: 0.0.0.0
+      XROAD_OP_MONITOR_SCHEME: https
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client.ss.svc.cluster.local"
+      "xroad.db.op-monitor.hibernate.connection.url": "jdbc:postgresql://db-opmonitor.ss.svc.cluster.local:5432/op-monitor"
+      "xroad.db.op-monitor.hibernate.connection.username": "opmonitor"
+      "xroad.db.op-monitor.hibernate.connection.driver_class": "org.postgresql.Driver"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "xroad.db.op-monitor.hibernate.connection.password"
+        secretName: "db-opmonitor"
+        key: "password"
+  backup-manager:
+    image: localhost:5555/ss-backup-manager:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    rbac:
+      extraRules:
+        - apiGroups: ["batch"]
+          resources: ["jobs"]
+          verbs: ["create", "get", "list", "watch"]
+        - apiGroups: [ "apps" ]
+          resources: [ "deployments","deployments/scale" ]
+          verbs: [ "get", "list", "update", "watch", "patch" ]
+    ports:
+      - port: 4099
+        name: http
+      - port: 7665
+        name: grpc
+    readinessProbe:
+      path: "/q/health"
+      scheme: "HTTP"
+    serviceAccount:
+      annotations: { }
+    env:
+      XROAD_HOST: "backup-manager.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+      XROAD_SERVERCONF_DB_HOST: "db-serverconf.ss.svc.cluster.local"
+      XROAD_SERVERCONF_DB_PORT: "5432"
+      XROAD_SERVERCONF_DB_NAME: "serverconf"
+      XROAD_SERVERCONF_DB_SCHEMA: "public"
+      XROAD_SERVERCONF_DB_USERNAME: "serverconf"
+      XROAD_OPENBAO_DB_HOST: "db-openbao.ss.svc.cluster.local"
+      XROAD_OPENBAO_DB_PORT: "5432"
+      XROAD_OPENBAO_DB_DATABASE: "openbao"
+      XROAD_OPENBAO_DB_SCHEMA: "public"
+      XROAD_OPENBAO_DB_USER: "openbao"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_SERVERCONF_DB_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+      - name: "XROAD_SERVERCONF_DB_ADMIN_PASSWORD"
+        secretName: "db-serverconf"
+        key: "postgres-password"
+      - name: "XROAD_OPENBAO_DB_PASSWORD"
+        secretName: "db-openbao"
+        key: "password"
+    volumeMounts:
+      - mountPath: /var/lib/xroad
+        name: backups-volume
+      - mountPath: /etc/xroad/gpghome
+        name: gpg-key-volume
+    volumes:
+      - name: backups-volume
+        persistentVolumeClaim:
+          claimName: backups-pvc
+      - name: gpg-key-volume
+        persistentVolumeClaim:
+          claimName: gpg-keys-pvc
+
+persistentVolumeClaims:
+  backups-pvc:
+    accessMode: ReadWriteOnce
+    storage: 1Gi
+  gpg-keys-pvc:
+    accessMode: ReadWriteOnce
+    storage: 128Mi
