@@ -1,4 +1,7 @@
 packages:
-  - "shared-ui/"
-  - "central-server/admin-service/ui"
-  - "security-server/admin-service/ui"
+  - shared-ui/
+  - central-server/admin-service/ui
+  - security-server/admin-service/ui
+
+ignoredBuiltDependencies:
+  - esbuild
