@@ -34,7 +34,7 @@ resilience4j = "2.3.0"
 quarkus = "3.28.2"
 quarkus-vault = "4.4.0"
 quarkus-systemd-notify = "1.0.2"
-smallryeConfig = "3.14.0"
+smallryeConfig = "3.13.4"
 microprofile = "3.1"
 
 [libraries]
