@@ -33,6 +33,7 @@ option java_multiple_files = true;
 
 service GlobalConfService {
   rpc GetGlobalConf(GetGlobalConfReq) returns (GetGlobalConfRespWrapped) {}
+  rpc GetVerificationConf(Empty) returns (GetVerificationConfResp) {}
 }
 
 message GetGlobalConfReq {
@@ -66,4 +67,8 @@ message GlobalConfFile {
   string name = 1;
   string content = 2;
   string checksum = 3;
+}
+
+message GetVerificationConfResp {
+  bytes content = 1;
 }

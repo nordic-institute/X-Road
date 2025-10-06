@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
@@ -48,11 +49,13 @@ import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 @Slf4j
 public class AsicContainerHandler extends AbstractClientProxyHandler {
 
+    private final ConfClientRpcClient confClientRpcClient;
     /**
      * Constructor
      */
-    public AsicContainerHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
+    public AsicContainerHandler(CommonBeanProxy commonBeanProxy, HttpClient client, ConfClientRpcClient confClientRpcClient) {
         super(commonBeanProxy, client, false);
+        this.confClientRpcClient = confClientRpcClient;
     }
 
     @Override
@@ -74,6 +77,7 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
 
         AsicContainerClientRequestProcessor processor = new AsicContainerClientRequestProcessor(
                 commonBeanProxy,
+                confClientRpcClient,
                 target,
                 request,
                 response);

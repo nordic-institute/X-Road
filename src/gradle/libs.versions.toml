@@ -31,10 +31,10 @@ protobufPlugin = "0.9.5"
 checkstyle = "11.0.1"
 jacoco = "0.8.12"
 resilience4j = "2.3.0"
-quarkus = "3.26.3"
+quarkus = "3.28.2"
 quarkus-vault = "4.4.0"
 quarkus-systemd-notify = "1.0.2"
-smallryeConfig = "3.13.4"
+smallryeConfig = "3.14.0"
 microprofile = "3.1"
 
 [libraries]
@@ -72,7 +72,7 @@ quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit5", version.ref = 
 quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vault", version.ref = "quarkus-vault" }
 quarkus-extension-systemd-notify = { group = "io.quarkiverse.systemd.notify", name = "quarkus-systemd-notify", version.ref = "quarkus-systemd-notify" }
 
-microprofile-config-api = { group = "org.eclipse.microprofile.config", name =  "microprofile-config-api", version.ref = "microprofile" }
+microprofile-config-api = { group = "org.eclipse.microprofile.config", name = "microprofile-config-api", version.ref = "microprofile" }
 
 smallrye-config-core = { group = "io.smallrye.config", name = "smallrye-config-core", version.ref = "smallryeConfig" }
 
@@ -149,7 +149,7 @@ apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = 
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.10.0" }
 commons-codec = { module = "commons-codec:commons-codec", version = "1.19.0" }
-commons-dbutils = { module = "commons-dbutils:commons-dbutils", version = "1.8.1"}
+commons-dbutils = { module = "commons-dbutils:commons-dbutils", version = "1.8.1" }
 commons-io = { module = "commons-io:commons-io", version = "2.20.0" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
 
@@ -189,7 +189,7 @@ quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
 semver4j = { module = "org.semver4j:semver4j", version = "6.0.0" }
-systemStubs = { module = "uk.org.webcompere:system-stubs-jupiter", version = "2.1.8"}
+systemStubs = { module = "uk.org.webcompere:system-stubs-jupiter", version = "2.1.8" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.5" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
