@@ -43,6 +43,14 @@
                     </documentation>
                 </annotation>
             </element>
+            <element name="dryRun" type="boolean" minOccurs="0" default="false">
+                <annotation>
+                    <documentation>
+                        Optional flag indicating whether the request should
+                        be validated and processed as a dry run only.
+                    </documentation>
+                </annotation>
+            </element>
             <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
         </sequence>
     </complexType>

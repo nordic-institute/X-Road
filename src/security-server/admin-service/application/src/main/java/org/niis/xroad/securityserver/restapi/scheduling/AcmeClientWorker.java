@@ -362,7 +362,8 @@ public class AcmeClientWorker {
                 ManagementRequestSender managementRequestSender = createManagementRequestSender();
                 managementRequestSender.sendAuthCertRegRequest(securityServerId,
                         securityServerAddress,
-                        newX509Certificate.getEncoded());
+                        newX509Certificate.getEncoded(),
+                        false);
                 signerRpcClient.setCertStatus(newCertInfo.getId(), CertificateInfo.STATUS_REGINPROG);
             }
         } catch (Exception ex) {

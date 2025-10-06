@@ -84,7 +84,7 @@ final class ManagementRequestBuilder {
 
     // -- Public API methods --------------------------------------------------
 
-    SoapMessageImpl buildAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
+    SoapMessageImpl buildAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert, boolean dryRun)
             throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildAuthCertRegRequest(server: {}, address: {})", securityServer, address);
 
@@ -92,6 +92,7 @@ final class ManagementRequestBuilder {
         request.setServer(securityServer);
         request.setAddress(address);
         request.setAuthCert(authCert);
+        request.setDryRun(dryRun);
 
         return buildMessage(element(AUTH_CERT_REGISTRATION_REQUEST, AuthCertRegRequestType.class, request));
     }

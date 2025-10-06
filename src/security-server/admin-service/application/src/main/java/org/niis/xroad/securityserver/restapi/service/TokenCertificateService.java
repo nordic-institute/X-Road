@@ -26,6 +26,8 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ConnectionTest;
+import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
@@ -50,6 +52,7 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.niis.xroad.securityserver.restapi.util.HttpUrlConnectionConfigurer;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
@@ -63,18 +66,26 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.CertUtils.getCommonName;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.niis.xroad.common.core.exception.ErrorCode.CERT_EXISTS;
@@ -104,6 +115,9 @@ public class TokenCertificateService {
     private static final String IMPORT_AUTH_CERT = "IMPORT_AUTH_CERT";
     private static final String IMPORT_SIGN_CERT = "IMPORT_SIGN_CERT";
     private static final String DN_SUBJECT_ALT_NAME = "subjectAltName";
+    private static final Integer E5000 = 5000;
+    private static final Integer E200 = 200;
+    private static final Integer E300 = 300;
 
     private final GlobalConfService globalConfService;
     private final GlobalConfProvider globalConfProvider;
@@ -123,6 +137,7 @@ public class TokenCertificateService {
     private final AcmeService acmeService;
     private final MailNotificationHelper mailNotificationHelper;
     private final ServerConfService serverConfService;
+    private final HttpUrlConnectionConfigurer connectionConfigurer = new HttpUrlConnectionConfigurer();
 
     /**
      * Create a CSR
@@ -714,7 +729,7 @@ public class TokenCertificateService {
         verifyCertAction(PossibleActionEnum.REGISTER, certificateInfo, hash);
         try {
             Integer requestId = managementRequestSenderService.sendAuthCertRegisterRequest(securityServerAddress,
-                    certificateInfo.getCertificateBytes());
+                    certificateInfo.getCertificateBytes(), false);
             auditDataHelper.put(RestApiAuditProperty.ADDRESS, securityServerAddress);
             auditDataHelper.putManagementRequestId(requestId);
             auditDataHelper.put(RestApiAuditProperty.CERT_STATUS, CertificateInfo.STATUS_REGINPROG);
@@ -724,6 +739,116 @@ public class TokenCertificateService {
         } catch (Exception e) {
             throw new InternalServerErrorException("Could not register auth cert", e, INTERNAL_ERROR.build());
         }
+    }
+
+    public ConnectionTest getGlobalConfStatusInfo(String httpType) {
+        try {
+            return checkVersionLocationExists(new URL(httpType + "://cs:" + ("HTTP".equals(httpType) ? "80" : "443") + "/internalconf"));
+        } catch (Exception e) {
+            return setAndReturnResult("", null);
+        }
+    }
+
+    private ConnectionTest checkVersionLocationExists(URL url) {
+        HttpURLConnection connection = null;
+
+        try {
+            connection = (HttpURLConnection) url.openConnection();
+            connectionConfigurer.apply(connection);
+
+            int responseCode = connection.getResponseCode();
+
+            InputStream inputStream;
+            if (responseCode == E200) {
+                globalConfProvider.verifyValidity();
+                return new ConnectionTest(DiagnosticStatus.OK);
+            } else if (responseCode > E200 && responseCode < E300) {
+                inputStream = connection.getInputStream();
+            } else {
+                inputStream = connection.getErrorStream();
+            }
+
+            if (inputStream != null) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line).append("\n");
+                    }
+                    return setAndReturnResult("HTTP" + responseCode, List.of(response.toString()));
+                }
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            XrdRuntimeException result = XrdRuntimeException.systemException(e);
+            return setAndReturnResult(result.getErrorCode(), List.of(result.getDetails()));
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+
+    // Suspend any existing tx from the controller/service layer.
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public ConnectionTest getAuthCertRegStatusInfo() {
+        CertificateInfo cert = null;
+        String certErrorCode = null;
+        List<String> certValidationMetadata = new ArrayList<>();
+
+        // 1) Validation: collect message but DO NOT throw; continue to sending step
+        try {
+            cert = getAuthCert()
+                    .orElseThrow(() -> new CertificateNotFoundException("No active auth cert found"));
+            verifyAuthCert(cert);
+            //verifyCertAction(PossibleActionEnum.REGISTER, cert, cert.getRenewedCertHash());
+        } catch (CertificateNotFoundException | InvalidCertificateException | SignCertificateNotSupportedException | KeyNotFoundException
+                 | ActionNotPossibleException e) {
+            certErrorCode = e.getErrorDeviation().code();
+            certValidationMetadata = e.getErrorDeviation().metadata();
+        }
+
+        // 2) Attempt the management request regardless (empty bytes if no cert)
+        try {
+            byte[] bytes = (cert != null) ? cert.getCertificateBytes() : new byte[0];
+            managementRequestSenderService.sendAuthCertRegisterRequest("kuku", bytes, true);
+        } catch (GlobalConfOutdatedException e) {
+            return setAndReturnResult(e.getErrorDeviation().code(), e.getErrorDeviation().metadata(), certErrorCode,
+                    certValidationMetadata);
+        } catch (XrdRuntimeException e) {
+            return setAndReturnResult(e.getErrorCode(), List.of(e.getDetails()), certErrorCode, certValidationMetadata);
+        } catch (CodedException e) {
+            // special case: if no cert, the error is expected, and we return only cert validation result
+            if (cert == null && X_INVALID_REQUEST.equals(e.getFaultCode())) {
+                return setAndReturnResult(certErrorCode, certValidationMetadata);
+            }
+            return setAndReturnResult(e.getFaultCode(), List.of(e.getFaultString()), certErrorCode, certValidationMetadata);
+        }
+
+        // 3) Return combined result (empty = success)
+        return setAndReturnResult(certErrorCode, certValidationMetadata);
+    }
+
+    private ConnectionTest setAndReturnResult(String errorCode, List<String> metadata) {
+        return errorCode == null ? new ConnectionTest(DiagnosticStatus.OK)
+                : new ConnectionTest(DiagnosticStatus.ERROR, errorCode, metadata);
+    }
+
+    private ConnectionTest setAndReturnResult(String errorCode, List<String> metadata, String certErrorCode, List<String> certMetadata) {
+        return certErrorCode == null ? new ConnectionTest(DiagnosticStatus.ERROR, errorCode, metadata)
+                : new ConnectionTest(DiagnosticStatus.ERROR, errorCode, metadata, certErrorCode, certMetadata);
+    }
+
+
+    private Optional<CertificateInfo> getAuthCert() throws CertificateNotFoundException {
+        return tokenService.getToken("0").getKeyInfo().stream()
+                    .filter(keyInfo -> keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION)
+                    .flatMap(keyInfo2 -> keyInfo2.getCerts().stream())
+                    .filter(CertificateInfo::isActive)
+                   // .map(CertificateInfo::getCertificateBytes)
+                    .findFirst();
     }
 
     /**

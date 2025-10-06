@@ -26,7 +26,7 @@
 
 import {
   AddOnStatus,
-  BackupEncryptionStatus,
+  BackupEncryptionStatus, CentralServerConnectionStatus,
   GlobalConfDiagnostics,
   MessageLogEncryptionStatus,
   OcspResponderDiagnostics,
@@ -44,6 +44,9 @@ export interface DiagnosticsState {
   backupEncryptionDiagnostics?: BackupEncryptionStatus;
   messageLogEncryptionDiagnostics?: MessageLogEncryptionStatus;
   proxyMemoryUsageStatus?: ProxyMemoryUsageStatus;
+  centralServerConnectionStatus?: CentralServerConnectionStatus;
+  centralServerGlobalConfStatus?: CentralServerConnectionStatus;
+  centralServerGlobalConfHttpsStatus?: CentralServerConnectionStatus;
 }
 
 export const useDiagnostics = defineStore('diagnostics', {
@@ -119,6 +122,31 @@ export const useDiagnostics = defineStore('diagnostics', {
         .get<ProxyMemoryUsageStatus>('/diagnostics/proxy-memory-usage-status')
         .then((res) => {
           this.proxyMemoryUsageStatus = res.data;
+        });
+    },
+    async fetchCentralServerConnectionStatus() {
+      return api
+        .get<CentralServerConnectionStatus>('/diagnostics/cs-connection-status')
+        .then((res) => {
+          this.centralServerConnectionStatus = res.data;
+        });
+    },
+    async fetchCentralServerGlobalConfStatus() {
+      return api
+        .get<CentralServerConnectionStatus>('/diagnostics/cs-globalconf-status')
+        .then((res) => {
+          this.centralServerGlobalConfStatus = res.data;
+        });
+    },
+    async fetchCentralServerGlobalConfHttpsStatus() {
+      return api
+        .get<CentralServerConnectionStatus>('/diagnostics/cs-globalconf-status', {
+          params: {
+            http_type: 'HTTPS', // 👈 add your query parameter here
+          },
+        })
+        .then((res) => {
+          this.centralServerGlobalConfHttpsStatus = res.data;
         });
     },
   },

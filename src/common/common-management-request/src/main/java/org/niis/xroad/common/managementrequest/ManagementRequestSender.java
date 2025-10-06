@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.model.AddressChangeRequest;
 import org.niis.xroad.common.managementrequest.model.AuthCertRegRequest;
+import org.niis.xroad.common.managementrequest.model.AuthCertRegWithoutCertRequest;
 import org.niis.xroad.common.managementrequest.model.ClientDisableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientRegRequest;
@@ -119,11 +120,17 @@ public final class ManagementRequestSender {
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
-    public Integer sendAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
+    public Integer sendAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert, boolean dryRun)
             throws Exception {
+        if (dryRun && authCert.length == 0) {
+            try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
+                return send(sender, getCentralServiceURI(), new AuthCertRegWithoutCertRequest(signerRpcClient, authCert,
+                        securityServer.getOwner(), builder.buildAuthCertRegRequest(securityServer, address, authCert, dryRun)));
+            }
+        }
         try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
             return send(sender, getCentralServiceURI(), new AuthCertRegRequest(signerRpcClient, authCert, securityServer.getOwner(),
-                    builder.buildAuthCertRegRequest(securityServer, address, authCert)));
+                    builder.buildAuthCertRegRequest(securityServer, address, authCert, dryRun)));
         }
     }
 

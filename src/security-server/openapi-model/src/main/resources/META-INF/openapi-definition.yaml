@@ -2390,6 +2390,67 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /diagnostics/cs-connection-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view cs connection information
+      operationId: getCentralServerConnectionStatus
+      description: <h3>Administrator views the central server connection status.</h3>
+      responses:
+        '200':
+          description: central server connection status information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CentralServerConnectionStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /diagnostics/cs-globalconf-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view cs connection information
+      operationId: getCentralServerGlobalConfConnectionStatus
+      description: <h3>Administrator views the central server connection status.</h3>
+      parameters:
+        - name: http_type
+          in: query
+          description: Optional type of connection (defaults to HTTP)
+          required: false
+          schema:
+            type: string
+            enum: [ HTTP, HTTPS ]
+            default: HTTP
+      responses:
+        '200':
+          description: central server connection status information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CentralServerConnectionStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /diagnostics/operational-monitoring:
     get:
       tags:
@@ -5983,6 +6044,20 @@ components:
           type: boolean
           readOnly: true
           description: Is usage over threshold
+    CentralServerConnectionStatus:
+      type: object
+      description: central server connection status
+      required:
+        - status_class
+        - error
+      properties:
+        status_class:
+          readOnly: true
+          description: diagnostics status class
+          allOf:
+            - $ref: '#/components/schemas/DiagnosticStatusClass'
+        error:
+          $ref: '#/components/schemas/CodeWithDetails'
     MailNotificationStatus:
       type: object
       description: automatic e-mail notification status

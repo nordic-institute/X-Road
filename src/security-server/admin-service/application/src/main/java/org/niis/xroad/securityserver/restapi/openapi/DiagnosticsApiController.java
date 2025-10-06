@@ -40,6 +40,7 @@ import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.ServiceIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.AddOnStatusConverter;
+import org.niis.xroad.securityserver.restapi.converter.AuthCertStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.BackupEncryptionStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.GlobalConfDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.MessageLogEncryptionStatusConverter;
@@ -50,6 +51,7 @@ import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagno
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CentralServerConnectionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
@@ -57,6 +59,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.OperationalDataInterv
 import org.niis.xroad.securityserver.restapi.openapi.model.ProxyMemoryUsageStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
+import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -97,6 +100,8 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private final OperationalInfoConverter operationalInfoConverter;
     private final ClientIdConverter clientIdConverter;
     private final ServiceIdConverter serviceIdConverter;
+    private final AuthCertStatusConverter authCertStatusConverter;
+    private final TokenCertificateService tokenCertificateService;
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
@@ -145,6 +150,19 @@ public class DiagnosticsApiController implements DiagnosticsApi {
                 diagnosticService.queryBackupEncryptionStatus();
         return new ResponseEntity<>(backupEncryptionStatusConverter
                 .convert(backupEncryptionStatusDiagnostics), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<CentralServerConnectionStatusDto> getCentralServerConnectionStatus() {
+        return new ResponseEntity<>(authCertStatusConverter.convert(tokenCertificateService.getAuthCertRegStatusInfo()), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<CentralServerConnectionStatusDto> getCentralServerGlobalConfConnectionStatus(String httpType) {
+        return new ResponseEntity<>(authCertStatusConverter.convert(tokenCertificateService.getGlobalConfStatusInfo(httpType)),
+                HttpStatus.OK);
     }
 
     @Override
