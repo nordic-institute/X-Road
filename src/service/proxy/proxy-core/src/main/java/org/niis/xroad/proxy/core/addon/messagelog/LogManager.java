@@ -47,7 +47,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 

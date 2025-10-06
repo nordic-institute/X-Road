@@ -48,10 +48,11 @@ message CertificationServiceStatus {
 }
 
 message OcspResponderStatus {
-  int32 status = 1 ;
+  DiagnosticStatusType status = 1;
   string url = 2;
   optional int64 prev_update = 3;
   int64 next_update = 4;
+  optional string error_code = 5;
 }
 
 message KeyConfChecksum {

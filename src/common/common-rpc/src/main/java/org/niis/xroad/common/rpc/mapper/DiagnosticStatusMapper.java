@@ -23,5 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.mapper;public class DiagnosticStatusMapper {
+package org.niis.xroad.common.rpc.mapper;
+
+import ee.ria.xroad.common.DiagnosticStatus;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.niis.xroad.rpc.common.DiagnosticStatusType;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class DiagnosticStatusMapper {
+
+    public static DiagnosticStatus mapStatus(DiagnosticStatusType status) {
+        return switch (status) {
+            case DIAGNOSTIC_STATUS_OK -> DiagnosticStatus.OK;
+            case DIAGNOSTIC_STATUS_UNINITIALIZED -> DiagnosticStatus.UNINITIALIZED;
+            case DIAGNOSTIC_STATUS_ERROR -> DiagnosticStatus.ERROR;
+            case DIAGNOSTIC_STATUS_UNKNOWN -> DiagnosticStatus.UNKNOWN;
+            default -> throw new IllegalArgumentException("Unknown status: " + status);
+        };
+    }
+
+    public static DiagnosticStatusType mapStatus(DiagnosticStatus status) {
+        return switch (status) {
+            case OK -> DiagnosticStatusType.DIAGNOSTIC_STATUS_OK;
+            case UNINITIALIZED -> DiagnosticStatusType.DIAGNOSTIC_STATUS_UNINITIALIZED;
+            case ERROR -> DiagnosticStatusType.DIAGNOSTIC_STATUS_ERROR;
+            case UNKNOWN -> DiagnosticStatusType.DIAGNOSTIC_STATUS_UNKNOWN;
+        };
+    }
 }

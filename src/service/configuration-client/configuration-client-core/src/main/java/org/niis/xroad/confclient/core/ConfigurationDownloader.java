@@ -323,7 +323,8 @@ public class ConfigurationDownloader {
     boolean shouldDownload(ConfigurationFile newConfigurationFile, Path currentConfigurationFile) {
         log.trace("shouldDownload({}, {})", newConfigurationFile.getContentLocation(), newConfigurationFile.getHash());
 
-        if (Files.exists(currentConfigurationFile) && globalConfSourceLocationRepository.hasLocations(configurationFile.getInstanceIdentifier())) {
+        if (Files.exists(currentConfigurationFile)
+                && globalConfSourceLocationRepository.hasLocations(newConfigurationFile.getInstanceIdentifier())) {
             String contentHash = newConfigurationFile.getHash();
             byte[] fileHash;
             try {

@@ -31,7 +31,6 @@ import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 

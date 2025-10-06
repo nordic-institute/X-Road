@@ -34,10 +34,3 @@ option java_multiple_files = true;
 service AdminService {
   rpc GetStatus(Empty) returns (DiagnosticsStatus) {}
 }
-
-message DiagnosticsStatus {
-  int32 return_code = 1;
-  optional int64 prev_update = 2;
-  optional int64 next_update = 3;
-  optional string description = 4;
-}

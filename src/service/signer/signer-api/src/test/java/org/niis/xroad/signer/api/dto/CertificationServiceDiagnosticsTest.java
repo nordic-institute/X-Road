@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.signer.api.dto;
 
+import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import org.junit.jupiter.api.Assertions;

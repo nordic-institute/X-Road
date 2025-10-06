@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -36,6 +37,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import com.google.protobuf.Timestamp;
 import org.junit.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
@@ -362,8 +364,13 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     public void getOcspResponderDiagnosticsFailNextUpdateTomorrow() {
         var certServiceStatus = new CertificationServiceStatus(CA_NAME_1);
+        OcspResponderStatus responderStatus = new OcspResponderStatus(DiagnosticStatus.ERROR,
+                OCSP_URL_1,
+                null,
+                NEXT_UPDATE_MIDNIGHT,
+                ErrorCode.OCSP_RESPONSE_PARSING_FAILURE);
         certServiceStatus.getOcspResponderStatusMap().put(OCSP_URL_1,
-                new OcspResponderStatus(DiagnosticStatus.ERROR, OCSP_URL_1, null, NEXT_UPDATE_MIDNIGHT, ErrorCode.OCSP_RESPONSE_PARSING_FAILURE));
+                responderStatus);
         var diagnosticsResponse = new CertificationServiceDiagnostics();
         diagnosticsResponse.update(Map.of(CA_NAME_1, certServiceStatus));
         when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
@@ -476,24 +483,24 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertThat(response.getBody().getFirst().getFailureCount()).isEqualTo(operationalDataInterval.getFailureCount());
     }
 
-    private org.niis.xroad.confclient.proto.DiagnosticsStatus createDiagnosticsStatus(DiagnosticStatus status,
+    private org.niis.xroad.rpc.common.DiagnosticsStatus createDiagnosticsStatus(DiagnosticStatus status,
                                                                                       Instant prevUpdate,
                                                                                       Instant nextUpdate) {
-        return org.niis.xroad.confclient.proto.DiagnosticsStatus.newBuilder()
-                .setDiagnosticStatus(status)
+        return org.niis.xroad.rpc.common.DiagnosticsStatus.newBuilder()
+                .setStatus(DiagnosticStatusMapper.mapStatus(status))
                 .setPrevUpdate(prevUpdate.toEpochMilli())
                 .setNextUpdate(nextUpdate.toEpochMilli())
                 .build();
     }
 
-    private org.niis.xroad.confclient.proto.DiagnosticsStatus createDiagnosticsStatus(ErrorCode errorCode,
+    private org.niis.xroad.rpc.common.DiagnosticsStatus createDiagnosticsStatus(ErrorCode errorCode,
                                                                                       Instant prevUpdate,
                                                                                       Instant nextUpdate) {
-        return org.niis.xroad.confclient.proto.DiagnosticsStatus.newBuilder()
-                .setDiagnosticStatus(DiagnosticStatus.ERROR)
+        return org.niis.xroad.rpc.common.DiagnosticsStatus.newBuilder()
+                .setStatus(DiagnosticStatusMapper.mapStatus(DiagnosticStatus.ERROR))
                 .setPrevUpdate(prevUpdate.toEpochMilli())
                 .setNextUpdate(nextUpdate.toEpochMilli())
-                .setErrorCode(errorCode)
+                .setErrorCode(errorCode.name())
                 .build();
     }
 }

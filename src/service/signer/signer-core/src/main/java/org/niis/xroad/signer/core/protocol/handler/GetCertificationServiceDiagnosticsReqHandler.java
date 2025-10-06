@@ -33,6 +33,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
 import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
@@ -87,10 +88,11 @@ public class GetCertificationServiceDiagnosticsReqHandler extends AbstractRpcHan
                     var nextUpdate = TimeUtils.offsetDateTimeToEpochMillis(entry.getValue().getNextUpdate());
 
                     var builder = OcspResponderStatus.newBuilder()
-                            .setStatus(entry.getValue().getStatus())
+                            .setStatus(DiagnosticStatusMapper.mapStatus(entry.getValue().getDiagnosticStatus()))
                             .setUrl(entry.getValue().getUrl());
                     ofNullable(prevUpdate).ifPresent(builder::setPrevUpdate);
                     ofNullable(nextUpdate).ifPresent(builder::setNextUpdate);
+                    ofNullable(entry.getValue().getErrorCode()).ifPresent(errorCode -> builder.setErrorCode(errorCode.name()));
                     return builder.build();
                 }));
 

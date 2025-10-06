@@ -23,11 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-<<<<<<<< HEAD:src/common/common-core/src/main/java/ee/ria/xroad/common/DiagnosticsStatus.java
 package ee.ria.xroad.common;
-========
-package org.niis.xroad.confclient.model;
->>>>>>>> develop-8.x:src/service/configuration-client/configuration-client-model/src/main/java/org/niis/xroad/confclient/model/DiagnosticsStatus.java
 
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -54,6 +50,7 @@ public class DiagnosticsStatus implements Serializable {
     private DiagnosticStatus status;
     private OffsetDateTime prevUpdate;
     private OffsetDateTime nextUpdate;
+    @Setter
     private ErrorCode errorCode;
     @Setter
     private String description;
@@ -82,6 +79,13 @@ public class DiagnosticsStatus implements Serializable {
         this.status = status;
         this.prevUpdate = prevUpdate;
         this.nextUpdate = nextUpdate;
+    }
+
+    public DiagnosticsStatus(DiagnosticStatus status, OffsetDateTime prevUpdate, OffsetDateTime nextUpdate, String description) {
+        this.status = status;
+        this.prevUpdate = prevUpdate;
+        this.nextUpdate = nextUpdate;
+        this.description = description;
     }
 
     public DiagnosticsStatus(DiagnosticStatus status, OffsetDateTime prevUpdate, OffsetDateTime nextUpdate, ErrorCode errorCode) {

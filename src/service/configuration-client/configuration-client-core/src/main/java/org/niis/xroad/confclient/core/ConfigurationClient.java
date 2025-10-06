@@ -25,15 +25,12 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.ConfProvider;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.confclient.core.globalconf.ConfigurationAnchorProvider;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.confclient.core.globalconf.ConfigurationAnchorProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
@@ -86,7 +83,7 @@ public class ConfigurationClient {
         this.allowedFederations = allowedFederations;
     }
 
-    public synchronized DownloadResult execute() throws Exception {
+    public synchronized void execute() throws Exception {
         log.debug("Configuration client executing...");
 
         if (configurationAnchor == null) {
@@ -105,7 +102,6 @@ public class ConfigurationClient {
         deleteExtraConfigurationDirectories(configurationSources, sourceFilter);
 
         downloadConfigurationFromAdditionalSources(configurationSources, sourceFilter);
-        return downloadResult;
     }
 
     protected List<PrivateParameters.ConfigurationAnchor> getAdditionalConfigurationSources() {
@@ -117,14 +113,16 @@ public class ConfigurationClient {
         log.trace("initConfigurationAnchor()");
 
         if (configurationAnchorProvider == null || !configurationAnchorProvider.isAnchorPresent()) {
+            String warningMessage;
             if (configurationAnchorProvider == null) {
-                log.warn("Cannot download configuration, no configuration anchor present.");
+                warningMessage = "Cannot download configuration, no configuration anchor present.";
             } else {
-                log.warn("Cannot download configuration, configuration anchor does not exist ({})", configurationAnchorProvider.source());
+                warningMessage = "Cannot download configuration, configuration anchor does not exist (%s)"
+                        .formatted(configurationAnchorProvider.source());
             }
-
+            log.warn(warningMessage);
             throw XrdRuntimeException.systemException(ANCHOR_FILE_NOT_FOUND)
-                    .details("Cannot download configuration, anchor file %s does not exist".formatted())
+                    .details(warningMessage)
                     .build();
         }
 

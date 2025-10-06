@@ -34,13 +34,10 @@ import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.core.globalconf.GlobalConfRpcCache;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-
-import java.io.FileNotFoundException;
 
 import java.io.FileNotFoundException;
 
@@ -66,32 +63,26 @@ public class ConfigurationClientJob implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
-            DownloadResult downloadResult = configClient.execute();
-
-            DiagnosticsStatus status =
-                    new DiagnosticsStatus(DiagnosticStatus.OK, TimeUtils.offsetDateTimeNow(),
-                            TimeUtils.offsetDateTimeNow()
-                                    .plusSeconds(configurationClientProperties.updateInterval()));
-            status.setDescription(downloadResult.getLastSuccessfulLocationUrl());
-            context.setResult(status);
+            configClient.execute();
+            context.setResult(createDiagnosticsStatus(DiagnosticStatus.OK));
             globalConfRpcCache.refreshCache();
         } catch (FileNotFoundException e) {
-            DiagnosticsStatus status =
-                    new DiagnosticsStatus(DiagnosticStatus.UNINITIALIZED, TimeUtils.offsetDateTimeNow(),
-                            TimeUtils.offsetDateTimeNow()
-                                    .plusSeconds(configurationClientProperties.updateInterval()));
-            status.setDescription(configClient.getLastSuccessfulLocationUrl());
-            context.setResult(status);
+            context.setResult(createDiagnosticsStatus(DiagnosticStatus.UNINITIALIZED));
         } catch (Exception e) {
-            DiagnosticsStatus status = new DiagnosticsStatus(DiagnosticStatus.ERROR,
-                    TimeUtils.offsetDateTimeNow(),
-                    TimeUtils.offsetDateTimeNow()
-                            .plusSeconds(configurationClientProperties.updateInterval()),
-                    DiagnosticsUtils.getErrorCode(e));
+            DiagnosticsStatus status = createDiagnosticsStatus(DiagnosticStatus.ERROR);
+            status.setErrorCode(DiagnosticsUtils.getErrorCode(e));
             status.setErrorCodeMetadata(DiagnosticsUtils.getErrorCodeMetadata(e));
-            status.setDescription(configClient.getLastSuccessfulLocationUrl());
             context.setResult(status);
             throw new JobExecutionException(e);
         }
+    }
+
+    private DiagnosticsStatus createDiagnosticsStatus(DiagnosticStatus status) {
+        DiagnosticsStatus diagnosticsStatus =
+                new DiagnosticsStatus(status,
+                        TimeUtils.offsetDateTimeNow(),
+                        TimeUtils.offsetDateTimeNow().plusSeconds(configurationClientProperties.updateInterval()));
+        diagnosticsStatus.setDescription(configClient.getLastSuccessfulLocationUrl());
+        return diagnosticsStatus;
     }
 }

@@ -48,4 +48,16 @@ public class OcspResponderStatus implements Serializable {
     private final OffsetDateTime prevUpdate;
     private final OffsetDateTime nextUpdate;
     private ErrorCode errorCode;
+
+    public OcspResponderStatus(DiagnosticStatus diagnosticStatus,
+                               String url,
+                               OffsetDateTime prevUpdate,
+                               OffsetDateTime nextUpdate,
+                               ErrorCode errorCode) {
+        this.diagnosticStatus = diagnosticStatus;
+        this.url = url;
+        this.prevUpdate = prevUpdate;
+        this.nextUpdate = nextUpdate;
+        this.errorCode = errorCode;
+    }
 }

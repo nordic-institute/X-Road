@@ -37,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.confclient.core.ConfigurationClientJob;
 import org.niis.xroad.confclient.core.schedule.JobManager;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
