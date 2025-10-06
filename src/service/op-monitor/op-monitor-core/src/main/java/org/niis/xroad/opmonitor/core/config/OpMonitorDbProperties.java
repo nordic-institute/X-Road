@@ -28,13 +28,15 @@
 package org.niis.xroad.opmonitor.core.config;
 
 import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithName;
+import io.smallrye.config.WithParentName;
+import io.smallrye.config.WithUnnamedKey;
 
 import java.util.Map;
 
-@ConfigMapping(prefix = "xroad.db.op-monitor")
+@ConfigMapping(prefix = "xroad.db.op-monitor.hibernate")
 public interface OpMonitorDbProperties {
 
-    @WithName("hibernate")
+    @WithParentName
+    @WithUnnamedKey
     Map<String, String> hibernate();
 }
