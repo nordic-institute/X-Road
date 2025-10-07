@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,11 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.common.core.dto;
 
-import lombok.AccessLevel;
+import ee.ria.xroad.common.DiagnosticStatus;
+
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
@@ -38,30 +39,41 @@ import java.util.Map;
 
 @Getter
 @ToString
-@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 public class ConnectionStatus implements Serializable {
-    private DiagnosticStatus status;
+    private final DiagnosticStatus status;
     private String errorCode;
     private List<String> errorMetadata;
     private final Map<String, List<String>> validationErrors = new HashMap<>();
 
-    public ConnectionStatus(DiagnosticStatus status) {
-        this.status = status;
+    private ConnectionStatus() {
+        this.status = DiagnosticStatus.OK;
     }
 
-    public ConnectionStatus(DiagnosticStatus status, String errorCode, List<String> errorMetadata) {
-        this.status = status;
+    private ConnectionStatus(String errorCode, List<String> errorMetadata) {
+        this.status = DiagnosticStatus.ERROR;
         this.errorCode = errorCode;
         this.errorMetadata = errorMetadata;
     }
 
-    public ConnectionStatus(DiagnosticStatus status, String errorCode, List<String> errorMetadata, String validationError,
-                            List<String> validationMetadata) {
-        this.status = status;
+    private ConnectionStatus(String errorCode, List<String> errorMetadata, String validationError, List<String> validationMetadata) {
+        this.status = DiagnosticStatus.ERROR;
         this.errorCode = errorCode;
         this.errorMetadata = errorMetadata;
         this.validationErrors
                 .computeIfAbsent(validationError, k -> new ArrayList<>())
                 .addAll(validationMetadata);
+    }
+
+    public static ConnectionStatus create() {
+        return new ConnectionStatus();
+    }
+
+    public static ConnectionStatus create(String errorCode, List<String> metadata) {
+        return errorCode == null ? new ConnectionStatus() : new ConnectionStatus(errorCode, metadata);
+    }
+
+    public static ConnectionStatus create(String errorCode, List<String> metadata, String validationError, List<String> validationMetadata) {
+        return validationError == null ? new ConnectionStatus(errorCode, metadata)
+                : new ConnectionStatus(errorCode, metadata, validationError, validationMetadata);
     }
 }

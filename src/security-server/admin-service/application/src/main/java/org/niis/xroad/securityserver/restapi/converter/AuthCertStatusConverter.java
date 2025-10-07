@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.ConnectionStatus;
+import org.niis.xroad.common.core.dto.ConnectionStatus;
 
 import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.common.core.dto;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,6 +32,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @ToString
@@ -39,8 +41,21 @@ public class DownloadUrlConnectionStatus implements Serializable {
     private String downloadUrl;
     private ConnectionStatus connectionStatus;
 
-    public DownloadUrlConnectionStatus(String downloadUrl, ConnectionStatus connectionStatus) {
+    private DownloadUrlConnectionStatus(String downloadUrl) {
         this.downloadUrl = downloadUrl;
-        this.connectionStatus = connectionStatus;
+        this.connectionStatus = ConnectionStatus.create();
+    }
+
+    private DownloadUrlConnectionStatus(String downloadUrl, String errorCode, List<String> metadata) {
+        this.downloadUrl = downloadUrl;
+        this.connectionStatus = ConnectionStatus.create(errorCode, metadata);
+    }
+
+    public static DownloadUrlConnectionStatus create(String url) {
+        return new DownloadUrlConnectionStatus(url);
+    }
+
+    public static DownloadUrlConnectionStatus create(String url, String errorCode, List<String> metadata) {
+        return errorCode == null ? new DownloadUrlConnectionStatus(url) : new DownloadUrlConnectionStatus(url, errorCode, metadata);
     }
 }

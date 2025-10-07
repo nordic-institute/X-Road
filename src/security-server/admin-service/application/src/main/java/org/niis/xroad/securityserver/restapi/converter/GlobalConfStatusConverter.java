@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.DownloadUrlConnectionStatus;
+import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
 
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
 import org.springframework.stereotype.Component;
