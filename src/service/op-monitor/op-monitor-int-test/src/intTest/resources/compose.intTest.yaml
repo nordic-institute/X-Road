@@ -40,7 +40,7 @@ services:
       start_period: 5s
       interval: 5s
       retries: 40
-      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+      test: [ "CMD", "sh", "-c", "pg_isready -U opmonitor -d op-monitor -h localhost" ]
     deploy:
       resources:
         reservations:

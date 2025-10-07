@@ -1,3 +1,5 @@
+import java.time.Instant
+
 plugins {
   java
 }
@@ -27,3 +29,94 @@ tasks.named<Checkstyle>("checkstyleIntTest") {
   source = fileTree("src/intTest/java")
   configFile = file("${project.rootDir}/config/checkstyle/checkstyle-test.xml")
 }
+
+fun resolveIntTestImageTag(): String {
+  val overrideTag = project.findProperty("xroadImageTag")?.toString()
+  if (overrideTag != null) {
+    return overrideTag
+  }
+
+  val version = project.findProperty("xroadVersion")
+  val buildType = project.findProperty("xroadBuildType")
+
+  return if (buildType == "RELEASE") {
+    version.toString()
+  } else {
+    "$version-$buildType"
+  }
+}
+
+fun resolveIntTestImageRegistry(): String {
+  return project.findProperty("xroadImageRegistry")?.toString()!!
+}
+
+/**
+ * Extension for configuring Docker Compose .env file for integration tests
+ */
+abstract class IntTestComposeEnvExtension {
+  val images = mutableMapOf<String, String>()
+
+  /**
+   * Add a Docker image to the .env file
+   * @param envVar Environment variable name (e.g., "OP_MONITOR_IMG")
+   * @param imageName Docker image name (e.g., "ss-op-monitor")
+   */
+  fun image(envVar: String, imageName: String) {
+    images[envVar] = imageName
+  }
+
+  /**
+   * Convenience method to add multiple images
+   * @param imageNames Pairs of environment variable name to Docker image name
+   */
+  fun images(vararg imageNames: Pair<String, String>) {
+    imageNames.forEach { (envVar, imageName) ->
+      image(envVar, imageName)
+    }
+  }
+}
+
+// Create extension
+val intTestComposeEnv = project.extensions.create<IntTestComposeEnvExtension>("intTestComposeEnv")
+
+afterEvaluate {
+  if (intTestComposeEnv.images.isNotEmpty() && !tasks.names.contains("generateIntTestEnv")) {
+    tasks.register("generateIntTestEnv") {
+      description = "Generates .env file for integration tests with resolved image tags"
+      group = "verification"
+
+      dependsOn(tasks.named("processIntTestResources"))
+
+      val outputEnvFile = file("build/resources/intTest/.env")
+      outputs.file(outputEnvFile)
+
+      doLast {
+        val imageTag = resolveIntTestImageTag()
+        val imageRegistry = resolveIntTestImageRegistry()
+
+        logger.lifecycle("Generating .env file for integration tests:")
+        logger.lifecycle("  Registry: $imageRegistry")
+        logger.lifecycle("  Tag: $imageTag")
+
+        val envContent = buildString {
+          appendLine("# Auto-generated .env file for integration tests")
+          appendLine("# Generated at: ${Instant.now()}")
+          appendLine("# Registry: $imageRegistry")
+          appendLine("# Tag: $imageTag")
+          appendLine()
+
+          intTestComposeEnv.images.forEach { (envVar, imageName) ->
+            appendLine("$envVar=$imageRegistry/$imageName:$imageTag")
+          }
+        }
+
+        outputEnvFile.writeText(envContent)
+        logger.lifecycle("Generated: ${outputEnvFile.absolutePath}")
+      }
+    }
+  }
+}
+
+// Make helper functions available to build scripts (for backwards compatibility if needed)
+extra["resolveIntTestImageTag"] = ::resolveIntTestImageTag
+extra["resolveIntTestImageRegistry"] = ::resolveIntTestImageRegistry

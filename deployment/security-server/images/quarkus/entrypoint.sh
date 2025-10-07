@@ -19,6 +19,7 @@ fi
 
 exec java \
   -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
+  -Djava.library.path=/usr/share/xroad/lib \
   -Dquarkus.profile=containerized \
   $DEBUG_OPTS \
   -jar /opt/app/quarkus-run.jar
