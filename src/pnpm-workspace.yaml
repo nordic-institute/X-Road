@@ -2,3 +2,7 @@ packages:
   - shared-ui/
   - central-server/admin-service/ui
   - security-server/admin-service/ui
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - esbuild
