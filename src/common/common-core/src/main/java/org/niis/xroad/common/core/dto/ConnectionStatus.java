@@ -39,7 +39,7 @@ import java.util.Map;
 
 @Getter
 @ToString
-public class ConnectionStatus implements Serializable {
+public final class ConnectionStatus implements Serializable {
     private final DiagnosticStatus status;
     private String errorCode;
     private List<String> errorMetadata;
@@ -72,7 +72,8 @@ public class ConnectionStatus implements Serializable {
         return errorCode == null ? new ConnectionStatus() : new ConnectionStatus(errorCode, metadata);
     }
 
-    public static ConnectionStatus create(String errorCode, List<String> metadata, String validationError, List<String> validationMetadata) {
+    public static ConnectionStatus create(String errorCode, List<String> metadata, String validationError,
+                                          List<String> validationMetadata) {
         return validationError == null ? new ConnectionStatus(errorCode, metadata)
                 : new ConnectionStatus(errorCode, metadata, validationError, validationMetadata);
     }

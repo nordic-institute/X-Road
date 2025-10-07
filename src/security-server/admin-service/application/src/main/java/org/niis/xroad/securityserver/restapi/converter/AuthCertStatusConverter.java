@@ -27,7 +27,6 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import org.niis.xroad.common.core.dto.ConnectionStatus;
-
 import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;
 import org.springframework.stereotype.Component;

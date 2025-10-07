@@ -37,7 +37,7 @@ import java.util.List;
 @Getter
 @ToString
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
-public class DownloadUrlConnectionStatus implements Serializable {
+public final class DownloadUrlConnectionStatus implements Serializable {
     private String downloadUrl;
     private ConnectionStatus connectionStatus;
 
