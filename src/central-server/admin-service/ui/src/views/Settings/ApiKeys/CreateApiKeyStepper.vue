@@ -43,20 +43,20 @@
     >
       <v-stepper-header class="wizard-noshadow">
         <v-stepper-item
-          value="1"
+          :value="1"
           :complete="step > 0"
           :title="$t('apiKey.createApiKey.step.roles.name')"
         />
         <v-divider />
         <v-stepper-item
-          value="2"
+          :value="2"
           :complete="keyGenerated"
           :title="$t('apiKey.createApiKey.step.keyDetails.name')"
         />
       </v-stepper-header>
 
       <v-stepper-window class="wizard-stepper-content">
-        <v-stepper-window-item value="1" class="pa-0 centered">
+        <v-stepper-window-item :value="1" class="pa-0 centered">
           <div>
             <div class="wizard-step-form-content pt-6">
               <div class="wizard-row-wrap">
@@ -97,7 +97,7 @@
             </div>
           </div>
         </v-stepper-window-item>
-        <v-stepper-window-item value="2">
+        <v-stepper-window-item :value="2">
           <div>
             <div class="wizard-step-form-content pt-6">
               <div class="wizard-row-wrap">
@@ -219,7 +219,7 @@ export default defineComponent({
   components: { XrdFormLabel },
   data() {
     return {
-      step: 0,
+      step: 1,
       generatingKey: false,
       selectedRoles: [] as string[],
       apiKey: {} as ApiKey,
