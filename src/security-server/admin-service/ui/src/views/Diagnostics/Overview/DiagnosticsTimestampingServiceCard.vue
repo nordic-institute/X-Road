@@ -74,11 +74,7 @@
               :class="{ disabled: !messageLogEnabled }"
               data-test="timestamping-message"
             >
-              {{
-                $t(
-                  `diagnostics.timestamping.timestampingStatus.${timestampingService.status_code}`,
-                )
-              }}
+              {{ getStatusMessage(timestampingService) }}
             </td>
             <td class="time-column" :class="{ disabled: !messageLogEnabled }">
               {{ $filters.formatHoursMins(timestampingService.prev_update_at) }}
@@ -101,6 +97,11 @@ import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
+import {
+  DiagnosticStatusClass,
+  TimestampingServiceDiagnostics,
+} from '@/openapi-types';
+import { i18n } from '@niis/shared-ui';
 
 export default defineComponent({
   props: {
@@ -150,6 +151,20 @@ export default defineComponent({
           return 'error';
         default:
           return 'error';
+      }
+    },
+    getStatusMessage(
+      timestampingService: TimestampingServiceDiagnostics,
+    ): string {
+      if (timestampingService.status_class === DiagnosticStatusClass.FAIL) {
+        return i18n.global.t(
+          `error_code.${timestampingService.error?.code}`,
+          timestampingService.error?.metadata,
+        );
+      } else {
+        return i18n.global.t(
+          `diagnostics.timestamping.timestampingStatus.${timestampingService.status_class}`,
+        );
       }
     },
   },

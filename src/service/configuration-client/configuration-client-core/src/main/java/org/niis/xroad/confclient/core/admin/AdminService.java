@@ -32,9 +32,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.confclient.core.config.ConfClientJobConfig;
 import org.niis.xroad.confclient.proto.AdminServiceGrpc;
-import org.niis.xroad.confclient.proto.DiagnosticsStatus;
+import org.niis.xroad.rpc.common.DiagnosticsStatus;
 import org.niis.xroad.rpc.common.Empty;
 
 import java.util.function.Supplier;
@@ -61,7 +62,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
         DiagnosticsStatus.Builder responseBuilder = DiagnosticsStatus.newBuilder();
 
-        responseBuilder.setReturnCode(status.getReturnCode());
+        responseBuilder.setStatus(DiagnosticStatusMapper.mapStatus(status.getStatus()));
         ofNullable(offsetDateTimeToEpochMillis(status.getPrevUpdate())).ifPresent(responseBuilder::setPrevUpdate);
         ofNullable(offsetDateTimeToEpochMillis(status.getNextUpdate())).ifPresent(responseBuilder::setNextUpdate);
         if (StringUtils.isNotBlank(status.getDescription())) {

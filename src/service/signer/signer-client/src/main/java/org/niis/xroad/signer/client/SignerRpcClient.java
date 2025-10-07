@@ -39,11 +39,13 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
+import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
@@ -939,22 +941,26 @@ public class SignerRpcClient extends AbstractRpcClient {
             Map<String, CertificationServiceStatus> statusMap = dto.getCertificationServiceStatusMapMap()
                     .entrySet().stream()
                     .collect(Collectors.toMap(Map.Entry::getKey,
-                            entry -> toDto(entry.getValue())));
+                            entry -> fromDto(entry.getValue())));
 
             CertificationServiceDiagnostics response = new CertificationServiceDiagnostics();
             response.update(statusMap);
             return response;
         }
 
-        private static CertificationServiceStatus toDto(org.niis.xroad.signer.proto.CertificationServiceStatus status) {
+        private static CertificationServiceStatus fromDto(org.niis.xroad.signer.proto.CertificationServiceStatus status) {
             var response = new CertificationServiceStatus(status.getName());
             status.getOcspResponderStatusMapMap()
-                    .forEach((key, value) -> response.getOcspResponderStatusMap().put(key,
-                            new OcspResponderStatus(value.getStatus(),
-                                    value.getUrl(),
-                                    value.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(value.getPrevUpdate())) : null,
-                                    fromInstantToOffsetDateTime(ofEpochMilli(value.getNextUpdate())))
-                    ));
+                    .forEach((key, value) -> {
+                        OcspResponderStatus responderStatus = new OcspResponderStatus(DiagnosticStatusMapper.mapStatus(value.getStatus()),
+                                value.getUrl(),
+                                value.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(value.getPrevUpdate())) : null,
+                                fromInstantToOffsetDateTime(ofEpochMilli(value.getNextUpdate())));
+                        if (value.hasErrorCode()) {
+                            responderStatus.setErrorCode(ErrorCode.valueOf(value.getErrorCode()));
+                        }
+                        response.getOcspResponderStatusMap().put(key, responderStatus);
+                    });
             return response;
         }
 

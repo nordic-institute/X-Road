@@ -41,8 +41,6 @@ import org.niis.xroad.globalconf.schema.sharedparameters.v2.SecurityServerType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v2.SharedParametersTypeV2;
 import org.niis.xroad.globalconf.schema.sharedparameters.v2.SubsystemType;
 
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,7 +48,7 @@ import java.util.Map;
 
 public class SharedParametersV2Converter {
 
-    SharedParameters convert(SharedParametersTypeV2 source) throws CertificateEncodingException, IOException {
+    SharedParameters convert(SharedParametersTypeV2 source) {
         String instanceIdentifier = source.getInstanceIdentifier();
         List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source.getApprovedCA());
         List<SharedParameters.ApprovedTSA> approvedTSAs = getApprovedTSAs(source.getApprovedTSA());

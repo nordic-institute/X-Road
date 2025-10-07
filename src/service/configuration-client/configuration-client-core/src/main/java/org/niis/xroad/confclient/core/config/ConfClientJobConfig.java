@@ -25,7 +25,8 @@
  */
 package org.niis.xroad.confclient.core.config;
 
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import io.quarkus.runtime.Startup;
@@ -36,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.confclient.core.ConfigurationClientJob;
 import org.niis.xroad.confclient.core.schedule.JobManager;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -84,7 +84,7 @@ public class ConfClientJobConfig {
         }
 
         ConfigurationClientJobListener(ConfigurationClientProperties configurationClientProperties) {
-            status = new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, TimeUtils.offsetDateTimeNow(),
+            status = new DiagnosticsStatus(DiagnosticStatus.UNINITIALIZED, TimeUtils.offsetDateTimeNow(),
                     TimeUtils.offsetDateTimeNow().plusSeconds(configurationClientProperties.updateInterval()));
         }
 

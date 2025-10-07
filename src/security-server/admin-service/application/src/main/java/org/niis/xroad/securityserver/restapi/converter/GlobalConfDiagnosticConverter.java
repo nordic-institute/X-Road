@@ -26,13 +26,14 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatusDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
+
+import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import java.net.URI;
 
 /**
  * Converter for global configuration diagnostics related data between openapi and service domain classes
@@ -42,14 +43,17 @@ public class GlobalConfDiagnosticConverter {
 
     public GlobalConfDiagnosticsDto convert(DiagnosticsStatus diagnosticsStatus) {
         GlobalConfDiagnosticsDto globalConfDiagnostics = new GlobalConfDiagnosticsDto();
-        Optional<ConfigurationStatusDto> statusCode = ConfigurationStatusMapping.map(
-                diagnosticsStatus.getReturnCode());
-        globalConfDiagnostics.setStatusCode(statusCode.orElse(null));
-        Optional<DiagnosticStatusClassDto> statusClass = DiagnosticStatusClassMapping.map(
-                diagnosticsStatus.getReturnCode());
-        globalConfDiagnostics.setStatusClass(statusClass.orElse(null));
+        globalConfDiagnostics.setStatusClass(DiagnosticStatusClassMapping.map(diagnosticsStatus.getStatus()));
+        if (DiagnosticStatus.ERROR.equals(diagnosticsStatus.getStatus())) {
+            CodeWithDetailsDto codeWithDetails = new CodeWithDetailsDto(diagnosticsStatus.getErrorCode().code())
+                    .metadata(diagnosticsStatus.getErrorCodeMetadata());
+            globalConfDiagnostics.error(codeWithDetails);
+        }
         globalConfDiagnostics.setPrevUpdateAt(diagnosticsStatus.getPrevUpdate());
         globalConfDiagnostics.setNextUpdateAt(diagnosticsStatus.getNextUpdate());
+        if (diagnosticsStatus.getDescription() != null) {
+            globalConfDiagnostics.setLastSuccessfulUrl(URI.create(diagnosticsStatus.getDescription()));
+        }
 
         return globalConfDiagnostics;
     }

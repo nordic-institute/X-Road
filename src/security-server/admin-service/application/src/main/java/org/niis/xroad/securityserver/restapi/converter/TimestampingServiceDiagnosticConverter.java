@@ -25,14 +25,14 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
+
 import com.google.common.collect.Streams;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatusDto;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,12 +45,12 @@ public class TimestampingServiceDiagnosticConverter {
     public TimestampingServiceDiagnosticsDto convert(DiagnosticsStatus diagnosticsStatus) {
         TimestampingServiceDiagnosticsDto timestampingServiceDiagnostics = new TimestampingServiceDiagnosticsDto();
         timestampingServiceDiagnostics.setUrl(diagnosticsStatus.getDescription());
-        Optional<TimestampingStatusDto> statusCode = TimestampingStatusMapping.map(
-                diagnosticsStatus.getReturnCode());
-        timestampingServiceDiagnostics.setStatusCode(statusCode.orElse(null));
-        Optional<DiagnosticStatusClassDto> statusClass = DiagnosticStatusClassMapping.map(
-                diagnosticsStatus.getReturnCode());
-        timestampingServiceDiagnostics.setStatusClass(statusClass.orElse(null));
+        timestampingServiceDiagnostics.setStatusClass(DiagnosticStatusClassMapping.map(diagnosticsStatus.getStatus()));
+        if (DiagnosticStatus.ERROR.equals(diagnosticsStatus.getStatus())) {
+            CodeWithDetailsDto codeWithDetails = new CodeWithDetailsDto(diagnosticsStatus.getErrorCode().code())
+                    .metadata(diagnosticsStatus.getErrorCodeMetadata());
+            timestampingServiceDiagnostics.error(codeWithDetails);
+        }
         if (diagnosticsStatus.getPrevUpdate() != null) {
             timestampingServiceDiagnostics.setPrevUpdateAt(diagnosticsStatus.getPrevUpdate());
         }

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,42 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.testsuite.testcases;
+package ee.ria.xroad.common;
 
-import ee.ria.xroad.common.identifier.ServiceId;
+public enum DiagnosticStatus {
 
-import org.niis.xroad.proxy.core.test.Message;
-import org.niis.xroad.proxy.core.test.MessageTestCase;
+    OK,
+    UNINITIALIZED,
+    ERROR,
+    UNKNOWN
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_HOST;
-
-/**
- * Client sends request with attachments. The SP will connect to nonexistent
- * service and get error.
- * Result: Error from SP
- */
-public class InvalidServiceAddress2 extends MessageTestCase {
-
-    /**
-     * Constructs the test case.
-     */
-    public InvalidServiceAddress2() {
-        requestFileName = "attachm.query";
-        requestContentType = "multipart/related; charset=UTF-8; "
-                + "boundary=jetty771207119h3h10dty";
-
-        responseFile = "attachm.answer";
-    }
-
-    @Override
-    public String getServiceAddress(ServiceId service) {
-        return "http://non.existing.site.com.pom/service";
-    }
-
-    @Override
-    protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_SERVICE_FAILED_X, X_UNKNOWN_HOST);
-    }
 }

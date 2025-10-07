@@ -68,3 +68,19 @@ enum XRoadObjectType {
   GLOBALGROUP = 5;
   LOCALGROUP = 6 [deprecated = true]; // Deprecated
 }
+
+message DiagnosticsStatus {
+  DiagnosticStatusType status = 1;
+  optional int64 prev_update = 2;
+  optional int64 next_update = 3;
+  optional string description = 4;
+  optional string error_code = 5;
+  repeated string error_code_metadata = 6;
+}
+
+enum DiagnosticStatusType {
+  DIAGNOSTIC_STATUS_UNKNOWN = 0;
+  DIAGNOSTIC_STATUS_OK = 1;
+  DIAGNOSTIC_STATUS_UNINITIALIZED = 2;
+  DIAGNOSTIC_STATUS_ERROR = 3;
+}

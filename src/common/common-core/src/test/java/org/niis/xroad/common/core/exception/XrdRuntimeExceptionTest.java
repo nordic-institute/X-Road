@@ -31,6 +31,7 @@ import ee.ria.xroad.common.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -345,8 +346,21 @@ class XrdRuntimeExceptionTest {
     }
 
     @Test
-    void shouldTranslateNetworkExceptionToNetworkError() {
+    void shouldTranslateUnknownHostExceptionToUnknownHost() {
         UnknownHostException networkException = new UnknownHostException("host not found");
+
+        XrdRuntimeException result = XrdRuntimeException.systemException(networkException);
+
+        assertNotNull(result);
+        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
+        assertEquals(ErrorCode.UNKNOWN_HOST.code(), result.getCode());
+        assertEquals(networkException, result.getCause());
+        assertTrue(result.toString().contains("unknown_host"));
+    }
+
+    @Test
+    void shouldTranslateNetworkExceptionToNetworkError() {
+        MalformedURLException networkException = new MalformedURLException("Malformed URL");
 
         XrdRuntimeException result = XrdRuntimeException.systemException(networkException);
 

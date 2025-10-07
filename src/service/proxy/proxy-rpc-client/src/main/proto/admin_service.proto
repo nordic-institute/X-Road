@@ -71,10 +71,3 @@ message ProxyMemoryStatusResp {
   optional int64 threshold = 6;
 }
 
-message DiagnosticsStatus {
-  int32 return_code = 1;
-  optional int64 prev_update = 2;
-  optional int64 next_update = 3;
-  optional string description = 4;
-}
-

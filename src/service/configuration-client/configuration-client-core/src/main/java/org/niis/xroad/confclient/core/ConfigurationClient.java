@@ -25,10 +25,11 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.CodedException;
-
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confclient.core.globalconf.ConfigurationAnchorProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
@@ -38,7 +39,6 @@ import org.niis.xroad.globalconf.model.ConfigurationUtils;
 import org.niis.xroad.globalconf.model.ParametersProviderFactory;
 import org.niis.xroad.globalconf.model.PrivateParameters;
 
-import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
@@ -47,7 +47,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
+import static org.niis.xroad.common.core.exception.ErrorCode.ANCHOR_FILE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_ANCHOR;
 import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.getVersion;
 
 /**
@@ -63,6 +64,9 @@ public class ConfigurationClient {
     private final ConfigurationDownloader downloader;
 
     private ConfigurationSource configurationAnchor;
+
+    @Getter
+    private String lastSuccessfulLocationUrl = "";
 
     public ConfigurationClient(ConfigurationAnchorProvider configurationAnchorProvider, String globalConfigurationDir,
                                ConfigurationDownloader downloader, String allowedFederations) {
@@ -88,7 +92,8 @@ public class ConfigurationClient {
             initConfigurationAnchor();
         }
 
-        downloadConfigurationFromAnchor();
+        DownloadResult downloadResult = downloadConfigurationFromAnchor();
+        lastSuccessfulLocationUrl = downloadResult.getLastSuccessfulLocationUrl();
         var configurationSources = getAdditionalConfigurationSources();
 
         FederationConfigurationSourceFilter sourceFilter =
@@ -104,17 +109,21 @@ public class ConfigurationClient {
         return privateParameters != null ? privateParameters.getConfigurationAnchors() : List.of();
     }
 
-    private void initConfigurationAnchor() throws Exception {
+    private void initConfigurationAnchor() {
         log.trace("initConfigurationAnchor()");
 
         if (configurationAnchorProvider == null || !configurationAnchorProvider.isAnchorPresent()) {
+            String warningMessage;
             if (configurationAnchorProvider == null) {
-                log.warn("Cannot download configuration, no configuration anchor present.");
+                warningMessage = "Cannot download configuration, no configuration anchor present.";
             } else {
-                log.warn("Cannot download configuration, configuration anchor does not exist ({})", configurationAnchorProvider.source());
+                warningMessage = "Cannot download configuration, configuration anchor does not exist (%s)"
+                        .formatted(configurationAnchorProvider.source());
             }
-
-            throw new FileNotFoundException();
+            log.warn(warningMessage);
+            throw XrdRuntimeException.systemException(ANCHOR_FILE_NOT_FOUND)
+                    .details(warningMessage)
+                    .build();
         }
 
         try {
@@ -124,21 +133,32 @@ public class ConfigurationClient {
 
             log.error(message, e);
 
-            throw new CodedException(X_INVALID_XML, message);
+            throw XrdRuntimeException.systemException(MALFORMED_ANCHOR)
+                    .details(message)
+                    .build();
         }
 
         saveInstanceIdentifier();
     }
 
-    void saveInstanceIdentifier() throws Exception {
-        ConfigurationDirectory.saveInstanceIdentifier(globalConfigurationDir,
-                configurationAnchor.getInstanceIdentifier());
+    void saveInstanceIdentifier() {
+        try {
+            ConfigurationDirectory.saveInstanceIdentifier(globalConfigurationDir,
+                    configurationAnchor.getInstanceIdentifier());
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(ErrorCode.FAILED_TO_SAVE_INSTANCE_IDENTIFIER)
+                    .details("Failed to save instance identifier to a file")
+                    .cause(e)
+                    .build();
+        }
     }
 
-    private void downloadConfigurationFromAnchor() throws Exception {
+    private DownloadResult downloadConfigurationFromAnchor() throws Exception {
         log.debug("downloadConfFromAnchor()");
 
-        handleResult(downloader.download(configurationAnchor), true);
+        DownloadResult downloadResult = downloader.download(configurationAnchor);
+        handleResult(downloadResult, true);
+        return downloadResult;
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")

@@ -26,17 +26,16 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
+import ee.ria.xroad.common.DiagnosticsStatus;
+
 import com.google.common.collect.Streams;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatusDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,12 +64,11 @@ public class OcspResponderDiagnosticConverter {
     private OcspResponderDto convertOcspResponder(DiagnosticsStatus diagnosticsStatus) {
         OcspResponderDto ocspResponder = new OcspResponderDto();
         ocspResponder.setUrl(diagnosticsStatus.getDescription());
-        Optional<OcspStatusDto> statusCode = OcspStatusMapping.map(
-                diagnosticsStatus.getReturnCode());
-        ocspResponder.setStatusCode(statusCode.orElse(null));
-        Optional<DiagnosticStatusClassDto> statusClass = DiagnosticStatusClassMapping.map(
-                diagnosticsStatus.getReturnCode());
-        ocspResponder.setStatusClass(statusClass.orElse(null));
+        if (diagnosticsStatus.getErrorCode() != null) {
+            ocspResponder.setError(new CodeWithDetailsDto(diagnosticsStatus.getErrorCode().code())
+                    .metadata(diagnosticsStatus.getErrorCodeMetadata()));
+        }
+        ocspResponder.setStatusClass(DiagnosticStatusClassMapping.map(diagnosticsStatus.getStatus()));
         if (diagnosticsStatus.getPrevUpdate() != null) {
             ocspResponder.setPrevUpdateAt(diagnosticsStatus.getPrevUpdate());
         }
