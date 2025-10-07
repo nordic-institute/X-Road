@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-LAST_SUPPORTED_VERSION=7.6.0
+LAST_SUPPORTED_VERSION=7.8.0
 
 # Global variable to determine if text coloring is enabled
 isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
