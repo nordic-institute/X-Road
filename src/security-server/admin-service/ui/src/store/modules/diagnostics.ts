@@ -26,7 +26,9 @@
 
 import {
   AddOnStatus,
-  BackupEncryptionStatus, CentralServerConnectionStatus,
+  BackupEncryptionStatus,
+  ConnectionStatus,
+  GlobalConfConnectionStatus,
   GlobalConfDiagnostics,
   MessageLogEncryptionStatus,
   OcspResponderDiagnostics,
@@ -44,9 +46,8 @@ export interface DiagnosticsState {
   backupEncryptionDiagnostics?: BackupEncryptionStatus;
   messageLogEncryptionDiagnostics?: MessageLogEncryptionStatus;
   proxyMemoryUsageStatus?: ProxyMemoryUsageStatus;
-  centralServerConnectionStatus?: CentralServerConnectionStatus;
-  centralServerGlobalConfStatus?: CentralServerConnectionStatus;
-  centralServerGlobalConfHttpsStatus?: CentralServerConnectionStatus;
+  authCertReqStatus?: ConnectionStatus;
+  globalConfStatuses: GlobalConfConnectionStatus[];
 }
 
 export const useDiagnostics = defineStore('diagnostics', {
@@ -59,6 +60,8 @@ export const useDiagnostics = defineStore('diagnostics', {
       backupEncryptionDiagnostics: undefined,
       messageLogEncryptionDiagnostics: undefined,
       proxyMemoryUsageStatus: undefined,
+      authCertReqStatus: undefined,
+      globalConfStatuses: [],
     };
   },
   persist: {
@@ -124,29 +127,18 @@ export const useDiagnostics = defineStore('diagnostics', {
           this.proxyMemoryUsageStatus = res.data;
         });
     },
-    async fetchCentralServerConnectionStatus() {
+    async fetchAuthCertReqStatus() {
       return api
-        .get<CentralServerConnectionStatus>('/diagnostics/cs-connection-status')
+        .get<ConnectionStatus>('/diagnostics/auth-cert-req-status')
         .then((res) => {
-          this.centralServerConnectionStatus = res.data;
+          this.authCertReqStatus = res.data;
         });
     },
-    async fetchCentralServerGlobalConfStatus() {
+    async fetchGlobalConfStatuses() {
       return api
-        .get<CentralServerConnectionStatus>('/diagnostics/cs-globalconf-status')
+        .get<GlobalConfConnectionStatus[]>('/diagnostics/global-conf-status')
         .then((res) => {
-          this.centralServerGlobalConfStatus = res.data;
-        });
-    },
-    async fetchCentralServerGlobalConfHttpsStatus() {
-      return api
-        .get<CentralServerConnectionStatus>('/diagnostics/cs-globalconf-status', {
-          params: {
-            http_type: 'HTTPS', // 👈 add your query parameter here
-          },
-        })
-        .then((res) => {
-          this.centralServerGlobalConfHttpsStatus = res.data;
+          this.globalConfStatuses = res.data;
         });
     },
   },

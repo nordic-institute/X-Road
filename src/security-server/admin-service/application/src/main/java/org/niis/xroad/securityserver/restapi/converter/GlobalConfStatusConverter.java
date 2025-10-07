@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,35 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.managementrequest.model;
+package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.message.MultipartOutputStream;
-import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.DownloadUrlConnectionStatus;
 
-import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
+import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.List;
 
-public class AuthCertRegWithoutCertRequest extends AuthCertRegRequest {
-    public AuthCertRegWithoutCertRequest(SignerRpcClient signerRpcClient, byte[] authCert,
-                                         ClientId owner,
-                                         SoapMessageImpl request) {
-        super(signerRpcClient, authCert, owner, request);
+@Component
+public class GlobalConfStatusConverter {
+    private final AuthCertStatusConverter authCertStatusConverter = new AuthCertStatusConverter();
+
+    public List<GlobalConfConnectionStatusDto> convert(List<DownloadUrlConnectionStatus> connectionStatuses) {
+        return connectionStatuses.stream()
+                .map(this::convert)
+                .toList();
     }
 
-    @Override
-    public InputStream getRequestContent() throws IOException {
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        multipart = new MultipartOutputStream(out);
-
-        writeSoap();
-
-        multipart.close();
-        return new ByteArrayInputStream(out.toByteArray());
+    private GlobalConfConnectionStatusDto convert(DownloadUrlConnectionStatus connectionStatus) {
+        return new GlobalConfConnectionStatusDto()
+                .downloadUrl(connectionStatus.getDownloadUrl())
+                .connectionStatus(authCertStatusConverter.convert(connectionStatus.getConnectionStatus()));
     }
 }

@@ -638,6 +638,14 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
+    public List<String> findSourcesAddress() {
+        return getSharedParameters(getInstanceIdentifier()).getSources().stream()
+                .map(SharedParameters.ConfigurationSource::getAddress)
+                .filter(StringUtils::isNotBlank)
+                .toList();
+    }
+
+    @Override
     public int getOcspFreshnessSeconds() {
         return getSharedParameters(getInstanceIdentifier())
                 .getGlobalSettings().getOcspFreshnessSeconds();

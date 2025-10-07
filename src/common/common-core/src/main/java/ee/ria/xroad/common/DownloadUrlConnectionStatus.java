@@ -31,37 +31,16 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Getter
 @ToString
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
-public class ConnectionTest implements Serializable {
-    private DiagnosticStatus status;
-    private String errorCode;
-    private List<String> errorMetadata;
-    private final Map<String, List<String>> validationErrors = new HashMap<>();
+public class DownloadUrlConnectionStatus implements Serializable {
+    private String downloadUrl;
+    private ConnectionStatus connectionStatus;
 
-    public ConnectionTest(DiagnosticStatus status) {
-        this.status = status;
-    }
-
-    public ConnectionTest(DiagnosticStatus status, String errorCode, List<String> errorMetadata) {
-        this.status = status;
-        this.errorCode = errorCode;
-        this.errorMetadata = errorMetadata;
-    }
-
-    public ConnectionTest(DiagnosticStatus status, String errorCode, List<String> errorMetadata, String validationError,
-                          List<String> validationMetadata) {
-        this.status = status;
-        this.errorCode = errorCode;
-        this.errorMetadata = errorMetadata;
-        this.validationErrors
-                .computeIfAbsent(validationError, k -> new ArrayList<>())
-                .addAll(validationMetadata);
+    public DownloadUrlConnectionStatus(String downloadUrl, ConnectionStatus connectionStatus) {
+        this.downloadUrl = downloadUrl;
+        this.connectionStatus = connectionStatus;
     }
 }

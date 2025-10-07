@@ -23,35 +23,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.managementrequest.model;
+package ee.ria.xroad.common;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.message.MultipartOutputStream;
-import ee.ria.xroad.common.message.SoapMessageImpl;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import org.niis.xroad.signer.client.SignerRpcClient;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+@Getter
+@ToString
+@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
+public class ConnectionStatus implements Serializable {
+    private DiagnosticStatus status;
+    private String errorCode;
+    private List<String> errorMetadata;
+    private final Map<String, List<String>> validationErrors = new HashMap<>();
 
-public class AuthCertRegWithoutCertRequest extends AuthCertRegRequest {
-    public AuthCertRegWithoutCertRequest(SignerRpcClient signerRpcClient, byte[] authCert,
-                                         ClientId owner,
-                                         SoapMessageImpl request) {
-        super(signerRpcClient, authCert, owner, request);
+    public ConnectionStatus(DiagnosticStatus status) {
+        this.status = status;
     }
 
-    @Override
-    public InputStream getRequestContent() throws IOException {
+    public ConnectionStatus(DiagnosticStatus status, String errorCode, List<String> errorMetadata) {
+        this.status = status;
+        this.errorCode = errorCode;
+        this.errorMetadata = errorMetadata;
+    }
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        multipart = new MultipartOutputStream(out);
-
-        writeSoap();
-
-        multipart.close();
-        return new ByteArrayInputStream(out.toByteArray());
+    public ConnectionStatus(DiagnosticStatus status, String errorCode, List<String> errorMetadata, String validationError,
+                            List<String> validationMetadata) {
+        this.status = status;
+        this.errorCode = errorCode;
+        this.errorMetadata = errorMetadata;
+        this.validationErrors
+                .computeIfAbsent(validationError, k -> new ArrayList<>())
+                .addAll(validationMetadata);
     }
 }

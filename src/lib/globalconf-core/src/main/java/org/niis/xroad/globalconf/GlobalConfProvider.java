@@ -341,6 +341,12 @@ public interface GlobalConfProvider {
     X509Certificate getCentralServerSslCertificate();
 
     /**
+     * @return SSL certificates of central servers
+     *
+     */
+    List<String> findSourcesAddress();
+
+    /**
      * @return maximum allowed validity time of OCSP responses. If thisUpdate
      * field of an OCSP response is older than ocspFreshnessSeconds seconds,
      * it is no longer valid.

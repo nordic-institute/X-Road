@@ -43,6 +43,7 @@ import org.niis.xroad.securityserver.restapi.converter.AddOnStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.AuthCertStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.BackupEncryptionStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.GlobalConfDiagnosticConverter;
+import org.niis.xroad.securityserver.restapi.converter.GlobalConfStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.MessageLogEncryptionStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.OperationalInfoConverter;
@@ -51,15 +52,16 @@ import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagno
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.CentralServerConnectionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OperationalDataIntervalDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ProxyMemoryUsageStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.service.DiagnosticConnectionService;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
-import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -89,6 +91,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final DiagnosticService diagnosticService;
+    private final DiagnosticConnectionService diagnosticConnectionService;
     private final DiagnosticReportService diagnosticReportService;
     private final GlobalConfDiagnosticConverter globalConfDiagnosticConverter;
     private final TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
@@ -101,7 +104,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private final ClientIdConverter clientIdConverter;
     private final ServiceIdConverter serviceIdConverter;
     private final AuthCertStatusConverter authCertStatusConverter;
-    private final TokenCertificateService tokenCertificateService;
+    private final GlobalConfStatusConverter globalConfStatusConverter;
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
@@ -154,14 +157,14 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<CentralServerConnectionStatusDto> getCentralServerConnectionStatus() {
-        return new ResponseEntity<>(authCertStatusConverter.convert(tokenCertificateService.getAuthCertRegStatusInfo()), HttpStatus.OK);
+    public ResponseEntity<ConnectionStatusDto> getAuthCertReqStatus() {
+        return new ResponseEntity<>(authCertStatusConverter.convert(diagnosticConnectionService.getAuthCertRegStatusInfo()), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<CentralServerConnectionStatusDto> getCentralServerGlobalConfConnectionStatus(String httpType) {
-        return new ResponseEntity<>(authCertStatusConverter.convert(tokenCertificateService.getGlobalConfStatusInfo(httpType)),
+    public ResponseEntity<List<GlobalConfConnectionStatusDto>> getGlobalConfStatus() {
+        return new ResponseEntity<>(globalConfStatusConverter.convert(diagnosticConnectionService.getGlobalConfStatusInfo()),
                 HttpStatus.OK);
     }
 

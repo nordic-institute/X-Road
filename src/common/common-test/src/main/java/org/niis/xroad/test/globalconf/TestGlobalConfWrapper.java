@@ -270,6 +270,11 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
+    public List<String> findSourcesAddress() {
+        return List.of();
+    }
+
+    @Override
     public int getOcspFreshnessSeconds() {
         return globalConfProvider.getOcspFreshnessSeconds();
     }

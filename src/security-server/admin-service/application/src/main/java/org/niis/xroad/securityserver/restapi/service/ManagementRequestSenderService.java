@@ -63,11 +63,10 @@ public class ManagementRequestSenderService {
      * call's SecurityServerId = this security server's id)
      * @param address  the IP address of the security server
      * @param authCert the authentication certificate bytes
+     * @param dryRun if true, the request is only validated by the central server, not processed
      * @return request ID in the central server database (e.g. for audit logs if wanted)
-     * @throws GlobalConfOutdatedException
      */
-    public Integer sendAuthCertRegisterRequest(String address, byte[] authCert, boolean dryRun)
-            throws GlobalConfOutdatedException {
+    public Integer sendAuthCertRegisterRequest(String address, byte[] authCert, boolean dryRun) throws GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendAuthCertRegRequest(currentSecurityServerId.getServerId(), address, authCert, dryRun);

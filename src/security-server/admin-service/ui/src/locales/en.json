@@ -269,6 +269,7 @@
       }
     },
     "message": "Message",
+    "downloadUrl": "Download URL",
     "nextUpdate": "Next Update",
     "ocspResponders": {
       "certificationService": "Certification Service:",
@@ -334,7 +335,7 @@
     "connection": {
       "centralServer": {
         "title": "Central Server",
-        "globalConf": "Global configuration download",
+        "globalConf": "Download global configuration",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
         "authCertRequest": "Authentication certificate registration service",
@@ -1060,7 +1061,7 @@
     "diagnostics": {
       "overview": "Overview",
       "traffic": "Traffic",
-      "connection": "Connection Test"
+      "connection": "Connection Testing"
     }
   },
   "token": {

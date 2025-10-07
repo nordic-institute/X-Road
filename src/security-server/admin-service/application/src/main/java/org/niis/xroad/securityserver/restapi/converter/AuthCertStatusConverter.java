@@ -26,27 +26,27 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.ConnectionTest;
+import ee.ria.xroad.common.ConnectionStatus;
 
-import org.niis.xroad.securityserver.restapi.openapi.model.CentralServerConnectionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetailsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 @Component
 public class AuthCertStatusConverter {
-    public CentralServerConnectionStatusDto convert(ConnectionTest connectionTest) {
-        return new CentralServerConnectionStatusDto()
-                .error(getCodeWithDetailsDto(connectionTest))
-                .statusClass(DiagnosticStatusClassMapping.map(connectionTest.getStatus()));
+    public ConnectionStatusDto convert(ConnectionStatus connectionStatus) {
+        return new ConnectionStatusDto()
+                .error(getCodeWithDetailsDto(connectionStatus))
+                .statusClass(DiagnosticStatusClassMapping.map(connectionStatus.getStatus()));
     }
 
-    private CodeWithDetailsDto getCodeWithDetailsDto(ConnectionTest connectionTest) {
-        return Optional.ofNullable(connectionTest.getErrorCode())
+    private CodeWithDetailsDto getCodeWithDetailsDto(ConnectionStatus connectionStatus) {
+        return Optional.ofNullable(connectionStatus.getErrorCode())
                 .map(errorCode -> new CodeWithDetailsDto(errorCode)
-                        .metadata(connectionTest.getErrorMetadata())
-                        .validationErrors(connectionTest.getValidationErrors()))
+                        .metadata(connectionStatus.getErrorMetadata())
+                        .validationErrors(connectionStatus.getValidationErrors()))
                 .orElse(null);
     }
 }

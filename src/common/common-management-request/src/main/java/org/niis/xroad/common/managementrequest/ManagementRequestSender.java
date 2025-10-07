@@ -117,6 +117,7 @@ public final class ManagementRequestSender {
      *                       registered
      * @param address        the IP address of the security server
      * @param authCert       the authentication certificate bytes
+     * @param dryRun         if true, the request is not actually processed
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
@@ -125,7 +126,7 @@ public final class ManagementRequestSender {
         if (dryRun && authCert.length == 0) {
             try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
                 return send(sender, getCentralServiceURI(), new AuthCertRegWithoutCertRequest(signerRpcClient, authCert,
-                        securityServer.getOwner(), builder.buildAuthCertRegRequest(securityServer, address, authCert, dryRun)));
+                        securityServer.getOwner(), builder.buildAuthCertRegRequest(securityServer, address, authCert, true)));
             }
         }
         try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {

@@ -173,6 +173,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public List<String> findSourcesAddress() {
+        return List.of();
+    }
+
+    @Override
     public boolean isSecurityServerClient(ClientId client,
                                           SecurityServerId securityServer) {
         return false;

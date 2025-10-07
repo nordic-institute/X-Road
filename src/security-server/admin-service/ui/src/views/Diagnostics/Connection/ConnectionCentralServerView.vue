@@ -33,95 +33,100 @@
       <table class="xrd-table">
         <thead>
         <tr>
-          <th class="fixed-width-18" />
-          <th class="fixed-width-5" />
+          <th class="fixed-width-10"/>
+          <th class="fixed-width-25"/>
           <th class="status-column">{{ $t('diagnostics.status') }}</th>
-          <th class="fixed-width-67">{{ $t('diagnostics.message') }}</th>
-          <th class="fixed-width-5" />
+          <th class="fixed-width-55">{{ $t('diagnostics.message') }}</th>
+          <th class="fixed-width-5"/>
         </tr>
         </thead>
         <tbody>
-        <!-- First row -->
-        <tr>
-          <td rowspan="2">
+        <tr
+          v-for="(item, index) in globalConfStatuses"
+          :key="item.download_url"
+        >
+          <td v-if="index === 0" :rowspan="globalConfStatuses.length">
             {{ $t('diagnostics.connection.centralServer.globalConf') }}
           </td>
+
           <td>
-            {{ $t('diagnostics.connection.centralServer.globalConfHttp') }}
+            <span v-if="!globalConfLoading">
+              {{ item.download_url }}
+            </span>
           </td>
+
           <td>
-            <xrd-status-icon :status="statusIconType(centralServerGlobalConfStatus?.status_class)" />
+            <xrd-status-icon v-if="!globalConfLoading"
+                             :status="statusIconType(item.connection_status.status_class)"
+            />
           </td>
-          <td v-if="centralServerGlobalConfStatus?.status_class === 'OK'">
+
+          <!-- Column 4 -->
+          <td>
+            <span v-if="globalConfLoading">
+            </span>
+            <span v-else-if="item.connection_status.status_class === 'OK'">
             {{ $t('diagnostics.javaVersion.ok') }}
+            </span>
+            <span v-else>
+            {{ globalConfErrorMessage(item.connection_status.error) }}
+          </span>
           </td>
-          <td v-else>
-            {{ globalConfMessage }}
-          </td>
-          <td>
+
+          <!-- Column 5: only render on first row, merge down using rowspan -->
+          <td v-if="index === 0" :rowspan="globalConfStatuses.length">
             <xrd-button
               large
               variant="text"
-              @click="testGlobalConfConnection()"
+              @click="testGlobalConfDownload()"
             >
               {{ $t('diagnostics.connection.centralServer.test') }}
             </xrd-button>
           </td>
         </tr>
-
-        <!-- Second row -->
+        <XrdEmptyPlaceholderRow
+          :colspan="5"
+          :loading="globalConfLoading"
+          :data="globalConfStatuses"
+          :no-items-text="$t('noData.noTimestampingServices')"
+        />
         <tr>
-          <!-- no first <td> here, because it's merged above -->
-          <td>
-            {{ $t('diagnostics.connection.centralServer.globalConfHttps') }}
-          </td>
-          <td>
-            <xrd-status-icon :status="statusIconType(centralServerGlobalConfHttpsStatus?.status_class)" />
-          </td>
-          <td v-if="centralServerGlobalConfHttpsStatus?.status_class === 'OK'">
-            {{ $t('diagnostics.javaVersion.ok') }}
-          </td>
-          <td v-else>
-            {{ globalConfHttpsMessage }}
-          </td>
-          <td>
-            <xrd-button
-              large
-              variant="text"
-              @click="testGlobalConfHttpsConnection()"
-            >
-              {{ $t('diagnostics.connection.centralServer.test') }}
-            </xrd-button>
-          </td>
-        </tr>
-
-        <!-- Third row remains unchanged -->
-        <tr>
-          <td>
+          <td colspan="2">
             {{ $t('diagnostics.connection.centralServer.authCertRequest') }}
           </td>
-          <td/>
           <td>
-            <xrd-status-icon :status="statusIconType(centralServerConnectionStatus?.status_class)" />
+            <span v-if="!authCertLoading">
+            <xrd-status-icon :status="statusIconType(authCertReqStatus?.status_class)"/>
+            </span>
           </td>
-          <td v-if="centralServerConnectionStatus?.status_class === 'OK'">
+          <td>
+            <span v-if="authCertLoading">
+            </span>
+          <span v-else-if="authCertReqStatus?.status_class === 'OK'">
             {{ $t('diagnostics.javaVersion.ok') }}
-          </td>
-          <td v-else>
-            {{ connectionMessage }}
+          </span>
+          <span v-else>
+            {{ authCertErrorMessage }}
+          </span>
           </td>
           <td>
             <xrd-button
               large
               variant="text"
-              data-test="send-test-mail"
-              @click="testConnection()"
+              @click="testAuthCertRequest()"
             >
               {{ $t('diagnostics.connection.centralServer.test') }}
             </xrd-button>
           </td>
         </tr>
+        <XrdEmptyPlaceholderRow
+          :colspan="5"
+          :loading="authCertLoading"
+          :data="authCertReqStatus"
+          :no-items-text="$t('noData.noTimestampingServices')"
+        />
         </tbody>
+
       </table>
     </v-card-text>
 
@@ -129,42 +134,36 @@
 </template>
 <script lang="ts">
 import {mapActions, mapState} from 'pinia';
-import { defineComponent } from 'vue';
+import {defineComponent} from 'vue';
 import {useDiagnostics} from "@/store/modules/diagnostics";
 import {useNotifications} from "@/store/modules/notifications";
+import type {CodeWithDetails} from "@/openapi-types";
 
 export default defineComponent({
   name: 'ConnectionCentralServerView',
   data: () => ({
-    connectionLoading: false,
+    authCertLoading: false,
+    globalConfLoading: false,
   }),
   computed: {
-    ...mapState(useDiagnostics, ['centralServerConnectionStatus', 'centralServerGlobalConfStatus',
-      'centralServerGlobalConfHttpsStatus']),
-    globalConfMessage() {
-      const err = this.centralServerGlobalConfStatus?.error
-      return this.formatErrorForUi(err)
-    },
+    ...mapState(useDiagnostics, ['authCertReqStatus', 'globalConfStatuses']),
 
-    globalConfHttpsMessage() {
-      const err = this.centralServerGlobalConfHttpsStatus?.error
-      return this.formatErrorForUi(err)
-    },
-
-    connectionMessage() {
-      const err = this.centralServerConnectionStatus?.error
+    authCertErrorMessage() {
+      const err = this.authCertReqStatus?.error
       return this.formatErrorForUi(err)
     },
   },
   created() {
-    this.testConnection();
-    this.testGlobalConfConnection();
-    this.testGlobalConfHttpsConnection();
+    this.testAuthCertRequest();
+    this.testGlobalConfDownload();
   },
   methods: {
     ...mapActions(useNotifications, ['showError']),
-    ...mapActions(useDiagnostics, ['fetchCentralServerConnectionStatus', 'fetchCentralServerGlobalConfStatus',
-      'fetchCentralServerGlobalConfHttpsStatus']),
+    ...mapActions(useDiagnostics, ['fetchAuthCertReqStatus', 'fetchGlobalConfStatuses']),
+
+    globalConfErrorMessage(error: CodeWithDetails) {
+      return this.formatErrorForUi(error)
+    },
 
     formatErrorForUi(err?: {
       code?: string
@@ -173,25 +172,20 @@ export default defineComponent({
     }) {
       if (!err) return ''
 
-      const { code, metadata = [], validation_errors = {} } = err
+      const {code, metadata = [], validation_errors = {}} = err
 
-      // 👇 Helper function to build translation key
       const buildKey = (rawKey?: string) => {
         if (!rawKey) return ''
         return rawKey.includes('.') ? rawKey : `error_code.${rawKey}`
       }
 
-      // Code translation
       const codeKey = buildKey(code)
       const codeText = codeKey ? (this.$t(codeKey) as string) : ''
 
-      // Metadata
       const metaText = metadata.length ? metadata.join(', ') : ''
 
-      // Header: code + metadata with " : "
       const header = [codeText, metaText].filter(Boolean).join(' : ')
 
-      // Validation errors
       const veEntries = Object.entries(validation_errors)
       const veText = veEntries.length
         ? veEntries
@@ -206,34 +200,24 @@ export default defineComponent({
       return [header, veText].filter(Boolean).join(' | ')
     },
 
-    testConnection() {
-      this.connectionLoading = true;
-      this.fetchCentralServerConnectionStatus()
+    testAuthCertRequest() {
+      this.authCertLoading = true;
+      this.fetchAuthCertReqStatus()
         .catch((error) => {
           this.showError(error);
         })
         .finally(() => {
-          this.connectionLoading = false;
+          this.authCertLoading = false;
         });
     },
-    testGlobalConfConnection() {
-      this.connectionLoading = true;
-      this.fetchCentralServerGlobalConfStatus()
+    testGlobalConfDownload() {
+      this.globalConfLoading = true;
+      this.fetchGlobalConfStatuses()
         .catch((error) => {
           this.showError(error);
         })
         .finally(() => {
-          this.connectionLoading = false;
-        });
-    },
-    testGlobalConfHttpsConnection() {
-      this.connectionLoading = true;
-      this.fetchCentralServerGlobalConfHttpsStatus()
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.connectionLoading = false;
+          this.globalConfLoading = false;
         });
     },
     statusIconType(status: string): string {
@@ -282,15 +266,21 @@ export default defineComponent({
   word-break: break-word;
 }
 
-.fixed-width-18 {
-  width: 18%;
-  max-width: 18%;
+.fixed-width-10 {
+  width: 10%;
+  max-width: 10%;
   word-break: break-word;
 }
 
-.fixed-width-67 {
-  width: 67%;
-  max-width: 67%;
+.fixed-width-25 {
+  width: 25%;
+  max-width: 25%;
+  word-break: break-word;
+}
+
+.fixed-width-55 {
+  width: 55%;
+  max-width: 55%;
   word-break: break-word;
 }
 
