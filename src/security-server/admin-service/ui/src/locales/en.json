@@ -22,6 +22,12 @@
   "alert": {
     "warningCount": "Amount of same warnings"
   },
+  "adminUsers": {
+    "role": {
+      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer",
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator"
+    }
+  },
   "apiKey": {
     "role": {
       "XROAD_SECURITYSERVER_OBSERVER": "Server Observer",
@@ -535,7 +541,6 @@
     "wrong_servicedescription_type": "Wrong service description type",
     "wsdl_download_failed": "WSDL download failed",
     "wsdl_exists": "WSDL exists",
-    "wsdl_validator_interrupted": "WSDL validator interrupted",
     "wsdl_validator_not_executable": "WSDL validator is not executable"
   },
   "fields": {
@@ -1026,7 +1031,8 @@
     },
     "settings": {
       "backupAndRestore": "Backup And Restore",
-      "systemParameters": "System Parameters"
+      "systemParameters": "System Parameters",
+      "adminUsers": "Admin Users"
     },
     "diagnostics": {
       "overview": "Overview",

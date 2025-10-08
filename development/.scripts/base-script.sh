@@ -2,6 +2,11 @@
 
 isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
 
+if [ -z "$XROAD_HOME" ]; then
+  XROAD_HOME=$(realpath "$(pwd)/../..")
+  echo "XROAD_HOME is not set. Setting it to $XROAD_HOME"
+fi
+
 errorExit() {
   if $isTextColoringEnabled; then
     echo "$(tput setaf 1)*** $*(tput sgr0)" 1>&2

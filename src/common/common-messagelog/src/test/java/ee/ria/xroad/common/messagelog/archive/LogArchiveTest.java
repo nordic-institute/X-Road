@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -102,7 +101,6 @@ public class LogArchiveTest {
         recordNo = 0;
         rotated = false;
         Files.createDirectory(Paths.get("build/slog"));
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
         System.setProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY, "build/gpg");
         System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/gpg/keys.ini");
         System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED, String.valueOf(encrypted));
@@ -167,7 +165,7 @@ public class LogArchiveTest {
     private LogArchiveWriter getWriter() throws IOException {
         return new LogArchiveWriter(globalConfProvider,
                 Paths.get("build/slog"),
-                dummyLogArchiveBase()) {
+                dummyLogArchiveBase(), "build/tmp") {
 
             @Override
             protected void rotate() throws IOException {

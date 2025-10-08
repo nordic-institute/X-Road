@@ -58,6 +58,7 @@ import org.niis.xroad.common.managementrequest.verify.decode.MaintenanceModeEnab
 import org.niis.xroad.common.managementrequest.verify.decode.ManagementRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.OwnerChangeRequestCallback;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,6 +87,7 @@ public final class ManagementRequestVerifier {
             MaintenanceModeDisableRequestType.class
     );
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
 
     public record Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, Object request) {
 
@@ -102,6 +104,7 @@ public final class ManagementRequestVerifier {
 
     /**
      * Reads management requests from input stream.
+     *
      * @param contentType expected content type of the stream
      * @param inputStream the input stream
      * @return management request message
@@ -114,7 +117,7 @@ public final class ManagementRequestVerifier {
             throw new CodedException(X_OUTDATED_GLOBALCONF, "Global configuration is not valid");
         }
 
-        DecoderCallback cb = new DecoderCallback(globalConfProvider);
+        DecoderCallback cb = new DecoderCallback(globalConfProvider, ocspVerifierFactory);
 
         SoapMessageDecoder decoder = new SoapMessageDecoder(contentType, cb);
         decoder.parse(inputStream);
@@ -143,6 +146,7 @@ public final class ManagementRequestVerifier {
     @RequiredArgsConstructor
     public static class DecoderCallback implements SoapMessageDecoder.Callback {
         private final GlobalConfProvider globalConfProvider;
+        private final OcspVerifierFactory ocspVerifierFactory;
 
         private SoapMessageImpl soapMessage;
         private ManagementRequestType requestType;
@@ -155,17 +159,19 @@ public final class ManagementRequestVerifier {
             this.requestType = ManagementRequestType.getByServiceCode(soapMessage.getService().getServiceCode());
 
             managementRequestDecoderCallback = switch (requestType) {
-                case AUTH_CERT_REGISTRATION_REQUEST -> new AuthCertRegRequestDecoderCallback(globalConfProvider, this);
-                case CLIENT_REGISTRATION_REQUEST -> new ClientRegRequestCallback(globalConfProvider, this);
-                case OWNER_CHANGE_REQUEST -> new OwnerChangeRequestCallback(globalConfProvider, this);
+                case AUTH_CERT_REGISTRATION_REQUEST -> new AuthCertRegRequestDecoderCallback(globalConfProvider, ocspVerifierFactory, this);
+                case CLIENT_REGISTRATION_REQUEST -> new ClientRegRequestCallback(globalConfProvider, ocspVerifierFactory, this);
+                case OWNER_CHANGE_REQUEST -> new OwnerChangeRequestCallback(globalConfProvider, ocspVerifierFactory, this);
                 case CLIENT_DELETION_REQUEST -> new ClientDeletionRequestCallback(this);
                 case AUTH_CERT_DELETION_REQUEST -> new AuthCertDeletionRequestDecoderCallback(this);
-                case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(globalConfProvider, this);
-                case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(globalConfProvider, this);
-                case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(globalConfProvider, this);
-                case CLIENT_RENAME_REQUEST -> new ClientRenameRequestCallback(globalConfProvider, this);
-                case MAINTENANCE_MODE_ENABLE_REQUEST -> new MaintenanceModeEnableRequestCallback(globalConfProvider, this);
-                case MAINTENANCE_MODE_DISABLE_REQUEST -> new MaintenanceModeDisableRequestCallback(globalConfProvider, this);
+                case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(globalConfProvider, ocspVerifierFactory, this);
+                case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(globalConfProvider, ocspVerifierFactory, this);
+                case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(globalConfProvider, ocspVerifierFactory, this);
+                case CLIENT_RENAME_REQUEST -> new ClientRenameRequestCallback(globalConfProvider, ocspVerifierFactory, this);
+                case MAINTENANCE_MODE_ENABLE_REQUEST ->
+                        new MaintenanceModeEnableRequestCallback(globalConfProvider, ocspVerifierFactory, this);
+                case MAINTENANCE_MODE_DISABLE_REQUEST ->
+                        new MaintenanceModeDisableRequestCallback(globalConfProvider, ocspVerifierFactory, this);
             };
         }
 

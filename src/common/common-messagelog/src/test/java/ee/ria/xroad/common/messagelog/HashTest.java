@@ -25,21 +25,23 @@
  */
 package ee.ria.xroad.common.messagelog;
 
-import org.junit.Test;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Tests to verify correct hash string parsing behavior.
  */
-public class HashTest {
+@Slf4j
+class HashTest {
 
     /**
      * Test to ensure hash string object is created correctly.
      */
     @Test
-    public void parseSuccessfully() {
+    void parseSuccessfully() {
         String hashString = "SHA-256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4"
                 + "649b934ca495991b7852b855";
 
@@ -52,10 +54,10 @@ public class HashTest {
 
     /**
      * Test to ensure malformed hash strings result in an exception.
-     * @throws Exception in case of any unexpected errors
+     *
      */
     @Test
-    public void shouldNotParseMalformedHashStrings() throws Exception {
+    void shouldNotParseMalformedHashStrings() {
         assertParseFailed(null);
         assertParseFailed("foobar");
         assertParseFailed(":");
@@ -68,8 +70,7 @@ public class HashTest {
             new Hash(hashString);
             fail("Should fail to parse " + hashString);
         } catch (IllegalArgumentException expectedException) {
-            System.out.println("Expected exception received "
-                    + expectedException.getClass());
+            log.info("Expected exception received {}", expectedException.getClass());
         }
     }
 }

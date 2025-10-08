@@ -26,8 +26,6 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,9 +76,9 @@ public class GPGOutputStream extends FilterOutputStream {
      * @param encryptionKeys Zero or more encryption (recipient) key identifiers
      * @throws IOException if setting up the gpg process fails
      */
-    public GPGOutputStream(Path gpgHome, Path output, Set<String> encryptionKeys) throws IOException {
+    public GPGOutputStream(Path gpgHome, Path output, Set<String> encryptionKeys, String tempFilesPath) throws IOException {
         super(null);
-        statusTmp = Files.createTempFile(Paths.get(SystemProperties.getTempFilesPath()), "gpgstatus", ".tmp");
+        statusTmp = Files.createTempFile(Paths.get(tempFilesPath), "gpgstatus", ".tmp");
         final ProcessBuilder builder = new ProcessBuilder("/usr/bin/gpg");
 
         builder.command().add("--homedir");

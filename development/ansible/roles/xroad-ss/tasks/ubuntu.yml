@@ -1,0 +1,49 @@
+---
+- name: configure remote database
+  block:
+    - name: install remote database package
+      apt:
+        name: "xroad-database-remote"
+        state: latest
+
+    - name: xroad.properties template
+      template:
+        src: "xroad.properties"
+        dest: "/etc/xroad.properties"
+        owner: "root"
+        group: "root"
+        mode: 0600
+        force: no
+
+  when: (database_admin_password is defined) and (database_admin_password != "")
+  tags:
+    - install-xroad-ss-packages
+
+- name: debconf xroad-proxy
+  debconf:
+    name: xroad-proxy
+    question: "{{ item.question }}"
+    vtype: "string" # parametrize if you add a different type of question to item list
+    value: "{{ item.value }}"
+  with_items:
+    - { question: "xroad-common/username",           value: "{{ xroad_ui_user }}" }
+    - { question: "xroad-common/database-host",      value: "{{ database_host }}" }
+    - { question: "xroad-common/proxy-memory",       value: "d" }
+    - { question: "xroad-common/admin-subject",      value: "/CN={{ inventory_hostname }}" }
+    - { question: "xroad-common/admin-altsubject",   value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
+    - { question: "xroad-common/service-subject",    value: "/CN={{ inventory_hostname }}" }
+    - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
+  tags:
+    - install-xroad-ss-packages
+
+- name: install xroad security server packages
+  apt:
+    name: "{{ vars['xroad_varpkg_' + variant] }}"
+    state: latest
+    force: yes
+  tags:
+    - install-xroad-ss-packages
+
+- name: install op-monitoring
+  package: name=xroad-opmonitor state=latest
+  when: (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)

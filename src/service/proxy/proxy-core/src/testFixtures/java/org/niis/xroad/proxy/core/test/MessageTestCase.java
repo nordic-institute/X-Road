@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -106,7 +105,7 @@ public class MessageTestCase {
     protected String responseServiceContentType;
 
     protected String url = "http://localhost:"
-            + SystemProperties.getClientProxyHttpPort();
+            + ProxyTestSuiteHelper.proxyProperties.clientProxy().clientHttpPort();
     protected final Map<String, String> requestHeaders = new HashMap<>();
 
     protected TestGlobalConfWrapper globalConfProvider;

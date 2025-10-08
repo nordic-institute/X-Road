@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.security.cert.X509Certificate;
 
@@ -45,9 +46,10 @@ public abstract class BaseClientRequestCallback<T> extends BaseServerRequestCall
     private static final String DUMMY_CLIENT_ID = "dummy";
 
     public BaseClientRequestCallback(GlobalConfProvider globalConfProvider,
+                                     OcspVerifierFactory ocspVerifierFactory,
                                      ManagementRequestVerifier.DecoderCallback rootCallback,
                                      ManagementRequestType requestType) {
-        super(globalConfProvider, rootCallback, requestType);
+        super(globalConfProvider, ocspVerifierFactory, rootCallback, requestType);
     }
 
     protected abstract ClientId getClient();

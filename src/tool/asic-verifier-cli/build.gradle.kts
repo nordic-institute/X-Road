@@ -7,7 +7,7 @@ dependencies {
   implementation(project(":common:common-core"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:asic-core"))
-
+  implementation(libs.logback.classic)
   testImplementation(project(":common:common-test"))
 }
 

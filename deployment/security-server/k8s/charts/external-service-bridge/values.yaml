@@ -1,0 +1,10 @@
+service:
+  name: xrd-cs
+  namespace: default
+
+externalHost: "host.docker.internal"
+
+ports:
+  - name: http
+    port: 80
+    targetPort: 8080

@@ -21,6 +21,3 @@ import_key backup.key3@example.org.asc
 trust_key backup.key1@example.org
 trust_key backup.key2@example.org
 trust_key backup.key3@example.org
-
-crudini --set /etc/xroad/conf.d/local.ini proxy backup-encryption-enabled true
-crudini --set /etc/xroad/conf.d/local.ini proxy backup-encryption-keyids "backup.key1@example.org, backup.key2@example.org, backup.key3@example.org"

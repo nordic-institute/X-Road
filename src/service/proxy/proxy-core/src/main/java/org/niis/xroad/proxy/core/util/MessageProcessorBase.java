@@ -26,7 +26,6 @@
 package org.niis.xroad.proxy.core.util;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -42,17 +41,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.clientproxy.IsAuthenticationData;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
-import java.io.IOException;
+import javax.net.ssl.X509TrustManager;
+
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
@@ -95,20 +91,21 @@ public abstract class MessageProcessorBase {
         this.jResponse = response;
         this.httpClient = httpClient;
 
-        commonBeanProxy.globalConfProvider.verifyValidity();
+        commonBeanProxy.getGlobalConfProvider().verifyValidity();
     }
 
     /**
      * Returns a new instance of http sender.
      */
     protected HttpSender createHttpSender() {
-        return new HttpSender(httpClient);
+        return new HttpSender(httpClient,
+                commonBeanProxy.getProxyProperties().clientProxy().poolEnableConnectionReuse());
     }
 
     /**
      * Called when processing started.
      */
-    protected void preprocess() throws Exception {
+    protected void preprocess() {
     }
 
     /**
@@ -161,8 +158,9 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setMessageIssue(request.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
             opMonitoringData.setRepresentedParty(request.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
-            opMonitoringData.setServiceType(Optional.ofNullable(
-                    commonBeanProxy.serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
+            opMonitoringData.setServiceType(Optional
+                    .ofNullable(commonBeanProxy.getServerConfProvider().getDescriptionType(request.getServiceId()))
+                    .orElse(DescriptionType.REST).name());
             opMonitoringData.setRestMethod(request.getVerb().name());
             // we log rest path data only for PRODUCER
             opMonitoringData.setRestPath(opMonitoringData.isProducer()
@@ -184,7 +182,7 @@ public abstract class MessageProcessorBase {
     }
 
     protected String getSecurityServerAddress() {
-        return commonBeanProxy.globalConfProvider.getSecurityServerAddress(commonBeanProxy.serverConfProvider.getIdentifier());
+        return commonBeanProxy.getGlobalConfProvider().getSecurityServerAddress(commonBeanProxy.getServerConfProvider().getIdentifier());
     }
 
     /**
@@ -242,10 +240,9 @@ public abstract class MessageProcessorBase {
      * @param auth   the authentication data of the information system
      */
     protected void verifyClientAuthentication(ClientId client,
-                                              IsAuthenticationData auth)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+                                              IsAuthenticationData auth) {
 
-        IsAuthentication isAuthentication = commonBeanProxy.serverConfProvider.getIsAuthentication(client);
+        IsAuthentication isAuthentication = commonBeanProxy.getServerConfProvider().getIsAuthentication(client);
         if (isAuthentication == null) {
             // Means the client was not found in the server conf.
             // The getIsAuthentication method implemented in ServerConfCommonImpl
@@ -269,12 +266,12 @@ public abstract class MessageProcessorBase {
                                 + " TLS certificate", client);
             }
 
-            if (auth.cert().equals(commonBeanProxy.serverConfProvider.getSSLKey().getCertChain()[0])) {
-                // do not check certificates for local TLS connections
+            // Accept certificates issued by OpenBao (management requests from Proxy UI to ClientProxy within the same security server)
+            if (clientAuthenticationIssuedByVault(auth)) {
                 return;
             }
 
-            List<X509Certificate> isCerts = commonBeanProxy.serverConfProvider.getIsCerts(client);
+            List<X509Certificate> isCerts = commonBeanProxy.getServerConfProvider().getIsCerts(client);
             if (isCerts.isEmpty()) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) has no IS certificates", client);
@@ -286,22 +283,40 @@ public abstract class MessageProcessorBase {
                                 + " IS certificates", client);
             }
 
-            clientIsCertPeriodValidatation(client, auth.cert());
+            clientIsCertPeriodValidation(client, auth.cert());
         }
     }
 
-    private void clientIsCertPeriodValidatation(ClientId client, X509Certificate cert) {
+    private boolean clientAuthenticationIssuedByVault(IsAuthenticationData auth) {
+        try {
+            var trustManager = (X509TrustManager) commonBeanProxy.getVaultKeyProvider().getTrustManager();
+            for (X509Certificate vaultIssuer : trustManager.getAcceptedIssuers()) {
+                try {
+                    auth.cert().verify(vaultIssuer.getPublicKey());
+                    return true;
+                } catch (Exception e) {
+                    // given issuer is not the one that signed the client cert, try next
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            log.warn("Failed to obtain vault key provider's trust manager", e);
+            return false;
+        }
+    }
+
+    private void clientIsCertPeriodValidation(ClientId client, X509Certificate cert) {
         try {
             cert.checkValidity();
         } catch (CertificateExpiredException e) {
-            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
+            if (commonBeanProxy.getProxyProperties().enforceClientIsCertValidityPeriodCheck()) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) TLS certificate is expired", client);
             } else {
                 log.warn("Client {} TLS certificate is expired", client);
             }
         } catch (CertificateNotYetValidException e) {
-            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
+            if (commonBeanProxy.getProxyProperties().enforceClientIsCertValidityPeriodCheck()) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) TLS certificate is not yet valid", client);
             } else {

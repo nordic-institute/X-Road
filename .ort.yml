@@ -9,10 +9,6 @@ excludes:
       reason: "BUILD_TOOL_OF"
       comment: "This directory contains GitHub configuration."
 
-    - pattern: "ansible/**"
-      reason: "OTHER"
-      comment: "This directory contains Ansible scripts."
-
     - pattern: "development/**"
       reason: "OTHER"
       comment: "This directory contains development scripts."
@@ -20,10 +16,6 @@ excludes:
     - pattern: "doc/**"
       reason: "DOCUMENTATION_OF"
       comment: "This directory contains documentation."
-
-    - pattern: "Docker/**"
-      reason: "OTHER"
-      comment: "This directory contains Docker image files."
 
     - pattern: "img/**"
       reason: "DATA_FILE_OF"
@@ -81,7 +73,7 @@ excludes:
       reason: "BUILD_TOOL_OF"
       comment: "This is a build tool."
 
-    - pattern: "src/packages/**"
+    - pattern: "deployment/native-packages/**"
       reason: "BUILD_TOOL_OF"
       comment: "This directory contains packaging scripts."
 

@@ -1,0 +1,173 @@
+#!/bin/bash
+. /usr/share/debconf/confmodule
+
+#add groups
+groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer"
+
+#define groups that are allowed on ss-cluster slaves
+slave_groups="xroad-security-officer xroad-securityserver-observer"
+
+log () { echo >&2 "$@"; }
+
+#parameters:
+#1 file_path
+#2 old_section
+#3 old_key
+#4 new_section
+#5 new_key
+function migrate_conf_value {
+    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
+    if [ -n "${MIGRATION_VALUE}" ];
+        then
+            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
+            crudini --del "$1" "$2" "$3"
+    fi
+}
+
+function handle_error() {
+   ERR=$(</tmp/memory.err)
+   db_subst xroad-common/proxy-memory-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
+   db_input critical xroad-common/proxy-memory-error
+   db_go
+   rm -f /tmp/memory.err
+}
+
+case "$1" in
+ configure|reconfigure)
+  chmod 0440 /etc/sudoers.d/xroad-proxy
+  chown xroad:xroad /etc/xroad/backup.d/??_xroad-proxy
+  chmod 0440 /etc/xroad/backup.d/??_xroad-proxy
+
+  mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
+  mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
+  mkdir -p /etc/xroad/globalconf; chown xroad:xroad  /etc/xroad/globalconf
+
+  test -e /etc/nginx/sites-enabled/clientproxy && rm /etc/nginx/sites-enabled/clientproxy
+  test -e /etc/nginx/sites-enabled/clientproxy-ssl && rm /etc/nginx/sites-enabled/clientproxy-ssl
+
+  node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
+
+  RET=""
+  db_get xroad-common/username
+  AUSER="$RET"
+
+  if [ -n "$AUSER" ]; then
+    groupnames=""
+    if [[ "$node_type" == "slave" ]]; then
+      log "Cluster slave node detected, configuring slave compatible groups"
+      groupnames=$slave_groups
+    else
+      log "Configuring groups"
+      groupnames=$groups
+    fi
+
+    usergroups=" $(id -Gn "$AUSER") "
+    for groupname in $groupnames; do
+      if ! getent group "$groupname" > /dev/null; then
+          groupadd --system "$groupname" || true
+      fi
+      if [[ $usergroups != *" $groupname "* ]]; then
+          usermod -a -G "$groupname" "$AUSER" || true
+      fi
+    done
+  else
+    log "WARNING: X-Road admin user not configured."
+  fi
+
+  #migrating possible local configuration for modified configuration values (for version 6.17.0)
+  migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
+  migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
+
+  # keep previous default client http(s) ports when upgrading  from <7.4.0
+  if [ -n "$2" ];
+    then
+      if dpkg --compare-versions "$2" lt "7.4.0";
+        then
+          echo "client-http-port and client-https-port default values were changed in ver 7.4.0"
+          echo "updating local.ini to keep the old default values if not already overridden"
+          local_ini=/etc/xroad/conf.d/local.ini
+
+          if test -f /etc/xroad/conf.d/override-securityserver-ee.ini;
+            then
+              echo "this is EE meta-package which already has its own values in override-securityserver-ee.ini, do not update client http(s) ports in local.ini"
+            else
+              present_in_local_ini=$(crudini --get ${local_ini} proxy client-http-port 2>/dev/null)
+              if [[ -n "$present_in_local_ini" ]];
+                then
+                  echo "client-http-port already present in local.ini, do not update local.ini"
+                else
+                  echo "client-http-port not present in local.ini, update local.ini"
+                  crudini --set ${local_ini} proxy client-http-port 80
+              fi
+
+              present_in_local_ini=$(crudini --get ${local_ini} proxy client-https-port 2>/dev/null)
+              if [[ -n "$present_in_local_ini" ]];
+                then
+                  echo "client-https-port already present in local.ini, do not update local.ini"
+                else
+                  echo "client-https-port not present in local.ini, update local.ini"
+                  crudini --set ${local_ini} proxy client-https-port 443
+              fi
+          fi
+      fi
+  fi
+
+  RET=""
+  db_get xroad-common/database-host || RET=""
+  /usr/share/xroad/scripts/setup_serverconf_db.sh "$RET"
+
+  DEFAULT_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-default')"
+  RECOMMENDED_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-recommended')"
+  CURRENT_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-current')"
+
+  db_subst xroad-common/proxy-memory DEFAULT_XM "$DEFAULT_XM"
+  db_subst xroad-common/proxy-memory RECOMMENDED_XM "$RECOMMENDED_XM"
+
+  db_set xroad-common/proxy-memory "$CURRENT_XM"
+
+  while :; do
+    # Get memory config string from the user
+    db_input high xroad-common/proxy-memory || true
+    db_go
+
+    RET=""
+    db_get xroad-common/proxy-memory || RET=""
+
+    if [ -z "$RET" ];then
+      if [ -z "$CURRENT_XM" ];then
+        /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply-default'
+      fi
+      break
+    elif [ "$RET" == "d" ];then
+      /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply-default'
+      break
+    elif [ "$RET" == "r" ];then
+      /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply-recommended'
+      break
+    else
+      if ! /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply' $RET 2>/tmp/memory.err; then
+        handle_error
+        continue
+      else
+        break
+      fi
+    fi
+  done
+  db_stop
+
+  invoke-rc.d --quiet rsyslog try-restart || true
+  invoke-rc.d --quiet xroad-confclient try-restart || true
+  invoke-rc.d --quiet xroad-signer try-restart || true
+ ;;
+
+ abort-upgrade|abort-remove|abort-deconfigure)
+ ;;
+
+ *)
+    log "postinst called with unknown argument \`$1'" >&2
+    exit 1
+ ;;
+esac
+
+#DEBHELPER#
+exit 0
