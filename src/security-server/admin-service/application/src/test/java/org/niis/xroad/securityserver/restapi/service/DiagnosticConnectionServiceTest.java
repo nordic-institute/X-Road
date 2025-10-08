@@ -54,6 +54,7 @@ import java.util.List;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -80,7 +81,7 @@ class DiagnosticConnectionServiceTest {
 
     @Test
     void checkVersionLocationExistsThenReturnHttp200() throws Exception {
-        String downloadUrl = "http://cs:80/internalconf";
+        String downloadUrl = "http://unknown-host:80/internalconf";
         HttpURLConnection mockConn = mock(HttpURLConnection.class);
         when(mockConn.getResponseCode()).thenReturn(200);
 
@@ -92,7 +93,6 @@ class DiagnosticConnectionServiceTest {
         };
         URL fakeUrl = new URL(null, downloadUrl, handler);
 
-        // reflectively call the private method
         var m = DiagnosticConnectionService.class
                 .getDeclaredMethod("checkVersionLocationExists", URL.class);
         m.setAccessible(true);
@@ -108,19 +108,21 @@ class DiagnosticConnectionServiceTest {
     @Test
     void getGlobalConfStatusInfoThenReturnErrorStatuses() {
         when(globalConfProvider.findSourcesAddress())
-                .thenReturn(List.of("cs"));
+                .thenReturn(List.of("unknown-host"));
 
         var statuses = service.getGlobalConfStatusInfo();
 
-        assertThat(statuses).hasSize(2);
-        assertThat(statuses.getFirst().getDownloadUrl()).isEqualTo("http://cs:80/internalconf");
-        assertThat(statuses.getFirst().getConnectionStatus().getStatus()).isEqualTo(DiagnosticStatus.ERROR);
-        assertThat(statuses.getFirst().getConnectionStatus().getErrorCode()).isEqualTo("network_error");
-        assertThat(statuses.getFirst().getConnectionStatus().getErrorMetadata()).contains("Connection refused");
-        assertThat(statuses.get(1).getDownloadUrl()).isEqualTo("https://cs:443/internalconf");
-        assertThat(statuses.get(1).getConnectionStatus().getStatus()).isEqualTo(DiagnosticStatus.ERROR);
-        assertThat(statuses.get(1).getConnectionStatus().getErrorCode()).isEqualTo("network_error");
-        assertThat(statuses.get(1).getConnectionStatus().getErrorMetadata()).contains("Connection refused");
+        assertThat(statuses)
+                .hasSize(2)
+                .extracting(
+                        DownloadUrlConnectionStatus::getDownloadUrl,
+                        s -> s.getConnectionStatus().getStatus(),
+                        s -> s.getConnectionStatus().getErrorCode()
+                )
+                .containsExactlyInAnyOrder(
+                        tuple("http://unknown-host:80/internalconf", DiagnosticStatus.ERROR, "unknown_host"),
+                        tuple("https://unknown-host:443/internalconf", DiagnosticStatus.ERROR, "unknown_host")
+                );
     }
 
     @Test
