@@ -70,7 +70,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           gradle-home-cache-cleanup: true
@@ -336,7 +336,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: true
       - name: Initialize docker setup
@@ -393,6 +393,9 @@ jobs:
           name: Central Server system test
           path: src/central-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
+      - name: Fix system-test build dir permissions
+        run: sudo chown -R $USER src/central-server/admin-service/ui-system-test/build/cs-container-logs/
+        if: failure()
       - name: Upload CS screenshots
         if: failure()
         uses: actions/upload-artifact@v4
@@ -406,6 +409,7 @@ jobs:
           name: CS System Test report
           path: |
             src/central-server/admin-service/ui-system-test/build/allure-report/
+            src/central-server/admin-service/ui-system-test/build/cs-container-logs/
       - name: Show Energy Results
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -450,7 +454,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: true
       - name: Download SS docker images
@@ -541,7 +545,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: true
       - name: Set up Docker Buildx
