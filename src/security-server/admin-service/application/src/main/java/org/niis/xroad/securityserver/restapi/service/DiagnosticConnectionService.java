@@ -175,15 +175,14 @@ public class DiagnosticConnectionService {
             return ConnectionStatus.create(e.getErrorDeviation().code(), e.getErrorDeviation().metadata(), certErrorCode,
                     certValidationMetadata);
         } catch (XrdRuntimeException e) {
-            return ConnectionStatus.create(e.getErrorCode(), List.of(e.getDetails()), certErrorCode, certValidationMetadata);
+            return ConnectionStatus.create(e.getErrorCode(), e.getDetails(), certErrorCode, certValidationMetadata);
         } catch (CodedException e) {
             // special case: if no cert, the error is expected, and we return only cert validation result
             if (cert == null && X_INVALID_REQUEST.equals(e.getFaultCode())) {
                 return ConnectionStatus.create(certErrorCode, certValidationMetadata);
             }
-            return ConnectionStatus.create(e.getFaultCode(), List.of(e.getFaultString()), certErrorCode, certValidationMetadata);
+            return ConnectionStatus.create(e.getFaultCode(), e.getFaultString(), certErrorCode, certValidationMetadata);
         }
-
         return ConnectionStatus.create(certErrorCode, certValidationMetadata);
     }
 

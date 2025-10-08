@@ -30,6 +30,7 @@ import ee.ria.xroad.common.DiagnosticStatus;
 
 import lombok.Getter;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ import java.util.Map;
 public final class ConnectionStatus implements Serializable {
     private final DiagnosticStatus status;
     private String errorCode;
-    private List<String> errorMetadata;
+    private List<String> errorMetadata = new ArrayList<>();
     private final Map<String, List<String>> validationErrors = new HashMap<>();
 
     private ConnectionStatus() {
@@ -69,12 +70,16 @@ public final class ConnectionStatus implements Serializable {
     }
 
     public static ConnectionStatus create(String errorCode, List<String> metadata) {
-        return errorCode == null ? new ConnectionStatus() : new ConnectionStatus(errorCode, metadata);
+        return errorCode == null ? create() : new ConnectionStatus(errorCode, metadata);
     }
 
     public static ConnectionStatus create(String errorCode, List<String> metadata, String validationError,
                                           List<String> validationMetadata) {
         return validationError == null ? new ConnectionStatus(errorCode, metadata)
                 : new ConnectionStatus(errorCode, metadata, validationError, validationMetadata);
+    }
+
+    public static ConnectionStatus create(String errorCode, String metadata, String validationError, List<String> validationMetadata) {
+        return create(errorCode, StringUtils.isEmpty(metadata) ? List.of() : List.of(metadata), validationError, validationMetadata);
     }
 }
