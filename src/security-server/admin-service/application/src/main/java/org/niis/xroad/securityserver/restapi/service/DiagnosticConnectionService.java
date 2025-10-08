@@ -62,12 +62,11 @@ import static org.niis.xroad.securityserver.restapi.service.TokenCertificateServ
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class DiagnosticConnectionService {
+    private static final String CONNECTION_TEST_ADDRESS = "address";
     private static final Integer E200 = 200;
     private static final Integer E300 = 300;
-    private static final String TEST_ADDRESS = "TEST_ADDRESS";
     private static final String HTTP = "http";
     private static final String HTTPS = "https";
-    private static final String DOWNLOAD_URL_FORMAT = "%s://%s:%d/%s";
     private static final Integer PORT_80 = 80;
     private static final Integer PORT_443 = 443;
 
@@ -106,7 +105,7 @@ public class DiagnosticConnectionService {
     }
 
     private String getDownloadUrl(String protocol, String address, int port) {
-        return String.format(DOWNLOAD_URL_FORMAT, protocol, address, port, getCenterInternalDirectory());
+        return String.format("%s://%s:%d/%s", protocol, address, port, getCenterInternalDirectory());
     }
 
     private String getDownloadUrl(URL url) {
@@ -170,7 +169,7 @@ public class DiagnosticConnectionService {
 
         try {
             byte[] bytes = (cert != null) ? cert.getCertificateBytes() : new byte[0];
-            managementRequestSenderService.sendAuthCertRegisterRequest(TEST_ADDRESS, bytes, true);
+            managementRequestSenderService.sendAuthCertRegisterRequest(CONNECTION_TEST_ADDRESS, bytes, true);
         } catch (GlobalConfOutdatedException e) {
             return ConnectionStatus.create(e.getErrorDeviation().code(), e.getErrorDeviation().metadata(), certErrorCode,
                     certValidationMetadata);
