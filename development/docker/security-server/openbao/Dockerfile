@@ -6,6 +6,8 @@ RUN addgroup -S xroad && \
     adduser -S -G xroad xroad && \
     mkdir -p /etc/xroad/
 
+COPY --from=openbao-init-ctx /usr /usr
+
 COPY files/ /
 RUN chmod +x /entrypoint.sh
 

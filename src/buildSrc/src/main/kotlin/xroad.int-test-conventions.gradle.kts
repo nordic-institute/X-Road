@@ -55,6 +55,7 @@ fun resolveIntTestImageRegistry(): String {
  */
 abstract class IntTestComposeEnvExtension {
   val images = mutableMapOf<String, String>()
+  val additionalVars = mutableMapOf<String, String>()
 
   /**
    * Add a Docker image to the .env file
@@ -74,6 +75,24 @@ abstract class IntTestComposeEnvExtension {
       image(envVar, imageName)
     }
   }
+
+  /**
+   * Add a custom environment variable (non-image)
+   * @param envVar Environment variable name
+   * @param value Value for the environment variable
+   */
+  fun env(envVar: String, value: String) {
+    additionalVars[envVar] = value
+  }
+
+  /**
+   * Convenience method to add multiple environment variables
+   */
+  fun envs(vararg envVars: Pair<String, String>) {
+    envVars.forEach { (envVar, value) ->
+      env(envVar, value)
+    }
+  }
 }
 
 // Create extension
@@ -88,6 +107,13 @@ afterEvaluate {
       dependsOn(tasks.named("processIntTestResources"))
 
       val outputEnvFile = file("build/resources/intTest/.env")
+      
+      // Inputs: track what affects .env generation
+      inputs.property("imageTag", provider { resolveIntTestImageTag() })
+      inputs.property("imageRegistry", provider { resolveIntTestImageRegistry() })
+      inputs.property("images", provider { intTestComposeEnv.images.toString() })
+      inputs.property("additionalVars", provider { intTestComposeEnv.additionalVars.toString() })
+      
       outputs.file(outputEnvFile)
 
       doLast {
@@ -105,6 +131,15 @@ afterEvaluate {
           appendLine("# Tag: $imageTag")
           appendLine()
 
+          // Additional environment variables
+          if (intTestComposeEnv.additionalVars.isNotEmpty()) {
+            intTestComposeEnv.additionalVars.forEach { (envVar, value) ->
+              appendLine("$envVar=$value")
+            }
+            appendLine()
+          }
+
+          // Docker images
           intTestComposeEnv.images.forEach { (envVar, imageName) ->
             appendLine("$envVar=$imageRegistry/$imageName:$imageTag")
           }
