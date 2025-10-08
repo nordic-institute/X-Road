@@ -26,17 +26,19 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.DiagnosticStatus;
-import ee.ria.xroad.common.SystemProperties;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -45,6 +47,8 @@ import java.net.URLStreamHandler;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -56,21 +60,20 @@ class DiagnosticConnectionServiceTest {
     @Mock
     TokenService tokenService;
     @Mock
+    AuthCertVerifier authCertVerifier;
+    @Mock
     ManagementRequestSenderService managementRequestSenderService;
 
     DiagnosticConnectionService service;
-    MockedStatic<SystemProperties> systemPropsMock;
 
     @BeforeEach
     void setUp() {
-        service = new DiagnosticConnectionService(globalConfProvider, tokenService, managementRequestSenderService);
-        systemPropsMock = Mockito.mockStatic(SystemProperties.class);
-        systemPropsMock.when(SystemProperties::getCenterInternalDirectory).thenReturn("internal");
+        service = new DiagnosticConnectionService(globalConfProvider, tokenService,  authCertVerifier, managementRequestSenderService);
     }
 
     @Test
     void checkVersionLocationExistsThenReturnHttp200() throws Exception {
-        String downloadUrl = "http://cs:80/internal";
+        String downloadUrl = "http://cs:80/internalconf";
         HttpURLConnection mockConn = mock(HttpURLConnection.class);
         when(mockConn.getResponseCode()).thenReturn(200);
 
@@ -96,20 +99,40 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getGlobalConfStatusInfoThenReturnErrorStatuses() throws Exception {
+    void getGlobalConfStatusInfoThenReturnErrorStatuses() {
         when(globalConfProvider.findSourcesAddress())
                 .thenReturn(List.of("cs"));
 
         var statuses = service.getGlobalConfStatusInfo();
 
         assertThat(statuses).hasSize(2);
-        assertThat(statuses.getFirst().getDownloadUrl()).isEqualTo("http://cs:80/internal");
+        assertThat(statuses.getFirst().getDownloadUrl()).isEqualTo("http://cs:80/internalconf");
         assertThat(statuses.getFirst().getConnectionStatus().getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(statuses.getFirst().getConnectionStatus().getErrorCode()).isEqualTo("network_error");
         assertThat(statuses.getFirst().getConnectionStatus().getErrorMetadata()).contains("Connection refused");
-        assertThat(statuses.get(1).getDownloadUrl()).isEqualTo("https://cs:443/internal");
+        assertThat(statuses.get(1).getDownloadUrl()).isEqualTo("https://cs:443/internalconf");
         assertThat(statuses.get(1).getConnectionStatus().getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(statuses.get(1).getConnectionStatus().getErrorCode()).isEqualTo("network_error");
         assertThat(statuses.get(1).getConnectionStatus().getErrorMetadata()).contains("Connection refused");
+    }
+
+    @Test
+    void getAuthCertRegStatusInfoThenReturnOkStatus() {
+        TokenInfo token = mock(TokenInfo.class);
+        KeyInfo key = mock(KeyInfo.class);
+        CertificateInfo cert = mock(CertificateInfo.class);
+
+        when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
+        when(token.getKeyInfo()).thenReturn(List.of(key));
+        when(key.getUsage()).thenReturn(KeyUsageInfo.AUTHENTICATION);
+        when(key.getCerts()).thenReturn(List.of(cert));
+        when(cert.isActive()).thenReturn(true);
+        when(cert.getCertificateBytes()).thenReturn("dummy".getBytes());
+
+        doNothing().when(authCertVerifier).verify(any());
+
+        var status = service.getAuthCertRegStatusInfo();
+        assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.OK);
+        assertThat(status.getErrorCode()).isNull();
     }
 }

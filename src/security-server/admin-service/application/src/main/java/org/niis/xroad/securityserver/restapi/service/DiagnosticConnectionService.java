@@ -35,6 +35,7 @@ import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.util.HttpUrlConnectionConfigurer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -54,7 +55,6 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
-import static org.niis.xroad.securityserver.restapi.service.TokenCertificateService.verifyAuthCert;
 
 @Slf4j
 @Service
@@ -72,6 +72,7 @@ public class DiagnosticConnectionService {
 
     private final GlobalConfProvider globalConfProvider;
     private final TokenService tokenService;
+    private final AuthCertVerifier authCertVerifier;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final HttpUrlConnectionConfigurer connectionConfigurer = new HttpUrlConnectionConfigurer();
 
@@ -160,7 +161,7 @@ public class DiagnosticConnectionService {
 
         try {
             cert = getAuthCert().orElseThrow(() -> new CertificateNotFoundException("No active auth cert found"));
-            verifyAuthCert(cert);
+            authCertVerifier.verify(cert);
         } catch (CertificateNotFoundException | InvalidCertificateException | TokenCertificateService.SignCertificateNotSupportedException
                  | KeyNotFoundException | ActionNotPossibleException e) {
             certErrorCode = e.getErrorDeviation().code();
