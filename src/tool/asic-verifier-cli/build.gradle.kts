@@ -24,7 +24,3 @@ tasks.shadowJar {
   archiveVersion.set("")
   exclude("**/module-info.class")
 }
-
-tasks.build {
-  finalizedBy(tasks.shadowJar)
-}

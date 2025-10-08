@@ -25,10 +25,6 @@ tasks.shadowJar {
   mergeServiceFiles()
 }
 
-tasks.assemble {
-  finalizedBy(tasks.shadowJar)
-}
-
 val runProxyTest by tasks.registering(JavaExec::class) {
   // empty task for pipelines backwards compatibility. can be removed after 7.9 release.
   group = "verification"
