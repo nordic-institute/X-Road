@@ -34,8 +34,6 @@ import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import javax.annotation.concurrent.Immutable;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -66,7 +64,6 @@ import static org.niis.xroad.globalconf.model.ConfigurationUtils.escapeInstanceI
  *
  */
 @Slf4j
-@Immutable
 public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     @Getter
