@@ -28,8 +28,3 @@ test-automation:
     ca-image: "ghcr.io/nordic-institute/xrddev-testca:latest"
     isopenapi-image: "ghcr.io/nordic-institute/xrddev-example-restapi:latest"
     issoap-image: "niis/example-adapter:latest"
-    use-custom-env: false
-    custom-env-mapping: # original : custom
-      "ss0_8080": "ss0_4210"
-      "ss1_8080": "ss1_4310"
-

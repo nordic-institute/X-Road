@@ -2,7 +2,7 @@ services:
   signer:
     image: ss-signer-with-hsm:latest # this is the name of image that is built from context below
     build:
-      context: ../../../development/docker/security-server/signer-with-hsm
+      context: ../../../../../../development/docker/security-server/signer-with-hsm
       args:
         - BASE_SIGNER_IMAGE=${SIGNER_IMG:-localhost:5555/ss-signer:latest}
       dockerfile: Dockerfile

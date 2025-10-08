@@ -50,9 +50,9 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 @Slf4j
 @RequiredArgsConstructor
 public class EnvSetup implements TestableContainerInitializer, DisposableBean {
-    private static final String COMPOSE_AUX_FILE = "src/intTest/resources/compose.aux.yaml";
-    private static final String COMPOSE_SS_FILE = "../../../development/docker/security-server/compose.yaml";
-    private static final String COMPOSE_SS_HSM_FILE = "src/intTest/resources/compose.ss-hsm.e2e.yaml";
+    private static final String COMPOSE_AUX_FILE = "build/resources/intTest/compose.aux.yaml";
+    private static final String COMPOSE_SS_FILE = "build/resources/intTest/compose.main.yaml";
+    private static final String COMPOSE_SS_HSM_FILE = "build/resources/intTest/compose.ss-hsm.e2e.yaml";
 
     private static final String CS = "cs";
     private static final String PROXY = "proxy";
