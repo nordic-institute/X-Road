@@ -50,6 +50,7 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.List;
+
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
