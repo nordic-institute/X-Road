@@ -40,10 +40,6 @@ Doc. ID: IG-CS-8
   - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
   - [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
 - [4 Installation Error Handling](#4-installation-error-handling)
-  - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
-  - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
-  - [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
-  - [4.4 Is Postgres Running on Port 5432?](#44-is-postgres-running-on-port-5432)
 - [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
 - [Annex B Database Users](#annex-b-database-users)
 - [Annex C `xroad-secret-store-local` default configuration](#annex-c-xroad-secret-store-local-default-configuration)
@@ -73,6 +69,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 3. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 4. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 5. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR]('ug-syspar_x-road_v6_system_parameters.md').
+6. <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 7. Central Server Installation Guide. Document ID: [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md)
 
 ## 2. Installation
 
@@ -156,7 +153,7 @@ Requirements for software and settings:
 
 - Add an X-Road system administrator user (reference data: 1.3) whom all roles in the user interface are granted to. 
 
-  Add the new user with the command: `sudo adduser username`.
+  Add the new user with the command: `sudo adduser <username>`.
 
   User roles are discussed in detail in the X-Road Security Server User Guide [UG-SS](#Ref_UG-SS). Do not use the user name `xroad`, it is reserved for the X-Road system user.
 
@@ -319,72 +316,7 @@ appoint the subsystem as the management service provider - [UG-CS](#Ref_UG-CS) s
 
 ## 4 Installation Error Handling
 
-### 4.1 Cannot Set LC_ALL to Default Locale
-
-If running the locale command results in the error message
-
-`locale: Cannot set LC_ALL to default locale: No such file or directory`
-
-then the support for the particular language has not been installed. To install it, run the command (example uses the English language):
-
-`sudo apt install language-pack-en`
-
-Then, to update the system’s locale files, run the following commands (this example uses the US locale):
-
-`sudo locale-gen en_US.UTF-8`<br>
-`sudo update-locale en_US.UTF-8`
-
-Set the operating system locale. Add following line to /etc/environment file.
-
-`LC_ALL=en_US.UTF-8`
-
-After updating the system’s locale settings, it is recommended to restart the operating system.
-
-### 4.2 PostgreSQL Is Not UTF8 Compatible
-
-If the Central Server installation is aborted, with the error message
-
-`postgreSQL is not UTF8 compatible`
-
-then the PostgreSQL package is installed with the wrong locale. One way to fix it is to remove the data store created upon the PostgreSQL installation and recreate it with the correct encoding. WARNING: All data in the database will be erased!
-
-`sudo pg_dropcluster --stop 16 main`<br>
-`LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 16 main`
-
-To complete the interrupted installation, run the command:
-
-`sudo apt --fix-broken install`
-
-### 4.3 Could Not Create Default Cluster
-
-If the following error message is displayed during PostgreSQL installation
-
-`Error: The locale requested by the environment is invalid.`<br>
-`Error: could not create default cluster. Please create it manually with pg_createcluster 12 main –start`
-
-Use the following command to create the PostgreSQL data cluster:
-
-`LC_ALL="en_US.UTF-8" sudo  pg_createcluster --start 16 main`
-
-The interrupted installation can be finished using
-
-`sudo apt --fix-broken install`
-
-### 4.4 Is Postgres Running on Port 5432?
-
-If the following error message appears during installation
-
-`Is postgres running on port 5432 ?`<br>
-`Aborting installation! please fix issues and rerun with apt -f install`
-
-Then check if any of the following errors occurred during the installation of PostgreSQL.
-
-- Error installing the data cluster. Refer to section 4.3.
-- The PostgreSQL data cluster installed during the installation of the Central Server is not configured to listen on port 5432. To verify and configure the listening port, edit the PostgreSQL configuration file in /etc/postgresql/16/main/postgresql.conf. If you change the listening port, the postgresql service must be restarted.
-
-The interrupted installation can be finished using
-
-`sudo apt --fix-broken install`
+Refer to X-Road 7. Central Server Installation Guide [IG-CS](#Ref_IG-CS), section "Installation Error Handling".
 
 ## Annex A Central Server Default Database Properties
 
@@ -407,8 +339,8 @@ skip_migrations=false
 
 ## Annex C `xroad-secret-store-local` default configuration
 
-Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.
-Files:
-`openbao.hcl` - OpenBao main configuration file. Contains DB credentials and other options.
-`root-token` - root OpenBao token.
+Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.<br/>
+Files:<br/>
+`openbao.hcl` - OpenBao main configuration file. Contains DB credentials and other options.<br/>
+`root-token` - root OpenBao token.<br/>
 `unseal-keys` - OpenBao unseal keys.
