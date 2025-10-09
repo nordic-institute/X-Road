@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.dto.ConnectionStatus;
 import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.util.HttpUrlConnectionConfigurer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -43,12 +44,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -63,8 +66,7 @@ import static org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleE
 @RequiredArgsConstructor
 public class DiagnosticConnectionService {
     private static final String CONNECTION_TEST_ADDRESS = "address";
-    private static final Integer E200 = 200;
-    private static final Integer E300 = 300;
+    private static final Integer MAX_LENGTH = 1000;
     private static final String HTTP = "http";
     private static final String HTTPS = "https";
     private static final Integer PORT_80 = 80;
@@ -87,7 +89,7 @@ public class DiagnosticConnectionService {
                 .toList());
 
         for (URL url : urls) {
-            statusList.add(checkVersionLocationExists(url));
+            statusList.add(checkAndGetConnectionStatus(url));
         }
         return statusList;
     }
@@ -113,36 +115,24 @@ public class DiagnosticConnectionService {
         return getDownloadUrl(url.getProtocol(), url.getHost(), url.getPort());
     }
 
-    private DownloadUrlConnectionStatus checkVersionLocationExists(URL url) {
+    private DownloadUrlConnectionStatus checkAndGetConnectionStatus(URL url) {
         HttpURLConnection connection = null;
-
         try {
             connection = (HttpURLConnection) url.openConnection();
             connectionConfigurer.apply(connection);
 
-            int responseCode = connection.getResponseCode();
-
-            InputStream inputStream;
-            if (responseCode == E200) {
+            int code = connection.getResponseCode();
+            if (code == HttpURLConnection.HTTP_OK) {
                 globalConfProvider.verifyValidity();
                 return DownloadUrlConnectionStatus.create(getDownloadUrl(url));
-            } else if (responseCode > E200 && responseCode < E300) {
-                inputStream = connection.getInputStream();
             } else {
-                inputStream = connection.getErrorStream();
-            }
-
-            if (inputStream != null) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                    StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line).append("\n");
-                    }
-                    return DownloadUrlConnectionStatus.create(getDownloadUrl(url), "HTTP" + responseCode, List.of(response.toString()));
-                }
-            } else {
-                return null;
+                String respMsg = safe(connection.getResponseMessage());
+                String errBody = readFully(connection.getErrorStream());
+                throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_GET_VERSION_FAILED)
+                        .details(String.format(
+                                "Failed to determine configuration version from %s — HTTP %d %s. Body: %s",
+                                getDownloadUrl(url), code, respMsg, shorten(errBody)))
+                        .build();
             }
         } catch (Exception e) {
             XrdRuntimeException result = XrdRuntimeException.systemException(e);
@@ -152,6 +142,29 @@ public class DiagnosticConnectionService {
                 connection.disconnect();
             }
         }
+    }
+
+    private static String readFully(InputStream in) {
+        if (in == null) return "";
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+            return sb.toString().trim();
+        } catch (IOException ignore) {
+            return "";
+        }
+    }
+
+    private static String shorten(String s) {
+        if (s == null) return "";
+        return s.length() <= MAX_LENGTH ? s : s.substring(0, MAX_LENGTH) + "…";
+    }
+
+    private static String safe(String s) {
+        return s == null ? "" : s;
     }
 
     public ConnectionStatus getAuthCertRegStatusInfo() {

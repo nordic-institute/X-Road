@@ -254,6 +254,17 @@
       "failedRequests": "Şowsuz talaplar",
       "disabledTitle": "Operasion maglumatlary gözegçilik öçürildi",
       "disabledMessage": "Bu Howpsuzlyk Serweri üçin operasion maglumatlary gözegçilik öçürildi. Ony işe girizmek üçin operasion maglumatlary gözegçilik goşmaçasyny (xroad-addon-opmonitoring) guruň."
+    },
+    "connection": {
+      "ok": "Everything ok",
+      "test": "Test",
+      "centralServer": {
+        "title": "Central Server",
+        "globalConf": "Global configuration download",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "authCertRequest": "Authentication certificate registration service"
+      }
     }
   },
   "endpoints": {
@@ -369,6 +380,7 @@
     "invalid_service_url": "Gulluk url nädogry",
     "invalid_wsdl": "WSDL nädogry",
     "invalid_wsdl_service_identifier": "Gulluk WSDL identifikatory nädogry",
+    "io_error": "IO error",
     "key_and_cert_generation_failed": "Açar we şahadatnama döredilmedi",
     "key_not_found": "Açar tapylmady",
     "local_group_code_already_exists": "Ýerli toparyň kody eýýäm bar",
@@ -384,6 +396,8 @@
     "member_code_exists": "Agzanyň kody bar",
     "member_code_not_provided": "Agzanyň kody görkezilmedi",
     "missing_parameter": "Parametrleri ýok",
+    "network_error": "Network error",
+    "http_error": "HTTP error",
     "openapi_parsing_error": "OpenApi3 beýanyny dernäp bolmady",
     "orphans_not_found": "Bu müşderä degişli ýiten açarlar, şahadatnamalar we/ýa-da CSR-ler tapylmady",
     "pin_code_exists": "PIN kod bar",
@@ -892,7 +906,8 @@
     },
     "diagnostics": {
       "overview": "Syn",
-      "traffic": "Trafik"
+      "traffic": "Trafik",
+      "connection": "Connection Testing"
     }
   },
   "token": {

@@ -254,6 +254,17 @@
       "failedRequests": "Неудачные запросы",
       "disabledTitle": "Мониторинг операционных данных отключен",
       "disabledMessage": "Мониторинг операционных данных отключен для данного Сервера Безопасности. Чтобы включить его, установите дополнение для мониторинга операционных данных (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Everything ok",
+      "test": "Test",
+      "centralServer": {
+        "title": "Central Server",
+        "globalConf": "Global configuration download",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "authCertRequest": "Authentication certificate registration service"
+      }
     }
   },
   "endpoints": {
@@ -369,6 +380,7 @@
     "invalid_service_url": "Недопустимый URL службы",
     "invalid_wsdl": "Недопустимый WSDL",
     "invalid_wsdl_service_identifier": "Недопустимый идентификатор службы WSDL",
+    "io_error": "IO error",
     "key_and_cert_generation_failed": "Не удалось создать ключ и сертификат",
     "key_not_found": "Ключ не найден",
     "local_group_code_already_exists": "Код локальной группы уже существует",
@@ -384,6 +396,8 @@
     "member_code_exists": "Код участника существует",
     "member_code_not_provided": "Код участника не указан",
     "missing_parameter": "Отсутствует параметр",
+    "network_error": "Network error",
+    "http_error": "HTTP error",
     "openapi_parsing_error": "Не удалось разобрать описание OpenApi3",
     "orphans_not_found": "Одинокие ключи, сертификаты и/или CSR, принадлежащие данному клиенту, не найдены",
     "pin_code_exists": "PIN-код существует",
@@ -872,7 +886,8 @@
     },
     "diagnostics": {
       "overview": "Обзор",
-      "traffic": "Трафик"
+      "traffic": "Трафик",
+      "connection": "Connection Testing"
     },
     "keys": {
       "apiKey": "API-ключи",

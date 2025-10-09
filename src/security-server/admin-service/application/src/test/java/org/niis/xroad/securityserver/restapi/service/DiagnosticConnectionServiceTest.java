@@ -95,7 +95,7 @@ class DiagnosticConnectionServiceTest {
 
         URL fakeUrl = URL.of(URI.create(downloadUrl), handler);
 
-        var m = DiagnosticConnectionService.class.getDeclaredMethod("checkVersionLocationExists", URL.class);
+        var m = DiagnosticConnectionService.class.getDeclaredMethod("checkAndGetConnectionStatus", URL.class);
         m.setAccessible(true);
         var status = (DownloadUrlConnectionStatus) m.invoke(service, fakeUrl);
 
@@ -158,7 +158,7 @@ class DiagnosticConnectionServiceTest {
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(status.getErrorCode()).isEqualTo("network_error");
-        assertThat(status.getValidationErrors().get("certificate_not_found")).isEqualTo(List.of("No active auth cert found"));
+        assertThat(status.getValidationErrors()).containsEntry("certificate_not_found", List.of("No active auth cert found"));
     }
 
     @Test
@@ -173,7 +173,7 @@ class DiagnosticConnectionServiceTest {
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(status.getErrorCode()).isEqualTo("internal_error");
-        assertThat(status.getValidationErrors().get("certificate_not_found")).isEqualTo(List.of("No active auth cert found"));
+        assertThat(status.getValidationErrors()).containsEntry("certificate_not_found", List.of("No active auth cert found"));
     }
 
     @Test

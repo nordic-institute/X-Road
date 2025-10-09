@@ -279,6 +279,17 @@
       "failedRequests": "Solicitudes fallidas",
       "disabledTitle": "La monitorización de datos operativos está deshabilitada",
       "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instala el complemento de monitorización de datos operativos (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Ok",
+      "test": "Test",
+      "centralServer": {
+        "title": "Central Server",
+        "globalConf": "Global configuration download",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "authCertRequest": "Authentication certificate registration service"
+      }
     }
   },
   "endpoints": {
@@ -384,6 +395,7 @@
     "invalid_service_url": "La URL del servicio no es válida",
     "invalid_wsdl": "El WSDL no es válido",
     "invalid_wsdl_service_identifier": "El identificador de servicio WSDL no es válido",
+    "io_error": "IO error",
     "key_and_cert_generation_failed": "Falló la generación de clave y certificado",
     "key_not_found": "Clave no encontrada",
     "local_group_code_already_exists": "El código de grupo local ya existe",
@@ -399,6 +411,8 @@
     "member_code_exists": "El código de miembro ya existe",
     "member_code_not_provided": "No has proporcionado el código de miembro",
     "missing_parameter": "Parámetro faltante",
+    "network_error": "Network error",
+    "http_error": "HTTP error",
     "openapi_parsing_error": "Error al analizar la descripción de OpenApi3",
     "orphans_not_found": "Las claves huérfanas, certificados y/o CSR que pertenecen al cliente dado no fueron encontrados",
     "pin_code_exists": "El código PIN ya existe",
@@ -897,7 +911,8 @@
     },
     "diagnostics": {
       "overview": "Resumen",
-      "traffic": "Tráfico"
+      "traffic": "Tráfico",
+      "connection": "Connection Testing"
     },
     "keys": {
       "apiKey": "Clave de API",

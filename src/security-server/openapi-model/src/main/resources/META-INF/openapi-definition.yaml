@@ -2430,7 +2430,7 @@ paths:
             application/json:
               schema:
                 type: array
-                description: array of statuses for the global configuration download connection.
+                description: array of statuses for the global configuration download connection
                 items:
                   $ref: '#/components/schemas/GlobalConfConnectionStatus'
         '400':
@@ -6047,20 +6047,23 @@ components:
       properties:
         status_class:
           readOnly: true
-          description: diagnostics status class
+          description: connection status class
           allOf:
             - $ref: '#/components/schemas/DiagnosticStatusClass'
         error:
           $ref: '#/components/schemas/CodeWithDetails'
     GlobalConfConnectionStatus:
       type: object
-      description: central server connection status
+      description: global configuration download connection status
       required:
         - download_url
         - connection_status
       properties:
         download_url:
           type: string
+          format: text
+          minLength: 1
+          maxLength: 255
           description: download url of the global configuration
         connection_status:
           $ref: '#/components/schemas/ConnectionStatus'
