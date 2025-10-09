@@ -551,7 +551,7 @@
     "undefinedSubsystemName": "undefined"
   },
   "global": {
-    "appTitle": "X-Road Security Server"
+    "appTitle": "CamDX Security Server"
   },
   "globalAlert": {
     "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}",
