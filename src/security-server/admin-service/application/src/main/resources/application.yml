@@ -99,6 +99,14 @@ xroad:
     key-management-api-whitelist: 127.0.0.0/8, ::1
     regular-api-whitelist: 0.0.0.0/0, ::/0
     acme-key-length: 2048
+  message-log-archiver:
+    enabled: true
+    archive-interval: "0 0 0/6 1/1 * ?"
+    clean-interval: "0 0 0/12 1/1 * ?"
+    clean-transaction-batch-size: 10000
+    clean-keep-records-for: 30
+    archive-transaction-batch-size: 10000
+    archive-path: "/var/lib/xroad"
 
 file-upload-endpoints:
   endpoint-definitions:

@@ -37,18 +37,14 @@ import java.util.Optional;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "xroad.proxy-ui-api.message-log-archiver")
+@ConfigurationProperties(prefix = "xroad.message-log-archiver")
 public class LogArchiverProperties {
-    private static final int DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE = 10000;
-    private static final int DEFAULT_CLEAN_KEEP_RECORDS_FOR = 30;
-    private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
-
-    private boolean enabled = true;
-    private String archiveInterval = "0 0 0/6 1/1 * ? *";
-    private String cleanInterval = "0 0 0/12 1/1 * ? *";
-    private int cleanTransactionBatchSize = DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE;
-    private int cleanKeepRecordsFor = DEFAULT_CLEAN_KEEP_RECORDS_FOR;
-    private int archiveTransactionBatchSize = DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE;
-    private String archivePath = "/var/lib/xroad";
+    private boolean enabled;
+    private String archiveInterval;
+    private String cleanInterval;
+    private int cleanTransactionBatchSize;
+    private int cleanKeepRecordsFor;
+    private int archiveTransactionBatchSize;
+    private String archivePath;
     private Optional<String> archiveTransferCommand = Optional.empty();
 }

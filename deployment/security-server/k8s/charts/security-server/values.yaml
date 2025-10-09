@@ -203,32 +203,6 @@ services:
       - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-serverconf"
         key: "password"
-  messagelog-archiver:
-    image: localhost:5555/ss-message-log-archiver:latest
-    imagePullPolicy: IfNotPresent
-    resources:
-      requests:
-        memory: 64Mi
-      limits:
-        memory: 512Mi
-    ports:
-      - port: 4099
-        name: http
-    readinessProbe:
-      path: "/q/health"
-      scheme: "HTTP"
-    debugPort: 9999
-    serviceAccount:
-      annotations: { }
-    env:
-      DEBUG_PORT: "9999"
-      XROAD_HOST: "messagelog-archiver.ss.svc.cluster.local"
-      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
-      XROAD_SECRET_STORE_SCHEME: "http"
-    envFromSecrets:
-      - name: "XROAD_SECRET_STORE_TOKEN"
-        secretName: "xroad-token"
-        key: "XROAD_SECRET_STORE_TOKEN"
   monitor:
     image: localhost:5555/ss-monitor:latest
     imagePullPolicy: IfNotPresent

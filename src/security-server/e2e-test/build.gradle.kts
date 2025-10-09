@@ -8,6 +8,7 @@ dependencies {
   intTestImplementation(libs.testAutomation.assert)
   intTestImplementation(libs.testAutomation.restassured)
   intTestImplementation(libs.feign.hc5)
+  intTestImplementation(libs.postgresql)
 }
 
 tasks.register<Test>("e2eTest") {

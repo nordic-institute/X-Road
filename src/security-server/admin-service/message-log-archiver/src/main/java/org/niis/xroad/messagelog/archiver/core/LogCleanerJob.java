@@ -39,7 +39,7 @@ public class LogCleanerJob {
 
     @Scheduled(cron = "${xroad.message-log-archiver.clean-interval}")
     public void archive() {
-        log.info("Executing LogArchiverJob with cron {}", logArchiverProperties.getCleanInterval());
+        log.info("Executing LogCleanerJob with cron {}", logArchiverProperties.getCleanInterval());
         logCleaner.execute();
     }
 }
