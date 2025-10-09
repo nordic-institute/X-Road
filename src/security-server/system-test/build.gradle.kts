@@ -10,9 +10,6 @@ dependencies {
 
   intTestImplementation(project(":common:common-int-test"))
   intTestImplementation(libs.testAutomation.assert)
-  intTestImplementation(libs.testAutomation.selenide) {
-    exclude(group = "org.slf4j", module = "*")
-  }
   intTestImplementation(libs.feign.hc5)
   intTestImplementation(libs.postgresql)
 }

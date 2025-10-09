@@ -25,12 +25,37 @@
  */
 package org.niis.xroad.common.test.configuration;
 
+import feign.Contract;
+import feign.Feign;
+import feign.Logger;
+import feign.codec.Decoder;
+import feign.codec.Encoder;
+import feign.hc5.ApacheHttp5Client;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.niis.xroad.common.test.api.TestCaFeignApi;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.niis.xroad.common.test.api.interceptor.TestCaFeignInterceptor;
+import org.springframework.cloud.openfeign.FeignClientsConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
-@EnableFeignClients(clients = TestCaFeignApi.class)
+@Import(FeignClientsConfiguration.class)
 public class TestCaConfiguration {
 
+    @Bean
+    public TestCaFeignApi testCaFeignApi(
+            TestCaFeignInterceptor testCaFeignInterceptor,
+            Encoder encoder,
+            Decoder decoder,
+            Contract contract) {
+        return Feign.builder()
+                .logLevel(Logger.Level.FULL)
+                .encoder(encoder)
+                .client(new ApacheHttp5Client(HttpClients.createDefault()))
+                .decoder(decoder)
+                .requestInterceptor(testCaFeignInterceptor)
+                .contract(contract)
+                .target(TestCaFeignApi.class, "http://localhost");
+    }
 }

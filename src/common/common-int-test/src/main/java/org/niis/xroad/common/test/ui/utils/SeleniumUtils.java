@@ -29,11 +29,13 @@ package org.niis.xroad.common.test.ui.utils;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+ import lombok.experimental.UtilityClass;
 
 import static org.openqa.selenium.Keys.COMMAND;
 import static org.openqa.selenium.Keys.CONTROL;
 import static org.openqa.selenium.Keys.DELETE;
 
+@UtilityClass
 public final class SeleniumUtils {
 
     public static SelenideElement clearInput(SelenideElement element) {
@@ -47,6 +49,4 @@ public final class SeleniumUtils {
         return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
     }
 
-    private SeleniumUtils() {
-    }
 }

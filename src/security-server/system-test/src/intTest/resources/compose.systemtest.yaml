@@ -130,7 +130,7 @@ services:
     networks:
       - xrd-ss-network
     volumes:
-      - ../../../a2c_logs:/var/www/acme2certifier/logs
+      - ../../a2c_logs:/var/www/acme2certifier/logs
 
   nginx:
     image: nginx:latest

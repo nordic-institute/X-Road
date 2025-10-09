@@ -23,6 +23,7 @@ Feature: 0505 - SS: ACME
       | softToken-0 | SIGNING        | test acme signing key   | DEV:COM:1234      | ui  | Test CA      | Registered  | Good        |
       | softToken-0 | AUTHENTICATION | test acme auth key      |                   | ui  | Test CA      | Saved       | Disabled    |
 
+  @Download
   Scenario: Certificate ordering is disabled when external account binding credentials are required but missing
     Given Keys and certificates tab is selected
     And Token: softToken-0 is present and expanded
