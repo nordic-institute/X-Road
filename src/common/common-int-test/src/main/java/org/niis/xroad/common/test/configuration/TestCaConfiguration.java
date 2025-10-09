@@ -34,12 +34,14 @@ import feign.hc5.ApacheHttp5Client;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.niis.xroad.common.test.api.TestCaFeignApi;
 import org.niis.xroad.common.test.api.interceptor.TestCaFeignInterceptor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
+@ConditionalOnBean(TestCaFeignInterceptor.class)
 @Import(FeignClientsConfiguration.class)
 public class TestCaConfiguration {
 
