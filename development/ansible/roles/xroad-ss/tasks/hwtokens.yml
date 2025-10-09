@@ -20,20 +20,6 @@
         append: yes
         groups: softhsm
 
-    - name: Append SoftHSM2 signer module to end of local.yaml
-      ansible.builtin.blockinfile:
-        path: /etc/xroad/conf.d/local.yaml
-        insertafter: EOF
-        marker: "# {mark} SoftHSM2 signer module"
-        block: |
-          # hardware token configuration:
-            signer:
-              modules:
-                softhsm2:
-                  library: /usr/lib/softhsm/libsofthsm2.so
-                  os-locking-ok: true
-                  library-cant-create-os-threads: true
-
     - name: Check existing SoftHSM slots for token label
       command: softhsm2-util --show-slots
       register: softhsm_slots
@@ -56,7 +42,28 @@
           {{ "Token already present; no changes made."
              if softhsm_slots.stdout is search("Label\\s*:\\s*{{ hwtokens_label | regex_escape() }}")
              else "The token has been initialized." }}
-          
+
+    - name: Capture SoftHSM2 slot id for label
+      shell: >
+        softhsm2-util --show-slots | awk '/^Slot / { slot=$2 } /Label: *{{ hwtokens_label }}/ { print slot }'
+      register: softhsm2_slot_id
+      changed_when: false
+
+    - name: Append SoftHSM2 signer module to end of local.yaml
+      ansible.builtin.blockinfile:
+        path: /etc/xroad/conf.d/local.yaml
+        insertafter: EOF
+        marker: "# {mark} SoftHSM2 signer module"
+        block: |
+          # hardware token configuration:
+            signer:
+              modules:
+                softhsm2:
+                  library: /usr/lib/softhsm/libsofthsm2.so
+                  os-locking-ok: true
+                  library-cant-create-os-threads: true
+                  slot-ids: {{ softhsm2_slot_id.stdout | trim }}
+
     - name: Recursively chown tokens to xroad
       become: true
       ansible.builtin.file:
