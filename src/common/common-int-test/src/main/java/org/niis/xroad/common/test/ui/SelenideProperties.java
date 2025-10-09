@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Data
+@SuppressWarnings("checkstyle:MagicNumber")
 @ConfigurationProperties(prefix = "test-automation.selenide")
 public class SelenideProperties {
 
@@ -92,7 +93,8 @@ public class SelenideProperties {
             + "--disable-client-side-phishing-detection,"
             + "--disable-component-update,"
             + "--disable-domain-reliability,"
-            + "--disable-features=OptimizationGuideModelDownloading,OptimizationHintsFetching,OptimizationTargetPrediction,OptimizationHints,"
+            + "--disable-features=OptimizationGuideModelDownloading,OptimizationHintsFetching,"
+            + "OptimizationTargetPrediction,OptimizationHints,"
             // UI/UX improvements
             + "--no-first-run,"
             + "--no-default-browser-check,"

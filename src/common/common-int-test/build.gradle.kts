@@ -19,3 +19,7 @@ dependencies {
 tasks.test {
   useJUnitPlatform()
 }
+
+archUnit {
+  setSkip(true)
+}

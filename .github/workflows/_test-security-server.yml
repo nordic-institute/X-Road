@@ -54,13 +54,6 @@ jobs:
           task: get-measurement
           label: 'Set up Security Server tests'
 
-      - name: Build development images
-        working-directory: ./development/docker
-        run: |
-          IMAGE_REGISTRY=${{ inputs.image_registry }} \
-          IMAGE_TAG=${{ inputs.service_image_tag }} \
-            ./build-dev-images.sh --push
-
       - name: Run Security Server system tests
         working-directory: ./src
         run: |

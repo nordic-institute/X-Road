@@ -48,13 +48,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build development images
-        working-directory: ./development/docker
-        run: |
-          IMAGE_REGISTRY=${{ inputs.image_registry }} \
-          IMAGE_TAG=${{ inputs.service_image_tag }} \
-            ./build-dev-images.sh --push
-
       - name: E2E test setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:

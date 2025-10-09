@@ -29,7 +29,7 @@ package org.niis.xroad.common.test.ui.utils;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
- import lombok.experimental.UtilityClass;
+import lombok.experimental.UtilityClass;
 
 import static org.openqa.selenium.Keys.COMMAND;
 import static org.openqa.selenium.Keys.CONTROL;

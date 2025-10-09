@@ -96,17 +96,7 @@ public class ApiTestConfiguration {
     private static ApacheHttp5Client insecureClient() {
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{new X509TrustManager() {
-                public void checkClientTrusted(X509Certificate[] chain, String authType) {
-                }
-
-                public void checkServerTrusted(X509Certificate[] chain, String authType) {
-                }
-
-                public X509Certificate[] getAcceptedIssuers() {
-                    return new X509Certificate[0];
-                }
-            }}, null);
+            sslContext.init(null, new TrustManager[]{new NoopTrustManager()}, null);
 
             return new ApacheHttp5Client(HttpClients.custom()
                     .setConnectionManager(org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder.create()
@@ -115,6 +105,24 @@ public class ApiTestConfiguration {
                     .build());
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("java:S4830")
+    static class NoopTrustManager implements X509TrustManager {
+        @Override
+        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
+            // The method gets never called
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
+            // Trust all
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
         }
     }
 }
