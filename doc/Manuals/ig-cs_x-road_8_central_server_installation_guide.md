@@ -36,9 +36,6 @@ Doc. ID: IG-CS-8
   - [2.8 Pre-configuration for Management Web Service](#28-pre-configuration-for-management-web-service)
   - [2.9 Post-Installation Checks](#29-post-installation-checks)
 - [3 Initial Configuration](#3-initial-configuration)
-  - [3.1 Reference Data](#31-reference-data)
-  - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
-  - [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
 - [4 Installation Error Handling](#4-installation-error-handling)
 - [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
 - [Annex B Database Users](#annex-b-database-users)
@@ -271,48 +268,7 @@ The installation is successful if the system services are started and the user i
 
 ## 3 Initial Configuration
 
-### 3.1 Reference Data
-
-Note: The information in empty cells will be entered at the latest during the installation, by the person performing the installation.
-
-Attention: Data necessary for the functioning of the operating system is not included.
-
-| **Ref** |        | **Explanation**                                                          |
-|---------|--------|--------------------------------------------------------------------------|
-| 2.1     |        | The X-Road instance identifier                                           |
-| 2.2     |        | The external DNS name or IP address of the Central Server                |
-| 2.3     |        | The softtoken PIN                                                        |
-| 2.4     |        | Codes and descriptions of the member classes used in the X-Road instance |
-
-### 3.2 Initializing the Central Server
-
-The Central Server user interface can be accessed at https://CENTRALSERVER:4000/ (reference data: 1.7; 1.6)
-
-1. Set the X-Road instance identifier (reference data: 2.1).
-2. Set the Central Server public DNS hostname or public IP address (reference data: 2.2).
-3. Set the PIN of the software token (reference data: 2.3). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN is lost.
-
-### 3.3 Configuring the Central Server and the Management Services' Security Server
-
-Upon the first configuration of the Central Server and the management services' Security Server, the following actions must be carried out.
-
-Actions 7 and 8 must be performed in the management services' Security Server.
-
-1. Generate the internal and external configuration signing keys. Refer to [UG-CS](#Ref_UG-CS) section "Generating a Configuration Signing Key".
-2. Configure the member classes. Refer to [UG-CS](#Ref_UG-CS) section "Managing the Member Classes". (reference data: 2.4).
-3. Configure the management service provider:
-add the X-Road member who will be responsible for management services - [UG-CS](#Ref_UG-CS) section "Adding a Member";
-add the subsystem that will provide the management services to the X-Road member - [UG-CS](#Ref_UG-CS) section "Adding a Subsystem to an X-Road Member";
-appoint the subsystem as the management service provider - [UG-CS](#Ref_UG-CS) section "Appointing the Management Service Provider".
-4. Configure the certification services. Refer to [UG-CS](#Ref_UG-CS) section "Managing the Approved Certification Services".
-5. Configure the timestamping services. Refer to [UG-CS](#Ref_UG-CS) section "Managing the Approved Timestamping Services".
-6. Verify that the global configuration generation succeeds (no global error messages should be displayed in the user interface at this point) and download the internal configuration anchor - [UG-CS](#Ref_UG-CS) section "Downloading the Configuration Anchor". The anchor is needed to set up the management services' Security Server.
-7. Install and configure the management services' Security Server as described in [IG-SS](#Ref_IG-SS).
-8. Register the management services' Security Server in the Central Server. Refer to [UG-SS](#Ref_UG-SS) section "Security Server Registration".
-9. Complete the registration of the management services' Security Server - [UG-CS](#Ref_UG-CS) section "Registering a Member's Security Server".
-10. Register the management service provider as a client of the management services' Security Server - [UG-CS](#Ref_UG-CS) section "Registering the Management Service Provider as a Security Server Client".
-11. Add the management service provider as a client to the management services' Security Server. Refer to [UG-SS](#Ref_UG-SS) section "Adding a Security Server Client". (The client should appear in "Registered" state, as the association between the client and the Security Server was already registered in the Central Server in the previous step). If necessary, configure the signing keys and certificates for the client - [UG-SS](#Ref_UG-SS) section "Configuring a Signing Key and Certificate for a Security Server Client"
-12. Configure the management services. Refer to [UG-CS](#Ref_UG-CS) section "Configuring the Management Services in The Management Services’ Security Server".
+Refer to X-Road 7. Central Server Installation Guide [IG-CS](#Ref_IG-CS), section "Initial Configuration".
 
 ## 4 Installation Error Handling
 
