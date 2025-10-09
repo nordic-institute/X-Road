@@ -50,6 +50,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
@@ -73,19 +75,16 @@ public class DiagnosticConnectionService {
     private final HttpUrlConnectionConfigurer connectionConfigurer = new HttpUrlConnectionConfigurer();
 
     public List<DownloadUrlConnectionStatus> getGlobalConfStatusInfo() {
-        List<DownloadUrlConnectionStatus> statusList = new ArrayList<>();
-        List<String> addresses = globalConfProvider.findSourcesAddress();
-        List<URL> urls = new ArrayList<>(addresses.stream()
-                .map(address -> getUrl(HTTP, address, PORT_80))
-                .toList());
-        urls.addAll(addresses.stream()
-                .map(address -> getUrl(HTTPS, address, PORT_443))
-                .toList());
+        Set<String> addresses = globalConfProvider.findSourceAddresses();
 
-        for (URL url : urls) {
-            statusList.add(checkAndGetConnectionStatus(url));
-        }
-        return statusList;
+        return addresses.stream()
+                .flatMap(address -> Stream.of(
+                        getUrl(HTTP, address, PORT_80),
+                        getUrl(HTTPS, address, PORT_443)
+                ))
+                .distinct()
+                .map(this::checkAndGetConnectionStatus)
+                .toList();
     }
 
     private static String getCenterInternalDirectory() {

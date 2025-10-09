@@ -51,6 +51,7 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.List;
+import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
@@ -107,8 +108,8 @@ class DiagnosticConnectionServiceTest {
 
     @Test
     void getGlobalConfStatusInfoThenReturnUnknownHostErrors() {
-        when(globalConfProvider.findSourcesAddress())
-                .thenReturn(List.of("unknown-host"));
+        when(globalConfProvider.findSourceAddresses())
+                .thenReturn(Set.of("unknown-host"));
 
         var statuses = service.getGlobalConfStatusInfo();
 

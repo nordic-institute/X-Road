@@ -341,10 +341,9 @@ public interface GlobalConfProvider {
     X509Certificate getCentralServerSslCertificate();
 
     /**
-     * @return SSL certificates of central servers
-     *
+     * @return a set containing all configured source addresses
      */
-    List<String> findSourcesAddress();
+    Set<String> findSourceAddresses();
 
     /**
      * @return maximum allowed validity time of OCSP responses. If thisUpdate

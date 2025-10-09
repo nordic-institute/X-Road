@@ -270,8 +270,8 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> findSourcesAddress() {
-        return List.of();
+    public Set<String> findSourceAddresses() {
+        return Set.of();
     }
 
     @Override
