@@ -28,6 +28,7 @@ package ee.ria.xroad.common.certificateprofile.impl;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
+
 import org.niis.xroad.globalconf.util.CamDXSubjectClientIdDecoder;
 
 import java.security.cert.X509Certificate;
