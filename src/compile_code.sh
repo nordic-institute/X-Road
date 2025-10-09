@@ -1,7 +1,7 @@
 #!/bin/bash
 source compile_env.sh
 
-RELEASE="SNAPSHOT"
+RELEASE="RELEASE"
 
 for i in "$@"; do
 case "$i" in
