@@ -243,8 +243,8 @@ jobs:
       - name: Build development images
         working-directory: ./development/docker
         run: |
-          IMAGE_REGISTRY=${{ inputs.image_registry }} \
-          IMAGE_TAG=${{ inputs.service_image_tag }} \
+          IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} \
+          IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }} \
             ./build-dev-images.sh --push
 
       - name: Log storage after all packaging
