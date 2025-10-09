@@ -157,19 +157,6 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<ConnectionStatusDto> getAuthCertReqStatus() {
-        return new ResponseEntity<>(authCertStatusConverter.convert(diagnosticConnectionService.getAuthCertRegStatusInfo()), HttpStatus.OK);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<List<GlobalConfConnectionStatusDto>> getGlobalConfStatus() {
-        return new ResponseEntity<>(globalConfStatusConverter.convert(diagnosticConnectionService.getGlobalConfStatusInfo()),
-                HttpStatus.OK);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<MessageLogEncryptionStatusDto> getMessageLogEncryptionDiagnostics() {
         MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics =
                 diagnosticService.queryMessageLogEncryptionStatus();
@@ -200,6 +187,19 @@ public class DiagnosticsApiController implements DiagnosticsApi {
                 memberId != null ? clientIdConverter.convertId(memberId) : null,
                 serviceId != null ? serviceIdConverter.convertId(serviceId) : null);
         return new ResponseEntity<>(operationalInfoConverter.convert(opDataIntervals), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<ConnectionStatusDto> getAuthCertReqStatus() {
+        return new ResponseEntity<>(authCertStatusConverter.convert(diagnosticConnectionService.getAuthCertRegStatusInfo()), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<List<GlobalConfConnectionStatusDto>> getGlobalConfStatus() {
+        return new ResponseEntity<>(globalConfStatusConverter.convert(diagnosticConnectionService.getGlobalConfStatusInfo()),
+                HttpStatus.OK);
     }
 
     private String systemInformationFilename() {

@@ -41,13 +41,16 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OperationalDataIntervalDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
@@ -65,8 +68,10 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -75,10 +80,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -481,6 +488,51 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 .atOffset(ZoneOffset.UTC));
         assertThat(response.getBody().getFirst().getSuccessCount()).isEqualTo(operationalDataInterval.getSuccessCount());
         assertThat(response.getBody().getFirst().getFailureCount()).isEqualTo(operationalDataInterval.getFailureCount());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getAuthCertReqStatus() {
+        TokenInfo tokenInfo = mock(TokenInfo.class);
+        when(tokenInfo.getKeyInfo()).thenReturn(Collections.emptyList());
+        when(tokenService.getToken(any())).thenReturn(tokenInfo);
+
+        ResponseEntity<ConnectionStatusDto> response = diagnosticsApiController.getAuthCertReqStatus();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        ConnectionStatusDto connectionStatusDto = response.getBody();
+        assertNotNull(connectionStatusDto);
+        assertEquals(DiagnosticStatusClassDto.FAIL, connectionStatusDto.getStatusClass());
+        assertEquals("certificate_not_found", connectionStatusDto.getError().getCode());
+        assertEquals("No active auth cert found", connectionStatusDto.getError().getMetadata().getFirst());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getGlobalConfStatus() {
+        when(globalConfProvider.findSourcesAddress()).thenReturn(List.of("one-host"));
+
+        ResponseEntity<List<GlobalConfConnectionStatusDto>> response = diagnosticsApiController.getGlobalConfStatus();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        List<GlobalConfConnectionStatusDto> globalConfStatuses = response.getBody();
+        assertNotNull(globalConfStatuses);
+        assertEquals(2, globalConfStatuses.size());
+        Set<String> actualUrls = globalConfStatuses.stream()
+                .map(GlobalConfConnectionStatusDto::getDownloadUrl)
+                .collect(Collectors.toSet());
+
+        Set<String> expectedUrls = Set.of(
+                "http://one-host:80/internalconf",
+                "https://one-host:443/internalconf"
+        );
+
+        assertEquals(expectedUrls, actualUrls);
+
+        globalConfStatuses.forEach(status -> {
+            assertEquals(DiagnosticStatusClassDto.FAIL, status.getConnectionStatus().getStatusClass());
+            assertEquals("unknown_host", status.getConnectionStatus().getError().getCode());
+        });
     }
 
     private void stubForDiagnosticsRequest(String requestPath, String responseBody) {
