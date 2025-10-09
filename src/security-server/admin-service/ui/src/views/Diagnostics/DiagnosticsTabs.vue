@@ -60,7 +60,7 @@ function getAllowedTabs(): Tab[] {
     },
     {
       key: 'diagnostics-connection-tab-button',
-      name: 'tab.diagnostics.connection',
+      name: 'tab.diagnostics.connectionTesting',
       to: {
         name: RouteName.DiagnosticsConnection,
       },

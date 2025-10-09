@@ -256,14 +256,14 @@
       "disabledMessage": "Мониторинг операционных данных отключен для данного Сервера Безопасности. Чтобы включить его, установите дополнение для мониторинга операционных данных (xroad-addon-opmonitoring)."
     },
     "connection": {
-      "ok": "Everything ok",
-      "test": "Test",
+      "ok": "Все в порядке",
+      "test": "Тест",
       "centralServer": {
-        "title": "Central Server",
-        "globalConf": "Global configuration download",
+        "title": "Центральный сервер",
+        "globalConf": "Загрузка глобальной конфигурации",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Authentication certificate registration service"
+        "authCertRequest": "Сервис регистрации сертификатов аутентификации"
       }
     }
   },
@@ -380,7 +380,7 @@
     "invalid_service_url": "Недопустимый URL службы",
     "invalid_wsdl": "Недопустимый WSDL",
     "invalid_wsdl_service_identifier": "Недопустимый идентификатор службы WSDL",
-    "io_error": "IO error",
+    "io_error": "Ошибка ввода/вывода",
     "key_and_cert_generation_failed": "Не удалось создать ключ и сертификат",
     "key_not_found": "Ключ не найден",
     "local_group_code_already_exists": "Код локальной группы уже существует",
@@ -396,8 +396,8 @@
     "member_code_exists": "Код участника существует",
     "member_code_not_provided": "Код участника не указан",
     "missing_parameter": "Отсутствует параметр",
-    "network_error": "Network error",
-    "http_error": "HTTP error",
+    "network_error": "Ошибка сети",
+    "http_error": "Ошибка HTTP",
     "openapi_parsing_error": "Не удалось разобрать описание OpenApi3",
     "orphans_not_found": "Одинокие ключи, сертификаты и/или CSR, принадлежащие данному клиенту, не найдены",
     "pin_code_exists": "PIN-код существует",
@@ -887,7 +887,7 @@
     "diagnostics": {
       "overview": "Обзор",
       "traffic": "Трафик",
-      "connection": "Connection Testing"
+      "connectionTesting": "Проверка соединения"
     },
     "keys": {
       "apiKey": "API-ключи",

@@ -25,7 +25,7 @@
  -->
 <template>
   <v-card variant="flat" class="xrd-card diagnostic-card">
-    <v-card-title class="text-h5" data-test="diagnostics-java-version">
+    <v-card-title class="text-h5">
       {{ $t('diagnostics.connection.centralServer.title') }}
     </v-card-title>
 

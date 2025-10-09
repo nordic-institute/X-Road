@@ -43,15 +43,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -66,7 +61,6 @@ import static org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleE
 @RequiredArgsConstructor
 public class DiagnosticConnectionService {
     private static final String CONNECTION_TEST_ADDRESS = "address";
-    private static final Integer MAX_LENGTH = 1000;
     private static final String HTTP = "http";
     private static final String HTTPS = "https";
     private static final Integer PORT_80 = 80;
@@ -121,17 +115,14 @@ public class DiagnosticConnectionService {
             connection = (HttpURLConnection) url.openConnection();
             connectionConfigurer.apply(connection);
 
-            int code = connection.getResponseCode();
-            if (code == HttpURLConnection.HTTP_OK) {
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
                 globalConfProvider.verifyValidity();
                 return DownloadUrlConnectionStatus.create(getDownloadUrl(url));
             } else {
-                String respMsg = safe(connection.getResponseMessage());
-                String errBody = readFully(connection.getErrorStream());
+                var responseMessage = connection.getResponseMessage() != null ? connection.getResponseMessage() : "";
                 throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_GET_VERSION_FAILED)
-                        .details(String.format(
-                                "Failed to determine configuration version from %s — HTTP %d %s. Body: %s",
-                                getDownloadUrl(url), code, respMsg, shorten(errBody)))
+                        .details(String.format("%s — HTTP %d %s", getDownloadUrl(url), responseCode, responseMessage))
                         .build();
             }
         } catch (Exception e) {
@@ -144,37 +135,14 @@ public class DiagnosticConnectionService {
         }
     }
 
-    private static String readFully(InputStream in) {
-        if (in == null) return "";
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line).append('\n');
-            }
-            return sb.toString().trim();
-        } catch (IOException ignore) {
-            return "";
-        }
-    }
-
-    private static String shorten(String s) {
-        if (s == null) return "";
-        return s.length() <= MAX_LENGTH ? s : s.substring(0, MAX_LENGTH) + "…";
-    }
-
-    private static String safe(String s) {
-        return s == null ? "" : s;
-    }
-
     public ConnectionStatus getAuthCertRegStatusInfo() {
-        CertificateInfo cert = null;
+        CertificateInfo certificateInfo = null;
         String certErrorCode = null;
         List<String> certValidationMetadata = new ArrayList<>();
 
         try {
-            cert = getAuthCert().orElseThrow(() -> new CertificateNotFoundException("No active auth cert found"));
-            authCertVerifier.verify(cert);
+            certificateInfo = getAuthCert().orElseThrow(() -> new CertificateNotFoundException("No active auth cert found"));
+            authCertVerifier.verify(certificateInfo);
         } catch (CertificateNotFoundException | InvalidCertificateException | TokenCertificateService.SignCertificateNotSupportedException
                  | KeyNotFoundException | ActionNotPossibleException e) {
             certErrorCode = e.getErrorDeviation().code();
@@ -182,7 +150,8 @@ public class DiagnosticConnectionService {
         }
 
         try {
-            byte[] bytes = (cert != null) ? cert.getCertificateBytes() : new byte[0];
+            // if no certificate, the error is expected, but we want to verify that the connection can be established
+            byte[] bytes = (certificateInfo != null) ? certificateInfo.getCertificateBytes() : new byte[0];
             managementRequestSenderService.sendAuthCertRegisterRequest(CONNECTION_TEST_ADDRESS, bytes, true);
         } catch (GlobalConfOutdatedException e) {
             return ConnectionStatus.create(e.getErrorDeviation().code(), e.getErrorDeviation().metadata(), certErrorCode,
@@ -190,8 +159,8 @@ public class DiagnosticConnectionService {
         } catch (XrdRuntimeException e) {
             return ConnectionStatus.create(e.getErrorCode(), e.getDetails(), certErrorCode, certValidationMetadata);
         } catch (CodedException e) {
-            // special case: if no cert, the error is expected, and we return only cert validation result
-            if (cert == null && X_INVALID_REQUEST.equals(e.getFaultCode())) {
+            // special case: if no certificate, the error is expected, and we return only certificate validation exceptions
+            if (certificateInfo == null && X_INVALID_REQUEST.equals(e.getFaultCode())) {
                 return ConnectionStatus.create(certErrorCode, certValidationMetadata);
             }
             return ConnectionStatus.create(e.getFaultCode(), e.getFaultString(), certErrorCode, certValidationMetadata);

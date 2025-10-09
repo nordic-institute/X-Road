@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView title-key="tab.diagnostics.connection" data-test="diagnostics-view">
+  <XrdTitledView title-key="tab.diagnostics.connectionTesting">
 
     <ConnectionCentralServerView class="mt-0" />
 

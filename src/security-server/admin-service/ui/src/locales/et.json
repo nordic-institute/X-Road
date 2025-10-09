@@ -987,7 +987,7 @@
     "diagnostics": {
       "overview": "Ülevaade",
       "traffic": "Päringute statistika",
-      "connection": "Ühenduse testimine"
+      "connectionTesting": "Ühenduse testimine"
     }
   },
   "token": {

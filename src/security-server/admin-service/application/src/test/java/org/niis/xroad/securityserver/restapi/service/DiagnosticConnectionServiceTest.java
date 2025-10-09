@@ -81,7 +81,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void checkVersionLocationExistsThenReturnHttp200() throws Exception {
+    void checkAndGetConnectionStatusThenReturnHttp200() throws Exception {
         String downloadUrl = "http://unknown-host:80/internalconf";
         HttpURLConnection mockConn = mock(HttpURLConnection.class);
         when(mockConn.getResponseCode()).thenReturn(200);
@@ -106,7 +106,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getGlobalConfStatusInfoThenReturnErrorStatuses() {
+    void getGlobalConfStatusInfoThenReturnUnknownHostErrors() {
         when(globalConfProvider.findSourcesAddress())
                 .thenReturn(List.of("unknown-host"));
 
@@ -123,6 +123,31 @@ class DiagnosticConnectionServiceTest {
                         tuple("http://unknown-host:80/internalconf", DiagnosticStatus.ERROR, "unknown_host"),
                         tuple("https://unknown-host:443/internalconf", DiagnosticStatus.ERROR, "unknown_host")
                 );
+    }
+
+    @Test
+    void getGlobalConfStatusInfoThenReturnGlobalConfGetVersionError() throws Exception {
+        String downloadUrl = "http://unknown-host:80/internalconf";
+        HttpURLConnection mockConn = mock(HttpURLConnection.class);
+        when(mockConn.getResponseCode()).thenReturn(404);
+
+        URLStreamHandler handler = new URLStreamHandler() {
+            @Override
+            protected URLConnection openConnection(URL u) {
+                return mockConn;
+            }
+        };
+
+        URL fakeUrl = URL.of(URI.create(downloadUrl), handler);
+
+        var m = DiagnosticConnectionService.class.getDeclaredMethod("checkAndGetConnectionStatus", URL.class);
+        m.setAccessible(true);
+        var status = (DownloadUrlConnectionStatus) m.invoke(service, fakeUrl);
+
+        assertThat(status.getDownloadUrl()).isEqualTo(downloadUrl);
+        assertThat(status.getConnectionStatus().getStatus()).isEqualTo(DiagnosticStatus.ERROR);
+        assertThat(status.getConnectionStatus().getErrorCode()).isEqualTo("global_conf_get_version_failed");
+        assertThat(status.getConnectionStatus().getErrorMetadata()).isEqualTo(List.of("http://unknown-host:80/internalconf — HTTP 404 "));
     }
 
     @Test
@@ -145,7 +170,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getAuthCertRegStatusInfoThenReturnUnresolvedAddressException() {
+    void getAuthCertRegStatusInfoThenReturnNetworkError() {
         TokenInfo token = mock(TokenInfo.class);
         when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
         when(token.getKeyInfo()).thenReturn(List.of());
@@ -162,7 +187,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getAuthCertRegStatusInfoThenReturnCodedException() {
+    void getAuthCertRegStatusInfoThenReturnInternalError() {
         TokenInfo token = mock(TokenInfo.class);
         when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
         when(token.getKeyInfo()).thenReturn(List.of());
@@ -177,7 +202,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getAuthCertRegStatusInfoThenReturnCodedExceptionInvalidRequest() {
+    void getAuthCertRegStatusInfoThenReturnCertificateNotFoundError() {
         TokenInfo token = mock(TokenInfo.class);
         when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
         when(token.getKeyInfo()).thenReturn(List.of());
