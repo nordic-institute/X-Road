@@ -32,6 +32,10 @@ quarkus:
 
 "%ss":
   xroad:
+    db:
+      serverconf:
+        hibernate:
+          hikari.dataSource.ApplicationName: ${quarkus.application.name}
     signer:
       ocsp-response-retrieval-active: true
 
