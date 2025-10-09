@@ -34,9 +34,9 @@
         <thead>
         <tr>
           <th class="fixed-width-10"/>
-          <th class="fixed-width-25"/>
+          <th class="fixed-width-30"/>
           <th class="status-column">{{ $t('diagnostics.status') }}</th>
-          <th class="fixed-width-55">{{ $t('diagnostics.message') }}</th>
+          <th class="fixed-width-50">{{ $t('diagnostics.message') }}</th>
           <th class="fixed-width-5"/>
         </tr>
         </thead>
@@ -48,39 +48,33 @@
           <td v-if="index === 0" :rowspan="globalConfStatuses.length">
             {{ $t('diagnostics.connection.centralServer.globalConf') }}
           </td>
-
           <td>
             <span v-if="!globalConfLoading">
               {{ item.download_url }}
             </span>
           </td>
-
           <td>
             <xrd-status-icon v-if="!globalConfLoading"
                              :status="statusIconType(item.connection_status.status_class)"
             />
           </td>
-
-          <!-- Column 4 -->
           <td>
             <span v-if="globalConfLoading">
             </span>
             <span v-else-if="item.connection_status.status_class === 'OK'">
-            {{ $t('diagnostics.javaVersion.ok') }}
+            {{ $t('diagnostics.connection.ok') }}
             </span>
             <span v-else>
             {{ globalConfErrorMessage(item.connection_status.error) }}
           </span>
           </td>
-
-          <!-- Column 5: only render on first row, merge down using rowspan -->
           <td v-if="index === 0" :rowspan="globalConfStatuses.length">
             <xrd-button
               large
               variant="text"
               @click="testGlobalConfDownload()"
             >
-              {{ $t('diagnostics.connection.centralServer.test') }}
+              {{ $t('diagnostics.connection.test') }}
             </xrd-button>
           </td>
         </tr>
@@ -102,10 +96,10 @@
           <td>
             <span v-if="authCertLoading">
             </span>
-          <span v-else-if="authCertReqStatus?.status_class === 'OK'">
-            {{ $t('diagnostics.javaVersion.ok') }}
+            <span v-else-if="authCertReqStatus?.status_class === 'OK'">
+            {{ $t('diagnostics.connection.ok') }}
           </span>
-          <span v-else>
+            <span v-else>
             {{ authCertErrorMessage }}
           </span>
           </td>
@@ -115,7 +109,7 @@
               variant="text"
               @click="testAuthCertRequest()"
             >
-              {{ $t('diagnostics.connection.centralServer.test') }}
+              {{ $t('diagnostics.connection.test') }}
             </xrd-button>
           </td>
         </tr>
@@ -126,10 +120,8 @@
           :no-items-text="$t('noData.noTimestampingServices')"
         />
         </tbody>
-
       </table>
     </v-card-text>
-
   </v-card>
 </template>
 <script lang="ts">
@@ -173,19 +165,14 @@ export default defineComponent({
       if (!err) return ''
 
       const {code, metadata = [], validation_errors = {}} = err
-
       const buildKey = (rawKey?: string) => {
         if (!rawKey) return ''
         return rawKey.includes('.') ? rawKey : `error_code.${rawKey}`
       }
-
       const codeKey = buildKey(code)
       const codeText = codeKey ? (this.$t(codeKey) as string) : ''
-
       const metaText = metadata.length ? metadata.join(', ') : ''
-
       const header = [codeText, metaText].filter(Boolean).join(' : ')
-
       const veEntries = Object.entries(validation_errors)
       const veText = veEntries.length
         ? veEntries
@@ -227,8 +214,6 @@ export default defineComponent({
       switch (status) {
         case 'OK':
           return 'ok';
-        case 'WAITING':
-          return 'progress-register';
         case 'FAIL':
           return 'error';
         default:
@@ -272,15 +257,15 @@ export default defineComponent({
   word-break: break-word;
 }
 
-.fixed-width-25 {
-  width: 25%;
-  max-width: 25%;
+.fixed-width-30 {
+  width: 30%;
+  max-width: 30%;
   word-break: break-word;
 }
 
-.fixed-width-55 {
-  width: 55%;
-  max-width: 55%;
+.fixed-width-50 {
+  width: 50%;
+  max-width: 50%;
   word-break: break-word;
 }
 

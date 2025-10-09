@@ -34,7 +34,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { XrdTitledView } from '@niis/shared-ui';
-import ConnectionCentralServerView from "@/views/Diagnostics/Connection/ConnectionCentralServerView.vue";
+import ConnectionCentralServerView from "@/views/Diagnostics/Connection/CentralServerConnectionTestingView.vue";
 
 export default defineComponent({
   components: {

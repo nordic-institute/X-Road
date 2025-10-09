@@ -45,6 +45,7 @@ import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -91,12 +92,11 @@ class DiagnosticConnectionServiceTest {
                 return mockConn;
             }
         };
-        URL fakeUrl = new URL(null, downloadUrl, handler);
 
-        var m = DiagnosticConnectionService.class
-                .getDeclaredMethod("checkVersionLocationExists", URL.class);
+        URL fakeUrl = URL.of(URI.create(downloadUrl), handler);
+
+        var m = DiagnosticConnectionService.class.getDeclaredMethod("checkVersionLocationExists", URL.class);
         m.setAccessible(true);
-
         var status = (DownloadUrlConnectionStatus) m.invoke(service, fakeUrl);
 
         assertThat(status.getDownloadUrl()).isEqualTo(downloadUrl);

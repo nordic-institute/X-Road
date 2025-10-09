@@ -269,7 +269,6 @@
       }
     },
     "message": "Message",
-    "downloadUrl": "Download URL",
     "nextUpdate": "Next Update",
     "ocspResponders": {
       "certificationService": "Certification Service:",
@@ -333,32 +332,15 @@
       "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring)."
     },
     "connection": {
+      "ok": "Everything ok",
+      "test": "Test",
       "centralServer": {
         "title": "Central Server",
-        "globalConf": "Download global configuration",
+        "globalConf": "Global configuration download",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Authentication certificate registration service",
-        "test": "Test"
-      },
-      "periodInfo": "Select start and end",
-      "date": "Date",
-      "time": "Time",
-      "party": "Party",
-      "partyInfo": "Service, subsystem, member",
-      "client": "Client",
-      "service": "Service",
-      "exchangeRole": "Exchange role",
-      "exchangeRoleInfo": "Producer or Consumer",
-      "producer": "Producer",
-      "status": "Status",
-      "statusInfo": "Message exchange status",
-      "success": "Success",
-      "failure": "Failure",
-      "successfulRequests": "Successful requests",
-      "failedRequests": "Failed requests",
-      "disabledTitle": "Operational Data Monitoring Is Disabled",
-      "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring)."
+        "authCertRequest": "Authentication certificate registration service"
+      }
     }
   },
   "endpoints": {
