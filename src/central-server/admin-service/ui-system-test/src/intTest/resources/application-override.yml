@@ -23,6 +23,8 @@ test-automation:
   containers:
     testable-container:
       reuse-between-runs: false
+      directory-mounts:
+        - "/var/log/xroad/:build/cs-container-logs/" # useful for debugging. This will attach logs
   selenide:
     enabled: true
   custom:

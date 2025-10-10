@@ -36,6 +36,7 @@ import org.bouncycastle.tsp.TimeStampToken;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
@@ -99,7 +100,7 @@ public class TimestampVerifierTest {
      */
     @Test
     public void wrongCertificate() throws Exception {
-        thrown.expectError(ErrorCodes.X_INTERNAL_ERROR);
+        thrown.expectError(ErrorCode.TSP_CERTIFICATE_NOT_FOUND.code());
         TimeStampToken token = getTimestampFromFile("valid");
         byte[] stampedData = getBytesFromFile("stamped-data");
         List<X509Certificate> tspCerts =
@@ -114,7 +115,7 @@ public class TimestampVerifierTest {
      */
     @Test
     public void invalidSignature() throws Exception {
-        thrown.expectError(ErrorCodes.X_TIMESTAMP_VALIDATION);
+        thrown.expectError(ErrorCode.TIMESTAMP_SIGNER_VERIFICATION_FAILED.code());
         TimeStampToken token = getTimestampFromFile("invalid-signature");
         byte[] stampedData = getBytesFromFile("stamped-data");
         List<X509Certificate> tspCerts = globalConfProvider.getTspCertificates();

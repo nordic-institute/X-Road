@@ -51,7 +51,7 @@ jobs:
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
   test-security-server:
-    name: Run Security Server system tests  
+    name: Run Security Server system tests
     needs: build-and-package
     uses: ./.github/workflows/_test-security-server.yml
     secrets: inherit

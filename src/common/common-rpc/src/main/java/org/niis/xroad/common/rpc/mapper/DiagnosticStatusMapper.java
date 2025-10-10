@@ -23,33 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.common.rpc.mapper;
 
-/**
- * Configuration client error codes
- */
-public final class DiagnosticsErrorCodes {
+import ee.ria.xroad.common.DiagnosticStatus;
 
-    private DiagnosticsErrorCodes() {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.niis.xroad.rpc.common.DiagnosticStatusType;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class DiagnosticStatusMapper {
+
+    public static DiagnosticStatus mapStatus(DiagnosticStatusType status) {
+        return switch (status) {
+            case DIAGNOSTIC_STATUS_OK -> DiagnosticStatus.OK;
+            case DIAGNOSTIC_STATUS_UNINITIALIZED -> DiagnosticStatus.UNINITIALIZED;
+            case DIAGNOSTIC_STATUS_ERROR -> DiagnosticStatus.ERROR;
+            case DIAGNOSTIC_STATUS_UNKNOWN -> DiagnosticStatus.UNKNOWN;
+            default -> throw new IllegalArgumentException("Unknown status: " + status);
+        };
     }
 
-    public static final int RETURN_SUCCESS = 0;
-    public static final int ERROR_CODE_LOGMANAGER_UNAVAILABLE = 132;
-    public static final int ERROR_CODE_OCSP_RESPONSE_UNVERIFIED = 133;
-    public static final int ERROR_CODE_OCSP_UNINITIALIZED = 131;
-    public static final int ERROR_CODE_OCSP_RESPONSE_INVALID = 130;
-    public static final int ERROR_CODE_OCSP_CONNECTION_ERROR = 129;
-    public static final int ERROR_CODE_OCSP_FAILED = 128;
-    public static final int ERROR_CODE_TIMESTAMP_UNINITIALIZED = 127;
-    public static final int ERROR_CODE_UNINITIALIZED = 126;
-    public static final int ERROR_CODE_INTERNAL = 125;
-    public static final int ERROR_CODE_INVALID_SIGNATURE_VALUE = 124;
-    public static final int ERROR_CODE_EXPIRED_CONF = 123;
-    public static final int ERROR_CODE_CANNOT_DOWNLOAD_CONF = 122;
-    public static final int ERROR_CODE_MISSING_PRIVATE_PARAMS = 121;
-    public static final int ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT = 120;
-    public static final int ERROR_CODE_NO_NETWORK_CONNECTION = 119;
-    public static final int ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL = 118;
-    public static final int ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 117;
-
+    public static DiagnosticStatusType mapStatus(DiagnosticStatus status) {
+        return switch (status) {
+            case OK -> DiagnosticStatusType.DIAGNOSTIC_STATUS_OK;
+            case UNINITIALIZED -> DiagnosticStatusType.DIAGNOSTIC_STATUS_UNINITIALIZED;
+            case ERROR -> DiagnosticStatusType.DIAGNOSTIC_STATUS_ERROR;
+            case UNKNOWN -> DiagnosticStatusType.DIAGNOSTIC_STATUS_UNKNOWN;
+        };
+    }
 }

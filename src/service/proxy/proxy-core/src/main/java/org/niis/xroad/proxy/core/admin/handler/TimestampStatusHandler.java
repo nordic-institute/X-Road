@@ -27,7 +27,8 @@
 
 package org.niis.xroad.proxy.core.admin.handler;
 
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -35,7 +36,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.proto.TimestampStatusResp;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -68,8 +70,8 @@ public class TimestampStatusHandler {
 
         TimestampStatusResp.Builder responseBuilder = TimestampStatusResp.newBuilder();
         statuses.forEach((key, status) -> {
-            var builder = org.niis.xroad.proxy.proto.DiagnosticsStatus.newBuilder();
-            builder.setReturnCode(status.getReturnCode());
+            var builder = org.niis.xroad.rpc.common.DiagnosticsStatus.newBuilder();
+            builder.setStatus(DiagnosticStatusMapper.mapStatus(status.getStatus()));
             if (StringUtils.isNotBlank(status.getDescription())) {
                 builder.setDescription(status.getDescription());
             }
@@ -107,8 +109,7 @@ public class TimestampStatusHandler {
         } catch (Exception e) {
             log.error("Unable to connect to LogManager, immediate timestamping status unavailable", e);
             result = statusesFromSimpleConnectionCheck;
-            transmuteErrorCodes(result, DiagnosticsErrorCodes.RETURN_SUCCESS,
-                    DiagnosticsErrorCodes.ERROR_CODE_LOGMANAGER_UNAVAILABLE);
+            transmuteOkToError(result, ErrorCode.MLOG_LOG_MANAGER_UNAVAILABLE);
         }
 
         return result;
@@ -138,19 +139,23 @@ public class TimestampStatusHandler {
                     log.warn("Timestamp check received HTTP error: {} - {}. Might still be ok", con.getResponseCode(),
                             con.getResponseMessage());
                     statuses.put(tspUrl,
-                            new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
+                            new DiagnosticsStatus(DiagnosticStatus.OK, TimeUtils.offsetDateTimeNow(),
                                     tspUrl));
                 } else {
                     statuses.put(tspUrl,
-                            new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
+                            new DiagnosticsStatus(DiagnosticStatus.OK, TimeUtils.offsetDateTimeNow(),
                                     tspUrl));
                 }
 
             } catch (Exception e) {
                 log.warn("Timestamp status check failed", e);
 
-                statuses.put(tspUrl,
-                        new DiagnosticsStatus(DiagnosticsUtils.getErrorCode(e), TimeUtils.offsetDateTimeNow(), tspUrl));
+                DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticStatus.ERROR,
+                        TimeUtils.offsetDateTimeNow(),
+                        tspUrl,
+                        DiagnosticsUtils.getErrorCode(e));
+                diagnosticsStatus.setErrorCodeMetadata(DiagnosticsUtils.getErrorCodeMetadata(e));
+                statuses.put(tspUrl, diagnosticsStatus);
             }
         }
         return statuses;
@@ -171,11 +176,11 @@ public class TimestampStatusHandler {
         DiagnosticsStatus status = statusFromSimpleConnectionCheck;
 
         // use the status either from simple connection check or from LogManager
-        if (statusFromSimpleConnectionCheck.getReturnCode() == DiagnosticsErrorCodes.RETURN_SUCCESS) {
+        if (statusFromSimpleConnectionCheck.getStatus() == DiagnosticStatus.OK) {
             // simple connection check = OK
             if (statusFromLogManager == null) {
                 // missing LogManager status -> "uninitialized" error
-                status.setReturnCodeNow(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED);
+                status.setStatusNow(DiagnosticStatus.UNINITIALIZED, null);
             } else {
                 // use the status from LogManager (ok or fail)
                 log.info("Using time stamping status from LogManager for url {} status: {}",
@@ -187,7 +192,7 @@ public class TimestampStatusHandler {
             // Use fail status from LogManager, if one exists
             // Otherwise, retain the original simple connection check fail status.
             if (statusFromLogManager != null
-                    && statusFromLogManager.getReturnCode() != DiagnosticsErrorCodes.RETURN_SUCCESS) {
+                    && statusFromLogManager.getStatus() != DiagnosticStatus.OK) {
                 log.info("Using time stamping status from LogManager for url {} status: {}",
                         timestamperUrl, statusFromLogManager);
                 status = statusFromLogManager;
@@ -196,10 +201,10 @@ public class TimestampStatusHandler {
         return status;
     }
 
-    private void transmuteErrorCodes(Map<String, DiagnosticsStatus> map, int oldErrorCode, int newErrorCode) {
+    private void transmuteOkToError(Map<String, DiagnosticsStatus> map, ErrorCode newErrorCode) {
         map.forEach((key, value) -> {
-            if (value != null && oldErrorCode == value.getReturnCode()) {
-                value.setReturnCodeNow(newErrorCode);
+            if (value != null && DiagnosticStatus.OK == value.getStatus()) {
+                value.setStatusNow(DiagnosticStatus.ERROR, newErrorCode);
             }
         });
     }

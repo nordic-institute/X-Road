@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.messagelog;
 
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
@@ -38,7 +39,6 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
 
 import java.util.List;
 import java.util.Map;

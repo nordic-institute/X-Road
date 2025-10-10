@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -101,18 +102,12 @@ public final class ExpectedCodedException implements TestRule {
         public void evaluate() throws Throwable {
             try {
                 statement.evaluate();
-            } catch (CodedException e) {
-                if (expected == null) {
-                    throw e;
-                }
+            } catch (XrdRuntimeException e) {
+                handleException(e,  e.getCode(), "XrdRuntimeException with error code suffix ", "XrdRuntimeException with error code");
 
-                if (expectedSuffix) {
-                    assertTrue("CodedException with error code suffix "
-                            + expected, e.getFaultCode().endsWith(expected));
-                } else {
-                    assertEquals("CodedException with error code",
-                            expected, e.getFaultCode());
-                }
+                return;
+            } catch (CodedException e) {
+                handleException(e, e.getFaultCode(), "CodedException with error code suffix ", "CodedException with error code");
 
                 return;
             } catch (Throwable th) {
@@ -130,5 +125,18 @@ public final class ExpectedCodedException implements TestRule {
                         + expected);
             }
         }
+
+        private void handleException(CodedException exception, String code, String suffixAssertMessage, String assertMessage) {
+            if (expected == null) {
+                throw exception;
+            }
+
+            if (expectedSuffix) {
+                assertTrue(suffixAssertMessage + expected, code.endsWith(expected));
+            } else {
+                assertEquals(assertMessage, expected, code);
+            }
+        }
+
     }
 }

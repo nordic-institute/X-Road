@@ -28,29 +28,28 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import com.google.protobuf.Timestamp;
 import org.junit.Test;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OperationalDataIntervalDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatusDto;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
 import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
 import org.niis.xroad.signer.api.dto.CertificationServiceStatus;
@@ -93,7 +92,6 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     private static final OffsetDateTime NEXT_UPDATE = PREVIOUS_UPDATE.plusHours(1);
     private static final OffsetDateTime PREVIOUS_UPDATE_MIDNIGHT = PREVIOUS_UPDATE.with(LocalTime.of(0, 0));
     private static final OffsetDateTime NEXT_UPDATE_MIDNIGHT = PREVIOUS_UPDATE_MIDNIGHT.plusHours(1);
-    private static final int ERROR_CODE_UNKNOWN = 999;
     private static final String TSA_URL_1 = "https://tsa1.example.com";
     private static final String CA_NAME_1 = "CN=Xroad Test CA CN, OU=Xroad Test CA OU, O=Xroad Test, C=FI";
     private static final String CA_NAME_2 = "CN=Xroad Test, C=EE";
@@ -169,13 +167,12 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         final Instant prevUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
         final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.HOURS);
         when(confClientRpcClient.getStatus()).thenReturn(
-                createDiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, prevUpdate, nextUpdate));
+                createDiagnosticsStatus(DiagnosticStatus.OK, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnosticsDto> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         GlobalConfDiagnosticsDto globalConfDiagnostics = response.getBody();
-        assertEquals(ConfigurationStatusDto.SUCCESS, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClassDto.OK, globalConfDiagnostics.getStatusClass());
         assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
         assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
@@ -187,13 +184,12 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.HOURS);
 
         when(confClientRpcClient.getStatus()).thenReturn(
-                createDiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, prevUpdate, nextUpdate));
+                createDiagnosticsStatus(DiagnosticStatus.UNINITIALIZED, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnosticsDto> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         GlobalConfDiagnosticsDto globalConfDiagnostics = response.getBody();
-        assertEquals(ConfigurationStatusDto.ERROR_CODE_UNINITIALIZED, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClassDto.WAITING, globalConfDiagnostics.getStatusClass());
         assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
         assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
@@ -205,13 +201,13 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.DAYS);
 
         when(confClientRpcClient.getStatus()).thenReturn(
-                createDiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, prevUpdate, nextUpdate));
+                createDiagnosticsStatus(ErrorCode.INTERNAL_ERROR, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnosticsDto> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         GlobalConfDiagnosticsDto globalConfDiagnostics = response.getBody();
-        assertEquals(ConfigurationStatusDto.ERROR_CODE_INTERNAL, globalConfDiagnostics.getStatusCode());
+        assertEquals(ErrorCode.INTERNAL_ERROR.code(), globalConfDiagnostics.getError().getCode());
         assertEquals(DiagnosticStatusClassDto.FAIL, globalConfDiagnostics.getStatusClass());
         assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
         assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
@@ -223,13 +219,12 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.DAYS);
 
         when(confClientRpcClient.getStatus()).thenReturn(
-                createDiagnosticsStatus(ERROR_CODE_UNKNOWN, prevUpdate, nextUpdate));
+                createDiagnosticsStatus(DiagnosticStatus.UNKNOWN, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnosticsDto> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         GlobalConfDiagnosticsDto globalConfDiagnostics = response.getBody();
-        assertEquals(ConfigurationStatusDto.UNKNOWN, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClassDto.FAIL, globalConfDiagnostics.getStatusClass());
         assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
         assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
@@ -246,7 +241,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     public void getTimestampingServiceDiagnosticsSuccess() {
         when(proxyRpcClient.getTimestampingStatus()).thenReturn(
-                Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS,
+                Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticStatus.OK,
                         PREVIOUS_UPDATE, TSA_URL_1))
         );
         ResponseEntity<Set<TimestampingServiceDiagnosticsDto>> response =
@@ -259,7 +254,6 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 .stream()
                 .findFirst()
                 .orElse(null);
-        assertEquals(TimestampingStatusDto.SUCCESS, timestampingServiceDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClassDto.OK, timestampingServiceDiagnostics.getStatusClass());
         assertEquals(PREVIOUS_UPDATE, timestampingServiceDiagnostics.getPrevUpdateAt());
         assertEquals(TSA_URL_1, timestampingServiceDiagnostics.getUrl());
@@ -268,7 +262,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     public void getTimestampingServiceDiagnosticsWaiting() {
         when(proxyRpcClient.getTimestampingStatus()).thenReturn(
-                Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED,
+                Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticStatus.UNINITIALIZED,
                         PREVIOUS_UPDATE, TSA_URL_1))
         );
 
@@ -282,8 +276,6 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 .stream()
                 .findFirst()
                 .orElse(null);
-        assertEquals(TimestampingStatusDto.ERROR_CODE_TIMESTAMP_UNINITIALIZED,
-                timestampingServiceDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClassDto.WAITING, timestampingServiceDiagnostics.getStatusClass());
         assertEquals(PREVIOUS_UPDATE, timestampingServiceDiagnostics.getPrevUpdateAt());
         assertEquals(TSA_URL_1, timestampingServiceDiagnostics.getUrl());
@@ -292,8 +284,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     public void getTimestampingServiceDiagnosticsFailPreviousUpdateYesterday() {
         when(proxyRpcClient.getTimestampingStatus()).thenReturn(
-                Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL,
-                        PREVIOUS_UPDATE_MIDNIGHT, TSA_URL_1))
+                Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticStatus.ERROR,
+                        PREVIOUS_UPDATE_MIDNIGHT, TSA_URL_1, ErrorCode.MALFORMED_TIMESTAMP_SERVER_URL))
         );
 
         ResponseEntity<Set<TimestampingServiceDiagnosticsDto>> response =
@@ -306,8 +298,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 .stream()
                 .findFirst()
                 .orElse(null);
-        assertEquals(TimestampingStatusDto.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL,
-                timestampingServiceDiagnostics.getStatusCode());
+        assertEquals(ErrorCode.MALFORMED_TIMESTAMP_SERVER_URL.code(),
+                timestampingServiceDiagnostics.getError().getCode());
         assertEquals(DiagnosticStatusClassDto.FAIL, timestampingServiceDiagnostics.getStatusClass());
         assertEquals(PREVIOUS_UPDATE_MIDNIGHT, timestampingServiceDiagnostics.getPrevUpdateAt());
         assertEquals(TSA_URL_1, timestampingServiceDiagnostics.getUrl());
@@ -325,7 +317,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     public void getOcspResponderDiagnosticsSuccess() {
         var certServiceStatus = new CertificationServiceStatus(CA_NAME_1);
         certServiceStatus.getOcspResponderStatusMap().put(OCSP_URL_1,
-                new OcspResponderStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OCSP_URL_1, PREVIOUS_UPDATE, NEXT_UPDATE));
+                new OcspResponderStatus(DiagnosticStatus.OK, OCSP_URL_1, PREVIOUS_UPDATE, NEXT_UPDATE));
         var diagnosticsResponse = new CertificationServiceDiagnostics();
         diagnosticsResponse.update(Map.of(CA_NAME_1, certServiceStatus));
         when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
@@ -339,7 +331,6 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         OcspResponderDiagnosticsDto diagnostics = diagnosticsSet.stream().findFirst().orElse(null);
         assertEquals(1, diagnostics.getOcspResponders().size());
         assertEquals(CA_NAME_1, diagnostics.getDistinguishedName());
-        assertEquals(OcspStatusDto.SUCCESS, diagnostics.getOcspResponders().getFirst().getStatusCode());
         assertEquals(DiagnosticStatusClassDto.OK, diagnostics.getOcspResponders().getFirst().getStatusClass());
         assertEquals(PREVIOUS_UPDATE, diagnostics.getOcspResponders().getFirst().getPrevUpdateAt());
         assertEquals(NEXT_UPDATE, diagnostics.getOcspResponders().getFirst().getNextUpdateAt());
@@ -350,7 +341,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     public void getOcspResponderDiagnosticsWaiting() {
         var certServiceStatus = new CertificationServiceStatus(CA_NAME_2);
         certServiceStatus.getOcspResponderStatusMap().put(OCSP_URL_1,
-                new OcspResponderStatus(DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED, OCSP_URL_2, null, NEXT_UPDATE));
+                new OcspResponderStatus(DiagnosticStatus.UNINITIALIZED, OCSP_URL_2, null, NEXT_UPDATE));
         var diagnosticsResponse = new CertificationServiceDiagnostics();
         diagnosticsResponse.update(Map.of(CA_NAME_2, certServiceStatus));
         when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
@@ -364,8 +355,6 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         OcspResponderDiagnosticsDto diagnostics = diagnosticsSet.stream().findFirst().orElse(null);
         assertEquals(1, diagnostics.getOcspResponders().size());
         assertEquals(CA_NAME_2, diagnostics.getDistinguishedName());
-        assertEquals(OcspStatusDto.ERROR_CODE_OCSP_UNINITIALIZED, diagnostics.getOcspResponders()
-                .getFirst().getStatusCode());
         assertEquals(DiagnosticStatusClassDto.WAITING, diagnostics.getOcspResponders().getFirst().getStatusClass());
         assertNull(diagnostics.getOcspResponders().getFirst().getPrevUpdateAt());
         assertEquals(NEXT_UPDATE, diagnostics.getOcspResponders().getFirst().getNextUpdateAt());
@@ -375,8 +364,13 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     public void getOcspResponderDiagnosticsFailNextUpdateTomorrow() {
         var certServiceStatus = new CertificationServiceStatus(CA_NAME_1);
+        OcspResponderStatus responderStatus = new OcspResponderStatus(DiagnosticStatus.ERROR,
+                OCSP_URL_1,
+                null,
+                NEXT_UPDATE_MIDNIGHT,
+                ErrorCode.OCSP_RESPONSE_PARSING_FAILURE);
         certServiceStatus.getOcspResponderStatusMap().put(OCSP_URL_1,
-                new OcspResponderStatus(DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID, OCSP_URL_1, null, NEXT_UPDATE_MIDNIGHT));
+                responderStatus);
         var diagnosticsResponse = new CertificationServiceDiagnostics();
         diagnosticsResponse.update(Map.of(CA_NAME_1, certServiceStatus));
         when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
@@ -390,8 +384,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         OcspResponderDiagnosticsDto diagnostics = diagnosticsSet.stream().findFirst().orElse(null);
         assertEquals(1, diagnostics.getOcspResponders().size());
         assertEquals(CA_NAME_1, diagnostics.getDistinguishedName());
-        assertEquals(OcspStatusDto.ERROR_CODE_OCSP_RESPONSE_INVALID, diagnostics.getOcspResponders()
-                .getFirst().getStatusCode());
+        assertEquals(ErrorCode.OCSP_RESPONSE_PARSING_FAILURE.code(), diagnostics.getOcspResponders()
+                .getFirst().getError().getCode());
         assertEquals(DiagnosticStatusClassDto.FAIL, diagnostics.getOcspResponders().getFirst().getStatusClass());
         assertNull(diagnostics.getOcspResponders().getFirst().getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().getFirst().getNextUpdateAt());
@@ -402,7 +396,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     public void getOcspResponderDiagnosticsFailPreviousUpdateYesterday() {
         var certServiceStatus = new CertificationServiceStatus(CA_NAME_2);
         certServiceStatus.getOcspResponderStatusMap().put(OCSP_URL_2,
-                new OcspResponderStatus(ERROR_CODE_UNKNOWN, OCSP_URL_2, PREVIOUS_UPDATE_MIDNIGHT, NEXT_UPDATE_MIDNIGHT));
+                new OcspResponderStatus(DiagnosticStatus.UNKNOWN, OCSP_URL_2, PREVIOUS_UPDATE_MIDNIGHT, NEXT_UPDATE_MIDNIGHT));
         var diagnosticsResponse = new CertificationServiceDiagnostics();
         diagnosticsResponse.update(Map.of(CA_NAME_2, certServiceStatus));
         when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
@@ -419,7 +413,6 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 .orElse(null);
         assertEquals(1, diagnostics.getOcspResponders().size());
         assertEquals(CA_NAME_2, diagnostics.getDistinguishedName());
-        assertEquals(OcspStatusDto.UNKNOWN, diagnostics.getOcspResponders().getFirst().getStatusCode());
         assertEquals(DiagnosticStatusClassDto.FAIL, diagnostics.getOcspResponders().getFirst().getStatusClass());
         assertEquals(PREVIOUS_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().getFirst().getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().getFirst().getNextUpdateAt());
@@ -490,13 +483,24 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertThat(response.getBody().getFirst().getFailureCount()).isEqualTo(operationalDataInterval.getFailureCount());
     }
 
-    private org.niis.xroad.confclient.proto.DiagnosticsStatus createDiagnosticsStatus(int statusCode,
+    private org.niis.xroad.rpc.common.DiagnosticsStatus createDiagnosticsStatus(DiagnosticStatus status,
                                                                                       Instant prevUpdate,
                                                                                       Instant nextUpdate) {
-        return org.niis.xroad.confclient.proto.DiagnosticsStatus.newBuilder()
-                .setReturnCode(statusCode)
+        return org.niis.xroad.rpc.common.DiagnosticsStatus.newBuilder()
+                .setStatus(DiagnosticStatusMapper.mapStatus(status))
                 .setPrevUpdate(prevUpdate.toEpochMilli())
                 .setNextUpdate(nextUpdate.toEpochMilli())
+                .build();
+    }
+
+    private org.niis.xroad.rpc.common.DiagnosticsStatus createDiagnosticsStatus(ErrorCode errorCode,
+                                                                                      Instant prevUpdate,
+                                                                                      Instant nextUpdate) {
+        return org.niis.xroad.rpc.common.DiagnosticsStatus.newBuilder()
+                .setStatus(DiagnosticStatusMapper.mapStatus(DiagnosticStatus.ERROR))
+                .setPrevUpdate(prevUpdate.toEpochMilli())
+                .setNextUpdate(nextUpdate.toEpochMilli())
+                .setErrorCode(errorCode.name())
                 .build();
     }
 }

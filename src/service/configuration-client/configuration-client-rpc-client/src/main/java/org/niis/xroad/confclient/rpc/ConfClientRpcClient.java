@@ -40,10 +40,10 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.confclient.proto.AdminServiceGrpc;
 import org.niis.xroad.confclient.proto.AnchorServiceGrpc;
 import org.niis.xroad.confclient.proto.ConfigurationAnchorMessage;
-import org.niis.xroad.confclient.proto.DiagnosticsStatus;
 import org.niis.xroad.confclient.proto.GetGlobalConfReq;
 import org.niis.xroad.confclient.proto.GetGlobalConfRespWrapped;
 import org.niis.xroad.confclient.proto.GlobalConfServiceGrpc;
+import org.niis.xroad.rpc.common.DiagnosticsStatus;
 import org.niis.xroad.rpc.common.Empty;
 
 @Slf4j
