@@ -29,9 +29,7 @@
     - { question: "xroad-common/username",           value: "{{ xroad_ui_user }}" }
     - { question: "xroad-common/database-host",      value: "{{ database_host }}" }
     - { question: "xroad-common/proxy-memory",       value: "d" }
-    - { question: "xroad-common/admin-subject",      value: "/CN={{ inventory_hostname }}" }
-    - { question: "xroad-common/admin-altsubject",   value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
-    - { question: "xroad-common/service-subject",    value: "/CN={{ inventory_hostname }}" }
+    - { question: "xroad-common/service-subject",    value: "{{ inventory_hostname }}" }
     - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
   tags:
     - install-xroad-ss-packages

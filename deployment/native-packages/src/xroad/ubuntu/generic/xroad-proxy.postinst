@@ -9,19 +9,78 @@ slave_groups="xroad-security-officer xroad-securityserver-observer"
 
 log () { echo >&2 "$@"; }
 
-#parameters:
-#1 file_path
-#2 old_section
-#3 old_key
-#4 new_section
-#5 new_key
-function migrate_conf_value {
-    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
-    if [ -n "${MIGRATION_VALUE}" ];
-        then
-            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
-            crudini --del "$1" "$2" "$3"
+get_prop() {
+  local val
+  val=$(yq -e "$2" "$1" 2>/dev/null)
+  [[ $val == "null" ]] && val=""
+  echo "$val"
+}
+
+split_ip_dns() {
+  local input="$1"
+  local ip_list dns_list
+  ip_list=$(echo "$input" | tr ',' '\n' | grep '^IP:' | cut -d: -f2 | paste -sd,)
+  dns_list=$(echo "$input" | tr ',' '\n' | grep '^DNS:' | cut -d: -f2 | paste -sd,)
+  echo "$ip_list" "$dns_list"
+}
+
+ensure_local_config_exists() {
+  local FILE="/etc/xroad/conf.d/local.yaml"
+
+  # Check if file exists and is non-empty
+  if [ ! -s "$FILE" ]; then
+    log "Creating or initializing $FILE..."
+    mkdir -p "$(dirname "$FILE")"  # Ensure directory exists
+    echo "xroad:" > "$FILE"
+  fi
+}
+
+prepare_tls_settings() {
+  CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
+
+  if [[ -z $(get_prop "$CONFIG_FILE" '.xroad.proxy.tls."certificate-provisioning"."common-name"') && \
+        -z $(get_prop "$CONFIG_FILE" '.xroad.proxy.tls."certificate-provisioning"."alt-names"') && \
+        -z $(get_prop "$CONFIG_FILE" '.xroad.proxy.tls."certificate-provisioning"."ip-subject-alt-names"') ]]; then
+    log "Preparing proxy internal TLS settings"
+
+    HOST=$(hostname -f)
+    if (( ${#HOST} > 64 )); then
+      HOST="$(hostname -s)"
     fi
+    LIST=
+    for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
+    ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
+
+    db_subst xroad-common/service-subject HOST "$HOST"
+    db_subst xroad-common/service-altsubject ALT "$ALT"
+
+    db_get xroad-common/service-subject
+    [ -z "$RET" ] && db_set xroad-common/service-subject "$HOST"
+
+    db_get xroad-common/service-altsubject
+    [ -z "$RET" ] && db_set xroad-common/service-altsubject "$ALT"
+
+    db_beginblock
+    db_input critical xroad-common/service-subject || true
+    db_input critical xroad-common/service-altsubject || true
+    db_endblock
+    db_go
+
+    db_get xroad-common/service-subject
+    cn="$RET"
+    db_get xroad-common/service-altsubject
+    altn="$RET"
+
+    read ip_list dns_list < <(split_ip_dns "$altn")
+
+    log "Writing proxy internal TLS settings to $CONFIG_FILE"
+    ensure_local_config_exists
+    yq -iY ".xroad.proxy.tls.\"certificate-provisioning\".\"common-name\" = \"$cn\"" $CONFIG_FILE
+    yq -iY ".xroad.proxy.tls.\"certificate-provisioning\".\"alt-names\" = \"$dns_list\"" $CONFIG_FILE
+    yq -iY ".xroad.proxy.tls.\"certificate-provisioning\".\"ip-subject-alt-names\" = \"$ip_list\"" $CONFIG_FILE
+  else
+    log "proxy internal TLS settings exists, skipping"
+  fi
 }
 
 function handle_error() {
@@ -73,10 +132,6 @@ case "$1" in
   else
     log "WARNING: X-Road admin user not configured."
   fi
-
-  #migrating possible local configuration for modified configuration values (for version 6.17.0)
-  migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
-  migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
   # keep previous default client http(s) ports when upgrading  from <7.4.0
   if [ -n "$2" ];
@@ -153,6 +208,9 @@ case "$1" in
       fi
     fi
   done
+
+  prepare_tls_settings
+
   db_stop
 
   invoke-rc.d --quiet rsyslog try-restart || true
