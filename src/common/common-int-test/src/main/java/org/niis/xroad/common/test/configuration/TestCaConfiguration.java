@@ -34,30 +34,35 @@ import feign.hc5.ApacheHttp5Client;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.niis.xroad.common.test.api.TestCaFeignApi;
 import org.niis.xroad.common.test.api.interceptor.TestCaFeignInterceptor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import java.util.Optional;
+
 @Configuration
-@ConditionalOnBean(TestCaFeignInterceptor.class)
 @Import(FeignClientsConfiguration.class)
 public class TestCaConfiguration {
 
     @Bean
     public TestCaFeignApi testCaFeignApi(
-            TestCaFeignInterceptor testCaFeignInterceptor,
+            Optional<TestCaFeignInterceptor> testCaFeignInterceptor,
             Encoder encoder,
             Decoder decoder,
             Contract contract) {
-        return Feign.builder()
+
+        var builder = Feign.builder()
                 .logLevel(Logger.Level.FULL)
                 .encoder(encoder)
                 .client(new ApacheHttp5Client(HttpClients.createDefault()))
                 .decoder(decoder)
-                .requestInterceptor(testCaFeignInterceptor)
-                .contract(contract)
-                .target(TestCaFeignApi.class, "http://localhost");
+                .contract(contract);
+
+        testCaFeignInterceptor.ifPresent(builder::requestInterceptor);
+
+        return builder.target(TestCaFeignApi.class, "http://localhost");
     }
+
+
 }
