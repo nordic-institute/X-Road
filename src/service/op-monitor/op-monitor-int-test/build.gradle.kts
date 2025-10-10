@@ -13,8 +13,16 @@ dependencies {
   intTestRuntimeOnly(libs.postgresql)
 }
 
+intTestComposeEnv {
+  images(
+    "OP_MONITOR_INIT_IMG" to "ss-db-opmonitor-init",
+    "OP_MONITOR_IMG" to "ss-op-monitor"
+  )
+}
+
 tasks.register<Test>("intTest") {
   dependsOn(":service:op-monitor:op-monitor-application:quarkusBuild")
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
 
   useJUnitPlatform()
 
@@ -24,16 +32,6 @@ tasks.register<Test>("intTest") {
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
 
-  val intTestArgs = mutableListOf<String>()
-
-  intTestArgs += "-Dtest-automation.custom.image-name=${project.property("xroadImageRegistry")}/ss-op-monitor:latest"
-
-  if (project.hasProperty("intTestProfilesInclude")) {
-    intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"
-  }
-
-  jvmArgs(intTestArgs)
-
   testLogging {
     showStackTraces = true
     showExceptions = true
@@ -41,13 +39,6 @@ tasks.register<Test>("intTest") {
     showStandardStreams = true
   }
 
-  reports {
-    junitXml.required.set(false)
-  }
-}
-
-tasks.named("check") {
-  dependsOn(tasks.named("intTest"))
 }
 
 archUnit {

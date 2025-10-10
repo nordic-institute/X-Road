@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-source ./../.scripts/base-script.sh
+source "${BASH_SOURCE%/*}/../../.scripts/base-script.sh"
 
 echo "Listing all LXD containers..."
 lxc list

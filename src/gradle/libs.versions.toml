@@ -8,18 +8,20 @@
 metrics = "4.2.33"
 jetty = "12.0.16"
 jaxb = "4.0.5"
-hibernate = "7.1.0.Final"
+hibernate = "7.1.3.Final"
 mapstruct = "1.6.3"
 jackson = "2.19.2"
 mockito = "5.18.0"
-springBoot = "3.5.4"
+springBoot = "3.5.6"
 junitJupiter = "5.13.4"
 junitPlatform = "1.13.4"
 xmlUnit = "2.10.3"
 bouncyCastle = "1.81"
 slf4j = "2.0.17"
 testAutomationFramework = "0.2.21"
-protoc = "4.31.1"
+selenide="7.11.1"
+allureSelenide = "2.28.0"
+protoc = "4.32.1"
 grpc = "1.75.0"
 swaggerParser = "2.1.31"
 logback = "1.5.18"
@@ -61,8 +63,6 @@ quarkus-rest = { group = "io.quarkus", name = "quarkus-rest", version.ref = "qua
 quarkus-kubernetes = { group = "io.quarkus", name = "quarkus-kubernetes", version.ref = "quarkus" }
 quarkus-kubernetesConfig = { group = "io.quarkus", name = "quarkus-kubernetes-config", version.ref = "quarkus" }
 quarkus-health = { group = "io.quarkus", name = "quarkus-smallrye-health", version.ref = "quarkus" }
-quarkus-containerImage-docker = { group = "io.quarkus", name = "quarkus-container-image-docker", version.ref = "quarkus" } #TODO remove one once finalized which to use
-quarkus-containerImage-jib = { group = "io.quarkus", name = "quarkus-container-image-jib", version.ref = "quarkus" }
 quarkus-config-yaml = { group = "io.quarkus", name = "quarkus-config-yaml", version.ref = "quarkus" }
 quarkus-scheduler = { group = "io.quarkus", name = "quarkus-scheduler", version.ref = "quarkus" }
 quarkus-quartz = { group = "io.quarkus", name = "quarkus-quartz", version.ref = "quarkus" }
@@ -112,7 +112,9 @@ testAutomation-feign = { module = "com.nortal.test:test-automation-feign", versi
 testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide", version.ref = "testAutomationFramework" }
 testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
 testAutomation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
-
+test-selenide-core = { module = "com.codeborne:selenide", version.ref = "selenide" }
+test-selenide-proxy = { module = "com.codeborne:selenide-proxy", version.ref = "selenide" }
+test-allure-selenide = { module = "io.qameta.allure:allure-selenide", version.ref = "allureSelenide" }
 jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.1" }
 jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.1.0" }
 jakarta-injectApi = { module = "jakarta.inject:jakarta.inject-api", version = "2.0.1" }
@@ -185,7 +187,7 @@ wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
 
 hamcrest = { module = "org.hamcrest:hamcrest", version = "3.0" }
 javax-annotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
-hikariCP = { module = "com.zaxxer:HikariCP", version = "7.0.0" }
+hikariCP = { module = "com.zaxxer:HikariCP", version = "7.0.2" }
 saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.4" }
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
@@ -196,20 +198,19 @@ restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.5" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.1" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.18.1" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.20.1" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
 archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
 protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref = "protobufPlugin" }
-jibGradlePlugin = { module = "com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin", version = "3.4.5" }
 quarkusGradlePlugin = { module = "io.quarkus:gradle-application-plugin", version.ref = "quarkus" }
 
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
-testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAutomation-allure", "testAutomation-feign"]
+testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAutomation-feign"]
 
 quarkus-core = [
   "quarkus-arc",
@@ -219,13 +220,12 @@ quarkus-core = [
 quarkus-containerized = [
   "quarkus-kubernetes",
   "quarkus-health",
-  "quarkus-containerImage-jib"
 ]
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.14.0" }
-sonarqube = { id = "org.sonarqube", version = "6.2.0.5505" }
+sonarqube = { id = "org.sonarqube", version = "6.3.1.5724" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.2.0" }

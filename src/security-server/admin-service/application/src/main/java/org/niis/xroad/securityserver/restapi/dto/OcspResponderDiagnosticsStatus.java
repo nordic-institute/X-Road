@@ -25,8 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.dto;
 
+import ee.ria.xroad.common.DiagnosticsStatus;
+
 import lombok.Data;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
 
 import java.util.List;
 

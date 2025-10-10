@@ -3,14 +3,6 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-quarkus {
-  quarkusBuildProperties.putAll(
-    buildMap {
-      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-signer")
-      put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/ss-baseline-signer-runtime:latest")
-    }
-  )
-}
 
 dependencies {
   implementation(platform(libs.quarkus.bom))

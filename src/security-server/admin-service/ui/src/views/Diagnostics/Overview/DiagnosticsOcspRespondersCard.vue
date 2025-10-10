@@ -73,9 +73,7 @@
               </td>
               <td data-test="ocsp-responders-message">
                 {{
-                  $t(
-                    `diagnostics.ocspResponders.ocspStatus.${ocsp.status_code}`,
-                  )
+                  statusMessage(ocsp)
                 }}
               </td>
               <td class="time-column">
@@ -102,6 +100,8 @@ import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
+import { DiagnosticStatusClass, type OcspResponder } from '@/openapi-types';
+import { i18n } from '@niis/shared-ui';
 
 export default defineComponent({
   data: () => ({
@@ -136,6 +136,18 @@ export default defineComponent({
           return 'error';
         default:
           return 'error';
+      }
+    },
+    statusMessage(ocsp: OcspResponder): string {
+      if (ocsp.status_class === DiagnosticStatusClass.FAIL) {
+        return i18n.global.t(
+          `error_code.${ocsp.error?.code}`,
+          ocsp.error?.metadata,
+        );
+      } else {
+        return i18n.global.t(
+          `diagnostics.ocspResponders.ocspStatus.${ocsp.status_class}`,
+        );
       }
     },
   },

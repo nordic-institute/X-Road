@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.proto;
 
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.ProxyMemory;
@@ -41,10 +42,11 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
+import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.rpc.common.Empty;
 
 import java.security.cert.X509Certificate;
@@ -120,15 +122,25 @@ public class ProxyRpcClient extends AbstractRpcClient {
                 .getTimestampStatus(Empty.getDefaultInstance()));
 
         return statuses.getDiagnosticsStatusMap().entrySet()
-                .stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> {
-                    var val = entry.getValue();
-                    return new DiagnosticsStatus(
-                            val.getReturnCode(),
-                            val.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(val.getPrevUpdate())) : null,
-                            val.hasNextUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(val.getNextUpdate())) : null,
-                            val.hasDescription() ? val.getDescription() : null
-                    );
-                }));
+                .stream().collect(Collectors.toMap(Map.Entry::getKey, ProxyRpcClient::convertDiagnosticsStatus));
+    }
+
+    private static DiagnosticsStatus convertDiagnosticsStatus(Map.Entry<String, org.niis.xroad.rpc.common.DiagnosticsStatus> entry) {
+        var val = entry.getValue();
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
+                DiagnosticStatusMapper.mapStatus(val.getStatus()),
+                val.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(val.getPrevUpdate())) : null,
+                val.hasNextUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(val.getNextUpdate())) : null);
+        if (val.hasDescription()) {
+            diagnosticsStatus.setDescription(val.getDescription());
+        }
+        if (val.hasErrorCode()) {
+            diagnosticsStatus.setErrorCode(ErrorCode.valueOf(val.getErrorCode()));
+        }
+        if (val.getErrorCodeMetadataCount() > 0) {
+            diagnosticsStatus.setErrorCodeMetadata(val.getErrorCodeMetadataList());
+        }
+        return diagnosticsStatus;
     }
 
     public ProxyMemory getProxyMemoryStatus() {

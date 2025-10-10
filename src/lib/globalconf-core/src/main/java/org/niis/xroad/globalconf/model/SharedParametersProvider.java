@@ -25,13 +25,11 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 
 public interface SharedParametersProvider extends ParameterProvider {
 
-    SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException;
+    SharedParametersProvider refresh(OffsetDateTime fileExpiresOn);
 
     SharedParameters getSharedParameters();
 

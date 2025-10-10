@@ -56,7 +56,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP_ACTION;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 /**
@@ -207,10 +207,10 @@ public abstract class MessageProcessorBase {
                 new URI(soapAction.substring(1, lastIndex));
                 return soapAction;
             } catch (URISyntaxException e) {
-                throw new CodedException(X_INVALID_SOAPACTION, e, "Malformed SOAPAction header");
+                throw new CodedException(X_INVALID_SOAP_ACTION, e, "Malformed SOAPAction header");
             }
         }
-        throw new CodedException(X_INVALID_SOAPACTION, "Malformed SOAPAction header");
+        throw new CodedException(X_INVALID_SOAP_ACTION, "Malformed SOAPAction header");
     }
 
     /**

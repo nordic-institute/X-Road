@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-source ./../.scripts/base-script.sh
+source "${BASH_SOURCE%/*}/../../.scripts/base-script.sh"
 
 RECREATE=false
 SKIP_COMPILE=false
@@ -98,10 +98,6 @@ function handleRecreate() {
 }
 
 function handleAnsible() {
-  local onMacOs="no"
-  if [[ $(uname) == "Darwin" ]]; then
-      onMacOs="yes"
-  fi
 
   ansible-playbook -i "$INVENTORY_PATH" \
     ../../development/ansible/xroad_dev.yml \
@@ -135,7 +131,12 @@ function handleInitialize() {
 function main() {
   parse_arguments "$@"
 
-  handlePrepare
+  local onMacOs="no"
+  if [[ $(uname) == "Darwin" ]]; then
+    onMacOs="yes"
+    # lima is only for MacOS
+    handlePrepare
+  fi
   handleRecreate
   handleBuild
   handleAnsible

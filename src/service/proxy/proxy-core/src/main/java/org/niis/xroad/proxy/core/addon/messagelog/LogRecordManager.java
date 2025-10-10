@@ -47,6 +47,7 @@ import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.MutationQuery;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.sql.Connection;
@@ -190,12 +191,19 @@ public final class LogRecordManager {
      */
     void saveTimestampRecord(TimestampRecord timestampRecord, Long[]
             timestampedLogRecords, String[] hashChains) {
-        databaseCtx.doInTransaction(session -> {
-            timestampRecord.setId(getNextRecordId(session));
-            save(session, timestampRecord);
-            setMessageRecordsTimestamped(session, timestampedLogRecords, timestampRecord, hashChains);
-            return null;
-        });
+        try {
+            databaseCtx.doInTransaction(session -> {
+                timestampRecord.setId(getNextRecordId(session));
+                save(session, timestampRecord);
+                setMessageRecordsTimestamped(session, timestampedLogRecords, timestampRecord, hashChains);
+                return null;
+            });
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(ErrorCode.TIMESTAMP_RECORD_SAVE_FAILURE)
+                    .details("Failed to save timestamp record to database")
+                    .cause(e)
+                    .build();
+        }
     }
 
     /**
@@ -273,7 +281,7 @@ public final class LogRecordManager {
     }
 
     private static AbstractLogRecordEntity getLogRecord(Session session, Long number) {
-        return session.get(AbstractLogRecordEntity.class, number);
+        return session.find(AbstractLogRecordEntity.class, number);
     }
 
     private static MessageRecordEntity getMessageRecord(Session session, String queryId, ClientId clientId,

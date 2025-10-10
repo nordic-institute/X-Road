@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.signer.api.dto;
 
+import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import org.junit.jupiter.api.Assertions;
@@ -38,7 +39,7 @@ class CertificationServiceDiagnosticsTest {
         CertificationServiceDiagnostics certificationServiceDiagnostics = new CertificationServiceDiagnostics();
         String name = "name";
         String url = "url";
-        OcspResponderStatus ocspResponderStatus = new OcspResponderStatus(0, url, null, null);
+        OcspResponderStatus ocspResponderStatus = new OcspResponderStatus(DiagnosticStatus.OK, url, null, null);
         CertificationServiceStatus certificationServiceStatus = new CertificationServiceStatus(name);
         certificationServiceStatus.getOcspResponderStatusMap().put(url, ocspResponderStatus);
         certificationServiceDiagnostics.getCertificationServiceStatusMap().put(name, certificationServiceStatus);

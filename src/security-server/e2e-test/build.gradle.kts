@@ -11,7 +11,37 @@ dependencies {
   intTestImplementation(libs.postgresql)
 }
 
+intTestComposeEnv {
+  env("XROAD_SECRET_STORE_TOKEN", "root-token")
+
+  images(
+    "OPENBAO_DEV_IMG" to "openbao-dev",
+    "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
+    "MESSAGELOG_INIT_IMG" to "ss-db-messagelog-init",
+    "OP_MONITOR_INIT_IMG" to "ss-db-opmonitor-init",
+    "CONFIGURATION_CLIENT_IMG" to "ss-configuration-client",
+    "MONITOR_IMG" to "ss-monitor",
+    "SIGNER_IMG" to "ss-signer",
+    "PROXY_IMG" to "ss-proxy",
+    "PROXY_UI_IMG" to "ss-proxy-ui-api",
+    "BACKUP_MANAGER_IMG" to "ss-backup-manager",
+    "OP_MONITOR_IMG" to "ss-op-monitor"
+  )
+}
+
+val copyComposeFiles by tasks.registering(Copy::class) {
+  description = "Copies compose files to build directory for e2e tests"
+  group = "verification"
+
+  from("../../../development/docker/security-server/compose.yaml") {
+    rename { "compose.main.yaml" }
+  }
+  into("build/resources/intTest")
+}
+
 tasks.register<Test>("e2eTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+  dependsOn(copyComposeFiles)
   useJUnitPlatform()
 
   description = "Runs e2e tests."
@@ -24,24 +54,6 @@ tasks.register<Test>("e2eTest") {
 
   if (project.hasProperty("e2eTestServeReport")) {
     systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=${project.property("e2eTestServeReport")}"
-  }
-  if (project.hasProperty("e2eTestCSImage")) {
-    systemTestArgs += "-Dtest-automation.custom.cs-image=${project.property("e2eTestCSImage")}"
-  }
-  if (project.hasProperty("e2eTestSSImage")) {
-    systemTestArgs += "-Dtest-automation.custom.ss-image=${project.property("e2eTestSSImage")}"
-  }
-  if (project.hasProperty("e2eTestCAImage")) {
-    systemTestArgs += "-Dtest-automation.custom.cs-image=${project.property("e2eTestCAImage")}"
-  }
-  if (project.hasProperty("e2eTestISOPENAPIImage")) {
-    systemTestArgs += "-Dtest-automation.custom.isopenapi-image=${project.property("e2eTestISOPENAPIImage")}"
-  }
-  if (project.hasProperty("e2eTestISSOAPImage")) {
-    systemTestArgs += "-Dtest-automation.custom.issoap-image=${project.property("e2eTestISSOAPImage")}"
-  }
-  if (project.hasProperty("e2eTestUseCustomEnv")) {
-    systemTestArgs += "-Dtest-automation.custom.use-custom-env=${project.property("e2eTestUseCustomEnv")}"
   }
 
   jvmArgs(systemTestArgs)

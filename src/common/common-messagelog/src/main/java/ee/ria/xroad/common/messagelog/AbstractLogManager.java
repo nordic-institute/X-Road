@@ -25,8 +25,9 @@
  */
 package ee.ria.xroad.common.messagelog;
 
+import ee.ria.xroad.common.DiagnosticsStatus;
+
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 

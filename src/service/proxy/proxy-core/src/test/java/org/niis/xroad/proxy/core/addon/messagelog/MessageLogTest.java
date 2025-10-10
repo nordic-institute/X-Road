@@ -65,6 +65,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampFailed;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampSucceeded;
 
@@ -87,7 +88,6 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -382,7 +382,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     public void timestampingFailedStopLogging() throws Exception {
         log.trace("timestampingFailedStopLogging()");
 
-        thrown.expectError(X_MLOG_TIMESTAMPER_FAILED);
+        thrown.expectError(ErrorCode.TIMESTAMPING_FAILED.code());
 
         System.setProperty(MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1");
         TestTimestamperWorker.failNextTimestamping(true);
@@ -474,10 +474,12 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log.trace("timestampNoTspUrls()");
 
         serverConfProvider.setServerConfProvider(new EmptyServerConf());
-        thrown.expectError(X_MLOG_TIMESTAMPER_FAILED);
+        thrown.expectError(ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND.code());
 
         log(createMessage(), createSignature());
     }
+
+
 
     // ------------------------------------------------------------------------
 

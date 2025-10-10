@@ -15,6 +15,7 @@ Feature: 0850 - CS: Global configuration: Trusted Anchors
     Then trusted anchor is successfully uploaded
     And trusted anchor CS2-E2E is displayed in list
 
+  @Download
   Scenario: User can download trusted anchor
     Given trusted anchor CS2-E2E is displayed in list
     When user clicks trusted anchor CS2-E2E Download button

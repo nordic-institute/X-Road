@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.ProxyMemory;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -35,8 +36,9 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
+import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
@@ -82,11 +84,14 @@ public class DiagnosticService {
     public DiagnosticsStatus queryGlobalConfStatus() {
         try {
             var status = confClientRpcClient.getStatus();
-            return new DiagnosticsStatus(status.getReturnCode(),
+            DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticStatusMapper.mapStatus(status.getStatus()),
                     status.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getPrevUpdate())) : null,
                     status.hasNextUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getNextUpdate())) : null,
                     status.getDescription());
-
+            if (status.hasErrorCode()) {
+                diagnosticsStatus.setErrorCode(ErrorCode.valueOf(status.getErrorCode()));
+            }
+            return diagnosticsStatus;
         } catch (Exception e) {
             throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
         }
@@ -200,8 +205,8 @@ public class DiagnosticService {
         Map<String, OcspResponderStatus> ocspResponderStatusMap = ca.getOcspResponderStatusMap();
         List<DiagnosticsStatus> statuses = ocspResponderStatusMap.values().stream()
                 .map(ocspResponderStatus -> {
-                    DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(ocspResponderStatus.getStatus(),
-                            ocspResponderStatus.getPrevUpdate(), ocspResponderStatus.getNextUpdate());
+                    DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(ocspResponderStatus.getDiagnosticStatus(),
+                            ocspResponderStatus.getPrevUpdate(), ocspResponderStatus.getNextUpdate(), ocspResponderStatus.getErrorCode());
                     diagnosticsStatus.setDescription(ocspResponderStatus.getUrl());
                     return diagnosticsStatus;
                 })
