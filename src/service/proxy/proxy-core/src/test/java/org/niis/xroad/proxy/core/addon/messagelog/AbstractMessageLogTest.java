@@ -137,6 +137,8 @@ abstract class AbstractMessageLogTest {
         logArchiverProperties = new LogArchiverProperties();
         logArchiverProperties.setArchivePath(archivesDir);
         logArchiverProperties.setCleanKeepRecordsFor(0);
+        logArchiverProperties.setArchiveTransactionBatchSize(10000);
+        logArchiverProperties.setCleanTransactionBatchSize(10000);
 
         logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider, commonProperties, databaseCtx);
         logCleanerRef = new TestLogCleaner(logArchiverProperties, databaseCtx);
