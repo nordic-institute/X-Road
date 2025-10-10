@@ -16,9 +16,16 @@ dependencies {
   "intTestImplementation"(project(":common:common-int-test"))
 }
 
+intTestComposeEnv {
+  images(
+    "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
+    "SIGNER_IMG" to "ss-signer"
+  )
+}
 
 tasks.register<Test>("intTest") {
   dependsOn(":service:signer:signer-application:quarkusBuild")
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
 
   useJUnitPlatform()
 
@@ -28,14 +35,6 @@ tasks.register<Test>("intTest") {
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
 
-  val intTestArgs = mutableListOf<String>()
-
-  if (project.hasProperty("intTestProfilesInclude")) {
-    intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"
-  }
-
-  jvmArgs(intTestArgs)
-
   testLogging {
     showStackTraces = true
     showExceptions = true
@@ -43,9 +42,6 @@ tasks.register<Test>("intTest") {
     showStandardStreams = true
   }
 
-  reports {
-    junitXml.required.set(false)
-  }
 }
 
 archUnit {

@@ -142,7 +142,6 @@ include("security-server:admin-service")
 include("security-server:admin-service:application")
 include("security-server:admin-service:infra-jpa")
 include("security-server:admin-service:ui")
-include("security-server:admin-service:int-test")
 include("security-server:system-test")
 include("security-server:e2e-test")
 

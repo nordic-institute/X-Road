@@ -19,6 +19,8 @@ xmlUnit = "2.10.3"
 bouncyCastle = "1.81"
 slf4j = "2.0.17"
 testAutomationFramework = "0.2.21"
+selenide="7.11.1"
+allureSelenide = "2.28.0"
 protoc = "4.31.1"
 grpc = "1.75.0"
 swaggerParser = "2.1.31"
@@ -110,7 +112,9 @@ testAutomation-feign = { module = "com.nortal.test:test-automation-feign", versi
 testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide", version.ref = "testAutomationFramework" }
 testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
 testAutomation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
-
+test-selenide-core = { module = "com.codeborne:selenide", version.ref = "selenide" }
+test-selenide-proxy = { module = "com.codeborne:selenide-proxy", version.ref = "selenide" }
+test-allure-selenide = { module = "io.qameta.allure:allure-selenide", version.ref = "allureSelenide" }
 jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.1" }
 jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.1.0" }
 jakarta-injectApi = { module = "jakarta.inject:jakarta.inject-api", version = "2.0.1" }
@@ -206,7 +210,7 @@ quarkusGradlePlugin = { module = "io.quarkus:gradle-application-plugin", version
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
-testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAutomation-allure", "testAutomation-feign"]
+testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAutomation-feign"]
 
 quarkus-core = [
   "quarkus-arc",

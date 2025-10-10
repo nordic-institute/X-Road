@@ -12,7 +12,7 @@ logging:
 test-automation:
   report-name: xroad-cs-ui-test-suite
   environment: disposable
-  spring-component-scan: "org.niis.xroad.cs.test"
+  spring-component-scan: "org.niis.xroad.common.test,org.niis.xroad.cs.test"
   cucumber:
     execution:
       parallel:
@@ -24,17 +24,7 @@ test-automation:
     testable-container:
       reuse-between-runs: false
   selenide:
-    browser: CHROME # Options: CHROME, EDGE, FIREFOX, OPERA, SAFARI (works only with Mac)
-    browser-size: "1280x900"
-    driver-manager-enabled: true
-    headless: true
-    chrome-options-args: "--guest,--disable-features=OptimizationHints"
-    timeout: 15000
-    page-load-timeout: 15000
-    screenshots: true
-    proxy-enabled: true # Proxy is required for file downloads.
-    proxy-host: 127.0.0.1
-    file-download: proxy
+    enabled: true
   custom:
     image-name : "xrd-centralserver-dev:latest"
     #central-server-url-override: "replace-me" #Use when you want to run against custom target.

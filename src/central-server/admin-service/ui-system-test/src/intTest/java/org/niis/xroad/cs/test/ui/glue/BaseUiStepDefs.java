@@ -30,6 +30,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.nortal.test.core.report.TestReportService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
+import org.niis.xroad.common.test.ui.SelenideManager;
 import org.niis.xroad.common.test.ui.utils.SeleniumUtils;
 import org.niis.xroad.cs.test.ui.TargetHostUrlProvider;
 import org.niis.xroad.cs.test.ui.configuration.TestProperties;
@@ -57,6 +58,8 @@ public abstract class BaseUiStepDefs {
     protected TestReportService testReportService;
     @Autowired
     protected ChromiumDevTools chromiumDevTools;
+    @Autowired
+    protected SelenideManager selenideManager;
 
     /**
      * Vue.JS adds additional elements on top of input and simple clear just does not work.

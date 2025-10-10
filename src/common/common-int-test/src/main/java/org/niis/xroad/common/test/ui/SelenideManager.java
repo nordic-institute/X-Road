@@ -1,21 +1,20 @@
 /*
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,27 +23,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.test.ui;
 
-package org.niis.xroad.ss.test.container.service;
-
+import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.FileDownloadMode;
+import com.codeborne.selenide.Selenide;
+import com.nortal.test.core.services.ScenarioExecutionContext;
 import lombok.RequiredArgsConstructor;
-import org.mockserver.client.MockServerClient;
-import org.niis.xroad.ss.test.container.ExtMockServerContainer;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class MockServerService {
+public class SelenideManager {
+    private static final String TAG_DOWNLOAD = "@Download";
 
-    private final ExtMockServerContainer mockServerContainer;
+    private final ScenarioExecutionContext scenarioExecutionContext;
 
-    private MockServerClient mockServerClient;
+    public void open(String baseUrl) {
+        var stopWatch = StopWatch.createStarted();
 
-    public MockServerClient client() {
-        if (this.mockServerClient == null) {
-            this.mockServerClient = new MockServerClient(mockServerContainer.getTestContainer().getHost(),
-                    mockServerContainer.getTestContainer().getServerPort());
+        if (Selenide.webdriver().driver().hasWebDriverStarted()) {
+            Selenide.clearBrowserCookies();
+            Selenide.clearBrowserLocalStorage();
+            log.debug("Clearing Selenide browser cookies and storage took {} ms", stopWatch.getTime());
         }
-        return this.mockServerClient;
+
+        if (isDownloadScenario()) {
+            var config = Configuration.config();
+            config.proxyEnabled(true);
+            config.fileDownload(FileDownloadMode.PROXY);
+            Selenide.open(baseUrl, config);
+        } else {
+            Selenide.open(baseUrl);
+        }
+
+        log.info("Opening {} page took {} ms", baseUrl, stopWatch.getTime());
+    }
+
+    private boolean isDownloadScenario() {
+        return scenarioExecutionContext.getCucumberScenario().getSourceTagNames()
+                .stream()
+                .anyMatch(TAG_DOWNLOAD::equalsIgnoreCase);
     }
 }

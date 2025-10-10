@@ -19,6 +19,6 @@ bao server -dev \
 
 wait_for_server
 
-./scripts/secret-store-init.sh
+./usr/share/xroad/scripts/secret-store-init.sh
 
 wait

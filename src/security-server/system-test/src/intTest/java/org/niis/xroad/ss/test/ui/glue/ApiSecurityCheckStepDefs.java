@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.ss.test.glue;
+package org.niis.xroad.ss.test.ui.glue;
 
 
 import com.nortal.test.core.report.ReportFormatter;
@@ -56,9 +56,14 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.junit.Assert.fail;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-public class ApiSecurityCheckStepDefs extends BaseStepDefs {
+public class ApiSecurityCheckStepDefs extends BaseUiStepDefs {
 
-    private static final Map<String, Set<String>> SKIP_ENDPOINTS = Map.of();
+    private static final Map<String, Set<String>> SKIP_ENDPOINTS = Map.of("TestCaFeignApi", Set.of("signCert"),
+            "FeignXRoadSoapRequestsApi", Set.of("getXRoadSoapResponse", "getXRoadSoapResponseAsBytes"),
+            "FeignXRoadRestRequestsApi", Set.of("s3c2", "s4c2", "testOas31"),
+            "FeignHealthcheckApi", Set.of("getHealthcheck"),
+            "FeignInitializationApi", Set.of("initWithHeader", "initSecurityServer"),
+            "FeignBackupsApi", Set.of("uploadBackup"));
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -87,10 +92,10 @@ public class ApiSecurityCheckStepDefs extends BaseStepDefs {
                                 method.invoke(feignClient, getMethodArguments(method));
                             }
                         } catch (InvocationTargetException e) {
-                            if (e.getTargetException() instanceof FeignException) {
-                                status = String.valueOf(((FeignException) e.getTargetException()).status());
+                            if (e.getTargetException() instanceof FeignException feignException && feignException.status() > 0) {
+                                status = String.valueOf(feignException.status());
                             } else {
-                                status = e.getMessage();
+                                status = e.toString();
                             }
                         } catch (Exception e) {
                             status = e.getMessage();

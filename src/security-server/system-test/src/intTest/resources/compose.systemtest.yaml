@@ -3,7 +3,7 @@ services:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
     volumes:
-      - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
+      - ./container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
 
   signer:
     environment:
@@ -11,7 +11,7 @@ services:
       - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
       - QUARKUS_LOG_LEVEL=DEBUG
     volumes:
-      - ../../../src/security-server/system-test/build/resources/intTest/container-files/etc/xroad/conf.d:/etc/xroad/conf.d
+      - ./container-files/etc/xroad/conf.d:/etc/xroad/conf.d
   proxy:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
@@ -20,8 +20,8 @@ services:
         aliases:
           - ss0 #address is in global conf
     volumes:
-      - ../../../src/security-server/system-test/build/resources/intTest/container-files/etc/xroad/conf.d:/etc/xroad/conf.d
-      - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/messagelog:/etc/xroad/messagelog
+      - ./container-files/etc/xroad/conf.d:/etc/xroad/conf.d
+      - ./container-files/etc/xroad/messagelog:/etc/xroad/messagelog
     depends_on:
       testca:
         condition: service_healthy
@@ -34,9 +34,9 @@ services:
       - SERVER_SERVLET_SESSION_TIMEOUT=1m
       - XROAD_COMMON_RPC_CHANNEL_OP_MONITOR_HOST=op-monitor
     ports:
-      - 0:9999 # debug port
+      - "0:9999" # debug port
     volumes:
-      - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/conf.d:/etc/xroad/conf.d
+      - ./container-files/etc/xroad/conf.d:/etc/xroad/conf.d
     depends_on:
       testca:
         condition: service_healthy
@@ -45,10 +45,10 @@ services:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
     ports:
-      - 0:9999 # debug port
+      - "0:9999" # debug port
     volumes:
-      - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
-      - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/backup-keys:/etc/xroad/backup-keys
+      - ./container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
+      - ./container-files/etc/xroad/backup-keys:/etc/xroad/backup-keys
 
   db-opmonitor:
     image: postgres:16
@@ -122,7 +122,7 @@ services:
 
   testca:
     build:
-      context: ../../../src/common/common-int-test/src/main/resources/META-INF/ca-container
+      context: ../../../../../common/common-int-test/src/main/resources/META-INF/ca-container
     healthcheck:
       interval: 5s
       retries: 40
@@ -130,7 +130,7 @@ services:
     networks:
       - xrd-ss-network
     volumes:
-      - ../../../src/security-server/system-test/build/a2c_logs:/var/www/acme2certifier/logs
+      - ../../a2c_logs:/var/www/acme2certifier/logs
 
   nginx:
     image: nginx:latest
@@ -140,7 +140,7 @@ services:
           - cs
           - mock-server
     volumes:
-      - ../../../src/security-server/system-test/src/intTest/resources/nginx-container-files/etc/nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx-container-files/etc/nginx/conf.d:/etc/nginx/conf.d
 
   testmailserver:
     image: axllent/mailpit
@@ -153,4 +153,4 @@ services:
     networks:
       - xrd-ss-network
     volumes:
-      - ../../../src/common/common-int-test/src/main/resources/META-INF/mail-server-container:/tls
+      - ../../../../../common/common-int-test/src/main/resources/META-INF/mail-server-container:/tls

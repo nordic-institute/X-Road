@@ -72,9 +72,20 @@ jobs:
       image_registry: ${{ needs.build-and-package.outputs.image_registry }}
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
+  test-services:
+    name: Run Service integration tests
+    needs: build-and-package
+    uses: ./.github/workflows/_test-services.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
+      image_registry: ${{ needs.build-and-package.outputs.image_registry }}
+      service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
+
   build-summary:
     name: Build Summary
-    needs: [build-and-package, test-central-server, test-security-server, test-e2e]
+    needs: [build-and-package, test-central-server, test-security-server, test-e2e, test-services]
     if: always()
     runs-on: ubuntu-22.04
     steps:
@@ -89,10 +100,11 @@ jobs:
           | Central Server Tests | ${{ needs.test-central-server.result == 'success' && '✅ Success' || needs.test-central-server.result == 'failure' && '❌ Failed' || needs.test-central-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | Security Server Tests | ${{ needs.test-security-server.result == 'success' && '✅ Success' || needs.test-security-server.result == 'failure' && '❌ Failed' || needs.test-security-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | E2E Tests | ${{ needs.test-e2e.result == 'success' && '✅ Success' || needs.test-e2e.result == 'failure' && '❌ Failed' || needs.test-e2e.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
+          | Service Integration Tests | ${{ needs.test-services.result == 'success' && '✅ Success' || needs.test-services.result == 'failure' && '❌ Failed' || needs.test-services.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           
           ## Overall Result
           
-          ${{ (needs.build-and-package.result == 'success' && needs.test-central-server.result == 'success' && needs.test-security-server.result == 'success' && needs.test-e2e.result == 'success') && '🎉 All tests passed!' || '⚠️ Some tests failed or were skipped' }}
+          ${{ (needs.build-and-package.result == 'success' && needs.test-central-server.result == 'success' && needs.test-security-server.result == 'success' && needs.test-e2e.result == 'success' && needs.test-services.result == 'success') && '🎉 All tests passed!' || '⚠️ Some tests failed or were skipped' }}
           
           ## Quick Actions
           

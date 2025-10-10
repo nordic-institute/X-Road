@@ -7,9 +7,6 @@ dependencies {
   intTestImplementation(project(":central-server:openapi-model"))
   intTestImplementation(project(":common:common-int-test"))
   intTestImplementation(libs.bundles.testAutomation)
-  intTestImplementation(libs.testAutomation.selenide) {
-    exclude(group = "org.slf4j", module = "*")
-  }
   intTestImplementation(libs.bouncyCastle.bcpkix)
   intTestImplementation(libs.awaitility)
 }
