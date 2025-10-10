@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./../.scripts/base-script.sh
+source "${BASH_SOURCE%/*}/../../.scripts/base-script.sh"
 
 hurl --insecure \
       --variables-file $XROAD_HOME/development/hurl/scenarios/k8-ss2/vars.env \

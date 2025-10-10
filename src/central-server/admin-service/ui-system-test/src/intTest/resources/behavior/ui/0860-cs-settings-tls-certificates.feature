@@ -20,6 +20,7 @@ Feature: 0860 - CS: Settings -> TLS Certificates
     When Management Service TLS key hash field is clicked
     Then user is able to view the certificate details
 
+  @Download
   Scenario: Management Service TLS certificate can be downloaded
     Given TLS Certificates sub-tab is selected
     When Downloading certificate button is clicked
@@ -30,6 +31,7 @@ Feature: 0860 - CS: Settings -> TLS Certificates
     When Re-create key button is clicked
     Then new key and certificate are successfully created
 
+  @Download
   Scenario: Management Service TLS certificate sign request can be generated
     Given TLS Certificates sub-tab is selected
     When Generate CSR button is clicked

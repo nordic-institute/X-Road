@@ -4,13 +4,6 @@ plugins {
   id("maven-publish")
 }
 
-quarkus {
-  quarkusBuildProperties.putAll(
-    buildMap {
-      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-configuration-client")
-    }
-  )
-}
 
 publishing {
   publications {

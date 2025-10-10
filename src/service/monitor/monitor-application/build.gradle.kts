@@ -3,14 +3,6 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-quarkus {
-  quarkusBuildProperties.putAll(
-    buildMap {
-      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-monitor")
-    }
-  )
-}
-
 dependencies {
   implementation(platform(libs.quarkus.bom))
   implementation(project(":lib:bootstrap-quarkus"))

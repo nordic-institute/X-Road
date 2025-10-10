@@ -46,7 +46,7 @@ public class AuthStepDefs extends BaseUiStepDefs {
     public void openPage() {
         var mapping = envSetup.getContainerMapping(EnvSetup.UI, Port.UI);
 
-        Selenide.open("https://%s:%d".formatted(mapping.host(), mapping.port()));
+        selenideManager.open("https://%s:%d".formatted(mapping.host(), mapping.port()));
     }
 
     @Step("Login form is visible")

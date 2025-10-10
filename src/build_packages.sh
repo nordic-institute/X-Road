@@ -95,15 +95,19 @@ buildLocally() {
 buildBuilderImage() {
   local release="$1"
   test -n "$release" || errorExit "Error, release not specified."
-  warn "Preparing $release image..."
-  docker build -q -t "xroad-$release" "$XROAD/../deployment/native-packages/docker/$release" || errorExit "Error building $release image."
+
+  "$XROAD/../deployment/native-packages/docker/prepare-builder-image.sh" "$release" || errorExit "Error preparing $release image."
 }
 
 runInBuilderImage() {
   local release="$1"
   shift
   test -n "$release" || errorExit "Error, release not specified."
-  local image="xroad-$release"
+
+  # Use same image name as prepare-builder-image.sh
+  local registry="${IMAGE_REGISTRY:-localhost:5555}"
+  local tag="${IMAGE_TAG:-latest}"
+  local image="${registry}/package-builder-${release}:${tag}"
 
   OPTS=("--rm" "-v" "$XROAD/..:/workspace" "-u" "$(id -u):$(id -g)" "-e" "HOME=/workspace/deployment/native-packages")
   # check if running attached to terminal

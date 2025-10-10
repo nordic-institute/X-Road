@@ -5,11 +5,9 @@ FROM $SIGNER_IMG
 USER root
 
 RUN apt-get -qq update \
-  && apt-get -qq install --no-install-recommends curl softhsm2 \
-                  opensc \
-  && apt-get -qq clean
-
-RUN mkdir -p /var/lib/softhsm/tokens/ && \
+  && apt-get -qq install --no-install-recommends curl softhsm2 opensc \
+  && apt-get -qq clean \
+  && mkdir -p /var/lib/softhsm/tokens/ && \
     adduser xroad softhsm
 
 COPY add-key-into-hsm.sh /add-key-into-hsm.sh

@@ -9,6 +9,7 @@ Feature: 0360 - SS: TLS key
     And Keys and certificates tab is selected
     And Security Server TLS Key sub-tab is selected
 
+  @Download
   Scenario: User can export TLS key certificate
     When TLS certificate is exported
     Then TLS certificate is successfully downloaded and contains expected contents
@@ -18,6 +19,7 @@ Feature: 0360 - SS: TLS key
     And New TLS key and certificate generation is confirmed
     Then New TLS key and certificate are successfully generated
 
+  @Download
   Scenario: User can import new TLS certificate
     Given TLS CSR generation view is opened
     And Distinguished name CN=localhost is entered

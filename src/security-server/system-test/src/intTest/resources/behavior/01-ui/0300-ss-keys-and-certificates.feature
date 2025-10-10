@@ -8,6 +8,7 @@ Feature: 0300 - SS: Keys and certificates
     And User xrd logs in to SecurityServer with password secret
     And signer service is restarted
 
+  @Download
   Scenario Outline: <$label> key is added and imported
     Given healthcheck has errors and error message is "No certificate chain available in authentication key."
     And Keys and certificates tab is selected
@@ -33,6 +34,7 @@ Feature: 0300 - SS: Keys and certificates
     When Token: softToken-0 edit page is opened
     Then Token Alert about token policy being enforced is present
 
+  @Download
   Scenario Outline: New key with with empty label is created
     Given Keys and certificates tab is selected
     And Token: <$token> is present and expanded
@@ -66,6 +68,7 @@ Feature: 0300 - SS: Keys and certificates
     When Token: softToken-0 - "SIGNING" CSR in position 1 is deleted
     Then Token: softToken-0 - has 1 auth keys, 1 sign keys
 
+  @Download
   Scenario: Generating multiple CSR for key
     Given Keys and certificates tab is selected
     And Token: softToken-0 is present and expanded
