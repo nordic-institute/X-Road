@@ -160,11 +160,9 @@ public class DiagnosticConnectionService {
             if (X_INVALID_REQUEST.equals(e.getFaultCode())
                     // we support older CS error code here as well
                     || "InvalidResponse".equals(e.getFaultCode())) {
-                // special case: if no certificate, the error is expected, and we return only certificate validation exceptions
-                if (certificateInfo == null) {
-                    return ConnectionStatus.create(certErrorCode, certValidationMetadata);
-                    // address validation error is expected, and we return only certificate validation exceptions (if any)
-                } else if (e.getFaultString() != null && e.getFaultString().contains(INVALID_SERVER_ADDRESS)) {
+                // special case: if no certificate or address validation error, the error is expected,
+                // and we return only certificate validation exceptions (if any)
+                if (certificateInfo == null || e.getFaultString() != null && e.getFaultString().contains(INVALID_SERVER_ADDRESS)) {
                     return ConnectionStatus.create(certErrorCode, certValidationMetadata);
                 }
             }
