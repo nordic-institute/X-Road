@@ -39,9 +39,6 @@ tasks.register<Test>("intTest") {
     showStandardStreams = true
   }
 
-  reports {
-    junitXml.required.set(false)
-  }
 }
 
 archUnit {
