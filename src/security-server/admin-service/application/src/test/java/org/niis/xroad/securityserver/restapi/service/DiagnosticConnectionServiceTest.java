@@ -61,6 +61,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.service.DiagnosticConnectionService.INVALID_SERVER_ADDRESS;
 
 @ExtendWith(MockitoExtension.class)
 class DiagnosticConnectionServiceTest {
@@ -209,6 +210,22 @@ class DiagnosticConnectionServiceTest {
         when(token.getKeyInfo()).thenReturn(List.of());
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
                 .thenThrow(new CodedException(X_INVALID_REQUEST));
+
+        var status = service.getAuthCertRegStatusInfo();
+
+        assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
+        assertThat(status.getErrorCode()).isEqualTo("certificate_not_found");
+        assertThat(status.getErrorMetadata()).isEqualTo(List.of("No active auth cert found"));
+        assertThat(status.getValidationErrors()).isEmpty();
+    }
+
+    @Test
+    void getAuthCertRegStatusWithInvalidServerAddressInfoThenReturnCertificateNotFoundError() {
+        TokenInfo token = mock(TokenInfo.class);
+        when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
+        when(token.getKeyInfo()).thenReturn(List.of());
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
+                .thenThrow(new CodedException(X_INVALID_REQUEST, INVALID_SERVER_ADDRESS));
 
         var status = service.getAuthCertRegStatusInfo();
 

@@ -62,11 +62,11 @@ import static org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleE
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class DiagnosticConnectionService {
-    private static final String CONNECTION_TEST_ADDRESS = "address";
     private static final String HTTP = "http";
     private static final String HTTPS = "https";
     private static final Integer PORT_80 = 80;
     private static final Integer PORT_443 = 443;
+    static final String INVALID_SERVER_ADDRESS = "Invalid server address";
 
     private final GlobalConfProvider globalConfProvider;
     private final TokenService tokenService;
@@ -116,7 +116,6 @@ public class DiagnosticConnectionService {
 
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                globalConfProvider.verifyValidity();
                 return DownloadUrlConnectionStatus.create(getDownloadUrl(url));
             } else {
                 var responseMessage = connection.getResponseMessage() != null ? connection.getResponseMessage() : "";
@@ -151,16 +150,23 @@ public class DiagnosticConnectionService {
         try {
             // if no certificate, the error is expected, but we want to verify that the connection can be established
             byte[] bytes = (certificateInfo != null) ? certificateInfo.getCertificateBytes() : new byte[0];
-            managementRequestSenderService.sendAuthCertRegisterRequest(CONNECTION_TEST_ADDRESS, bytes, true);
+            managementRequestSenderService.sendAuthCertRegisterRequest(null, bytes, true);
         } catch (GlobalConfOutdatedException e) {
             return ConnectionStatus.create(e.getErrorDeviation().code(), e.getErrorDeviation().metadata(), certErrorCode,
                     certValidationMetadata);
         } catch (XrdRuntimeException e) {
             return ConnectionStatus.create(e.getErrorCode(), e.getDetails(), certErrorCode, certValidationMetadata);
         } catch (CodedException e) {
-            // special case: if no certificate, the error is expected, and we return only certificate validation exceptions
-            if (certificateInfo == null && X_INVALID_REQUEST.equals(e.getFaultCode())) {
-                return ConnectionStatus.create(certErrorCode, certValidationMetadata);
+            if (X_INVALID_REQUEST.equals(e.getFaultCode())
+                    // we support older CS error code here as well
+                    || "InvalidResponse".equals(e.getFaultCode())) {
+                // special case: if no certificate, the error is expected, and we return only certificate validation exceptions
+                if (certificateInfo == null) {
+                    return ConnectionStatus.create(certErrorCode, certValidationMetadata);
+                    // address validation error is expected, and we return only certificate validation exceptions (if any)
+                } else if (e.getFaultString() != null && e.getFaultString().contains(INVALID_SERVER_ADDRESS)) {
+                    return ConnectionStatus.create(certErrorCode, certValidationMetadata);
+                }
             }
             return ConnectionStatus.create(e.getFaultCode(), e.getFaultString(), certErrorCode, certValidationMetadata);
         }
