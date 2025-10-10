@@ -157,14 +157,12 @@ public class DiagnosticConnectionService {
         } catch (XrdRuntimeException e) {
             return ConnectionStatus.create(e.getErrorCode(), e.getDetails(), certErrorCode, certValidationMetadata);
         } catch (CodedException e) {
-            if (X_INVALID_REQUEST.equals(e.getFaultCode())
-                    // we support older CS error code here as well
-                    || "InvalidResponse".equals(e.getFaultCode())) {
-                // special case: if no certificate or address validation error, the error is expected,
-                // and we return only certificate validation exceptions (if any)
-                if (certificateInfo == null || e.getFaultString() != null && e.getFaultString().contains(INVALID_SERVER_ADDRESS)) {
-                    return ConnectionStatus.create(certErrorCode, certValidationMetadata);
-                }
+            // special case: if no certificate or address validation error, the error is expected,
+            // and we return only certificate validation exceptions (if any)
+            if ((X_INVALID_REQUEST.equals(e.getFaultCode()) || "InvalidResponse".equals(e.getFaultCode()))
+                    && (certificateInfo == null
+                    || (e.getFaultString() != null && e.getFaultString().contains(INVALID_SERVER_ADDRESS)))) {
+                return ConnectionStatus.create(certErrorCode, certValidationMetadata);
             }
             return ConnectionStatus.create(e.getFaultCode(), e.getFaultString(), certErrorCode, certValidationMetadata);
         }
