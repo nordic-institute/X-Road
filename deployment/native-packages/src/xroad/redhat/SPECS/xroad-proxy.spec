@@ -55,6 +55,7 @@ cp -p %{_sourcedir}/proxy/xroad-add-admin-user.sh %{buildroot}/usr/share/xroad/b
 cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
 cp -p %{_sourcedir}/proxy/xroad-*.service %{buildroot}%{_unitdir}
 cp -a %{srcdir}/../../../../src/security-server/admin-service/infra-jpa/build/resources/main/liquibase/* %{buildroot}/usr/share/xroad/db/
+cp -a %{srcdir}/../../../../src/addons/messagelog/messagelog-db/src/main/resources/liquibase/* %{buildroot}/usr/share/xroad/db/
 cp -p -r %{srcdir}/../../../../src/service/proxy/proxy-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/proxy
 cp -p %{srcdir}/default-configuration/rsyslog.d/* %{buildroot}/etc/rsyslog.d/
 cp -p %{srcdir}/ubuntu/generic/xroad-proxy.logrotate %{buildroot}/etc/logrotate.d/xroad-proxy
@@ -88,10 +89,13 @@ rm -rf %{buildroot}
 %attr(540,root,root) /usr/share/xroad/scripts/xroad-initdb.sh
 %attr(540,root,root) /usr/share/xroad/bin/xroad-add-admin-user.sh
 %attr(540,root,root) /usr/share/xroad/scripts/setup_serverconf_db.sh
+%attr(540,root,root) /usr/share/xroad/scripts/setup_messagelog_db.sh
 
 /usr/bin/xroad-add-admin-user
 /usr/share/xroad/db/serverconf-changelog.xml
 /usr/share/xroad/db/serverconf
+/usr/share/xroad/db/messagelog-changelog.xml
+/usr/share/xroad/db/messagelog
 /usr/share/xroad/db/signer
 /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
 /usr/share/xroad/jlib/proxy.jar
@@ -123,6 +127,7 @@ fi
 %define execute_init_or_update_resources()                                            \
     echo "Update resources: DB";                                                      \
     /usr/share/xroad/scripts/setup_serverconf_db.sh;                                  \
+    /usr/share/xroad/scripts/setup_messagelog_db.sh;                                  \
                                                                                       \
     if [ $1 -eq 1 ] && [ -x %{_bindir}/systemctl ]; then                              \
         `# initial installation`;                                                     \
