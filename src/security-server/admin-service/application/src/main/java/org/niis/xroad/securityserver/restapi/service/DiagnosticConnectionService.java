@@ -159,7 +159,7 @@ public class DiagnosticConnectionService {
         } catch (CodedException e) {
             // special case: if no certificate or address validation error, the error is expected,
             // and we return only certificate validation exceptions (if any)
-            if ((X_INVALID_REQUEST.equals(e.getFaultCode()) || "InvalidResponse".equals(e.getFaultCode()))
+            if ((X_INVALID_REQUEST.equals(e.getFaultCode()) || "InvalidRequest".equals(e.getFaultCode()))
                     && (certificateInfo == null
                     || (e.getFaultString() != null && e.getFaultString().contains(INVALID_SERVER_ADDRESS)))) {
                 return ConnectionStatus.create(certErrorCode, certValidationMetadata);
