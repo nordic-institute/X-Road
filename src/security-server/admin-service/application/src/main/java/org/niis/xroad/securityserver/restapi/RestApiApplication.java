@@ -45,7 +45,7 @@ import org.springframework.context.annotation.Import;
         ServerConfBeanConfig.class})
 @ServletComponentScan
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme",
-        "org.niis.xroad.common.mail", "ee.ria.xroad.common.util"})
+        "org.niis.xroad.common.mail", "ee.ria.xroad.common.util", "org.niis.xroad.messagelog.archiver"})
 @EnableCaching
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class RestApiApplication {

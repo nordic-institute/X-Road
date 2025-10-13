@@ -24,22 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.messagelog.archiver.core.config;
 
-package org.niis.xroad.common.properties;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-import static org.niis.xroad.common.properties.CommonProperties.PREFIX;
+import java.util.Optional;
 
-@ConfigMapping(prefix = PREFIX)
-public interface CommonProperties {
-    String PREFIX = "xroad.common";
-    String DEFAULT_TEMP_FILES_PATH = "/var/tmp/xroad/";
-
-    @WithName("temp-files-path")
-    @WithDefault(DEFAULT_TEMP_FILES_PATH)
-    String tempFilesPath();
-
+@Getter
+@Setter
+@Configuration
+@ConfigurationProperties(prefix = "xroad.message-log-archiver")
+public class LogArchiverProperties {
+    private boolean enabled;
+    private String archiveInterval;
+    private String cleanInterval;
+    private int cleanTransactionBatchSize;
+    private int cleanKeepRecordsFor;
+    private int archiveTransactionBatchSize;
+    private String archivePath;
+    private Optional<String> archiveTransferCommand = Optional.empty();
 }

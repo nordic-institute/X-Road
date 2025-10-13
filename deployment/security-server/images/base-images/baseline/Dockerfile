@@ -9,11 +9,13 @@ RUN groupadd --system --gid 999 xroad && \
     --gid xroad xroad
 
 RUN mkdir /var/log/xroad && \
+    mkdir /var/lib/xroad && \
     mkdir /var/tmp/xroad && \
     mkdir /var/cache/xroad && \
     mkdir -p /etc/xroad/ssl && \
     mkdir -p /etc/xroad/globalconf && \
     chown -R xroad:xroad /var/log/xroad && \
+    chown -R xroad:xroad /var/lib/xroad && \
     chown -R xroad:xroad /var/tmp/xroad && \
     chown -R xroad:xroad /var/cache/xroad && \
     chown -R xroad:xroad /etc/xroad

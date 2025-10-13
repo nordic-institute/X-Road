@@ -29,8 +29,8 @@ package org.niis.xroad.proxy.core.addon.messagelog;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 
-import org.niis.xroad.messagelog.archiver.core.LogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
+import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

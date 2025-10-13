@@ -37,7 +37,6 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseConfig;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -49,9 +48,10 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
-import org.niis.xroad.messagelog.archiver.core.LogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
+import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.configuration.MessageLogDatabaseConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 
@@ -134,9 +134,11 @@ abstract class AbstractMessageLogTest {
             Files.createDirectory(archivesPath);
         }
 
-        logArchiverProperties = ConfigUtils.initConfiguration(LogArchiverProperties.class, Map.of(
-                "xroad.message-log-archiver.archive-path", archivesDir,
-                "xroad.message-log-archiver.keep-records-for", "0"));
+        logArchiverProperties = new LogArchiverProperties();
+        logArchiverProperties.setArchivePath(archivesDir);
+        logArchiverProperties.setCleanKeepRecordsFor(0);
+        logArchiverProperties.setArchiveTransactionBatchSize(10000);
+        logArchiverProperties.setCleanTransactionBatchSize(10000);
 
         logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider, commonProperties, databaseCtx);
         logCleanerRef = new TestLogCleaner(logArchiverProperties, databaseCtx);

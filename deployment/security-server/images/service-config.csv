@@ -6,7 +6,6 @@ proxy,quarkus/Dockerfile,service/proxy/proxy-application,ss-proxy,build/quarkus-
 monitor,quarkus/Dockerfile,service/monitor/monitor-application,ss-monitor,build/quarkus-app,base-images/ss-baseline-runtime,-
 op-monitor,quarkus/Dockerfile,service/op-monitor/op-monitor-application,ss-op-monitor,build/quarkus-app,base-images/ss-baseline-runtime,-
 configuration-client,quarkus/Dockerfile,service/configuration-client/configuration-client-application,ss-configuration-client,build/quarkus-app,base-images/ss-baseline-runtime,-
-message-log-archiver,quarkus/Dockerfile,service/message-log-archiver/message-log-archiver-application,ss-message-log-archiver,build/quarkus-app,base-images/ss-baseline-runtime,-
 signer,quarkus/Dockerfile,service/signer/signer-application,ss-signer,build/quarkus-app,base-images/ss-baseline-signer-runtime,-
 backup-manager,quarkus/Dockerfile,service/backup-manager/backup-manager-application,ss-backup-manager,build/quarkus-app,base-images/ss-baseline-backup-manager-runtime,-
 admin-service,admin-service/Dockerfile,security-server/admin-service/application,ss-proxy-ui-api,build/libs,base-images/ss-baseline-runtime,-

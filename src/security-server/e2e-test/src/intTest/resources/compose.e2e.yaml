@@ -1,0 +1,12 @@
+services:
+  ui:
+    environment:
+      - XROAD_MESSAGE_LOG_ARCHIVER_ARCHIVE_INTERVAL=*/15 * * * * *
+      - XROAD_MESSAGE_LOG_ARCHIVER_CLEAN_INTERVAL=*/30 * * * * *
+      - XROAD_MESSAGE_LOG_ARCHIVER_CLEAN_KEEP_RECORDS_FOR=0
+  proxy:
+    environment:
+      - XROAD_MESSAGE_LOG_TIMESTAMP_IMMEDIATELY=true
+  db-messagelog:
+    ports:
+      - "0:5432"
