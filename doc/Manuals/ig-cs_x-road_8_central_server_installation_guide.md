@@ -1,4 +1,4 @@
-# X-Road: Central Server Installation Guide <!-- omit in toc -->
+# X-Road 8: Central Server Installation Guide <!-- omit in toc -->
 
 Version: 1.0
 Doc. ID: IG-CS-8
@@ -193,7 +193,7 @@ Upon the first installation of the Central Server software, the system asks for 
 
 - Account name for the user who will be granted the rights to perform all activities in the user interface (reference data: 1.3).
 
-- Database server URL. Locally installed database is suggested as default but remote databases can be used as well. In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+- Database server URL. Locally installed database is suggested as default.
 
 - Whether the database migrations should be skipped and handled manually instead. Usually automatic migrations should be used, but for legacy database support (like BDR1) it's possible to rely on manual operations instead. How to execute the database migrations manually is described in [Annex E Run Database Migrations Manually](#annex-e-run-database-migrations-manually).
 
@@ -290,7 +290,7 @@ skip_migrations=false
 | User     | Database            | Privileges               | Description                                                                                         |
 |----------|---------------------|--------------------------|-----------------------------------------------------------------------------------------------------|
 | centerui | centerui_production | CREATE,TEMPORARY,CONNECT | The database user used to create the schema and read/write the database during application runtime. |
-| openbao  | openbao             | CREATE,TEMPORARY,CONNECT | The database user for local OpenBao if `xroad-secret-store-local` is used.                          | 
+| openbao  | openbao             | CREATE,TEMPORARY,CONNECT | The database user for local OpenBao (package `xroad-secret-store-local`)                            | 
 | postgres | ALL                 | ALL                      | PostgreSQL database default superuser.                                                              |
 
 ## Annex C `xroad-secret-store-local` default configuration
