@@ -64,15 +64,16 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-backup-manager (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-backup-manager (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
 Package: xroad-proxy
-Conflicts: xroad-center, xroad-confproxy
+Conflicts: xroad-center, xroad-confproxy, xroad-addon-messagelog
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-21-jre-headless | java21-runtime-headless | java21-runtime
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
+Replaces: xroad-addon-messagelog
 Description: X-Road security server
  X-Road security server programs and utilities
 
@@ -83,13 +84,6 @@ Depends: ${misc:Depends}, xroad-confclient (=${binary:Version}), xroad-nginx (=$
 Pre-Depends: xroad-base (=${binary:Version})
 Description: X-Road configuration proxy
  X-Road configuration proxy
-
-Package: xroad-addon-messagelog
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
-Conflicts: xroad-addon-legacy-securelog
-Description: X-Road AddOn: messagelog
- AddOn for secure message log
 
 Package: xroad-monitor
 Architecture: all

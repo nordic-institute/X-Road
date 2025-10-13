@@ -32,7 +32,7 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
-import org.niis.xroad.messagelog.archiver.core.LogArchiverProperties;
+import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +43,7 @@ class TestLogArchiver extends LogArchiver {
 
     TestLogArchiver(LogArchiverProperties logArchiverProperties, GlobalConfProvider globalConfProvider,
                     CommonProperties commonProperties, DatabaseCtx messageLogDatabaseCtx) {
-        super(logArchiverProperties, globalConfProvider, commonProperties, messageLogDatabaseCtx);
+        super(logArchiverProperties, commonProperties, globalConfProvider, messageLogDatabaseCtx);
     }
 
     public static void waitForArchiveSuccessful() throws Exception {

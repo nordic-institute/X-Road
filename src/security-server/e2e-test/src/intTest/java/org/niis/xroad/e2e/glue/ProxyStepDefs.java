@@ -29,14 +29,27 @@ import io.cucumber.docstring.DocString;
 import io.cucumber.java.en.Step;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponseOptions;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.niis.xroad.e2e.container.EnvSetup;
 import org.niis.xroad.e2e.container.Port;
+import org.niis.xroad.e2e.container.service.TestDatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.XmlConfig.xmlConfig;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
@@ -44,6 +57,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 public class ProxyStepDefs extends BaseE2EStepDefs {
     @Autowired
     private EnvSetup envSetup;
+    @Autowired
+    private TestDatabaseService testDatabaseService;
 
     private ValidatableResponseOptions<?, ?> response;
 
@@ -98,6 +113,52 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                 .get("http://%s:%s/r1/DEV/COM/1234/TestService/restapi/%s"
                         .formatted(mapping.host(), mapping.port(), apiEndpoint.replaceFirst("^/", "")))
                 .then();
+    }
+
+    @Step("Waiting for {int} seconds to ensure that all messagelogs are archived and removed from database")
+    public void waitForMessagelogsToBeArchivedAndRemovedFromDatabase(int seconds) throws InterruptedException {
+        TimeUnit.SECONDS.sleep(seconds);
+    }
+
+    @Step("{string}'s {string} service has {int} messagelogs present in the archives")
+    public void serviceHasMessagelogArchivePresent(String env, String service, int expectedMessagelogCount)
+            throws IOException, InterruptedException {
+        var localCompressedArchivesPath = "build/tmp/e2eTest/messagelog-archives.tar.gz";
+        var container = envSetup.getContainerByServiceName(env, service).orElseThrow();
+        container.execInContainer("tar", "czf", "/tmp/messagelog-archives.tar.gz", "-C", "/var/lib/xroad", ".");
+        container.copyFileFromContainer("/tmp/messagelog-archives.tar.gz", localCompressedArchivesPath);
+        container.execInContainer("rm", "/tmp/messagelog-archives.tar.gz");
+
+        try (var tis = new TarArchiveInputStream(new GZIPInputStream(new FileInputStream(localCompressedArchivesPath)))) {
+            var messagelogCount = 0;
+            TarArchiveEntry entry;
+            while ((entry = tis.getNextTarEntry()) != null) {
+                if (entry.getName().equals("./")) {
+                    continue;
+                }
+                assertThat(entry.getName()).matches("\\./mlog-.*\\.zip");
+                try (ByteArrayInputStream bais = new ByteArrayInputStream(tis.readAllBytes());
+                        ZipInputStream zis = new ZipInputStream(bais)) {
+                    ZipEntry archiveEntry;
+                    while ((archiveEntry = zis.getNextEntry()) != null) {
+                        if (archiveEntry.getName().equals("linkinginfo")) {
+                            continue;
+                        }
+                        assertThat(archiveEntry.getName()).endsWith(".asice");
+                        messagelogCount++;
+                    }
+                }
+            }
+            assertThat(messagelogCount).isEqualTo(expectedMessagelogCount);
+        }
+    }
+
+    @Step("{string} contains {int} messagelog entries")
+    public void messageLogContainsNEntries(String env, int expectedCount) {
+        String sql = "SELECT COUNT(id) FROM logrecord";
+        final Integer recordsCount = testDatabaseService.getMessagelogTemplate(env)
+                .queryForObject(sql, Map.of(), Integer.class);
+        assertThat(recordsCount).isEqualTo(expectedCount);
     }
 
 }

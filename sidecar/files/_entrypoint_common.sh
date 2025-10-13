@@ -58,9 +58,6 @@ PACKAGED_CONFIG=/usr/share/xroad/config
 PACKAGED_VERSION="$(cat /${PACKAGED_CONFIG}/VERSION)"
 
 RECONFIG=(xroad-signer xroad-proxy xroad-confclient)
-if [ -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
-  RECONFIG+=(xroad-addon-messagelog)
-fi
 if [ -f /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf ]; then
   RECONFIG+=(xroad-opmonitor)
 fi

@@ -24,22 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.messagelog.archiver.core;
 
-package org.niis.xroad.common.properties;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
+import org.springframework.scheduling.annotation.Scheduled;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+@Slf4j
+@RequiredArgsConstructor
+public class LogCleanerJob {
+    private final LogArchiverProperties logArchiverProperties;
+    private final LogCleaner logCleaner;
 
-import static org.niis.xroad.common.properties.CommonProperties.PREFIX;
-
-@ConfigMapping(prefix = PREFIX)
-public interface CommonProperties {
-    String PREFIX = "xroad.common";
-    String DEFAULT_TEMP_FILES_PATH = "/var/tmp/xroad/";
-
-    @WithName("temp-files-path")
-    @WithDefault(DEFAULT_TEMP_FILES_PATH)
-    String tempFilesPath();
-
+    @Scheduled(cron = "${xroad.message-log-archiver.clean-interval}")
+    public void archive() {
+        log.info("Executing LogCleanerJob with cron {}", logArchiverProperties.getCleanInterval());
+        logCleaner.execute();
+    }
 }
