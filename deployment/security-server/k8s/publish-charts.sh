@@ -24,7 +24,6 @@ CHARTS:
     security-server         Security Server chart
     openbao-init           OpenBao initialization chart
     external-service-bridge External service bridge chart
-    all                    Package and publish all charts (default)
 
 OPTIONS:
     --version VERSION      Chart version (defaults to xroadVersion-xroadBuildType)
@@ -37,20 +36,6 @@ ENVIRONMENT VARIABLES:
     HELM_REGISTRY          OCI registry URL (default: localhost:5555/helm)
     CHART_VERSION          Chart version to use
     APP_VERSION            Application version to use
-
-EXAMPLES:
-    # Package all charts locally (no push)
-    ./publish-charts.sh
-
-    # Package and push to Artifactory
-    HELM_REGISTRY=oci://artifactory.niis.org/xroad8-helm \\
-      ./publish-charts.sh all --push
-
-    # Specify versions explicitly
-    ./publish-charts.sh all \\
-      --version 8.0.0 \\
-      --app-version 8.0.0-20251010 \\
-      --push
 
 EOF
     exit 0
@@ -76,10 +61,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         --push)
             PUSH="true"
-            shift
-            ;;
-        all)
-            # Kept for backwards compatibility, but ignored
             shift
             ;;
         -*)
