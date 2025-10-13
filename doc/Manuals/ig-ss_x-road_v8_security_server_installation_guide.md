@@ -35,6 +35,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Security Server Installation](#26-security-server-installation)
+    - [2.6.1 Provisioning TLS certificates](#261-provisioning-tls-certificates) 
   - [2.7 Post-Installation Checks](#27-post-installation-checks)
   - [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
@@ -253,6 +254,10 @@ Upon the first installation of the packages, the system asks for the following i
     * All IP addresses and domain names in use must be entered as alternative names in the format:
 
             IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
+
+#### 2.6.1 Provisioning TLS certificates
+
+TLS certificates for the user interface and for the information system access point are automatically provisioned at the application startup, using OpenBao PKI secrets engine (package `xroad-secret-store-local`).  
 
 ### 2.7 Post-Installation Checks
 
