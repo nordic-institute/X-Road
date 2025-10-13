@@ -10,11 +10,6 @@ ss_modules:
     build: build
     target: /usr/share/xroad/jlib/proxy
     service: xroad-proxy
-  addon-message-log-archiver:
-    dir: service/message-log-archiver/message-log-archiver-application
-    build: build
-    target: /usr/share/xroad/jlib/addon/proxy/messagelog-archiver
-    service: xroad-addon-messagelog
   configuration-client:
     dir: service/configuration-client/configuration-client-application
     build: build

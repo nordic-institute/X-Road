@@ -1,0 +1,273 @@
+name: Build and Package
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: true
+        type: string
+      sha:
+        description: 'Git SHA for the build'
+        required: true
+        type: string
+    outputs:
+      image_registry:
+        description: 'Image registry URL used for builds'
+        value: ${{ jobs.build-and-package.outputs.image_registry }}
+      service_image_tag:
+        description: 'Service image tag used for builds'
+        value: ${{ jobs.build-and-package.outputs.service_image_tag }}
+
+jobs:
+  build-and-package:
+    name: Build, test and package code
+    runs-on: ubuntu-24.04
+    outputs:
+      image_registry: ${{ steps.build-config.outputs.image_registry }}
+      service_image_tag: ${{ steps.build-config.outputs.service_image_tag }}
+    steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: start-measurement
+          label: 'Build, unit tests and packaging'
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build-env
+        with:
+          gradle-cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+          setup-docker-buildx: true
+          setup-packaging-tools: false
+          free-disk-space: false
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Build, test and package code setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Build environment setup'
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup build configuration
+        id: build-config
+        working-directory: ./src
+        run: |
+          # Setup GHCR registry URL (unified for both base images and application images)
+          REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_REGISTRY="ghcr.io/${REPO_LOWERCASE}"
+          
+          # Read version and build type from gradle.properties for service image tagging
+          XROAD_VERSION=$(grep "^xroadVersion=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          XROAD_BUILD_TYPE=$(grep "^xroadBuildType=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          
+          # Function to get branch name for service image tagging
+          get_branch_name() {
+            local branch_name=""
+            # For pull requests, prioritize head_ref (actual source branch) over ref_name (merge branch)
+            if [[ -n "${{ github.head_ref }}" ]]; then
+              branch_name="${{ github.head_ref }}"
+              echo "🔍 Using PR source branch: ${branch_name}" >&2
+            elif [[ -n "${{ github.ref_name }}" ]]; then
+              branch_name="${{ github.ref_name }}"
+              echo "🔍 Using ref branch: ${branch_name}" >&2
+            else
+              branch_name="unknown"
+              echo "⚠️ No branch name found, using: ${branch_name}" >&2
+            fi
+            # Clean up branch name for Docker tag compatibility
+            echo "$branch_name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g'
+          }
+          
+          # Determine service image suffix for branch-aware tagging
+          BRANCH_NAME=$(get_branch_name)
+          
+          # Use GitHub run number for build uniqueness (handles re-runs of same commit)
+          BUILD_NUMBER="${{ github.run_number }}"
+          
+          if [[ "${{ github.ref_type }}" == "tag" || "$XROAD_BUILD_TYPE" == "RELEASE" ]]; then
+            # For releases, use simple version
+            SERVICE_IMAGE_TAG="${XROAD_VERSION}"
+          elif [[ "$BRANCH_NAME" == "develop-8.x" ]]; then
+            # For develop branch, include build number for uniqueness
+            SERVICE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT-${BUILD_NUMBER}"
+          else
+            # For feature branches, include branch name and build number
+            SERVICE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT-${BRANCH_NAME}-${BUILD_NUMBER}"
+          fi
+          
+          # Export to GITHUB_ENV for subsequent steps
+          echo "IMAGE_REGISTRY=${IMAGE_REGISTRY}" >> $GITHUB_ENV
+          echo "SERVICE_IMAGE_TAG=${SERVICE_IMAGE_TAG}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+          echo "XROAD_VERSION=${XROAD_VERSION}" >> $GITHUB_ENV
+          echo "XROAD_BUILD_TYPE=${XROAD_BUILD_TYPE}" >> $GITHUB_ENV
+          echo "PACKAGE_BUILDER_IMAGE_TAG=${XROAD_VERSION}-${XROAD_BUILD_TYPE}" >> $GITHUB_ENV
+          
+          # Export to GITHUB_OUTPUT for job outputs
+          echo "image_registry=${IMAGE_REGISTRY}" >> $GITHUB_OUTPUT
+          echo "service_image_tag=${SERVICE_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          
+          echo "🏗️ Build configuration:"
+          echo "  Registry: ${IMAGE_REGISTRY}"
+          echo "  Service Image Tag: ${SERVICE_IMAGE_TAG}"
+          echo "  Package Builder Image Tag: ${PACKAGE_BUILDER_IMAGE_TAG}"
+          echo "  Branch: ${BRANCH_NAME}"
+          echo "  X-Road Version: ${XROAD_VERSION}"
+          echo "  Build Type: ${XROAD_BUILD_TYPE}"
+          echo "  Build Number: ${BUILD_NUMBER}"
+          echo "  Commit SHA: ${{ inputs.sha }}"
+
+      - name: Build and test source
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: ./src
+        run: |
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g \
+          -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute \
+          build sonar test jacocoTestReport -Pfrontend-npm-audit
+
+      - name: Build Security Server images
+        working-directory: ./deployment/security-server/images
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.SERVICE_IMAGE_TAG }}
+        run: |
+          ./build-images.sh --platforms linux/amd64,linux/arm64 --push
+
+      - name: Log storage after build
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'Storage After Build'
+          show-build-dirs: 'true'
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: Unit and integration tests
+          path: src/**/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+          list-suites: 'failed'
+          list-tests: 'failed'
+
+      - name: Upload intTest reports
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: Integration Test reports
+          path: |
+            src/service/signer/signer-int-test/build/allure-report/
+            src/service/signer/signer-int-test/build/container-logs/
+            src/service/op-monitor/op-monitor-int-test/build/allure-report/
+            src/service/op-monitor/op-monitor-int-test/build/container-logs/
+
+      - name: Build, test and package code execution measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Build, unit tests and packaging'
+
+      - name: Build RHEL8 packages
+        working-directory: ./src
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: |
+          ./build_packages.sh -d -r rpm-el8 --package-only
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/8
+
+      - name: Build RHEL9 packages
+        working-directory: ./src
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: |
+          ./build_packages.sh -d -r rpm-el9 --package-only
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
+
+      - name: Build Ubuntu 22.04 (Jammy) packages
+        working-directory: ./src
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: |
+          ./build_packages.sh -d -r jammy --package-only
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu22.04
+
+      - name: Build Ubuntu 24.04 (Noble) packages
+        working-directory: ./src
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: ./build_packages.sh -d -r noble --package-only
+
+      - name: Build and push Central Server dev image
+        working-directory: ./development/docker/central-server
+        run: |
+          echo "🏗️ Building Central Server dev image:"
+          echo "  Registry: ${IMAGE_REGISTRY}"
+          echo "  Version: ${SERVICE_IMAGE_TAG}"
+          echo "  Branch: ${BRANCH_NAME}"
+          
+          ./build-cs-dev-image.sh \
+            --environment ci \
+            --registry ${{ env.IMAGE_REGISTRY }} \
+            --version ${{ env.SERVICE_IMAGE_TAG }} \
+            --packages-path ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04 \
+            --platforms linux/amd64
+
+      - name: Build development images
+        working-directory: ./development/docker
+        run: |
+          IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} \
+          IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }} \
+            ./build-dev-images.sh --push
+
+      - name: Log storage after all packaging
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'Storage After All Packaging'
+          show-packages: 'true'
+
+      - name: Packaging and upload artifacts measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Packaging and upload artifacts'
+
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: display-results
+          pr-comment: true
+
+      - name: Log final storage
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'Final Storage Utilization'

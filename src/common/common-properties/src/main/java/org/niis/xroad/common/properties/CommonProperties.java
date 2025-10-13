@@ -31,11 +31,15 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
-@ConfigMapping(prefix = "xroad.common")
+import static org.niis.xroad.common.properties.CommonProperties.PREFIX;
+
+@ConfigMapping(prefix = PREFIX)
 public interface CommonProperties {
+    String PREFIX = "xroad.common";
+    String DEFAULT_TEMP_FILES_PATH = "/var/tmp/xroad/";
 
     @WithName("temp-files-path")
-    @WithDefault("/var/tmp/xroad/")
+    @WithDefault(DEFAULT_TEMP_FILES_PATH)
     String tempFilesPath();
 
 }

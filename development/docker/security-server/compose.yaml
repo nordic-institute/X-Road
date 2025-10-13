@@ -1,7 +1,7 @@
 services:
   openbao:
-    build:
-      context: openbao/
+    image: ${OPENBAO_DEV_IMG}
+    pull_policy: always
     environment:
       - BAO_ADDR=http://0.0.0.0:8200
       - BAO_DEV_ROOT_TOKEN_ID=${XROAD_SECRET_STORE_TOKEN}
@@ -11,8 +11,6 @@ services:
       test: [ "CMD", "sh", "-c", "bao secrets list -format=json | jq 'has(\"xrd-pki/\")' | grep -q true" ]
     networks:
       - xrd-ss-network
-    volumes:
-      - ../../../deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts/:/scripts
   db-serverconf:
     image: postgres:16
     environment:
@@ -142,6 +140,7 @@ services:
     image: ${CONFIGURATION_CLIENT_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - XROAD_HOST=configuration-client
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -174,6 +173,7 @@ services:
     image: ${MONITOR_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - XROAD_HOST=monitor
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -201,6 +201,7 @@ services:
     image: ${SIGNER_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - XROAD_HOST=signer
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -232,6 +233,7 @@ services:
     image: ${PROXY_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - XROAD_HOST=proxy
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -269,6 +271,7 @@ services:
     image: ${PROXY_UI_IMG}
     pull_policy: always
     environment:
+      - DEBUG=false
       - XROAD_HOST=ui
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -282,6 +285,10 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-messagelog:5432/messagelog
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME=messagelog
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD=secret
       - XROAD_PROXY_UI_API_MANAGEMENT_PROXY_SERVER_URL=https://proxy:8443
       - DB_CONFIG_SOURCE_ENABLED=true
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
@@ -311,6 +318,7 @@ services:
     image: ${BACKUP_MANAGER_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - XROAD_HOST=backup-manager
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -322,7 +330,9 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
-
+    depends_on:
+      openbao:
+        condition: service_healthy
 networks:
   xrd-ss-network:
     driver: bridge

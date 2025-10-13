@@ -1,6 +1,5 @@
 plugins {
   id("xroad.java-conventions")
-  id("xroad.jib-conventions")
   alias(libs.plugins.springBoot)
 }
 
@@ -45,6 +44,10 @@ dependencies {
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":service:monitor:monitor-rpc-client"))
   implementation(project(":service:proxy:proxy-rpc-client"))
+
+  implementation(project(":security-server:admin-service:message-log-archiver")) {
+    exclude(group = "xerces", module = "xercesImpl") // inclusion replaces xerces as default wsdl parser & introduces XXE vulnerability
+  }
 
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-web")
@@ -123,37 +126,6 @@ tasks.register<Copy>("copyDeps") {
 
 tasks.assemble {
   dependsOn(tasks.named("copyDeps"))
-  dependsOn(tasks.named("jib"))
-}
-
-tasks.named("jib") {
-  dependsOn("bootJar")
-}
-
-jib {
-  from {
-    image = "${project.property("xroadImageRegistry")}/ss-baseline-runtime"
-  }
-  to {
-    image = "${project.property("xroadImageRegistry")}/ss-proxy-ui-api"
-    tags = setOf("latest")
-  }
-  container {
-    entrypoint = listOf("/bin/bash", "/opt/app/entrypoint.sh")
-    workingDirectory = "/opt/app"
-    user = "xroad"
-  }
-  extraDirectories {
-    paths {
-      path {
-        setFrom(project.file("src/main/jib").toPath())
-        into = "/"
-      }
-    }
-    permissions = mapOf(
-      "/usr/share/xroad/scripts/generate_gpg_keypair.sh" to "755"
-    )
-  }
 }
 
 tasks.test {

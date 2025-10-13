@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.LoginPageObj;
 
@@ -38,7 +37,7 @@ public class LoginStepDefs extends BaseUiStepDefs {
 
     @Step("CentralServer login page is open")
     public void openPage() {
-        Selenide.open(targetHostUrlProvider.getUrl());
+        selenideManager.open(targetHostUrlProvider.getUrl());
     }
 
     @Step("Login form is visible")

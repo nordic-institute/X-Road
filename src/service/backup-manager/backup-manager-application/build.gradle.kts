@@ -4,15 +4,6 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-quarkus {
-  quarkusBuildProperties.putAll(
-    buildMap {
-      put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/ss-baseline-backup-manager-runtime:latest")
-      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-backup-manager")
-    }
-  )
-}
-
 dependencies {
   implementation(platform(libs.quarkus.bom))
 

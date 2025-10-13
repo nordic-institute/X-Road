@@ -102,9 +102,6 @@ include("service:signer:signer-client")
 include("service:signer:signer-client-spring")
 include("service:signer:signer-int-test")
 
-include("service:message-log-archiver:message-log-archiver-core")
-include("service:message-log-archiver:message-log-archiver-application")
-
 // Tool projects
 include("tool")
 include("tool:asic-verifier-cli")
@@ -142,7 +139,7 @@ include("security-server:admin-service")
 include("security-server:admin-service:application")
 include("security-server:admin-service:infra-jpa")
 include("security-server:admin-service:ui")
-include("security-server:admin-service:int-test")
+include("security-server:admin-service:message-log-archiver")
 include("security-server:system-test")
 include("security-server:e2e-test")
 

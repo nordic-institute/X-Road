@@ -1,4 +1,4 @@
-xroad (8.0.0-0) stable; urgency=medium
+xroad (8.0.0~beta1-0) stable; urgency=medium
 
   * Change history is found at /usr/share/doc/xroad-
     common/CHANGELOG.md.gz

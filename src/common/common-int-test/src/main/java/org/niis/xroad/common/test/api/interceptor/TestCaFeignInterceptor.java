@@ -25,43 +25,19 @@
  */
 package org.niis.xroad.common.test.api.interceptor;
 
-import com.nortal.test.feign.interceptor.FeignClientInterceptor;
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
 import lombok.RequiredArgsConstructor;
-import okhttp3.Interceptor;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.function.Supplier;
 
 @RequiredArgsConstructor
-public class TestCaFeignInterceptor implements FeignClientInterceptor {
-    private static final int EXECUTION_ORDER = 50;
+public class TestCaFeignInterceptor implements RequestInterceptor {
 
     private final Supplier<Integer> testCaPortSupplier;
 
     @Override
-    public int getOrder() {
-        return EXECUTION_ORDER;
+    public void apply(RequestTemplate template) {
+        template.target("http://localhost:%d/testca".formatted(testCaPortSupplier.get()));
     }
-
-    @NotNull
-    @Override
-    public Response intercept(@NotNull Interceptor.Chain chain) throws IOException {
-        Request request = chain.request();
-
-        if (request.url().encodedPath().contains("/testca")) {
-            var newUrl = request.url().newBuilder()
-                    .port(testCaPortSupplier.get())
-                    .build();
-
-            return chain.proceed(request.newBuilder()
-                    .url(newUrl)
-                    .build());
-        }
-
-        return chain.proceed(request);
-    }
-
 }
