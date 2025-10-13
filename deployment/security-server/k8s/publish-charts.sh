@@ -57,7 +57,6 @@ EOF
 }
 
 # Parse arguments
-CHARTS=()
 CHART_VERSION=""
 APP_VERSION=""
 PUSH=""
@@ -80,11 +79,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         all)
-            CHARTS=("security-server" "openbao-init" "external-service-bridge")
-            shift
-            ;;
-        security-server|openbao-init|external-service-bridge)
-            CHARTS+=("$1")
+            # Kept for backwards compatibility, but ignored
             shift
             ;;
         -*)
@@ -92,16 +87,14 @@ while [[ $# -gt 0 ]]; do
             show_help
             ;;
         *)
-            log_error "Unknown chart: $1"
+            log_error "Unknown argument: $1"
             show_help
             ;;
     esac
 done
 
-# Default to all charts if none specified
-if [[ ${#CHARTS[@]} -eq 0 ]]; then
-    CHARTS=("security-server" "openbao-init" "external-service-bridge")
-fi
+# Always build all charts
+CHARTS=("security-server" "openbao-init" "external-service-bridge")
 
 # Determine registry and defaults
 REGISTRY="${HELM_REGISTRY:-localhost:5555/helm}"
@@ -136,7 +129,13 @@ if [[ -z "$CHART_VERSION" ]]; then
     fi
 
     # Construct version from gradle properties
-    CHART_VERSION="${XROAD_VERSION}-${XROAD_BUILD_TYPE}"
+    # For RELEASE builds, use version as-is (e.g., 8.0.0 or 8.0.0-beta1)
+    # For non-RELEASE builds, always append build type (e.g., 8.0.0-SNAPSHOT or 8.0.0-beta1-SNAPSHOT)
+    if [[ "$XROAD_BUILD_TYPE" == "RELEASE" ]]; then
+        CHART_VERSION="${XROAD_VERSION}"
+    else
+        CHART_VERSION="${XROAD_VERSION}-${XROAD_BUILD_TYPE}"
+    fi
 fi
 
 # Default app version to chart version if not specified

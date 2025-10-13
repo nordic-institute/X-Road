@@ -124,7 +124,15 @@ if [[ -z "$XROAD_BUILD_TYPE" ]]; then
 fi
 
 # Construct image tags from version and build type (can be overridden via environment)
-IMAGE_TAG="${IMAGE_TAG:-${XROAD_VERSION}-${XROAD_BUILD_TYPE}}"
+# For RELEASE builds, use version as-is (e.g., 8.0.0 or 8.0.0-beta1)
+# For non-RELEASE builds, always append build type (e.g., 8.0.0-SNAPSHOT or 8.0.0-beta1-SNAPSHOT)
+if [[ -z "$IMAGE_TAG" ]]; then
+  if [[ "$XROAD_BUILD_TYPE" == "RELEASE" ]]; then
+    IMAGE_TAG="${XROAD_VERSION}"
+  else
+    IMAGE_TAG="${XROAD_VERSION}-${XROAD_BUILD_TYPE}"
+  fi
+fi
 
 log_info "=== X-Road Security Server Images Build ==="
 log_info "Registry: $REGISTRY"
