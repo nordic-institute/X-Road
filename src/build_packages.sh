@@ -132,7 +132,7 @@ prepareRedhatPackagesBuilderImages() {
 buildDebianPackages() {
   for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
     if [[ "$release" == "noble" || "$release" == "jammy" ]]; then
-      runInBuilderImage "deb-$release" /workspace/src/packages/build-deb.sh "$release" "$PACKAGE_VERSION" || errorExit "Error building deb-$release packages."
+      runInBuilderImage "deb-$release" /workspace/src/packages/build-deb.sh "$release" "$PACKAGE_VERSION" -release || errorExit "Error building deb-$release packages."
     fi
   done
 }
@@ -140,7 +140,7 @@ buildDebianPackages() {
 buildRedhatPackages() {
   for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
     if [[ "$release" == "rpm-el9" || "$release" == "rpm-el8" ]]; then
-      runInBuilderImage "$release" /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building $release packages."
+      runInBuilderImage "$release" /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" -release || errorExit "Error building $release packages."
     fi
   done
 }
@@ -175,7 +175,7 @@ fi
 
 if [ -n "$HAS_DOCKER" ]; then
 #  PACKAGE_VERSION="$(date -u -r $(git show -s --format=%ct) +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
-  PACKAGE_VERSION="-release"
+  PACKAGE_VERSION="7.7.0"
   echo "Will build packages in docker. Package version: $PACKAGE_VERSION"
 
   prepareDebianPackagesBuilderImages
