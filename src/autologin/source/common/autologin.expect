@@ -16,6 +16,8 @@ proc log_in_to_token {token_id pin} {
             exp_continue
         } "Signer.TokenNotAvailable" {
             set result 1
+        } "signer.token_not_initialized" {
+            set result 1
         } "HttpError" {
             set result 1
         } timeout {
