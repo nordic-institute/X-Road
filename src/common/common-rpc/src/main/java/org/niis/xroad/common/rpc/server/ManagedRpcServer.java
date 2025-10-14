@@ -68,6 +68,7 @@ public abstract class ManagedRpcServer {
     }
 
     private RpcServer createServer() {
+        log.info("RPC server is being initialized..");
         return new RpcServer(
                 rpcServerProperties.listenAddress(),
                 rpcServerProperties.port(),

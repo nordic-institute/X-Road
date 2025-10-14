@@ -183,8 +183,9 @@ public class HardwareTokenSigner implements Closeable {
     @Override
     public void close() {
         var sessionProvider = sessionSupplier.get();
-        if (sessionProvider != null) {
-            sessionProvider.close();
+
+        if (sessionProvider instanceof HardwareTokenSessionPool sessionPool) {
+            sessionPool.close();
         }
     }
 
