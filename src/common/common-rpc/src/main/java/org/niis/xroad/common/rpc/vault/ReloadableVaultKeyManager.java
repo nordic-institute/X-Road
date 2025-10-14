@@ -74,7 +74,10 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
 
     @Override
     public void init() {
+        var startTime = System.currentTimeMillis();
+        log.info("Initializing reloadable vault key manager..");
         reload();
+        log.info("Reloadable vault key manager initialized in {} ms", System.currentTimeMillis() - startTime);
     }
 
     @Override
@@ -135,7 +138,10 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
         var keyManager = new AdvancedTlsX509KeyManager();
 
         var scheduler = Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
+
         var retryInstance = createRetryInstance(certificateProvisionProperties);
+        retryInstance.getEventPublisher().onRetry(event ->
+                log.warn("Retrying provision certificates from secret store. Event: {}", event));
 
         return new ReloadableVaultKeyManager(certificateProvisionProperties, vaultKeyClient,
                 trustStore, keyManager, scheduler, retryInstance);
