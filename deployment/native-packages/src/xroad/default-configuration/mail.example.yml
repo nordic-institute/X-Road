@@ -1,16 +1,20 @@
-# host name and port number used to connect to the mail server
-host: mail.example.org
-port: 587
-# credentials used for authentication to the mail server
-username: testuser
-password: secret
-# if "true", then full `SSL/TLS` protocol is used for connection. If "false" or missing, then `STARTTLS` protocol is used instead.
-use-ssl-tls: true
-
-# Contact emails for each Member used for notifications and when ordering certificates from the ACME Servers.
-# The key is the Member ID in the form <instance_id>:<member_class>:<member_code> and
-# should also be surrounded by quotation marks to allow for ':' (both single and double work).
-# When ordering Authentication Certificates, Security Server owner's Member ID is used.
-contacts:
-  'EU:COM:1234567-8': member1@example.org
-  'EU:GOV:9090909-1': member2@example.org
+# Example file for mail notification configuration.
+# To configure mail notification properties, set the properties in the local.yaml file.
+xroad:
+  mail-notification: |
+    # host name and port number used to connect to the mail server
+    host: mail.example.org
+    port: 587
+    # credentials used for authentication to the mail server
+    username: testuser
+    password: secret
+    # if "true", then full `SSL/TLS` protocol is used for connection. If "false" or missing, then `STARTTLS` protocol is used instead.
+    use-ssl-tls: true
+    
+    # Contact emails for each Member used for notifications and when ordering certificates from the ACME Servers.
+    # The key is the Member ID in the form <instance_id>:<member_class>:<member_code> and
+    # should also be surrounded by quotation marks to allow for ':' (both single and double work).
+    # When ordering Authentication Certificates, Security Server owner's Member ID is used.
+    contacts:
+      'EU:COM:1234567-8': member1@example.org
+      'EU:GOV:9090909-1': member2@example.org

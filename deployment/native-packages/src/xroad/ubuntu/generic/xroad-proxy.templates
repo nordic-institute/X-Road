@@ -38,12 +38,6 @@ Description: Insert TLS certificate subject name alternatives
  .
  Server reports following ip addresses and hostnames: ${ALT}
 
-Template: xroad-common/cert-generation-error
-Type: error
-Description: Error during certificate generation, please fix issues
-  output was:
-  ${ERR}
-
 Template: xroad-common/proxy-memory-error
 Type: error
 Description: Error applying selected memory config, please fix issues
