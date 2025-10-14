@@ -289,6 +289,7 @@ For example the following configuration could be stored as a Kubernetes secret:
 * Sensitive Sidecar environment variables:
   * Software token PIN code:
     * `XROAD_TOKEN_PIN`
+    * `XROAD_TOKEN_X_PIN` (in case of multiple tokens)
   * Security server GUI admin user:
     * `XROAD_ADMIN_USER`
     * `XROAD_ADMIN_PASSWORD`
