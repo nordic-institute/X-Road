@@ -16,7 +16,7 @@ Requires(post):     systemd
 Requires(post):     /usr/sbin/semanage, /usr/sbin/setsebool
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           net-tools, tar
+Requires:           net-tools, tar, yq
 Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release, xroad-signer = %version-%release, rsyslog
 Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
 
@@ -158,50 +158,32 @@ if [ $1 -gt 1 ] ; then
     fi
 fi
 
-if [ $1 -gt 1 ] ; then
-    # upgrade
-    # migrate from client-fastest-connecting-ssl-use-uri-cache to client-fastest-connecting-ssl-uri-cache-period
-    local_ini=/etc/xroad/conf.d/local.ini
-    local_ini_value=$(crudini --get ${local_ini} proxy client-fastest-connecting-ssl-use-uri-cache 2>/dev/null)
-    if [[ -n "$local_ini_value" ]];
-      then
-        echo "client-fastest-connecting-ssl-use-uri-cache present in local.ini, perform migration to client-fastest-connecting-ssl-uri-cache-period"
-        if [ "$local_ini_value" = true ] ;
-          then
-            echo "client-fastest-connecting-ssl-use-uri-cache=true, no action needed, use default value"
-          else
-            echo "client-fastest-connecting-ssl-use-uri-cache=false, set client-fastest-connecting-ssl-uri-cache-period=0"
-            crudini --set ${local_ini} proxy client-fastest-connecting-ssl-uri-cache-period 0
-          fi
-        crudini --del ${local_ini} proxy client-fastest-connecting-ssl-use-uri-cache
-      else
-        echo "client-fastest-connecting-ssl-use-uri-cache not present in local.ini, use default value"
-      fi
+# create TLS certificate provisioning properties
+CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
+mkdir -p "$(dirname "$CONFIG_FILE")"
+[ ! -f "$CONFIG_FILE" ] && touch "$CONFIG_FILE"
+HOST=$(hostname -f)
+if (( ${#HOST} > 64 )); then
+    HOST="$(hostname -s)"
 fi
+IP_LIST=$(ip addr | grep 'scope global' | awk '{split($2,a,"/"); print "IP:"a[1]}' | paste -sd "," -)
+DNS_LIST="DNS:$(hostname -f),DNS:$(hostname -s)"
+if ! yq eval -e '.xroad.proxy.tls.certificate-provisioning.common-name' "$CONFIG_FILE" &>/dev/null \
+   && ! yq eval -e '.xroad.proxy.tls.certificate-provisioning.alt-names' "$CONFIG_FILE" &>/dev/null \
+   && ! yq eval -e '.xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names' "$CONFIG_FILE" &>/dev/null; then
+
+    echo "Setting proxy internal TLS certificate provisioning properties in $CONFIG_FILE"
+    yq eval -i ".xroad.proxy.tls.certificate-provisioning.common-name = \"$HOST\"" $CONFIG_FILE
+    yq eval -i ".xroad.proxy.tls.certificate-provisioning.alt-names = \"$DNS_LIST\"" $CONFIG_FILE
+    yq eval -i ".xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names = \"$IP_LIST\"" $CONFIG_FILE
+else
+  echo "Skipping setting proxy internal TLS certificate provisioning properties in $CONFIG_FILE, already set"
+fi
+
 
 mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
 mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
 mkdir -p /etc/xroad/globalconf; chown xroad:xroad /etc/xroad/globalconf
-
-#parameters:
-#1 file_path
-#2 old_section
-#3 old_key
-#4 new_section
-#5 new_key
-function migrate_conf_value {
-    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
-    if [ "${MIGRATION_VALUE}" ];
-        then
-            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
-            echo Configuration migration: "$2"."$3" "->" "$4"."$5"
-            crudini --del "$1" "$2" "$3"
-    fi
-}
-
-#migrating possible local configuration for modified configuration values (for version 6.17.0)
-migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
-migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
 # RHEL7 java-21-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}

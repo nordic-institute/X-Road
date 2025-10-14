@@ -11,7 +11,7 @@ BuildRequires:      systemd
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           iproute, hostname
+Requires:           iproute, hostname, yq
 Requires:           xroad-base = %version-%release, xroad-proxy = %version-%release
 Obsoletes:          xroad-nginx, xroad-jetty9
 
@@ -87,25 +87,7 @@ fi
 %post
 %systemd_post xroad-proxy-ui-api.service
 
-#parameters:
-#1 file_path
-#2 old_section
-#3 old_key
-#4 new_section
-#5 new_key
-function migrate_conf_value {
-    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
-    if [ "${MIGRATION_VALUE}" ];
-        then
-            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
-            echo Configuration migration: "$2"."$3" "->" "$4"."$5"
-            crudini --del "$1" "$2" "$3"
-    fi
-}
-
 if [ $1 -gt 1 ] ; then
-  #migrating possible local configuration for modified configuration values (for version 6.24.0)
-  migrate_conf_value /etc/xroad/conf.d/local.ini proxy-ui auth-cert-reg-signature-digest-algorithm-id proxy-ui-api auth-cert-reg-signature-digest-algorithm-id
 
   prev_version=$(cat %{_localstatedir}/lib/rpm-state/%{name}/prev-version)
 
@@ -119,6 +101,28 @@ if [ $1 -gt 1 ] ; then
   fi
 
   rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :
+fi
+
+# create TLS certificate provisioning properties
+CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
+mkdir -p "$(dirname "$CONFIG_FILE")"
+[ ! -f "$CONFIG_FILE" ] && touch "$CONFIG_FILE"
+HOST=$(hostname -f)
+if (( ${#HOST} > 64 )); then
+    HOST="$(hostname -s)"
+fi
+IP_LIST=$(ip addr | grep 'scope global' | awk '{split($2,a,"/"); print "IP:"a[1]}' | paste -sd "," -)
+DNS_LIST="DNS:$(hostname -f),DNS:$(hostname -s)"
+if ! yq eval -e '.xroad.proxy-ui-api.tls.certificate-provisioning.common-name' "$CONFIG_FILE" &>/dev/null \
+   && ! yq eval -e '.xroad.proxy-ui-api.tls.certificate-provisioning.alt-names' "$CONFIG_FILE" &>/dev/null \
+   && ! yq eval -e '.xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names' "$CONFIG_FILE" &>/dev/null; then
+
+    echo "Setting proxy-ui-api TLS certificate provisioning properties in $CONFIG_FILE"
+    yq eval -i ".xroad.proxy-ui-api.tls.certificate-provisioning.common-name = \"$HOST\"" $CONFIG_FILE
+    yq eval -i ".xroad.proxy-ui-api.tls.certificate-provisioning.alt-names = \"$DNS_LIST\"" $CONFIG_FILE
+    yq eval -i ".xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names = \"$IP_LIST\"" $CONFIG_FILE
+else
+  echo "Skipping setting proxy-ui-api TLS certificate provisioning properties in $CONFIG_FILE, already set"
 fi
 
 %preun
