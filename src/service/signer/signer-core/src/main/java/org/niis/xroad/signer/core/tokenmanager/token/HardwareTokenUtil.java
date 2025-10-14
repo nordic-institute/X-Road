@@ -176,7 +176,10 @@ public final class HardwareTokenUtil {
             rawSession.findObjectsFinal();
             return foundObjects;
         } catch (TokenException tokenException) {
-            throw XrdRuntimeException.systemException(HW_MODULE_INTERNAL_ERROR).cause(tokenException).build();
+            throw XrdRuntimeException.systemException(HW_MODULE_INTERNAL_ERROR)
+                    .cause(tokenException)
+                    .details("Failed to find objects on token")
+                    .build();
         }
     }
 
