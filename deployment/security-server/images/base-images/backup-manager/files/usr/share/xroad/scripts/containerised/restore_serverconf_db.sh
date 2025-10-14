@@ -93,7 +93,7 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -f /var/run/secrets/kubernetes.io/serv
   echo "Kubernetes deployment detected. Creating job for Liquibase migration..."
   jobname="serverconf-liquibase-migrate-$(date +%Y%m%d%H%M%S)"
 
-  kubectl apply -f - <<EOF
+  (cat <<EOF
   apiVersion: batch/v1
   kind: Job
   metadata:
@@ -122,6 +122,19 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -f /var/run/secrets/kubernetes.io/serv
               - name: db_user
                 value: "${db_user}"
 EOF
+
+  if [[ "$SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER" == "true" ]]; then
+    cat <<EOF
+              - name: PROXY_UI_SUPERUSER
+                value: "${PROXY_UI_SUPERUSER}"
+              - name: PROXY_UI_SUPERUSER_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: serverconf-db-init-secret
+                    key: proxy_ui_superuser_password
+EOF
+  fi) | kubectl apply -f -
+
   if [ $? -ne 0 ]; then
     abort "Failed to trigger Liquibase migration job."
   fi

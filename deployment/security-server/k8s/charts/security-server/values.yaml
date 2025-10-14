@@ -267,14 +267,14 @@ services:
       XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
       XROAD_SECRET_STORE_SCHEME: "http"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client.ss.svc.cluster.local"
-      "xroad.db.op-monitor.hibernate.connection.url": "jdbc:postgresql://db-opmonitor.ss.svc.cluster.local:5432/op-monitor"
-      "xroad.db.op-monitor.hibernate.connection.username": "opmonitor"
-      "xroad.db.op-monitor.hibernate.connection.driver_class": "org.postgresql.Driver"
+      XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-opmonitor.ss.svc.cluster.local:5432/op-monitor"
+      XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME: "opmonitor"
+      XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
-      - name: "xroad.db.op-monitor.hibernate.connection.password"
+      - name: "XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_PASSWORD"
         secretName: "db-opmonitor"
         key: "password"
   backup-manager:
@@ -317,6 +317,8 @@ services:
       XROAD_OPENBAO_DB_DATABASE: "openbao"
       XROAD_OPENBAO_DB_SCHEMA: "public"
       XROAD_OPENBAO_DB_USER: "openbao"
+      SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "false"
+      PROXY_UI_SUPERUSER: "xrd"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
