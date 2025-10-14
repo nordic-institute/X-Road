@@ -108,8 +108,8 @@ HOST=$(hostname -f)
 if (( ${#HOST} > 64 )); then
     HOST="$(hostname -s)"
 fi
-IP_LIST=$(ip addr | grep 'scope global' | awk '{split($2,a,"/"); print "IP:"a[1]}' | paste -sd "," -)
-DNS_LIST="DNS:$(hostname -f),DNS:$(hostname -s)"
+IP_LIST=$(ip addr | grep 'scope global' | awk '{split($2,a,"/"); print a[1]}' | paste -sd "," -)
+DNS_LIST="$(hostname -f),$(hostname -s)"
 if ! yq eval -e '.xroad.op-monitor.tls.certificate-provisioning.common-name' "$CONFIG_FILE" &>/dev/null \
    && ! yq eval -e '.xroad.op-monitor.tls.certificate-provisioning.alt-names' "$CONFIG_FILE" &>/dev/null \
    && ! yq eval -e '.xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names' "$CONFIG_FILE" &>/dev/null; then
