@@ -27,7 +27,6 @@ package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -43,11 +42,9 @@ import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.proxy.core.util.PerformanceLogger;
-import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -63,18 +60,16 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.C
  */
 @Slf4j
 @RequiredArgsConstructor
-abstract class AbstractClientProxyHandler extends HandlerBase {
+public abstract class AbstractClientProxyHandler extends HandlerBase {
 
     private static final String DEFAULT_ERROR_MESSAGE = "Request processing error";
     private static final String START_TIME_ATTRIBUTE = AbstractClientProxyHandler.class.getName() + ".START_TIME";
 
     protected final CommonBeanProxy commonBeanProxy;
-
     protected final HttpClient client;
-
     protected final boolean storeOpMonitoringData;
 
-    abstract MessageProcessorBase createRequestProcessor(RequestWrapper request,
+    protected abstract MessageProcessorBase createRequestProcessor(RequestWrapper request,
                                                          ResponseWrapper response,
                                                          OpMonitoringData opMonitoringData) throws IOException;
 
@@ -165,7 +160,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                 if (storeOpMonitoringData) {
                     updateOpMonitoringResponseOutTs(opMonitoringData);
 
-                    OpMonitoring.store(opMonitoringData);
+                    commonBeanProxy.getOpMonitoringBuffer().store(opMonitoringData);
                 }
 
                 logPerformanceEnd(start);
@@ -196,7 +191,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         sendPlainTextErrorResponse(response, callback, e.getStatus(), e.getFaultString());
     }
 
-    static boolean isGetRequest(RequestWrapper request) {
+    protected boolean isGetRequest(RequestWrapper request) {
         return request.getMethod().equalsIgnoreCase("GET");
     }
 
@@ -204,13 +199,13 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         return request.getMethod().equalsIgnoreCase("POST");
     }
 
-    static IsAuthenticationData getIsAuthenticationData(RequestWrapper request) {
+    public static IsAuthenticationData getIsAuthenticationData(RequestWrapper request, boolean logClientCert) {
         var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
         var cert = request.getPeerCertificates()
                 .filter(ArrayUtils::isNotEmpty)
                 .map(arr -> arr[0]);
 
-        if (SystemProperties.shouldLogClientCert()) {
+        if (logClientCert) {
             cert.map(X509Certificate::getSubjectX500Principal)
                     .ifPresentOrElse(
                             subject -> log.info("Client certificate's subject: {}", subject),

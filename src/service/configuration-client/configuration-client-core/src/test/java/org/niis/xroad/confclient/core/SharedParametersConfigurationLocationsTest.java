@@ -26,12 +26,19 @@
 package org.niis.xroad.confclient.core;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.confclient.core.ConfigurationDownloadTestDataGenerator.getSource;
 
 class SharedParametersConfigurationLocationsTest {
@@ -39,7 +46,7 @@ class SharedParametersConfigurationLocationsTest {
     @Test
     void whenLocationDownloadUrlNotMatchFormatThenNoSharedParametersReturned() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
-                new FileNameProviderImpl("f"));
+                new FileNameProviderImpl("f"), mock(GlobalConfSourceLocationRepository.class));
 
         assertEquals(0,
                 sharedParametersConfigurationLocations.get(getSource(List.of("http://notMatchFormat"))).size());
@@ -48,7 +55,8 @@ class SharedParametersConfigurationLocationsTest {
     @Test
     void getInternalconfLocationsFromSharedParameters() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
-                new FileNameProviderImpl("src/test/resources/V3"));
+                new FileNameProviderImpl("src/test/resources/V3"),
+                mock(GlobalConfSourceLocationRepository.class));
 
         var locations = sharedParametersConfigurationLocations.get(
                 getSource(List.of("http://domainAddress/internalconf")));
@@ -63,7 +71,8 @@ class SharedParametersConfigurationLocationsTest {
     @Test
     void getExtarnalconfLocationsFromSharedParameters() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
-                new FileNameProviderImpl("src/test/resources/V3"));
+                new FileNameProviderImpl("src/test/resources/V3"),
+                mock(GlobalConfSourceLocationRepository.class));
 
         var locations = sharedParametersConfigurationLocations.get(
                 getSource(List.of("http://domainAddress/externalconf")));
@@ -78,7 +87,8 @@ class SharedParametersConfigurationLocationsTest {
     @Test
     void getProxyConfLocationsFromSharedParameters() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
-                new FileNameProviderImpl("src/test/resources/V3"));
+                new FileNameProviderImpl("src/test/resources/V3"),
+                mock(GlobalConfSourceLocationRepository.class));
 
         var locations = sharedParametersConfigurationLocations.get(
                 getSource(List.of("http://domainAddress/PROXY/conf")));
@@ -93,7 +103,8 @@ class SharedParametersConfigurationLocationsTest {
     @Test
     void getManyInternalconfLocationsFromSharedParameters() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
-                new FileNameProviderImpl("src/test/resources/V3-many-nodes"));
+                new FileNameProviderImpl("src/test/resources/V3-many-nodes"),
+                mock(GlobalConfSourceLocationRepository.class));
 
         var locations = sharedParametersConfigurationLocations.get(
                 getSource(List.of("http://domainAddress/internalconf")));
@@ -110,9 +121,35 @@ class SharedParametersConfigurationLocationsTest {
     @Test
     void whenGetLocationsFromVersion2SharedParametersThenNothingReturned() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
-                new FileNameProviderImpl("src/test/resources/V2"));
+                new FileNameProviderImpl("src/test/resources/V2"),
+                mock(GlobalConfSourceLocationRepository.class));
 
         assertEquals(0, sharedParametersConfigurationLocations.get(
                 getSource(List.of("http://domainAddress/confDir"))).size());
     }
+
+    @Test
+    void fallbackToDbWhenFileNotPresent() {
+        GlobalConfSourceLocationRepository sourceRepo = mock(GlobalConfSourceLocationRepository.class);
+
+        var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
+                new FileNameProviderImpl("not/existing/path"),
+                sourceRepo);
+
+        when(sourceRepo.getByInstanceIdentifier("EE")).thenReturn(Map.of(
+                "host-1", new GlobalConfSourceLocationRepository.VerificationCertificates(List.of(), List.of()),
+                "host-2", new GlobalConfSourceLocationRepository.VerificationCertificates(List.of(), List.of())
+        ));
+
+        List<ConfigurationLocation> configurationLocations = sharedParametersConfigurationLocations.get(
+                getSource(List.of("http://domainAddress/internalConf")));
+
+        assertEquals(4, configurationLocations.size());
+
+        assertEquals(Set.of("https://host-1/internalConf", "https://host-2/internalConf"),
+                configurationLocations.stream().map(ConfigurationLocation::getDownloadURL).limit(2).collect(Collectors.toSet()));
+        assertEquals(Set.of("http://host-1/internalConf", "http://host-2/internalConf"),
+                new HashSet<>(configurationLocations.stream().map(ConfigurationLocation::getDownloadURL).toList().subList(2, 4)));
+    }
+
 }

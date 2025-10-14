@@ -25,15 +25,18 @@
  */
 package org.niis.xroad.common.managementrequest.model;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 public class OwnerChangeRequest extends GenericClientRequest {
 
-    public OwnerChangeRequest(SignerRpcClient signerRpcClient, ClientId client, SoapMessageImpl request) {
-        super(signerRpcClient, client, request);
+    public OwnerChangeRequest(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
+                              ClientId client, SoapMessageImpl request, DigestAlgorithm signatureDigestAlgorithm) {
+        super(signerRpcClient, signerSignClient, client, request, signatureDigestAlgorithm);
     }
 
 }

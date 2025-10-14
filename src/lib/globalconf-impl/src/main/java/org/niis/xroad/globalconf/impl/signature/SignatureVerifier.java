@@ -60,6 +60,7 @@ import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.w3c.dom.Node;
 
 import javax.xml.transform.dom.DOMSource;
@@ -91,7 +92,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 public class SignatureVerifier {
 
     private final GlobalConfProvider globalConfProvider;
-    private final CertChainFactory certChainFactory;
+    private final OcspVerifierFactory ocspVerifierFactory;
 
     /**
      * The signature object.
@@ -136,8 +137,8 @@ public class SignatureVerifier {
      * @param globalConfProvider global conf provider
      * @param signatureData      the signature data
      */
-    public SignatureVerifier(GlobalConfProvider globalConfProvider, SignatureData signatureData) {
-        this(globalConfProvider, new Signature(signatureData.getSignatureXml()),
+    public SignatureVerifier(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory, SignatureData signatureData) {
+        this(globalConfProvider, ocspVerifierFactory, new Signature(signatureData.getSignatureXml()),
                 signatureData.getHashChainResult(),
                 signatureData.getHashChain());
     }
@@ -148,8 +149,8 @@ public class SignatureVerifier {
      * @param globalConfProvider global conf provider
      * @param signature          the signature
      */
-    public SignatureVerifier(GlobalConfProvider globalConfProvider, Signature signature) {
-        this(globalConfProvider, signature, null, null);
+    public SignatureVerifier(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory, Signature signature) {
+        this(globalConfProvider, ocspVerifierFactory, signature, null, null);
     }
 
     /**
@@ -160,13 +161,13 @@ public class SignatureVerifier {
      * @param hashChainResult    the hash chain result
      * @param hashChain          the hash chain
      */
-    public SignatureVerifier(GlobalConfProvider globalConfProvider, Signature signature, String hashChainResult,
-                             String hashChain) {
+    public SignatureVerifier(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                             Signature signature, String hashChainResult, String hashChain) {
         this.globalConfProvider = globalConfProvider;
+        this.ocspVerifierFactory = ocspVerifierFactory;
         this.signature = signature;
         this.hashChainResult = hashChainResult;
         this.hashChain = hashChain;
-        this.certChainFactory = new CertChainFactory(globalConfProvider);
     }
 
     /**
@@ -280,7 +281,7 @@ public class SignatureVerifier {
      *               the message.
      * @param atDate Date that is used to check validity of the certificates.
      */
-    public void verify(ClientId signer, Date atDate) throws XMLSecurityException, IOException {
+    public void verify(ClientId signer, Date atDate) throws XMLSecurityException, IOException, CertificateEncodingException {
         // first, validate the signature against the Xades schema
         // our asic:XadesSignatures element contains only one Xades signature
         if (verifySchema) {
@@ -371,11 +372,14 @@ public class SignatureVerifier {
         }
     }
 
-    private void verifyCertificateChain(Date atDate, ClientId signer, X509Certificate signingCert) {
+    private void verifyCertificateChain(Date atDate, ClientId signer, X509Certificate signingCert)
+            throws CertificateEncodingException, IOException {
         CertChain certChain =
-                certChainFactory.create(signer.getXRoadInstance(), signingCert,
+                CertChainFactory.create(signer.getXRoadInstance(),
+                        globalConfProvider.getCaCert(signer.getXRoadInstance(), signingCert),
+                        signingCert,
                         signature.getExtraCertificates());
-        new CertChainVerifier(globalConfProvider, certChain).verify(signature.getOcspResponses(),
+        new CertChainVerifier(globalConfProvider, ocspVerifierFactory, certChain).verify(signature.getOcspResponses(),
                 atDate);
     }
 

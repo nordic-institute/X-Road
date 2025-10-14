@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,7 +27,6 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -68,7 +68,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
  * the request itself.
  */
 @Slf4j
-class ClientRestMessageHandler extends AbstractClientProxyHandler {
+public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     private static final String TEXT_XML = "text/xml";
     private static final String APPLICATION_XML = "application/xml";
@@ -76,30 +76,31 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private static final String APPLICATION_JSON = "application/json";
     private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
-    ClientRestMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
+    public ClientRestMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
         super(commonBeanProxy, client, true);
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
+    protected MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
                                                 OpMonitoringData opMonitoringData) {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
             return new ClientRestMessageProcessor(commonBeanProxy,
-                    request, response, client, getIsAuthenticationData(request), opMonitoringData);
+                    request, response, client, getIsAuthenticationData(request, commonBeanProxy.getProxyProperties().logClientCert()),
+                    opMonitoringData);
         }
         return null;
     }
 
     private void verifyCanProcess() {
-        commonBeanProxy.globalConfProvider.verifyValidity();
+        commonBeanProxy.getGlobalConfProvider().verifyValidity();
 
-        if (!SystemProperties.isSslEnabled()) {
+        if (!commonBeanProxy.getProxyProperties().sslEnabled()) {
             return;
         }
 
-        AuthKey authKey = commonBeanProxy.keyConfProvider.getAuthKey();
+        AuthKey authKey = commonBeanProxy.getKeyConfProvider().getAuthKey();
         if (authKey.certChain() == null) {
             throw XrdRuntimeException.systemException(SSL_AUTH_FAILED)
                     .details("Security server has no authentication certificate")

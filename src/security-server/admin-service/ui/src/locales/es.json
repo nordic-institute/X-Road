@@ -430,7 +430,6 @@
     "wrong_servicedescription_type": "Tipo de descripción del servicio incorrecto",
     "wsdl_download_failed": "Falló la descarga de WSDL",
     "wsdl_exists": "WSDL existe",
-    "wsdl_validator_interrupted": "Validador de WSDL interrumpido",
     "wsdl_validator_not_executable": "El validador de WSDL no es ejecutable"
   },
   "fields": {

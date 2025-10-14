@@ -45,6 +45,7 @@ import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestCertVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,10 +87,11 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
     private AuthCertRegRequestType authCertRegRequestType;
 
     public AuthCertRegRequestDecoderCallback(GlobalConfProvider globalConfProvider,
+                                             OcspVerifierFactory ocspVerifierFactory,
                                              ManagementRequestVerifier.DecoderCallback rootCallback) {
         this.globalConfProvider = globalConfProvider;
         this.rootCallback = rootCallback;
-        this.managementRequestCertVerifier = new ManagementRequestCertVerifier(globalConfProvider);
+        this.managementRequestCertVerifier = new ManagementRequestCertVerifier(globalConfProvider, ocspVerifierFactory);
     }
 
     @Override

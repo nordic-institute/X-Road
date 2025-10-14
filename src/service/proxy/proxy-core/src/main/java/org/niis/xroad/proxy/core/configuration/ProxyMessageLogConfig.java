@@ -27,43 +27,63 @@ package org.niis.xroad.proxy.core.configuration;
 
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
-import ee.ria.xroad.common.util.JobManager;
 
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
+import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.addon.messagelog.LogManager;
+import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.niis.xroad.proxy.core.configuration.MessageLogDatabaseConfig.MESSAGE_LOG_DB_CTX;
+
 @Slf4j
-@Configuration
 public class ProxyMessageLogConfig {
     private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
-    @Bean
-    AbstractLogManager messageLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider,
-                                         ServerConfProvider serverConfProvider) {
-        return MessageLog.init(jobManager, globalConfProvider, serverConfProvider);
+    @ApplicationScoped
+    public static class MessageLogInitializer {
+
+        @Startup
+        @ApplicationScoped
+        AbstractLogManager messageLogManager(ProxyProperties.ProxyAddonProperties addonProperties,
+                                             GlobalConfProvider globalConfProvider,
+                                             ServerConfProvider serverConfProvider,
+                                             @Named(MESSAGE_LOG_DB_CTX) DatabaseCtx messageLogDatabaseCtx,
+                                             LogRecordManager logRecordManager) {
+            AbstractLogManager logManager;
+            if (addonProperties.messageLog().enabled()) {
+                logManager = new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx);
+            } else {
+                logManager = new NullLogManager(globalConfProvider, serverConfProvider);
+            }
+
+            return MessageLog.init(logManager);
+        }
+
+        public void cleanup(@Disposes AbstractLogManager logManager) {
+            if (logManager instanceof LogManager impl)
+                impl.destroy();
+        }
     }
 
-    @Bean("messageLogEnabledStatus")
-    Boolean messageLogEnabledStatus(AbstractLogManager logManager) {
-        return NullLogManager.class != logManager.getClass();
-    }
-
-    @Bean
+    @ApplicationScoped
     MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics(ServerConfProvider serverConfProvider) throws IOException {
         return new MessageLogEncryptionStatusDiagnostics(
                 MessageLogProperties.isArchiveEncryptionEnabled(),

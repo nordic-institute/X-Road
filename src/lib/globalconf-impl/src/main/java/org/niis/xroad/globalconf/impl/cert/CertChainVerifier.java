@@ -33,6 +33,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 
 import java.io.IOException;
@@ -91,6 +92,7 @@ public class CertChainVerifier {
      * Holds the cert chain to be verified.
      */
     private final CertChain certChain;
+    private final OcspVerifierFactory ocspVerifierFactory;
 
     /**
      * Builds the certificate path for the target certificate using a list
@@ -99,8 +101,9 @@ public class CertChainVerifier {
      * @param globalConfProvider the global configuration provider
      * @param certChain          the certificate chain object
      */
-    public CertChainVerifier(GlobalConfProvider globalConfProvider, CertChain certChain) {
+    public CertChainVerifier(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory, CertChain certChain) {
         this.globalConfProvider = globalConfProvider;
+        this.ocspVerifierFactory = ocspVerifierFactory;
         this.certChain = certChain;
 
         Set<TrustAnchor> trustAnchors =
@@ -210,7 +213,7 @@ public class CertChainVerifier {
                         "Unable to find OCSP response for certificate " + subject.getSubjectX500Principal().getName());
             }
 
-            OcspVerifier verifier = new OcspVerifier(globalConfProvider,
+            OcspVerifier verifier = ocspVerifierFactory.create(globalConfProvider,
                     new OcspVerifierOptions(globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()));
             verifier.verifyValidityAndStatus(response, subject, issuer, atDate);
         }

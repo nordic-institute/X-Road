@@ -1,5 +1,5 @@
-name: Build and test
-on: 
+name: Build and Test
+on:
   # Capture this event so that gradle caches are updated when a PR is merged to develop
   # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
   push:
@@ -8,484 +8,107 @@ on:
     paths:
       - 'src/**'
       - '.github/**'
-      - 'ansible/**'
-      - 'Docker/**'
+      - 'development/**'
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
     paths:
       - 'src/**'
       - '.github/**'
-      - 'ansible/**'
-      - 'Docker/**'
+      - 'development/**'
+
 permissions:
   contents: write # Required for https://github.com/gradle/actions/tree/main/setup-gradle#github-dependency-graph-support
   pull-requests: write # https://github.com/gradle/actions/tree/main/setup-gradle#adding-job-summary-as-a-pull-request-comment
   actions: read # Required for https://github.com/dorny/test-reporter
   checks: write # Required for https://github.com/dorny/test-reporter
+  packages: write # Required to pull base images from GHCR and push application images
+
 # Cancels previous workflow run on PR if a new one is started (does not affect push to develop).
 # This is because github.head_ref is empty on push events so defaults to the unique github.run_id.
 # More info: https://docs.github.com/en/actions/using-jobs/using-concurrency
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
+
 jobs:
-  BuildAndPackageWithUnitTests:
+  build-and-package:
     name: Build, test and package code
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: start-measurement
-          label: 'Build, unit tests and packaging'
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
-      - name: Ensure required packages
-        env: 
-          DEBIAN_FRONTEND: noninteractive # Less output to log
-        run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
-          gradle-home-cache-cleanup: true
-          dependency-graph: generate-and-submit
-          add-job-summary-as-pr-comment: always
-      - name: Build, test and package code setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: get-measurement
-          label: 'Build environment setup'
-      - name: Build and test source
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit
-      - name: Test report
-        env:
-          NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
-        if: success() || failure()
-        with:
-          name: Unit and integration tests
-          path: src/**/build/test-results/**/TEST-*.xml
-          reporter: java-junit
-          list-suites: 'failed'
-          list-tests: 'failed'
-      - name: Build, test and package code execution measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: get-measurement
-          label: 'Build, unit tests and packaging'
-      - name: Store files for arm packaging
-        uses: pyTooling/upload-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
-        with:
-          name: workspace-for-arm
-          include-hidden-files: true
-          path: |
-            **
-            !**/src/lib/**
-            !**/src/test/**
-            !**/build/classes/**
-            !**/build/tmp/**
-            !**/build/allure-**
-            !**/build/test-results/**
-            !**/build/reports/**
-            !**/.git/**
-            !**/.pnpm-store/**
-            !**/pnpm-node/**
-            !**/node_modules/**
-            !**/executionHistory/**
-      - name: Build RHEL8 packages
-        run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
-      - name: Build RHEL9 packages
-        run: docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
-      - name: Build 22.04 (Jammy) packages
-        env:
-          DEBEMAIL: 'info@niis.org'
-          DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh jammy -release
-      - name: Build 24.04 (Noble) packages
-        env:
-          DEBEMAIL: 'info@niis.org'
-          DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh noble -release
-      - name: Store deb files for system tests
-        uses: actions/upload-artifact@v4
-        with:
-          name: debian-packages
-          path: src/packages/build/ubuntu22.04/*.deb
-          compression-level: 0 #No point in compressing these
-      - name: Packaging and upload artifacts measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: get-measurement
-          label: 'Packaging and upload artifacts'
-      - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: display-results
-          pr-comment: true
-  BuildAndPackageOnArm:
-    name: Build and package code for arm architecture
-    needs: BuildAndPackageWithUnitTests
-    runs-on: ubuntu-22.04-arm
-    steps:
-      - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: start-measurement
-          label: 'Packaging for arm architecture'
-      - name: Ensure required packages
-        env:
-          DEBIAN_FRONTEND: noninteractive # Less output to log
-        run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
-          gradle-home-cache-cleanup: true
-          dependency-graph: generate-and-submit
-          add-job-summary-as-pr-comment: always
-      - name: Download workspace
-        uses: pyTooling/download-artifact@v5 # https://github.com/actions/upload-artifact/issues/38
-        with:
-          name: workspace-for-arm
-      - name: Set up measurement for arm packaging
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: get-measurement
-          label: 'Set up arm packaging'
-      - name: Build native dependencies
-        working-directory: ./src
-        run: ./gradlew :service:signer:signer-api:make
-      - name: Build RHEL8 packages
-        run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
-      - name: Build RHEL9 packages
-        run: docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
-      - name: Build 22.04 (Jammy) packages
-        env:
-          DEBEMAIL: 'info@niis.org'
-          DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh jammy -release
-      - name: Build 24.04 (Noble) packages
-        env:
-          DEBEMAIL: 'info@niis.org'
-          DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh noble -release
-      - name: Store deb files for Docker dev images
-        uses: actions/upload-artifact@v4
-        with:
-          name: debian-packages-arm
-          path: src/packages/build/ubuntu22.04/*.deb
-          compression-level: 0 #No point in compressing these
-      - name: Measurement for arm packaging
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: get-measurement
-          label: 'Packaging for arm architecture'
-      - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: display-results
-          pr-comment: true
-  RunCSSystemTests:
+    uses: ./.github/workflows/_build-and-package.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
+
+  test-central-server:
     name: Run Central Server system tests
-    needs: BuildAndPackageWithUnitTests
-    runs-on: ubuntu-22.04
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
-    steps:
-      - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: start-measurement
-          label: 'Central Server system tests'
-      - uses: actions/checkout@v5
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          cache-read-only: true
-      - name: Initialize docker setup
-        working-directory: ./Docker/centralserver
-        run: ./init_context.sh
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: network=host
-      - name: Download debian packages
-        uses: actions/download-artifact@v5
-        with:
-          name: debian-packages
-          path: ./Docker/centralserver/build/packages/
-      - name: List docker build files
-        run: ls -lah ./Docker/centralserver/build
-      - name: Build CS docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./Docker/centralserver/
-          push: true
-          build-args: |
-            PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-centralserver:${{ github.sha }}
-      - name: Central Server test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: get-measurement
-          label: 'Set up Central Server tests'
-      - name: Run Central Server system tests
-        working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
-      - name: Test Central Server measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: get-measurement
-          label: 'Test Central Server'
-      - name: Test report
-        env:
-          NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
-        if: success() || failure()
-        with:
-          name: Central Server system test
-          path: src/central-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
-          reporter: java-junit
-      - name: Fix system-test build dir permissions
-        run: sudo chown -R $USER src/central-server/admin-service/ui-system-test/build/cs-container-logs/
-        if: failure()
-      - name: Upload CS screenshots
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: CS System Test screenshots
-          path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
-      - name: Upload CS report
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: CS System Test report
-          path: |
-            src/central-server/admin-service/ui-system-test/build/allure-report/
-            src/central-server/admin-service/ui-system-test/build/cs-container-logs/
-      - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: display-results
-          pr-comment: true
-      - name: Upload GMT jsons
-        uses: actions/upload-artifact@v4
-        with:
-          name: CS System Test GMT jsons
-          path: |
-            /tmp/eco-ci/lap-data.json
-            /tmp/eco-ci/total-data.json
-  RunSSSystemTests:
+    needs: build-and-package
+    uses: ./.github/workflows/_test-central-server.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
+      image_registry: ${{ needs.build-and-package.outputs.image_registry }}
+      service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
+
+  test-security-server:
     name: Run Security Server system tests
-    needs: BuildAndPackageWithUnitTests
-    runs-on: ubuntu-22.04
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
-    steps:
-      - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: start-measurement
-          label: 'Security Server system tests'
-      - uses: actions/checkout@v5
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          cache-read-only: true
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: network=host
-      - name: Initialize docker setup
-        working-directory: ./Docker/securityserver
-        run: ./init_context.sh
-      - name: Download debian packages
-        uses: actions/download-artifact@v5
-        with:
-          name: debian-packages
-          path: ./Docker/securityserver/build/packages/
-      - name: Build SS docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./Docker/securityserver/
-          push: true
-          build-args: |
-            PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
-      - name: Security Server test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: get-measurement
-          label: 'Set up Security Server tests'
-      - name: Run Security Server system tests
-        working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
-      - name: Test Security Server measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: get-measurement
-          label: 'Test Security Server'
-      - name: Test report
-        env:
-          NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
-        if: success() || failure()
-        with:
-          name: Security Server system tests
-          path: src/security-server/system-test/build/test-results/**/TEST-*.xml
-          reporter: java-junit
-      - name: Fix system-test build dir permissions
-        run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/ && sudo chown -R $USER src/security-server/system-test/build/ca-container-logs/
-        if: failure()
-      - name: Upload SS report
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: SS System Test report
-          path: |
-            src/security-server/system-test/build/allure-report/
-            src/security-server/system-test/build/ss-container-logs/
-            src/security-server/system-test/build/ca-container-logs/
-            src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
-      - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: display-results
-          pr-comment: true
-  RunE2ETests:
+    needs: build-and-package
+    uses: ./.github/workflows/_test-security-server.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
+      image_registry: ${{ needs.build-and-package.outputs.image_registry }}
+      service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
+
+  test-e2e:
     name: Run E2E tests
-    needs: BuildAndPackageWithUnitTests
+    needs: build-and-package
+    uses: ./.github/workflows/_test-e2e.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
+      image_registry: ${{ needs.build-and-package.outputs.image_registry }}
+      service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
+
+  test-services:
+    name: Run Service integration tests
+    needs: build-and-package
+    uses: ./.github/workflows/_test-services.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
+      image_registry: ${{ needs.build-and-package.outputs.image_registry }}
+      service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
+
+  build-summary:
+    name: Build Summary
+    needs: [build-and-package, test-central-server, test-security-server, test-e2e, test-services]
+    if: always()
     runs-on: ubuntu-22.04
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
     steps:
-      - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: start-measurement
-          label: 'E2E tests'
-      # Setup
-      - uses: actions/checkout@v5
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          cache-read-only: true
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: network=host
-      # Build Central Server
-      - name: Initialize CS docker setup
-        working-directory: ./Docker/centralserver
-        run: ./init_context.sh
-      - name: Download debian packages for CS
-        uses: actions/download-artifact@v5
-        with:
-          name: debian-packages
-          path: ./Docker/centralserver/build/packages/
-      - name: Build CS docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./Docker/centralserver/
-          push: true
-          build-args: |
-            PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-centralserver:${{ github.sha }}
-      # Build Security Server
-      - name: Initialize SS docker setup
-        working-directory: ./Docker/securityserver
-        run: ./init_context.sh
-      - name: Copy debian packages for SS
-        run: cp ./Docker/centralserver/build/packages/* ./Docker/securityserver/build/packages/
-      - name: Build SS docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./Docker/securityserver/
-          push: true
-          build-args: |
-            PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
-      - name: E2E test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: get-measurement
-          label: 'Set up E2E tests'
-      # Execute and report
-      - name: Run E2E tests
-        working-directory: ./src
-        run: >
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest 
-          -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }} 
-          -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
-      - name: E2E test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: get-measurement
-          label: 'E2E tests'
-      - name: Test report
-        env:
-          NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
-        if: success() || failure()
-        with:
-          name: E2E tests
-          path: src/security-server/e2e-test/build/test-results/**/TEST-*.xml
-          reporter: java-junit
-      - name: Upload E2E report
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: E2E report
-          path: |
-            src/security-server/e2e-test/build/allure-report/
-      - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
-        with:
-          task: display-results
-          pr-comment: true
+      - name: Generate build summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          # Build and Test Summary
+          
+          | Job | Status | Duration |
+          |-----|--------|----------|
+          | Build and Package | ${{ needs.build-and-package.result == 'success' && '✅ Success' || needs.build-and-package.result == 'failure' && '❌ Failed' || needs.build-and-package.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
+          | Central Server Tests | ${{ needs.test-central-server.result == 'success' && '✅ Success' || needs.test-central-server.result == 'failure' && '❌ Failed' || needs.test-central-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
+          | Security Server Tests | ${{ needs.test-security-server.result == 'success' && '✅ Success' || needs.test-security-server.result == 'failure' && '❌ Failed' || needs.test-security-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
+          | E2E Tests | ${{ needs.test-e2e.result == 'success' && '✅ Success' || needs.test-e2e.result == 'failure' && '❌ Failed' || needs.test-e2e.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
+          | Service Integration Tests | ${{ needs.test-services.result == 'success' && '✅ Success' || needs.test-services.result == 'failure' && '❌ Failed' || needs.test-services.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
+          
+          ## Overall Result
+          
+          ${{ (needs.build-and-package.result == 'success' && needs.test-central-server.result == 'success' && needs.test-security-server.result == 'success' && needs.test-e2e.result == 'success' && needs.test-services.result == 'success') && '🎉 All tests passed!' || '⚠️ Some tests failed or were skipped' }}
+          
+          ## Quick Actions
+          
+          - 🔄 [Re-run failed jobs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - 🐛 [View detailed logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - 📊 [Build trends](https://github.com/${{ github.repository }}/actions)
+          EOF

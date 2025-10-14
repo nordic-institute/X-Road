@@ -6,7 +6,9 @@ Feature: 0100 - Signer: SoftToken
 
   Scenario: Token has its friendly name updated
     When name "soft-token-000" is set for token with id "0"
-    Then token with id "0" name is "soft-token-000"
+    Then token with id "0" name is "soft-token-000" on primary node
+    When secondary node sync is forced
+    Then token with id "0" name is "soft-token-000" on secondary node
 
   Scenario: Token is in initialized
     Given tokens list contains token "soft-token-000"
@@ -18,6 +20,12 @@ Feature: 0100 - Signer: SoftToken
   Scenario: Token is activated
     Given token "soft-token-000" is not active
     When token "soft-token-000" is logged in with pin "1234"
+    Then token "soft-token-000" is active
+
+  Scenario: Token is active after restart
+    Given token "soft-token-000" is active
+    When signer service is restarted
+    And tokens are listed
     Then token "soft-token-000" is active
 
   Scenario: Token is deactivated

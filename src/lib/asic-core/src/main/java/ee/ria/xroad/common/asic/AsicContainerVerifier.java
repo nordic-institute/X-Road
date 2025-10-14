@@ -64,6 +64,7 @@ import org.bouncycastle.tsp.TimeStampToken;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
 import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
 
@@ -105,6 +106,7 @@ public class AsicContainerVerifier {
     }
 
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final OcspVerifier ocspVerifier;
     private final List<String> attachmentHashes = new ArrayList<>();
     private final AsicContainer asic;
@@ -130,9 +132,11 @@ public class AsicContainerVerifier {
      * @param filename           name of the ASiC container ZIP file
      */
     public AsicContainerVerifier(GlobalConfProvider globalConfProvider,
+                                 OcspVerifierFactory ocspVerifierFactory,
                                  String filename) throws IOException {
         this.globalConfProvider = globalConfProvider;
-        this.ocspVerifier = new OcspVerifier(globalConfProvider);
+        this.ocspVerifierFactory = ocspVerifierFactory;
+        this.ocspVerifier = ocspVerifierFactory.create(globalConfProvider);
 
         try (FileInputStream in = new FileInputStream(filename)) {
             asic = AsicContainer.read(in);
@@ -152,6 +156,7 @@ public class AsicContainerVerifier {
 
         SignatureVerifier signatureVerifier =
                 new SignatureVerifier(globalConfProvider,
+                        ocspVerifierFactory,
                         signature,
                         signatureData.getHashChainResult(),
                         signatureData.getHashChain());

@@ -47,7 +47,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.TeeInputStream;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.cert.CertChain;
@@ -57,7 +56,6 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
-import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -101,8 +99,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                                RequestWrapper request, ResponseWrapper response,
                                HttpClient httpClient, IsAuthenticationData clientCert,
                                OpMonitoringData opMonitoringData) {
-        super(commonBeanProxy, request, response, httpClient,
-                clientCert, opMonitoringData);
+        super(commonBeanProxy, request, response, httpClient, clientCert, opMonitoringData);
         this.xRequestId = UUID.randomUUID().toString();
     }
 
@@ -166,7 +163,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void processRequest() throws Exception {
         if (restRequest.getQueryId() == null) {
-            restRequest.setQueryId(commonBeanProxy.globalConfProvider.getInstanceIdentifier() + "-" + UUID.randomUUID());
+            restRequest.setQueryId(commonBeanProxy.getGlobalConfProvider().getInstanceIdentifier() + "-" + UUID.randomUUID());
         }
         updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
         try (HttpSender httpSender = createHttpSender()) {
@@ -193,8 +190,10 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     private void parseResponse(HttpSender httpSender) throws Exception {
-        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.globalConfProvider, response,
+        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
+                commonBeanProxy.getCommonProperties().tempFilesPath());
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(),
+                commonBeanProxy.getOcspVerifierFactory(), response,
                 httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
         try {
@@ -228,7 +227,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void checkConsistency(DigestAlgorithm hashAlgoId) throws IOException, OperatorCreationException {
+    private void checkConsistency(DigestAlgorithm hashAlgoId) throws IOException {
         if (!Objects.equals(restRequest.getClientId(), response.getRestResponse().getClientId())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response client id does not match request message");
         }
@@ -314,8 +313,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                 final ProxyMessageEncoder enc = new ProxyMessageEncoder(outstream,
                         Digests.DEFAULT_DIGEST_ALGORITHM, getBoundary(contentType.getValue()));
 
-                final CertChain chain = commonBeanProxy.keyConfProvider.getAuthKey().certChain();
-                commonBeanProxy.keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
+                final CertChain chain = commonBeanProxy.getKeyConfProvider().getAuthKey().certChain();
+                commonBeanProxy.getKeyConfProvider().getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
                         .forEach(enc::ocspResponse);
 
                 enc.restRequest(restRequest);
@@ -327,18 +326,18 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     byte[] buf = new byte[4096];
                     int count = in.read(buf);
                     if (count >= 0) {
-                        final CachingStream cache = new CachingStream();
+                        final CachingStream cache = new CachingStream(commonBeanProxy.getCommonProperties().tempFilesPath());
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             cache.write(buf, 0, count);
                             enc.restBody(buf, count, tee);
-                            enc.sign(commonBeanProxy.signingCtxProvider.createSigningCtx(senderId));
+                            enc.sign(commonBeanProxy.getSigningCtxProvider().createSigningCtx(senderId));
                             MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
                                     xRequestId);
                         } finally {
                             cache.consume();
                         }
                     } else {
-                        enc.sign(commonBeanProxy.signingCtxProvider.createSigningCtx(senderId));
+                        enc.sign(commonBeanProxy.getSigningCtxProvider().createSigningCtx(senderId));
                         MessageLog.log(restRequest, enc.getSignature(), null, true, xRequestId);
                     }
                 }

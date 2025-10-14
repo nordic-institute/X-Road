@@ -46,7 +46,7 @@ class FlattenedSecurityServerClientViewMapperTest {
     @Test
     void shouldMapAllFields() {
         var source = new FlattenedSecurityServerClientViewEntity();
-        source.setId(100);
+        source.setId(100L);
         source.setXroadInstance("xroadInstance");
         source.setMemberClass(new MemberClassEntity("memberCode", "desc"));
         source.setMemberCode("memberCode");

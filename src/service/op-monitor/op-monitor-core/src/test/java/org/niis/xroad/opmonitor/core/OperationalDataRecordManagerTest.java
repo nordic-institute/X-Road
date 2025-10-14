@@ -28,10 +28,12 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Sets;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
 
 import java.lang.reflect.Field;
@@ -43,10 +45,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx.doInTransaction;
-import static org.niis.xroad.opmonitor.core.OperationalDataRecordManager.queryAllRecords;
-import static org.niis.xroad.opmonitor.core.OperationalDataRecordManager.queryRecords;
-import static org.niis.xroad.opmonitor.core.OperationalDataRecordManager.storeRecords;
+import static org.mockito.Mockito.mock;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.formatFullOperationalDataAsJson;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.storeFullOperationalDataRecord;
@@ -67,28 +66,26 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
     /**
      * Cleanup the stored records before each test.
+     *
      * @throws Exception if an error occurs.
      */
     @Before
     public void beforeTest() throws Exception {
-        int cleaned = doInTransaction(
+        int cleaned = DATABASE_CTX.doInTransaction(
                 session -> session.createMutationQuery("delete OperationalDataRecordEntity")
                         .executeUpdate());
 
         log.info("Cleaned {} records", cleaned);
-
-        OperationalDataRecordManager.setMaxRecordsInPayload(
-                OpMonitoringSystemProperties.getOpMonitorMaxRecordsInPayload());
     }
 
     @Test
     public void storeAndQueryOperationalData() throws Exception {
         OperationalDataRecord record = OBJECT_READER.readValue(
                 formatFullOperationalDataAsJson(), OperationalDataRecord.class);
-        storeRecords(Collections.singletonList(record), 1474968979L);
+        operationalDataRecordManager.storeRecords(Collections.singletonList(record), 1474968979L);
 
         OperationalDataRecords result =
-                OperationalDataRecordManager.queryAllRecords();
+                operationalDataRecordManager.queryAllRecords();
 
         assertEquals(1, result.size());
 
@@ -103,13 +100,13 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
     @Test
     public void storeAndQueryDataFromPeriods() throws Exception {
-        storeFullOperationalDataRecords(1, 1474968960L);
-        storeFullOperationalDataRecords(1, 1474968980L);
+        storeFullOperationalDataRecords(1, 1474968960L, operationalDataRecordManager);
+        storeFullOperationalDataRecords(1, 1474968980L, operationalDataRecordManager);
 
-        OperationalDataRecords result = queryRecords(234, 123);
+        OperationalDataRecords result = operationalDataRecordManager.queryRecords(234, 123);
         assertTrue(result.getRecords().isEmpty());
 
-        result = queryRecords(1474968960L, 1474968980L);
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L);
         assertEquals(2, result.size());
 
         for (OperationalDataRecord rec : result.getRecords()) {
@@ -117,13 +114,13 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
                     && rec.getMonitoringDataTs() <= 1474968980);
         }
 
-        result = queryRecords(1474968970L, 1474968990L);
+        result = operationalDataRecordManager.queryRecords(1474968970L, 1474968990L);
         assertEquals(1, result.size());
         assertNotNull(result.getRecords().getFirst().getMessageId());
         assertEquals(1474968980L, result.getRecords().getFirst()
                 .getMonitoringDataTs().longValue());
 
-        result = queryRecords(1474968950L, 1474968970L);
+        result = operationalDataRecordManager.queryRecords(1474968950L, 1474968970L);
         assertEquals(1, result.size());
         assertEquals(1474968960L, result.getRecords().getFirst()
                 .getMonitoringDataTs().longValue());
@@ -131,58 +128,58 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
     @Test
     public void storeAndQueryDataCausingOverflow() throws Exception {
-        storeFullOperationalDataRecords(8, 1474968980L);
-        storeFullOperationalDataRecords(17, 1474968981L);
+        storeFullOperationalDataRecords(8, 1474968980L, operationalDataRecordManager);
+        storeFullOperationalDataRecords(17, 1474968981L, operationalDataRecordManager);
 
         // Less than max records.
-        OperationalDataRecordManager.setMaxRecordsInPayload(10);
-        OperationalDataRecords result = queryRecords(1474968980L, 1474968980L);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 10);
+        OperationalDataRecords result = operationalDataRecordManager.queryRecords(1474968980L, 1474968980L);
         assertEquals(8, result.size());
         assertNull(result.getNextRecordsFrom());
 
         // Max records, no overflow indication since there are no records left.
-        OperationalDataRecordManager.setMaxRecordsInPayload(8);
-        result = queryRecords(1474968980L, 1474968980L);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 8);
+        result = operationalDataRecordManager.queryRecords(1474968980L, 1474968980L);
         assertEquals(8, result.size());
         assertNull(result.getNextRecordsFrom());
 
         // Additional records, no overflow indication since the last record
         // timestamp equals to the timestamp recordsTo.
-        OperationalDataRecordManager.setMaxRecordsInPayload(5);
-        result = queryRecords(1474968980L, 1474968980L);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 5);
+        result = operationalDataRecordManager.queryRecords(1474968980L, 1474968980L);
         assertEquals(8, result.size());
         assertNull(result.getNextRecordsFrom());
 
         // Additional records, no overflow indication since the overflowing
         // records are from the same second than the last ones that fit
         // in the limit.
-        OperationalDataRecordManager.setMaxRecordsInPayload(10);
-        result = queryRecords(1474968980L, 1474968990L);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 10);
+        result = operationalDataRecordManager.queryRecords(1474968980L, 1474968990L);
         assertEquals(25, result.size());
         assertNull(result.getNextRecordsFrom());
 
-        storeFullOperationalDataRecords(1, 1474968985L);
+        storeFullOperationalDataRecords(1, 1474968985L, operationalDataRecordManager);
 
         // Max records, overflow indication since there are records left
         // than were stored later than the records that fit into the limit.
-        OperationalDataRecordManager.setMaxRecordsInPayload(8);
-        result = queryRecords(1474968960L, 1474968990L);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 8);
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968990L);
         assertEquals(8, result.size());
         assertNotNull(result.getNextRecordsFrom());
         assertEquals(1474968981, result.getNextRecordsFrom().longValue());
 
         // Additional records, overflow indication since there is 1 record left
         // that was stored later than the last record that fits into the limit.
-        OperationalDataRecordManager.setMaxRecordsInPayload(10);
-        result = queryRecords(1474968960L, 1474968990L);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 10);
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968990L);
         assertEquals(25, result.size());
         assertNotNull(result.getNextRecordsFrom());
         assertEquals(1474968982L, result.getNextRecordsFrom().longValue());
 
         // Additional records, overflow indication since there is 1 record left
         // that was stored later than the last record that fits into the limit.
-        OperationalDataRecordManager.setMaxRecordsInPayload(10);
-        result = queryRecords(1474968981L, 1474968990L);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 10);
+        result = operationalDataRecordManager.queryRecords(1474968981L, 1474968990L);
         assertEquals(17, result.size());
         assertNotNull(result.getNextRecordsFrom());
         assertEquals(1474968982L, result.getNextRecordsFrom().longValue());
@@ -193,11 +190,11 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         ClientId client = ClientId.Conf.create(
                 "XTEE-CI-XM", "GOV", "00000001", "System1");
 
-        storeFullOperationalDataRecords(1, 1474968960L);
+        storeFullOperationalDataRecords(1, 1474968960L, operationalDataRecordManager);
 
         // Request by regular client, return the data
         // with securityServerInternalId as NULL.
-        OperationalDataRecords result = queryRecords(1474968960L,
+        OperationalDataRecords result = operationalDataRecordManager.queryRecords(1474968960L,
                 1474968980L, client, null, Sets.newHashSet("requestInTs",
                         "securityServerInternalIp", "securityServerType"));
 
@@ -219,7 +216,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         // Request by owner or central monitoring client, return the data
         // including the actual value of securityServerInternalId.
-        result = queryRecords(1474968960L, 1474968980L, null, null,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, null, null,
                 Sets.newHashSet("requestInTs",
                         "securityServerInternalIp", "securityServerType"));
 
@@ -230,7 +227,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         assertEquals("192.168.3.250", record.getSecurityServerInternalIp());
 
         // The output spec has a single field that is null in DB.
-        result = queryRecords(1474968960L, 1474968980L, client, null,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, client, null,
                 Sets.newHashSet("faultCode"));
         assertEquals(1, result.size());
 
@@ -262,66 +259,66 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         ClientId member = ClientId.Conf.create("XTEE-CI-XM", "GOV", "00000011");
 
-        storeFullOperationalDataRecord(1474968960L, client, serviceProvider);
-        storeFullOperationalDataRecord(1474968970L, client, serviceProvider);
-        storeFullOperationalDataRecord(1474968980L, client, client);
-        storeFullOperationalDataRecord(1474968980L, serviceProvider, client);
+        storeFullOperationalDataRecord(1474968960L, client, serviceProvider, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968970L, client, serviceProvider, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968980L, client, client, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968980L, serviceProvider, client, operationalDataRecordManager);
         storeFullOperationalDataRecord(1474968980L, serviceProvider,
-                serviceProvider);
-        storeFullOperationalDataRecord(1474968990L, client, member);
-        storeFullOperationalDataRecord(1474968991L, member, member);
-        storeFullOperationalDataRecord(1474968992L, member, client);
+                serviceProvider, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968990L, client, member, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968991L, member, member, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968992L, member, client, operationalDataRecordManager);
 
         // Known client
-        OperationalDataRecords result = queryRecords(1474968960L, 1474968980L,
+        OperationalDataRecords result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L,
                 client);
         assertEquals(4, result.size());
 
         // Unknown client
-        result = queryRecords(1474968960L, 1474968980L, unknownClient);
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, unknownClient);
         assertEquals(0, result.size());
 
         // Known client, known service provider
-        result = queryRecords(1474968960L, 1474968980L, client, serviceProvider,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, client, serviceProvider,
                 new HashSet<>());
         assertEquals(2, result.size());
 
         // Known client, unknown service provider
-        result = queryRecords(1474968960L, 1474968980L, client,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, client,
                 unknownServiceProvider, new HashSet<>());
         assertEquals(0, result.size());
 
         // Unknown client, known service provider
-        result = queryRecords(1474968960L, 1474968980L, unknownClient,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, unknownClient,
                 serviceProvider, new HashSet<>());
         assertEquals(0, result.size());
 
         // Unknown client, unknown service provider
-        result = queryRecords(1474968960L, 1474968980L, unknownClient,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, unknownClient,
                 unknownServiceProvider, new HashSet<>());
         assertEquals(0, result.size());
 
         // Same client and service provider
-        result = queryRecords(1474968960L, 1474968980L, client, client,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, client, client,
                 new HashSet<>());
         assertEquals(2, result.size());
 
         // Known service provider
-        result = queryRecords(1474968960L, 1474968980L, null, serviceProvider,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, null, serviceProvider,
                 new HashSet<>());
         assertEquals(3, result.size());
 
         // Unknown service provider
-        result = queryRecords(1474968960L, 1474968980L, null,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, null,
                 unknownServiceProvider, new HashSet<>());
         assertEquals(0, result.size());
 
         // Known member
-        result = queryRecords(1474968990L, 1474968993L, member);
+        result = operationalDataRecordManager.queryRecords(1474968990L, 1474968993L, member);
         assertEquals(3, result.size());
 
         // Known client, known service provider (member)
-        result = queryRecords(1474968990L, 1474968993L, client, member,
+        result = operationalDataRecordManager.queryRecords(1474968990L, 1474968993L, client, member,
                 new HashSet<>());
         assertEquals(1, result.size());
     }
@@ -334,58 +331,61 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         ClientId serviceProvider = ClientId.Conf.create(
                 "XTEE-CI-XM", "GOV", "00000000", "Center");
 
-        storeFullOperationalDataRecord(1474968960L, client, serviceProvider);
-        storeFullOperationalDataRecord(1474968961L, client, serviceProvider);
-        storeFullOperationalDataRecord(1474968962L, client, serviceProvider);
-        storeFullOperationalDataRecord(1474968963L, client, serviceProvider);
-        storeFullOperationalDataRecord(1474968964L, client, serviceProvider);
-        storeFullOperationalDataRecord(1474968960L, serviceProvider, client);
-        storeFullOperationalDataRecord(1474968961L, serviceProvider, client);
-        storeFullOperationalDataRecord(1474968962L, serviceProvider, client);
-        storeFullOperationalDataRecord(1474968963L, serviceProvider, client);
-        storeFullOperationalDataRecord(1474968964L, serviceProvider, client);
+        storeFullOperationalDataRecord(1474968960L, client, serviceProvider, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968961L, client, serviceProvider, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968962L, client, serviceProvider, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968963L, client, serviceProvider, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968964L, client, serviceProvider, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968960L, serviceProvider, client, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968961L, serviceProvider, client, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968962L, serviceProvider, client, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968963L, serviceProvider, client, operationalDataRecordManager);
+        storeFullOperationalDataRecord(1474968964L, serviceProvider, client, operationalDataRecordManager);
 
         // Less than max records.
-        OperationalDataRecordManager.setMaxRecordsInPayload(10);
-        OperationalDataRecords result = queryRecords(1474968960L, 1474968980L);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 10);
+        OperationalDataRecords result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L);
         assertEquals(10, result.size());
         assertNull(result.getNextRecordsFrom());
 
         // Known client
-        result = queryRecords(1474968960L, 1474968980L,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L,
                 client);
         assertEquals(10, result.size());
 
         // Known client, known service provider
-        result = queryRecords(1474968960L, 1474968980L, client, serviceProvider,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, client, serviceProvider,
                 new HashSet<>());
         assertEquals(5, result.size());
 
         // Known client, known service provider
-        result = queryRecords(1474968960L, 1474968980L, serviceProvider, client,
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, serviceProvider, client,
                 new HashSet<>());
         assertEquals(5, result.size());
 
         // Result has more records than max
         // Filter by client and service provider
-        OperationalDataRecordManager.setMaxRecordsInPayload(4);
-        result = queryRecords(1474968960L, 1474968980L, client, serviceProvider,
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 4);
+        result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, client, serviceProvider,
                 new HashSet<>());
         assertEquals(4, result.size());
         assertNotNull(result.getNextRecordsFrom());
-        result = queryRecords(result.getNextRecordsFrom(), 1474968980L, client, serviceProvider,
+        result = operationalDataRecordManager.queryRecords(result.getNextRecordsFrom(), 1474968980L, client, serviceProvider,
                 new HashSet<>());
         assertEquals(1, result.size());
     }
 
     @Test
     public void cleanupLogRecords() throws Exception {
-        storeFullOperationalDataRecords(1, 1474968970L);
-        storeFullOperationalDataRecords(1, 1474968980L);
+        storeFullOperationalDataRecords(1, 1474968970L, operationalDataRecordManager);
+        storeFullOperationalDataRecords(1, 1474968980L, operationalDataRecordManager);
 
-        OperationalDataRecordCleaner.cleanRecords(Instant.ofEpochMilli(1474968975000L));
+        OperationalDataRecordCleaner operationalDataRecordCleanerJob = new OperationalDataRecordCleaner(mock(OpMonitorProperties.class),
+                DATABASE_CTX,
+                mock(Scheduler.class), mock(Scheduled.ApplicationNotRunning.class));
+        operationalDataRecordCleanerJob.cleanRecords(Instant.ofEpochMilli(1474968975000L));
 
-        OperationalDataRecords result = queryRecords(1474968960L, 1474968980L);
+        OperationalDataRecords result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L);
 
         assertEquals(1, result.size());
     }
@@ -399,9 +399,9 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         record.setFaultString(LONG_STRING);
 
         // test truncate on save
-        storeRecords(Collections.singletonList(record), 1474968965L);
+        operationalDataRecordManager.storeRecords(Collections.singletonList(record), 1474968965L);
 
-        OperationalDataRecords result = queryAllRecords();
+        OperationalDataRecords result = operationalDataRecordManager.queryAllRecords();
 
         assertEquals(1, result.size());
 
@@ -414,14 +414,14 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         // test truncate on update
         resultRecord.setMessageIssue("2" + LONG_STRING);
 
-        doInTransaction(session -> {
+        DATABASE_CTX.doInTransaction(session -> {
             var entity = OperationalDataRecordMapper.get().toEntity(resultRecord);
 
             session.merge(entity);
             return null;
         });
 
-        result = queryAllRecords();
+        result = operationalDataRecordManager.queryAllRecords();
         assertEquals(1, result.size());
         OperationalDataRecord updatedResultRecord = result.getRecords().getFirst();
 

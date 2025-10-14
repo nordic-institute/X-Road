@@ -52,7 +52,8 @@ public class NoVanillaExceptions implements ArchRuleTest {
 
     private static final Set<String> EXCLUDED_PACKAGES = Set.of(
             "org.niis.xroad.signer.proto",
-            "org.niis.xroad.signer.protocol.dto"
+            "org.niis.xroad.signer.protocol.dto",
+            "org.niis.xroad.proxy.proto"
     );
 
     @Override

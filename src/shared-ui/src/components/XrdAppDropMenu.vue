@@ -35,20 +35,41 @@
       </template>
 
       <v-list>
+        <v-list-item
+          v-if="databaseBasedAuthentication"
+          id="change-password-list-tile"
+          data-test="change-password-list-tile"
+          @click="showPasswordChangeDialog = true"
+        >
+          <v-list-item-title id="change-password-title">{{ $t('login.changePassword') }}</v-list-item-title>
+        </v-list-item>
         <v-list-item id="logout-list-tile" data-test="logout-list-tile" @click="logout">
           <v-list-item-title id="logout-title">{{ $t('login.logOut') }} </v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
   </div>
+
+  <xrd-admin-user-password-change-dialog
+    v-if="showPasswordChangeDialog"
+    :username="username"
+    :admin-users-handler="adminUsersHandler"
+    @cancel="showPasswordChangeDialog = false"
+    @password-changed="showPasswordChangeDialog = false"
+  />
 </template>
 
 <script lang="ts" setup>
-import { computed, inject } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { key } from '../utils';
+import { XrdAdminUserPasswordChangeDialog } from '@niis/shared-ui';
 
 const user = inject(key.user);
 const routing = inject(key.routing);
+const system = inject(key.system);
+const adminUsersHandler = inject(key.adminUsersHandler)!;
+const databaseBasedAuthentication = computed(() => system?.isDatabaseBasedAuthentication());
+const showPasswordChangeDialog = ref(false);
 
 const username = computed(() => user?.username());
 

@@ -34,6 +34,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.security.PrivateKey;
@@ -54,14 +55,14 @@ public class OcspCacheTest {
     static X509Certificate issuer;
     static X509Certificate signer;
     static PrivateKey signerKey;
+    private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
+
 
     /**
      * Sets up an empty global configuration and loads test certificates.
-     *
-     * @throws Exception if an error occurs
      */
     @BeforeClass
-    public static void loadCerts() throws Exception {
+    public static void loadCerts() {
         globalConfProvider = new EmptyGlobalConf();
 
         issuer = TestCertUtil.getCertChainCert("root_ca.p12");
@@ -86,7 +87,7 @@ public class OcspCacheTest {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
-        OcspCache cache = new OcspCache(globalConfProvider);
+        OcspCache cache = new OcspCache(globalConfProvider, ocspVerifierFactory);
         assertNull(cache.put("foo", ocsp));
         assertEquals(ocsp, cache.get("foo"));
     }
@@ -102,7 +103,7 @@ public class OcspCacheTest {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
-        OcspCache cache = new OcspCache(globalConfProvider);
+        OcspCache cache = new OcspCache(globalConfProvider, ocspVerifierFactory);
         assertNull(cache.put("foo", ocsp));
         assertNull(cache.get("foo"));
     }
