@@ -1,9 +1,86 @@
 #!/bin/bash
 . /usr/share/debconf/confmodule
 
+log () { echo >&2 "$@"; }
+
+get_prop() {
+  local val
+  val=$(yq -e "$2" "$1" 2>/dev/null)
+  [[ $val == "null" ]] && val=""
+  echo "$val"
+}
+
+split_ip_dns() {
+  local input="$1"
+  local ip_list dns_list
+  ip_list=$(echo "$input" | tr ',' '\n' | grep '^IP:' | cut -d: -f2 | paste -sd,)
+  dns_list=$(echo "$input" | tr ',' '\n' | grep '^DNS:' | cut -d: -f2 | paste -sd,)
+  echo "$ip_list" "$dns_list"
+}
+
+ensure_local_config_exists() {
+  local FILE="/etc/xroad/conf.d/local.yaml"
+
+  # Check if file exists and is non-empty
+  if [ ! -s "$FILE" ]; then
+    log "Creating or initializing $FILE..."
+    mkdir -p "$(dirname "$FILE")"  # Ensure directory exists
+    echo "xroad:" > "$FILE"
+  fi
+}
+
+prepare_tls_settings() {
+  CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
+  if [[ -z $(get_prop "$CONFIG_FILE" '.xroad."op-monitor".tls."certificate-provisioning"."common-name"') && \
+          -z $(get_prop "$CONFIG_FILE" '.xroad."op-monitor".tls."certificate-provisioning"."alt-names"') && \
+          -z $(get_prop "$CONFIG_FILE" '.xroad."op-monitor".tls."certificate-provisioning"."ip-subject-alt-names"') ]]; then
+      log "Preparing op-monitor internal TLS settings"
+
+      HOST=$(hostname -f)
+      if (( ${#HOST} > 64 )); then
+        HOST="$(hostname -s)"
+      fi
+      LIST=
+      for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
+      ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
+
+      db_subst xroad-common/service-subject HOST "$HOST"
+      db_subst xroad-common/service-altsubject ALT "$ALT"
+
+      db_get xroad-common/service-subject
+      [ -z "$RET" ] && db_set xroad-common/service-subject "$HOST"
+
+      db_get xroad-common/service-altsubject
+      [ -z "$RET" ] && db_set xroad-common/service-altsubject "$ALT"
+
+      db_beginblock
+      db_input critical xroad-common/service-subject || true
+      db_input critical xroad-common/service-altsubject || true
+      db_endblock
+      db_go
+
+      db_get xroad-common/service-subject
+      cn="$RET"
+      db_get xroad-common/service-altsubject
+      altn="$RET"
+
+      read ip_list dns_list < <(split_ip_dns "$altn")
+
+      log "Writing op-monitor TLS settings to $CONFIG_FILE"
+      ensure_local_config_exists
+      yq -iY ".xroad.\"op-monitor\".tls.\"certificate-provisioning\".\"common-name\" = \"$cn\"" $CONFIG_FILE
+      yq -iY ".xroad.\"op-monitor\".tls.\"certificate-provisioning\".\"alt-names\" = \"$dns_list\"" $CONFIG_FILE
+      yq -iY ".xroad.\"op-monitor\".tls.\"certificate-provisioning\".\"ip-subject-alt-names\" = \"$ip_list\"" $CONFIG_FILE
+    else
+      log "op-monitor TLS settings exists, skipping"
+    fi
+}
+
 configure() {
   chown xroad:xroad /etc/xroad/backup.d/??_xroad-opmonitor
   chmod 0440 /etc/xroad/backup.d/??_xroad-opmonitor
+
+  prepare_tls_settings
 
   RET=
   db_get xroad-common/database-host || RET=""
