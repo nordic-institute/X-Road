@@ -41,21 +41,21 @@ public final class DownloadUrlConnectionStatus implements Serializable {
     private String downloadUrl;
     private ConnectionStatus connectionStatus;
 
-    private DownloadUrlConnectionStatus(String downloadUrl) {
+    private DownloadUrlConnectionStatus(ConnectionStatus connectionStatus, String downloadUrl) {
         this.downloadUrl = downloadUrl;
-        this.connectionStatus = ConnectionStatus.create();
+        this.connectionStatus = connectionStatus;
     }
 
-    private DownloadUrlConnectionStatus(String downloadUrl, String errorCode, List<String> metadata) {
+    private DownloadUrlConnectionStatus(ConnectionStatus connectionStatus, String downloadUrl, String errorCode, List<String> metadata) {
         this.downloadUrl = downloadUrl;
-        this.connectionStatus = ConnectionStatus.create(errorCode, metadata);
+        this.connectionStatus = connectionStatus;
     }
 
-    public static DownloadUrlConnectionStatus create(String url) {
-        return new DownloadUrlConnectionStatus(url);
+    public static DownloadUrlConnectionStatus ok(String url) {
+        return new DownloadUrlConnectionStatus(ConnectionStatus.ok(), url);
     }
 
-    public static DownloadUrlConnectionStatus create(String url, String errorCode, List<String> metadata) {
-        return errorCode == null ? new DownloadUrlConnectionStatus(url) : new DownloadUrlConnectionStatus(url, errorCode, metadata);
+    public static DownloadUrlConnectionStatus error(String url, String errorCode, List<String> metadata) {
+        return new DownloadUrlConnectionStatus(ConnectionStatus.error(errorCode, metadata), url, errorCode, metadata);
     }
 }

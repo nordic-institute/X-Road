@@ -116,7 +116,7 @@ public class DiagnosticConnectionService {
 
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                return DownloadUrlConnectionStatus.create(getDownloadUrl(url));
+                return DownloadUrlConnectionStatus.ok(getDownloadUrl(url));
             } else {
                 var responseMessage = connection.getResponseMessage() != null ? connection.getResponseMessage() : "";
                 throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_GET_VERSION_FAILED)
@@ -125,7 +125,7 @@ public class DiagnosticConnectionService {
             }
         } catch (Exception e) {
             XrdRuntimeException result = XrdRuntimeException.systemException(e);
-            return DownloadUrlConnectionStatus.create(getDownloadUrl(url), result.getErrorCode(), List.of(result.getDetails()));
+            return DownloadUrlConnectionStatus.error(getDownloadUrl(url), result.getErrorCode(), List.of(result.getDetails()));
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -152,21 +152,24 @@ public class DiagnosticConnectionService {
             byte[] bytes = (certificateInfo != null) ? certificateInfo.getCertificateBytes() : new byte[0];
             managementRequestSenderService.sendAuthCertRegisterRequest(null, bytes, true);
         } catch (GlobalConfOutdatedException e) {
-            return ConnectionStatus.create(e.getErrorDeviation().code(), e.getErrorDeviation().metadata(), certErrorCode,
+            return ConnectionStatus.fromErrorAndValidation(e.getErrorDeviation().code(), e.getErrorDeviation().metadata(), certErrorCode,
                     certValidationMetadata);
         } catch (XrdRuntimeException e) {
-            return ConnectionStatus.create(e.getErrorCode(), e.getDetails(), certErrorCode, certValidationMetadata);
+            return ConnectionStatus.fromErrorAndValidation(e.getErrorCode(), e.getDetails() != null ? List.of(e.getDetails()) : List.of(),
+                    certErrorCode,
+                    certValidationMetadata);
         } catch (CodedException e) {
             // special case: if no certificate or address validation error, the error is expected,
             // and we return only certificate validation exceptions (if any)
             if ((X_INVALID_REQUEST.equals(e.getFaultCode()) || "InvalidRequest".equals(e.getFaultCode()))
                     && (certificateInfo == null
                     || (e.getFaultString() != null && e.getFaultString().contains(INVALID_SERVER_ADDRESS)))) {
-                return ConnectionStatus.create(certErrorCode, certValidationMetadata);
+                return certErrorCode == null ? ConnectionStatus.ok() : ConnectionStatus.error(certErrorCode, certValidationMetadata);
             }
-            return ConnectionStatus.create(e.getFaultCode(), e.getFaultString(), certErrorCode, certValidationMetadata);
+            return ConnectionStatus.fromErrorAndValidation(e.getFaultCode(),
+                    e.getFaultString() != null ? List.of(e.getFaultString()) : List.of(), certErrorCode, certValidationMetadata);
         }
-        return ConnectionStatus.create(certErrorCode, certValidationMetadata);
+        return certErrorCode == null ? ConnectionStatus.ok() : ConnectionStatus.error(certErrorCode, certValidationMetadata);
     }
 
     private Optional<CertificateInfo> getAuthCert() throws CertificateNotFoundException {

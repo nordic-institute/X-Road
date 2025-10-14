@@ -30,10 +30,8 @@ import ee.ria.xroad.common.DiagnosticStatus;
 
 import lombok.Getter;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,44 +40,55 @@ import java.util.Map;
 @ToString
 public final class ConnectionStatus implements Serializable {
     private final DiagnosticStatus status;
-    private String errorCode;
-    private List<String> errorMetadata = new ArrayList<>();
-    private final Map<String, List<String>> validationErrors = new HashMap<>();
+    private final String errorCode;
+    private final List<String> errorMetadata;       // empty when OK
+    private final Map<String, List<String>> validationErrors; // empty when OK
 
-    private ConnectionStatus() {
-        this.status = DiagnosticStatus.OK;
-    }
-
-    private ConnectionStatus(String errorCode, List<String> errorMetadata) {
-        this.status = DiagnosticStatus.ERROR;
+    private ConnectionStatus(
+            DiagnosticStatus status,
+            String errorCode,
+            List<String> errorMetadata,
+            Map<String, List<String>> validationErrors
+    ) {
+        this.status = status;
         this.errorCode = errorCode;
-        this.errorMetadata = errorMetadata;
+        this.errorMetadata = List.copyOf(errorMetadata == null ? List.of() : errorMetadata);
+        this.validationErrors = validationErrors == null
+                ? Map.of()
+                : validationErrors.entrySet().stream()
+                .collect(java.util.stream.Collectors.toUnmodifiableMap(
+                        Map.Entry::getKey,
+                        e -> List.copyOf(e.getValue())
+                ));
     }
 
-    private ConnectionStatus(String errorCode, List<String> errorMetadata, String validationError, List<String> validationMetadata) {
-        this.status = DiagnosticStatus.ERROR;
-        this.errorCode = errorCode;
-        this.errorMetadata = errorMetadata;
-        this.validationErrors
-                .computeIfAbsent(validationError, k -> new ArrayList<>())
-                .addAll(validationMetadata);
+    public static ConnectionStatus ok() {
+        return new ConnectionStatus(DiagnosticStatus.OK, null, List.of(), Map.of());
     }
 
-    public static ConnectionStatus create() {
-        return new ConnectionStatus();
+    public static ConnectionStatus error(String errorCode, List<String> metadata) {
+        return new ConnectionStatus(DiagnosticStatus.ERROR, errorCode,
+                metadata == null ? List.of() : metadata, Map.of());
     }
 
-    public static ConnectionStatus create(String errorCode, List<String> metadata) {
-        return errorCode == null ? create() : new ConnectionStatus(errorCode, metadata);
+    public static ConnectionStatus errorWithValidation(
+            String errorCode,
+            List<String> metadata,
+            String validationKey,
+            List<String> validationMetadata
+    ) {
+        Map<String, List<String>> ve = new HashMap<>();
+        ve.put(validationKey, validationMetadata == null ? List.of() : List.copyOf(validationMetadata));
+        return new ConnectionStatus(DiagnosticStatus.ERROR, errorCode,
+                metadata == null ? List.of() : metadata, ve);
     }
 
-    public static ConnectionStatus create(String errorCode, List<String> metadata, String validationError,
-                                          List<String> validationMetadata) {
-        return validationError == null ? new ConnectionStatus(errorCode, metadata)
-                : new ConnectionStatus(errorCode, metadata, validationError, validationMetadata);
-    }
+    public static ConnectionStatus fromErrorAndValidation(String errorCode, List<String> metadata, String certErrorCode,
+                                                          List<String> certValidationMetadata) {
 
-    public static ConnectionStatus create(String errorCode, String metadata, String validationError, List<String> validationMetadata) {
-        return create(errorCode, StringUtils.isEmpty(metadata) ? List.of() : List.of(metadata), validationError, validationMetadata);
+        return (certErrorCode == null)
+                ? ConnectionStatus.error(errorCode, metadata)
+                : ConnectionStatus.errorWithValidation(errorCode, metadata, certErrorCode,
+                certValidationMetadata == null ? List.of() : certValidationMetadata);
     }
 }

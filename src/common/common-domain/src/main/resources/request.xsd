@@ -46,8 +46,8 @@
             <element name="dryRun" type="boolean" minOccurs="0" default="false">
                 <annotation>
                     <documentation>
-                        Optional flag indicating whether the request should
-                        be validated and processed as a dry run only.
+                        Optional flag indicating whether the request
+                        should be validated only and not processed like a real request.
                     </documentation>
                 </annotation>
             </element>
