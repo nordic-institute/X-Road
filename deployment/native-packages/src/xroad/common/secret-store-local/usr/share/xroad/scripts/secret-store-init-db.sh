@@ -1,5 +1,10 @@
 #!/bin/bash
 
+die() {
+  echo >&2 "$@"
+  exit 1
+}
+
 get_prop() {
   crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
 }
@@ -104,8 +109,32 @@ GRANT USAGE ON SCHEMA public to "${db_user}";
 EOF
     } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
 
-    # Configure OpenBao with PostgreSQL connection URL
-    sed -i "/storage \".*{/,/}/c\storage \"postgresql\" {\n  connection_url = \"postgres://${db_conn_user}:${db_password}@${db_addr}:${db_port}/${db_database}${db_options}\"\n}" /etc/openbao/openbao.hcl
+    # Configure OpenBao to use PostgreSQL storage instead of file storage
+    # Replace the default "file" storage backend with "postgresql"
+    if [ -f /etc/openbao/openbao.hcl ]; then
+      sed -i.bak 's/^storage "file" {/storage "postgresql" {/' /etc/openbao/openbao.hcl
+      # Remove the file path line if it exists (only needed for file storage)
+      sed -i '/^\s*path\s*=.*openbao.*data/d' /etc/openbao/openbao.hcl
+    fi
+
+    # Create environment file with database credentials
+    # Store both individual components (for backup/restore scripts) and full URL (for OpenBao)
+    # OpenBao reads BAO_PG_CONNECTION_URL directly from environment
+    # See: https://openbao.org/docs/configuration/storage/postgresql/#postgresql-parameters
+    cat > /etc/openbao/openbao.env <<EOF
+# Individual components for backup/restore scripts
+BAO_PG_USER=${db_conn_user}
+BAO_PG_PASSWORD=${db_password}
+BAO_PG_HOST=${db_addr}
+BAO_PG_PORT=${db_port}
+BAO_PG_DATABASE=${db_database}
+BAO_PG_SCHEMA=${db_schema}
+
+# Full connection URL for OpenBao
+BAO_PG_CONNECTION_URL=postgres://${db_conn_user}:${db_password}@${db_addr}:${db_port}/${db_database}${db_options}
+EOF
+    chmod 0600 /etc/openbao/openbao.env
+    chown openbao:openbao /etc/openbao/openbao.env
 
   fi
 }

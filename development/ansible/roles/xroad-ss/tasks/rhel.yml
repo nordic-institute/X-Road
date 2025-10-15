@@ -25,10 +25,10 @@
         mode: 0751
         force: no
 
-    - name: openbao.hcl template
+    - name: openbao.env environment file
       template:
-        src: "openbao.hcl"
-        dest: "/etc/openbao/openbao.hcl"
+        src: "openbao.env.j2"
+        dest: "/etc/openbao/openbao.env"
         owner: "openbao"
         group: "openbao"
         mode: 0600
