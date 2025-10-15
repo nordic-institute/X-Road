@@ -410,6 +410,12 @@ export default defineComponent({
   margin-top: 10px;
 }
 
+.group-members-table td {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 250px;
+}
+
 .add-members-button {
   margin-left: 20px;
 }
