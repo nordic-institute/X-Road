@@ -1,8 +1,8 @@
 services:
   ui:
     environment:
-      - XROAD_MESSAGE_LOG_ARCHIVER_ARCHIVE_INTERVAL=*/15 * * * * *
-      - XROAD_MESSAGE_LOG_ARCHIVER_CLEAN_INTERVAL=*/30 * * * * *
+      - XROAD_MESSAGE_LOG_ARCHIVER_ARCHIVE_INTERVAL=*/10 * * * * *
+      - XROAD_MESSAGE_LOG_ARCHIVER_CLEAN_INTERVAL=*/15 * * * * *
       - XROAD_MESSAGE_LOG_ARCHIVER_CLEAN_KEEP_RECORDS_FOR=0
   proxy:
     environment:

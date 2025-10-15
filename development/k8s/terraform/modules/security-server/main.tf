@@ -5,11 +5,15 @@ resource "helm_release" "postgresql_serverconf" {
 
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
-  version    = "15.5.38"
+  version    = "18.0.12"
 
   values = [
     yamlencode({
       fullnameOverride = "db-serverconf"
+      image = {
+        repository = "bitnamilegacy/postgresql"
+        tag = "16.6.0"
+      }
       auth = {
         database           = "serverconf"
         username           = var.serverconf_db_user
@@ -39,11 +43,15 @@ resource "helm_release" "postgresql_messagelog" {
 
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
-  version    = "15.5.38"
+  version    = "18.0.12"
 
   values = [
     yamlencode({
       fullnameOverride = "db-messagelog"
+      image = {
+        repository = "bitnamilegacy/postgresql"
+        tag = "16.6.0"
+      }
       auth = {
         database           = "messagelog"
         username           = var.messagelog_db_user
@@ -75,11 +83,15 @@ resource "helm_release" "postgresql_opmonitor" {
 
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
-  version    = "15.5.38"
+  version    = "18.0.12"
 
   values = [
     yamlencode({
       fullnameOverride = "db-opmonitor"
+      image = {
+        repository = "bitnamilegacy/postgresql"
+        tag = "16.6.0"
+      }
       auth = {
         database           = "op-monitor"
         username           = var.opmonitor_db_user
@@ -140,6 +152,12 @@ resource "helm_release" "security_server" {
         }
         op-monitor = {
           enabled = tostring(var.op_monitor_enabled)
+        }
+        backup-manager = {
+          env = {
+            SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER = var.proxy_ui_superuser_password != "" ? "true" : "false"
+            PROXY_UI_SUPERUSER          = var.proxy_ui_superuser
+          }
         }
       }
     })

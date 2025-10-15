@@ -1,9 +1,9 @@
 terraform {
-  required_version = ">= 1.9.0"
+  required_version = ">= 1.10.6"
   required_providers {
     kind = {
       source = "tehcyx/kind"
-      version = "0.8.0"
+      version = "0.9.0"
     }
     null = {
       source  = "hashicorp/null"
