@@ -6,6 +6,14 @@ quarkus:
       - xroad-common.yaml
       - xroad-logging.yaml
 
+xroad:
+  db:
+    serverconf:
+      hibernate:
+        hikari.dataSource.ApplicationName: ${quarkus.application.name}
+        hikari.maximumPoolSize: 5
+        hikari.minimumIdle: 1
+
 "%containerized":
   xroad:
     env-monitor:

@@ -25,6 +25,9 @@ case $1 in
 "proxy-ui-api")
   gradleModule="security-server/admin-service"
   ;;
+"monitor")
+  gradleModule="service/monitor/monitor-application"
+  ;;
 "backup-manager")
   gradleModule="service/backup-manager/backup-manager-application"
   ;;

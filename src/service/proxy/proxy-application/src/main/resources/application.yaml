@@ -55,6 +55,10 @@ quarkus:
               rotate-on-boot: false
 
 xroad:
+  db:
+    serverconf:
+      hibernate:
+        hikari.dataSource.ApplicationName: ${quarkus.application.name}
   proxy:
     tls:
       certificate-provisioning:

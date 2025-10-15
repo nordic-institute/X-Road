@@ -71,7 +71,7 @@ Description: X-Road security server
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy, xroad-addon-messagelog
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-21-jre-headless | java21-runtime-headless | java21-runtime
+Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-21-jre-headless | java21-runtime-headless | java21-runtime, yq
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
 Replaces: xroad-addon-messagelog
 Description: X-Road security server
@@ -122,7 +122,7 @@ Description: X-Road security server with the Faroe Islands' settings
 Package: xroad-opmonitor
 Conflicts: xroad-center
 Architecture: all
-Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version})
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version}), yq
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
 Description: X-Road operations monitoring daemon
  X-Road operations monitoring daemon
@@ -138,7 +138,7 @@ Description: Automatic token pin code entry
 Package: xroad-proxy-ui-api
 Architecture: all
 Pre-Depends: xroad-base (=${binary:Version})
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), yq
 Replaces: xroad-nginx, xroad-jetty9
 Breaks: xroad-nginx, xroad-jetty9
 Description: X-Road proxy UI REST API
