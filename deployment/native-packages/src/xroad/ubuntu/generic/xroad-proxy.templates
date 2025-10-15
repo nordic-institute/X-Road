@@ -23,7 +23,7 @@ Type: string
 Description: Insert TLS certificate subject common name
  This certificate will be used to secure internal service->secureserver connections.
  .
- Include most used hostname or IP address as as common name (CN=..) value.
+ Include most used hostname or IP address as common name (CN) value.
  .
  Server reports full hostname as: ${HOST}
 

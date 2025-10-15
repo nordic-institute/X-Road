@@ -10,7 +10,7 @@ Type: string
 Description: Insert admin interface TLS certificate subject common name
  This certificate will be used to secure admin WebUI connections.
  .
- Include most used hostname or IP address as as common name (CN=..) value.
+ Include most used hostname or IP address as common name (CN) value.
  .
  Server reports full hostname as: ${HOST}
 
@@ -30,7 +30,7 @@ Type: string
 Description: Insert management service TLS certificate subject common name [default=${HOST}]
  This certificate will be used to secure management Security Server and management services.
  .
- Include most used hostname or IP address as as common name (CN=..) value.
+ Include most used hostname or IP address as common name (CN) value.
  .
  Server reports full hostname as: ${HOST}
 
