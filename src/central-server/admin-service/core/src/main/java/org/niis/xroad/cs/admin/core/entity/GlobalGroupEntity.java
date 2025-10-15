@@ -77,4 +77,8 @@ public class GlobalGroupEntity extends AuditableEntity {
     public GlobalGroupEntity(String groupCode) {
         this.groupCode = groupCode;
     }
+
+    void triggerChange() {
+        super.preUpdate();
+    }
 }
