@@ -120,33 +120,7 @@ test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
 chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
-# replace signer configuration property csr-signature-algorithm with csr-signature-digest-algorithm
-local_ini=/etc/xroad/conf.d/local.ini
-if csr_signature_algorithm=`crudini --get ${local_ini} signer csr-signature-algorithm 2>/dev/null`
-then
-    crudini --del ${local_ini} signer csr-signature-algorithm
-    case "$csr_signature_algorithm" in
-        SHA512*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-512;;
-        SHA384*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-384;;
-        SHA256*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-256;;
-        SHA1*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-1;;
-    esac
-fi
 
-# remove default-signature-algorithm
-crudini --del ${local_ini} common default-signature-algorithm 2>/dev/null || :
-
-# migrate keys to a new directory
-signer_folder=/etc/xroad/signer
-if [ ! -d ${signer_folder}/softtoken ]; then
-    mkdir -p -m 0750 ${signer_folder}/softtoken.tmp
-    test -f ${signer_folder}/.softtoken.p12 && cp -a ${signer_folder}/.softtoken.p12 ${signer_folder}/softtoken.tmp/.softtoken.p12
-    ls ${signer_folder}/*.p12 > /dev/null 2>&1 && cp -a ${signer_folder}/*.p12 ${signer_folder}/softtoken.tmp/
-    mv ${signer_folder}/softtoken.tmp ${signer_folder}/softtoken
-    chown -R xroad:xroad ${signer_folder}/softtoken
-    test -f ${signer_folder}/.softtoken.p12 && rm ${signer_folder}/.softtoken.p12
-    ls ${signer_folder}/*.p12 > /dev/null 2>&1 && rm ${signer_folder}/*.p12
-fi
 
 %systemd_post xroad-signer.service
 

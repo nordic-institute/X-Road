@@ -33,6 +33,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreRemove;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -68,6 +71,16 @@ public class GlobalGroupMemberEntity extends AuditableEntity {
     @Getter
     @Setter
     private ClientIdEntity identifier;
+
+    // When a global group member is added, removed or updated, also should change the global group's updatedAt timestamp
+    @PrePersist
+    @PreRemove
+    @PreUpdate
+    private void triggerGlobalGroupChange() {
+        if (globalGroup != null) {
+            globalGroup.triggerChange();
+        }
+    }
 
     protected GlobalGroupMemberEntity() {
         //JPA

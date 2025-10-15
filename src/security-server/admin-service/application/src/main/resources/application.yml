@@ -10,8 +10,12 @@ spring:
     username: ${xroad.db.serverconf.hibernate.connection.username}
     password: ${xroad.db.serverconf.hibernate.connection.password}
     hikari:
+      pool-name: ${spring.application.name}-db-pool
+      maximum-pool-size: 5
+      minimum-idle: 1
       data-source-properties:
         currentSchema: ${xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema:public}
+        ApplicationName: ${spring.application.name}
   jpa:
     open-in-view: false
     hibernate:
@@ -54,6 +58,13 @@ server:
         same-site: Strict
 
 xroad:
+  db:
+    serverconf:
+      hibernate:
+        hikari.poolName: ${spring.application.name}-serverconf-pool
+        hikari.maximumPoolSize: 5
+        hikari.minimumIdle: 1
+        hikari.dataSource.ApplicationName: ${spring.application.name}-serverconf
   common-global-conf:
     refresh-rate: -1 # UI has its own refresh job.
   proxy-ui-api:

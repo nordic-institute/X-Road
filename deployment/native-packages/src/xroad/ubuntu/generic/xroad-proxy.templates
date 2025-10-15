@@ -18,32 +18,12 @@ Description: Insert proxy server memory config string
  .
  <initialSize> <maxSize> - custom heap size constrains, for example '128m 2g'
 
-Template: xroad-common/admin-subject
-Type: string
-Description: Insert admin interface TLS certificate subject name
- This certificate will be used to secure admin WebUI connections.
- .
- Include most used hostname or IP address as as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
- .
- Server reports full hostname as: ${HOST}
-
-Template: xroad-common/admin-altsubject
-Type: string
-Description: Insert admin interface TLS certificate subject name alternatives
- This certificate will be used to secure admin WebUI connections.
- .
- Include all alternative names and IP addresses which will be used for accessing admin WebUI
- .
- Format is IP:<ipaddress>,DNS:<hostname>,...
- .
- Server reports following ip addresses and hostnames: ${ALT}
-
 Template: xroad-common/service-subject
 Type: string
-Description: Insert TLS certificate subject name
+Description: Insert TLS certificate subject common name
  This certificate will be used to secure internal service->secureserver connections.
  .
- Include most used hostname or IP address as as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
+ Include most used hostname or IP address as as common name (CN=..) value.
  .
  Server reports full hostname as: ${HOST}
 
@@ -57,12 +37,6 @@ Description: Insert TLS certificate subject name alternatives
  Format is IP:<ipaddress>,DNS:<hostname>,...
  .
  Server reports following ip addresses and hostnames: ${ALT}
-
-Template: xroad-common/cert-generation-error
-Type: error
-Description: Error during certificate generation, please fix issues
-  output was:
-  ${ERR}
 
 Template: xroad-common/proxy-memory-error
 Type: error

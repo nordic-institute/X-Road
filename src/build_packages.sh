@@ -188,6 +188,6 @@ if [ -n "$HAS_DOCKER" ]; then
 
 else
   echo "Docker not installed, building only .deb packages for this distribution"
-  cd "$XROAD/packages"
+  cd "$XROAD/../deployment/native-packages"
   ./build-deb.sh "$(lsb_release -sc)" || errorExit "Error building deb packages."
 fi
