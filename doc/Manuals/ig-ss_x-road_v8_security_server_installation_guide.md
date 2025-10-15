@@ -33,7 +33,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
     - [2.2.1 Network Diagram](#221-network-diagram)
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
   - [2.4 Preparing OS](#24-preparing-os)
-  - [2.5 Setup Package Repository](#25-setup-package-repository)
+  - [2.5 Setup Package Repositories](#25-setup-package-repositories)
   - [2.6 Security Server Installation](#26-security-server-installation)
     - [2.6.1 Provisioning TLS certificates](#261-provisioning-tls-certificates) 
   - [2.7 Post-Installation Checks](#27-post-installation-checks)
@@ -193,7 +193,7 @@ Requirements to software and settings:
         sudo locale-gen en_US.UTF-8
 
 
-### 2.5 Setup Package Repository
+### 2.5 Setup Package Repositories
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 ```bash
@@ -203,7 +203,7 @@ curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo t
 Add X-Road package and external dependencies repositories (**reference data: 1.1, 1.1.1**)
 ```bash
 echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad8-snapshot-deb $(lsb_release -sc)-current main" | sudo tee /etc/apt/sources.list.d/xroad.list > /dev/null
-echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-dependencies-deb xroad external" | sudo tee /etc/apt/sources.list.d/xroad.list > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-dependencies-deb xroad external" | sudo tee -a /etc/apt/sources.list.d/xroad.list > /dev/null
 ```
 
 Update package repository metadata:

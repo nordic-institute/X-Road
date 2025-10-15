@@ -27,7 +27,7 @@ Doc. ID: IG-CS-8
     - [2.2.1 Network Diagram](#221-network-diagram)
   - [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
   - [2.4 Preparing OS](#24-preparing-os)
-  - [2.5 Setup Package Repository](#25-setup-package-repository)
+  - [2.5 Setup Package Repositories](#25-setup-package-repositories)
   - [2.6 Package Installation](#26-package-installation)
     - [2.6.1 Configuring TLS Certificates](#261-configuring-tls-certificates-for-global-configuration-distribution)
     - [2.6.2 Provisioning TLS Certificates for management services and user interface](#262-provisioning-tls-certificates-for-management-services-and-user-interface)
@@ -163,7 +163,7 @@ Requirements for software and settings:
   Add the following line to the file `/etc/environment`: `LC_ALL=en_US.UTF-8`  
   Ensure that the locale is generated: `sudo locale-gen en_US.UTF-8`
 
-### 2.5 Setup Package Repository
+### 2.5 Setup Package Repositories
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 ```bash
@@ -173,7 +173,7 @@ curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo t
 Add X-Road package and external dependencies repositories (**reference data: 1.1, 1.1.1**)
 ```bash
 echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad8-snapshot-deb $(lsb_release -sc)-current main" | sudo tee /etc/apt/sources.list.d/xroad.list > /dev/null
-echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-dependencies-deb xroad external" | sudo tee /etc/apt/sources.list.d/xroad.list > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-dependencies-deb xroad external" | sudo tee -a /etc/apt/sources.list.d/xroad.list > /dev/null
 ```
 
 ### 2.6 Package Installation
