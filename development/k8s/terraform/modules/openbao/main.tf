@@ -5,11 +5,15 @@ resource "helm_release" "postgresql_openbao" {
 
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
-  version    = "15.5.38"
+  version    = "18.0.12"
 
   values = [
     yamlencode({
       fullnameOverride = "db-openbao"
+      image = {
+        repository = "bitnamilegacy/postgresql"
+        tag = "16.6.0"
+      }
       auth = {
         database           = "openbao"
         username           = var.openbao_db_user
