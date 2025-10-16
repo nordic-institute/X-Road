@@ -105,7 +105,6 @@ public class TokenCertificateService {
     private static final String IMPORT_AUTH_CERT = "IMPORT_AUTH_CERT";
     private static final String IMPORT_SIGN_CERT = "IMPORT_SIGN_CERT";
     private static final String DN_SUBJECT_ALT_NAME = "subjectAltName";
-    private static final Integer E5000 = 5000;
 
     private final GlobalConfService globalConfService;
     private final GlobalConfProvider globalConfProvider;
@@ -125,7 +124,7 @@ public class TokenCertificateService {
     private final AcmeService acmeService;
     private final MailNotificationHelper mailNotificationHelper;
     private final ServerConfService serverConfService;
-    private final  AuthCertVerifier authCertVerifier = new AuthCertVerifier();
+    private final AuthCertVerifier authCertVerifier = new AuthCertVerifier();
 
     /**
      * Create a CSR

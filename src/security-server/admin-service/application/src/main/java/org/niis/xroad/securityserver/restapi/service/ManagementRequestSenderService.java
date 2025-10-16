@@ -67,7 +67,7 @@ public class ManagementRequestSenderService {
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      */
     public Integer sendAuthCertRegisterRequest(String address, byte[] authCert, boolean dryRun) throws GlobalConfOutdatedException {
-        ManagementRequestSender sender = createManagementRequestSender(dryRun);
+        ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendAuthCertRegRequest(currentSecurityServerId.getServerId(), address, authCert, dryRun);
         } catch (Exception e) {
@@ -219,13 +219,7 @@ public class ManagementRequestSenderService {
     }
 
     private ManagementRequestSender createManagementRequestSender() throws GlobalConfOutdatedException {
-        return createManagementRequestSender(false);
-    }
-
-    private ManagementRequestSender createManagementRequestSender(boolean dryRun) throws GlobalConfOutdatedException {
-        if (!dryRun) {
-            globalConfService.verifyGlobalConfValidity();
-        }
+        globalConfService.verifyGlobalConfValidity();
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
