@@ -26,12 +26,10 @@
  */
 
 import { defineStore } from 'pinia';
-import { useAdminUsersHandler } from '@/store/modules/adminUsers';
 
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { ApiKey } from '@niis/shared-ui';
-      const { adminUsersHandler } = useAdminUsersHandler();
 
 export const useApiKeys = defineStore('api-keys', {
   state: () => ({}),

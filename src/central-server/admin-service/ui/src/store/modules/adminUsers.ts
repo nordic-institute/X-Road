@@ -24,7 +24,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { useNotifications } from '@/store/modules/notifications';
 import { useRouter } from 'vue-router';
 import { useUser } from '@/store/modules/user';
 import * as api from '@/util/api';
@@ -33,12 +32,13 @@ import {
   AdminUserPasswordChangeRequest,
   AdminUsersHandler,
   i18n,
+  useNotifications,
 } from '@niis/shared-ui';
 
 import { Permissions, Roles, RouteName } from '@/global';
 
 export function useAdminUsersHandler() {
-  const { showError, showSuccess } = useNotifications();
+  const { addError, addSuccessMessage } = useNotifications();
   const router = useRouter();
   const { username, hasPermission, canAssignRole } = useUser();
 
@@ -48,33 +48,31 @@ export function useAdminUsersHandler() {
       .then((resp) => {
         return resp.data;
       })
-      .catch((err) => showError(err));
+      .catch((err) => addError(err));
   };
 
   const deleteUser = (username: string) => {
     return api
       .remove(`/users/${api.encodePathParameter(username)}`)
       .then(() => {
-        showSuccess(
-          i18n.global.t('adminUsers.table.action.delete.success', {
-            username: username,
-          }),
-        );
+        addSuccessMessage('adminUsers.table.action.delete.success', {
+          username: username,
+        });
       })
-      .catch((err) => showError(err));
+      .catch((err) => addError(err));
   };
 
   const saveRoles = (username: string, roles: string[]) => {
     return api
       .put(`/users/${api.encodePathParameter(username)}/roles`, roles)
       .then(() => {
-        showSuccess(
+        addSuccessMessage(
           i18n.global.t('adminUsers.table.action.edit.success', {
             username: username,
           }),
         );
       })
-      .catch((err) => showError(err));
+      .catch((err) => addError(err));
   };
 
   const changePassword = (
@@ -88,26 +86,22 @@ export function useAdminUsersHandler() {
         new_password: newPassword,
       } as AdminUserPasswordChangeRequest)
       .then(() => {
-        showSuccess(
-          i18n.global.t('adminUsers.table.action.changePassword.success', {
-            username: username,
-          }),
-        );
+        addSuccessMessage('adminUsers.table.action.changePassword.success', {
+          username: username,
+        });
       })
-      .catch((err) => showError(err));
+      .catch((err) => addError(err));
   };
 
   const addUser = (user: AdminUser) => {
     return api
       .post<AdminUser>('/users', user)
       .then(() => {
-        showSuccess(
-          i18n.global.t('adminUsers.addUser.success', {
-            username: user.username,
-          }),
-        );
+        addSuccessMessage('adminUsers.addUser.success', {
+          username: user.username,
+        });
       })
-      .catch((err) => showError(err));
+      .catch((err) => addError(err));
   };
 
   const canAdd = () => hasPermission(Permissions.ADD_ADMIN_USER);

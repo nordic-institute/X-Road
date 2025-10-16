@@ -26,7 +26,7 @@
  -->
 <template>
   <XrdCard class="mb-4">
-    <v-container>
+    <v-container fluid>
       <v-row dense>
         <v-col cols="2">
           <v-date-input
@@ -198,7 +198,7 @@
     </v-container>
   </XrdCard>
   <XrdCard>
-    <v-container height="20rem">
+    <v-container height="20rem" fluid>
       <TrafficChart
         :series="series"
         :loading="seriesLoading && seriesLoadingDebounced"

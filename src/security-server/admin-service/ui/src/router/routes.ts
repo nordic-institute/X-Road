@@ -224,7 +224,6 @@ const routes: RouteRecordRaw[] = [
         path: '/settings/users/add',
         components: {
           default: XrdAddAdminUser,
-          alerts: AlertsContainer,
         },
         props: {
           default: true,
