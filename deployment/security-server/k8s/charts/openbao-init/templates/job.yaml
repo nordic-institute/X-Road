@@ -10,7 +10,7 @@ spec:
       automountServiceAccountToken: true
       initContainers:
         - name: wait-for-openbao
-          image: localhost:5555/init-runner:latest
+          image: {{ .Values.image }}
           imagePullPolicy: IfNotPresent
           command: [ 'sh', '-c', 'until curl -s $OPENBAO_ADDR/v1/sys/health; do echo waiting for openbao; sleep 5; done' ]
           env:
@@ -18,7 +18,7 @@ spec:
               value: {{ .Values.openbao.addr }}
       containers:
         - name: openbao-init
-          image: localhost:5555/init-runner:latest
+          image: {{ .Values.image }}
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh", "-c" ]
           args:

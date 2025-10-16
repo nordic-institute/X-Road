@@ -317,6 +317,7 @@ services:
       XROAD_OPENBAO_DB_DATABASE: "openbao"
       XROAD_OPENBAO_DB_SCHEMA: "public"
       XROAD_OPENBAO_DB_USER: "openbao"
+      SERVERCONF_INIT_IMAGE: "localhost:5555/ss-db-serverconf-init:latest"
       SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "false"
       PROXY_UI_SUPERUSER: "xrd"
     envFromSecrets:

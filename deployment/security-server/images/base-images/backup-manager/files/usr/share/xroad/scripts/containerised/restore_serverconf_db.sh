@@ -106,7 +106,7 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -f /var/run/secrets/kubernetes.io/serv
         restartPolicy: Never
         containers:
           - name: serverconf-liquibase-runner
-            image: localhost:5555/ss-db-serverconf-init:latest
+            image: "${SERVERCONF_INIT_IMAGE}"
             env:
               - name: LIQUIBASE_COMMAND_URL
                 value: "jdbc:postgresql://${db_addr}:${db_port}/${db_database}"
