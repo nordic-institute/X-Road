@@ -218,8 +218,8 @@ public class ManagementRequestSenderService {
         }
     }
 
-    private ManagementRequestSender createManagementRequestSender() throws GlobalConfOutdatedException {
-        globalConfService.verifyGlobalConfValidity();
+    private ManagementRequestSender createManagementRequestSender()
+            throws GlobalConfOutdatedException {
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
