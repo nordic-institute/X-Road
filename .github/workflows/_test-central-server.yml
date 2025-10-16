@@ -90,6 +90,11 @@ jobs:
           name: CS System Test screenshots
           path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
 
+      - name: Fix permissions for CS logs
+        if: failure()
+        run: |
+          sudo chmod -R a+rX src/central-server/admin-service/ui-system-test/build/cs-container-logs/ || true
+
       - name: Upload CS report
         uses: actions/upload-artifact@v4
         if: failure()
