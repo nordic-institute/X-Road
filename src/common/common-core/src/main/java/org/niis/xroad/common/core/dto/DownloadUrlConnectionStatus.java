@@ -46,16 +46,11 @@ public final class DownloadUrlConnectionStatus implements Serializable {
         this.connectionStatus = connectionStatus;
     }
 
-    private DownloadUrlConnectionStatus(ConnectionStatus connectionStatus, String downloadUrl, String errorCode, List<String> metadata) {
-        this.downloadUrl = downloadUrl;
-        this.connectionStatus = connectionStatus;
-    }
-
     public static DownloadUrlConnectionStatus ok(String url) {
         return new DownloadUrlConnectionStatus(ConnectionStatus.ok(), url);
     }
 
     public static DownloadUrlConnectionStatus error(String url, String errorCode, List<String> metadata) {
-        return new DownloadUrlConnectionStatus(ConnectionStatus.error(errorCode, metadata), url, errorCode, metadata);
+        return new DownloadUrlConnectionStatus(ConnectionStatus.error(errorCode, metadata), url);
     }
 }

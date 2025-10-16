@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
@@ -77,6 +78,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -496,6 +498,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         TokenInfo tokenInfo = mock(TokenInfo.class);
         when(tokenInfo.getKeyInfo()).thenReturn(Collections.emptyList());
         when(tokenService.getToken(any())).thenReturn(tokenInfo);
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
+                .thenThrow(new CodedException(X_INVALID_REQUEST, "Request is invalid"));
 
         ResponseEntity<ConnectionStatusDto> response = diagnosticsApiController.getAuthCertReqStatus();
 
@@ -504,7 +508,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertNotNull(connectionStatusDto);
         assertEquals(DiagnosticStatusClassDto.FAIL, connectionStatusDto.getStatusClass());
         assertEquals("certificate_not_found", connectionStatusDto.getError().getCode());
-        assertEquals("No active auth cert found", connectionStatusDto.getError().getMetadata().getFirst());
+        assertEquals("No auth cert found", connectionStatusDto.getError().getMetadata().getFirst());
     }
 
     @Test
