@@ -42,7 +42,7 @@ import static org.niis.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
 /**
  * Utility tool for adding new signing keys to a configuration proxy instance.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
 
     /**

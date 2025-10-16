@@ -43,7 +43,7 @@ import static org.niis.xroad.confproxy.ConfProxyProperties.CONF_INI;
  * Utility tool for creating a new configuration proxy instance
  * with default settings.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfProxyUtilCreateInstance extends ConfProxyUtil {
 
     static final int DEFAULT_VALIDITY_INTERVAL_SECONDS = 600;

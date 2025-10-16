@@ -57,7 +57,7 @@ public class ApiWebSecurityConfig {
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain apiWebSecurityFilterChain(HttpSecurity http,
                                                          ApiKeyAuthenticationManager apiKeyAuthenticationManager,
                                                          Http401AuthenticationEntryPoint http401AuthenticationEntryPoint,

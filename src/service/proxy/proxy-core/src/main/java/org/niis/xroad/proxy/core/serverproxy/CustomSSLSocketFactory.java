@@ -51,7 +51,7 @@ import java.util.List;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
     private final ServerConfProvider serverConfProvider;
 

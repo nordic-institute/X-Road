@@ -78,7 +78,7 @@ public class FormLoginWebSecurityConfig {
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http,
                                                             @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
                                                             AuthenticationProvider authenticationProvider,

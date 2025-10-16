@@ -46,7 +46,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive # Less output to log
         run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -57,7 +57,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           gradle-home-cache-cleanup: true
@@ -154,12 +154,12 @@ jobs:
           DEBIAN_FRONTEND: noninteractive # Less output to log
         run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           gradle-home-cache-cleanup: true
@@ -224,12 +224,12 @@ jobs:
           label: 'Central Server system tests'
       - uses: actions/checkout@v5
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: true
       - name: Initialize docker setup
@@ -276,6 +276,9 @@ jobs:
           name: Central Server system test
           path: src/central-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
+      - name: Fix system-test build dir permissions
+        run: sudo chown -R $USER src/central-server/admin-service/ui-system-test/build/cs-container-logs/
+        if: failure()
       - name: Upload CS screenshots
         if: failure()
         uses: actions/upload-artifact@v4
@@ -289,6 +292,7 @@ jobs:
           name: CS System Test report
           path: |
             src/central-server/admin-service/ui-system-test/build/allure-report/
+            src/central-server/admin-service/ui-system-test/build/cs-container-logs/
       - name: Show Energy Results
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -318,12 +322,12 @@ jobs:
           label: 'Security Server system tests'
       - uses: actions/checkout@v5
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: true
       - name: Set up Docker Buildx
@@ -345,8 +349,7 @@ jobs:
           push: true
           build-args: |
             PACKAGE_SOURCE=internal
-          target: final-hwtoken
-          tags: localhost:5000/xrd-securityserver-hwtoken:${{ github.sha }}
+          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Security Server test setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -354,7 +357,7 @@ jobs:
           label: 'Set up Security Server tests'
       - name: Run Security Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver-hwtoken:${{ github.sha }}
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Test Security Server measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -405,12 +408,12 @@ jobs:
       # Setup
       - uses: actions/checkout@v5
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: true
       - name: Set up Docker Buildx
@@ -447,8 +450,7 @@ jobs:
           push: true
           build-args: |
             PACKAGE_SOURCE=internal
-          target: final-hwtoken
-          tags: localhost:5000/xrd-securityserver-hwtoken:${{ github.sha }}
+          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: E2E test setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
@@ -460,7 +462,7 @@ jobs:
         run: >
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest 
           -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }} 
-          -Pe2eTestSSImage=localhost:5000/xrd-securityserver-hwtoken:${{ github.sha }}
+          -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: E2E test measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:

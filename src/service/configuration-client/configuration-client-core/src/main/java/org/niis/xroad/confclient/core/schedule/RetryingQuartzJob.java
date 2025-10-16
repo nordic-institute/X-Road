@@ -25,9 +25,11 @@
  */
 package org.niis.xroad.confclient.core.schedule;
 
+import ee.ria.xroad.common.util.process.ProcessFailedException;
+import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.quartz.DateBuilder;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -88,8 +90,8 @@ public abstract class RetryingQuartzJob implements Job {
      *
      * @param context quartz job context
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    protected abstract void executeWithRetry(JobExecutionContext context) throws Exception;
+    protected abstract void executeWithRetry(JobExecutionContext context)
+            throws ProcessFailedException, InterruptedException, ProcessNotExecutableException;
 
     /**
      * A condition which defined whether job should be rescheduled.

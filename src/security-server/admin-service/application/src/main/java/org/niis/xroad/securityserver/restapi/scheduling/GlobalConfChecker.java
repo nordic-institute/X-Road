@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
@@ -52,7 +52,6 @@ import org.niis.xroad.serverconf.model.TimestampingService;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.context.event.EventListener;
@@ -61,6 +60,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Optional;
@@ -75,7 +75,6 @@ import static java.util.function.Predicate.not;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class GlobalConfChecker {
     public static final int JOB_REPEAT_INTERVAL_MS = 30000;
     public static final int INITIAL_DELAY_MS = 30000;
@@ -96,7 +95,7 @@ public class GlobalConfChecker {
      * next task won't be invoked until the previous one is done. Set an initial delay before running the task
      * for the first time after a startup to be sure that all required components are available, e.g.
      * SignerClient may not be available immediately.
-     * @throws Exception
+     *
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
     @Transactional
@@ -183,6 +182,7 @@ public class GlobalConfChecker {
     /**
      * Matches timestamping services in globalTsps with localTsps by name and checks if the URLs have changed.
      * If the change is unambiguous, it's performed on localTsps. Otherwise a warning is logged.
+     *
      * @param globalTsps timestamping services from global configuration
      * @param localTsps  timestamping services from local database
      */
@@ -222,7 +222,7 @@ public class GlobalConfChecker {
         return buildSecurityServerId(ownerId, serverConf.getServerCode());
     }
 
-    private void updateOwner(ServerConfEntity serverConf) throws Exception {
+    private void updateOwner(ServerConfEntity serverConf) throws CertificateEncodingException, IOException, OperatorCreationException {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
         for (ClientEntity client : serverConf.getClients()) {
             // Look for another member that is not the owner
@@ -251,7 +251,7 @@ public class GlobalConfChecker {
         }
     }
 
-    private X509Certificate getAuthCert(SecurityServerId serverId) throws Exception {
+    private X509Certificate getAuthCert(SecurityServerId serverId) {
         log.debug("Get auth cert for security server '{}'", serverId);
 
         AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
@@ -277,9 +277,9 @@ public class GlobalConfChecker {
                         // do nothing
                         break;
                     case Client.STATUS_SAVED,
-                         Client.STATUS_REGINPROG,
-                         Client.STATUS_GLOBALERR,
-                         Client.STATUS_ENABLING_INPROG:
+                            Client.STATUS_REGINPROG,
+                            Client.STATUS_GLOBALERR,
+                            Client.STATUS_ENABLING_INPROG:
                         updateClientStatus(client, Client.STATUS_REGISTERED);
                         break;
                     default:
@@ -319,7 +319,7 @@ public class GlobalConfChecker {
         for (CertificateInfo certInfo : keyInfo.getCerts()) {
             try {
                 updateCertStatus(securityServerId, certInfo, keyInfo.getUsage());
-            } catch (SignerException se) {
+            } catch (XrdRuntimeException se) {
                 throw se;
             } catch (Exception e) {
                 throw translateException(e);
@@ -327,7 +327,8 @@ public class GlobalConfChecker {
         }
     }
 
-    private void updateCertStatus(SecurityServerId securityServerId, CertificateInfo certInfo, KeyUsageInfo keyUsageInfo) throws Exception {
+    private void updateCertStatus(SecurityServerId securityServerId, CertificateInfo certInfo, KeyUsageInfo keyUsageInfo)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
         X509Certificate cert = CryptoUtils.readCertificate(certInfo.getCertificateBytes());
 
         boolean registered = securityServerId.equals(globalConfProvider.getServerId(cert));
@@ -358,14 +359,14 @@ public class GlobalConfChecker {
     private void activateCert(CertificateInfo certInfo,
                               X509Certificate cert,
                               KeyUsageInfo keyUsageInfo,
-                              SecurityServerId securityServerId) throws IOException, OperatorCreationException {
+                              SecurityServerId securityServerId) throws IOException {
         if (SystemProperties.getAutomaticActivateAuthCertificate()) {
             log.debug("Activating certificate '{}'", CertUtils.identify(cert));
             String ownerMemberId = securityServerId.getOwner().asEncodedId();
             try {
                 signerRpcClient.activateCert(certInfo.getId());
                 mailNotificationHelper.sendCertActivatedNotification(ownerMemberId, securityServerId, certInfo, keyUsageInfo);
-            } catch (SignerException e) {
+            } catch (XrdRuntimeException e) {
                 String certHash = CryptoUtils.calculateCertHexHash(certInfo.getCertificateBytes());
                 CertificateInfo updatedCertInfo = signerRpcClient.getCertForHash(certHash);
                 mailNotificationHelper.sendCertActivationFailureNotification(ownerMemberId,
@@ -377,7 +378,7 @@ public class GlobalConfChecker {
         }
     }
 
-    private void setCertStatus(X509Certificate cert, String status, CertificateInfo certInfo) throws Exception {
+    private void setCertStatus(X509Certificate cert, String status, CertificateInfo certInfo) {
         log.debug("Setting certificate '{}' status to '{}'", CertUtils.identify(cert), status);
         signerRpcClient.setCertStatus(certInfo.getId(), status);
     }

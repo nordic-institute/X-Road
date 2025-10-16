@@ -36,7 +36,6 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.security.auth.x500.X500Principal;
@@ -48,7 +47,6 @@ import java.math.BigInteger;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
@@ -65,7 +63,6 @@ import java.util.Date;
  * Whenever you need to use a certificate in a test class, use this class. Add
  * necessary convenience methods if needed.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class TestCertUtil {
 
     /**
@@ -368,7 +365,7 @@ public final class TestCertUtil {
         return "test".toCharArray();
     }
 
-    public static byte[] generateAuthCert() throws NoSuchAlgorithmException, OperatorCreationException, IOException {
+    public static byte[] generateAuthCert() throws OperatorCreationException, IOException {
         var subjectKey = getKeyPairGenerator().generateKeyPair();
         return generateAuthCert(subjectKey.getPublic());
     }
@@ -433,7 +430,7 @@ public final class TestCertUtil {
         return new JcaX509CertificateConverter().getCertificate(cert);
     }
 
-    private static InputStream getFile(String fileName) throws Exception {
+    private static InputStream getFile(String fileName) throws FileNotFoundException {
         InputStream is = TestCertUtil.class.getResourceAsStream(fileName);
         if (is == null) {
             throw new FileNotFoundException(fileName);

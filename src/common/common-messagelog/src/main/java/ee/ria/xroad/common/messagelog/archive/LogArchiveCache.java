@@ -34,6 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.FilterOutputStream;
@@ -44,6 +47,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
@@ -88,7 +92,7 @@ class LogArchiveCache implements Closeable {
         resetCacheState();
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     void add(MessageRecord messageRecord) throws Exception {
         try {
             validateMessageRecord(messageRecord);
@@ -167,8 +171,8 @@ class LogArchiveCache implements Closeable {
     }
 
     @SuppressWarnings("checkstyle:InnerAssignment")
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private void cacheRecord(MessageRecord messageRecord) throws Exception {
+    private void cacheRecord(MessageRecord messageRecord)
+            throws IllegalBlockSizeException, IOException, BadPaddingException, NoSuchAlgorithmException {
         final Date creationTime = new Date(messageRecord.getTime());
 
         if (minCreationTime == null && maxCreationTime == null) {
@@ -189,8 +193,8 @@ class LogArchiveCache implements Closeable {
         return archivesTotalSize > getArchiveMaxFilesize();
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private void addContainerToArchive(MessageRecord record) throws Exception {
+    private void addContainerToArchive(MessageRecord record)
+            throws IOException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException {
         String archiveFilename = nameGenerator.getArchiveFilename(record.getQueryId(), record.isResponse(),
                 record.getId());
 
@@ -199,7 +203,7 @@ class LogArchiveCache implements Closeable {
         entry.setLastModifiedTime(FileTime.from(record.getTime(), TimeUnit.MILLISECONDS));
         archiveTmp.putNextEntry(entry);
         try (CountingOutputStream cos = new CountingOutputStream(new DigestOutputStream(new EntryStream(archiveTmp), digest));
-                OutputStream bos = new BufferedOutputStream(cos)) {
+             OutputStream bos = new BufferedOutputStream(cos)) {
             // ZipOutputStream writing directly to a DigestOutputStream is extremely inefficient, hence the additional
             // buffering. Digesting a stream instead of an in-memory buffer because the archive can be
             // large (over 1GiB)

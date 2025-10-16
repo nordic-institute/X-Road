@@ -74,7 +74,6 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
  */
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class ManagementRequestVerifier {
     private static final Set<Class<?>> MANAGEMENT_REQUEST_CLASSES = Set.of(
             AuthCertRegRequestType.class,
@@ -108,6 +107,7 @@ public final class ManagementRequestVerifier {
      * @return management request message
      * @throws Exception in case of any errors
      */
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public Result readRequest(String contentType, InputStream inputStream) throws Exception {
 
         if (!globalConfProvider.isValid()) {

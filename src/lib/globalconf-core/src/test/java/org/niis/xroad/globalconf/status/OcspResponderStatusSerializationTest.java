@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.globalconf.status;
 
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +44,7 @@ class OcspResponderStatusSerializationTest {
         CertificationServiceDiagnostics certificationServiceDiagnostics = new CertificationServiceDiagnostics();
         String name = "name";
         String url = "url";
-        OcspResponderStatus ocspResponderStatus = new OcspResponderStatus(0, url, null, null);
+        OcspResponderStatus ocspResponderStatus = new OcspResponderStatus(DiagnosticStatus.OK, url, null, null);
         CertificationServiceStatus certificationServiceStatus = new CertificationServiceStatus(name);
         certificationServiceStatus.getOcspResponderStatusMap().put(url, ocspResponderStatus);
         certificationServiceDiagnostics.getCertificationServiceStatusMap().put(name, certificationServiceStatus);
@@ -59,7 +61,7 @@ class OcspResponderStatusSerializationTest {
 
     @Test
     void serializeAndDeserializeDiagnosticsStatus() throws IOException {
-        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(0, null, null, "desc");
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticStatus.OK, null, "desc");
 
         byte[] bytesOut = JsonUtils.getObjectWriter().writeValueAsBytes(diagnosticsStatus);
 

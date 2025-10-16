@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.niis.xroad.common.exception.ConflictException;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.ACTION_NOT_POSSIBLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACTION_NOT_POSSIBLE;
 
 /**
  * Thrown if attempted to do an action (e.g. DELETE) on an object,

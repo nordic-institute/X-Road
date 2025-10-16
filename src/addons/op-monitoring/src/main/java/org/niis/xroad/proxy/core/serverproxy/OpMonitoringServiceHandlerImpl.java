@@ -33,7 +33,6 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -98,9 +97,8 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
-                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception {
+                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData) {
         log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
 
         sender = createHttpSender(opMonitorClient);
@@ -112,8 +110,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public void finishHandling() throws Exception {
+    public void finishHandling() {
         sender.close();
         sender = null;
     }
@@ -124,8 +121,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public InputStream getResponseContent() throws Exception {
+    public InputStream getResponseContent() {
         return sender.getResponseContent();
     }
 
@@ -133,9 +129,8 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         return new HttpSender(opMonitorClient);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     private void sendRequest(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
-                             OpMonitoringData opMonitoringData) throws Exception {
+                             OpMonitoringData opMonitoringData) {
         log.trace("sendRequest {}", OP_MONITOR_ADDRESS);
 
         URI opMonitorUri;

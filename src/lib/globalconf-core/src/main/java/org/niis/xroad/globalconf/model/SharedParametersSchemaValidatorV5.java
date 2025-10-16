@@ -28,15 +28,13 @@ package org.niis.xroad.globalconf.model;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.SchemaValidator;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 
+import java.io.IOException;
 import java.io.StringReader;
 
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SharedParametersSchemaValidatorV5 extends SchemaValidator {
 
     private static final Schema SCHEMA = createSchema("globalconf/v5/shared-parameters.xsd");
@@ -47,19 +45,21 @@ public class SharedParametersSchemaValidatorV5 extends SchemaValidator {
 
     /**
      * Validates the input XML as string against the schema.
+     *
      * @param xml the input XML as string
-     * @throws Exception if validation fails
+     * @throws IOException if validation fails
      */
-    public static void validate(String xml) throws Exception {
+    public static void validate(String xml) throws IOException {
         validate(new StreamSource(new StringReader(xml)));
     }
 
     /**
      * Validates the input source against the schema.
+     *
      * @param source the input source
-     * @throws Exception if validation fails
+     * @throws IOException if validation fails
      */
-    public static void validate(Source source) throws Exception {
+    public static void validate(Source source) throws IOException {
         validate(SCHEMA, source, ErrorCodes.X_MALFORMED_GLOBALCONF);
     }
 

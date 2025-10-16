@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.MimeHeaders;
@@ -39,7 +40,6 @@ import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.namespace.QName;
@@ -65,7 +65,6 @@ import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
 /**
  * Contains utility methods for working with SOAP messages.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class SoapUtils {
 
     private static final String[] ALLOWED_MIMETYPES = {TEXT_XML, XOP_XML};
@@ -90,11 +89,11 @@ public final class SoapUtils {
     public interface SOAPCallback {
         /**
          * Called on newly created SOAP message objects.
+         *
          * @param soap newly created SOAP message object
          * @throws Exception if any errors occur
          */
-        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-        void call(SOAPMessage soap) throws Exception;
+        void call(SOAPMessage soap) throws SOAPException, JAXBException;
     }
 
     private SoapUtils() {
@@ -109,22 +108,6 @@ public final class SoapUtils {
     }
 
     /**
-     * Returns all namespace prefixes of a given SOAP element.
-     * @param element the SOAP element from which to retrieve namespace prefixes
-     * @return a List of namespace prefix Strings
-     */
-    public static List<String> getNamespacePrefixes(SOAPElement element) {
-        List<String> nsPrefixes = new ArrayList<>();
-
-        Iterator<?> it = element.getNamespacePrefixes();
-        while (it.hasNext()) {
-            nsPrefixes.add(it.next().toString());
-        }
-
-        return nsPrefixes;
-    }
-
-    /**
      * @return ID of the digest algorithm used to calculate SOAP message hashes
      */
     public static DigestAlgorithm getHashAlgoId() {
@@ -132,34 +115,16 @@ public final class SoapUtils {
     }
 
     /**
-     * Returns namespace URIs from a SOAPMessage.
-     * @param soap soap message from which to retrieve namespace URIs
-     * @return a List of namespace URI Strings
-     * @throws Exception if there is a SOAP error
-     */
-    public static List<String> getNamespaceURIs(SOAPMessage soap)
-            throws Exception {
-        List<String> nsURIs = new ArrayList<>();
-
-        SOAPEnvelope envelope = soap.getSOAPPart().getEnvelope();
-        Iterator<?> it = envelope.getNamespacePrefixes();
-        while (it.hasNext()) {
-            nsURIs.add(envelope.getNamespaceURI((String) it.next()));
-        }
-
-        return nsURIs;
-    }
-
-    /**
      * Returns the XmlElement annotation for the given field, if the annotation
      * exists. Returns null, if field has no such annotation.
+     *
      * @param field the field from which to get the XmlElement annotation
      * @return the XmlElement annotation
      */
     public static XmlElement getXmlElementAnnotation(Field field) {
         for (Annotation annotation : field.getDeclaredAnnotations()) {
-            if (annotation instanceof XmlElement) {
-                return (XmlElement) annotation;
+            if (annotation instanceof XmlElement xmlElement) {
+                return xmlElement;
             }
         }
 
@@ -168,17 +133,19 @@ public final class SoapUtils {
 
     /**
      * Returns true, if the SOAP message is RPC-encoded.
+     *
      * @param soap the SOAP message
      * @return boolean
      * @throws Exception if there are errors reading the SOAP envelope
      */
-    public static boolean isRpcMessage(SOAPMessage soap) throws Exception {
+    public static boolean isRpcMessage(SOAPMessage soap) throws SOAPException {
         SOAPEnvelope envelope = soap.getSOAPPart().getEnvelope();
         return RPC_ENCODING.equals(envelope.getAttribute(RPC_ATTR));
     }
 
     /**
      * Checks whether the service name denotes it is a response message.
+     *
      * @param serviceName service name inside the SOAP message body
      * @return boolean
      */
@@ -188,6 +155,7 @@ public final class SoapUtils {
 
     /**
      * Checks that the service name matches in header and body.
+     *
      * @param serviceCode service code inside the SOAP message header
      * @param serviceName service name inside the SOAP message body
      */
@@ -202,6 +170,7 @@ public final class SoapUtils {
 
     /**
      * Returns the service name from the soap body.
+     *
      * @param soapBody body of the SOAP message
      * @return a String containing the service name
      */
@@ -218,6 +187,7 @@ public final class SoapUtils {
 
     /**
      * Checks consistency of soap headers of two SOAP messages.
+     *
      * @param m1 the first SOAP message
      * @param m2 the second SOAP message
      */
@@ -228,6 +198,7 @@ public final class SoapUtils {
 
     /**
      * Checks consistency of two SOAP headers.
+     *
      * @param h1 the first SOAP header
      * @param h2 the second SOAP header
      */
@@ -248,25 +219,27 @@ public final class SoapUtils {
     /**
      * Converts a SOAP request to SOAP response, by adding "Response" suffix
      * to the service name in the body.
+     *
      * @param request SOAP request message to be converted
      * @return the response SoapMessageImpl
      * @throws Exception if errors occur during response message creation
      */
     public static SoapMessageImpl toResponse(SoapMessageImpl request)
-            throws Exception {
+            throws SOAPException, JAXBException, IOException {
         return toResponse(request, null);
     }
 
     /**
      * Converts a SOAP request to SOAP response, by adding "Response" suffix
      * to the service name in the body.
-     * @param request SOAP request message to be converted
+     *
+     * @param request  SOAP request message to be converted
      * @param callback function to call when the response SOAP object has been created
      * @return the response SoapMessageImpl
      * @throws Exception if errors occur during response message creation
      */
     public static SoapMessageImpl toResponse(SoapMessageImpl request,
-                                             SOAPCallback callback) throws Exception {
+                                             SOAPCallback callback) throws SOAPException, IOException, JAXBException {
         String charset = request.getCharset();
 
         SOAPMessage soap = createSOAPMessage(new ByteArrayInputStream(
@@ -319,6 +292,7 @@ public final class SoapUtils {
 
     /**
      * Returns the XML representing the SOAP message.
+     *
      * @param message message to be converted into XML
      * @return XML String representing the soap message
      * @throws IOException in case of errors
@@ -333,7 +307,8 @@ public final class SoapUtils {
 
     /**
      * Returns the XML representing the SOAP message.
-     * @param soap message to be converted into XML
+     *
+     * @param soap    message to be converted into XML
      * @param charset charset to use when generating the XML string
      * @return XML String representing the soap message
      * @throws IOException in case of errors
@@ -355,6 +330,7 @@ public final class SoapUtils {
 
     /**
      * Returns the XML representing the SOAP message as bytes.
+     *
      * @param soap message to be converted to byte content
      * @return byte[]
      * @throws IOException if errors occur while writing message bytes
@@ -376,6 +352,7 @@ public final class SoapUtils {
     /**
      * Returns all children that are of the SOAPElement
      * type of the given element.
+     *
      * @param element parent for which to retrieve the children
      * @return List of SOAPElements that can be found
      */
@@ -384,8 +361,8 @@ public final class SoapUtils {
         Iterator<?> it = element.getChildElements();
         while (it.hasNext()) {
             Object o = it.next();
-            if (o instanceof SOAPElement) {
-                elements.add((SOAPElement) o);
+            if (o instanceof SOAPElement soapElement) {
+                elements.add(soapElement);
             }
         }
         return elements;
@@ -394,6 +371,7 @@ public final class SoapUtils {
     /**
      * Returns the first child that are of the SOAPElement
      * type of the given element.
+     *
      * @param element parent for which to retrieve the children
      * @return SOAPElement that is the first child of the given parent or null
      */
@@ -401,8 +379,8 @@ public final class SoapUtils {
         Iterator<?> it = element.getChildElements();
         while (it.hasNext()) {
             Object o = it.next();
-            if (o instanceof SOAPElement) {
-                return (SOAPElement) o;
+            if (o instanceof SOAPElement soapElement) {
+                return soapElement;
             }
         }
 
@@ -411,11 +389,12 @@ public final class SoapUtils {
 
     /**
      * Creates a new SOAPMessage object.
-     * @param is input stream containing the SOAP object data
+     *
+     * @param is      input stream containing the SOAP object data
      * @param charset the expected charset of the input stream
      * @return SOAPMessage that's been read from the input stream
      * @throws SOAPException may be thrown if the message is invalid
-     * @throws IOException if there is a problem in reading data from the input stream
+     * @throws IOException   if there is a problem in reading data from the input stream
      */
     public static SOAPMessage createSOAPMessage(InputStream is, String charset)
             throws SOAPException, IOException {

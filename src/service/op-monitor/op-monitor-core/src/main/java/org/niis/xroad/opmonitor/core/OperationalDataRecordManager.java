@@ -34,7 +34,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
@@ -53,7 +52,6 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.MONI
  * operational_data table, mapped by the OperationalDataRecord class.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 final class OperationalDataRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;
@@ -66,26 +64,25 @@ final class OperationalDataRecordManager {
     private OperationalDataRecordManager() {
     }
 
-    static void storeRecords(List<OperationalDataRecord> records, long timestamp) throws Exception {
+    static void storeRecords(List<OperationalDataRecord> records, long timestamp) {
         doInTransaction(session -> storeInTransaction(session, records, timestamp));
     }
 
-    static OperationalDataRecords queryAllRecords() throws Exception {
+    static OperationalDataRecords queryAllRecords() {
         return doInTransaction(OperationalDataRecordManager::queryAllOperationalDataInTransaction);
     }
 
-    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) throws Exception {
+    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) {
         return queryRecords(recordsFrom, recordsTo, null, null, new HashSet<>());
     }
 
-    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter)
-            throws Exception {
+    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter) {
         return queryRecords(recordsFrom, recordsTo, clientFilter, null, new HashSet<>());
     }
 
     static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter,
                                                ClientId serviceProviderFilter,
-                                               Set<String> outputFields) throws Exception {
+                                               Set<String> outputFields) {
         OperationalDataRecords records = doInTransaction(session -> queryOperationalDataInTransaction(session,
                 recordsFrom, recordsTo, clientFilter, serviceProviderFilter, outputFields));
 
@@ -99,7 +96,7 @@ final class OperationalDataRecordManager {
                                                                                      int intervalInMinutes,
                                                                                      OpMonitoringData.SecurityServerType securityServerType,
                                                                                      ClientId memberId,
-                                                                                     ServiceId serviceId) throws Exception {
+                                                                                     ServiceId serviceId) {
         return doInTransaction(session -> queryRequestMetricsDividedInIntervalsInTransaction(session,
                 startTime,
                 endTime,

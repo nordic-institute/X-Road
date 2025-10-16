@@ -26,7 +26,9 @@
  */
 package org.niis.xroad.confclient.core.schedule;
 
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.util.JobManager;
 
 import org.junit.jupiter.api.AfterEach;
@@ -34,11 +36,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.confclient.core.ConfigurationClient;
 import org.niis.xroad.confclient.core.ConfigurationClientJob;
-import org.niis.xroad.confclient.core.ConfigurationClientUtils;
+import org.niis.xroad.confclient.core.DownloadResult;
 import org.niis.xroad.confclient.core.schedule.backup.ProxyConfigurationBackupJob;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
@@ -57,7 +59,6 @@ import static org.niis.xroad.confclient.core.ConfigurationClientJob.PROXY_CONFIG
 
 class ConfigurationClientJobTest {
 
-    private static final int ERROR_CODE = 122;
     private ConfigurationClient configClient;
     private JobExecutionContext jobExecutionContext;
     private ConfigurationClientJob job;
@@ -80,6 +81,7 @@ class ConfigurationClientJobTest {
     @Test
     void executeSuccess() throws Exception {
         when(JobManager.isJobRunning(jobExecutionContext, PROXY_CONFIGURATION_BACKUP_JOB)).thenReturn(false);
+        when(configClient.execute()).thenReturn(new DownloadResult());
 
         job.execute(jobExecutionContext);
 
@@ -90,7 +92,7 @@ class ConfigurationClientJobTest {
         verify(jobExecutionContext).setResult(captor.capture());
         DiagnosticsStatus result = captor.getValue();
 
-        assertEquals(DiagnosticsErrorCodes.RETURN_SUCCESS, result.getReturnCode());
+        assertEquals(DiagnosticStatus.OK, result.getStatus());
         assertNotNull(result.getPrevUpdate());
         assertTrue(result.getNextUpdate().isAfter(result.getPrevUpdate()));
     }
@@ -107,10 +109,10 @@ class ConfigurationClientJobTest {
 
     @Test
     void executeThrownException() throws Exception {
-        mockStatic(ConfigurationClientUtils.class);
+        mockStatic(DiagnosticsUtils.class);
         when(JobManager.isJobRunning(jobExecutionContext, PROXY_CONFIGURATION_BACKUP_JOB)).thenReturn(false);
         doThrow(new RuntimeException("Simulated error")).when(configClient).execute();
-        when(ConfigurationClientUtils.getErrorCode(any())).thenReturn(ERROR_CODE);
+        when(DiagnosticsUtils.getErrorCode(any())).thenReturn(ErrorCode.CONF_DOWNLOAD_FAILED);
 
         JobExecutionException exception = assertThrows(JobExecutionException.class, () -> {
             job.execute(jobExecutionContext);
@@ -122,7 +124,8 @@ class ConfigurationClientJobTest {
         verify(jobExecutionContext).setResult(captor.capture());
         DiagnosticsStatus status = captor.getValue();
 
-        assertEquals(ERROR_CODE, status.getReturnCode());
+        assertEquals(ErrorCode.CONF_DOWNLOAD_FAILED, status.getErrorCode());
+        assertEquals(DiagnosticStatus.ERROR, status.getStatus());
         assertNotNull(status.getPrevUpdate());
         assertTrue(status.getNextUpdate().isAfter(status.getPrevUpdate()));
     }

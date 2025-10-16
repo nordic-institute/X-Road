@@ -27,15 +27,23 @@ package org.niis.xroad.confclient.core;
 
 import ee.ria.xroad.common.CodedException;
 
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_CANNOT_DOWNLOAD_CONF;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_EXPIRED_CONF;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_INTERNAL;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.X_ANCHOR_FILE_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_ANCHOR;
 import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_HOST;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_ANCHOR_FILE_NOT_FOUND;
+import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_CANNOT_DOWNLOAD_CONF;
+import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_DATABASE_ERROR;
+import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_EXPIRED_CONF;
+import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_INTERNAL;
+import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_MALFORMED_ANCHOR;
+import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_UNKNOWN_HOST;
 
 /**
  * Utilities for configuration client module
@@ -62,6 +70,11 @@ public final class ConfigurationClientUtils {
             case X_HTTP_ERROR, X_NETWORK_ERROR -> ERROR_CODE_CANNOT_DOWNLOAD_CONF;
             case X_OUTDATED_GLOBALCONF -> ERROR_CODE_EXPIRED_CONF;
             case X_INVALID_SIGNATURE_VALUE -> ERROR_CODE_INVALID_SIGNATURE_VALUE;
+            case X_MALFORMED_ANCHOR -> ERROR_CODE_MALFORMED_ANCHOR;
+            case X_ANCHOR_FILE_NOT_FOUND -> ERROR_CODE_ANCHOR_FILE_NOT_FOUND;
+            case X_UNKNOWN_HOST -> ERROR_CODE_UNKNOWN_HOST;
+            case X_DATABASE_ERROR -> ERROR_CODE_DATABASE_ERROR;
+
             default -> ERROR_CODE_INTERNAL;
         };
     }

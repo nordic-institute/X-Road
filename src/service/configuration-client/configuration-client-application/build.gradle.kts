@@ -7,8 +7,8 @@ plugins {
 publishing {
   publications {
     create<MavenPublication>("shadow") {
-      project.extensions.getByType<com.github.jengelman.gradle.plugins.shadow.ShadowExtension>()
-        .component(this)
+      from(components["shadow"])
+
       groupId = "org.niis.xroad"
       artifactId = "configuration-client"
       version = buildString {
@@ -21,13 +21,16 @@ publishing {
   }
   repositories {
     maven {
-      url = uri(project.findProperty("xroadPublishUrl") ?: "")
-      credentials {
-        username = project.findProperty("xroadPublishUser")?.toString()
-        password = project.findProperty("xroadPublishApiKey")?.toString()
-      }
-      authentication {
-        create<BasicAuthentication>("basic")
+      val publishUrl = project.findProperty("xroadPublishUrl")?.toString()
+      if (!publishUrl.isNullOrBlank()) {
+        url = uri(publishUrl)
+        credentials {
+          username = project.findProperty("xroadPublishUser")?.toString()
+          password = project.findProperty("xroadPublishApiKey")?.toString()
+        }
+        authentication {
+          create<BasicAuthentication>("basic")
+        }
       }
     }
   }

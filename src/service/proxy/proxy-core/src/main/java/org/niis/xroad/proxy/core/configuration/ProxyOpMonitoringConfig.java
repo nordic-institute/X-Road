@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
@@ -34,12 +33,14 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.lang.reflect.InvocationTargetException;
+
 @Configuration
 public class ProxyOpMonitoringConfig {
 
     @Bean
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider)
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         return OpMonitoring.init(serverConfProvider);
     }
 

@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.globalconf.status;
+package ee.ria.xroad.common;
 
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -33,9 +33,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.niis.xroad.common.core.exception.ErrorCode;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * Holds configuration client status information
@@ -45,53 +47,51 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @AllArgsConstructor
 public class DiagnosticsStatus implements Serializable {
-    private int returnCode;
+    private DiagnosticStatus status;
     private OffsetDateTime prevUpdate;
     private OffsetDateTime nextUpdate;
+    private ErrorCode errorCode;
     @Setter
     private String description;
+    @Setter
+    private List<String> errorCodeMetadata;
 
-    /**
-     * Constructor
-     * @param returnCode return code
-     * @param prevUpdate previous update
-     */
-    public DiagnosticsStatus(int returnCode, OffsetDateTime prevUpdate) {
-        this.returnCode = returnCode;
+    public DiagnosticsStatus(DiagnosticStatus status, OffsetDateTime prevUpdate) {
+        this.status = status;
         this.prevUpdate = prevUpdate;
     }
 
-
-    /**
-     *
-     * @param returnCode return code
-     * @param prevUpdate previous update
-     * @param description status description
-     */
-    public DiagnosticsStatus(int returnCode, OffsetDateTime prevUpdate, String description) {
-        this.returnCode = returnCode;
+    public DiagnosticsStatus(DiagnosticStatus status, OffsetDateTime prevUpdate, String description) {
+        this.status = status;
         this.prevUpdate = prevUpdate;
         this.description = description;
     }
 
-    /**
-     * Constructor
-     * @param returnCode return code
-     * @param prevUpdate previous update
-     * @param nextUpdate next update
-     */
-    public DiagnosticsStatus(int returnCode, OffsetDateTime prevUpdate, OffsetDateTime nextUpdate) {
-        this.returnCode = returnCode;
+    public DiagnosticsStatus(DiagnosticStatus status, OffsetDateTime prevUpdate, String description, ErrorCode errorCode) {
+        this.status = status;
+        this.prevUpdate = prevUpdate;
+        this.description = description;
+        this.errorCode = errorCode;
+    }
+
+    public DiagnosticsStatus(DiagnosticStatus status, OffsetDateTime prevUpdate, OffsetDateTime nextUpdate) {
+        this.status = status;
         this.prevUpdate = prevUpdate;
         this.nextUpdate = nextUpdate;
     }
 
-    /**
-     * Set return code
-     * @param newReturnCode return code
-     */
-    public void setReturnCodeNow(int newReturnCode) {
-        this.returnCode = newReturnCode;
+    public DiagnosticsStatus(DiagnosticStatus status, OffsetDateTime prevUpdate, OffsetDateTime nextUpdate, ErrorCode errorCode) {
+        this.status = status;
+        this.prevUpdate = prevUpdate;
+        this.nextUpdate = nextUpdate;
+        this.errorCode = errorCode;
+    }
+
+    public void setStatusNow(DiagnosticStatus newStatus, ErrorCode newErrorCode) {
+        this.status = newStatus;
+        if (newErrorCode != null) {
+            this.errorCode = newErrorCode;
+        }
         this.prevUpdate = TimeUtils.offsetDateTimeNow();
     }
 }

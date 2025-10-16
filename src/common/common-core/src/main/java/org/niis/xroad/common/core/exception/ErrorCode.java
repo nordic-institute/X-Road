@@ -26,12 +26,14 @@
 package org.niis.xroad.common.core.exception;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Enumeration of all X-Road error codes.
  */
+@Slf4j
 @RequiredArgsConstructor
-public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
+public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
     // ===== GENERIC ERRORS =====
     IO_ERROR("io_error"),
@@ -40,6 +42,7 @@ public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
     BAD_REQUEST("bad_request"),
     NOT_FOUND("not_found"),
     HTTP_ERROR("http_error"),
+    UNKNOWN_HOST("unknown_host"),
     DATABASE_ERROR("database_error"),
     INVALID_RESPONSE("invalid_response"),
     INVALID_REQUEST("invalid_request"),
@@ -60,7 +63,6 @@ public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_CERT_PATH("invalid_cert_path"),
     SIGNATURE_VERIFICATION("signature_verification"),
     MALFORMED_SOAP("malformed_soap"),
-    TIMESTAMP_VALIDATION("timestamp_validation"),
     INVALID_HASH_CHAIN_RESULT("invalid_hash_chain"),
     MALFORMED_HASH_CHAIN("malformed_hash_chain"),
     HASHCHAIN_UNUSED_INPUTS("hashchain_unused_inputs"),
@@ -74,7 +76,7 @@ public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
     LOGGING_FAILED("logging_failed"),
     TIMESTAMPING_FAILED("timestamping_failed"),
     INVALID_CONTENT_TYPE("invalid_content_type"),
-    INVALID_SOAPACTION("invalid_soap_action"),
+    INVALID_SOAP_ACTION("invalid_soap_action"),
     INVALID_HTTP_METHOD("invalid_http_method"),
     INVALID_MESSAGE("invalid_message"),
     INVALID_SECURITY_SERVER("invalid_security_server"),
@@ -118,12 +120,30 @@ public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
     MALFORMED_GLOBALCONF("malformed_global_conf"),
     MALFORMED_OPTIONAL_PARTS_CONF("malformed_optional_parts_conf"),
     MISSING_GLOBALCONF("malformed_global_conf"),
-    OUTDATED_GLOBALCONF("outdated_global_conf"),
     SERVICE_MISSING_URL("service_missing_url"),
     SERVICE_MALFORMED_URL("service_malformed_url"),
     ADAPTER_WSDL_NOT_FOUND("adapter_wsdl_not_found"),
     HW_MODULE_NON_OPERATIONAL("hsm_non_operational"),
     MAINTENANCE_MODE("maintenance_mode"),
+    FAILED_TO_SAVE_INSTANCE_IDENTIFIER("failed_to_save_instance_identifier"),
+    GLOBAL_CONF_DOWNLOAD_URL_CONNECTION_FAILURE("global_conf_download_url_connection_failure"),
+    GLOBAL_CONF_GET_VERSION_FAILED("global_conf_get_version_failed"),
+    GLOBAL_CONF_HEADER_FIELD_MISSING("global_conf_header_field_missing"),
+    GLOBAL_CONF_HEADER_FIELD_MISSING_PARAMETER("global_conf_header_field_missing_parameter"),
+    GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE("global_conf_header_field_wrong_value"),
+    GLOBAL_CONF_MISSING_SIGNED_DATA("global_conf_missing_signed_data"),
+    GLOBAL_CONF_MISSING_SIGNED_DATA_EXPIRATION_DATE("global_conf_missing_signed_data_expiration_date"),
+    GLOBAL_CONF_MISSING_VERIFICATION_CERT("global_conf_missing_verification_cert"),
+    GLOBAL_CONF_SIGNATURE_DECODE_FAILURE("global_conf_signature_decode_failure"),
+    GLOBAL_CONF_SIGNATURE_VERIFICATION_FAILURE("global_conf_signature_verification_failure"),
+    GLOBAL_CONF_PARSING_DOWNLOADED_CONF_DIRECTORY_FAILURE("global_conf_parsing_downloaded_conf_directory_failure"),
+    GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER("global_conf_part_invalid_instance_identifier"),
+    GLOBAL_CONF_PART_DOWNLOAD_FAILURE("global_conf_part_download_failure"),
+    GLOBAL_CONF_PART_DOWNLOADED_FILE_INTEGRITY_FAILURE("global_conf_part_downloaded_file_integrity_failure"),
+    GLOBAL_CONF_PART_DOWNLOADED_HASH_FAILURE("global_conf_part_downloaded_hash_failure"),
+    GLOBAL_CONF_PART_FILE_HASH_FAILURE("global_conf_part_file_hash_failure"),
+    GLOBAL_CONF_PART_FILE_SAVE_FAILURE("global_conf_part_file_save_failure"),
+    GLOBAL_CONF_PART_FILE_EXPIRATION_DATE_UPDATE_FAILURE("global_conf_part_file_expiration_date_update_failure"),
 
     // ===== SIGNER ERRORS =====
     KEY_NOT_FOUND("key_not_found"),
@@ -152,6 +172,35 @@ public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
 
     // ===== MESSAGE LOG ERRORS =====
     MLOG_TIMESTAMPER_FAILED("timestamper_failed"),
+    TIMESTAMP_REQUEST_TIMED_OUT("mlog.timestamp_request_timed_out"),
+    MALFORMED_TIMESTAMP_SERVER_URL("mlog.malformed_timestamp_server_url"),
+    TIMESTAMPING_NON_OK_RESPONSE("mlog.timestamping_non_ok_response"),
+    MLOG_LOG_MANAGER_UNAVAILABLE("mlog.log_manager_unavailable"),
+    NO_TIMESTAMPING_PROVIDER_FOUND("mlog.no_timestamping_provider_found"),
+    TIMESTAMP_TOKEN_SIGNER_INFO_NOT_FOUND("mlog.timestamp_token_signer_info_not_found"),
+    TSP_CERTIFICATE_NOT_FOUND("mlog.tsp_certificate_not_found"),
+    ADDING_SIGNATURE_TO_TS_TOKEN_FAILED("mlog.adding_signature_to_ts_token_failed"),
+    TIMESTAMP_TOKEN_ENCODING_FAILED("mlog.timestamp_token_encoding_failed"),
+    UPDATING_MESSAGE_SIGNATURE_FAILED("mlog.updating_message_signature_failed"),
+    NO_LOG_RECORDS_SPECIFIED("mlog.no_log_records_specified"),
+    MESSAGE_LOG_RECORD_NOT_FOUND("mlog.message_log_record_not_found"),
+    FAILED_TO_BUILD_SIGNATURE_HASH_CHAIN("mlog.failed_to_build_signature_hash_chain"),
+    FAILED_TO_PREPARE_SIGNATURE_DATA("mlog.failed_to_prepare_signature_data"),
+    NO_SIGNATURE_HASHES_SPECIFIED("mlog.no_signature_hashes_specified"),
+    CALCULATING_MESSAGE_DIGEST_FAILED("mlog.calculating_message_digest_failed"),
+    READING_TIMESTAMP_RESPONSE_FAILED("mlog.reading_timestamp_response_failed"),
+    TIMESTAMP_PROVIDER_CONNECTION_FAILED("mlog.timestamp_provider_connection_failed"),
+    TIMESTAMP_RESPONSE_OBJECT_CREATION_FAILED("mlog.timestamp_response_object_creation_failed"),
+    TIMESTAMP_NON_GRANTED_RESPONSE("mlog.timestamp_non_granted_response"),
+    TIMESTAMP_RECORD_SAVE_FAILURE("mlog.timestamp_record_save_failure"),
+    TIMESTAMP_RESPONSE_VALIDATION_FAILED("mlog.timestamp_response_validation_failed"),
+    TIMESTAMP_SIGNER_VERIFICATION_FAILED("mlog.timestamp_signer_verification_failed"),
+
+    // ===== OCSP ERRORS ====='
+    OCSP_CONNECTION_ERROR("ocsp_connection_error"),
+    OCSP_RESPONSE_PARSING_FAILURE("ocsp_response_parsing_failure"),
+    OCSP_FAILED("ocsp_failed"),
+    OCSP_RESPONSE_VERIFICATION_FAILURE("ocsp_response_verification_failure"),
 
     // ===== SECURITY SERVER ERRORS =====
     SECURITY_SERVER_NOT_FOUND("security_server_not_found"),
@@ -206,7 +255,7 @@ public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
     CONF_VERIFICATION_UNREACHABLE("conf_verification.unreachable"),
     INVALID_DOWNLOAD_URL_FORMAT("conf_download.invalid_download_url_format"),
     CONF_DOWNLOAD_FAILED("conf_download_failed"),
-    OUTDATED_GLOBAL_CONF("global_conf_outdated"),
+    GLOBAL_CONF_OUTDATED("global_conf_outdated"),
 
     // ===== OPENAPI ERRORS =====
     ERROR_READING_OPENAPI_FILE("openapi_file_error"),
@@ -245,17 +294,20 @@ public enum ErrorCodes implements DeviationBuilder.ErrorDeviationBuilder {
     }
 
     /**
-     * Get ErrorCode from string code.
+     * Get ErrorDeviation from string code.
      *
      * @param code the string code
-     * @return the ErrorCode enum value, or INTERNAL_ERROR if not found
+     * @return the ErrorDeviation built from the code
      */
-    public static ErrorCodes fromCode(String code) {
-        for (ErrorCodes errorCode : values()) {
-            if (errorCode.code.equals(code)) {
-                return errorCode;
-            }
+    public static DeviationBuilder.ErrorDeviationBuilder withCode(String code) {
+        return () -> prepareCode(code);
+    }
+
+    private static String prepareCode(String code) {
+        if (code == null) {
+            log.warn("Error code is null, defaulting to {}", INTERNAL_ERROR.code());
+            return INTERNAL_ERROR.code();
         }
-        return INTERNAL_ERROR; // Default fallback
+        return code.toLowerCase();
     }
 }

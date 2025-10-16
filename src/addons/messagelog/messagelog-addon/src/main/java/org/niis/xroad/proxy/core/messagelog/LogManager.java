@@ -26,7 +26,8 @@
 package org.niis.xroad.proxy.core.messagelog;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
@@ -40,14 +41,16 @@ import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.annotation.PreDestroy;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
@@ -59,7 +62,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
 import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getAcceptableTimestampFailurePeriodSeconds;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getHashAlg;
@@ -68,13 +70,14 @@ import static ee.ria.xroad.common.messagelog.MessageLogProperties.shouldTimestam
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.niis.xroad.common.core.exception.ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMPING_FAILED;
 
 /**
  * Message log manager. Sets up the whole logging system components.
  * The logging system consists of a task queue, timestamper, archiver and log cleaner.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class LogManager extends AbstractLogManager {
 
     static final long MAX_LOGGABLE_BODY_SIZE = MessageLogProperties.getMaxLoggableBodySize();
@@ -182,7 +185,7 @@ public class LogManager extends AbstractLogManager {
         return new Timestamper(globalConfProvider, serverConfProvider);
     }
 
-    private TimestampRecord timestampImmediately(MessageRecord logRecord) throws Exception {
+    private TimestampRecord timestampImmediately(MessageRecord logRecord) {
         log.trace("timestampImmediately({})", logRecord);
 
         Timestamper.TimestampResult result = timestamper.handleTimestampTask(new Timestamper.TimestampTask(logRecord));
@@ -193,14 +196,15 @@ public class LogManager extends AbstractLogManager {
             case Timestamper.TimestampFailed ttf:
                 Exception e = ttf.getCause();
                 log.error("Timestamping failed", e);
-                putStatusMapFailures(e);
-                throw e;
+                putStatusMapFailures(ttf);
+                throw XrdRuntimeException.systemException(e);
             default:
-                throw new RuntimeException("Unexpected result from Timestamper: " + result.getClass());
+                throw XrdRuntimeException.systemInternalError("Unexpected result from Timestamper: " + result.getClass());
         }
     }
 
-    private static MessageRecord createMessageRecord(SoapLogMessage message) throws Exception {
+    private static MessageRecord createMessageRecord(SoapLogMessage message)
+            throws IOException, SOAPException, JAXBException, IllegalAccessException {
         log.trace("createMessageRecord()");
 
         var manipulator = new MessageBodyManipulator();
@@ -250,7 +254,7 @@ public class LogManager extends AbstractLogManager {
         };
     }
 
-    private static MessageRecord createMessageRecord(RestLogMessage message) throws Exception {
+    private static MessageRecord createMessageRecord(RestLogMessage message) throws IOException {
         log.trace("createMessageRecord()");
 
         final MessageBodyManipulator manipulator = new MessageBodyManipulator();
@@ -288,12 +292,12 @@ public class LogManager extends AbstractLogManager {
         return messageRecord;
     }
 
-    protected MessageRecord saveMessageRecord(MessageRecord messageRecord) throws Exception {
+    protected MessageRecord saveMessageRecord(MessageRecord messageRecord) {
         LogRecordManager.saveMessageRecord(messageRecord);
         return messageRecord;
     }
 
-    static TimestampRecord saveTimestampRecord(Timestamper.TimestampSucceeded message) throws Exception {
+    static TimestampRecord saveTimestampRecord(Timestamper.TimestampSucceeded message) {
         log.trace("saveTimestampRecord()");
 
         putStatusMapSuccess(message.getUrl());
@@ -310,24 +314,18 @@ public class LogManager extends AbstractLogManager {
      * @param url url of timestamper which stamped successfully
      */
     static void putStatusMapSuccess(String url) {
-        statusMap.put(url, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow()));
+        statusMap.put(url, new DiagnosticsStatus(DiagnosticStatus.OK, TimeUtils.offsetDateTimeNow()));
     }
 
-    /**
-     * Put failure state into statusMap (used for diagnostics).
-     * Timestamping ({@link AbstractTimestampRequest} attempts to use all TSAs, and failure means that
-     * all were tried and failed, so all TSAs will be marked with failed status
-     *
-     * @param e exception which is used to determine diagnostics error code
-     */
-    void putStatusMapFailures(Exception e) {
-        int errorCode = DiagnosticsUtils.getErrorCode(e);
-        for (String tspUrl : serverConfProvider.getTspUrl()) {
-            statusMap.put(tspUrl,
-                    new DiagnosticsStatus(errorCode, TimeUtils.offsetDateTimeNow(), tspUrl));
-        }
+    void putStatusMapFailures(Timestamper.TimestampFailed timestampFailedResult) {
+        timestampFailedResult.getErrorsByUrl().forEach((tspUrl, ex) -> {
+            ErrorCode errorCode = DiagnosticsUtils.getErrorCode(ex);
+            DiagnosticsStatus diagnosticsStatus =
+                    new DiagnosticsStatus(DiagnosticStatus.ERROR, TimeUtils.offsetDateTimeNow(), tspUrl, errorCode);
+            diagnosticsStatus.setErrorCodeMetadata(DiagnosticsUtils.getErrorCodeMetadata(ex));
+            statusMap.put(tspUrl, diagnosticsStatus);
+        });
     }
-
 
     private static TimestampRecord createTimestampRecord(Timestamper.TimestampSucceeded message) {
         TimestampRecord timestampRecord = new TimestampRecord();
@@ -351,7 +349,7 @@ public class LogManager extends AbstractLogManager {
     }
 
     /**
-     * Only externally use this method from tests. Otherwise send message to this actor.
+     * Only externally use this method from tests. Otherwise, send message to this actor.
      */
     void setTimestampSucceeded() {
         if (timestampFailed != null) {
@@ -369,8 +367,9 @@ public class LogManager extends AbstractLogManager {
 
     private void verifyCanLogMessage(boolean shouldTimestampImmediately) {
         if (serverConfProvider.getTspUrl().isEmpty()) {
-            throw new CodedException(X_MLOG_TIMESTAMPER_FAILED,
-                    "Cannot time-stamp messages: no timestamping services configured");
+            throw XrdRuntimeException.systemException(NO_TIMESTAMPING_PROVIDER_FOUND)
+                    .details("Cannot time-stamp messages: no timestamping services configured")
+                    .build();
         }
 
         if (!shouldTimestampImmediately) {
@@ -382,17 +381,19 @@ public class LogManager extends AbstractLogManager {
 
             if (isTimestampFailed()) {
                 if (TimeUtils.now().minusSeconds(period).isAfter(timestampFailed)) {
-                    throw new CodedException(X_MLOG_TIMESTAMPER_FAILED, "Cannot time-stamp messages");
+                    throw XrdRuntimeException.systemException(TIMESTAMPING_FAILED)
+                            .details("Cannot time-stamp messages")
+                            .build();
                 }
             }
         }
     }
 
-    static String signatureHash(String signatureXml) throws Exception {
+    static String signatureHash(String signatureXml) throws IOException {
         return encodeBase64(getInputHash(signatureXml));
     }
 
-    private static byte[] getInputHash(String str) throws Exception {
+    private static byte[] getInputHash(String str) throws IOException {
         return calculateDigest(getHashAlg(), str.getBytes(UTF_8));
     }
 

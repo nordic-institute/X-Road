@@ -31,9 +31,9 @@ import ee.ria.xroad.common.util.MimeTypes;
 
 import lombok.Getter;
 import lombok.NonNull;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -65,10 +65,11 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * Encapsulates the creation of the ASiC-container, which is essentially a
  * ZIP file containing the message and signature.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AsicContainer {
 
-    /** Holds the entries in the container. */
+    /**
+     * Holds the entries in the container.
+     */
     private final Map<String, String> entries = new HashMap<>();
     @Getter
     private final List<InputStream> attachments;
@@ -76,7 +77,7 @@ public class AsicContainer {
     @Getter
     private final long creationTime;
 
-    AsicContainer(Map<String, String> entries, @NonNull Map<String, byte[]> attachmentDigests) throws Exception {
+    AsicContainer(Map<String, String> entries, @NonNull Map<String, byte[]> attachmentDigests) {
         this.entries.putAll(entries);
         this.attachments = List.of();
         this.attachmentDigests = Map.copyOf(attachmentDigests);
@@ -88,15 +89,16 @@ public class AsicContainer {
     /**
      * Creates an AsicContainer containing given message, signature and timestamp.
      * Attempts to verify its contents.
-     * @param message content of the signed message
-     * @param signature signature of the message
-     * @param timestamp timestamp data of the message
+     *
+     * @param message     content of the signed message
+     * @param signature   signature of the message
+     * @param timestamp   timestamp data of the message
      * @param attachments message attachments. For Rest messages, the first attachment is message body.
-     * @param time logrecord creation time
-     * @throws Exception if container content verification fails
+     * @param time        logrecord creation time
+     * @throws IOException if container content verification fails
      */
     public AsicContainer(String message, SignatureData signature,
-                         TimestampData timestamp, List<InputStream> attachments, long time) throws Exception {
+                         TimestampData timestamp, List<InputStream> attachments, long time) throws IOException {
         put(ENTRY_MIMETYPE, MIMETYPE);
         put(ENTRY_MESSAGE, message);
         put(ENTRY_SIGNATURE, signature.getSignatureXml());
@@ -120,6 +122,7 @@ public class AsicContainer {
 
     /**
      * Returns the message within the container.
+     *
      * @return message within the container
      */
     public String getMessage() {
@@ -128,6 +131,7 @@ public class AsicContainer {
 
     /**
      * Returns the signature within the container.
+     *
      * @return signature within the container
      */
     public SignatureData getSignature() {
@@ -138,6 +142,7 @@ public class AsicContainer {
 
     /**
      * Returns the timestamp within the container.
+     *
      * @return timestamp within the container
      */
     public TimestampData getTimestamp() {
@@ -153,6 +158,7 @@ public class AsicContainer {
 
     /**
      * Gets the generated manifest of the container.
+     *
      * @return generated manifest of the container
      */
     public String getManifest() {
@@ -161,6 +167,7 @@ public class AsicContainer {
 
     /**
      * Gets the generated manifest of the time-stamped data object.
+     *
      * @return generated manifest of the time-stamped data object.
      */
     public String getAsicManifest() {
@@ -169,6 +176,7 @@ public class AsicContainer {
 
     /**
      * True if the given file is an attachment.
+     *
      * @param fileName the file to check
      * @return true if the given file is an attachment, false otherwise
      */
@@ -178,6 +186,7 @@ public class AsicContainer {
 
     /**
      * True if the given file is an entry in this container.
+     *
      * @param fileName the file to check
      * @return true if the given file is an entry in this container, false otherwise
      */
@@ -187,6 +196,7 @@ public class AsicContainer {
 
     /**
      * Gets the data for the entry with the given filename.
+     *
      * @param fileName the file for which to get the entry data
      * @return input stream containing the data for the entry with the given filename
      */
@@ -198,6 +208,7 @@ public class AsicContainer {
 
     /**
      * Gets the string contents of the entry with the given filename.
+     *
      * @param fileName the file for which to get the string contents
      * @return string contents of the entry with the given filename
      */
@@ -211,26 +222,28 @@ public class AsicContainer {
 
     /**
      * Create a ASiC container from the given input stream.
+     *
      * @param is the stream containing the container ZIP data
      * @return the ASiC container that was read from the input stream
-     * @throws Exception if errors occurred when reading ZIP entries from the stream
+     * @throws IOException if errors occurred when reading ZIP entries from the stream
      */
-    public static AsicContainer read(InputStream is) throws Exception {
+    public static AsicContainer read(InputStream is) throws IOException {
         return AsicHelper.read(is);
     }
 
     /**
      * Write this container to the given output stream in ZIP format.
+     *
      * @param out the stream for writing container
      * @throws Exception if errors occurred when writing ZIP entries
      */
-    public void write(OutputStream out) throws Exception {
+    public void write(OutputStream out) throws IOException {
         try (ZipOutputStream zip = new ZipOutputStream(out)) {
             AsicHelper.write(this, zip);
         }
     }
 
-    private void createManifests() throws Exception {
+    private void createManifests() throws IOException {
         createOpenDocumentManifest();
         createAsicManifest();
     }
@@ -256,7 +269,7 @@ public class AsicContainer {
         put(ENTRY_MANIFEST, b.build());
     }
 
-    private void createAsicManifest() throws Exception {
+    private void createAsicManifest() throws IOException {
         String tsHashChainResult = get(ENTRY_TS_HASH_CHAIN_RESULT);
         if (tsHashChainResult == null) {
             return;
@@ -275,7 +288,7 @@ public class AsicContainer {
         put(ENTRY_ASIC_MANIFEST, b.build());
     }
 
-    private void verifyContents() throws Exception {
+    private void verifyContents() {
         AsicHelper.verifyMimeType(get(ENTRY_MIMETYPE));
         AsicHelper.verifyMessage(get(ENTRY_MESSAGE));
         AsicHelper.verifySignature(get(ENTRY_SIGNATURE),

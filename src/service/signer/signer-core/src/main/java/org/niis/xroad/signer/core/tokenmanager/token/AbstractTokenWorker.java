@@ -32,6 +32,7 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.PasswordStore;
 
+import iaik.pkcs.pkcs11.TokenException;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -39,7 +40,7 @@ import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
@@ -50,9 +51,18 @@ import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
 import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
@@ -65,7 +75,6 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
  * Token worker base class.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLifecycle {
     private final String workerId;
 
@@ -177,13 +186,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     }
 
     protected boolean isPinStored() {
-        try {
-            return PasswordStore.getPassword(tokenId) != null;
-        } catch (Exception e) {
-            log.error("Error when checking if token is active", e);
-
-            return false;
-        }
+        return PasswordStore.getPassword(tokenId).isPresent();
     }
 
     protected String getWorkerId() {
@@ -197,18 +200,24 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
     // ------------------------------------------------------------------------
 
-    protected abstract void activateToken(ActivateTokenReq message) throws Exception;
+    protected abstract void activateToken(ActivateTokenReq message);
 
-    protected abstract GenerateKeyResult generateKey(GenerateKeyReq message) throws Exception;
+    protected abstract GenerateKeyResult generateKey(GenerateKeyReq message)
+            throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
+            OperatorCreationException, TokenException, InvalidKeySpecException;
 
-    protected abstract void deleteKey(String keyId) throws Exception;
+    protected abstract void deleteKey(String keyId) throws IOException, TokenException;
 
-    protected abstract void deleteCert(String certId) throws Exception;
+    protected abstract void deleteCert(String certId);
 
-    protected abstract byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception;
+    protected abstract byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data)
+            throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException, UnrecoverableKeyException,
+            CertificateException, IOException, KeyStoreException, TokenException;
 
     protected abstract byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName,
-                                              PublicKey publicKey) throws Exception;
+                                              PublicKey publicKey)
+            throws UnrecoverableKeyException, CertificateException, IOException, KeyStoreException,
+            NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException;
 
     protected abstract SignMechanism resolveSignMechanism(KeyAlgorithm algorithm);
 

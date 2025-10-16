@@ -40,17 +40,21 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.exceptions.XMLSecurityException;
+import org.apache.xml.security.keys.keyresolver.KeyResolverException;
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureByteInput;
 import org.apache.xml.security.signature.XMLSignatureDigestInput;
+import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
@@ -61,8 +65,10 @@ import org.w3c.dom.Node;
 import javax.xml.transform.dom.DOMSource;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -82,7 +88,6 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
  * signature used in signing messages.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class SignatureVerifier {
 
     private final GlobalConfProvider globalConfProvider;
@@ -223,7 +228,7 @@ public class SignatureVerifier {
      * @return the signing certificate
      * @throws Exception if an error occurs
      */
-    public X509Certificate getSigningCertificate() throws Exception {
+    public X509Certificate getSigningCertificate() throws KeyResolverException {
         X509Certificate cert = signature.getSigningCertificate();
         if (cert == null) {
             throw new CodedException(X_MALFORMED_SIGNATURE,
@@ -244,10 +249,9 @@ public class SignatureVerifier {
      *
      * @param instanceIdentifier the instance identifier
      * @return the OCSP response of the signing certificate
-     * @throws Exception if an error occurs
      */
     public OCSPResp getSigningOcspResponse(String instanceIdentifier)
-            throws Exception {
+            throws KeyResolverException, CertificateEncodingException, IOException, OCSPException, OperatorCreationException {
         X509Certificate cert = signature.getSigningCertificate();
         List<OCSPResp> responses = signature.getOcspResponses();
         X509Certificate issuer = globalConfProvider.getCaCert(instanceIdentifier, cert);
@@ -275,9 +279,8 @@ public class SignatureVerifier {
      * @param signer names the subject that claims to have been signed
      *               the message.
      * @param atDate Date that is used to check validity of the certificates.
-     * @throws Exception if verification fails
      */
-    public void verify(ClientId signer, Date atDate) throws Exception {
+    public void verify(ClientId signer, Date atDate) throws XMLSecurityException, IOException {
         // first, validate the signature against the Xades schema
         // our asic:XadesSignatures element contains only one Xades signature
         if (verifySchema) {
@@ -299,13 +302,13 @@ public class SignatureVerifier {
         verifyCertificateChain(atDate, signer, signingCert);
     }
 
-    private void verifySchema() throws Exception {
+    private void verifySchema() throws IOException {
         Node signatureNode =
                 signature.getDocument().getDocumentElement().getFirstChild();
         SignatureSchemaValidator.validate(new DOMSource(signatureNode));
     }
 
-    private void verifyHashChain() throws Exception {
+    private void verifyHashChain() {
         HashChainReferenceResolver resolver = hashChainReferenceResolver;
         if (resolver == null) {
             resolver = new HashChainReferenceResolverImpl();
@@ -319,8 +322,7 @@ public class SignatureVerifier {
         }
     }
 
-    private void verifySignerName(ClientId signer,
-                                  X509Certificate signingCert) throws Exception {
+    private void verifySignerName(ClientId signer, X509Certificate signingCert) {
         ClientId cn = globalConfProvider.getSubjectName(
                 new SignCertificateProfileInfoParameters(
                         signer, signer.getMemberCode()
@@ -333,8 +335,7 @@ public class SignatureVerifier {
         }
     }
 
-    private void verifySignatureValue(X509Certificate signingCert)
-            throws Exception {
+    private void verifySignatureValue(X509Certificate signingCert) throws XMLSignatureException {
         XMLSignature s = signature.getXmlSignature();
 
         s.addResourceResolver(new IdResolver(signature.getDocument()));
@@ -350,7 +351,7 @@ public class SignatureVerifier {
         }
     }
 
-    private void verifyTimestampManifests() throws Exception {
+    private void verifyTimestampManifests() throws XMLSecurityException {
         // Get the ts-root-manifest, and then iterate over its references
         // to find any existing ts-manifests and verify their digests.
         List<Manifest> tsManifests = signature.getTimestampManifests();
@@ -378,7 +379,7 @@ public class SignatureVerifier {
                 atDate);
     }
 
-    private Map<String, DigestValue> getHashChainInputs() throws Exception {
+    private Map<String, DigestValue> getHashChainInputs() {
         Map<String, DigestValue> inputs = new HashMap<>();
         for (MessagePart part : parts) {
             inputs.put(part.getName(), getDigestValue(part));
@@ -397,8 +398,7 @@ public class SignatureVerifier {
         return null;
     }
 
-    private static DigestValue getDigestValue(MessagePart part)
-            throws Exception {
+    private static DigestValue getDigestValue(MessagePart part) {
         if (part.getData() != null) {
             return new DigestValue(part.getHashAlgoId(), part.getData());
         }

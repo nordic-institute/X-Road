@@ -37,7 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.security.cert.X509Certificate;
@@ -129,19 +129,19 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
             String sn = CertUtils.getRDNValue(x500Name, BCStyle.SERIALNUMBER);
 
             if (StringUtils.isEmpty(sn)) {
-                throw XrdRuntimeException.businessException(ErrorCodes.INVALID_CERTIFICATE)
+                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
                         .details("Subject name does not contain serial number")
                         .build();
             }
 
             if (!StringUtils.isNumeric(sn)) {
-                throw XrdRuntimeException.businessException(ErrorCodes.INVALID_CERTIFICATE)
+                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
                         .details("Serial number is not an integer")
                         .build();
             }
 
             if (sn.length() != SN_LENGTH) {
-                throw XrdRuntimeException.businessException(ErrorCodes.INVALID_CERTIFICATE)
+                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
                         .details("Serial number must be " + SN_LENGTH + " digits long")
                         .build();
             }
@@ -174,7 +174,7 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
                 case '1', '2', '3', '4', '5', '6' -> COM_MEMBER;
                 case '7' -> GOV_MEMBER;
                 case '8', '9' -> NGO_MEMBER;
-                default -> throw XrdRuntimeException.businessException(ErrorCodes.INTERNAL_ERROR)
+                default -> throw XrdRuntimeException.businessException(ErrorCode.INTERNAL_ERROR)
                         .details("Malformed serial number: " + sn)
                         .build();
             };

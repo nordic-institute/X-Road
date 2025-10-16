@@ -44,8 +44,14 @@ import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,7 +83,9 @@ public class OpMonitoringDaemonSender {
 
     private final AtomicBoolean processing = new AtomicBoolean(false);
 
-    OpMonitoringDaemonSender(ServerConfProvider serverConfProvider, OpMonitoringBuffer opMonitoringBuffer) throws Exception {
+    OpMonitoringDaemonSender(ServerConfProvider serverConfProvider, OpMonitoringBuffer opMonitoringBuffer)
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+            NoSuchAlgorithmException, KeyManagementException {
         this.serverConfProvider = serverConfProvider;
         this.httpClient = createHttpClient();
         this.opMonitoringBuffer = opMonitoringBuffer;
@@ -106,7 +114,7 @@ public class OpMonitoringDaemonSender {
         return Boolean.FALSE.equals(processing.get());
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private void send(String json) throws Exception {
         try (HttpSender sender = new HttpSender(httpClient)) {
             sender.setConnectionTimeout(CONNECTION_TIMEOUT_MILLISECONDS);
@@ -144,8 +152,9 @@ public class OpMonitoringDaemonSender {
                 OpMonitoringDaemonEndpoints.STORE_DATA_PATH, null, null);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    CloseableHttpClient createHttpClient() throws Exception {
+    CloseableHttpClient createHttpClient()
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+            NoSuchAlgorithmException, KeyManagementException {
         return OpMonitoringDaemonHttpClient.createHttpClient(serverConfProvider.getSSLKey(),
                 1, 1,
                 TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorBufferConnectionTimeoutSeconds()),

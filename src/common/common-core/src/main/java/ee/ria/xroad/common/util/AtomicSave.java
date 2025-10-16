@@ -65,7 +65,7 @@ public final class AtomicSave {
          * @param out output stream where data is written during the atomic save
          * @throws Exception if any errors occur
          */
-        @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+        @ArchUnitSuppressed("NoVanillaExceptions")
         void save(OutputStream out) throws Exception;
     }
 
@@ -79,9 +79,8 @@ public final class AtomicSave {
      * @param options   options specifying how the move should be done
      * @throws Exception if any errors occur
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public static void execute(String fileName, String tmpPrefix, Callback callback, CopyOption... options)
-            throws Exception {
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    public static void execute(String fileName, String tmpPrefix, Callback callback, CopyOption... options) throws Exception {
         Path target = Paths.get(fileName);
         Path parentPath = target.getParent();
         Path tempFile = DefaultFilepaths.createTempFile(parentPath, tmpPrefix, null);
@@ -115,7 +114,7 @@ public final class AtomicSave {
      * @param options   options specifying how the move should be done
      * @throws Exception if any errors occur
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public static void execute(String fileName, String tmpPrefix, final byte[] data, CopyOption... options)
             throws Exception {
         execute(fileName, tmpPrefix, out -> out.write(data), options);

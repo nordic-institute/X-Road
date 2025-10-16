@@ -53,7 +53,7 @@ public class AuthKeyReloadTest extends AbstractProxyIntegrationTest {
 
     static final ResponseSpecification SERVER_ERROR = new ResponseSpecBuilder()
             .expectStatusCode(500)
-            .expectHeader("X-Road-Error", "Server.ServerProxy.service_failed.ssl_authentication_failed")
+            .expectHeader("X-Road-Error", "server.serverproxy.service_failed.ssl_authentication_failed")
             .build();
 
     public static final PKCS12 AUTH_KEY1 = TestCertUtil.loadPKCS12("consumer.p12", "1", "test");

@@ -40,7 +40,7 @@ public final class StdinValidator {
     /**
      * Program entry point
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public static void main(String[] args) throws Exception {
         String string = IOUtils.toString(System.in, UTF_8);
         System.out.println(string);

@@ -47,7 +47,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.common.core.exception.ErrorCodes.INVALID_ENCODED_ID;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_ENCODED_ID;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_CLIENT_TYPE;
 
 /**

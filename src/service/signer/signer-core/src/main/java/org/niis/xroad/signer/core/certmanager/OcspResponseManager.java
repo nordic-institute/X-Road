@@ -69,7 +69,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
  */
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class OcspResponseManager {
     private final GlobalConfProvider globalConfProvider;
     private final OcspClient ocspClient;
@@ -129,25 +129,26 @@ public class OcspResponseManager {
     public GetOcspResponsesResponse handleGetOcspResponses(GetOcspResponses message) throws Exception {
         log.trace("handleGetOcspResponses()");
 
-        String[] base64EncodedResponses = new String[message.getCertHash().length];
-        for (int i = 0; i < message.getCertHash().length; i++) {
-            OCSPResp ocspResponse = getResponse(message.getCertHash()[i]);
+        String[] certHashes = message.getCertHash();
+        String[] base64EncodedResponses = new String[certHashes.length];
+        for (int i = 0; i < certHashes.length; i++) {
+            OCSPResp ocspResponse = getResponse(certHashes[i]);
             if (ocspResponse == null) {
-                log.debug("No cached OCSP response available for cert {}", message.getCertHash()[i]);
+                log.debug("No cached OCSP response available for cert {}", certHashes[i]);
                 // if the response is not in local cache, download it
-                ocspResponse = downloadOcspResponse(message.getCertHash()[i]);
+                ocspResponse = downloadOcspResponse(certHashes[i]);
                 if (ocspResponse != null) {
-                    setResponse(message.getCertHash()[i], ocspResponse);
+                    setResponse(certHashes[i], ocspResponse);
                 }
             } else {
-                log.debug("Found a cached OCSP response for cert {}", message.getCertHash()[i]);
+                log.debug("Found a cached OCSP response for cert {}", certHashes[i]);
             }
 
             if (ocspResponse != null) {
-                log.debug("Acquired an OCSP response for certificate {}", message.getCertHash()[i]);
+                log.debug("Acquired an OCSP response for certificate {}", certHashes[i]);
                 base64EncodedResponses[i] = encodeBase64(ocspResponse.getEncoded());
             } else {
-                log.warn("Could not acquire an OCSP response for certificate {}", message.getCertHash()[i]);
+                log.warn("Could not acquire an OCSP response for certificate {}", certHashes[i]);
             }
         }
 
@@ -175,7 +176,7 @@ public class OcspResponseManager {
         }
     }
 
-    public void handleSetOcspResponses(SetOcspResponsesReq message) throws Exception {
+    public void handleSetOcspResponses(SetOcspResponsesReq message) throws IOException {
         log.trace("handleSetOcspResponses()");
 
         for (int i = 0; i < message.getCertHashesCount(); i++) {

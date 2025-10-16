@@ -68,14 +68,7 @@ cd "$XROAD_HOME"/Docker/securityserver
 ./init_context.sh
 mkdir -p build/packages
 cp "$PACKAGES_LOCAL_PATH"/* build/packages/
-docker build --build-arg PACKAGE_SOURCE=$TARGET_PACKAGE_SOURCE --target final -t xrd-securityserver-dev .
-
-echo "Building xrd-securityserver-hwtoken-dev image.."
-cd "$XROAD_HOME"/Docker/securityserver
-./init_context.sh
-mkdir -p build/packages
-cp "$PACKAGES_LOCAL_PATH"/* build/packages/
-docker build --build-arg PACKAGE_SOURCE=$TARGET_PACKAGE_SOURCE --target final-hwtoken -t xrd-securityserver-hwtoken-dev .
+docker build --build-arg PACKAGE_SOURCE=$TARGET_PACKAGE_SOURCE -t xrd-securityserver-dev .
 
 echo "Building xrd-testca image.."
 cd "$XROAD_HOME"/Docker/testca

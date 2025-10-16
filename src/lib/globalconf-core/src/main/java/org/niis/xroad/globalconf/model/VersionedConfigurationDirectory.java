@@ -31,10 +31,8 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-
-import javax.annotation.concurrent.Immutable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,6 +43,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +64,6 @@ import static org.niis.xroad.globalconf.model.ConfigurationUtils.escapeInstanceI
  *
  */
 @Slf4j
-@Immutable
 public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     @Getter
@@ -293,7 +291,13 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     private SharedParametersCache getSharedParametersCache(SharedParameters sharedParams) {
         return sharedParametersCacheMap.computeIfAbsent(sharedParams.getInstanceIdentifier(),
-                k -> new SharedParametersCache(sharedParams));
+                k -> {
+                    try {
+                        return new SharedParametersCache(sharedParams);
+                    } catch (IOException | CertificateEncodingException e) {
+                        throw XrdRuntimeException.systemInternalError("Failed to create SharedParametersCache for instance ", e);
+                    }
+                });
     }
 
     /**
@@ -341,7 +345,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
                 consumer.consume(metadata, is);
             } catch (Exception e) {
-                throw XrdRuntimeException.systemException(ErrorCodes.INTERNAL_ERROR)
+                throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                         .cause(e)
                         .details("Error processing configuration file")
                         .metadataItems(filepath)

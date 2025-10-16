@@ -82,7 +82,7 @@ import java.util.Optional;
  * Client proxy that handles requests of service clients.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ClientProxy implements InitializingBean, DisposableBean {
     private static final int ACCEPTOR_COUNT = Runtime.getRuntime().availableProcessors();
 

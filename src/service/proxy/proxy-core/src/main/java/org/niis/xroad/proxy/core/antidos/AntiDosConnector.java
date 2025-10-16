@@ -57,7 +57,6 @@ import java.util.concurrent.Semaphore;
  * also get closed.
  */
 @Slf4j
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class AntiDosConnector extends ServerConnector {
     private final AntiDosConfiguration configuration = new AntiDosConfiguration();
 
@@ -108,6 +107,7 @@ public class AntiDosConnector extends ServerConnector {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions")
     protected void doStart() throws Exception {
         super.doStart();
 

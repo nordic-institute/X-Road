@@ -63,7 +63,7 @@ import org.springframework.context.annotation.Import;
         ServerConfBeanConfig.class,
 })
 @Configuration
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ProxyConfig {
 
     @Bean

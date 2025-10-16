@@ -25,13 +25,14 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -58,19 +59,22 @@ public class ConfigurationClientJob implements Job {
                 log.warn("Proxy configuration backup job is running, skipping configuration client execution.");
                 return;
             }
-            configClient.execute();
+            DownloadResult downloadResult = configClient.execute();
 
             DiagnosticsStatus status =
-                    new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
+                    new DiagnosticsStatus(DiagnosticStatus.OK, TimeUtils.offsetDateTimeNow(),
                             TimeUtils.offsetDateTimeNow()
                                     .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
-
+            status.setDescription(downloadResult.getLastSuccessfulLocationUrl());
             jobExecutionContext.setResult(status);
         } catch (Exception e) {
-            DiagnosticsStatus status = new DiagnosticsStatus(ConfigurationClientUtils.getErrorCode(e),
+            DiagnosticsStatus status = new DiagnosticsStatus(DiagnosticStatus.ERROR,
                     TimeUtils.offsetDateTimeNow(),
                     TimeUtils.offsetDateTimeNow()
-                            .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+                            .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()),
+                    DiagnosticsUtils.getErrorCode(e));
+            status.setErrorCodeMetadata(DiagnosticsUtils.getErrorCodeMetadata(e));
+            status.setDescription(configClient.getLastSuccessfulLocationUrl());
             jobExecutionContext.setResult(status);
 
             log.error("Error executing job.", e);

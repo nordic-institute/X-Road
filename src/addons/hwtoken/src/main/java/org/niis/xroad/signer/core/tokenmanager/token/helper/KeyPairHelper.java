@@ -30,9 +30,11 @@ import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.KeyPair;
 import iaik.pkcs.pkcs11.objects.PublicKey;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
 import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
+
+import java.io.IOException;
+import java.security.spec.InvalidKeySpecException;
 
 public sealed interface KeyPairHelper permits RsaKeyPairHelper, EcKeyPairHelper {
 
@@ -41,8 +43,7 @@ public sealed interface KeyPairHelper permits RsaKeyPairHelper, EcKeyPairHelper 
                           PubKeyAttributes pubKeyAttributes,
                           PrivKeyAttributes privKeyAttributes) throws TokenException;
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    byte[] generateX509PublicKey(PublicKey publicKey) throws Exception;
+    byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException, IOException;
 
     static KeyPairHelper of(KeyAlgorithm algorithm) {
         return switch (algorithm) {

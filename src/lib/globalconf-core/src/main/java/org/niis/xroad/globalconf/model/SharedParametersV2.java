@@ -31,14 +31,12 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import lombok.AccessLevel;
 import lombok.Getter;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.sharedparameters.v2.ObjectFactory;
 import org.niis.xroad.globalconf.schema.sharedparameters.v2.SharedParametersTypeV2;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 
 /**
@@ -61,21 +59,21 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
 
     // This constructor is used for simple verifications after configuration download.
     // It does not initialise class fully!
-    SharedParametersV2(byte[] content) throws CertificateEncodingException, IOException {
+    SharedParametersV2(byte[] content) {
         super(content, SharedParametersSchemaValidatorV2.class);
         expiresOn = OffsetDateTime.MAX;
         sharedParameters = converter.convert(confType);
         initCompleted = true;
     }
 
-    public SharedParametersV2(Path sharedParametersPath, OffsetDateTime expiresOn) throws CertificateEncodingException, IOException {
+    public SharedParametersV2(Path sharedParametersPath, OffsetDateTime expiresOn) {
         super(sharedParametersPath.toString(), SharedParametersSchemaValidatorV2.class);
         this.expiresOn = expiresOn;
         sharedParameters = converter.convert(confType);
         initCompleted = true;
     }
 
-    private SharedParametersV2(SharedParametersV2 original, OffsetDateTime newExpiresOn) throws CertificateEncodingException, IOException {
+    private SharedParametersV2(SharedParametersV2 original, OffsetDateTime newExpiresOn) {
         super(original);
         expiresOn = newExpiresOn;
         sharedParameters = converter.convert(confType);
@@ -83,12 +81,12 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     }
 
     @Override
-    public SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException {
+    public SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) {
         return new SharedParametersV2(this, fileExpiresOn);
     }
 
     @Override
-    public void load(String fileName) throws IOException, OperatorCreationException, JAXBException, IllegalAccessException {
+    public void load(String fileName) {
         throwIfInitCompleted();
         super.load(fileName);
     }

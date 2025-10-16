@@ -26,9 +26,7 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
@@ -79,31 +77,28 @@ public final class ParametersProviderFactory {
     }
 
 
-    public SharedParametersProvider sharedParametersProvider(byte[] content) throws CertificateEncodingException, IOException {
+    public SharedParametersProvider sharedParametersProvider(byte[] content) {
         return paramsConstructors.sharedByContent.create(content);
     }
 
-    public SharedParametersProvider sharedParametersProvider(Path sharedParametersPath, OffsetDateTime expiresOn)
-            throws CertificateEncodingException, IOException {
+    public SharedParametersProvider sharedParametersProvider(Path sharedParametersPath, OffsetDateTime expiresOn) {
         return paramsConstructors.sharedByPath.create(sharedParametersPath, expiresOn);
     }
 
-    public PrivateParametersProvider privateParametersProvider(byte[] content)
-            throws CertificateEncodingException, IOException {
+    public PrivateParametersProvider privateParametersProvider(byte[] content) {
         return paramsConstructors.privateByContent.create(content);
     }
 
-    public PrivateParametersProvider privateParametersProvider(Path privateParametersPath, OffsetDateTime expiresOn)
-            throws CertificateEncodingException, IOException {
+    public PrivateParametersProvider privateParametersProvider(Path privateParametersPath, OffsetDateTime expiresOn) {
         return paramsConstructors.privateByPath.create(privateParametersPath, expiresOn);
     }
 
     interface ByContent<T> {
-        T create(byte[] content) throws CertificateEncodingException, IOException;
+        T create(byte[] content);
     }
 
     interface ByPathAndExpireDate<T> {
-        T create(Path privateParametersPath, OffsetDateTime expiresOn) throws CertificateEncodingException, IOException;
+        T create(Path privateParametersPath, OffsetDateTime expiresOn);
     }
 
     record ParamsConstructors(ByContent<SharedParametersProvider> sharedByContent,

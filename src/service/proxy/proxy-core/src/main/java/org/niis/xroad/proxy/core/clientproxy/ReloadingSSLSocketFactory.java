@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import lombok.SneakyThrows;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
@@ -36,7 +36,8 @@ import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 class ReloadingSSLSocketFactory extends SSLSocketFactory {
@@ -51,12 +52,12 @@ class ReloadingSSLSocketFactory extends SSLSocketFactory {
         reload();
     }
 
-    @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck") //TODO XRDDEV-2390 will be refactored in the future
     public void reload() {
         lock.writeLock().lock();
         try {
             internalFactory = SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider).getSocketFactory();
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw XrdRuntimeException.systemException(e);
         } finally {
             lock.writeLock().unlock();
         }
@@ -93,7 +94,7 @@ class ReloadingSSLSocketFactory extends SSLSocketFactory {
     }
 
     @Override
-    public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
+    public Socket createSocket(String host, int port) throws IOException {
         lock.readLock().lock();
         try {
             return internalFactory.createSocket(host, port);
@@ -103,7 +104,7 @@ class ReloadingSSLSocketFactory extends SSLSocketFactory {
     }
 
     @Override
-    public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException, UnknownHostException {
+    public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException {
         lock.readLock().lock();
         try {
             return internalFactory.createSocket(host, port, localHost, localPort);

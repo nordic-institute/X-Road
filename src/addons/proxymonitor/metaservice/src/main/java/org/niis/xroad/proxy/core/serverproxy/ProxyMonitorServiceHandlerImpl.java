@@ -40,9 +40,9 @@ import ee.ria.xroad.common.util.XmlUtils;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
@@ -56,9 +56,13 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -116,9 +120,9 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
     public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
-                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception {
+                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData)
+            throws ParserConfigurationException, IOException, SAXException, SOAPException, JAXBException {
 
         // It's required that in case of proxy monitor service (where SOAP
         // message is not forwarded) the requestOutTs must be equal with the
@@ -153,11 +157,8 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
     /**
      * Read requested monitoring parameter names from SOAP body. Returns empty list if no explicit metric names defined.
      *
-     * @param proxyRequestMessage
-     * @return
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private List<String> getMetricNames(ProxyMessage proxyRequestMessage) throws Exception {
+    private List<String> getMetricNames(ProxyMessage proxyRequestMessage) throws ParserConfigurationException, IOException, SAXException {
         List<String> metricNames = new ArrayList<>();
 
         Document doc = parse(proxyRequestMessage);
@@ -172,19 +173,14 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
     /**
      * Create XML DOM representation from input stream.
      *
-     * @param proxyRequestMessage
-     * @return
-     * @throws Exception
      */
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private Document parse(ProxyMessage proxyRequestMessage) throws Exception {
+    private Document parse(ProxyMessage proxyRequestMessage) throws ParserConfigurationException, IOException, SAXException {
         byte[] bytes = proxyRequestMessage.getSoap().getBytes();
         return XmlUtils.parseDocument(new ByteArrayInputStream(bytes), true);
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public void finishHandling() throws Exception {
+    public void finishHandling() {
         // nothing to do
     }
 
@@ -194,8 +190,7 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    public InputStream getResponseContent() throws Exception {
+    public InputStream getResponseContent() {
         return new ByteArrayInputStream(responseOut.toByteArray());
     }
 
@@ -226,8 +221,8 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
                 requestMessage.getSoap().getService());
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private static SoapMessageImpl createResponse(SoapMessageImpl requestMessage, Object response) throws Exception {
+    private static SoapMessageImpl createResponse(SoapMessageImpl requestMessage, Object response)
+            throws SOAPException, JAXBException, IOException {
         return SoapUtils.toResponse(requestMessage,
                 soap -> {
                     soap.getSOAPBody().removeContents();
@@ -235,8 +230,7 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
                 });
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
-    private static void marshal(Object object, Node out) throws Exception {
+    private static void marshal(Object object, Node out) throws JAXBException {
         Marshaller marshaller = JAXB_CTX.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);

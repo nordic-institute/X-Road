@@ -29,17 +29,20 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeTypes;
 
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.soap.SOAPException;
 import org.apache.commons.io.IOUtils;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 /**
  * Utility class providing helper functionality for SOAP messages.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public final class SoapMessageTestUtil {
 
     public static final String QUERY_DIR = "../../service/proxy/proxy-core/src/test/queries/";
@@ -58,11 +61,10 @@ public final class SoapMessageTestUtil {
      * @param userId   user id
      * @param queryId  query id
      * @return SOAP message
-     * @throws Exception in case of any errors
      */
     public static SoapMessageImpl build(ClientId sender,
                                         ServiceId receiver, String userId, String queryId)
-            throws Exception {
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         return build(false, sender, receiver, userId, queryId, null);
     }
 
@@ -75,11 +77,10 @@ public final class SoapMessageTestUtil {
      * @param userId       user id
      * @param queryId      query id
      * @return SOAP message
-     * @throws Exception in case of any errors
      */
     public static SoapMessageImpl build(boolean isRpcEncoded, ClientId sender,
                                         ServiceId receiver, String userId, String queryId)
-            throws Exception {
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         return build(isRpcEncoded, sender, receiver, userId, queryId, null);
     }
 
@@ -93,12 +94,11 @@ public final class SoapMessageTestUtil {
      * @param queryId            query id
      * @param createBodyCallback callback to create body of SOAP message
      * @return SOAP message
-     * @throws Exception in case of any errors
      */
     public static SoapMessageImpl build(boolean isRpcEncoded, ClientId sender,
                                         ServiceId receiver, String userId, String queryId,
                                         SoapBuilder.SoapBodyCallback createBodyCallback)
-            throws Exception {
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         SoapHeader header = new SoapHeader();
         header.setClient(sender);
         header.setService(receiver);
@@ -119,9 +119,8 @@ public final class SoapMessageTestUtil {
      *
      * @param fileName file name
      * @return byte array of the file
-     * @throws Exception in case of any errors
      */
-    public static byte[] fileToBytes(String fileName) throws Exception {
+    public static byte[] fileToBytes(String fileName) throws IOException {
         return IOUtils.toByteArray(newQueryInputStream(fileName));
     }
 
@@ -130,11 +129,10 @@ public final class SoapMessageTestUtil {
      *
      * @param soap SOAP message
      * @return byte array of SOAP message
-     * @throws Exception in case of any errors
      */
-    public static byte[] messageToBytes(Soap soap) throws Exception {
-        if (soap instanceof SoapMessage) {
-            return ((SoapMessage) soap).getBytes();
+    public static byte[] messageToBytes(Soap soap) throws UnsupportedEncodingException {
+        if (soap instanceof SoapMessage soapMessage) {
+            return soapMessage.getBytes();
         }
 
         return soap.getXml().getBytes();
@@ -145,10 +143,8 @@ public final class SoapMessageTestUtil {
      *
      * @param fileName SOAP message file name
      * @return SOAP message
-     * @throws Exception in case of any errors
      */
-    public static Soap createSoapMessage(String fileName)
-            throws Exception {
+    public static Soap createSoapMessage(String fileName) throws FileNotFoundException {
         return createSoapMessage(QUERY_DIR, fileName);
     }
 
@@ -158,10 +154,8 @@ public final class SoapMessageTestUtil {
      * @param queryDir query directory
      * @param fileName SOAP message file name
      * @return SOAP message
-     * @throws Exception in case of any errors
      */
-    public static Soap createSoapMessage(String queryDir, String fileName)
-            throws Exception {
+    public static Soap createSoapMessage(String queryDir, String fileName) throws FileNotFoundException {
         return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, newQueryInputStream(queryDir, fileName));
     }
 
@@ -170,10 +164,8 @@ public final class SoapMessageTestUtil {
      *
      * @param data byte array of SOAP message
      * @return SOAP message
-     * @throws Exception in case of any errors
      */
-    public static Soap createSoapMessage(byte[] data)
-            throws Exception {
+    public static Soap createSoapMessage(byte[] data) {
         return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8,
                 new ByteArrayInputStream(data));
     }
@@ -183,10 +175,8 @@ public final class SoapMessageTestUtil {
      *
      * @param fileName request file name
      * @return SOAP request
-     * @throws Exception in case of any errors
      */
-    public static SoapMessageImpl createRequest(String fileName)
-            throws Exception {
+    public static SoapMessageImpl createRequest(String fileName) throws FileNotFoundException {
         return createRequest(QUERY_DIR, fileName);
     }
 
@@ -196,10 +186,8 @@ public final class SoapMessageTestUtil {
      * @param queryDir query directory
      * @param fileName input file
      * @return SOAP request
-     * @throws Exception when error occurs
      */
-    public static SoapMessageImpl createRequest(String queryDir, String fileName)
-            throws Exception {
+    public static SoapMessageImpl createRequest(String queryDir, String fileName) throws FileNotFoundException {
         Soap message = createSoapMessage(queryDir, fileName);
         if (!(message instanceof SoapMessageImpl)) {
             throw XrdRuntimeException.systemInternalError(
@@ -218,10 +206,8 @@ public final class SoapMessageTestUtil {
      *
      * @param fileName response file name
      * @return SOAP response
-     * @throws Exception in case of any errors
      */
-    public static SoapMessageImpl createResponse(String fileName)
-            throws Exception {
+    public static SoapMessageImpl createResponse(String fileName) throws FileNotFoundException {
         return createResponse(QUERY_DIR, fileName);
     }
 
@@ -231,10 +217,9 @@ public final class SoapMessageTestUtil {
      * @param queryDir query directory
      * @param fileName input file
      * @return SOAP response
-     * @throws Exception when error occurs
      */
     public static SoapMessageImpl createResponse(String queryDir, String fileName)
-            throws Exception {
+            throws FileNotFoundException {
         Soap message = createSoapMessage(queryDir, fileName);
         if (!(message instanceof SoapMessageImpl)) {
             throw XrdRuntimeException.systemInternalError(
@@ -253,10 +238,9 @@ public final class SoapMessageTestUtil {
      *
      * @param fileName query file name
      * @return file input stream of the query file.
-     * @throws Exception in case of any errors
      */
     public static FileInputStream newQueryInputStream(String fileName)
-            throws Exception {
+            throws FileNotFoundException {
         return newQueryInputStream(QUERY_DIR, fileName);
     }
 
@@ -266,10 +250,9 @@ public final class SoapMessageTestUtil {
      * @param queryDir query directory
      * @param fileName input file
      * @return input stream
-     * @throws Exception when error occurs
      */
     public static FileInputStream newQueryInputStream(String queryDir, String fileName)
-            throws Exception {
+            throws FileNotFoundException {
         return new FileInputStream(queryDir + fileName);
     }
 }

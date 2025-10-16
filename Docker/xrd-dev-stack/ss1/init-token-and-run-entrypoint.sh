@@ -19,4 +19,4 @@ fi
 
 chown -R xroad /var/lib/softhsm/tokens
 
-source /root/entrypoint.sh
+exec /root/entrypoint.sh

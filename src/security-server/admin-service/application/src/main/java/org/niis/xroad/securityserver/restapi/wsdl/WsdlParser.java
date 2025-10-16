@@ -30,7 +30,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.core.exception.ErrorCodes;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -134,7 +134,7 @@ public final class WsdlParser {
 
     private static Exception clarifyWsdlParsingException(Exception e) {
         if (identicalOperationsUnderSamePort(e)) {
-            return XrdRuntimeException.businessException(ErrorCodes.INTERNAL_ERROR)
+            return XrdRuntimeException.businessException(ErrorCode.INTERNAL_ERROR)
                     .details("WSDL violates specification: " + e.getMessage())
                     .build();
         }

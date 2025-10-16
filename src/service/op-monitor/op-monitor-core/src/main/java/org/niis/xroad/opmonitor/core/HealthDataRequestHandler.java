@@ -71,7 +71,6 @@ import static org.niis.xroad.opmonitor.core.HealthDataMetricsUtil.getServiceType
  */
 @Slf4j
 @RequiredArgsConstructor
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 public class HealthDataRequestHandler extends QueryRequestHandler {
 
     private static final int SERVICE_ID_NUM_PARTS = 6;
@@ -85,6 +84,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
     private final MetricRegistry healthMetricRegistry;
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public void handle(SoapMessageImpl requestSoap, OutputStream out,
                        Consumer<String> contentTypeCallback) throws Exception {
         log.trace("handle()");
@@ -109,6 +109,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
     }
 
     @SuppressWarnings("unchecked")
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private JAXBElement<?> buildHealthDataResponse(ClientId.Conf clientId) throws Exception {
         GetSecurityServerHealthDataResponseType healthDataResponse =
                 OBJECT_FACTORY.createGetSecurityServerHealthDataResponseType();

@@ -31,7 +31,6 @@ import ee.ria.xroad.common.signature.Signature;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.operator.DigestCalculator;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,13 +72,12 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 /**
  * Utility methods for dealing wit ASiC containers.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
 final class AsicHelper {
 
     private AsicHelper() {
     }
 
-    static AsicContainer read(InputStream is) throws Exception {
+    static AsicContainer read(InputStream is) throws IOException {
         Map<String, String> entries = new HashMap<>();
         ZipInputStream zip = new ZipInputStream(is);
         ZipEntry zipEntry;
@@ -112,7 +110,7 @@ final class AsicHelper {
         return new AsicContainer(entries, attachmentDigests);
     }
 
-    static void write(AsicContainer asic, ZipOutputStream zip) throws Exception {
+    static void write(AsicContainer asic, ZipOutputStream zip) throws IOException {
         zip.setComment("mimetype=" + MIMETYPE);
         final long time = asic.getCreationTime();
 
@@ -166,7 +164,7 @@ final class AsicHelper {
         return false;
     }
 
-    static void verifyMimeType(String mimeType) throws Exception {
+    static void verifyMimeType(String mimeType) {
         if (isBlank(mimeType)) {
             throw fileEmptyException(X_ASIC_MIME_TYPE_NOT_FOUND, ENTRY_MIMETYPE);
         }
@@ -225,11 +223,11 @@ final class AsicHelper {
         }
     }
 
-    private static String getData(ZipInputStream zip) throws Exception {
+    private static String getData(ZipInputStream zip) throws IOException {
         return IOUtils.toString(zip, StandardCharsets.UTF_8);
     }
 
-    private static byte[] getBinaryData(ZipInputStream zip) throws Exception {
+    private static byte[] getBinaryData(ZipInputStream zip) throws IOException {
         return IOUtils.toByteArray(zip);
     }
 
@@ -252,7 +250,7 @@ final class AsicHelper {
         return name;
     }
 
-    static String readTimestampFromSignatureXml(String signatureXml) throws Exception {
+    static String readTimestampFromSignatureXml(String signatureXml) {
         Signature signature = new Signature(signatureXml);
 
         return signature.getSignatureTimestamp();

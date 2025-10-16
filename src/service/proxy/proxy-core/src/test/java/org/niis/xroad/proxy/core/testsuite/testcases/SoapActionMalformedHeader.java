@@ -30,7 +30,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP_ACTION;
 
 /**
  * Check that SOAPAction header is preserved
@@ -56,6 +56,6 @@ public class SoapActionMalformedHeader extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(CLIENT_X, X_INVALID_SOAPACTION);
+        assertErrorCode(CLIENT_X, X_INVALID_SOAP_ACTION);
     }
 }

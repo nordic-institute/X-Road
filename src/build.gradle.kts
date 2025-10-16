@@ -43,7 +43,7 @@ dependencies {
 reporting {
   reports {
     create("jacocoAggregatedReport", JacocoCoverageReport::class) {
-      testType.set("full")
+      testSuiteName.set("full")
       reportTask {
         description = "Build a full test coverage report including test and integrationTest results"
         project.subprojects {

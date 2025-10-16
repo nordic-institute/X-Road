@@ -52,7 +52,7 @@ import java.util.TimeZone;
  * Utility tool for creating an anchor file that is used for downloading
  * the generated global configuration.
  */
-@ArchUnitSuppressed("NoVanillaExceptions") //TODO XRDDEV-2962 review and refactor if needed
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
 
     /**
