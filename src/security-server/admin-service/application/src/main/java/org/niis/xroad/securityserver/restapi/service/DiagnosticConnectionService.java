@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.dto.ConnectionStatus;
 import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.util.HttpUrlConnectionConfigurer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -65,7 +66,6 @@ public class DiagnosticConnectionService {
     private static final String HTTPS = "https";
     private static final Integer PORT_80 = 80;
     private static final Integer PORT_443 = 443;
-    static final String INVALID_SERVER_ADDRESS = "Invalid server address";
 
     private final GlobalConfProvider globalConfProvider;
     private final TokenService tokenService;
@@ -112,9 +112,9 @@ public class DiagnosticConnectionService {
         try {
             connection = (HttpURLConnection) url.openConnection();
             connectionConfigurer.apply(connection);
-
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
+                globalConfProvider.verifyValidity();
                 return DownloadUrlConnectionStatus.ok(getDownloadUrl(url));
             } else {
                 var responseMessage = connection.getResponseMessage() != null ? connection.getResponseMessage() : "";
@@ -134,79 +134,83 @@ public class DiagnosticConnectionService {
 
     public ConnectionStatus getAuthCertRegStatusInfo() {
         CertValidation certValidation = validateAuthCert();
-        // if no certificate, the error is expected, but we want to verify that the connection can be established
-        byte[] certBytes = certValidation.certificateInfo != null
-                ? certValidation.certificateInfo.getCertificateBytes()
-                : new byte[0];
-
         try {
-            managementRequestSenderService.sendAuthCertRegisterRequest(null, certBytes, true);
-            return certValidation.isOk() ? ConnectionStatus.ok()
-                    : ConnectionStatus.error(certValidation.code, certValidation.metadata);
-        } catch (GlobalConfOutdatedException e) {
-            return ConnectionStatus.fromErrorAndValidation(
-                    e.getErrorDeviation().code(),
-                    e.getErrorDeviation().metadata(),
-                    certValidation.code, certValidation.metadata);
+            // the error is expected, but we want to verify that the connection can be established
+            managementRequestSenderService.sendAuthCertRegisterRequest(null, new byte[0], true);
+            throw new IllegalStateException("should not get here");
         } catch (XrdRuntimeException e) {
             return ConnectionStatus.fromErrorAndValidation(
                     e.getErrorCode(),
                     listOrEmpty(e.getDetails()),
-                    certValidation.code, certValidation.metadata);
+                    certValidation.errorCode, certValidation.metadata);
         } catch (CodedException e) {
-            // special case: if no certificate or address validation error, the error is expected,
+            // when certificate or address validation error, the error is expected,
             // and we return only certificate validation exceptions (if any)
-            if (isExpectedInvalidRequest(e, certValidation.certificateInfo == null)) {
+            if (isExpectedInvalidRequest(e)) {
                 return certValidation.isOk() ? ConnectionStatus.ok()
-                        : ConnectionStatus.error(certValidation.code, certValidation.metadata);
+                        : ConnectionStatus.error(certValidation.errorCode, certValidation.metadata);
             }
-            return ConnectionStatus.fromErrorAndValidation(
+            return certValidation.isOk() ? ConnectionStatus.error(e.getFaultString(), listOrEmpty(e.getFaultString()))
+                    : ConnectionStatus.fromErrorAndValidation(
                     e.getFaultCode(),
                     listOrEmpty(e.getFaultString()),
-                    certValidation.code, certValidation.metadata);
+                    certValidation.errorCode, certValidation.metadata);
         }
+    }
+
+    private boolean isExpectedInvalidRequest(CodedException e) {
+        return X_INVALID_REQUEST.equals(e.getFaultCode()) || "InvalidRequest".equals(e.getFaultCode());
     }
 
     private CertValidation validateAuthCert() {
+        List<CertificateInfo> certificateInfos;
         try {
-            CertificateInfo info = getAuthCert()
-                    .orElseThrow(() -> new CertificateNotFoundException("No active auth cert found"));
-            authCertVerifier.verify(info);
-            return CertValidation.ok(info);
-        } catch (CertificateNotFoundException
-                 | InvalidCertificateException
-                 | TokenCertificateService.SignCertificateNotSupportedException
-                 | KeyNotFoundException
-                 | ActionNotPossibleException e) {
+            certificateInfos = findAuthCerts(Set.of(CertificateInfo.STATUS_SAVED));
+            if (certificateInfos.isEmpty()) {
+                certificateInfos = findAuthCerts(Set.of(CertificateInfo.STATUS_REGISTERED, CertificateInfo.STATUS_REGINPROG));
+                if (certificateInfos.isEmpty()) {
+                    throw new CertificateNotFoundException("No auth cert found");
+                }
+            }
+        } catch (CertificateNotFoundException e) {
             return CertValidation.error(e.getErrorDeviation().code(), e.getErrorDeviation().metadata());
         }
-    }
 
-    private boolean isExpectedInvalidRequest(CodedException e, boolean noCert) {
-        boolean invalidRequest = X_INVALID_REQUEST.equals(e.getFaultCode()) || "InvalidRequest".equals(e.getFaultCode());
-        boolean invalidAddress = e.getFaultString() != null && e.getFaultString().contains(INVALID_SERVER_ADDRESS);
-        return invalidRequest && (noCert || invalidAddress);
+        ErrorDeviation lastError = null;
+        for (CertificateInfo certificateInfo : certificateInfos) {
+            try {
+                authCertVerifier.verify(certificateInfo);
+                return CertValidation.ok(certificateInfo);
+
+            } catch (InvalidCertificateException | TokenCertificateService.SignCertificateNotSupportedException e) {
+                lastError = e.getErrorDeviation();
+            }
+        }
+
+        Optional.ofNullable(lastError).orElseThrow(() -> new IllegalStateException("should not get here"));
+        return CertValidation.error(lastError.code(), lastError.metadata());
+
     }
 
     private List<String> listOrEmpty(String s) {
         return (s == null || s.isEmpty()) ? List.of() : List.of(s);
     }
 
-    private Optional<CertificateInfo> getAuthCert() throws CertificateNotFoundException {
+    private List<CertificateInfo> findAuthCerts(Set<String> allowedStatuses) throws TokenNotFoundException {
         return tokenService.getToken(SOFTWARE_TOKEN_ID).getKeyInfo().stream()
-                .filter(keyInfo -> keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION)
+                .filter(keyInfo -> KeyUsageInfo.AUTHENTICATION.equals(keyInfo.getUsage()))
                 .flatMap(keyInfo -> keyInfo.getCerts().stream())
-                .filter(CertificateInfo::isActive)
-                .findFirst();
+                .filter(certInfo -> allowedStatuses.contains(certInfo.getStatus()))
+                .toList();
     }
 
     private static final class CertValidation {
-        final String code;
+        final String errorCode;
         final List<String> metadata;
         final CertificateInfo certificateInfo;
 
-        private CertValidation(String code, List<String> metadata, CertificateInfo info) {
-            this.code = code;
+        private CertValidation(String errorCode, List<String> metadata, CertificateInfo info) {
+            this.errorCode = errorCode;
             this.metadata = metadata;
             this.certificateInfo = info;
         }
@@ -215,12 +219,12 @@ public class DiagnosticConnectionService {
             return new CertValidation(null, List.of(), info);
         }
 
-        static CertValidation error(String code, List<String> meta) {
-            return new CertValidation(code, meta, null);
+        static CertValidation error(String errorCode, List<String> meta) {
+            return new CertValidation(errorCode, meta, null);
         }
 
         boolean isOk() {
-            return code == null;
+            return errorCode == null;
         }
     }
 }

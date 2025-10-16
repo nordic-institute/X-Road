@@ -83,12 +83,12 @@ public final class ConnectionStatus implements Serializable {
                 metadata == null ? List.of() : metadata, ve);
     }
 
-    public static ConnectionStatus fromErrorAndValidation(String errorCode, List<String> metadata, String certErrorCode,
+    public static ConnectionStatus fromErrorAndValidation(String errorCode, List<String> metadata, String validationErrorCode,
                                                           List<String> certValidationMetadata) {
 
-        return (certErrorCode == null)
+        return (validationErrorCode == null)
                 ? ConnectionStatus.error(errorCode, metadata)
-                : ConnectionStatus.errorWithValidation(errorCode, metadata, certErrorCode,
+                : ConnectionStatus.errorWithValidation(errorCode, metadata, validationErrorCode,
                 certValidationMetadata == null ? List.of() : certValidationMetadata);
     }
 }

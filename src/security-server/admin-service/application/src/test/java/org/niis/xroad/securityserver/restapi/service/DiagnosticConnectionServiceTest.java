@@ -35,6 +35,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.ExceptionCategory;
 import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -61,7 +62,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.securityserver.restapi.service.DiagnosticConnectionService.INVALID_SERVER_ADDRESS;
 
 @ExtendWith(MockitoExtension.class)
 class DiagnosticConnectionServiceTest {
@@ -79,7 +79,7 @@ class DiagnosticConnectionServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new DiagnosticConnectionService(globalConfProvider, tokenService,  authCertVerifier, managementRequestSenderService);
+        service = new DiagnosticConnectionService(globalConfProvider, tokenService, authCertVerifier, managementRequestSenderService);
     }
 
     @Test
@@ -153,7 +153,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getAuthCertRegStatusInfoThenReturnOkStatus() {
+    void getAuthCertRegStatusInfoThenReturnSystemErrorWhenCertOk() {
         TokenInfo token = mock(TokenInfo.class);
         KeyInfo key = mock(KeyInfo.class);
         CertificateInfo cert = mock(CertificateInfo.class);
@@ -161,15 +161,89 @@ class DiagnosticConnectionServiceTest {
         when(token.getKeyInfo()).thenReturn(List.of(key));
         when(key.getUsage()).thenReturn(KeyUsageInfo.AUTHENTICATION);
         when(key.getCerts()).thenReturn(List.of(cert));
-        when(cert.isActive()).thenReturn(true);
-        when(cert.getCertificateBytes()).thenReturn("dummy".getBytes());
+        when(cert.getStatus()).thenReturn(CertificateInfo.STATUS_SAVED);
         doNothing().when(authCertVerifier).verify(any());
+
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
+                .thenThrow(new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, ErrorCode.withCode("management_service_error"))
+                        .build());
+
+        var status = service.getAuthCertRegStatusInfo();
+
+        assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
+        assertThat(status.getErrorCode()).isEqualTo("management_service_error");
+        assertThat(status.getValidationErrors()).isEmpty();
+    }
+
+    @Test
+    void getAuthCertRegStatusInfoThenReturnOkWhenInvalidRequestAndCertOk() {
+        TokenInfo token = mock(TokenInfo.class);
+        KeyInfo key = mock(KeyInfo.class);
+        CertificateInfo cert = mock(CertificateInfo.class);
+        when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
+        when(token.getKeyInfo()).thenReturn(List.of(key));
+        when(key.getUsage()).thenReturn(KeyUsageInfo.AUTHENTICATION);
+        when(key.getCerts()).thenReturn(List.of(cert));
+        when(cert.getStatus()).thenReturn(CertificateInfo.STATUS_SAVED);
+        doNothing().when(authCertVerifier).verify(any());
+
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
+                .thenThrow(new CodedException("InvalidRequest"));
 
         var status = service.getAuthCertRegStatusInfo();
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.OK);
         assertThat(status.getErrorCode()).isNull();
     }
+
+    @Test
+    void getAuthCertRegStatusInfoThenReturnInvalidCertificateDeviation() {
+        TokenInfo token = mock(TokenInfo.class);
+        KeyInfo key = mock(KeyInfo.class);
+        CertificateInfo cert = mock(CertificateInfo.class);
+        when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
+        when(token.getKeyInfo()).thenReturn(List.of(key));
+        when(key.getUsage()).thenReturn(KeyUsageInfo.AUTHENTICATION);
+        when(key.getCerts()).thenReturn(List.of(cert));
+        when(cert.getStatus()).thenReturn(CertificateInfo.STATUS_SAVED);
+        InvalidCertificateException invalid = mock(InvalidCertificateException.class);
+        when(invalid.getErrorDeviation()).thenReturn(new ErrorDeviation("certificate_not_found", List.of("No auth cert found")));
+        org.mockito.Mockito.doThrow(invalid).when(authCertVerifier).verify(any());
+
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
+                .thenThrow(new CodedException(X_INVALID_REQUEST));
+
+        var status = service.getAuthCertRegStatusInfo();
+
+        assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
+        assertThat(status.getErrorCode()).isEqualTo("certificate_not_found");
+        assertThat(status.getErrorMetadata()).isEqualTo(List.of("No auth cert found"));
+        assertThat(status.getValidationErrors()).isEmpty();
+    }
+
+    @Test
+    void getAuthCertRegStatusInfoThenReturnUnexpectedCodedExceptionMessageWhenCertOk() {
+        TokenInfo token = mock(TokenInfo.class);
+        KeyInfo key = mock(KeyInfo.class);
+        CertificateInfo cert = mock(CertificateInfo.class);
+        when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
+        when(token.getKeyInfo()).thenReturn(List.of(key));
+        when(key.getUsage()).thenReturn(KeyUsageInfo.AUTHENTICATION);
+        when(key.getCerts()).thenReturn(List.of(cert));
+        when(cert.getStatus()).thenReturn(CertificateInfo.STATUS_SAVED);
+        doNothing().when(authCertVerifier).verify(any());
+
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
+                .thenThrow(new CodedException("SomeOtherCode", "random_message"));
+
+        var status = service.getAuthCertRegStatusInfo();
+
+        assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
+        assertThat(status.getErrorCode()).isEqualTo("random_message");
+        assertThat(status.getErrorMetadata()).isEqualTo(List.of("random_message"));
+        assertThat(status.getValidationErrors()).isEmpty();
+    }
+
 
     @Test
     void getAuthCertRegStatusInfoThenReturnNetworkError() {
@@ -185,7 +259,7 @@ class DiagnosticConnectionServiceTest {
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(status.getErrorCode()).isEqualTo("network_error");
-        assertThat(status.getValidationErrors()).containsEntry("certificate_not_found", List.of("No active auth cert found"));
+        assertThat(status.getValidationErrors()).containsEntry("certificate_not_found", List.of("No auth cert found"));
     }
 
     @Test
@@ -200,7 +274,7 @@ class DiagnosticConnectionServiceTest {
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(status.getErrorCode()).isEqualTo("internal_error");
-        assertThat(status.getValidationErrors()).containsEntry("certificate_not_found", List.of("No active auth cert found"));
+        assertThat(status.getValidationErrors()).containsEntry("certificate_not_found", List.of("No auth cert found"));
     }
 
     @Test
@@ -215,23 +289,7 @@ class DiagnosticConnectionServiceTest {
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(status.getErrorCode()).isEqualTo("certificate_not_found");
-        assertThat(status.getErrorMetadata()).isEqualTo(List.of("No active auth cert found"));
-        assertThat(status.getValidationErrors()).isEmpty();
-    }
-
-    @Test
-    void getAuthCertRegStatusWithInvalidServerAddressInfoThenReturnCertificateNotFoundError() {
-        TokenInfo token = mock(TokenInfo.class);
-        when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
-        when(token.getKeyInfo()).thenReturn(List.of());
-        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
-                .thenThrow(new CodedException(X_INVALID_REQUEST, INVALID_SERVER_ADDRESS));
-
-        var status = service.getAuthCertRegStatusInfo();
-
-        assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
-        assertThat(status.getErrorCode()).isEqualTo("certificate_not_found");
-        assertThat(status.getErrorMetadata()).isEqualTo(List.of("No active auth cert found"));
+        assertThat(status.getErrorMetadata()).isEqualTo(List.of("No auth cert found"));
         assertThat(status.getValidationErrors()).isEmpty();
     }
 }
