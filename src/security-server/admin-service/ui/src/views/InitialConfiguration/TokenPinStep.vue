@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,68 +25,61 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="step-content-wrapper">
-    <div class="wizard-step-form-content">
-      <div>{{ $t('initialConfiguration.pin.info1') }}</div>
+  <XrdWizardStep sub-title="initialConfiguration.pin.info1">
+    <v-alert
+      v-if="true"
+      data-test="alert-token-policy-enabled"
+      class="mt-6 mb-6 body-regular"
+      variant="outlined"
+      border="start"
+      density="compact"
+      type="info"
+    >
+      <p class="font-weight-bold">{{ $t('token.tokenPinPolicyHeader') }}</p>
+      <p class="">{{ $t('token.tokenPinPolicy') }}</p>
+    </v-alert>
 
-      <v-alert
-        v-if="isEnforceTokenPolicyEnabled"
-        data-test="alert-token-policy-enabled"
-        class="mt-6"
-        variant="outlined"
-        border="start"
-        density="compact"
-        type="info"
-      >
-        <h4>{{ $t('token.tokenPinPolicyHeader') }}</h4>
-        <div>{{ $t('token.tokenPinPolicy') }}</div>
-      </v-alert>
-
-      <div class="mt-6 mb-4">
+    <XrdFormBlock>
+      <XrdFormBlockRow>
         <v-text-field
           v-bind="pinRef"
-          class="wizard-form-input"
-          autofocus
-          :label="$t('initialConfiguration.pin.pin')"
-          type="password"
           data-test="pin-input"
+          class="xrd"
+          autofocus
+          type="password"
+          :label="$t('initialConfiguration.pin.pin')"
         />
-      </div>
-      <div class="mb-6">
+      </XrdFormBlockRow>
+      <XrdFormBlockRow>
         <v-text-field
           v-bind="confirmPinRef"
-          class="wizard-form-input"
+          class="xrd"
           :label="$t('initialConfiguration.pin.confirmPin')"
           type="password"
           data-test="confirm-pin-input"
         />
-      </div>
+      </XrdFormBlockRow>
+    </XrdFormBlock>
 
-      {{ $t('initialConfiguration.pin.info2') }}
-      <br />
-      <br />
-      {{ $t('initialConfiguration.pin.info3') }}
-    </div>
-    <div class="button-footer">
-      <v-spacer></v-spacer>
-      <div>
-        <xrd-button
-          outlined
-          class="previous-button"
-          data-test="previous-button"
-          @click="previous"
-          >{{ $t('action.previous') }}
-        </xrd-button>
-        <xrd-button
-          :disabled="!meta.valid"
-          :loading="saveBusy"
-          data-test="token-pin-save-button"
-          @click="done"
-          >{{ $t('action.submit') }}
-        </xrd-button>
-      </div>
-    </div>
-  </div>
+    <template #footer>
+      <v-spacer />
+
+      <XrdBtn
+        variant="outlined"
+        data-test="previous-button"
+        class="previous-button mr-4"
+        text="action.previous"
+        @click="previous"
+      />
+      <XrdBtn
+        data-test="token-pin-save-button"
+        text="action.submit"
+        :disabled="!meta.valid"
+        :loading="saveBusy"
+        @click="done"
+      />
+    </template>
+  </XrdWizardStep>
 </template>
 
 <script lang="ts">
@@ -93,8 +87,10 @@ import { defineComponent } from 'vue';
 import { PublicPathState, useForm } from 'vee-validate';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import { XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdWizardStep, XrdFormBlock, XrdFormBlockRow, XrdBtn },
   props: {
     saveBusy: {
       type: Boolean,
@@ -131,6 +127,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/wizards';
-</style>
+<style lang="scss" scoped></style>

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,16 +26,14 @@
  -->
 <template>
   <div>
-    <div>
-      <XrdSubTabs :tabs />
-    </div>
+    <XrdViewNavigation :allowed-tabs="tabs" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
-import { Tab, XrdSubTabs } from '@niis/shared-ui';
+import { Tab, XrdSubTabs, XrdViewNavigation } from '@niis/shared-ui';
 
 const userStore = useUser();
 

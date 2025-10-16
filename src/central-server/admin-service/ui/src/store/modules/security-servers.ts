@@ -33,18 +33,16 @@ import {
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataQuery } from '@/ui-types';
+import { WithCurrentItem } from '@niis/shared-ui';
 
-export interface State {
-  currentSecurityServerLoading: boolean;
-  currentSecurityServer: SecurityServer | null;
+export interface State extends WithCurrentItem<SecurityServer> {
   securityServers: SecurityServer[];
   securityServerPagingOptions: PagingMetadata;
 }
 
 export const useSecurityServer = defineStore('securityServer', {
   state: (): State => ({
-    currentSecurityServerLoading: false,
-    currentSecurityServer: null,
+    current: undefined,
     securityServers: [],
     securityServerPagingOptions: {
       total_items: 0,
@@ -75,16 +73,18 @@ export const useSecurityServer = defineStore('securityServer', {
         });
     },
     async loadById(securityServerId: string) {
-      this.currentSecurityServerLoading = true;
+      this.loadingCurrent = true;
+      this.current = undefined;
       return axios
         .get<SecurityServer>(`/security-servers/${securityServerId}`)
         .then((resp) => {
-          this.currentSecurityServer = resp.data;
+          this.current = resp.data;
         })
-        .finally(() => (this.currentSecurityServerLoading = false));
+        .finally(() => (this.loadingCurrent = false));
     },
     async updateAddress(securityServerId: string, address: string) {
-      this.currentSecurityServerLoading = true;
+      this.loadingCurrent = true;
+      this.current = undefined;
       const securityServerAddress: SecurityServerAddress = {
         server_address: address,
       };
@@ -94,13 +94,13 @@ export const useSecurityServer = defineStore('securityServer', {
           securityServerAddress,
         )
         .then((resp) => {
-          this.currentSecurityServer = resp.data;
+          this.current = resp.data;
         })
-        .finally(() => (this.currentSecurityServerLoading = false));
+        .finally(() => (this.loadingCurrent = false));
     },
     async delete(securityServerId: string) {
       return axios.delete(`/security-servers/${securityServerId}`).then(() => {
-        this.currentSecurityServer = null;
+        this.current = undefined;
       });
     },
   },

@@ -39,6 +39,8 @@ import java.util.UUID;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
@@ -62,11 +64,14 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + certificationServiceName);
 
         testCertificate = CertificateUtils.readCertificate(certificate);
-
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
         trustServicesPageObj.addDialog.inputFile().uploadFile(CertificateUtils.getAsFile(certificate));
-        commonPageObj.dialog.btnSave().click();
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
+        commonPageObj.dialog.btnUpload().click();
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
         vTextField(trustServicesPageObj.addCaSettingsDialog.inputCertificateProfile())
                 .setValue(CERTIFICATE_PROFILE);
+        commonPageObj.dialog.btnSave().shouldBe(enabled);
         commonPageObj.dialog.btnSave().click();
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
@@ -141,13 +146,13 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         column
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-up"))
+                .shouldHave(cssClass("arrow_upward"))
                 .click();
 
         column
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-down"))
+                .shouldHave(cssClass("arrow_downward"))
                 .click();
     }
 

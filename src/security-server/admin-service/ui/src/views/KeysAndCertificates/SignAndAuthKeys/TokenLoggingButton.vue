@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,48 +27,47 @@
 
 <template>
   <div>
-    <xrd-button
+    <XrdBtn
       v-if="!token.logged_in"
-      min-width="120px"
-      :outlined="false"
-      text
-      :disabled="!token.available"
       data-test="token-login-button"
+      variant="text"
+      text="keys.logIn"
+      prepend-icon="login"
+      :disabled="!token.available"
       @click="confirmLogin()"
-      >{{ $t('keys.logIn') }}
-    </xrd-button>
+    />
 
-    <xrd-button
+    <XrdBtn
       v-if="token.logged_in"
-      min-width="120px"
-      :outlined="false"
-      text
       data-test="token-logout-button"
+      variant="text"
+      text="keys.logOut"
+      prepend-icon="logout"
       @click="confirmLogout()"
-      >{{ $t('keys.logOut') }}
-    </xrd-button>
+    />
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script lang="ts" setup>
+import { PropType } from 'vue';
 import { Token } from '@/openapi-types';
+import { XrdBtn } from '@niis/shared-ui';
 
-export default defineComponent({
-  props: {
-    token: {
-      type: Object as PropType<Token>,
-      required: true,
-    },
-  },
-  emits: ['token-logout', 'token-login'],
-  methods: {
-    confirmLogout(): void {
-      this.$emit('token-logout');
-    },
-    confirmLogin(): void {
-      this.$emit('token-login');
-    },
+defineProps({
+  token: {
+    type: Object as PropType<Token>,
+    required: true,
   },
 });
+
+const emit = defineEmits(['token-logout', 'token-login']);
+
+function confirmLogout(): void {
+  emit('token-logout');
+}
+
+function confirmLogin(): void {
+  emit('token-login');
+
+}
 </script>

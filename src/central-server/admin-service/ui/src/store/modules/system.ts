@@ -37,7 +37,8 @@ import {
   Version,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import { useNotifications } from './notifications';
+import { useNotifications } from '@niis/shared-ui';
+import { KEY_CONTINUE_INIT } from '@/global';
 
 export const useSystem = defineStore('system', {
   state: () => {
@@ -98,11 +99,11 @@ export const useSystem = defineStore('system', {
         .then((resp) => (this.systemStatus = resp.data));
     },
 
-    async initalizationRequest(formData: InitialServerConf) {
+    async initializationRequest(formData: InitialServerConf) {
       const notifications = useNotifications();
 
       return api.post('/initialization', formData).then(() => {
-        notifications.setContinueInit(true);
+        notifications.setFlag(KEY_CONTINUE_INIT, true);
       });
     },
   },

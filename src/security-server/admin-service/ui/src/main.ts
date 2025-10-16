@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -30,50 +31,35 @@ Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
 Initialises the app root component.
 */
+import vuetify from './plugins/vuetify'; //!!!Keep it before any component imports!!!
 import { createApp } from 'vue';
-import axios from 'axios';
-import {
-  XrdButton,
-  XrdCloseButton,
-  XrdConfirmDialog,
-  XrdEmptyPlaceholder,
-  XrdEmptyPlaceholderRow,
-  XrdExpandable,
-  XrdFileUpload,
-  XrdFormLabel,
-  XrdIconAdd,
-  XrdIconBase,
-  XrdIconChecked,
-  XrdIconChecker,
-  XrdIconClose,
-  XrdIconCopy,
-  XrdIconDeclined,
-  XrdIconEdit,
-  XrdIconError,
-  XrdIconFolderOutline,
-  XrdIconSortingArrow,
-  XrdIconTooltip,
-  XrdSearch,
-  XrdSimpleDialog,
-  XrdStatusIcon,
-  XrdSubViewContainer,
-  XrdSubViewTitle,
-  XrdTitledView,
-} from '@niis/shared-ui';
-import vuetify from './plugins/vuetify';
-import './plugins/vee-validate';
-import './filters';
-import App from './App.vue';
-import router from './router';
-import '@fontsource/open-sans/800.css';
-import '@fontsource/open-sans/700.css';
-import '@fontsource/open-sans';
-import { createLanguageHelper } from './plugins/i18n';
+
 import { createPinia } from 'pinia';
+
+import axios from 'axios';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
+
+import {
+  XrdButton, XrdCloseButton, XrdConfirmDialog, XrdEmptyPlaceholder, XrdEmptyPlaceholderRow, XrdExpandable, XrdFileUpload, XrdFormLabel,
+  XrdIconAdd, XrdIconBase, XrdIconChecked, XrdIconChecker, XrdIconClose, XrdIconCopy, XrdIconDeclined, XrdIconEdit, XrdIconError,
+  XrdIconFolderOutline, XrdIconSortingArrow, XrdIconTooltip, XrdSimpleDialog, XrdStatusIcon, XrdSubViewContainer, XrdTitledView,
+  setupAddErrorNavigation,
+} from '@niis/shared-ui';
+
 import { createFilters } from '@/filters';
 import { createValidators } from '@/plugins/vee-validate';
-import provider from '@/plugins/provider';
+
+import { createLanguageHelper } from './plugins/i18n';
+import router from './router/router';
+
+import '@fontsource/open-sans/800.css';
+import '@fontsource/open-sans/700.css';
+import App from './App.vue';
+
+import './plugins/vee-validate';
+import './filters';
+import '@fontsource/open-sans';
+import { RouteName } from '@/global';
 
 const pinia = createPinia();
 pinia.use(
@@ -85,13 +71,18 @@ pinia.use(
 axios.defaults.baseURL = import.meta.env.VITE_VUE_APP_BASE_URL;
 axios.defaults.headers.get.Accepts = 'application/json';
 
+setupAddErrorNavigation(router, {
+  404: {
+    name: RouteName.NotFound,
+  },
+});
+
 const app = createApp(App);
 app.use(router);
 app.use(vuetify);
 app.use(pinia);
 app.use(createFilters());
 app.use(createValidators());
-app.use(provider);
 //icons
 app.component('XrdIconFolderOutline', XrdIconFolderOutline);
 app.component('XrdIconBase', XrdIconBase);
@@ -108,13 +99,11 @@ app.component('XrdStatusIcon', XrdStatusIcon);
 app.component('XrdIconEdit', XrdIconEdit);
 //components
 app.component('XrdButton', XrdButton);
-app.component('XrdSearch', XrdSearch);
 app.component('XrdSubViewContainer', XrdSubViewContainer);
 app.component('XrdSimpleDialog', XrdSimpleDialog);
 app.component('XrdConfirmDialog', XrdConfirmDialog);
 app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
 app.component('XrdEmptyPlaceholderRow', XrdEmptyPlaceholderRow);
-app.component('XrdSubViewTitle', XrdSubViewTitle);
 app.component('XrdCloseButton', XrdCloseButton);
 app.component('XrdFileUpload', XrdFileUpload);
 app.component('XrdFormLabel', XrdFormLabel);

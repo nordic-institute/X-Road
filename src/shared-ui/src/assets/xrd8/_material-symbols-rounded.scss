@@ -1,0 +1,150 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+// Material Symbols Outlined
+// https://fonts.google.com/icons?selected=Material+Symbols+Outlined:id_card:FILL@0;wght@400;GRAD@0;opsz@24&icon.size=24&icon.color=%23e3e3e3
+$icons: (
+  create_new_folder: "\e2cc",
+  settings: "\e8b8",
+  shield_lock: "\f686",
+  rule_settings: "\f64c",
+  dns: "\e875",
+  search: "\e8b6",
+  folder: "\e2c7",
+  folder_copy: "\ebbd",
+  folder_managed: "\f775",
+  visibility: "\e8f4",
+  visibility_off: "\e8f5",
+  page_info: "\f614",
+  account_box: "\e851",
+  language: "\e894",
+  logout: "\e9ba",
+  login: "\ea77",
+  arrow_drop_down: "\e5c5",
+  arrow_drop_up: "\e5c7",
+  arrow_upward: "\e5d8",
+  arrow_downward: "\e5db",
+  arrow_back: "\e5c4",
+  arrow_forward: "\e5c8",
+  chevron_right: "\e5cc",
+  chevron_left: "\e5cb",
+  close: "\e5cd",
+  close_small: "\f508",
+  check_circle: "\e86c",
+  check: "\e5ca",
+  add_circle: "\e147",
+  check_box: "\e834",
+  indeterminate_check_box: "\e909",
+  check_box_outline_blank: "\e835",
+  keyboard_arrow_down: "\e313",
+  error: "\e000",
+  warning: "\e002",
+  content_copy: "\e14d",
+  delete_forever: "\e92b",
+  cancel: "\e5c9",
+  list_alt: "\e0ee",
+  edit: "\e3c9",
+  edit_square: "\f88d",
+  group: "\e7ef",
+  id_card: "\f4ca",
+  assured_workload: "\eb6f",
+  person_add: "\e7fe",
+  person_cancel: "\f566",
+  scan_delete: "\f74f",
+  note_add: "\e89c",
+  link: "\e157",
+  attach_file: "\e226",
+  upload: "\f09b",
+  editor_choice: "\f528",
+  database: "\f20e",
+  contacts: "\e0ba",
+  key: "\e73c",
+  key_vertical: "\f51a",
+  tag: "\e9ef",
+  autorenew: "\e863",
+  download: "\f090",
+  lock: "\e897",
+  lock_open: "\e898",
+  manufacturing: "\e726",
+  tv_options_input_settings: "\e1de",
+  anchor: "\f1cd",
+  cloud_upload: "\e2c3",
+  tune: "\e429",
+  sim_card_download: "\f068",
+  info: "\e88e",
+  monitoring: "\f190",
+  folder_open: "\e2c8",
+  cached: "\e86a",
+  radio_button_checked: "\e837",
+  radio_button_unchecked: "\e836",
+  do_not_disturb_on: "\e644",
+  host: "\f3d9",
+  smb_share: "\f74b",
+  settings_system_daydream: "\e1c3",
+  graph_2: "\f39f",
+  help: "\e887",
+  block: "\e14b",
+  question_exchange: "\f7f3",
+  event: "\e878",
+  build_circle: "\ef48",
+);
+
+@mixin msr-icons {
+  @each $name, $code in $icons {
+    &.#{$name}::before {
+      content: $code;
+    }
+  }
+}
+
+.msr {
+  &::before {
+    font-family: 'Material Symbols Rounded';
+    font-weight: 400;
+    font-style: normal;
+    display: inline-block;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+
+    font-size: inherit;
+    text-rendering: auto;
+    line-height: inherit;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-variation-settings: 'GRAD' 0, 'FILL' 0, 'opsz' 24, 'wght' 400;
+  }
+
+  &.filled:before {
+    font-variation-settings: 'GRAD' 0, 'FILL' 1, 'opsz' 24, 'wght' 500;
+  }
+
+  @include msr-icons
+}
+

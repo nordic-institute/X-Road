@@ -69,16 +69,6 @@ public class ApiKeysStepDefs extends BaseUiStepDefs {
         apiKeysPage.wizard.btnNext().click();
     }
 
-    @Step("Create API key wizard Previous button is clicked")
-    public void clickWizardBack() {
-        apiKeysPage.wizard.btnPrevious().click();
-    }
-
-    @Step("Create API key wizard Create Key button is clicked")
-    public void clickWizardCreateKey() {
-        apiKeysPage.wizard.btnCreateKey().click();
-    }
-
     @Step("API key is created and visible")
     public void apiKeyIsPresent() {
         commonPageObj.snackBar.success().shouldBe(Condition.visible);

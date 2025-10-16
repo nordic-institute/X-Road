@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,16 +25,17 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="d-inline-block">
-    <xrd-button
+  <div>
+    <XrdBtn
       data-test="unregister-client-button"
-      outlined
+      variant="outlined"
+      text="action.unregister"
+      prepend-icon="do_not_disturb_on"
       @click="confirmUnregisterClient = true"
-      >{{ $t('action.unregister') }}
-    </xrd-button>
+    />
 
     <!-- Confirm dialog for unregister client -->
-    <xrd-confirm-dialog
+    <XrdConfirmDialog
       v-if="confirmUnregisterClient"
       :loading="unregisterLoading"
       title="client.action.unregister.confirmTitle"
@@ -49,9 +51,10 @@ import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+import { XrdBtn, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdBtn },
   props: {
     id: {
       type: String,
@@ -59,6 +62,10 @@ export default defineComponent({
     },
   },
   emits: ['done'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return {
       confirmUnregisterClient: false as boolean,
@@ -66,18 +73,15 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     unregisterClient(): void {
       this.unregisterLoading = true;
       api
         .put(`/clients/${encodePathParameter(this.id)}/unregister`, {})
         .then(
           () => {
-            this.showSuccess(this.$t('client.action.unregister.success'));
+            this.addSuccessMessage('client.action.unregister.success');
           },
-          (error) => {
-            this.showError(error);
-          },
+          (error) => this.addError(error),
         )
         .finally(() => {
           this.$emit('done', this.id);

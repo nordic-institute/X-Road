@@ -43,7 +43,7 @@ public class CommonPageObj {
     public final Button button = new Button();
 
     public SelenideElement viewTitle(final String viewTitle) {
-        return $x(String.format("//div[@data-test='view-title' and text()='%s']", viewTitle));
+        return $x(String.format("//div[@data-test='view-title-text' and text()='%s']", viewTitle));
     }
 
     public class Menu {
@@ -69,11 +69,11 @@ public class CommonPageObj {
         }
 
         public SelenideElement usernameButton() {
-            return $x("//button[@data-test='username-button']");
+            return $x("//div[@data-test='user-menu']");
         }
 
         public SelenideElement logout() {
-            return $x("//div[@data-test='logout-list-tile']");
+            return $x("//div[@data-test='logout-button']");
         }
 
         public SelenideElement securityServersTab() {
@@ -81,7 +81,8 @@ public class CommonPageObj {
         }
 
         private String getTabXpath(String tabName) {
-            var xpath = "//div[contains(@class, 'main-tabs')]//a[contains(@class,'v-tab') and .//span[text()='%s']]";
+            var xpath = "//a[@data-test='main-navigation-item' "
+                    + "and .//div[@data-test='main-navigation-item-name' and contains(text(), '%s')]]";
             return String.format(xpath, tabName);
         }
     }
@@ -119,6 +120,10 @@ public class CommonPageObj {
 
         public SelenideElement btnSave() {
             return $x("//button[@data-test='dialog-save-button']");
+        }
+
+        public SelenideElement btnUpload() {
+            return $x("//button[@data-test='upload-file-btn']");
         }
 
         public SelenideElement btnConfirm() {

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -80,6 +81,9 @@ export type ValidationError = {
   errorCodes: string[];
 };
 
+/**
+ * @deprecated Use import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
+ */
 export type DataTableHeader = {
   key: string;
   title: string;

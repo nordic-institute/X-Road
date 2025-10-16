@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,122 +25,172 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
-    v-if="dialog"
-    :width="620"
+  <XrdSimpleDialog
+    :width="840"
     title="services.addRest"
+    submittable
+    :loading="saving"
     :disable-save="!meta.valid"
     @save="save"
     @cancel="cancel"
   >
     <template #content>
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title pb-8">{{ $t('services.serviceType') }}</div>
-        <v-radio-group
-          v-bind="serviceTypeRef"
-          name="serviceType"
-          inline
-          class="dlg-row-input"
-        >
-          <v-radio
-            data-test="rest-radio-button"
-            :label="$t('services.restApiBasePath')"
-            value="REST"
-          ></v-radio>
-          <v-radio
-            data-test="openapi3-radio-button"
-            :label="$t('services.OpenApi3Description')"
-            value="OPENAPI3"
-          ></v-radio>
-        </v-radio-group>
-      </div>
-
-      <div class="pt-3 dlg-input-width">
-        <v-text-field
-          v-bind="serviceUrlRef"
-          :placeholder="$t('services.urlPlaceholder')"
-          :label="$t('services.url')"
-          data-test="service-url-text-field"
-          variant="outlined"
-          autofocus
-        ></v-text-field>
-      </div>
-
-      <div class="pt-3 dlg-input-width">
-        <v-text-field
-          v-bind="serviceCodeRef"
-          variant="outlined"
-          data-test="service-code-text-field"
-          :label="$t('services.serviceCode')"
-          type="text"
-          :placeholder="$t('services.serviceCodePlaceholder')"
-          :maxlength="255"
-        ></v-text-field>
-      </div>
+      <XrdFormBlock>
+        <XrdFormBlockRow full-length>
+          <v-radio-group
+            v-bind="serviceTypeRef"
+            name="serviceType"
+            class="xrd"
+            inline
+            :label="$t('services.serviceType')"
+          >
+            <v-radio
+              data-test="rest-radio-button"
+              class="xrd"
+              value="REST"
+              :label="$t('services.restApiBasePath')"
+            />
+            <v-radio
+              data-test="openapi3-radio-button"
+              class="xrd ml-6"
+              value="OPENAPI3"
+              :label="$t('services.OpenApi3Description')"
+            />
+          </v-radio-group>
+        </XrdFormBlockRow>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-bind="serviceUrlRef"
+            data-test="service-url-text-field"
+            class="xrd"
+            autofocus
+            :label="$t('services.url')"
+          />
+        </XrdFormBlockRow>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-bind="serviceCodeRef"
+            data-test="service-code-text-field"
+            class="xrd"
+            :label="$t('services.serviceCode')"
+            :maxlength="255"
+          ></v-text-field>
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
+  <ServiceWarningDialog
+    v-if="warningDialog"
+    :warnings="warningInfo"
+    :loading="saving"
+    @cancel="warningDialog = false"
+    @accept="saveWithWarning"
+  />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
 import { PublicPathState, useForm } from 'vee-validate';
+import { XrdFormBlock, XrdFormBlockRow, useNotifications, DialogSaveHandler } from '@niis/shared-ui';
+import { ref } from 'vue';
+import { CodeWithDetails } from '@/openapi-types';
+import ServiceWarningDialog from '@/components/service/ServiceWarningDialog.vue';
+import { useServiceDescriptions } from '@/store/modules/service-descriptions';
 
-export default defineComponent({
-  props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
-  },
-  emits: ['cancel', 'save'],
-  setup() {
-    const { meta, resetForm, values, defineComponentBinds } = useForm({
-      validationSchema: {
-        serviceType: 'required',
-        serviceUrl: 'required|max:255|restUrl',
-        serviceCode: 'required|max:255|xrdIdentifier',
-      },
-    });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
-      },
-    });
-    const serviceTypeRef = defineComponentBinds('serviceType', componentConfig);
-    const serviceUrlRef = defineComponentBinds('serviceUrl', componentConfig);
-    const serviceCodeRef = defineComponentBinds('serviceCode', componentConfig);
-    return {
-      meta,
-      resetForm,
-      values,
-      serviceTypeRef,
-      serviceUrlRef,
-      serviceCodeRef,
-    };
-  },
-  methods: {
-    cancel(): void {
-      this.$emit('cancel');
-      this.clear();
-    },
-    save(): void {
-      this.$emit(
-        'save',
-        this.values.serviceType,
-        this.values.serviceUrl,
-        this.values.serviceCode,
-      );
-      this.clear();
-    },
-    clear(): void {
-      requestAnimationFrame(() => {
-        this.resetForm();
-      });
-    },
+const props = defineProps({
+  clientId: {
+    type: String,
+    required: true,
   },
 });
+
+const emit = defineEmits(['cancel', 'save']);
+
+const { addSuccessMessage } = useNotifications();
+const { saveRest } = useServiceDescriptions();
+
+const warningDialog = ref(false);
+const saving = ref(false);
+const warningInfo = ref<CodeWithDetails[]>([]);
+const dialogHandler = ref<DialogSaveHandler | undefined>(undefined);
+
+const { meta, resetForm, values, defineComponentBinds } = useForm({
+  validationSchema: {
+    serviceType: 'required',
+    serviceUrl: 'required|max:255|restUrl',
+    serviceCode: 'required|max:255|xrdIdentifier',
+  },
+});
+const componentConfig = (state: PublicPathState) => ({
+  props: {
+    'error-messages': state.errors,
+  },
+});
+const serviceTypeRef = defineComponentBinds('serviceType', componentConfig);
+const serviceUrlRef = defineComponentBinds('serviceUrl', componentConfig);
+const serviceCodeRef = defineComponentBinds('serviceCode', componentConfig);
+
+function cancel(): void {
+  warningDialog.value = false;
+  emit('cancel');
+  clear();
+}
+
+function save(handler: DialogSaveHandler): void {
+  dialogHandler.value = handler;
+  saving.value = true;
+  warningDialog.value = false;
+  saveRest(
+    props.clientId,
+    values.serviceUrl,
+    values.serviceCode,
+    values.serviceType,
+  )
+    .then(() =>
+      addSuccessMessage(
+        values.serviceType === 'OPENAPI3'
+          ? 'services.openApi3Added'
+          : 'services.restAdded',
+      ),
+    )
+    .then(() => emit('save'))
+    .catch((error) => {
+      if (error?.response?.data?.warnings) {
+        warningInfo.value = error.response.data.warnings;
+        warningDialog.value = true;
+      } else {
+        handler.addError(error);
+      }
+    })
+    .finally(() => (saving.value = false));
+}
+
+function saveWithWarning(): void {
+  saving.value = true;
+  warningDialog.value = false;
+  saveRest(
+    props.clientId,
+    values.serviceUrl,
+    values.serviceCode,
+    values.serviceType,
+    true,
+  )
+    .then(() =>
+      addSuccessMessage(
+        values.serviceType === 'OPENAPI3'
+          ? 'services.openApi3Added'
+          : 'services.restAdded',
+      ),
+    )
+    .then(() => emit('save'))
+    .catch((error) => dialogHandler.value?.addError(error))
+    .finally(() => (saving.value = false));
+}
+
+function clear(): void {
+  requestAnimationFrame(() => {
+    resetForm();
+  });
+}
 </script>
 
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>
+<style lang="scss" scoped></style>

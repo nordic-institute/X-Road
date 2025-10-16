@@ -26,25 +26,20 @@
  -->
 
 <template>
-  <XrdForbiddenError>
-    <template #top>
-      <TabsBase />
-      <AlertsContainer />
-    </template>
-  </XrdForbiddenError>
+  <XrdForbiddenError @go-home="goHome" @go-back="back" />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import TabsBase from '@/layouts/TabsBase.vue';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+<script lang="ts" setup>
+import { useRouter } from 'vue-router';
+
 import { XrdForbiddenError } from '@niis/shared-ui';
 
-export default defineComponent({
-  components: {
-    TabsBase,
-    AlertsContainer,
-    XrdForbiddenError,
-  },
-});
+import { useUser } from '@/store/modules/user';
+
+const { push, back } = useRouter();
+const userStore = useUser();
+
+function goHome() {
+  push(userStore.getFirstAllowedTab.to);
+}
 </script>

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,21 +26,21 @@
  -->
 <template>
   <div>
-    <XrdSubTabs :tabs />
+    <XrdViewNavigation :allowed-tabs="tabs" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { Tab, XrdSubTabs } from '@niis/shared-ui';
+import { Tab, XrdSubTabs, XrdViewNavigation } from '@niis/shared-ui';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import {useSystem} from "@/store/modules/system";
 
 export default defineComponent({
   components: {
-    XrdSubTabs,
+    XrdViewNavigation,
   },
   computed: {
     ...mapState(useUser, ['getAllowedTabs']),
@@ -49,6 +50,7 @@ export default defineComponent({
         {
           key: 'system-parameters-tab-button',
           name: 'tab.settings.systemParameters',
+          icon: 'page_info',
           to: {
             name: RouteName.SystemParameters,
           },
@@ -57,6 +59,7 @@ export default defineComponent({
         {
           key: 'backup-and-restore-tab-button',
           name: 'tab.settings.backupAndRestore',
+          icon: 'cloud_upload',
           to: {
             name: RouteName.BackupAndRestore,
           },

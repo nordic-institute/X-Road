@@ -47,7 +47,7 @@ public class TrustServicesPageObj {
     }
 
     public SelenideElement tableServicesRowOf(String name) {
-        var xpath = "./tbody/tr/td/div[contains(text(), '%s')]";
+        var xpath = "./tbody/tr/td/div//span[contains(., '%s')]";
         return tableServices().find(xpath(String.format(xpath, name)));
     }
 

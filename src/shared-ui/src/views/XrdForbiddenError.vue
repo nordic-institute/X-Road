@@ -26,86 +26,58 @@
  -->
 
 <template>
-  <div class="xrd-view-common" data-test="forbidden-view">
-    <slot name="top" />
-    <v-container>
-      <div class="xrd-view-title pt-6">{{ $t('403.topTitle') }}</div>
-      <v-card flat class="xrd-card custom-card">
-        <v-card-text>
-          <div class="content-wrap">
-            <div class="main-title">{{ $t('403.mainTitle') }}</div>
-            <div class="permission-text">
-              {{ $t('403.text') }}
-            </div>
-            <div class="buttons-wrap my-13">
-              <xrd-button test-data="go-back-button" color="primary" large rounded @click="routing?.goBack(-2)">
-                {{ $t('403.goBack') }}
-              </xrd-button>
-
-              <xrd-button
-                test-data="go-to-front-page-button"
-                color="primary"
-                outlined
-                large
-                class="ml-4"
-                rounded
-                @click="routing?.toHome()"
-              >
-                {{ $t('action.goToFront') }}
-              </xrd-button>
-            </div>
-          </div>
-        </v-card-text>
-      </v-card>
-    </v-container>
-  </div>
+  <XrdErrorPage data-test="forbidden-view" title="403.topTitle">
+    <v-sheet class="xrd-403-text pt-6 pb-6 pr-15 pl-15 full-width" height="508">
+      <div class="xrd-info" style="position: relative" >
+        <p class="title-page font-weight-bold mb-12">{{ $t('403.title') }}</p>
+        <p class="title-container font-weight-medium mb-4">{{ $t('403.text1') }}</p>
+        <p class="body-large font-weight-regular mb-12">{{ $t('403.text2') }}</p>
+        <div>
+          <v-btn
+            data-test="go-back-button"
+            class="go-back bg-special ma-2"
+            prepend-icon="arrow_back"
+            variant="flat"
+            rounded="pill"
+            size="large"
+            min-width="140"
+            @click="emit('go-back')"
+          >
+            {{ $t('403.goBack') }}
+          </v-btn>
+          <v-btn
+            data-test="go-to-front-page-button"
+            class="go-home ma-2"
+            color="primary"
+            variant="flat"
+            rounded="pill"
+            size="large"
+            min-width="220"
+            @click="emit('go-home')"
+          >
+            {{ $t('action.goToFront') }}
+          </v-btn>
+        </div>
+      </div>
+    </v-sheet>
+  </XrdErrorPage>
 </template>
 
 <script lang="ts" setup>
-import { key, XrdButton } from '@niis/shared-ui';
-import { inject } from 'vue';
+import XrdErrorPage from './XrdErrorPage.vue';
 
-const routing = inject(key.routing);
+const emit = defineEmits(['go-home', 'go-back']);
 </script>
 
 <style lang="scss" scoped>
-@use '../assets/colors';
-
-.xrd-view-common {
-  width: 100%;
-}
-
-.permission-text {
-  width: 620px;
-  text-align: center;
-}
-
-.main-title {
-  font-family: 'Open Sans', sans-serif;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 40px;
-  line-height: 56px;
-  color: colors.$Black100;
-  margin-top: 50px;
-  margin-bottom: 60px;
-}
-
-.custom-card {
-  width: 100%;
-  margin-top: 40px;
-  margin-bottom: 30px;
-}
-
-.content-wrap {
+.xrd-403-text {
+  background: none;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-}
 
-.buttons-wrap {
-  display: row;
-  flex-direction: column;
-  align-items: center;
+  .xrd-info {
+    text-align: center;
+  }
 }
 </style>

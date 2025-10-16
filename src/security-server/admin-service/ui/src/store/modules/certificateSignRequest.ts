@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,34 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { saveResponseAsFile } from '@/util/helpers';
+import { helper } from '@niis/shared-ui';
 import {
-  AcmeEabCredentialsStatus,
-  CertificateAuthority,
-  Client,
-  CsrFormat,
-  CsrGenerate,
-  CsrSubjectFieldDescription,
-  Key,
-  KeyLabelWithCsrGenerate,
-  KeyUsageType,
-  KeyWithCertificateSigningRequestId,
-  TokenCertificateSigningRequest,
-  TokenType,
+  AcmeEabCredentialsStatus, CertificateAuthority, Client, CsrFormat, CsrGenerate, CsrSubjectFieldDescription, Key, KeyLabelWithCsrGenerate,
+  KeyUsageType, KeyWithCertificateSigningRequestId, TokenCertificateSigningRequest, TokenType, KeyAlgorithm,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import {
-  sorCertificateAuthorities,
-  sortCsrSubjectFields,
-} from '@/util/sorting';
+import { sorCertificateAuthorities, sortCsrSubjectFields } from '@/util/sorting';
 
 export interface CsrState {
   csrKey: Key | undefined;
   csrClient: string | undefined;
   usage: KeyUsageType | undefined;
-  certificationService: string;
+  certificationService?: string;
   csrFormat: CsrFormat;
   certificationServiceList: CertificateAuthority[];
   keyId: string;
@@ -71,7 +59,7 @@ export const useCsr = defineStore('csr', {
       csrKey: undefined,
       csrClient: undefined,
       usage: undefined,
-      certificationService: '',
+      certificationService: undefined,
       csrFormat: CsrFormat.DER,
       certificationServiceList: [],
       keyId: '',
@@ -87,7 +75,8 @@ export const useCsr = defineStore('csr', {
     };
   },
   getters: {
-    csrForm: (state) => state.form,
+    csrForm: (state): CsrSubjectFieldDescription[] => state.form,
+    csrFormReady: (state): boolean => state.form.length > 0,
 
     csrTokenId: (state) => state.tokenId,
 
@@ -109,7 +98,7 @@ export const useCsr = defineStore('csr', {
 
       return {
         key_usage_type: state.usage as KeyUsageType,
-        ca_name: state.certificationService,
+        ca_name: state.certificationService || '',
         csr_format: state.csrFormat as CsrFormat,
         subject_field_values: subjectFieldValues,
         member_id: state.csrClient,
@@ -188,7 +177,7 @@ export const useCsr = defineStore('csr', {
       return api
         .get<CsrSubjectFieldDescription[]>(
           `/certificate-authorities/${encodePathParameter(
-            this.certificationService,
+            this.certificationService || '',
           )}/csr-subject-fields`,
           {
             params,
@@ -248,7 +237,7 @@ export const useCsr = defineStore('csr', {
               },
             )
             .then((res) => {
-              saveResponseAsFile(res);
+              helper.saveResponseAsFile(res);
             });
         })
         .catch((error) => {
@@ -266,7 +255,7 @@ export const useCsr = defineStore('csr', {
           if (requestBody.acme_order) {
             return;
           }
-          saveResponseAsFile(
+          helper.saveResponseAsFile(
             response,
             `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
           );
@@ -307,7 +296,7 @@ export const useCsr = defineStore('csr', {
       return api
         .get<AcmeEabCredentialsStatus>(
           `/certificate-authorities/${encodePathParameter(
-            caName ?? this.certificationService,
+            caName ?? this.certificationService ?? '',
           )}/has-acme-eab-credentials`,
           {
             params: {
@@ -354,6 +343,7 @@ export const useCsr = defineStore('csr', {
         id: '',
         name: '',
         label: '',
+        key_algorithm: KeyAlgorithm.RSA,
         certificates: [],
         certificate_signing_requests: [],
         usage: KeyUsageType.SIGNING,

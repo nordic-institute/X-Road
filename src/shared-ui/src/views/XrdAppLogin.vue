@@ -25,86 +25,119 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="login-view-wrap fill-height">
-    <slot name="top" />
-    <XrdLanguageDropdown class="language-dropdown" />
-    <v-row no-gutters class="fill-height">
-      <v-col cols="3">
-        <div class="graphics">
-          <v-img :src="xroad7LargeUrl" height="195" width="144" max-height="195" max-width="144" class="xrd-logo"></v-img>
-        </div>
-      </v-col>
-      <v-col cols="9" align-self="center">
-        <v-container class="set-width">
-          <v-card variant="flat">
-            <v-card-item class="title-wrap">
-              <v-card-title class="login-form-title">
-                {{ $t('login.logIn') }}
-              </v-card-title>
-              <v-card-subtitle class="sub-title">
-                {{ $t('global.appTitle') }}
-              </v-card-subtitle>
-            </v-card-item>
+  <v-layout>
+    <v-navigation-drawer width="600" mobile-breakpoint="md">
+      <div class="logo-bg d-flex align-center justify-center fill-height">
+        <img :src="logo" alt="X-Road 8 Logo" />
+        <img :src="rocket" class="rocket" alt="X-Road 8 Rocket" />
+        <img :src="trail1" class="trail1" alt="X-Road 8 Trail" />
+        <img :src="trail2" class="trail2" alt="X-Road 8 Trail" />
+      </div>
+    </v-navigation-drawer>
+    <v-app-bar flat color="transparent">
+      <template #append>
+        <v-select
+          :model-value="currentLanguage"
+          :items="supportedLanguages"
+          :item-props="langProps"
+          class="text-primary"
+          prepend-icon="language"
+          variant="plain"
+          @update:model-value="changeLanguage"
+        >
+        </v-select>
+      </template>
+    </v-app-bar>
 
-            <v-card-text>
-              <v-form>
-                <v-text-field
-                  id="username"
-                  v-model="username"
-                  v-bind="usernameAttrs"
-                  name="username"
-                  data-test="login-username-input"
-                  variant="outlined"
-                  :label="$t('fields.username')"
-                  :error-messages="errors.username"
-                  type="text"
-                  autofocus
-                  @keyup.enter="submit"
-                ></v-text-field>
-
-                <v-text-field
-                  id="password"
-                  v-model="password"
-                  v-bind="passwordAttrs"
-                  name="password"
-                  data-test="login-password-input"
-                  variant="outlined"
-                  :label="$t('fields.password')"
-                  :error-messages="errors.password"
-                  type="password"
-                  @keyup.enter="submit"
-                ></v-text-field>
-              </v-form>
-            </v-card-text>
-            <v-card-actions class="px-4">
-              <xrd-button
-                id="submit-button"
+    <v-main>
+      <v-row v-if="notifications.hasContextErrors" align-content="center" justify="center">
+        <v-col cols="11">
+          <XrdErrorNotifications :manager="notifications" />
+        </v-col>
+      </v-row>
+      <v-row class="fill-height" align-content="center" justify="center">
+        <v-col cols="auto">
+          <v-card variant="text" :hover="false" class="login-form">
+            <v-card-title class="font-weight-bold title-page opacity-100">
+              {{ $t('login.logIn') }}
+            </v-card-title>
+            <v-card-subtitle class="body-regular opacity-100">
+              {{ $t('global.appTitle') }}
+            </v-card-subtitle>
+            <v-form>
+              <v-text-field
+                id="username"
+                v-model="username"
+                v-bind="usernameAttrs"
+                name="username"
+                data-test="login-username-input"
+                class="xrd"
+                variant="underlined"
                 color="primary"
-                gradient
-                block
+                type="text"
+                :label="$t('fields.username')"
+                :error-messages="errors.username"
+                @keyup.enter="submit"
+              />
+
+              <v-text-field
+                id="password"
+                v-model="password"
+                v-bind="passwordAttrs"
+                data-test="login-password-input"
+                class="xrd"
+                name="password"
+                variant="underlined"
+                color="primary"
+                :label="$t('fields.password')"
+                :type="passwordType"
+                :error-messages="errors.password"
+                :append-inner-icon="passwordIcon"
+                @keyup.enter="submit"
+                @click:append-inner="changePasswordType"
+              />
+            </v-form>
+            <v-card-actions class="pl-0 pr-0">
+              <v-btn
+                id="submit-button"
                 data-test="login-button"
-                :min_width="120"
+                class="body-large font-weight-medium"
+                variant="flat"
+                color="special"
+                rounded="xl"
+                block
                 :disabled="isDisabled"
                 :loading="loading"
                 @click="submit"
               >
                 {{ $t('login.logIn') }}
-              </xrd-button>
+              </v-btn>
             </v-card-actions>
           </v-card>
-        </v-container>
-      </v-col>
-    </v-row>
-  </v-container>
+        </v-col>
+      </v-row>
+    </v-main>
+  </v-layout>
 </template>
 
 <script lang="ts" setup>
-import xroad7Large from '../assets/xroad7_large.svg';
-import { computed } from 'vue';
-import { useForm } from 'vee-validate';
-import { XrdLanguageDropdown } from '@niis/shared-ui';
+import { computed, ref } from 'vue';
 
-const xroad7LargeUrl = xroad7Large;
+import { useForm } from 'vee-validate';
+
+import _logoLight from '../assets/xrd8/Logo-vertical-light.svg';
+import _rocket from '../assets/xrd8/Rocket-trail.png';
+import _trail1 from '../assets/xrd8/Trail-1.png';
+import _trail2 from '../assets/xrd8/Trail-2.png';
+import { useNotifications } from '../composables';
+import { useLanguageHelper } from '../plugins/i18n';
+
+import XrdErrorNotifications from '../components/XrdErrorNotifications.vue';
+
+const logo = _logoLight;
+const rocket = _rocket;
+const trail1 = _trail1;
+const trail2 = _trail2;
 
 const props = defineProps({
   loading: {
@@ -119,6 +152,8 @@ const emit = defineEmits<{
 
 defineExpose({ clearForm, addErrors });
 
+const notifications = useNotifications();
+const { currentLanguage, supportedLanguages, selectLanguage, displayNames } = useLanguageHelper();
 const { meta, resetForm, setFieldError, errors, defineField } = useForm({
   validationSchema: {
     username: 'required',
@@ -126,9 +161,17 @@ const { meta, resetForm, setFieldError, errors, defineField } = useForm({
   },
 });
 
+const PASSWORD = 'password';
+const passwordType = ref(PASSWORD);
+const passwordIcon = computed(() => (passwordType.value === PASSWORD ? 'visibility_off' : 'visibility'));
+
 const isDisabled = computed(() => !meta.value.valid || props.loading);
 const [username, usernameAttrs] = defineField('username');
 const [password, passwordAttrs] = defineField('password');
+
+function changePasswordType() {
+  passwordType.value = passwordType.value === PASSWORD ? 'text' : PASSWORD;
+}
 
 function submit() {
   if (isDisabled.value) {
@@ -144,67 +187,58 @@ function clearForm() {
 function addErrors(...errors: string[]) {
   setFieldError('password', errors);
 }
+
+function langProps(lang: string) {
+  return {
+    title: displayNames.value.of(lang),
+  };
+}
+
+async function changeLanguage(lang: string) {
+  await selectLanguage(lang);
+}
 </script>
 
 <style lang="scss" scoped>
-@use '../assets/colors';
-
-.v-text-field {
-  margin-bottom: 6px;
+.login-form {
+  width: 434px;
+  margin: 0 80px;
 }
 
-.alerts {
-  top: 40px;
-  left: 0;
-  right: 0;
-  margin-left: auto;
-  margin-right: auto;
-  z-index: 100;
-  position: absolute;
-}
-
-.language-dropdown {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-}
-
-.login-view-wrap {
-  background-color: white;
-  padding: 0;
-
-  .graphics {
-    height: 100%;
-    max-width: 576px; // width of the backround image
-    background-image: url('../assets/background.png');
-    background-size: cover;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+.v-navigation-drawer {
+  &.v-navigation-drawer--mobile div.logo-bg img {
+    display: none;
   }
 
-  .set-width {
-    max-width: 420px;
+  .logo-bg {
+    background: radial-gradient(rgb(var(--v-theme-login-start)), rgb(var(--v-theme-login)));
+    max-width: 600px;
 
-    .title-wrap {
-      margin-bottom: 30px;
+    .rocket {
+      position: absolute;
+      top: -200px;
+      right: -80px;
+      width: 560px;
+    }
 
-      .login-form-title {
-        margin-left: 0;
-        color: #252121;
-        font-style: normal;
-        font-weight: bold;
-        font-size: 40px;
-        line-height: 54px;
-      }
+    .trail1 {
+      position: absolute;
+      top: -200px;
+      right: 170px;
+      width: 512px;
+      transform: rotate(90deg);
+    }
 
-      .sub-title {
-        font-style: normal;
-        font-weight: normal;
-        font-size: colors.$DefaultFontSize;
-        line-height: 19px;
-      }
+    .trail2 {
+      position: absolute;
+      bottom: -185px;
+      right: 300px;
+      width: 512px;
+      transform: rotate(135deg) scaleX(-1);
+    }
+
+    .logo {
+      width: 160px;
     }
   }
 }

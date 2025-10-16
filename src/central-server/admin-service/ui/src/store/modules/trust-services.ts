@@ -25,51 +25,49 @@
  * THE SOFTWARE.
  */
 import {
-  ApprovedCertificationService,
-  ApprovedCertificationServiceListItem,
-  CertificateAuthority,
-  CertificateDetails,
-  CertificationServiceFileAndSettings,
-  CertificationServiceSettings,
-  OcspResponder,
-  TimestampingService,
+  ApprovedCertificationService, ApprovedCertificationServiceListItem, CertificateAuthority, CertificateDetails,
+  CertificationServiceFileAndSettings, CertificationServiceSettings, OcspResponder, TimestampingService, OcspResponderCertificateDetails,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import { WithCurrentItem } from '@niis/shared-ui';
 
-export interface CertificationServiceStoreState {
+export interface CertificationServiceStoreState
+  extends WithCurrentItem<ApprovedCertificationService> {
   certificationServices: ApprovedCertificationServiceListItem[];
-  currentCertificationService: ApprovedCertificationService | null;
 }
 
 export const useCertificationService = defineStore('certificationService', {
   state: (): CertificationServiceStoreState => ({
+    current: undefined,
     certificationServices: [],
-    currentCertificationService: null,
   }),
   persist: true,
   actions: {
-    fetchAll() {
+    async fetchAll() {
       return axios
         .get<ApprovedCertificationServiceListItem[]>('/certification-services')
         .then((resp) => (this.certificationServices = resp.data));
     },
-    loadById(certificationServiceId: number) {
+    async loadById(certificationServiceId: number) {
+      this.loadingCurrent = true;
+      this.current = undefined;
       return axios
         .get<ApprovedCertificationService>(
           `/certification-services/${certificationServiceId}`,
         )
         .then((resp) => {
-          this.currentCertificationService = resp.data;
+          this.current = resp.data;
         })
         .catch((error) => {
           throw error;
-        });
+        })
+        .finally(() => (this.loadingCurrent = false));
     },
-    deleteById(certificationServiceId: number) {
+    async deleteById(certificationServiceId: number) {
       return axios.delete(`/certification-services/${certificationServiceId}`);
     },
-    add(newCas: CertificationServiceFileAndSettings) {
+    async add(newCas: CertificationServiceFileAndSettings) {
       const formData = new FormData();
       formData.append(
         'certificate_profile_info',
@@ -97,7 +95,7 @@ export const useCertificationService = defineStore('certificationService', {
         .post('/certification-services', formData)
         .finally(() => this.fetchAll());
     },
-    update(
+    async update(
       certificationServiceId: number,
       settings: CertificationServiceSettings,
     ) {
@@ -107,13 +105,13 @@ export const useCertificationService = defineStore('certificationService', {
           settings,
         )
         .then((resp) => {
-          this.currentCertificationService = resp.data;
+          this.current = resp.data;
         })
         .catch((error) => {
           throw error;
         });
     },
-    getCertificate(certificationServiceId: number) {
+    async getCertificate(certificationServiceId: number) {
       return axios.get<CertificateDetails>(
         `/certification-services/${certificationServiceId}/certificate`,
       );
@@ -124,6 +122,7 @@ export const useCertificationService = defineStore('certificationService', {
 export interface OcspResponderStoreState {
   currentCa: ApprovedCertificationService | CertificateAuthority | null;
   currentOcspResponders: OcspResponder[];
+  loadingOcspResponders?: boolean;
 }
 
 export const useOcspResponderService = defineStore('ocspResponderService', {
@@ -142,16 +141,18 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
     },
   },
   actions: {
-    loadByCa(ca: ApprovedCertificationService | CertificateAuthority) {
+    async loadByCa(ca: ApprovedCertificationService | CertificateAuthority) {
       this.currentCa = ca;
-      this.fetchOcspResponders();
+      return this.fetchOcspResponders();
     },
-    fetchOcspResponders() {
+    async fetchOcspResponders() {
+      this.loadingOcspResponders = true;
       return axios
         .get<OcspResponder[]>(this.getCurrentCaOcspRespondersPath)
-        .then((resp) => (this.currentOcspResponders = resp.data));
+        .then((resp) => (this.currentOcspResponders = resp.data))
+        .finally(() => (this.loadingOcspResponders = false));
     },
-    addOcspResponder(url: string, certificate: File | undefined) {
+    async addOcspResponder(url: string, certificate: File | undefined) {
       const formData = new FormData();
       formData.append('url', url);
       if (certificate) {
@@ -162,7 +163,7 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
         .post(this.getCurrentCaOcspRespondersPath, formData)
         .finally(() => this.fetchOcspResponders());
     },
-    updateOcspResponder(
+    async updateOcspResponder(
       id: number,
       url: string,
       certificate: File | undefined,
@@ -174,45 +175,49 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
       }
       return axios.patch(`/ocsp-responders/${id}/`, formData);
     },
-    deleteOcspResponder(id: number) {
+    async deleteOcspResponder(id: number) {
       return axios.delete(`/ocsp-responders/${id}`);
     },
-    getOcspResponderCertificate(id: number) {
-      return axios.get<CertificateDetails>(
+    async getOcspResponderCertificate(id: number) {
+      return axios.get<OcspResponderCertificateDetails>(
         `/ocsp-responders/${id}/certificate`,
       );
     },
   },
 });
 
-export interface IntermediateCasStoreState {
+export interface IntermediateCasStoreState
+  extends WithCurrentItem<CertificateAuthority> {
   currentCs: ApprovedCertificationService | null;
   currentIntermediateCas: CertificateAuthority[];
-  currentSelectedIntermediateCa: CertificateAuthority | null;
 }
 
 export const useIntermediateCasService = defineStore('intermediateCasService', {
   state: (): IntermediateCasStoreState => ({
+    current: undefined,
     currentCs: null,
     currentIntermediateCas: [],
-    currentSelectedIntermediateCa: null,
   }),
   persist: true,
   actions: {
-    loadByCs(cs: ApprovedCertificationService) {
+    async loadByCs(cs: ApprovedCertificationService) {
       this.currentCs = cs;
-      this.fetchIntermediateCas();
+      return this.fetchIntermediateCas();
     },
-    loadById(intermediateCaId: number) {
+    async loadById(intermediateCaId: number) {
+      this.loadingCurrent = true;
+      this.current = undefined;
       return this.getIntermediateCa(intermediateCaId)
         .then((resp) => {
-          this.currentSelectedIntermediateCa = resp.data;
+          this.current = resp.data;
+          return this.current;
         })
         .catch((error) => {
           throw error;
-        });
+        })
+        .finally(() => (this.loadingCurrent = false));
     },
-    fetchIntermediateCas() {
+    async fetchIntermediateCas() {
       if (!this.currentCs) return;
 
       return axios
@@ -221,10 +226,10 @@ export const useIntermediateCasService = defineStore('intermediateCasService', {
         >(`/certification-services/${this.currentCs.id}/intermediate-cas`)
         .then((resp) => (this.currentIntermediateCas = resp.data));
     },
-    getIntermediateCa(id: number) {
+    async getIntermediateCa(id: number) {
       return axios.get<CertificateAuthority>(`/intermediate-cas/${id}`);
     },
-    addIntermediateCa(certificate: File) {
+    async addIntermediateCa(certificate: File) {
       if (!this.currentCs) {
         throw new Error('CA not selected');
       }
@@ -247,46 +252,43 @@ export interface TimestampingServicesStoreState {
   timestampingServices: TimestampingService[];
 }
 
-export const useTimestampingServicesStore = defineStore(
-  'timestampingServices',
-  {
-    state: (): TimestampingServicesStoreState => ({
-      timestampingServices: [],
-    }),
-    persist: true,
-    actions: {
-      fetchTimestampingServices() {
-        return axios
-          .get<TimestampingService[]>('/timestamping-services')
-          .then((resp) => (this.timestampingServices = resp.data));
-      },
-      delete(id: number) {
-        return axios
-          .delete(`/timestamping-services/${id}`)
-          .finally(() => this.fetchTimestampingServices());
-      },
-      addTimestampingService(url: string, certificate: File) {
-        const formData = new FormData();
-        formData.append('url', url || '');
+export const useTimestampingServices = defineStore('timestampingServices', {
+  state: (): TimestampingServicesStoreState => ({
+    timestampingServices: [],
+  }),
+  persist: true,
+  actions: {
+    async fetchTimestampingServices() {
+      return axios
+        .get<TimestampingService[]>('/timestamping-services')
+        .then((resp) => (this.timestampingServices = resp.data));
+    },
+    async delete(id: number) {
+      return axios
+        .delete(`/timestamping-services/${id}`)
+        .finally(() => this.fetchTimestampingServices());
+    },
+    async addTimestampingService(url: string, certificate: File) {
+      const formData = new FormData();
+      formData.append('url', url || '');
+      formData.append('certificate', certificate);
+      return axios
+        .post('/timestamping-services', formData)
+        .finally(() => this.fetchTimestampingServices());
+    },
+    async updateTimestampingService(
+      id: number,
+      url: string,
+      certificate: File | undefined,
+    ) {
+      const formData = new FormData();
+      formData.append('url', url || '');
+      if (certificate) {
         formData.append('certificate', certificate);
-        return axios
-          .post('/timestamping-services', formData)
-          .finally(() => this.fetchTimestampingServices());
-      },
-      updateTimestampingService(
-        id: number,
-        url: string,
-        certificate: File | undefined,
-      ) {
-        const formData = new FormData();
-        formData.append('url', url || '');
-        if (certificate) {
-          formData.append('certificate', certificate);
-        }
-        return axios
-          .patch(`/timestamping-services/${id}`, formData)
-          .finally(() => this.fetchTimestampingServices());
-      },
+      }
+      return axios
+        .patch(`/timestamping-services/${id}`, formData)
+        .finally(() => this.fetchTimestampingServices());
     },
   },
-);
+});

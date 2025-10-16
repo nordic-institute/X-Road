@@ -1,0 +1,90 @@
+<!--
+   The MIT License
+
+   Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+   Copyright (c) 2018 Estonian Information System Authority (RIA),
+   Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+   Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+ -->
+<template>
+  <XrdCreateApiKeyStepper
+    :breadcrumbs="breadcrumbs"
+    :handler="handler"
+    :api-key-list-route-name="listViewName"
+  />
+</template>
+
+<script lang="ts" setup>
+import { XrdCreateApiKeyStepper, ApiKey, ApiKeysHandler } from '@niis/shared-ui';
+import { computed } from 'vue';
+import { Roles, RouteName } from '@/global';
+import { useUser } from '@/store/modules/user';
+import { useApiKeys } from '@/store/modules/api-keys';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+const { hasRole } = useUser();
+const { addApiKey } = useApiKeys();
+
+const listViewName = RouteName.ApiKey;
+
+const handler = computed(
+  () =>
+    ({
+      addApiKey(roles: string[]): Promise<ApiKey> {
+        return addApiKey(roles);
+      },
+      canAssignRole(role: string): boolean {
+        return hasRole(role);
+      },
+      deleteApiKey(apiKeyId: number): Promise<number> {
+        throw new Error('Not needed here.');
+      },
+      fetchApiKeys(): Promise<ApiKey[]> {
+        throw new Error('Not needed here.');
+      },
+      updateApiKey(apiKeyId: number, roles: string[]): Promise<ApiKey> {
+        throw new Error('Not needed here.');
+      },
+      availableRoles() {
+        return Roles;
+      },
+    }) as ApiKeysHandler,
+);
+
+const breadcrumbs = computed(() => [
+  {
+    title: t('tab.main.keys'),
+    to: {
+      name: RouteName.SignAndAuthKeys,
+    },
+  },
+  {
+    title: t('tab.keys.apiKey'),
+    to: {
+      name: RouteName.ApiKey,
+    },
+  },
+  {
+    title: t('apiKey.createApiKey.title'),
+  },
+]);
+</script>

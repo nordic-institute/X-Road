@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,32 +25,47 @@
  * THE SOFTWARE.
  */
 
+import { RouteRecordName } from 'vue-router';
 import { defineStore } from 'pinia';
+
+import { i18n, Tab } from '@niis/shared-ui';
+
 import { mainTabs } from '@/global';
-import axiosAuth from '../../axios-auth';
-import * as api from '@/util/api';
 import {
   InitializationStatus,
   SecurityServer,
   TokenInitStatus,
   User,
 } from '@/openapi-types';
-import { SessionStatus } from '@/ui-types';
-import { i18n, Tab } from '@niis/shared-ui';
 import { routePermissions } from '@/routePermissions';
+import { SessionStatus } from '@/ui-types';
+import * as api from '@/util/api';
+
+import axiosAuth from '../../axios-auth';
+
 import { useSystem } from './system';
-import { RouteRecordName } from 'vue-router';
+
+interface State {
+  authenticated: boolean;
+  sessionAlive: boolean;
+  permissions: string[];
+  roles: string[];
+  username?: string;
+  currentSecurityServer?: SecurityServer;
+  initializationStatus?: InitializationStatus;
+  bannedRoutes?: RouteRecordName[];
+}
 
 export const useUser = defineStore('user', {
-  state: () => {
+  state: (): State => {
     return {
+      username: undefined,
+      currentSecurityServer: undefined,
+      initializationStatus: undefined,
       authenticated: false,
       sessionAlive: false,
       permissions: [] as string[],
       roles: [] as string[],
-      username: '',
-      currentSecurityServer: {} as SecurityServer,
-      initializationStatus: undefined as InitializationStatus | undefined,
       bannedRoutes: [] as RouteRecordName[], // Array for routes the user doesn't have permission to access.
     };
   },
@@ -252,17 +268,16 @@ export const useUser = defineStore('user', {
 
     setInitializationStatus(): void {
       // Sets the initialization state to done
-      const initStatus: InitializationStatus = {
+      this.initializationStatus = {
         is_anchor_imported: true,
         is_server_code_initialized: true,
         is_server_owner_initialized: true,
         software_token_init_status: TokenInitStatus.INITIALIZED,
+        enforce_token_pin_policy: false,
       };
-
-      this.initializationStatus = initStatus;
     },
 
-    // This action is currenlty needed only for unit testing
+    // This action is currently needed only for unit testing
     storeInitStatus(status: InitializationStatus) {
       this.initializationStatus = status;
     },

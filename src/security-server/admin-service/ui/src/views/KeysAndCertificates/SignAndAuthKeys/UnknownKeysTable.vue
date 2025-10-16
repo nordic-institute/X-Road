@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,8 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <table class="xrd-table keys-table">
+  <div class="pr-4 pb-4 pl-4">
+    <v-table class="xrd keys-table">
       <KeysTableThead
         :sort-direction="sortDirection"
         :selected-sort="selectedSort"
@@ -72,7 +73,7 @@
           </template>
         </CertificateRow>
       </tbody>
-    </table>
+    </v-table>
   </div>
 </template>
 
@@ -196,15 +197,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-
-.keys-table {
-  margin-top: 20px;
-}
-
-.table-button-fix {
-  margin-left: auto;
-  margin-right: 0;
-}
-</style>
+<style lang="scss" scoped></style>

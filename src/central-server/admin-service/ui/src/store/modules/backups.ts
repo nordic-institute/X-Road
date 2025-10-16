@@ -27,7 +27,7 @@
 import axios from 'axios';
 import { Backup, BackupRestorationStatus } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import { saveResponseAsFile } from '@/util/helpers';
+import { helper } from '@niis/shared-ui';
 
 export interface State {
   backups: Backup[];
@@ -70,7 +70,7 @@ export const useBackups = defineStore('backup', {
           responseType: 'blob',
         })
         .then((resp) => {
-          saveResponseAsFile(resp, 'backup.tar');
+          helper.saveResponseAsFile(resp, 'backup.tar');
         })
         .catch((error) => {
           throw error;

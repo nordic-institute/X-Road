@@ -36,17 +36,18 @@
     @save="rename"
   >
     <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="name"
-          class="mt-2"
-          v-bind="nameAttrs"
-          :label="$t('members.member.subsystems.subsystemname')"
-          variant="outlined"
-          autofocus
-          data-test="subsystem-name-input"
-        />
-      </div>
+      <XrdFormBlock>
+        <XrdFormBlockRow>
+          <v-text-field
+            v-model="name"
+            v-bind="nameAttrs"
+            data-test="subsystem-name-input"
+            class="xrd"
+            autofocus
+            :label="$t('members.member.subsystems.subsystemname')"
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -54,10 +55,14 @@
 <script lang="ts" setup>
 import { computed, PropType, ref } from 'vue';
 import { ClientId } from '@/openapi-types';
-import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
+import {
+  XrdFormBlock,
+  XrdFormBlockRow,
+  useNotifications,
+} from '@niis/shared-ui';
 
 const props = defineProps({
   member: {
@@ -82,7 +87,7 @@ const { defineField, meta, handleSubmit, resetForm } = useForm({
 });
 
 const { renameSubsystem } = useSubsystem();
-const { showError, showSuccess } = useNotifications();
+const { addError, addSuccessMessage } = useNotifications();
 
 const [name, nameAttrs] = defineField('subsystemName', {
   props: (state) => ({ 'error-messages': state.errors }),
@@ -113,16 +118,17 @@ const rename = handleSubmit((values) => {
     },
   )
     .then(() => {
-      showSuccess(
-        t('members.member.subsystems.subsystemSuccessfullyRenamed', {
+      addSuccessMessage(
+        'members.member.subsystems.subsystemSuccessfullyRenamed',
+        {
           subsystemCode: values.subsystemCode,
-        }),
+        },
       );
       emits('save');
       resetForm();
     })
     .catch((error) => {
-      showError(error);
+      addError(error);
       emits('cancel');
     })
     .finally(() => (loading.value = false));

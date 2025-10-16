@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,25 +26,18 @@
  -->
 
 <template>
-  <XrdNotFoundError>
-    <template #top>
-      <TabsBase />
-      <AlertsContainer />
-    </template>
-  </XrdNotFoundError>
+  <XrdNotFoundError @go-home="goHome" />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
 import { XrdNotFoundError } from '@niis/shared-ui';
-import TabsBase from '@/layouts/TabsBase.vue';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+import { useRouter } from 'vue-router';
+import { useUser } from '@/store/modules/user';
 
-export default defineComponent({
-  components: {
-    TabsBase,
-    AlertsContainer,
-    XrdNotFoundError,
-  },
-});
+const { push } = useRouter();
+const userStore = useUser();
+
+function goHome() {
+  push(userStore.firstAllowedTab.to);
+}
 </script>

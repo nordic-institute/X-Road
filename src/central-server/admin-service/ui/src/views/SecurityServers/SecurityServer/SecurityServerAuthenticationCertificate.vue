@@ -26,39 +26,111 @@
  -->
 
 <template>
-  <main id="security-server-authentication-certificate" class="mt-8">
-    <CertificateDetails
-      v-if="securityServerAuthenticationCertificate"
-      :certificate-details="securityServerAuthenticationCertificate"
-    />
-  </main>
+  <XrdElevatedViewFixedWidth
+    title="cert.certificate"
+    close-on-escape
+    go-back-on-close
+    :breadcrumbs="breadcrumbs"
+    :loading
+  >
+    <XrdCertificate v-if="certificate" :certificate="certificate" />
+  </XrdElevatedViewFixedWidth>
 </template>
 
-<script lang="ts">
-import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
-import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
-import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
-import { mapStores } from 'pinia';
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { computed, ref, watchEffect } from 'vue';
 
-export default defineComponent({
-  name: 'SecurityServerAuthenticationCertificate',
-  components: { CertificateDetails },
-  props: {
-    authenticationCertificateId: {
-      type: Number,
-      required: true,
-    },
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
+
+import {
+  useNotifications,
+  XrdCertificate,
+  XrdElevatedViewFixedWidth,
+} from '@niis/shared-ui';
+
+import { RouteName } from '@/global';
+import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
+import { useSecurityServer } from '@/store/modules/security-servers';
+import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
+
+const props = defineProps({
+  serverId: {
+    type: String,
+    required: true,
   },
-  computed: {
-    ...mapStores(useSecurityServerAuthCert),
-    securityServerAuthenticationCertificate():
-      | SecurityServerAuthenticationCertificateDetails
-      | undefined {
-      return this.securityServerAuthCertStore.authenticationCertificates.find(
-        (authCert) => authCert.id === this.authenticationCertificateId,
-      );
-    },
+  certificateId: {
+    type: String,
+    required: true,
   },
+});
+const router = useRouter();
+const { t } = useI18n();
+
+const { addError } = useNotifications();
+const securityServerAuthCertStore = useSecurityServerAuthCert();
+const securityServerStore = useSecurityServer();
+
+const loading = ref(false);
+const certificate = ref<
+  SecurityServerAuthenticationCertificateDetails | undefined
+>(undefined);
+
+const breadcrumbs = computed(() => {
+  const crumbs: BreadcrumbItem[] = [
+    {
+      title: t('tab.main.securityServers'),
+      to: { name: RouteName.SecurityServers },
+    },
+  ];
+
+  if (securityServerStore.current) {
+    crumbs.push(
+      {
+        title: securityServerStore.current?.server_id.server_code || '',
+        to: {
+          name: RouteName.SecurityServerDetails,
+          params: {
+            serverId: securityServerStore.current?.server_id.encoded_id || '',
+          },
+        },
+      },
+      {
+        title: t('securityServers.securityServer.tabs.authCertificates'),
+        to: {
+          name: RouteName.SecurityServerAuthenticationCertificates,
+          params: {
+            serverId: securityServerStore.current?.server_id.encoded_id || '',
+          },
+        },
+      },
+    );
+  }
+  crumbs.push({
+    title: t('cert.certificate'),
+  });
+
+  return crumbs;
+});
+
+watchEffect(() => {
+  certificate.value = undefined;
+  loading.value = true;
+  const serverId = props.serverId;
+  const certId = Number(props.certificateId);
+  securityServerStore
+    .loadById(serverId)
+    .then(() => securityServerAuthCertStore.fetch(serverId))
+    .then((certs) => certs.find((authCert) => authCert.id === certId))
+    .then((cert) => {
+      if (cert) {
+        certificate.value = cert;
+      } else {
+        router.replace(RouteName.NotFound);
+      }
+    })
+    .catch((err) => addError(err, { navigate: true }))
+    .finally(() => (loading.value = false));
 });
 </script>

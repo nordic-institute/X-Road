@@ -48,13 +48,14 @@ export enum RouteName {
   IntermediateCaDetails = 'intermediate-ca-details',
   IntermediateCaOcspResponders = 'intermediate-ca-ocsp-responders',
   Settings = 'settings',
-  GlobalResources = 'global-resources',
+  GlobalGroups = 'global-resources',
   GlobalGroup = 'global-group',
   SystemSettings = 'system-settings',
   BackupAndRestore = 'backup-and-restore',
   ApiKeys = 'api-keys',
   TlsCertificates = 'tls-certificates',
   CreateApiKey = 'create-api-key',
+  GlobalConfiguration = 'global-configuration',
   InternalConfiguration = 'internal-configuration',
   ExternalConfiguration = 'external-configuration',
   TrustedAnchors = 'trusted-anchors',
@@ -67,6 +68,7 @@ export enum RouteName {
   AdminUsers = 'admin-users',
   AddAdminUser = 'add-admin-user',
   Forbidden = 'forbidden',
+  NotFound = 'not-found',
 }
 
 // A "single source of truth" for permission strings
@@ -161,12 +163,14 @@ export const mainTabs: Tab[] = [
     to: { name: RouteName.Members },
     key: 'members',
     name: 'tab.main.members',
+    icon: 'folder',
     permissions: [Permissions.VIEW_MEMBERS, Permissions.VIEW_MEMBER_DETAILS],
   },
   {
     to: { name: RouteName.SecurityServers },
     key: 'keys',
     name: 'tab.main.securityServers',
+    icon: 'dns',
     permissions: [
       Permissions.VIEW_SECURITY_SERVERS,
       Permissions.VIEW_SECURITY_SERVER_DETAILS,
@@ -176,6 +180,7 @@ export const mainTabs: Tab[] = [
     to: { name: RouteName.ManagementRequests },
     key: 'managementRequests',
     name: 'tab.main.managementRequests',
+    icon: 'rule_settings',
     permissions: [
       Permissions.VIEW_MANAGEMENT_REQUESTS,
       Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS,
@@ -185,6 +190,7 @@ export const mainTabs: Tab[] = [
     to: { name: RouteName.TrustServices },
     key: 'trustServices',
     name: 'tab.main.trustServices',
+    icon: 'shield_lock',
     permissions: [
       Permissions.VIEW_APPROVED_CAS,
       Permissions.VIEW_APPROVED_TSAS,
@@ -194,9 +200,10 @@ export const mainTabs: Tab[] = [
   },
   {
     // Global configuration tab
-    to: { name: RouteName.InternalConfiguration }, // name of the first child tab
+    to: { name: RouteName.GlobalConfiguration }, // name of the first child tab
     key: 'globalConfiguration',
     name: 'tab.main.globalConfiguration',
+    icon: 'page_info',
     permissions: [
       Permissions.VIEW_CONFIGURATION_MANAGEMENT,
       Permissions.VIEW_EXTERNAL_CONFIGURATION_SOURCE,
@@ -209,6 +216,7 @@ export const mainTabs: Tab[] = [
     to: { name: RouteName.Settings },
     key: 'settings',
     name: 'tab.main.settings',
+    icon: 'settings',
     permissions: [
       Permissions.VIEW_SYSTEM_SETTINGS,
       Permissions.VIEW_GLOBAL_GROUPS,
@@ -222,3 +230,5 @@ export const mainTabs: Tab[] = [
 export const Timeouts = {
   POLL_SESSION_TIMEOUT: 30000,
 } as const;
+
+export const KEY_CONTINUE_INIT = 'KEY_CONTINUE_INIT';

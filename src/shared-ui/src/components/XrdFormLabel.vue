@@ -25,8 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="form-label">
-    <div class="label-text">
+  <div class="form-label body-regular">
+    <div class="font-weight-medium">
       {{ labelText }}
     </div>
     <div class="info-text">
@@ -35,49 +35,24 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
 
 /**
  * Label and help icon that can be used with inputs
  */
-export default defineComponent({
-  props: {
-    labelText: {
-      type: String,
-      required: true,
-    },
-    helpText: {
-      type: String,
-      required: false,
-      default: '',
-    },
+defineProps({
+  labelText: {
+    type: String,
+    required: true,
+  },
+  helpText: {
+    type: String,
+    required: false,
+    default: '',
   },
 });
 </script>
 
 <style lang="scss" scoped>
-.form-label {
-  width: 405px;
-  min-width: 405px;
-  display: flex;
-  flex-direction: column;
-  align-items: baseline;
-  color: #211e1e;
-  text-align: left;
 
-  .label-text {
-    font-style: normal;
-    font-weight: bold;
-    font-size: 14px;
-    line-height: 19px;
-  }
-
-  .info-text {
-    font-style: normal;
-    font-weight: normal;
-    font-size: 14px;
-    line-height: 19px;
-  }
-}
 </style>

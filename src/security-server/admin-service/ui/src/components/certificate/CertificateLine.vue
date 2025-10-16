@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -32,7 +33,7 @@
       }}</b>
 
       <div v-if="chunk" class="chunk">
-        <pre>{{ lineBreaks($filters.colonize(sourceObject[childKey])) }}</pre>
+        <XrdHashValue wrap-friendly :value="sourceObject[childKey]" />
       </div>
 
       <span v-else>{{ formattedData() }}</span>
@@ -42,8 +43,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { XrdHashValue } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdHashValue },
   props: {
     childKey: {
       type: String,

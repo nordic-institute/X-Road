@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -72,6 +73,7 @@ export enum RouteName {
   ServiceClientAccessRights = 'service-client-access-rights',
   InitialConfiguration = 'initial-configuration',
   AddServiceClientAccessRight = 'add-service-client-access-right',
+  NotFound = 'not-found',
 }
 
 // A "single source of truth" for permission strings
@@ -181,21 +183,25 @@ export const mainTabs: Tab[] = [
     to: { name: RouteName.Clients },
     key: 'clients',
     name: 'tab.main.clients',
+    icon: 'id_card',
   },
   {
     to: { name: RouteName.SignAndAuthKeys },
     key: 'keys',
     name: 'tab.main.keys',
+    icon: 'key',
   },
   {
     to: { name: RouteName.Diagnostics },
     key: 'diagnostics',
     name: 'tab.main.diagnostics',
+    icon: 'monitoring',
   },
   {
     to: { name: RouteName.SystemParameters },
     key: 'settings',
     name: 'tab.main.settings',
+    icon: 'settings',
     permissions: [
       Permissions.VIEW_SYS_PARAMS,
       Permissions.BACKUP_CONFIGURATION,

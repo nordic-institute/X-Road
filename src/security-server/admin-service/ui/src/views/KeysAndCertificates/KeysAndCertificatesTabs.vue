@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,20 +26,20 @@
  -->
 <template>
   <div>
-    <XrdSubTabs :tabs />
+    <XrdViewNavigation :allowed-tabs="tabs" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { Tab, XrdSubTabs } from '@niis/shared-ui';
+import { Tab, XrdViewNavigation } from '@niis/shared-ui';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
   components: {
-    XrdSubTabs,
+    XrdViewNavigation,
   },
   data: () => ({
     currentTab: undefined as undefined | Tab,
@@ -52,6 +53,7 @@ export default defineComponent({
         {
           key: 'sign-and-auth-keys-tab-button',
           name: 'tab.keys.signAndAuthKeys',
+          icon: 'editor_choice',
           to: {
             name: RouteName.SignAndAuthKeys,
           },
@@ -60,6 +62,7 @@ export default defineComponent({
         {
           key: 'api-key-tab-button',
           name: 'tab.keys.apiKey',
+          icon: 'key_vertical',
           to: {
             name: RouteName.ApiKey,
           },
@@ -73,6 +76,7 @@ export default defineComponent({
         {
           key: 'ss-tls-certificate-tab-button',
           name: 'tab.keys.ssTlsCertificate',
+          icon: 'shield_lock',
           to: {
             name: RouteName.SSTlsCertificate,
           },

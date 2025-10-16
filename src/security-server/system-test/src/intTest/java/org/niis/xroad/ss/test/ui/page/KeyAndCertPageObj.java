@@ -37,10 +37,11 @@ import static java.lang.String.format;
 public class KeyAndCertPageObj {
     private static final String X_FOLLOWING = "//following::";
     private static final String X_TOKEN_EXPANDABLE = "//div[@data-test='tokens-table']"
-            + "//div[span[text()='Token: %s']]";
-    private static final String X_TOKEN_EDIT_BUTTON = "//div[span[text()='Token: %s']]"
+            + "//div[div[text()='Token: %s']]";
+    private static final String X_TOKEN_EDIT_BUTTON = "//div[text()='Token: %s']"
             + "//button[@data-test='token-icon-button'][1]";
-    private static final String X_TOKEN_EXPANDABLE_W_FOLLOWING = X_TOKEN_EXPANDABLE + X_FOLLOWING;
+    private static final String X_TOKEN_EXPANDABLE_W_FOLLOWING = X_TOKEN_EXPANDABLE
+            + "/ancestor::div[@data-test='header']/following::div[@data-test='content']//";
 
     public final TokenLoginDialog tokenLoginDialog = new TokenLoginDialog();
     public final TokenLogoutDialog tokenLogoutDialog = new TokenLogoutDialog();
@@ -114,7 +115,7 @@ public class KeyAndCertPageObj {
         }
 
         public SelenideElement tokenLabeledKey(String label) {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "table[.//th[contains(@class, 'title-col')]]//span[contains(text(), '%s')]",
+            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "table[.//tr[@data-test='key-row']//div/span[contains(., '%s')]",
                     token, label));
         }
 

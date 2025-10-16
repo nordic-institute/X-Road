@@ -39,8 +39,9 @@ export const useSettingsTabs = defineStore('settingsTabs', {
       {
         key: 'globalresources-tab-button',
         name: 'tab.settings.globalResources',
+        icon: 'group',
         to: {
-          name: RouteName.GlobalResources,
+          name: RouteName.GlobalGroups,
         },
         permissions: [
           Permissions.VIEW_GLOBAL_GROUPS,
@@ -50,6 +51,7 @@ export const useSettingsTabs = defineStore('settingsTabs', {
       {
         key: 'systemsettings-tab-button',
         name: 'tab.settings.systemSettings',
+        icon: 'page_info',
         to: {
           name: RouteName.SystemSettings,
         },
@@ -58,6 +60,7 @@ export const useSettingsTabs = defineStore('settingsTabs', {
       {
         key: 'backup-and-restore-tab-button',
         name: 'tab.settings.backupAndRestore',
+        icon: 'cloud_upload',
         to: {
           name: RouteName.BackupAndRestore,
         },
@@ -66,6 +69,7 @@ export const useSettingsTabs = defineStore('settingsTabs', {
       {
         key: 'apikeys-tab-button',
         name: 'tab.settings.apiKeys',
+        icon: 'key_vertical',
         to: {
           name: RouteName.ApiKeys,
         },
@@ -78,6 +82,7 @@ export const useSettingsTabs = defineStore('settingsTabs', {
       {
         key: 'tlscertificates-tab-button',
         name: 'tab.settings.tlsCertificates',
+        icon: 'editor_choice',
         to: {
           name: RouteName.TlsCertificates,
         },

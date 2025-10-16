@@ -29,6 +29,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.WebElementCondition;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.common.test.ui.utils.VuetifyHelper;
 import org.niis.xroad.cs.test.ui.glue.mappers.ParameterMappers.SelenideValidation;
 import org.niis.xroad.cs.test.ui.page.SettingsApiKeysPageObj;
 
@@ -74,21 +75,6 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
 
     }
 
-    @Step("Create API key wizard Previous button is clicked")
-    public void clickWizardBack() {
-        apiKeysPage.wizard.btnPrevious().click();
-    }
-
-    @Step("Create API key wizard Cancel button is clicked")
-    public void clickWizardCancel() {
-        commonPageObj.dialog.btnCancel().click();
-    }
-
-    @Step("Create API key wizard Create Key button is clicked")
-    public void clickWizardCreateKey() {
-        apiKeysPage.wizard.btnCreateKey().click();
-    }
-
     @Step("Create API key wizard Finish button is clicked")
     public void clickWizardFinish() {
         apiKeysPage.wizard.btnFinish().click();
@@ -97,9 +83,9 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
     @Step("API key is created and visible")
     public void apiKeyIsPresent() {
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
-        createdApiKeyId = apiKeysPage.wizard.createdApiKeyId()
-                .shouldBe(Condition.visible)
-                .text();
+        createdApiKeyId = VuetifyHelper.vTextField(apiKeysPage.wizard.createdApiKeyId())
+                .shouldBe(Condition.attribute("value"))
+                .getValue();
     }
 
     @Step("API key is set to token {} and in Authentication header")

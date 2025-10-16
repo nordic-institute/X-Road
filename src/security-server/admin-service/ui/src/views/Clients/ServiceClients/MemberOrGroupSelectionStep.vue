@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,78 +25,77 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="search-field">
+  <XrdWizardStep>
+    <XrdFormBlock>
       <v-text-field
         v-model="search"
-        :label="$t('serviceClients.memberGroupStep')"
+        data-test="search-service-client"
+        density="compact"
+        class="xrd xrd-search-field mb-4"
+        prepend-inner-icon="search"
         single-line
         hide-details
         autofocus
-        data-test="search-service-client"
-        variant="underlined"
-        density="compact"
-        class="search-input"
-        append-inner-icon="mdi-magnify"
+        :label="$t('serviceClients.memberGroupStep')"
       >
       </v-text-field>
-    </div>
 
-    <table class="xrd-table service-clients-table">
-      <thead>
-        <tr>
-          <th class="checkbox-column"></th>
-          <th>{{ $t('serviceClients.name') }}</th>
-          <th>{{ $t('serviceClients.id') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="candidate in filteredCandidates" :key="candidate.id">
-          <td class="checkbox-column">
-            <div class="checkbox-wrap">
+      <v-table data-test="service-clients-table" class="xrd">
+        <thead>
+          <tr>
+            <th class="checkbox-column"></th>
+            <th>{{ $t('serviceClients.name') }}</th>
+            <th>{{ $t('serviceClients.id') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="candidate in filteredCandidates" :key="candidate.id">
+            <td class="xrd-checkbox-column">
               <v-radio
                 :key="candidate.id"
                 v-model="selection"
-                :disabled="isDisabled(candidate)"
                 data-test="candidate-selection"
+                class="xrd"
+                :disabled="isDisabled(candidate)"
                 @click="updateSelection(candidate)"
               />
-            </div>
-          </td>
-          <td class="identifier-wrap">
-            <client-name :service-client="candidate" />
-          </td>
-          <td class="identifier-wrap">{{ candidate.id }}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="button-footer full-width">
-      <xrd-button outlined data-test="cancel-button" @click="cancel"
-        >{{ $t('action.cancel') }}
-      </xrd-button>
-
-      <xrd-button
-        :disabled="!selection"
+            </td>
+            <td class="identifier-wrap">
+              <client-name :service-client="candidate" />
+            </td>
+            <td class="identifier-wrap">{{ candidate.id }}</td>
+          </tr>
+        </tbody>
+      </v-table>
+    </XrdFormBlock>
+    <template #footer>
+      <XrdBtn
+        data-test="cancel-button"
+        variant="text"
+        text="action.cancel"
+        @click="cancel"
+      />
+      <v-spacer />
+      <XrdBtn
         data-test="next-button"
+        text="action.next"
+        :disabled="!selection"
         @click="$emit('set-step', selection)"
-        >{{ $t('action.next') }}
-      </xrd-button>
-    </div>
-  </div>
+      />
+    </template>
+  </XrdWizardStep>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { ServiceClient } from '@/openapi-types';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
+import { XrdWizardStep, useNotifications, XrdFormBlock, XrdBtn } from '@niis/shared-ui';
 import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import ClientName from '@/components/client/ClientName.vue';
+import { useServiceClients } from '@/store/modules/service-clients';
 
 export default defineComponent({
-  components: { ClientName },
+  components: { ClientName, XrdWizardStep, XrdFormBlock, XrdBtn },
   props: {
     id: {
       type: String,
@@ -107,6 +107,10 @@ export default defineComponent({
     },
   },
   emits: ['set-step'],
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
+  },
   data() {
     return {
       search: '' as string,
@@ -137,17 +141,14 @@ export default defineComponent({
     this.fetchData();
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useServiceClients, ['fetchCandidates']),
     updateSelection(value: ServiceClient): void {
       this.selection = value;
     },
     fetchData(): void {
-      api
-        .get<ServiceClient[]>(
-          `/clients/${encodePathParameter(this.id)}/service-client-candidates`,
-        )
-        .then((response) => (this.serviceClientCandidates = response.data))
-        .catch((error) => this.showError(error));
+      this.fetchCandidates(this.id)
+        .then((data) => (this.serviceClientCandidates = data))
+        .catch((error) => this.addError(error));
     },
     cancel(): void {
       this.$router.back();
@@ -161,13 +162,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-@use '@niis/shared-ui/src/assets/wizards';
-
-.search-field {
-  max-width: 300px;
-  margin-bottom: 20px;
-  margin-left: 20px;
-}
-</style>
+<style lang="scss" scoped></style>

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,7 +30,7 @@
     title="warning"
     cancel-button-text="action.cancel"
     save-button-text="action.yes"
-    :show-close="false"
+    hide-close
     @save="accept"
     @cancel="cancel"
   >

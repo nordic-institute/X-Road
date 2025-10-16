@@ -46,11 +46,11 @@ public class CommonPageObj {
     public class Menu {
 
         public SelenideElement usernameButton() {
-            return $x("//button[@data-test='username-button']");
+            return $x("//div[@data-test='user-menu']");
         }
 
         public SelenideElement logout() {
-            return $x("//div[@data-test='logout-list-tile']");
+            return $x("//div[@data-test='logout-button']");
         }
 
         public SelenideElement changePassword() {
@@ -74,7 +74,8 @@ public class CommonPageObj {
         }
 
         private String getTabXpath(String tabName) {
-            var xpath = "//div[contains(@class, 'main-tabs')]//a[contains(@class,'v-tab')]//span[text()='%s']";
+            var xpath = "//a[@data-test='main-navigation-item' "
+                    + "and .//div[@data-test='main-navigation-item-name' and contains(text(), '%s')]]";
             return format(xpath, tabName);
         }
     }

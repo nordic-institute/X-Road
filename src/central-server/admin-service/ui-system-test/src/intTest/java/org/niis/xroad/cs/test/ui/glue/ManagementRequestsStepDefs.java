@@ -89,7 +89,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     }
 
     private String orderDirectionClass(final boolean descending) {
-        return descending ? "mdi-arrow-down" : "mdi-arrow-up";
+        return descending ? "arrow_downward" : "arrow_upward";
     }
 
     @Step("the user clicks on search icon")

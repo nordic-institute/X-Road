@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -32,7 +33,7 @@
       </div>
 
       <div class="detail-view-cert-hash">
-        <CertificateHash :hash="certificateDetails.hash" />
+<!--        <CertificateHash :hash="certificateDetails.hash" />-->
       </div>
       <CertificateInfo :certificate="certificateDetails" />
     </div>
@@ -42,7 +43,6 @@
 <script lang="ts" setup>
 import { PropType, useSlots } from 'vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
-import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import { useRouter } from 'vue-router';
 import type { CertificateDetails } from '@/openapi-types';
 

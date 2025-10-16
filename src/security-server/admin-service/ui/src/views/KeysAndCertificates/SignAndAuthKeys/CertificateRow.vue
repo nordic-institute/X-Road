@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,31 +26,36 @@
  -->
 <template>
   <tr>
-    <td class="td-name">
-      <div class="name-wrap" @click="certificateClick()">
-        <i
-          class="icon-Certificate cert-icon clickable-link"
-          :style="{ color: certStatusColor }"
-        />
-        <div class="clickable-link" :style="{ color: certStatusColor }">
-          {{ cert.certificate_details.issuer_common_name }}
-          {{ cert.certificate_details.serial }}
-        </div>
-      </div>
+    <td class="td-name pl-13">
+      <XrdLabelWithIcon
+        icon="editor_choice"
+        clickable
+        semi-bold
+        :icon-color="certStatusColor"
+        :label-color="certStatusColor"
+        :label="
+          cert.certificate_details.issuer_common_name +
+          ' ' +
+          cert.certificate_details.serial
+        "
+        @navigate="certificateClick()"
+      />
     </td>
     <td>{{ cert.owner_id }}</td>
     <td data-test="ocsp-status">{{ $filters.ocspStatus(cert.ocsp_status) }}</td>
-    <td>{{ $filters.formatDate(cert.certificate_details.not_after) }}</td>
+    <td>
+      <XrdDate :value="cert.certificate_details.not_after" />
+    </td>
     <td class="status-cell">
-      <certificate-status-icon :certificate="cert" />
+      <CertificateStatusIcon :certificate="cert" />
     </td>
     <td>
-      <certificate-renewal-status
+      <CertificateRenewalStatus
         :certificate="cert"
         :is-acme-certificate="isAcmeCertificate"
       />
     </td>
-    <td class="td-align-right">
+    <td class="text-end">
       <slot name="certificateAction"></slot>
     </td>
   </tr>
@@ -61,15 +67,16 @@
  */
 import { defineComponent, PropType } from 'vue';
 import CertificateStatusIcon from './CertificateStatusIcon.vue';
-import { CertificateStatus } from '@/openapi-types';
-import { TokenCertificate } from '@/openapi-types';
-import { Colors } from '@niis/shared-ui';
+import { CertificateStatus, TokenCertificate } from '@/openapi-types';
+import { XrdDate, XrdLabelWithIcon } from '@niis/shared-ui';
 import CertificateRenewalStatus from '@/views/KeysAndCertificates/SignAndAuthKeys/CertificateRenewalStatus.vue';
 
 export default defineComponent({
   components: {
     CertificateRenewalStatus,
     CertificateStatusIcon,
+    XrdDate,
+    XrdLabelWithIcon,
   },
   props: {
     cert: {
@@ -82,10 +89,10 @@ export default defineComponent({
   },
   emits: ['certificate-click'],
   computed: {
-    certStatusColor(): string {
+    certStatusColor() {
       return this.cert.status === CertificateStatus.GLOBAL_ERROR
-        ? Colors.Error
-        : '';
+        ? 'error'
+        : undefined;
     },
   },
 
@@ -97,29 +104,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-@use '@niis/shared-ui/src/assets/colors';
-
-.td-align-right {
-  text-align: right;
-}
-
-.clickable-link {
-  color: colors.$Purple100;
-  cursor: pointer;
-  height: 100%;
-}
-
-.cert-icon {
-  margin-right: 18px;
-  color: colors.$Purple100;
-}
-
-.name-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-left: 57px;
-}
-</style>
+<style lang="scss" scoped></style>

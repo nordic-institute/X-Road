@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,24 +25,21 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="search-field">
+  <XrdWizardStep>
+    <XrdFormBlock>
       <v-text-field
         v-model="search"
-        :label="$t('serviceClients.serviceSelectionStep')"
+        data-test="search-service-client-service"
+        class="xrd xrd-search-field"
+        density="compact"
+        prepend-inner-icon="search"
         single-line
         hide-details
-        data-test="search-service-client-service"
-        variant="underlined"
-        density="compact"
-        class="search-input"
         autofocus
-        append-inner-icon="mdi-magnify"
-      >
-      </v-text-field>
-    </div>
-    <div class="scrollable">
-      <table class="xrd-table">
+        :label="$t('serviceClients.serviceSelectionStep')"
+      />
+
+      <v-table class="xrd">
         <thead>
           <tr>
             <th class="selection-checkbox"></th>
@@ -56,71 +54,80 @@
             class="service-row"
             data-test="access-right-toggle"
           >
-            <td class="selection-checkbox">
-              <div>
-                <v-checkbox
-                  v-model="selections"
-                  :value="accessRight"
-                  data-test="access-right-checkbox-input"
-                  hide-details
-                />
-              </div>
+            <td class="xrd-checkbox-column">
+              <v-checkbox
+                v-model="selections"
+                :value="accessRight"
+                data-test="access-right-checkbox-input"
+                class="xrd"
+                hide-details
+              />
             </td>
             <td class="identifier-wrap">{{ accessRight.service_code }}</td>
             <td class="identifier-wrap">{{ accessRight.service_title }}</td>
           </tr>
         </tbody>
-      </table>
-    </div>
-    <div v-if="serviceCandidates.length === 0" class="empty">
-      {{ $t('serviceClients.noAvailableServices') }}
-    </div>
+      </v-table>
 
-    <div
-      v-if="
-        serviceCandidates.length > 0 &&
-        searchResults &&
-        searchResults.length === 0
-      "
-      class="empty"
-    >
-      {{ $t('action.emptySearch', { msg: search }) }}
-    </div>
-
-    <div class="button-footer full-width">
-      <xrd-button outlined data-test="cancel-button" @click="cancel">{{
-        $t('action.cancel')
-      }}</xrd-button>
-
-      <xrd-button
-        data-test="previous-button"
-        outlined
-        class="previous-button"
-        @click="$emit('set-step')"
-        >{{ $t('action.previous') }}</xrd-button
+      <p
+        v-if="serviceCandidates.length === 0"
+        class="mt-4 body-regular text-center"
       >
+        {{ $t('serviceClients.noAvailableServices') }}
+      </p>
 
-      <xrd-button
+      <p
+        v-if="
+          serviceCandidates.length > 0 &&
+          searchResults &&
+          searchResults.length === 0
+        "
+        class="mt-4 body-regular text-center"
+      >
+        <i18n-t scope="global" keypath="action.emptySearch">
+          <template #msg>
+            <span class="font-weight-medium">{{ search }}</span>
+          </template>
+        </i18n-t>
+      </p>
+    </XrdFormBlock>
+    <template #footer>
+      <XrdBtn
+        variant="text"
+        text="action.cancel"
+        data-test="cancel-button"
+        @click="cancel"
+      />
+      <v-spacer />
+      <XrdBtn
+        data-test="previous-button"
+        variant="outlined"
+        text="action.previous"
+        class="mr-2"
+        @click="$emit('set-step')"
+      />
+
+      <XrdBtn
         data-test="finish-button"
         :disabled="!selections || selections.length === 0"
+        text="serviceClients.addSelected"
         @click="saveServices"
-      >
-        {{ $t('serviceClients.addSelected') }}
-      </xrd-button>
-    </div>
-  </div>
+      />
+    </template>
+  </XrdWizardStep>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { ServiceCandidate } from '@/ui-types';
 import { AccessRight, AccessRights, ServiceClient } from '@/openapi-types';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
+import { XrdWizardStep, useNotifications, XrdFormBlock, XrdBtn } from '@niis/shared-ui';
 import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+import { useServiceClients } from '@/store/modules/service-clients';
+import { RouteName } from '@/global';
 
 export default defineComponent({
+  components: { XrdWizardStep, XrdFormBlock, XrdBtn },
   props: {
     id: {
       type: String as PropType<string>,
@@ -136,6 +143,10 @@ export default defineComponent({
     },
   },
   emits: ['set-step'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return {
       selections: [] as ServiceCandidate[],
@@ -154,7 +165,7 @@ export default defineComponent({
     },
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useServiceClients, ['saveAccessRights']),
     saveServices(): void {
       const items = this.selections
         .filter((selection) => selection.service_code.includes(this.search))
@@ -166,22 +177,25 @@ export default defineComponent({
 
       const accessRightsObject: AccessRights = { items };
 
-      api
-        .post(
-          `/clients/${encodePathParameter(
-            this.id,
-          )}/service-clients/${encodePathParameter(
-            this.serviceClientCandidateSelection.id,
-          )}/access-rights`,
-          accessRightsObject,
-        )
+      this.saveAccessRights(
+        this.id,
+        this.serviceClientCandidateSelection.id,
+        accessRightsObject,
+      )
         .then(() => {
-          this.showSuccess(
-            this.$t('serviceClients.addServiceClientAccessRightSuccess'),
+          this.addSuccessMessage(
+            'serviceClients.addServiceClientAccessRightSuccess',
+            {},
+            true,
           );
-          this.$router.push(`/subsystem/serviceclients/${this.id}`);
+          this.$router.push({
+            name: RouteName.SubsystemServiceClients,
+            params: {
+              id: this.id,
+            },
+          });
         })
-        .catch((error) => this.showError(error));
+        .catch((error) => this.addError(error));
 
       this.clear();
     },
@@ -195,23 +209,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-@use '@niis/shared-ui/src/assets/wizards';
-
-.search-field {
-  max-width: 300px;
-  margin-bottom: 30px;
-  margin-left: 20px;
-}
-
-.empty {
-  margin: 30px;
-  text-align: center;
-}
-
-.scrollable {
-  overflow-y: auto;
-  max-height: 55vh;
-}
-</style>
+<style lang="scss" scoped></style>

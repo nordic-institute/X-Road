@@ -25,45 +25,60 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="security-servers-view">
-    <searchable-titled-view
-      v-model="search"
-      title-key="tab.main.securityServers"
+  <XrdView data-test="security-servers-view" title="tab.main.securityServers">
+    <template #append-header>
+      <div class="ml-6">
+        <v-text-field
+          v-model="search"
+          data-test="search-query-field"
+          class="xrd"
+          width="320"
+          prepend-inner-icon="search"
+          single-line
+          :label="$t('action.search')"
+          @update:model-value="debouncedFindServers"
+        />
+      </div>
+    </template>
+    <v-data-table-server
+      class="xrd bg-surface-container xrd-rounded-16"
+      item-key="server_id.server_code"
+      disable-filtering
+      :loading="loading"
+      :headers="headers"
+      :items="securityServerStore.securityServers"
+      :items-length="
+        securityServerStore.securityServerPagingOptions.total_items
+      "
+      :must-sort="true"
+      :items-per-page="10"
+      :no-data-text="emptyListReasoning"
+      :loader-height="2"
+      @update:options="findServers"
     >
-      <v-data-table-server
-        :loading="loading"
-        :headers="headers"
-        :items="securityServerStore.securityServers"
-        :items-per-page-options="itemsPerPageOptions"
-        :items-length="
-          securityServerStore.securityServerPagingOptions.total_items
-        "
-        :must-sort="true"
-        :items-per-page="10"
-        disable-filtering
-        class="elevation-0 data-table"
-        :no-data-text="emptyListReasoning"
-        item-key="server_id.server_code"
-        :loader-height="2"
-        @update:options="findServers"
-      >
-        <template #[`item.server_id.server_code`]="{ item }">
-          <div class="server-code xrd-clickable" @click="toDetails(item)">
-            <xrd-icon-base class="mr-4">
-              <xrd-icon-security-server />
-            </xrd-icon-base>
-            {{ item.server_id.server_code }}
-          </div>
-        </template>
-        <template #[`item.in_maintenance_mode`]="{ item }">
-          <xrd-icon-base v-if="item.in_maintenance_mode" class="mr-4">
-            <xrd-icon-checked :color="colors.Success100" />
-          </xrd-icon-base>
-          {{ item.maintenance_mode_message }}
-        </template>
-      </v-data-table-server>
-    </searchable-titled-view>
-  </div>
+      <template #[`item.server_id.server_code`]="{ item }">
+        <XrdLabelWithIcon
+          icon="dns"
+          semi-bold
+          clickable
+          :label="item.server_id.server_code"
+          @navigate="toDetails(item)"
+        />
+      </template>
+      <template #[`item.in_maintenance_mode`]="{ item }">
+        <v-icon
+          v-if="item.in_maintenance_mode"
+          class="mr-2"
+          icon="check_circle filled"
+          color="success"
+        />
+        {{ item.maintenance_mode_message }}
+      </template>
+      <template #bottom>
+        <XrdPagination />
+      </template>
+    </v-data-table-server>
+  </XrdView>
 </template>
 
 <script lang="ts">
@@ -75,22 +90,32 @@ import { RouteName } from '@/global';
 import { SecurityServer } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { mapActions, mapStores } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { DataQuery, DataTableHeader } from '@/ui-types';
-import { XrdIconChecked, XrdIconSecurityServer, Colors } from '@niis/shared-ui';
-import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
+import {
+  XrdView,
+  XrdPagination,
+  XrdLabelWithIcon,
+  useNotifications,
+} from '@niis/shared-ui';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
 export default defineComponent({
-  components: { XrdIconChecked, SearchableTitledView, XrdIconSecurityServer },
+  components: {
+    XrdPagination,
+    XrdView,
+    XrdLabelWithIcon,
+  },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
+  },
   data() {
     return {
-      colors: Colors,
       search: '',
       loading: false,
       showOnlyPending: false,
@@ -134,17 +159,11 @@ export default defineComponent({
     },
   },
 
-  watch: {
-    search: function () {
-      this.debouncedFindServers();
-    },
-  },
   created() {
     //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
   },
   methods: {
-    ...mapActions(useNotifications, ['showError']),
     debouncedFindServers: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.fetchServers();
@@ -169,7 +188,7 @@ export default defineComponent({
       try {
         await this.securityServerStore.find(this.dataQuery);
       } catch (error: unknown) {
-        this.showError(error);
+        this.addError(error);
       } finally {
         this.loading = false;
       }
@@ -177,15 +196,4 @@ export default defineComponent({
   },
 });
 </script>
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables' as *;
-@use '@niis/shared-ui/src/assets/colors';
-
-.server-code {
-  color: colors.$Purple100;
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-}
-</style>
+<style lang="scss" scoped></style>
