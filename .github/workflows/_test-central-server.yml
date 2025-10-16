@@ -97,6 +97,7 @@ jobs:
           name: CS System Test report
           path: |
             src/central-server/admin-service/ui-system-test/build/allure-report/
+            src/central-server/admin-service/ui-system-test/build/cs-container-logs/
 
       - name: Show Energy Results
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
