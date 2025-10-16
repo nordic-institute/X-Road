@@ -16,7 +16,7 @@ spec:
       automountServiceAccountToken: true
       containers:
         - name: openbao-unseal-sidecar
-          image: localhost:5555/init-runner:latest
+          image: {{ .Values.image }}
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh", "-c" ]
           args:

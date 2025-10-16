@@ -2,19 +2,8 @@ serviceAccount:
   name: "openbao-init-sa"
   create: true
 
+image: "dwdraju/alpine-curl-jq"
 openbao:
   addr: "http://openbao:8200"
-  image: "openbao/openbao:2.1.0"
   threshold: 3
   shares: 5
-
-databaseCredentials:
-  serverConf:
-    username: ""
-    password: ""
-  messageLog:
-    username: ""
-    password: ""
-  ds:
-    username: ""
-    password: ""

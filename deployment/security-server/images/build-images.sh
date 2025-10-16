@@ -265,6 +265,7 @@ for service in "${SERVICES[@]}"; do
   # Add tag and push/load
   build_cmd+=(
     --tag "${full_image_name}:${IMAGE_TAG}"
+    --tag "${full_image_name}:latest"
   )
 
   if [[ "$PUSH" == "true" ]]; then
