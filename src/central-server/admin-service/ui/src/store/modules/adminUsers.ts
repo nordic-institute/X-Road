@@ -24,6 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 import { useRouter } from 'vue-router';
 import { useUser } from '@/store/modules/user';
 import * as api from '@/util/api';
