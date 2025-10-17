@@ -1,34 +1,20 @@
 #!/bin/bash
 set -e
+
+# Determine XROAD location
 export XROAD=$(
   cd "$(dirname "$0")"
   pwd
 )
+
+# Source base script for common utilities and logging functions
+source "${XROAD}/../.scripts/base-script.sh"
 
 HAS_DOCKER=""
 PACKAGE_ONLY=false
 BUILD_LOCALLY=true
 BUILD_IN_DOCKER=false
 BUILD_PACKAGES_FOR_RELEASES=()
-# Global variable to determine if text coloring is enabled
-isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
-
-errorExit() {
-  if $isTextColoringEnabled; then
-    echo "$(tput setaf 1)*** $*(tput sgr0)" 1>&2
-  else
-    echo "*** $*" 1>&2
-  fi
-  exit 1
-}
-
-warn() {
-  if $isTextColoringEnabled; then
-    echo "$(tput setaf 3)*** $*$(tput sgr0)"
-  else
-    echo "*** $*"
-  fi
-}
 
 usage() {
   echo "Usage: [options] [additional arguments]"
@@ -49,35 +35,28 @@ usage() {
 }
 
 currentBuildPlan() {
-  if $isTextColoringEnabled; then
-    echo "$(tput setaf 2)Current build plan is:"
-  else
-    echo "Current build plan is:"
-  fi
+  log_info "Current build plan:"
   if ! $HAS_DOCKER; then
-    echo "-- Docker not installed. Building only .deb packages for $(lsb_release -sc) distribution"
+    log_kv "  Docker" "Not installed - building only .deb packages for $(lsb_release -sc)" 3 5
   else
     if $BUILD_LOCALLY; then
-      echo "-- Compile/build locally"
+      log_kv "  Compile/build" "locally" 3 5
     fi
     if $BUILD_IN_DOCKER; then
-      echo "-- Compile/build in Docker"
+      log_kv "  Compile/build" "in Docker" 3 5
     fi
     if [ ${#BUILD_PACKAGES_FOR_RELEASES[@]} -eq 0 ]; then
-      echo "-- No specific release(s) provided -> Building all supported packages"
+      log_info "  No specific release(s) provided -> Building all supported packages"
       BUILD_PACKAGES_FOR_RELEASES+=("noble" "jammy" "rpm-el9" "rpm-el8")
     fi
-    echo "-- Building following packages: ${BUILD_PACKAGES_FOR_RELEASES[*]}"
+    log_kv "  Building packages" "${BUILD_PACKAGES_FOR_RELEASES[*]}" 3 5
   fi
   echo ""
-  if $isTextColoringEnabled; then
-    echo "$(tput sgr0)"
-  fi
 }
 
 buildInDocker() {
   test -n "$HAS_DOCKER" || errorExit "Error, docker is not installed/running."
-  echo "Building in docker..."
+  log_info "Building in docker..."
   # check if running attached to terminal
   # makes it possible to stop build with Ctrl+C
   if [ -t 1 ]; then OPT="-it"; fi
@@ -87,7 +66,7 @@ buildInDocker() {
 }
 
 buildLocally() {
-  echo "Building locally..."
+  log_info "Building locally..."
   cd $XROAD || errorExit "Error 'cd $XROAD'."
   ./compile_code.sh "$@" || errorExit "Error running build of binaries."
 }
@@ -115,6 +94,25 @@ runInBuilderImage() {
   if [[ -t 1 ]]; then OPTS+=("-it"); fi
 
   docker run "${OPTS[@]}" "$image" "$@"
+}
+
+prepareLocalRegistry() {
+  local container_name="xrd-registry"
+  
+  # Check if container is already running
+  if docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
+    log_info "Container ${container_name} is already running"
+    return 0
+  fi
+  
+  # Check if container exists but is stopped
+  if docker ps -a --format '{{.Names}}' | grep -q "^${container_name}$"; then
+    log_info "Starting existing container ${container_name}"
+    docker start "${container_name}"
+  else
+    log_info "Creating and starting new container ${container_name}"
+    docker run -d -p 5555:5000 --name "${container_name}" registry:2
+  fi
 }
 
 prepareDebianPackagesBuilderImages() {
@@ -155,16 +153,28 @@ fi
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-      --package-only|-p) shift; PACKAGE_ONLY=true; BUILD_LOCALLY=false; BUILD_IN_DOCKER=false;;
-      --docker-compile|-d) shift; PACKAGE_ONLY=false; BUILD_LOCALLY=false; BUILD_IN_DOCKER=true;;
-      --help|-h) usage 0;;
-      -r) case $2 in
-        noble|jammy) BUILD_PACKAGES_FOR_RELEASES+=("$2");;
-        rpm-el9|rpm-el8) BUILD_PACKAGES_FOR_RELEASES+=("$2");;
-        *) errorExit "Unknown/unsupported release $2. Exiting..."
-        esac;
-        shift 2;;
-      *) break;;
+  --package-only | -p)
+    shift
+    PACKAGE_ONLY=true
+    BUILD_LOCALLY=false
+    BUILD_IN_DOCKER=false
+    ;;
+  --docker-compile | -d)
+    shift
+    PACKAGE_ONLY=false
+    BUILD_LOCALLY=false
+    BUILD_IN_DOCKER=true
+    ;;
+  --help | -h) usage 0 ;;
+  -r)
+    case $2 in
+    noble | jammy) BUILD_PACKAGES_FOR_RELEASES+=("$2") ;;
+    rpm-el9 | rpm-el8) BUILD_PACKAGES_FOR_RELEASES+=("$2") ;;
+    *) errorExit "Unknown/unsupported release $2. Exiting..." ;;
+    esac
+    shift 2
+    ;;
+  *) break ;;
   esac
 done
 
@@ -179,15 +189,17 @@ fi
 
 if [ -n "$HAS_DOCKER" ]; then
   PACKAGE_VERSION="$(date -u -r $(git show -s --format=%ct) +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
-  echo "Will build packages in docker. Package version: $PACKAGE_VERSION"
+  log_info "Building packages in docker"
+  log_kv "  Package version" "$PACKAGE_VERSION" 3 5
 
+  prepareLocalRegistry
   prepareDebianPackagesBuilderImages
   prepareRedhatPackagesBuilderImages
   buildDebianPackages
   buildRedhatPackages
 
 else
-  echo "Docker not installed, building only .deb packages for this distribution"
+  log_warn "Docker not installed, building only .deb packages for this distribution"
   cd "$XROAD/../deployment/native-packages"
   ./build-deb.sh "$(lsb_release -sc)" || errorExit "Error building deb packages."
 fi
