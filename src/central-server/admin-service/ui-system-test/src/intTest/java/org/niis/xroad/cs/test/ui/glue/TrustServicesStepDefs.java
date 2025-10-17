@@ -85,7 +85,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + certificationServiceName);
         testCertificate = CertificateUtils.readCertificate(certificate);
         trustServicesPageObj.addDialog.inputFile().uploadFile(CertificateUtils.getAsFile(certificate));
-        commonPageObj.dialog.btnSave().click();
+        trustServicesPageObj.addDialog.uploadBtn().click();
     }
 
     @Step("new acme certification service fields dont allow invalid values")
@@ -191,7 +191,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
     @Step("user can change the certificate profile")
     public void userCanChangeTheCertificateProfile() {
-        trustServicesPageObj.certServiceDetails.caSettings.btnEditCertProfile().click();
+        trustServicesPageObj.certServiceDetails.caSettings.btnEditCa().click();
 
         vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputCertProfile())
                 .clear()
@@ -207,7 +207,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
     @Step("user can change the TLS Auth setting")
     public void userCanChangeTheTLSAuthSetting() {
-        trustServicesPageObj.certServiceDetails.caSettings.btnEditTlsAuth().click();
+        trustServicesPageObj.certServiceDetails.caSettings.btnEditCa().click();
         vCheckbox(trustServicesPageObj.certServiceDetails.caSettings.checkboxTlsAuth())
                 .click();
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();

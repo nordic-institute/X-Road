@@ -73,7 +73,7 @@
       </XrdCardTable>
     </XrdCard>
 
-    <XrdCard class="mt-4" :loading>
+    <XrdCard data-test="cert-acme-card" class="mt-4" :loading>
       <XrdCardTable>
         <v-table class="xrd">
           <thead>
@@ -127,7 +127,7 @@
               </td>
               <td v-if="allowEditSettings" class="pl-2 pr-2">
                 <XrdBtn
-                  data-test="edit-ca-btn"
+                  data-test="edit-ca-acme-btn"
                   class="float-right"
                   variant="text"
                   color="tertiary"

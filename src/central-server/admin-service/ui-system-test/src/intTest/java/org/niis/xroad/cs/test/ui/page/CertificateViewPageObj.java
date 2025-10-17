@@ -32,7 +32,7 @@ import static com.codeborne.selenide.Selenide.$x;
 
 public class CertificateViewPageObj {
     public SelenideElement certificateDetails() {
-        return $x("//div[contains(@class, 'certificate-details-wrapper')]");
+        return $x("//div[@id='certification-service-certificate-details']");
     }
 
     public SelenideElement btnClose() {

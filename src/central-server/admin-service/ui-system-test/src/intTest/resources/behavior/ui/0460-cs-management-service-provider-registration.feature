@@ -1,6 +1,6 @@
 @CentralServer
 @ManagementService
-Feature: 0460 - CS: management service provider registration
+Feature: 0460 - CS: Management service provider registration
 
   Background:
     Given CentralServer login page is open

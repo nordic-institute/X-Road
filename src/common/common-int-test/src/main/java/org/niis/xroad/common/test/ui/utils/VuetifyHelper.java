@@ -103,7 +103,7 @@ public final class VuetifyHelper {
         }
 
         public Checkbox shouldBeUnchecked() {
-            controlElement.$x(".//i").shouldHave(cssClass("mdi-checkbox-blank-outline"));
+            controlElement.$x(".//i").shouldHave(cssClass("check_box_outline_blank"));
             return this;
         }
 
