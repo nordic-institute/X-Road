@@ -27,7 +27,8 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
-import org.apache.commons.lang3.StringUtils;
+
+import java.util.LinkedList;
 
 import static com.codeborne.selenide.Selenide.$x;
 import static org.openqa.selenium.By.xpath;
@@ -45,22 +46,30 @@ public class MemberSubsystemsPageObj {
         return $x("//div[@data-test='subsystems-table']");
     }
 
-    public SelenideElement listSubsystemsRowOf(String code, Object... other) {
+    public SelenideElement listSubsystemsRowOf(String code, String name, String status) {
 
         var xpath = ".//div//table//tbody//tr[td/div[@data-test='subsystem-code' and span[text() = '%s']] %s]";
 
-        var additional = StringUtils.repeat(" and td[contains(text(), '%s')]", other.length).formatted(other);
+        var asserts = new LinkedList<String>();
+        if (name != null) {
+            asserts.add("td[contains(text(), '%s')]".formatted(name));
+        }
+        if (status != null) {
+            asserts.add("td//div[contains(text(), '%s')]".formatted(status));
+        }
+
+        var additional = asserts.isEmpty() ? "" : ("and " + String.join(" and ", asserts));
 
         return listSubsystems().find(xpath(String.format(xpath, code, additional)));
     }
 
     public SelenideElement btnDeleteSubsystem(String code) {
-        return listSubsystemsRowOf(code)
+        return listSubsystemsRowOf(code,null, null)
                 .find(xpath(".//button[@data-test='delete-subsystem']"));
     }
 
     public SelenideElement btnRenameSubsystem(String code) {
-        return listSubsystemsRowOf(code)
+        return listSubsystemsRowOf(code, null, null)
                 .find(xpath(".//button[@data-test='rename-subsystem']"));
     }
 

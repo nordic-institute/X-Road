@@ -1,5 +1,6 @@
 @CentralServer
-@CertificationService
+@GlobalResources
+
 Feature: 0340 - CS: Settings -> Global Resources
 
   Background:
