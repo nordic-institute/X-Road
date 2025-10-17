@@ -47,7 +47,7 @@ public class MemberSubsystemsPageObj {
 
     public SelenideElement listSubsystemsRowOf(String code, Object... other) {
 
-        var xpath = ".//div//table//tbody//tr[td[contains(text(), '%s')] %s]";
+        var xpath = ".//div//table//tbody//tr[td/div[@data-test='subsystem-code' and span[text() = '%s']] %s]";
 
         var additional = StringUtils.repeat(" and td[contains(text(), '%s')]", other.length).formatted(other);
 

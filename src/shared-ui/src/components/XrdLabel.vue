@@ -27,7 +27,7 @@ x<!--
 <template>
   <div class="d-flex flex-row align-center" :class="{ 'cursor-pointer': clickable }" @click="clickable && emit('navigate')">
     <slot name="prepend-label" />
-    <span :class="textCss">
+    <span data-test="label" :class="textCss">
       <slot name="label">
         {{ label }}
       </slot>

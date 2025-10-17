@@ -98,7 +98,7 @@ public class TrustServicesPageObj {
         }
 
         public SelenideElement btnDeleteTrustService() {
-            return $x("//div[@data-test='delete-trust-service']");
+            return $x("//button[@data-test='delete-trust-service']");
         }
 
         public class CaSettings {

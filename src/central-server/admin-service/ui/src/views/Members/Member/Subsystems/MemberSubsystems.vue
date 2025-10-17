@@ -65,6 +65,7 @@
           >
             <td class="unregistered-subsystem">
               <XrdLabelWithIcon
+                data-test="subsystem-code"
                 class="opacity-60"
                 icon="folder_copy"
                 :label="item.subsystem_id.subsystem_code"
@@ -114,6 +115,7 @@
             >
               <XrdLabelWithIcon
                 v-if="iSub === 0"
+                data-test="subsystem-code"
                 icon="folder_copy"
                 :label="item.subsystem_id.subsystem_code"
               />
