@@ -2,27 +2,24 @@
 
 dump_file="$1"
 
-db_connection_url=$(awk '/storage "postgresql"/,/\}/' /etc/openbao/openbao.hcl | grep 'connection_url' | cut -d'"' -f2)
-pat='^postgres:\/\/([^:]+):([^@]+)@([^:]+):([0-9]+)\/([^?]+)(\?(.*))?$'
-if [[ $db_connection_url =~ $pat ]]; then
-  db_conn_user="${BASH_REMATCH[1]}"
-  db_user=${db_conn_user%%@*}
-  db_password="${BASH_REMATCH[2]}"
-  db_addr="${BASH_REMATCH[3]}"
-  db_port="${BASH_REMATCH[4]}"
-  db_database="${BASH_REMATCH[5]}"
-  db_options="${BASH_REMATCH[7]}" # full query string after '?', if present
-  schema_pat='(^|&)search_path=([^&]*)'
-  if [[ $db_options =~ $schema_pat ]]; then
-    db_schema="${BASH_REMATCH[2]}"
-  else
-    db_schema="public"
-  fi
-  pg_options="-c client-min-messages=warning -c search_path=$db_schema"
+# Source environment file to get database credentials
+if [[ -f /etc/openbao/openbao.env ]]; then
+  source /etc/openbao/openbao.env
 else
-  echo "Unable to determine OpenBao PostgreSQL connection URL in /etc/openbao/openbao.hcl"
+  echo "Unable to find OpenBao environment file at /etc/openbao/openbao.env"
   exit 1
 fi
+
+# Use individual variables from env file
+db_conn_user="${BAO_PG_USER}"
+db_user=${db_conn_user%%@*}
+db_password="${BAO_PG_PASSWORD}"
+db_addr="${BAO_PG_HOST}"
+db_port="${BAO_PG_PORT}"
+db_database="${BAO_PG_DATABASE}"
+db_schema="${BAO_PG_SCHEMA:-public}"
+
+pg_options="-c client-min-messages=warning -c search_path=$db_schema"
 
 # Reading custom libpq ENV variables
 if [ -f /etc/xroad/db_libpq.env ]; then
