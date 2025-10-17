@@ -247,7 +247,7 @@ extract_to_tmp_restore_dir () {
   chown -R xroad:xroad ${RESTORE_DIR}/*
 
   if [[ -d "${RESTORE_DIR}/etc/openbao" ]]; then
-    chown -R openbao:openbao ${RESTORE_DIR}/etc/openbao
+    chown -R openbao:xroad ${RESTORE_DIR}/etc/openbao
 
     # keep existing unseal-keys and root token
     if [[ -f /etc/openbao/root-token ]]; then
@@ -255,6 +255,10 @@ extract_to_tmp_restore_dir () {
     fi
     if [[ -f /etc/openbao/unseal-keys ]]; then
         cp /etc/openbao/unseal-keys ${RESTORE_DIR}/etc/openbao/unseal-keys
+    fi
+    if [[ -f /etc/openbao/openbao.env ]]; then
+        mv ${RESTORE_DIR}/etc/openbao/openbao.env ${RESTORE_DIR}/etc/openbao/openbao.env.restored
+        cp /etc/openbao/openbao.env ${RESTORE_DIR}/etc/openbao/openbao.env
     fi
   fi
 

@@ -40,7 +40,7 @@ resource "helm_release" "openbao_secret_store" {
 
   repository = "https://openbao.github.io/openbao-helm"
   chart      = "openbao"
-  version    = "0.10.1"
+  version    = "0.19.0"
 
   depends_on = [helm_release.postgresql_openbao]
 

@@ -46,13 +46,15 @@ Feature: 0600 - SS: Backup and Restore
     And Backup and Restore sub-tab is selected
     And Configuration backup count is equal to 1
     Then Configuration can be successfully restored from backup
+    When Configuration backup is created
+    Then Configuration backup count is equal to 2
     When Clients tab is selected
     Then Client "random-sub-1" with id "DEV:COM:1234:random-sub-1" and status "SAVED" is present in the list
     Then Client "random-sub-2" with id "DEV:COM:1234:random-sub-2" and status "SAVED" is missing in the list
 
   Scenario: Configuration backups can be filtered
-    Given Configuration backup count is equal to 1
+    Given Configuration backup count is equal to 2
     When Configuration backup is created
-    Then Configuration backup count is equal to 2
+    Then Configuration backup count is equal to 3
     When Configuration backup filter is set to last created backup
     Then Configuration backup count is equal to 1
