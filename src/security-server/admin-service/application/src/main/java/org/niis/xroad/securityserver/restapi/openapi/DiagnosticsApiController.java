@@ -192,7 +192,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<ConnectionStatusDto> getAuthCertReqStatus() {
-        return new ResponseEntity<>(authCertStatusConverter.convert(diagnosticConnectionService.getAuthCertRegStatusInfo()), HttpStatus.OK);
+        return new ResponseEntity<>(authCertStatusConverter.convert(diagnosticConnectionService.getAuthCertReqStatusInfo()), HttpStatus.OK);
     }
 
     @Override

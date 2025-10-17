@@ -132,7 +132,7 @@ public class DiagnosticConnectionService {
         }
     }
 
-    public ConnectionStatus getAuthCertRegStatusInfo() {
+    public ConnectionStatus getAuthCertReqStatusInfo() {
         CertValidation certValidation = validateAuthCert();
         try {
             // the error is expected, but we want to verify that the connection can be established
