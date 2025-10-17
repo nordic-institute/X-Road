@@ -48,8 +48,6 @@ import XrdHelpIcon from './XrdHelpIcon.vue';
 import XrdLabel from './XrdLabel.vue';
 import XrdLabelWithIcon from './XrdLabelWithIcon.vue';
 import XrdLanguageDropdown from './XrdLanguageDropdown.vue';
-import XrdMainNavigation from './XrdMainNavigation.vue';
-import XrdMainNavigationContainer from './XrdMainNavigationContainer.vue';
 import XrdPagination from './XrdPagination.vue';
 import XrdSimpleDialog from './XrdSimpleDialog.vue';
 import XrdStatusChip from './XrdStatusChip.vue';
@@ -81,7 +79,6 @@ export {
   XrdTitledView,
   XrdLanguageDropdown,
   XrdSubTabs,
-  XrdMainNavigation,
   XrdDataTableFooter,
   XrdErrorNotifications,
   XrdBtn,
@@ -92,7 +89,6 @@ export {
   XrdStatusChip,
   XrdLabel,
   XrdLabelWithIcon,
-  XrdMainNavigationContainer,
   XrdHashValue,
   XrdDateTime,
   XrdDate,

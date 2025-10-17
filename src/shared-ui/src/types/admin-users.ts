@@ -25,30 +25,18 @@
  * THE SOFTWARE.
  */
 
-import XrdApp from './XrdApp.vue';
-import XrdAppFooter from './XrdAppFooter.vue';
-import XrdAppToolbar from './XrdAppToolbar.vue';
-import XrdElevatedViewSimple from './XrdElevatedViewSimple.vue';
-import XrdElevatedViewFixedWidth from './XrdElevatedViewFixedWidth.vue';
-import XrdSubView from './XrdSubView.vue';
-import XrdSubViewContainer from './XrdSubViewContainer.vue';
-import XrdView from './XrdView.vue';
-import XrdViewNavigation from './XrdViewNavigation.vue';
-import XrdContainer840 from './XrdContainer840.vue';
-import XrdMainNavigation from './XrdMainNavigation.vue';
-import XrdMainNavigationContainer from './XrdMainNavigationContainer.vue';
+import { AdminUser } from '@/openapi-types';
 
-export {
-  XrdSubViewContainer,
-  XrdAppFooter,
-  XrdApp,
-  XrdView,
-  XrdElevatedViewSimple,
-  XrdElevatedViewFixedWidth,
-  XrdSubView,
-  XrdAppToolbar,
-  XrdViewNavigation,
-  XrdContainer840,
-  XrdMainNavigationContainer,
-  XrdMainNavigation,
-};
+export interface AdminUsersHandler {
+  fetchAll(): Promise<AdminUser[] | void>;
+  add(user: AdminUser): Promise<unknown>;
+  delete(username: string): Promise<void>;
+  updateRoles(username: string, roles: string[]): Promise<void>;
+  changePassword(username: string, oldPassword: string, newPassword: string): Promise<void>;
+  availableRoles(): string[];
+  navigateToAddUser(): void;
+  canAdd(): boolean;
+  canEdit(): boolean;
+  canDelete(user: AdminUser): boolean;
+  hasRole(role: string): boolean;
+}

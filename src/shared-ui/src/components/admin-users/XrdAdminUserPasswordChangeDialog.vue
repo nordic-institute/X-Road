@@ -25,11 +25,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
-    title="adminUsers.dialog.ChangePassword.dialog.title"
-    save-button-text="action.save"
+  <XrdSimpleDialog
     :disable-save="isChangePasswordButtonDisabled"
     :loading="savingChanges"
+    save-button-text="action.save"
+    title="adminUsers.dialog.ChangePassword.dialog.title"
     :data-test="`admin-user-row-${username}-change-password-dialog`"
     @save="changePassword"
     @cancel="emit('cancel')"
@@ -40,41 +40,49 @@
       </span>
     </template>
     <template #content>
-      <div :data-test="`admin-user-row-${username}-change-password-dialog-content`">
-        <v-text-field
-          v-if="requireOldPassword"
-          v-model="oldPassword"
-          v-bind="oldPasswordAttrs"
-          type="password"
-          :label="$t('adminUsers.table.action.changePassword.dialog.oldPassword')"
-          variant="outlined"
-          data-test="old-password-input"
-        ></v-text-field>
-        <v-text-field
-          v-model="newPassword"
-          v-bind="newPasswordAttrs"
-          type="password"
-          :label="$t('adminUsers.table.action.changePassword.dialog.newPassword')"
-          variant="outlined"
-          data-test="new-password-input"
-        ></v-text-field>
-        <v-text-field
-          v-model="newPasswordConfirmation"
-          v-bind="newPasswordConfirmationAttrs"
-          type="password"
-          :label="$t('adminUsers.table.action.changePassword.dialog.newPasswordConfirmation')"
-          variant="outlined"
-          data-test="new-password-confirm-input"
-        ></v-text-field>
-      </div>
+      <XrdFormBlock :data-test="`admin-user-row-${username}-change-password-dialog-content`">
+        <XrdFormBlockRow v-if="requireOldPassword" full-length>
+          <v-text-field
+            v-model="oldPassword"
+            v-bind="oldPasswordAttrs"
+            data-test="old-password-input"
+            class="xrd"
+            type="password"
+            :label="$t('adminUsers.table.action.changePassword.dialog.oldPassword')"
+          />
+        </XrdFormBlockRow>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-model="newPassword"
+            v-bind="newPasswordAttrs"
+            data-test="new-password-input"
+            class="xrd"
+            type="password"
+            :label="$t('adminUsers.table.action.changePassword.dialog.newPassword')"
+          />
+        </XrdFormBlockRow>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-model="newPasswordConfirmation"
+            v-bind="newPasswordConfirmationAttrs"
+            data-test="new-password-confirm-input"
+            class="xrd"
+            type="password"
+            :label="$t('adminUsers.table.action.changePassword.dialog.newPasswordConfirmation')"
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
+import XrdSimpleDialog from '../XrdSimpleDialog.vue';
+import XrdFormBlock from '../XrdFormBlock.vue';
+import XrdFormBlockRow from '../XrdFormBlockRow.vue';
 import { computed, PropType, ref } from 'vue';
 import { PublicPathState, useForm } from 'vee-validate';
-import { AdminUsersHandler, key } from '../../utils';
+import { AdminUsersHandler } from '../../types';
 const props = defineProps({
   username: {
     type: String,

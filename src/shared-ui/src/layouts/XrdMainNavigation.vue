@@ -69,7 +69,7 @@
       </v-list-item-subtitle>
     </v-list-item>
     <template #sub-nav>
-      <v-navigation-drawer v-model="userOptions" class="xrd-rail-options" width="176" temporary>
+      <v-navigation-drawer v-model="userOptions" class="xrd-rail-options pr-1" temporary>
         <v-list-item class="xrd-rail-item-username" density="compact">
           <v-list-item-title class="body-small font-weight-bold text-secondary">
             {{ userName }}
@@ -104,6 +104,19 @@
               <v-list-item-title class="body-small font-weight-bold">{{ displayNames.of(lang) }}</v-list-item-title>
             </v-list-item>
           </v-list-group>
+          <v-list-item
+            v-if="databaseBasedAuthentication"
+            data-test="password-button"
+            class="xrd-rail-item-password"
+            rounded="xl"
+            base-color="primary"
+            @click="changePasswordDialog = true"
+          >
+            <template #prepend>
+              <v-icon icon="lock_reset"></v-icon>
+            </template>
+            <v-list-item-title class="body-small font-weight-bold">{{ $t('login.changePassword') }}</v-list-item-title>
+          </v-list-item>
           <v-list-item data-test="logout-button" class="xrd-rail-item-logout" rounded="xl" base-color="primary" @click="emit('logout')">
             <template #prepend>
               <v-icon icon="logout"></v-icon>
@@ -112,6 +125,16 @@
           </v-list-item>
         </v-list>
       </v-navigation-drawer>
+      <XrdAdminUserPasswordChangeDialog
+        v-if="changePasswordDialog"
+        :admin-users-handler="adminUsersHandler"
+        :username="userName"
+        @password-changed="
+          changePasswordDialog = false;
+          userOptions = false;
+        "
+        @cancel="changePasswordDialog = false"
+      />
     </template>
   </XrdMainNavigationContainer>
 </template>
@@ -120,7 +143,8 @@
 import { PropType, ref } from 'vue';
 import { useLanguageHelper } from '../plugins/i18n';
 import XrdMainNavigationContainer from './XrdMainNavigationContainer.vue';
-import { Tab } from '../types';
+import { AdminUsersHandler, Tab } from '../types';
+import { XrdAdminUserPasswordChangeDialog } from '../components/admin-users';
 
 defineProps({
   tabs: {
@@ -135,11 +159,20 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  databaseBasedAuthentication: {
+    type: Boolean,
+    default: false,
+  },
+  adminUsersHandler: {
+    type: Object as PropType<AdminUsersHandler>,
+    required: true,
+  },
 });
 
 const emit = defineEmits(['logout']);
 
 const userOptions = ref(false);
+const changePasswordDialog = ref(false);
 const expandedUserOptions = ref([]);
 
 const { currentLanguage, supportedLanguages, selectLanguage, displayNames } = useLanguageHelper();

@@ -33,6 +33,5 @@ import { XrdViewNavigation } from '@niis/shared-ui';
 import { useSettingsTabs } from '@/store/modules/settings-tabs';
 import { computed } from 'vue';
 
-const { getAvailableTabs } = useSettingsTabs();
-const tabs = computed(() => getAvailableTabs());
+const tabs = computed(() => useSettingsTabs().availableTabs);
 </script>

@@ -25,12 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewSimple
-    data-test="create-api-key-stepper-view"
-    title="apiKey.createApiKey.title"
-    close-on-escape
-    go-back-on-close
-  >
+  <XrdElevatedViewSimple data-test="create-api-key-stepper-view" title="apiKey.createApiKey.title" close-on-escape go-back-on-close>
     <template #bellow-header>
       <XrdBreadcrumbs v-if="breadcrumbs && breadcrumbs.length > 0" :breadcrumbs="breadcrumbs" />
     </template>
@@ -43,11 +38,7 @@
       <v-stepper-window-item :value="1">
         <XrdWizardStep title="apiKey.createApiKey.step.roles.selectRoles" sub-title="apiKey.createApiKey.step.roles.description">
           <XrdFormBlock>
-            <div
-              v-for="(role, idx) in availableRoles"
-              :key="role"
-              :class="{ 'mb-5': idx < availableRoles.length - 1 }"
-            >
+            <div v-for="(role, idx) in availableRoles" :key="role" :class="{ 'mb-5': idx < availableRoles.length - 1 }">
               <v-checkbox
                 v-model="selectedRoles"
                 class="xrd"

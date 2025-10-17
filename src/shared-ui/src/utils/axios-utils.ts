@@ -27,18 +27,7 @@
 
 import { AxiosError } from 'axios';
 import { i18n } from '../plugins/i18n';
-
-type CodeWithDetails = {
-  code: string;
-  metadata?: string[];
-  validation_errors?: Record<string, string[]>;
-};
-
-export type ErrorInfo = {
-  status: number;
-  error?: CodeWithDetails;
-  warnings?: CodeWithDetails[];
-};
+import { ErrorInfo } from '@/openapi-types';
 
 function getErrorInfo(axiosError: AxiosError): ErrorInfo {
   return (axiosError?.response?.data as ErrorInfo) || { status: 0 };

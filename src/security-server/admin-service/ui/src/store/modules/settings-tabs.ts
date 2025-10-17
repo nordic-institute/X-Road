@@ -24,31 +24,58 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import { defineStore } from 'pinia';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@niis/shared-ui';
+import { useUser } from '@/store/modules/user';
+import { useSystem } from '@/store/modules/system';
 
-import XrdApp from './XrdApp.vue';
-import XrdAppFooter from './XrdAppFooter.vue';
-import XrdAppToolbar from './XrdAppToolbar.vue';
-import XrdElevatedViewSimple from './XrdElevatedViewSimple.vue';
-import XrdElevatedViewFixedWidth from './XrdElevatedViewFixedWidth.vue';
-import XrdSubView from './XrdSubView.vue';
-import XrdSubViewContainer from './XrdSubViewContainer.vue';
-import XrdView from './XrdView.vue';
-import XrdViewNavigation from './XrdViewNavigation.vue';
-import XrdContainer840 from './XrdContainer840.vue';
-import XrdMainNavigation from './XrdMainNavigation.vue';
-import XrdMainNavigationContainer from './XrdMainNavigationContainer.vue';
+const tabs = [
+  {
+    key: 'system-parameters-tab-button',
+    name: 'tab.settings.systemParameters',
+    icon: 'page_info',
+    to: {
+      name: RouteName.SystemParameters,
+    },
+    permissions: [Permissions.VIEW_SYS_PARAMS],
+  },
+  {
+    key: 'backup-and-restore-tab-button',
+    name: 'tab.settings.backupAndRestore',
+    icon: 'cloud_upload',
+    to: {
+      name: RouteName.BackupAndRestore,
+    },
+    permissions: [Permissions.BACKUP_CONFIGURATION],
+  },
+] as Tab[];
 
-export {
-  XrdSubViewContainer,
-  XrdAppFooter,
-  XrdApp,
-  XrdView,
-  XrdElevatedViewSimple,
-  XrdElevatedViewFixedWidth,
-  XrdSubView,
-  XrdAppToolbar,
-  XrdViewNavigation,
-  XrdContainer840,
-  XrdMainNavigationContainer,
-  XrdMainNavigation,
-};
+const adminUsersTab = {
+  key: 'admin-users-tab-button',
+  name: 'tab.settings.adminUsers',
+  icon: 'manage_accounts',
+  to: {
+    name: RouteName.AdminUsers,
+  },
+  permissions: [Permissions.VIEW_ADMIN_USERS],
+} as Tab;
+
+export const useSettingsTabs = defineStore('settings-tabs', {
+  state: () => ({}),
+  persist: false,
+  getters: {
+    availableTabs(): Tab[] {
+      const allTabs = [...tabs];
+      if (useSystem().isDatabaseBasedAuthentication) {
+        allTabs.push(adminUsersTab);
+      }
+
+      return useUser().getAllowedTabs(allTabs);
+    },
+    firstAllowedTab(): Tab {
+      return this.availableTabs[0];
+    },
+  },
+  actions: {},
+});

@@ -59,8 +59,8 @@ import SecurityServerDetails from '@/views/SecurityServers/SecurityServer/Securi
 import SecurityServerView from '@/views/SecurityServers/SecurityServer/SecurityServerView.vue';
 import SecurityServersList from '@/views/SecurityServers/SecurityServersList.vue';
 import SecurityServersView from '@/views/SecurityServers/SecurityServersView.vue';
-import ApiKeysView from '@/views/Settings/ApiKeys/ApiKeysViewWrap.vue';
-import CreateApiKeyStepper from '@/views/Settings/ApiKeys/CreateApiKeyStepperWrap.vue';
+import ApiKeysView from '@/views/Settings/ApiKeys/ApiKeysView.vue';
+import CreateApiKeyStepper from '@/views/Settings/ApiKeys/CreateApiKeyStepper.vue';
 import BackupAndRestoreView from '@/views/Settings/BackupAndRestore/BackupAndRestoreView.vue';
 import GlobalGroupView from '@/views/Settings/GlobalResources/GlobalGroup/GlobalGroupView.vue';
 import GlobalGroupsList from '@/views/Settings/GlobalResources/GlobalGroupsList.vue';
@@ -69,28 +69,21 @@ import SettingsView from '@/views/Settings/SettingsView.vue';
 import SystemSettingsView from '@/views/Settings/SystemSettings/SystemSettingsView.vue';
 import ManagementServiceCertificate from '@/views/Settings/TlsCertificates/ManagementServiceCertificate.vue';
 import ManagementServiceTlsCertificateView from '@/views/Settings/TlsCertificates/ManagementServiceTlsCertificateView.vue';
-import CertificationServiceCertificate
-  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceCertificate.vue';
+import CertificationServiceCertificate from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceCertificate.vue';
 import CertificationServiceDetails from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceDetails.vue';
-import CertificationServiceIntermediateCas
-  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceIntermediateCas.vue';
-import CertificationServiceOcspResponders
-  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceOcspResponders.vue';
-import CertificationServiceSettings
-  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceSettings.vue';
+import CertificationServiceIntermediateCas from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceIntermediateCas.vue';
+import CertificationServiceOcspResponders from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceOcspResponders.vue';
+import CertificationServiceSettings from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceSettings.vue';
 import CertificationServiceView from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceView.vue';
-import IntermediateCACertificate
-  from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCACertificate.vue';
-import IntermediateCaDetails
-  from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaDetails.vue';
-import IntermediateCaOcspResponders
-  from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaOcspResponders.vue';
+import IntermediateCACertificate from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCACertificate.vue';
+import IntermediateCaDetails from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaDetails.vue';
+import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaOcspResponders.vue';
 import IntermediateCaView from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaView.vue';
-import OcspResponderCertificate
-  from '@/views/TrustServices/CertificationServices/CertificationService/OcspResponders/OcspResponderCertificate.vue';
+import OcspResponderCertificate from '@/views/TrustServices/CertificationServices/CertificationService/OcspResponders/OcspResponderCertificate.vue';
 import TimestampingServiceCertificate from '@/views/TrustServices/TimestampingServices/TimestampingServiceCertificate.vue';
 import TrustServices from '@/views/TrustServices/TrustServices.vue';
 import TrustServicesView from '@/views/TrustServices/TrustServicesView.vue';
+import { useGlobalConfTabs } from '@/store/modules/global-conf-tabs';
 
 const routes = [
   {
@@ -117,7 +110,7 @@ const routes = [
           footer: AppFooter,
           alerts: AlertsContainer,
         },
-        redirect: () => useSettingsTabs().getAvailableTabs()[0].to,
+        redirect: () => useSettingsTabs().firstAllowedTab.to,
         props: {
           subTabs: true,
         },
@@ -526,7 +519,7 @@ const routes = [
           subTabs: true,
         },
         meta: { permissions: [Permissions.VIEW_CONFIGURATION_MANAGEMENT] },
-        redirect: { name: RouteName.InternalConfiguration },
+        redirect: () => useGlobalConfTabs().firstAllowedTab.to,
         children: [
           {
             name: RouteName.InternalConfiguration,

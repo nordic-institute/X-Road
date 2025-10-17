@@ -28,6 +28,8 @@
   <XrdMainNavigation
     :user-name="username || ''"
     :tabs="allowedTabs"
+    :admin-users-handler="handler"
+    :database-based-authentication="dbBasedAuth"
     @logout="logout"
   />
 </template>
@@ -37,14 +39,20 @@ import { computed } from 'vue';
 
 import { XrdMainNavigation } from '@niis/shared-ui';
 
-import { mainTabs, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { useRouter } from 'vue-router';
+import { useAdminUsersHandler } from '@/store/modules/adminUsers';
+import { useMainTabs } from '@/store/modules/main-tabs';
+import { useSystem } from '@/store/modules/system';
 
 const router = useRouter();
-const { getAllowedTabs, username, logoutUser } = useUser();
+const { username, logoutUser } = useUser();
 
-const allowedTabs = computed(() => getAllowedTabs(mainTabs));
+const allowedTabs = computed(() => useMainTabs().availableTabs);
+const adminHandler = useAdminUsersHandler();
+const dbBasedAuth = computed(() => useSystem().isDatabaseBasedAuthentication);
+const handler = computed(() => adminHandler.adminUsersHandler());
 
 function logout() {
   logoutUser();

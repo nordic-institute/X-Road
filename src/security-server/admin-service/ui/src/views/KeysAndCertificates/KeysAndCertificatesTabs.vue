@@ -30,62 +30,10 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { Permissions, RouteName } from '@/global';
-import { Tab, XrdViewNavigation } from '@niis/shared-ui';
-import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
+<script lang="ts" setup>
+import { computed } from 'vue';
+import { XrdViewNavigation } from '@niis/shared-ui';
+import { useKeysTabs } from '@/store/modules/keys-tabs';
 
-export default defineComponent({
-  components: {
-    XrdViewNavigation,
-  },
-  data: () => ({
-    currentTab: undefined as undefined | Tab,
-    showHelp: false,
-  }),
-
-  computed: {
-    ...mapState(useUser, ['getAllowedTabs']),
-    tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'sign-and-auth-keys-tab-button',
-          name: 'tab.keys.signAndAuthKeys',
-          icon: 'editor_choice',
-          to: {
-            name: RouteName.SignAndAuthKeys,
-          },
-          permissions: [Permissions.VIEW_KEYS],
-        },
-        {
-          key: 'api-key-tab-button',
-          name: 'tab.keys.apiKey',
-          icon: 'key_vertical',
-          to: {
-            name: RouteName.ApiKey,
-          },
-          permissions: [
-            Permissions.CREATE_API_KEY,
-            Permissions.VIEW_API_KEYS,
-            Permissions.UPDATE_API_KEY,
-            Permissions.REVOKE_API_KEY,
-          ],
-        },
-        {
-          key: 'ss-tls-certificate-tab-button',
-          name: 'tab.keys.ssTlsCertificate',
-          icon: 'shield_lock',
-          to: {
-            name: RouteName.SSTlsCertificate,
-          },
-          permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
-        },
-      ];
-
-      return this.getAllowedTabs(allTabs);
-    },
-  },
-});
+const tabs = computed(() => useKeysTabs().availableTabs);
 </script>

@@ -24,31 +24,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import { defineStore } from 'pinia';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@niis/shared-ui';
+import { useUser } from '@/store/modules/user';
 
-import XrdApp from './XrdApp.vue';
-import XrdAppFooter from './XrdAppFooter.vue';
-import XrdAppToolbar from './XrdAppToolbar.vue';
-import XrdElevatedViewSimple from './XrdElevatedViewSimple.vue';
-import XrdElevatedViewFixedWidth from './XrdElevatedViewFixedWidth.vue';
-import XrdSubView from './XrdSubView.vue';
-import XrdSubViewContainer from './XrdSubViewContainer.vue';
-import XrdView from './XrdView.vue';
-import XrdViewNavigation from './XrdViewNavigation.vue';
-import XrdContainer840 from './XrdContainer840.vue';
-import XrdMainNavigation from './XrdMainNavigation.vue';
-import XrdMainNavigationContainer from './XrdMainNavigationContainer.vue';
+const tabs: Tab[] = [
+  {
+    to: { name: RouteName.Clients },
+    key: 'clients',
+    name: 'tab.main.clients',
+    icon: 'id_card',
+  },
+  {
+    to: { name: RouteName.Keys },
+    key: 'keys',
+    name: 'tab.main.keys',
+    icon: 'key',
+  },
+  {
+    to: { name: RouteName.Diagnostics },
+    key: 'diagnostics',
+    name: 'tab.main.diagnostics',
+    icon: 'monitoring',
+  },
+  {
+    to: { name: RouteName.Settings },
+    key: 'settings',
+    name: 'tab.main.settings',
+    icon: 'settings',
+    permissions: [
+      Permissions.VIEW_SYS_PARAMS,
+      Permissions.BACKUP_CONFIGURATION,
+    ],
+  },
+];
 
-export {
-  XrdSubViewContainer,
-  XrdAppFooter,
-  XrdApp,
-  XrdView,
-  XrdElevatedViewSimple,
-  XrdElevatedViewFixedWidth,
-  XrdSubView,
-  XrdAppToolbar,
-  XrdViewNavigation,
-  XrdContainer840,
-  XrdMainNavigationContainer,
-  XrdMainNavigation,
-};
+export const useMainTabs = defineStore('main-tabs', {
+  state: () => ({}),
+  persist: false,
+  getters: {
+    availableTabs(): Tab[] {
+      return useUser().getAllowedTabs(tabs);
+    },
+    firstAllowedTab(): Tab {
+      return this.availableTabs[0];
+    },
+  },
+  actions: {},
+});

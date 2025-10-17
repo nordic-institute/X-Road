@@ -25,155 +25,170 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView title-key="tab.settings.adminUsers" data-test="admin-users-view">
-    <template #header-buttons>
-      <xrd-button v-if="canAdd()" data-test="add-admin-user-button" @click="addUser">
-        <xrd-icon-base class="xrd-large-button-icon">
-          <XrdIconAdd />
-        </xrd-icon-base>
-        {{ $t('adminUsers.addUser.button') }}
-      </xrd-button>
+  <XrdView :title="title" data-test="admin-users-view">
+    <template v-if="$slots.tabs" #tabs>
+      <slot name="tabs" />
     </template>
-
-    <!-- Table -->
-    <v-data-table
-      :loading="loading"
-      :headers="headers"
-      :items="users"
-      :search="search"
-      :must-sort="true"
-      :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
-      :loader-height="2"
-      data-test="admin-users-table"
-      hide-default-footer
-    >
-      <template #[`item.id`]="{ item }">
-        <div class="username">
-          {{ item.username }}
-        </div>
+    <XrdSubView>
+      <template #header>
+        <v-spacer />
+        <XrdBtn
+          v-if="canAdd()"
+          data-test="add-admin-user-button"
+          text="adminUsers.addUser.button"
+          prepend-icon="add_circle"
+          @click="addUser"
+        />
       </template>
 
-      <template #[`item.roles`]="{ item }">
-        <span :data-test="`admin-user-row-${item.username}-roles`">
-          {{ commaSeparate(translateRoles(item.roles)) }}
-        </span>
-      </template>
+      <!-- Table -->
+      <v-data-table
+        :loading="loading"
+        :headers="headers"
+        :items="users"
+        :must-sort="true"
+        :items-per-page="-1"
+        class="xrd bg-surface-container xrd-rounded-16"
+        item-key="id"
+        :loader-height="2"
+        data-test="admin-users-table"
+        hide-default-footer
+      >
+        <template #[`item.id`]="{ item }">
+          <div class="username">
+            <XrdLabelWithIcon data-test="username" icon="person" semi-bold :label="item.username" />
+          </div>
+        </template>
 
-      <template #[`item.button`]="{ item }">
-        <div class="button-wrap">
-          <xrd-button
-            v-if="canEdit()"
-            text
-            :data-test="`admin-user-row-${item.username}-edit-button`"
-            :outlined="false"
-            @click="showRolesEdit(item)"
-            >{{ $t('action.edit') }}
-          </xrd-button>
+        <template #[`item.roles`]="{ item }">
+          <span :data-test="`admin-user-row-${item.username}-roles`">
+            {{ commaSeparate(translateRoles(item.roles)) }}
+          </span>
+        </template>
 
-          <xrd-button
-            v-if="canEdit()"
-            text
-            :data-test="`admin-user-row-${item.username}-change-password-button`"
-            :outlined="false"
-            @click="showPasswordChange(item)"
-          >
-            <xrd-icon-base>
-              <XrdIconKey />
-            </xrd-icon-base>
-          </xrd-button>
+        <template #[`item.button`]="{ item }">
+          <div class="button-wrap">
+            <XrdBtn
+              v-if="canEdit()"
+              variant="text"
+              text="action.edit"
+              color="tertiary"
+              :data-test="`admin-user-row-${item.username}-edit-button`"
+              @click="showRolesEdit(item)"
+            />
 
-          <xrd-button
-            v-if="canDelete(item)"
-            text
-            :data-test="`admin-user-row-${item.username}-delete-button`"
-            :outlined="false"
-            @click="showDeleteConfirmation(item)"
-          >
-            {{ $t('action.delete') }}
-          </xrd-button>
-        </div>
-      </template>
+            <XrdBtn
+              v-if="canEdit()"
+              color="tertiary"
+              :data-test="`admin-user-row-${item.username}-change-password-button`"
+              variant="text"
+              @click="showPasswordChange(item)"
+            >
+              <v-icon icon="lock_reset" />
+            </XrdBtn>
 
-      <template #bottom>
-        <div class="custom-footer"></div>
-      </template>
-    </v-data-table>
+            <XrdBtn
+              v-if="canDelete(item)"
+              variant="text"
+              text="action.delete"
+              color="tertiary"
+              :data-test="`admin-user-row-${item.username}-delete-button`"
+              @click="showDeleteConfirmation(item)"
+            />
+          </div>
+        </template>
+      </v-data-table>
 
-    <!-- Edit Roles dialog -->
-    <xrd-simple-dialog
-      v-if="showRolesEditDialog"
-      title="adminUsers.dialog.editRoles.title"
-      :dialog="showRolesEditDialog"
-      save-button-text="action.save"
-      :disable-save="selectedRoles.length === 0"
-      :loading="savingChanges"
-      @save="saveRoles"
-      @cancel="showRolesEditDialog = false"
-    >
-      <template #title>
-        <span class="text-h5" :data-test="`admin-user-row-${selectedUser?.username}-edit-dialog-title`">
-          {{ $t('adminUsers.table.action.edit.dialog.title', { username: selectedUser?.username }) }}
-        </span>
-      </template>
-      <template #content>
-        <div :data-test="`admin-user-row-${selectedUser?.username}-edit-dialog-content`">
-          <v-row class="mt-12">
-            <v-col>
-              {{ $t('adminUsers.table.action.edit.dialog.message') }}
-            </v-col>
-          </v-row>
-          <v-row v-for="role in rolesToEdit" :key="role" no-gutters>
-            <v-col class="checkbox-wrapper">
-              <v-checkbox v-model="selectedRoles" height="10px" :value="role" :data-test="`role-${role}-checkbox`">
-                <template #label>
-                  <span>{{ $t(`adminUsers.role.${role}`) }}</span>
-                  <span v-if="!adminUsersHandler.hasRole(role)" class="remove-only-role">
-                    &nbsp;{{ $t('adminUsers.edit.roleRemoveOnly') }}
-                  </span>
-                </template>
-              </v-checkbox>
-            </v-col>
-          </v-row>
-        </div>
-      </template>
-    </xrd-simple-dialog>
+      <!-- Edit Roles dialog -->
+      <xrd-simple-dialog
+        v-if="showRolesEditDialog"
+        :translated-title="$t('adminUsers.table.action.edit.dialog.title', { username: selectedUser?.username })"
+        :dialog="showRolesEditDialog"
+        save-button-text="action.save"
+        :disable-save="selectedRoles.length === 0"
+        :loading="savingChanges"
+        @save="saveRoles"
+        @cancel="showRolesEditDialog = false"
+      >
+        <template #text>
+          {{ $t('adminUsers.table.action.edit.dialog.message') }}
+        </template>
+        <template #content>
+          <XrdFormBlock :data-test="`admin-user-row-${selectedUser?.username}-edit-dialog-content`">
+            <v-checkbox
+              v-for="role in rolesToEdit"
+              :key="role"
+              v-model="selectedRoles"
+              class="xrd"
+              hide-details
+              height="10px"
+              :value="role"
+              :data-test="`role-${role}-checkbox`"
+            >
+              <template #label>
+                <span>{{ $t(`adminUsers.role.${role}`) }}</span>
+                <span v-if="!adminUsersHandler.hasRole(role)" class="remove-only-role">
+                  &nbsp;{{ $t('adminUsers.edit.roleRemoveOnly') }}
+                </span>
+              </template>
+            </v-checkbox>
+          </XrdFormBlock>
+        </template>
+      </xrd-simple-dialog>
 
-    <xrd-admin-user-password-change-dialog
-      v-if="showPasswordChangeDialog"
-      :require-old-password="isOldPasswordRequired()"
-      :username="selectedUser!.username"
-      :admin-users-handler="adminUsersHandler"
-      @cancel="showPasswordChangeDialog = false"
-      @password-changed="showPasswordChangeDialog = false"
-    />
+      <XrdAdminUserPasswordChangeDialog
+        v-if="showPasswordChangeDialog"
+        :require-old-password="isOldPasswordRequired()"
+        :username="selectedUser!.username"
+        :admin-users-handler="adminUsersHandler"
+        @cancel="showPasswordChangeDialog = false"
+        @password-changed="showPasswordChangeDialog = false"
+      />
 
-    <!-- Confirm delete dialog -->
-    <xrd-confirm-dialog
-      v-if="showDeleteConfirmationDialog"
-      :data-test="`admin-user-row-${selectedUser?.username}-delete-confirmation`"
-      :dialog="showDeleteConfirmationDialog"
-      title="adminUsers.table.action.delete.confirmationDialog.title"
-      text="adminUsers.table.action.delete.confirmationDialog.message"
-      :data="{ username: selectedUser?.username }"
-      :loading="savingChanges"
-      @cancel="showDeleteConfirmationDialog = false"
-      @accept="deleteUser"
-    />
-  </XrdTitledView>
+      <!-- Confirm delete dialog -->
+      <xrd-confirm-dialog
+        v-if="showDeleteConfirmationDialog"
+        :data-test="`admin-user-row-${selectedUser?.username}-delete-confirmation`"
+        :dialog="showDeleteConfirmationDialog"
+        title="adminUsers.table.action.delete.confirmationDialog.title"
+        text="adminUsers.table.action.delete.confirmationDialog.message"
+        :data="{ username: selectedUser?.username }"
+        :loading="savingChanges"
+        @cancel="showDeleteConfirmationDialog = false"
+        @accept="deleteUser"
+      />
+    </XrdSubView>
+  </XrdView>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, inject } from 'vue';
+import { ref, computed, onMounted, PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AdminUser } from '@/openapi-types';
-import { key, XrdIconKey} from '@niis/shared-ui';
-import { XrdAdminUserPasswordChangeDialog } from '@niis/shared-ui';
+import { AdminUsersHandler } from '../../types';
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
+import { XrdView, XrdSubView } from '../../layouts';
+import { XrdBtn, XrdFormBlock, XrdLabelWithIcon } from '../../components';
+import { XrdAdminUserPasswordChangeDialog } from '../../components/admin-users';
+
+const props = defineProps({
+  adminUsersHandler: {
+    type: Object as PropType<AdminUsersHandler>,
+    required: true,
+  },
+  username: {
+    type: String,
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+});
 
 const { t } = useI18n();
 
-const headers = computed<unknown[]>(() => [
+const headers = computed<DataTableHeader[]>(() => [
   {
     title: t('adminUsers.table.header.username') as string,
     align: 'start',
@@ -187,15 +202,12 @@ const headers = computed<unknown[]>(() => [
   {
     title: '',
     key: 'button',
+    align: 'end',
     sortable: false,
   },
 ]);
 
-const adminUsersHandler = inject(key.adminUsersHandler)!;
-const currentUser = inject(key.user)!;
-
 const users = ref<AdminUser[]>([]);
-const search = ref('');
 const loading = ref(false);
 const selectedUser = ref<AdminUser | undefined>();
 const selectedRoles = ref<string[]>([]);
@@ -205,13 +217,13 @@ const showDeleteConfirmationDialog = ref(false);
 const savingChanges = ref(false);
 const rolesToEdit = ref<string[]>([]);
 
-const canAdd = () => adminUsersHandler.canAdd();
-const canEdit = () => adminUsersHandler.canEdit();
-const canDelete = (adminUser: AdminUser) => adminUsersHandler.canDelete(adminUser);
+const canAdd = () => props.adminUsersHandler.canAdd();
+const canEdit = () => props.adminUsersHandler.canEdit();
+const canDelete = (adminUser: AdminUser) => props.adminUsersHandler.canDelete(adminUser);
 
 const translateRoles = (roles: string[]): string[] => roles.map((role) => t(`adminUsers.role.${role}`) as string);
 
-const isOldPasswordRequired = () => selectedUser.value?.username === currentUser.username();
+const isOldPasswordRequired = () => selectedUser.value?.username === props.username;
 
 const showPasswordChange = (user: AdminUser) => {
   selectedUser.value = user;
@@ -221,9 +233,9 @@ const showPasswordChange = (user: AdminUser) => {
 const showRolesEdit = (user: AdminUser) => {
   selectedUser.value = user;
   selectedRoles.value = [...user.roles];
-  rolesToEdit.value = adminUsersHandler
+  rolesToEdit.value = props.adminUsersHandler
     .availableRoles()
-    .filter((role) => selectedRoles.value.includes(role) || adminUsersHandler.hasRole(role));
+    .filter((role) => selectedRoles.value.includes(role) || props.adminUsersHandler.hasRole(role));
   showRolesEditDialog.value = true;
 };
 
@@ -233,7 +245,7 @@ const showDeleteConfirmation = (user: AdminUser) => {
 };
 
 const addUser = () => {
-  adminUsersHandler.navigateToAddUser();
+  props.adminUsersHandler.navigateToAddUser();
 };
 
 const commaSeparate = (value: string[]): string => {
@@ -242,7 +254,7 @@ const commaSeparate = (value: string[]): string => {
 
 const loadUsers = () => {
   loading.value = true;
-  adminUsersHandler
+  props.adminUsersHandler
     .fetchAll()
     .then((result) => {
       if (result) {
@@ -255,7 +267,7 @@ const loadUsers = () => {
 };
 
 const saveRoles = () => {
-  adminUsersHandler.updateRoles(selectedUser.value!.username, selectedRoles.value).finally(() => {
+  props.adminUsersHandler.updateRoles(selectedUser.value!.username, selectedRoles.value).finally(() => {
     savingChanges.value = false;
     showRolesEditDialog.value = false;
     loadUsers();
@@ -263,7 +275,7 @@ const saveRoles = () => {
 };
 
 const deleteUser = () => {
-  adminUsersHandler.delete(selectedUser.value!.username).finally(() => {
+  props.adminUsersHandler.delete(selectedUser.value!.username).finally(() => {
     showDeleteConfirmationDialog.value = false;
     savingChanges.value = false;
     loadUsers();
@@ -275,15 +287,4 @@ onMounted(() => {
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-@use '@niis/shared-ui/src/assets/colors';
-
-.username {
-  color: colors.$Purple100;
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-}
-</style>
+<style lang="scss" scoped></style>

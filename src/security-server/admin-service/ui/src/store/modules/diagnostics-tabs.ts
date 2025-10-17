@@ -24,18 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import { defineStore } from 'pinia';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@niis/shared-ui';
+import { useUser } from '@/store/modules/user';
 
-import { InjectionKey } from 'vue';
-import { CommonUser, CommonRouting, CommonSystem, AdminUsersHandler } from './types';
+const tabs = [
+  {
+    key: 'diagnostics-overview-tab-button',
+    name: 'tab.diagnostics.overview',
+    to: {
+      name: RouteName.DiagnosticsOverview,
+    },
+    permissions: [Permissions.DIAGNOSTICS],
+  },
+  {
+    key: 'diagnostics-traffic-tab-button',
+    name: 'tab.diagnostics.traffic',
+    to: {
+      name: RouteName.DiagnosticsTraffic,
+    },
+    permissions: [Permissions.DIAGNOSTICS],
+  },
+] as Tab[];
 
-const system = Symbol() as InjectionKey<CommonSystem>;
-const user = Symbol() as InjectionKey<CommonUser>;
-const routing = Symbol() as InjectionKey<CommonRouting>;
-const adminUsersHandler = Symbol() as InjectionKey<AdminUsersHandler>;
-
-export const key = {
-  system,
-  user,
-  routing,
-  adminUsersHandler,
-};
+export const useDiagnosticsTabs = defineStore('diagnostics-tabs', {
+  state: () => ({}),
+  persist: false,
+  getters: {
+    availableTabs(): Tab[] {
+      return useUser().getAllowedTabs(tabs);
+    },
+    firstAllowedTab(): Tab {
+      return this.availableTabs[0];
+    },
+  },
+  actions: {},
+});

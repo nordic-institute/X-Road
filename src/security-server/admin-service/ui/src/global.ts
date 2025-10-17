@@ -31,6 +31,7 @@ export enum RouteName {
   BaseRoute = 'base',
   Keys = 'keys',
   Diagnostics = 'diagnostics',
+  DiagnosticsOverview = 'diagnostics-overview',
   DiagnosticsTraffic = 'diagnostics-traffic',
   AddSubsystem = 'add-subsystem',
   AddClient = 'add-client',
@@ -59,6 +60,7 @@ export enum RouteName {
   SSTlsCertificate = 'ss-tls-certificate',
   Token = 'token',
   Key = 'key',
+  Settings = 'settings',
   SystemParameters = 'system-parameters',
   BackupAndRestore = 'backup-and-restore',
   AdminUsers = 'admin-users',
@@ -177,37 +179,6 @@ export enum UsageTypes {
   SIGNING = 'SIGNING',
   AUTHENTICATION = 'AUTHENTICATION',
 }
-
-export const mainTabs: Tab[] = [
-  {
-    to: { name: RouteName.Clients },
-    key: 'clients',
-    name: 'tab.main.clients',
-    icon: 'id_card',
-  },
-  {
-    to: { name: RouteName.SignAndAuthKeys },
-    key: 'keys',
-    name: 'tab.main.keys',
-    icon: 'key',
-  },
-  {
-    to: { name: RouteName.Diagnostics },
-    key: 'diagnostics',
-    name: 'tab.main.diagnostics',
-    icon: 'monitoring',
-  },
-  {
-    to: { name: RouteName.SystemParameters },
-    key: 'settings',
-    name: 'tab.main.settings',
-    icon: 'settings',
-    permissions: [
-      Permissions.VIEW_SYS_PARAMS,
-      Permissions.BACKUP_CONFIGURATION,
-    ],
-  },
-];
 
 // A single source of truth for roles
 export const Roles = [

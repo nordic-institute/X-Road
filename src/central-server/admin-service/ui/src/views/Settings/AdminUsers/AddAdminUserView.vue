@@ -25,32 +25,21 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdMainNavigation
-    :tabs="allowedTabs"
-    :user-name="username"
-    :admin-users-handler="adminHandler"
-    :database-based-authentication="dbBasedAuth"
-    @logout="doLogout"
-  />
+  <XrdAddAdminUser :admin-users-handler="handler" />
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
-
-import { XrdMainNavigation } from '@niis/shared-ui';
-
-import { mainTabs, RouteName } from '@/global';
-import { useUser } from '@/store/modules/user';
-import { useRouter } from 'vue-router';
+/**
+ * View for 'backup and restore' tab
+ */
+import { XrdAddAdminUser } from '@niis/shared-ui';
 import { useAdminUsersHandler } from '@/store/modules/adminUsers';
+import { computed } from 'vue';
+import { useUser } from '@/store/modules/user';
 
-const router = useRouter();
-const { getAllowedTabs, username, logout } = useUser();
-const allowedTabs = computed(() => getAllowedTabs(mainTabs));
-const adminHandler = computed(() => useAdminUsersHandler().adminUsersHandler());
-const dbBasedAuth = computed(()=> false);
-function doLogout() {
-  logout();
-  router.replace({ name: RouteName.Login });
-}
+const adminUsersHandler = useAdminUsersHandler();
+
+const handler = computed(() => adminUsersHandler.adminUsersHandler());
 </script>
+
+<style lang="scss" scoped></style>

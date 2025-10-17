@@ -38,7 +38,7 @@
       <v-card class="bg-surface-container-lowest xrd-rounded-12" data-test="dialog-simple">
         <template #title>
           <slot name="title">
-            <span class="dialog-title font-weight-bold" data-test="dialog-title">{{ $t(title) }}</span>
+            <span class="dialog-title font-weight-bold" data-test="dialog-title">{{ title ? $t(title) : translatedTitle }}</span>
           </slot>
         </template>
         <template #append>
@@ -100,7 +100,11 @@ const props = defineProps({
   // Title of the dialog
   title: {
     type: String,
-    required: true,
+    default: '',
+  },
+  translatedTitle: {
+    type: String,
+    default: '',
   },
   // Is the content scrollable
   scrollable: {

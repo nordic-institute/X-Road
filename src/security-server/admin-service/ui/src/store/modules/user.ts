@@ -30,7 +30,6 @@ import { defineStore } from 'pinia';
 
 import { i18n, Tab } from '@niis/shared-ui';
 
-import { mainTabs } from '@/global';
 import {
   InitializationStatus,
   SecurityServer,
@@ -92,10 +91,6 @@ export const useUser = defineStore('user', {
           return !!(routeName && !state.bannedRoutes?.includes(routeName));
         });
       },
-
-    firstAllowedTab(): Tab {
-      return this.getAllowedTabs(mainTabs)[0];
-    },
 
     isAnchorImported(state): boolean {
       return state.initializationStatus?.is_anchor_imported ?? false;

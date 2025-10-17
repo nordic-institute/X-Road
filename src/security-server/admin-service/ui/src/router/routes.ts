@@ -58,8 +58,8 @@ import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignReque
 import InitialConfigurationView from '@/views/InitialConfiguration/InitialConfigurationView.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
-import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKeysViewWrap.vue';
-import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepperWrap.vue';
+import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKeysView.vue';
+import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
 import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
 import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
@@ -73,14 +73,18 @@ import ServiceDescriptionDetailsView from '@/views/Clients/Services/ServiceDescr
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 import SettingsView from '@/views/Settings/SettingsView.vue';
 import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
+import AdminUsersView from '@/views/Settings/AdminUsers/AdminUsersView.vue';
+import AddAdminUserView from '@/views/Settings/AdminUsers/AddAdminUserView.vue';
 import { XrdMainNavigationContainer } from '@niis/shared-ui';
 import AppFooter from '@/layouts/AppFooter.vue';
+import { useSettingsTabs } from '@/store/modules/settings-tabs';
+import { useDiagnosticsTabs } from '@/store/modules/diagnostics-tabs';
+import { useKeysTabs } from '@/store/modules/keys-tabs';
 
 const baseViewParts = {
   navigation: AppMainNavigation,
   footer: AppFooter,
 };
-import { XrdAddAdminUser, XrdAdminUsers } from '@niis/shared-ui';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -99,6 +103,7 @@ const routes: RouteRecordRaw[] = [
         meta: { permissions: [Permissions.INIT_CONFIG] },
       },
       {
+        name: RouteName.Keys,
         path: '/keys',
         components: {
           ...baseViewParts,
@@ -106,13 +111,13 @@ const routes: RouteRecordRaw[] = [
         },
         props: {
           default: true,
-          subTabs: true,
         },
         meta: { permissions: [Permissions.VIEW_KEYS] },
+        redirect: () => useKeysTabs().firstAllowedTab.to,
         children: [
           {
             name: RouteName.SignAndAuthKeys,
-            path: '',
+            path: 'sign-and-auth',
             component: SignAndAuthKeys,
             props: true,
             meta: { permissions: [Permissions.VIEW_KEYS] },
@@ -153,16 +158,18 @@ const routes: RouteRecordRaw[] = [
         meta: { permissions: [Permissions.CREATE_API_KEY] },
       },
       {
+        name: RouteName.Diagnostics,
         path: '/diagnostics',
         meta: { permissions: [Permissions.DIAGNOSTICS] },
         components: {
           ...baseViewParts,
           default: DiagnosticsView,
         },
+        redirect: () => useDiagnosticsTabs().firstAllowedTab.to,
         children: [
           {
-            name: RouteName.Diagnostics,
-            path: '',
+            name: RouteName.DiagnosticsOverview,
+            path: 'overview',
             component: DiagnosticsOverview,
             props: true,
             meta: { permissions: [Permissions.DIAGNOSTICS] },
@@ -177,6 +184,7 @@ const routes: RouteRecordRaw[] = [
         ],
       },
       {
+        name: RouteName.Settings,
         path: '/settings',
         meta: {
           permissions: [
@@ -188,10 +196,11 @@ const routes: RouteRecordRaw[] = [
           ...baseViewParts,
           default: SettingsView,
         },
+        redirect: () => useSettingsTabs().firstAllowedTab.to,
         children: [
           {
             name: RouteName.SystemParameters,
-            path: '',
+            path: 'system-parameters',
             component: SystemParameters,
             props: true,
             meta: { permissions: [Permissions.VIEW_SYS_PARAMS] },
@@ -206,7 +215,7 @@ const routes: RouteRecordRaw[] = [
           {
             name: RouteName.AdminUsers,
             path: 'users',
-            component: XrdAdminUsers,
+            component: AdminUsersView,
             props: true,
             meta: {
               permissions: [
@@ -223,7 +232,8 @@ const routes: RouteRecordRaw[] = [
         name: RouteName.AddAdminUser,
         path: '/settings/users/add',
         components: {
-          default: XrdAddAdminUser,
+          default: AddAdminUserView,
+          navigation: XrdMainNavigationContainer,
         },
         props: {
           default: true,

@@ -40,6 +40,7 @@ import { XrdAppLogin, useNotifications } from '@niis/shared-ui';
 import { Permissions, RouteName } from '@/global';
 import { useSystem } from '@/store/modules/system';
 import { useUser } from '@/store/modules/user';
+import { useMainTabs } from '@/store/modules/main-tabs';
 
 interface Form {
   clearForm(): void;
@@ -62,9 +63,9 @@ export default defineComponent({
     };
   },
   computed: {
+    ...mapState(useMainTabs, ['firstAllowedTab']),
     ...mapState(useUser, [
       'hasPermission',
-      'firstAllowedTab',
       'hasInitState',
       'needsInitialization',
     ]),

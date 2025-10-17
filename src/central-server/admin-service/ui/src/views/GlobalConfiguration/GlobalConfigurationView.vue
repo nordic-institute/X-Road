@@ -35,42 +35,8 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { Permissions, RouteName } from '@/global';
 import { Tab, XrdView, XrdViewNavigation } from '@niis/shared-ui';
-import { useUser } from '@/store/modules/user';
+import { useGlobalConfTabs } from '@/store/modules/global-conf-tabs';
 
-const { getAllowedTabs } = useUser();
-
-const tabs = computed<Tab[]>(() => {
-  const allTabs = [
-    {
-      key: 'internal-conf-tab-button',
-      name: 'tab.globalConf.internalConf',
-      icon: 'tv_options_input_settings',
-      to: {
-        name: RouteName.InternalConfiguration,
-      },
-      permissions: [Permissions.VIEW_INTERNAL_CONFIGURATION_SOURCE],
-    },
-    {
-      key: 'external-conf-tab-button',
-      name: 'tab.globalConf.externalConf',
-      icon: 'manufacturing',
-      to: {
-        name: RouteName.ExternalConfiguration,
-      },
-      permissions: [Permissions.VIEW_EXTERNAL_CONFIGURATION_SOURCE],
-    },
-    {
-      key: 'trusted-anchors-tab-button',
-      name: 'tab.globalConf.trustedAnchors',
-      icon: 'anchor',
-      to: {
-        name: RouteName.TrustedAnchors,
-      },
-      permissions: [Permissions.VIEW_TRUSTED_ANCHORS],
-    },
-  ];
-  return getAllowedTabs(allTabs);
-});
+const tabs = computed<Tab[]>(() => useGlobalConfTabs().availableTabs);
 </script>

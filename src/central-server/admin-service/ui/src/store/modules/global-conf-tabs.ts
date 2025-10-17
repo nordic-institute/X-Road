@@ -24,31 +24,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import { defineStore } from 'pinia';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@niis/shared-ui';
+import { useUser } from '@/store/modules/user';
 
-import XrdApp from './XrdApp.vue';
-import XrdAppFooter from './XrdAppFooter.vue';
-import XrdAppToolbar from './XrdAppToolbar.vue';
-import XrdElevatedViewSimple from './XrdElevatedViewSimple.vue';
-import XrdElevatedViewFixedWidth from './XrdElevatedViewFixedWidth.vue';
-import XrdSubView from './XrdSubView.vue';
-import XrdSubViewContainer from './XrdSubViewContainer.vue';
-import XrdView from './XrdView.vue';
-import XrdViewNavigation from './XrdViewNavigation.vue';
-import XrdContainer840 from './XrdContainer840.vue';
-import XrdMainNavigation from './XrdMainNavigation.vue';
-import XrdMainNavigationContainer from './XrdMainNavigationContainer.vue';
+const tabs = [
+  {
+    key: 'internal-conf-tab-button',
+    name: 'tab.globalConf.internalConf',
+    icon: 'tv_options_input_settings',
+    to: {
+      name: RouteName.InternalConfiguration,
+    },
+    permissions: [Permissions.VIEW_INTERNAL_CONFIGURATION_SOURCE],
+  },
+  {
+    key: 'external-conf-tab-button',
+    name: 'tab.globalConf.externalConf',
+    icon: 'manufacturing',
+    to: {
+      name: RouteName.ExternalConfiguration,
+    },
+    permissions: [Permissions.VIEW_EXTERNAL_CONFIGURATION_SOURCE],
+  },
+  {
+    key: 'trusted-anchors-tab-button',
+    name: 'tab.globalConf.trustedAnchors',
+    icon: 'anchor',
+    to: {
+      name: RouteName.TrustedAnchors,
+    },
+    permissions: [Permissions.VIEW_TRUSTED_ANCHORS],
+  },
+];
 
-export {
-  XrdSubViewContainer,
-  XrdAppFooter,
-  XrdApp,
-  XrdView,
-  XrdElevatedViewSimple,
-  XrdElevatedViewFixedWidth,
-  XrdSubView,
-  XrdAppToolbar,
-  XrdViewNavigation,
-  XrdContainer840,
-  XrdMainNavigationContainer,
-  XrdMainNavigation,
-};
+export const useGlobalConfTabs = defineStore('global-conf-tabs', {
+  state: () => ({}),
+  persist: false,
+  getters: {
+    availableTabs(): Tab[] {
+      return useUser().getAllowedTabs(tabs);
+    },
+    firstAllowedTab(): Tab {
+      return this.availableTabs[0];
+    },
+  },
+  actions: {},
+});

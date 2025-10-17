@@ -24,8 +24,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { AdminUser } from '@/openapi-types';
-
 export type BackupItem = {
   filename: string;
   local_conf_present?: boolean;
@@ -41,18 +39,4 @@ export interface BackupHandler {
   download(filename: string): Promise<unknown>;
 
   restore(filename: string): Promise<unknown>;
-}
-
-export interface AdminUsersHandler {
-  fetchAll(): Promise<AdminUser[] | void>;
-  add(user: AdminUser): Promise<unknown>;
-  delete(username: string): Promise<void>;
-  updateRoles(username: string, roles: string[]): Promise<void>;
-  changePassword(username: string, oldPassword: string, newPassword: string): Promise<void>;
-  availableRoles(): string[];
-  navigateToAddUser(): void;
-  canAdd(): boolean;
-  canEdit(): boolean;
-  canDelete(user: AdminUser): boolean;
-  hasRole(role: string): boolean;
 }

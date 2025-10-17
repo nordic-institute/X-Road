@@ -26,7 +26,6 @@
  */
 
 export * from './helpers';
-export * from './keys';
 export * from './colors';
 export * from './themes';
 export * from './msr-icon-set';

@@ -31,33 +31,9 @@
 </template>
 
 <script lang="ts" setup>
-import { Permissions, RouteName } from '@/global';
-import { useUser } from '@/store/modules/user';
-import { Tab, XrdSubTabs, XrdViewNavigation } from '@niis/shared-ui';
+import { XrdViewNavigation } from '@niis/shared-ui';
+import { computed } from 'vue';
+import { useDiagnosticsTabs } from '@/store/modules/diagnostics-tabs';
 
-const userStore = useUser();
-
-const tabs = getAllowedTabs();
-
-function getAllowedTabs(): Tab[] {
-  const allTabs: Tab[] = [
-    {
-      key: 'diagnostics-overview-tab-button',
-      name: 'tab.diagnostics.overview',
-      to: {
-        name: RouteName.Diagnostics,
-      },
-      permissions: [Permissions.DIAGNOSTICS],
-    },
-    {
-      key: 'diagnostics-traffic-tab-button',
-      name: 'tab.diagnostics.traffic',
-      to: {
-        name: RouteName.DiagnosticsTraffic,
-      },
-      permissions: [Permissions.DIAGNOSTICS],
-    },
-  ];
-  return userStore.getAllowedTabs(allTabs);
-}
+const tabs = computed(() => useDiagnosticsTabs().availableTabs);
 </script>

@@ -24,31 +24,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import { defineStore } from 'pinia';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@niis/shared-ui';
+import { useUser } from '@/store/modules/user';
 
-import XrdApp from './XrdApp.vue';
-import XrdAppFooter from './XrdAppFooter.vue';
-import XrdAppToolbar from './XrdAppToolbar.vue';
-import XrdElevatedViewSimple from './XrdElevatedViewSimple.vue';
-import XrdElevatedViewFixedWidth from './XrdElevatedViewFixedWidth.vue';
-import XrdSubView from './XrdSubView.vue';
-import XrdSubViewContainer from './XrdSubViewContainer.vue';
-import XrdView from './XrdView.vue';
-import XrdViewNavigation from './XrdViewNavigation.vue';
-import XrdContainer840 from './XrdContainer840.vue';
-import XrdMainNavigation from './XrdMainNavigation.vue';
-import XrdMainNavigationContainer from './XrdMainNavigationContainer.vue';
+const tabs = [
+  {
+    key: 'sign-and-auth-keys-tab-button',
+    name: 'tab.keys.signAndAuthKeys',
+    icon: 'editor_choice',
+    to: {
+      name: RouteName.SignAndAuthKeys,
+    },
+    permissions: [Permissions.VIEW_KEYS],
+  },
+  {
+    key: 'api-key-tab-button',
+    name: 'tab.keys.apiKey',
+    icon: 'key_vertical',
+    to: {
+      name: RouteName.ApiKey,
+    },
+    permissions: [
+      Permissions.CREATE_API_KEY,
+      Permissions.VIEW_API_KEYS,
+      Permissions.UPDATE_API_KEY,
+      Permissions.REVOKE_API_KEY,
+    ],
+  },
+  {
+    key: 'ss-tls-certificate-tab-button',
+    name: 'tab.keys.ssTlsCertificate',
+    icon: 'shield_lock',
+    to: {
+      name: RouteName.SSTlsCertificate,
+    },
+    permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
+  },
+] as Tab[];
 
-export {
-  XrdSubViewContainer,
-  XrdAppFooter,
-  XrdApp,
-  XrdView,
-  XrdElevatedViewSimple,
-  XrdElevatedViewFixedWidth,
-  XrdSubView,
-  XrdAppToolbar,
-  XrdViewNavigation,
-  XrdContainer840,
-  XrdMainNavigationContainer,
-  XrdMainNavigation,
-};
+export const useKeysTabs = defineStore('keys-tabs', {
+  state: () => ({}),
+  persist: false,
+  getters: {
+    availableTabs(): Tab[] {
+      return useUser().getAllowedTabs(tabs);
+    },
+    firstAllowedTab(): Tab {
+      return this.availableTabs[0];
+    },
+  },
+  actions: {},
+});

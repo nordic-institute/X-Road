@@ -26,58 +26,22 @@
  -->
 <template>
   <div>
-    <XrdViewNavigation :allowed-tabs="tabs" />
+    <XrdViewNavigation :allowed-tabs="availableTabs" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Permissions, RouteName } from '@/global';
-import { Tab, XrdSubTabs, XrdViewNavigation } from '@niis/shared-ui';
+import { XrdViewNavigation } from '@niis/shared-ui';
 import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
-import {useSystem} from "@/store/modules/system";
+import { useSettingsTabs } from '@/store/modules/settings-tabs';
 
 export default defineComponent({
   components: {
     XrdViewNavigation,
   },
   computed: {
-    ...mapState(useUser, ['getAllowedTabs']),
-    ...mapState(useSystem, ['isDatabaseBasedAuthentication']),
-    tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'system-parameters-tab-button',
-          name: 'tab.settings.systemParameters',
-          icon: 'page_info',
-          to: {
-            name: RouteName.SystemParameters,
-          },
-          permissions: [Permissions.VIEW_SYS_PARAMS],
-        },
-        {
-          key: 'backup-and-restore-tab-button',
-          name: 'tab.settings.backupAndRestore',
-          icon: 'cloud_upload',
-          to: {
-            name: RouteName.BackupAndRestore,
-          },
-          permissions: [Permissions.BACKUP_CONFIGURATION],
-        },
-      ];
-      if (this.isDatabaseBasedAuthentication) {
-        allTabs.push({
-          key: 'admin-users-tab-button',
-          name: 'tab.settings.adminUsers',
-          to: {
-            name: RouteName.AdminUsers,
-          },
-          permissions: [Permissions.VIEW_ADMIN_USERS],
-        });
-      }
-      return this.getAllowedTabs(allTabs);
-    },
+    ...mapState(useSettingsTabs, ['availableTabs']),
   },
 });
 </script>

@@ -70,11 +70,11 @@
           />
         </v-stepper-window-item>
         <v-stepper-window-item :value="pinStep">
-        <TokenPinStep
-          :save-busy="pinSaveBusy"
-          @previous="previousStep"
-          @done="tokenPinReady"
-        />
+          <TokenPinStep
+            :save-busy="pinSaveBusy"
+            @previous="previousStep"
+            @done="tokenPinReady"
+          />
         </v-stepper-window-item>
       </template>
     </XrdWizard>
@@ -95,7 +95,11 @@ import { defineComponent } from 'vue';
 
 import { mapActions, mapState } from 'pinia';
 
-import { useNotifications, XrdElevatedViewSimple, XrdWizard } from '@niis/shared-ui';
+import {
+  useNotifications,
+  XrdElevatedViewSimple,
+  XrdWizard,
+} from '@niis/shared-ui';
 
 import { CodeWithDetails, InitialServerConf } from '@/openapi-types';
 import { useAlerts } from '@/store/modules/alerts';
@@ -107,6 +111,7 @@ import ConfigurationAnchorStep from './ConfigurationAnchorStep.vue';
 import OwnerMemberStep from './OwnerMemberStep.vue';
 import TokenPinStep from './TokenPinStep.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
+import { useMainTabs } from '@/store/modules/main-tabs';
 
 export default defineComponent({
   components: {
@@ -131,11 +136,11 @@ export default defineComponent({
     };
   },
   computed: {
+    ...mapState(useMainTabs, ['firstAllowedTab']),
     ...mapState(useUser, [
       'isAnchorImported',
       'isServerOwnerInitialized',
       'isServerCodeInitialized',
-      'firstAllowedTab',
     ]),
     ...mapState(useInitializeServer, [
       'initServerSSCode',
