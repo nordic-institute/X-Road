@@ -11,7 +11,7 @@ BuildRequires:      systemd
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           iproute, hostname, python3, python3-pyyaml
+Requires:           iproute, hostname
 Requires:           xroad-base = %version-%release, xroad-proxy = %version-%release
 Obsoletes:          xroad-nginx, xroad-jetty9
 

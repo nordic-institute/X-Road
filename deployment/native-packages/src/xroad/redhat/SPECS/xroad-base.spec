@@ -20,7 +20,7 @@ Requires:  systemd
 Requires:  rlwrap
 %endif
 Requires:  jre-21-headless, tzdata-java
-Requires:  crudini, hostname, sudo, openssl, bc
+Requires:  crudini, hostname, sudo, openssl, bc, python3, python3-pyyaml
 
 %define src %{_topdir}/..
 

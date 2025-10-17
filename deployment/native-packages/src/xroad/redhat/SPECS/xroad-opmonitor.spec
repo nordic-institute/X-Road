@@ -18,7 +18,6 @@ BuildRequires:      systemd
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           python3, python3-pyyaml
 Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release
 Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
 
