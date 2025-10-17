@@ -1,5 +1,7 @@
 ../../../../src/xroad/common/base/etc/*  etc/
 ../../../../src/xroad/common/base/usr/*  usr/
+../../../../src/xroad/common/helper-scripts/yaml_helper.py usr/share/xroad/scripts/
+../../../../src/xroad/common/helper-scripts/yaml_helper.sh usr/share/xroad/scripts/
 ../../../../src/xroad/default-configuration/common.ini etc/xroad/conf.d/
 ../../../../../../src/common/common-db/build/libs/common-db-1.0.jar usr/share/xroad/jlib/
 ../../../../../../src/security-server/admin-service/application/build/unpacked-libs/postgresql-42.7.8.jar usr/share/xroad/jlib/

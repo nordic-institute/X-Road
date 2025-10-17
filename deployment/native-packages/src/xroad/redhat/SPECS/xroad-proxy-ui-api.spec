@@ -11,7 +11,7 @@ BuildRequires:      systemd
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           iproute, hostname, yq
+Requires:           iproute, hostname, python3, python3-pyyaml
 Requires:           xroad-base = %version-%release, xroad-proxy = %version-%release
 Obsoletes:          xroad-nginx, xroad-jetty9
 
@@ -113,14 +113,14 @@ if (( ${#HOST} > 64 )); then
 fi
 IP_LIST=$(ip addr | grep 'scope global' | awk '{split($2,a,"/"); print a[1]}' | paste -sd "," -)
 DNS_LIST="$(hostname -f)$(hostname -s)"
-if ! yq eval -e '.xroad.proxy-ui-api.tls.certificate-provisioning.common-name' "$CONFIG_FILE" &>/dev/null \
-   && ! yq eval -e '.xroad.proxy-ui-api.tls.certificate-provisioning.alt-names' "$CONFIG_FILE" &>/dev/null \
-   && ! yq eval -e '.xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names' "$CONFIG_FILE" &>/dev/null; then
+if ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.common-name' &>/dev/null \
+   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.alt-names' &>/dev/null \
+   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names' &>/dev/null; then
 
     echo "Setting proxy-ui-api TLS certificate provisioning properties in $CONFIG_FILE"
-    yq eval -i ".xroad.proxy-ui-api.tls.certificate-provisioning.common-name = \"$HOST\"" $CONFIG_FILE
-    yq eval -i ".xroad.proxy-ui-api.tls.certificate-provisioning.alt-names = \"$DNS_LIST\"" $CONFIG_FILE
-    yq eval -i ".xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names = \"$IP_LIST\"" $CONFIG_FILE
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.common-name" "$HOST"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.alt-names" "$DNS_LIST"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names" "$IP_LIST"
 else
   echo "Skipping setting proxy-ui-api TLS certificate provisioning properties in $CONFIG_FILE, already set"
 fi

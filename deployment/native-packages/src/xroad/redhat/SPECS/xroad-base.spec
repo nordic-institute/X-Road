@@ -62,6 +62,8 @@ cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/L
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 cp -p %{srcdir}/common/base/usr/share/xroad/db/liquibase-core-4.19.0.jar %{buildroot}/usr/share/xroad/db/liquibase-core-4.19.0.jar
 cp -p %{srcdir}/common/base/usr/share/xroad/db/liquibase.sh %{buildroot}/usr/share/xroad/db/liquibase.sh
+cp -p %{srcdir}/common/helper-scripts/yaml_helper.py %{buildroot}/usr/share/xroad/scripts/yaml_helper.py
+cp -p %{srcdir}/common/helper-scripts/yaml_helper.sh %{buildroot}/usr/share/xroad/scripts/yaml_helper.sh
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
 
 %clean
@@ -95,6 +97,8 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
 /usr/share/xroad/scripts/_setup_db.sh
 /usr/share/xroad/scripts/_setup_memory.sh
+%attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.py
+%attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.sh
 /usr/share/xroad/db/liquibase-core.jar
 /usr/share/xroad/db/liquibase-core-*.jar
 /usr/share/xroad/db/liquibase.sh

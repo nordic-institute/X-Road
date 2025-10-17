@@ -17,7 +17,7 @@ ensure_local_config_exists() {
 
 get_prop() {
   local val
-  val=$(yq -e "$2" "$1" 2>/dev/null)
+  val=$(/usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null)
   [[ $val == "null" ]] && val=""
   echo "$val"
 }
@@ -33,9 +33,9 @@ split_ip_dns() {
 prepare_tls_settings() {
   CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
 
-  if [[ -z $(get_prop "$CONFIG_FILE" '.xroad."proxy-ui-api".tls."certificate-provisioning"."common-name"') && \
-        -z $(get_prop "$CONFIG_FILE" '.xroad."proxy-ui-api".tls."certificate-provisioning"."alt-names"') && \
-        -z $(get_prop "$CONFIG_FILE" '.xroad."proxy-ui-api".tls."certificate-provisioning"."ip-subject-alt-names"') ]]; then
+  if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.common-name') && \
+        -z $(get_prop "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.alt-names') && \
+        -z $(get_prop "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names') ]]; then
       log "Preparing proxy-ui-api TLS settings"
 
       HOST=$(hostname -f)
@@ -69,9 +69,9 @@ prepare_tls_settings() {
 
       log "Writing proxy-ui-api TLS settings to $CONFIG_FILE"
       ensure_local_config_exists
-      yq -iY ".xroad.\"proxy-ui-api\".tls.\"certificate-provisioning\".\"common-name\" = \"$cn\"" $CONFIG_FILE
-      yq -iY ".xroad.\"proxy-ui-api\".tls.\"certificate-provisioning\".\"alt-names\" = \"$dns_list\"" $CONFIG_FILE
-      yq -iY ".xroad.\"proxy-ui-api\".tls.\"certificate-provisioning\".\"ip-subject-alt-names\" = \"$ip_list\"" $CONFIG_FILE
+      /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.common-name" "$cn"
+      /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.alt-names" "$dns_list"
+      /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
   else
     log "proxy-ui-api TLS settings exists, skipping"
   fi
