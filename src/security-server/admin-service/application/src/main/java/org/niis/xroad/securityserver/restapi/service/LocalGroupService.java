@@ -162,6 +162,7 @@ public class LocalGroupService {
         if (clientEntity == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + id + NOT_FOUND);
         }
+        localGroupToAddEntity.setClient(clientEntity);
         Optional<LocalGroupEntity> existingLocalGroupEntity = clientEntity.getLocalGroups().stream()
                 .filter(localGroupEntity -> localGroupEntity.getGroupCode().equals(localGroupToAddEntity.getGroupCode())).findFirst();
         if (existingLocalGroupEntity.isPresent()) {

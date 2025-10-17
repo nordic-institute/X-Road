@@ -325,7 +325,7 @@ public class ServiceDescriptionService {
 
         // add all new endpoints into a hashmap with a combination key
         newServiceDescription.getServices().stream()
-                .map(serviceEntity -> EndpointEntity.create(
+                .map(serviceEntity -> EndpointEntity.create(clientEntity,
                         serviceEntity.getServiceCode(), ANY_METHOD, ANY_PATH, true))
                 .forEach(endpointEntity -> endpointMap.put(createEndpointKey(endpointEntity), endpointEntity));
 
@@ -402,11 +402,11 @@ public class ServiceDescriptionService {
         serviceDescriptionEntity.getServices().add(serviceEntity);
 
         // Create endpoints
-        EndpointEntity endpointEntity = EndpointEntity.create(serviceCode, ANY_METHOD, ANY_PATH, true);
+        EndpointEntity endpointEntity = EndpointEntity.create(clientEntity, serviceCode, ANY_METHOD, ANY_PATH, true);
         List<EndpointEntity> endpoints = new ArrayList<>();
         endpoints.add(endpointEntity);
         endpoints.addAll(result.operations().stream()
-                .map(operation -> EndpointEntity.create(serviceCode, operation.method(), operation.path(), true))
+                .map(operation -> EndpointEntity.create(clientEntity, serviceCode, operation.method(), operation.path(), true))
                 .toList());
 
         checkDuplicateUrl(serviceDescriptionEntity);
@@ -537,7 +537,7 @@ public class ServiceDescriptionService {
         client.getServiceDescriptions().add(serviceDescriptionEntity);
 
         // Add created endpoint to client
-        EndpointEntity endpointEntity = EndpointEntity.create(serviceCode, ANY_METHOD,
+        EndpointEntity endpointEntity = EndpointEntity.create(client, serviceCode, ANY_METHOD,
                 ANY_PATH, true);
         client.getEndpoints().add(endpointEntity);
 
@@ -869,6 +869,7 @@ public class ServiceDescriptionService {
         serviceDescription.getClient().getEndpoints().removeAll(serviceChanges.getRemovedEndpoints());
 
         // Add parsed endpoints to endpoints list if it is not already there
+        serviceChanges.getAddedEndpoints().forEach(endpoint -> endpoint.setClient(serviceDescription.getClient()));
         serviceDescription.getClient().getEndpoints().addAll(serviceChanges.getAddedEndpoints());
     }
 

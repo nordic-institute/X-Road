@@ -80,8 +80,7 @@ public class ClientEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "client", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<ServiceDescriptionEntity> serviceDescriptions = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
-    @JoinColumn(name = "client_id")
+    @OneToMany(fetch = FetchType.LAZY,  mappedBy = "client", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<LocalGroupEntity> localGroups = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
@@ -92,8 +91,7 @@ public class ClientEntity {
     @JoinColumn(name = "client_id")
     private List<AccessRightEntity> accessRights = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
-    @JoinColumn(name = "client_id")
+    @OneToMany(fetch = FetchType.LAZY,  mappedBy = "client", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<EndpointEntity> endpoints = new ArrayList<>();
 
     public void setConf(ServerConfEntity conf) {

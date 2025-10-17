@@ -28,13 +28,14 @@ package org.niis.xroad.cs.admin.core.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderCertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
 import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.converter.OcspResponderConverter;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
+import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
 import org.niis.xroad.cs.admin.core.validation.UrlValidator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -55,6 +56,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 @RequiredArgsConstructor
 public class OcspRespondersServiceImpl implements OcspRespondersService {
     private final OcspInfoRepository ocspInfoRepository;
+    private final ApprovedCaRepository approvedCaRepository;
     private final CertificateConverter certConverter;
     private final OcspResponderConverter ocspResponderConverter;
 
@@ -62,11 +64,25 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
     private final UrlValidator urlValidator;
 
     @Override
-    public CertificateDetails getOcspResponderCertificateDetails(Integer id) {
+    public OcspResponderCertificateDetails getOcspResponderCertificateDetails(Integer id) {
         return ocspInfoRepository.findById(id)
-                .map(OcspInfoEntity::getCert)
-                .map(certConverter::toCertificateDetails)
+                .filter(ocsp -> ocsp.getCert() != null)
+                .map(ocsp -> attachCaIds(ocsp, certConverter.toCertificateDetails(ocsp)))
                 .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND.build()));
+    }
+
+    private OcspResponderCertificateDetails attachCaIds(final OcspInfoEntity ocspInfo,
+                                                        final OcspResponderCertificateDetails certificateDetails) {
+        if (ocspInfo.getCaInfo().getApprovedCa() == null) {
+            certificateDetails.setCertificationServiceId(
+                    approvedCaRepository.findApprovedCaIdByCaId(ocspInfo.getCaInfo()).orElse(null)
+            );
+        } else {
+            certificateDetails.setIntermediateCaId(ocspInfo.getCaInfo().getId());
+            certificateDetails.setCertificationServiceId(ocspInfo.getCaInfo().getApprovedCa().getId());
+        }
+
+        return certificateDetails;
     }
 
     private OcspInfoEntity get(Integer id) {

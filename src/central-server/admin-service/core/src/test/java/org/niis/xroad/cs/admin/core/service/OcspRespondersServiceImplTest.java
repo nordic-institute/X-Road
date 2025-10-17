@@ -77,6 +77,8 @@ class OcspRespondersServiceImplTest {
     @Mock
     private OcspInfoRepository ocspInfoRepository;
     @Mock
+    private ApprovedCaRepository approvedCaRepository;
+    @Mock
     private AuditDataHelper auditDataHelper;
     @Mock
     private UrlValidator urlValidator;

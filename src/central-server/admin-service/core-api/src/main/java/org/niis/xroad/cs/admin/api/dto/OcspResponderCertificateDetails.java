@@ -5,17 +5,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,32 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
-import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
-import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
-import org.niis.xroad.serverconf.model.Endpoint;
+package org.niis.xroad.cs.admin.api.dto;
 
-import java.util.List;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
-@Mapper(uses = {ClientMapper.class})
-public interface EndpointMapper extends GenericUniDirectionalMapper<EndpointEntity, Endpoint> {
-    EndpointMapper INSTANCE = Mappers.getMapper(EndpointMapper.class);
+@Data
+@Accessors(chain = true)
+public class OcspResponderCertificateDetails extends CertificateDetails {
 
-    static EndpointMapper get() {
-        return INSTANCE;
-    }
+    private Integer certificationServiceId;
+    private Integer intermediateCaId;
 
-    @Override
-    Endpoint toTarget(EndpointEntity entity);
-
-    List<Endpoint> toTargets(List<EndpointEntity> entities);
-
-    @Mapping(target = "client", ignore = true)
-    EndpointEntity toEntity(Endpoint domain);
-
-    List<EndpointEntity> toEntities(List<Endpoint> domains);
 }

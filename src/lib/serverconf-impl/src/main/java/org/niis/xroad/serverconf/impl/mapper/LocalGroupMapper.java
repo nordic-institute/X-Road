@@ -27,6 +27,7 @@
 package org.niis.xroad.serverconf.impl.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
 import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
@@ -34,7 +35,7 @@ import org.niis.xroad.serverconf.model.LocalGroup;
 
 import java.util.List;
 
-@Mapper(uses = {GroupMemberMapper.class})
+@Mapper(uses = {GroupMemberMapper.class, ClientMapper.class})
 public interface LocalGroupMapper extends GenericUniDirectionalMapper<LocalGroupEntity, LocalGroup> {
     LocalGroupMapper INSTANCE = Mappers.getMapper(LocalGroupMapper.class);
     static LocalGroupMapper get() {
@@ -46,7 +47,6 @@ public interface LocalGroupMapper extends GenericUniDirectionalMapper<LocalGroup
 
     List<LocalGroup> toTargets(List<LocalGroupEntity> entities);
 
+    @Mapping(target = "client", ignore = true)
     LocalGroupEntity toEntity(LocalGroup domain);
-
-    List<LocalGroupEntity> toEntities(List<LocalGroup> domains);
 }

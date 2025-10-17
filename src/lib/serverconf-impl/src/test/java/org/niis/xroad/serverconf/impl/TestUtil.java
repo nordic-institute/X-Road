@@ -234,11 +234,7 @@ public final class TestUtil {
             }
 
             String serviceCode = service(1, 1);
-            final EndpointEntity endpoint = new EndpointEntity();
-            endpoint.setServiceCode(serviceCode);
-            endpoint.setMethod("*");
-            endpoint.setPath("**");
-            endpoint.setGenerated(false);
+            final EndpointEntity endpoint = EndpointEntity.create(client, serviceCode, "*", "**", false);
             session.persist(endpoint);
 
             client.getEndpoints().add(endpoint);
@@ -270,20 +266,12 @@ public final class TestUtil {
             service.setTitle(SERVICE_TITLE + "REST");
             service.setServiceCode("rest");
 
-            EndpointEntity restEndpoint = new EndpointEntity();
-            restEndpoint.setServiceCode(service.getServiceCode());
-            restEndpoint.setMethod("GET");
-            restEndpoint.setPath("/api/**");
-            restEndpoint.setGenerated(false);
+            EndpointEntity restEndpoint = EndpointEntity.create(client, service.getServiceCode(), "GET", "/api/**", false);
             session.persist(restEndpoint);
             client.getEndpoints().add(restEndpoint);
             client.getAccessRights().add(createAccessRight(restEndpoint, client.getIdentifier()));
 
-            EndpointEntity restEndpoint2 = new EndpointEntity();
-            restEndpoint2.setServiceCode(service.getServiceCode());
-            restEndpoint2.setMethod("POST");
-            restEndpoint2.setPath("/api/test/*");
-            restEndpoint2.setGenerated(false);
+            EndpointEntity restEndpoint2 = EndpointEntity.create(client, service.getServiceCode(), "POST", "/api/test/*", false);
             session.persist(restEndpoint2);
             client.getEndpoints().add(restEndpoint2);
             client.getAccessRights().add(createAccessRight(restEndpoint2, client.getIdentifier()));
@@ -292,6 +280,7 @@ public final class TestUtil {
             localGroup.setGroupCode("localGroup" + i);
             localGroup.setDescription("local group description");
             localGroup.setUpdated(new Date());
+            localGroup.setClient(client);
             GroupMemberEntity localGroupMember = new GroupMemberEntity();
             localGroupMember.setAdded(new Date());
             localGroupMember.setGroupMemberId(cl);
