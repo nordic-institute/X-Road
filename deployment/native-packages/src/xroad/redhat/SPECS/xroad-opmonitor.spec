@@ -18,7 +18,6 @@ BuildRequires:      systemd
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           yq
 Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release
 Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
 
@@ -110,14 +109,14 @@ if (( ${#HOST} > 64 )); then
 fi
 IP_LIST=$(ip addr | grep 'scope global' | awk '{split($2,a,"/"); print a[1]}' | paste -sd "," -)
 DNS_LIST="$(hostname -f),$(hostname -s)"
-if ! yq eval -e '.xroad.op-monitor.tls.certificate-provisioning.common-name' "$CONFIG_FILE" &>/dev/null \
-   && ! yq eval -e '.xroad.op-monitor.tls.certificate-provisioning.alt-names' "$CONFIG_FILE" &>/dev/null \
-   && ! yq eval -e '.xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names' "$CONFIG_FILE" &>/dev/null; then
+if ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.op-monitor.tls.certificate-provisioning.common-name' &>/dev/null \
+   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.op-monitor.tls.certificate-provisioning.alt-names' &>/dev/null \
+   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names' &>/dev/null; then
 
     echo "Setting op-monitor TLS certificate provisioning properties in $CONFIG_FILE"
-    yq eval -i ".xroad.op-monitor.tls.certificate-provisioning.common-name = \"$HOST\"" $CONFIG_FILE
-    yq eval -i ".xroad.op-monitor.tls.certificate-provisioning.alt-names = \"$DNS_LIST\"" $CONFIG_FILE
-    yq eval -i ".xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names = \"$IP_LIST\"" $CONFIG_FILE
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.op-monitor.tls.certificate-provisioning.common-name" "$HOST"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.op-monitor.tls.certificate-provisioning.alt-names" "$DNS_LIST"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names" "$IP_LIST"
 else
   echo "Skipping setting op-monitor TLS certificate provisioning properties in $CONFIG_FILE, already set"
 fi
