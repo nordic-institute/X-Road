@@ -10,10 +10,7 @@ slave_groups="xroad-security-officer xroad-securityserver-observer"
 log () { echo >&2 "$@"; }
 
 get_prop() {
-  local val
-  val=$(/usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null)
-  [[ $val == "null" ]] && val=""
-  echo "$val"
+  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
 }
 
 split_ip_dns() {
