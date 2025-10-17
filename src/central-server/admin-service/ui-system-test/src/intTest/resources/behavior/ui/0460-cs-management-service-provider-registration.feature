@@ -1,5 +1,5 @@
 @CentralServer
-@Member
+@ManagementService
 Feature: 0460 - CS: management service provider registration
 
   Background:
