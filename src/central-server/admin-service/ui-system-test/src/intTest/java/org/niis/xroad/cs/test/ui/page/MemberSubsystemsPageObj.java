@@ -64,7 +64,7 @@ public class MemberSubsystemsPageObj {
     }
 
     public SelenideElement btnDeleteSubsystem(String code) {
-        return listSubsystemsRowOf(code,null, null)
+        return listSubsystemsRowOf(code, null, null)
                 .find(xpath(".//button[@data-test='delete-subsystem']"));
     }
 
