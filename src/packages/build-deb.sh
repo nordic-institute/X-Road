@@ -17,7 +17,7 @@ function builddeb {
     local root="$1"
     local dist="$2"
     local suffix="$3"
-    local packageVersion="$4"
+    local packageVersion="-release"
 
     pushd "$(pwd)"
     cd "$root/$dist"
