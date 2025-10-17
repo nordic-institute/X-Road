@@ -26,7 +26,7 @@
  -->
 
 <template>
-  <v-container fluid>
+  <v-container data-test="xrd-certificate" fluid>
     <p class="body-regular font-weight-bold">{{ $t('cert.hashInfo') }}</p>
     <p class="body-regular">
       <XrdHashValue :value="certificate.hash" />
