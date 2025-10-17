@@ -94,12 +94,12 @@ public final class VuetifyHelper {
         }
 
         public Checkbox shouldBeChecked() {
-            controlElement.$x(".//i").shouldHave(cssClass("mdi-checkbox-marked"));
+            controlElement.$x(".//i").shouldHave(cssClass("check_box"));
             return this;
         }
 
         public boolean isChecked() {
-            return controlElement.$x(".//i").has(cssClass("mdi-checkbox-marked"));
+            return controlElement.$x(".//i").has(cssClass("check_box"));
         }
 
         public Checkbox shouldBeUnchecked() {

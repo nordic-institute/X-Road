@@ -149,7 +149,7 @@ public class CommonPageObj {
 
     public class Alerts {
         public SelenideElement alert(final String text) {
-            return $x(format("//div[@data-test='contextual-alert']//div[contains(text(), '%s')]", text));
+            return $x(format("//div[@data-test='contextual-alert']//p[contains(text(), '%s')]", text));
         }
 
         public SelenideElement btnClose() {
