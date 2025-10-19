@@ -26,6 +26,7 @@
  -->
 <template>
   <XrdView
+    id="intermediate-ca-view"
     :title="
       intermediateCasServiceStore.current?.ca_certificate.subject_common_name ||
       ''
