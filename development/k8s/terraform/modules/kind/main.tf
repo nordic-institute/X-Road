@@ -16,11 +16,6 @@ resource "kind_cluster" "xroad_cluster" {
       role = "worker"
     }
 
-    containerd_config_patches = [
-      <<-EOF
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5555"]
-        endpoint = ["http://host.docker.internal:5555"]
-      EOF
-    ]
+    containerd_config_patches = var.containerd_config_patches
   }
 }

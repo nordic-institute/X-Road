@@ -1,6 +1,6 @@
 init:
   serverconf:
-    image: localhost:5555/ss-db-serverconf-init:latest
+    image: artifactory.niis.org/xroad8-snapshot-image/ss-db-serverconf-init:8.0.0-beta1-SNAPSHOT
     imagePullPolicy: IfNotPresent
     host: "db-serverconf.ss.svc.cluster.local"
     port: "5432"
@@ -10,7 +10,7 @@ init:
     proxyUiSuperuser: "xrd"
 #    proxyUiSuperuserPassword:
   messagelog:
-    image: localhost:5555/ss-db-messagelog-init:latest
+    image: artifactory.niis.org/xroad8-snapshot-image/ss-db-messagelog-init:8.0.0-beta1-SNAPSHOT
     imagePullPolicy: IfNotPresent
     host: "db-messagelog.ss.svc.cluster.local"
     port: "5432"
@@ -18,7 +18,7 @@ init:
     username: "messagelog"
     schema: "public"
   opmonitor:
-    image: localhost:5555/ss-db-opmonitor-init:latest
+    image: artifactory.niis.org/xroad8-snapshot-image/ss-db-opmonitor-init:8.0.0-beta1-SNAPSHOT
     imagePullPolicy: IfNotPresent
     host: "db-opmonitor.ss.svc.cluster.local"
     port: "5432"
@@ -32,7 +32,7 @@ serviceAccount:
 
 services:
   configuration-client:
-    image: localhost:5555/ss-configuration-client:latest
+    image: artifactory.niis.org/xroad8-snapshot-image/ss-configuration-client:8.0.0-beta1-SNAPSHOT
     imagePullPolicy: IfNotPresent
     resources:
       requests:
@@ -71,7 +71,7 @@ services:
         key: "password"
 
   signer:
-    image: localhost:5555/ss-signer:latest
+    image: artifactory.niis.org/xroad8-snapshot-image/ss-signer:8.0.0-beta1-SNAPSHOT
     imagePullPolicy: IfNotPresent
     resources:
       requests:
@@ -104,7 +104,7 @@ services:
         secretName: "db-serverconf"
         key: "password"
   proxy:
-    image: localhost:5555/ss-proxy:latest
+    image: artifactory.niis.org/xroad8-snapshot-image/ss-proxy:8.0.0-beta1-SNAPSHOT
     imagePullPolicy: IfNotPresent
     resources:
       requests:
@@ -154,7 +154,7 @@ services:
         secretName: "db-messagelog"
         key: "password"
   proxy-ui-api:
-    image: localhost:5555/ss-proxy-ui-api:latest
+    image: artifactory.niis.org/xroad8-snapshot-image/ss-proxy-ui-api:8.0.0-beta1-SNAPSHOT
     imagePullPolicy: IfNotPresent
     resources:
       requests:
@@ -204,7 +204,7 @@ services:
         secretName: "db-serverconf"
         key: "password"
   monitor:
-    image: localhost:5555/ss-monitor:latest
+    image: artifactory.niis.org/xroad8-snapshot-image/ss-monitor:8.0.0-beta1-SNAPSHOT
     imagePullPolicy: IfNotPresent
     resources:
       requests:
@@ -241,7 +241,7 @@ services:
         key: "password"
   op-monitor:
     enabled: false
-    image: localhost:5555/ss-op-monitor:latest
+    image: artifactory.niis.org/xroad8-snapshot-image/ss-op-monitor:8.0.0-beta1-SNAPSHOT
     imagePullPolicy: IfNotPresent
     resources:
       requests:
@@ -278,7 +278,7 @@ services:
         secretName: "db-opmonitor"
         key: "password"
   backup-manager:
-    image: localhost:5555/ss-backup-manager:latest
+    image: artifactory.niis.org/xroad8-snapshot-image/ss-backup-manager:8.0.0-beta1-SNAPSHOT
     imagePullPolicy: IfNotPresent
     resources:
       requests:
@@ -317,7 +317,7 @@ services:
       XROAD_OPENBAO_DB_DATABASE: "openbao"
       XROAD_OPENBAO_DB_SCHEMA: "public"
       XROAD_OPENBAO_DB_USER: "openbao"
-      SERVERCONF_INIT_IMAGE: "localhost:5555/ss-db-serverconf-init:latest"
+      SERVERCONF_INIT_IMAGE: "artifactory.niis.org/xroad8-snapshot-image/ss-db-serverconf-init:8.0.0-beta1-SNAPSHOT"
       SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "false"
       PROXY_UI_SUPERUSER: "xrd"
     envFromSecrets:

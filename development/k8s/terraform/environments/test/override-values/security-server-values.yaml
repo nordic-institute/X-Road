@@ -1,0 +1,20 @@
+init:
+  serverconf:
+    dbUsername: serverconf
+    proxySuperuser: xrd
+    proxyUiSuperuserPassword: "$argon2id$v=19$m=16384,t=2,p=1$YXF3YXN6eHh6c2F3cQ$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0"
+  messagelog:
+    dbUsername: messagelog
+  opmonitor:
+    dbUsername: opmonitor
+
+services:
+  proxy:
+    env:
+      XROAD_PROXY_ADDON_OP_MONITOR_ENABLED: "true"
+  op-monitor:
+    enabled: true
+  backup-manager:
+    env:
+      SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "true"
+      PROXY_UI_SUPERUSER: xrd

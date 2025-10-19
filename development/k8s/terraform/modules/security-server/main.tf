@@ -7,33 +7,7 @@ resource "helm_release" "postgresql_serverconf" {
   chart      = "postgresql"
   version    = "18.0.12"
 
-  values = [
-    yamlencode({
-      fullnameOverride = "db-serverconf"
-      image = {
-        repository = "bitnamilegacy/postgresql"
-        tag = "16.6.0"
-      }
-      auth = {
-        database           = "serverconf"
-        username           = var.serverconf_db_user
-        password           = var.serverconf_db_user_password
-        //admin user for setup
-        enablePostgresUser = true
-        postgresPassword   = var.serverconf_db_postgres_password
-      }
-      primary = {
-        resources = {
-          requests = {
-            memory = "64Mi"
-          }
-          limits = {
-            memory = "256Mi"
-          }
-        }
-      }
-    })
-  ]
+  values = [yamlencode(var.serverconf_db_override_values)]
 }
 
 resource "helm_release" "postgresql_messagelog" {
@@ -45,38 +19,10 @@ resource "helm_release" "postgresql_messagelog" {
   chart      = "postgresql"
   version    = "18.0.12"
 
-  values = [
-    yamlencode({
-      fullnameOverride = "db-messagelog"
-      image = {
-        repository = "bitnamilegacy/postgresql"
-        tag = "16.6.0"
-      }
-      auth = {
-        database           = "messagelog"
-        username           = var.messagelog_db_user
-        password           = var.messagelog_db_user_password
-        //admin user for setup
-        enablePostgresUser = true
-        postgresPassword   = var.messagelog_db_postgres_password
-      }
-      primary = {
-        resources = {
-          requests = {
-            memory = "64Mi"
-          }
-          limits = {
-            memory = "256Mi"
-          }
-        }
-      }
-    })
-  ]
+  values = [yamlencode(var.messagelog_db_override_values)]
 }
 
 resource "helm_release" "postgresql_opmonitor" {
-  count = var.op_monitor_enabled ? 1 : 0
-
   name      = "security-server-opmonitor-db"
   namespace = var.namespace
   create_namespace = true
@@ -85,82 +31,19 @@ resource "helm_release" "postgresql_opmonitor" {
   chart      = "postgresql"
   version    = "18.0.12"
 
-  values = [
-    yamlencode({
-      fullnameOverride = "db-opmonitor"
-      image = {
-        repository = "bitnamilegacy/postgresql"
-        tag = "16.6.0"
-      }
-      auth = {
-        database           = "op-monitor"
-        username           = var.opmonitor_db_user
-        password           = var.opmonitor_db_user_password
-        //admin user for setup
-        enablePostgresUser = true
-        postgresPassword   = var.opmonitor_db_postgres_password
-      }
-      primary = {
-        resources = {
-          requests = {
-            memory = "64Mi"
-          }
-          limits = {
-            memory = "256Mi"
-          }
-        }
-      }
-    })
-  ]
+  values = [yamlencode(var.opmonitor_db_override_values)]
 }
 
 resource "helm_release" "security_server" {
   name      = "security-server"
   namespace = var.namespace
-  create_namespace = true
-
-  chart = "${path.module}/../../../../../deployment/security-server/k8s/charts/security-server"
   timeout = 90 # TODO make it configurable
-
   wait = true
 
-  values = [
-    yamlencode({
-      init = {
-        serverconf = {
-          dbUsername       = var.serverconf_db_user
-          proxyUiSuperuser         = var.proxy_ui_superuser
-          proxyUiSuperuserPassword = var.proxy_ui_superuser_password
-        }
-        messagelog = {
-          dbUsername       = var.messagelog_db_user
-        }
-        opmonitor = {
-          dbUsername       = var.opmonitor_db_user
-        }
-      }
-      services = {
-        configuration-client = {
-          env = {
-            XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL = tostring(var.configuration_client_update_interval)
-          }
-        }
-        proxy = {
-          env = {
-            XROAD_PROXY_ADDON_OP_MONITOR_ENABLED = tostring(var.op_monitor_enabled)
-          }
-        }
-        op-monitor = {
-          enabled = tostring(var.op_monitor_enabled)
-        }
-        backup-manager = {
-          env = {
-            SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER = var.proxy_ui_superuser_password != "" ? "true" : "false"
-            PROXY_UI_SUPERUSER          = var.proxy_ui_superuser
-          }
-        }
-      }
-    })
-  ]
+  repository = var.security_server_chart_repo
+  chart = var.security_server_chart
+  version = var.security_server_chart_version
+
+  values = [yamlencode(var.security_server_override_values)]
 
 }

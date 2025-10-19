@@ -1,0 +1,37 @@
+init:
+  serverconf:
+    image: localhost:5555/ss-db-serverconf-init:latest
+    dbUsername: serverconf
+    proxySuperuser: xrd
+    proxyUiSuperuserPassword: "$argon2id$v=19$m=16384,t=2,p=1$YXF3YXN6eHh6c2F3cQ$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0"
+  messagelog:
+    image: localhost:5555/ss-db-messagelog-init:latest
+    dbUsername: messagelog
+  opmonitor:
+    image: localhost:5555/ss-db-opmonitor-init:latest
+    dbUsername: opmonitor
+
+services:
+  configuration-client:
+    image: localhost:5555/ss-configuration-client:latest
+    env:
+      XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL: "10"
+  signer:
+    image: localhost:5555/ss-signer:latest
+  proxy:
+    image: localhost:5555/ss-proxy:latest
+    env:
+      XROAD_PROXY_ADDON_OP_MONITOR_ENABLED: "true"
+  proxy-ui-api:
+    image: localhost:5555/ss-proxy-ui-api:latest
+  monitor:
+    image: localhost:5555/ss-monitor:latest
+  op-monitor:
+    image: localhost:5555/ss-op-monitor:latest
+    enabled: true
+  backup-manager:
+    image: localhost:5555/ss-backup-manager:latest
+    env:
+      SERVERCONF_INIT_IMAGE: localhost:5555/ss-db-serverconf-init:latest
+      SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "true"
+      PROXY_UI_SUPERUSER: xrd

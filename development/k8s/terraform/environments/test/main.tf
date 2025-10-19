@@ -7,14 +7,8 @@ provider "helm" {
 module "kind_cluster" {
   source       = "../../modules/kind"
 
-  kind_cluster_name = "xroad-dev-cluster"
+  kind_cluster_name = "xroad-test-cluster"
   kubeconfig_path = var.kubeconfig_path
-  containerd_config_patches = [
-    <<-EOF
-    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5555"]
-      endpoint = ["http://host.docker.internal:5555"]
-    EOF
-  ]
 }
 
 module "openbao" {
@@ -26,9 +20,6 @@ module "openbao" {
 
   namespace = var.security_server_namespace
   openbao_db_user_password="secret"
-  openbao_init_chart_repo = null
-  openbao_init_chart = "${path.module}/../../../../../deployment/security-server/k8s/charts/openbao-init"
-  openbao_init_chart_version = null
 }
 
 module "cs_service_bridge" {
@@ -36,10 +27,6 @@ module "cs_service_bridge" {
   name          = "xrd-cs"
 
   namespace = var.security_server_namespace
-  external_service_bridge_chart_repo = null
-  external_service_bridge_chart = "${path.module}/../../../../../deployment/security-server/k8s/charts/external-service-bridge"
-  external_service_bridge_chart_version = null
-
   external_host = "host.docker.internal"
   ports = [
     {
@@ -74,10 +61,6 @@ module "ca_service_bridge" {
   name          = "xrd-ca"
 
   namespace = var.security_server_namespace
-  external_service_bridge_chart_repo = null
-  external_service_bridge_chart = "${path.module}/../../../../../deployment/security-server/k8s/charts/external-service-bridge"
-  external_service_bridge_chart_version = null
-
   external_host = "host.docker.internal"
   ports = [
     {
@@ -102,11 +85,7 @@ module "ss0_service_bridge" {
   name          = "xrd-ss0"
 
   namespace = var.security_server_namespace
-  external_service_bridge_chart_repo = null
-  external_service_bridge_chart = "${path.module}/../../../../../deployment/security-server/k8s/charts/external-service-bridge"
-  external_service_bridge_chart_version = null
-
-  external_host = "host.docker.internal"
+  external_host = "host.security_server_namespace.internal"
   ports = [
     {
       name       = "proxy"
@@ -140,7 +119,4 @@ module "security-server" {
   messagelog_db_override_values = yamldecode(file("${path.module}/override-values/messagelog-db-values.yaml"))
   opmonitor_db_override_values = yamldecode(file("${path.module}/override-values/opmonitor-db-values.yaml"))
   security_server_override_values = yamldecode(file("${path.module}/override-values/security-server-values.yaml"))
-  security_server_chart_repo = null
-  security_server_chart = "${path.module}/../../../../../deployment/security-server/k8s/charts/security-server"
-  security_server_chart_version = null
 }
