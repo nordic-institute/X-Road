@@ -19,7 +19,9 @@ module "openbao" {
   ]
 
   namespace = var.security_server_namespace
-  openbao_db_user_password="secret"
+
+  openbao_db_override_values = yamldecode(file("${path.module}/override-values/openbao-db-values.yaml"))
+  openbao_override_values = yamldecode(file("${path.module}/override-values/openbao-values.yaml"))
 }
 
 module "cs_service_bridge" {

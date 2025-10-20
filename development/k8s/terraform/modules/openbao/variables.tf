@@ -2,18 +2,6 @@ variable "namespace" {
   type = string
 }
 
-variable "openbao_db_user" {
-  description = "OpenBao DB user"
-  type        = string
-  default     = "openbao"
-}
-
-variable "openbao_db_user_password" {
-  description = "OpenBao DB user's password"
-  type        = string
-  sensitive   = true
-}
-
 variable "openbao_init_chart_repo" {
   description = "OpenBao init chart repository"
   type        = string
@@ -30,4 +18,14 @@ variable "openbao_init_chart_version" {
   description = "OpenBao init chart version"
   type        = string
   default     = "8.0.0-beta1-SNAPSHOT"
+}
+
+variable "openbao_db_override_values" {
+  description = "Override values for the OpenBao DB Helm chart"
+  type        = any
+}
+
+variable "openbao_override_values" {
+  description = "Override values for the OpenBao Helm chart"
+  type        = any
 }

@@ -1,0 +1,19 @@
+server:
+  ha:
+    enabled: true
+    config: |
+      ui = true
+      listener "tcp" {
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+      }
+      storage "postgresql" {
+        ha_enabled = "true"
+      }
+      service_registration "kubernetes" {}
+  extraSecretEnvironmentVars:
+    - envName: BAO_PG_PASSWORD
+      secretName: db-openbao
+      secretKey: password
+  extraEnvironmentVars:
+    BAO_PG_CONNECTION_URL: postgres://openbao:$(BAO_PG_PASSWORD)@db-openbao.ss.svc.cluster.local:5432/openbao
