@@ -1,4 +1,3 @@
-Can you improve on following markdown:
 
 # Containerized Security Server in Kubernetes Cluster
 
