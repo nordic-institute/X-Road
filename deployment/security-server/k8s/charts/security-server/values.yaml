@@ -26,6 +26,8 @@ init:
     username: "opmonitor"
     schema: "public"
 
+imagePullSecrets: []
+
 serviceAccount:
   name: "ss-init-sa"
   create: true
