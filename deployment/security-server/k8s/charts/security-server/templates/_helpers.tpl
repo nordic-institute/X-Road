@@ -71,6 +71,12 @@ spec:
         options:
           - name: ndots
             value: "1"
+      {{- with .root.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
       containers:
         - name: {{ .service }}
           image: {{ .config.image }}
