@@ -52,7 +52,7 @@ public class TimestampingServicesPageObj {
     }
 
     public SelenideElement tableServicesRowOf(String url) {
-        var xpath = "./tbody/tr/td[text()='%s']";
+        var xpath = "./tbody/tr[td[text()='%s']]";
         return table().find(xpath(String.format(xpath, url)));
     }
 
@@ -70,17 +70,17 @@ public class TimestampingServicesPageObj {
     }
 
     public SelenideElement btnViewTimestampingService(String url) {
-        var xpath = "./..//td/div/button[@data-test='view-timestamping-service-certificate']";
+        var xpath = "./td/div/button[@data-test='view-timestamping-service-certificate']";
         return tableServicesRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnEditTimestampingService(String url) {
-        var xpath = "./..//td/div/button[@data-test='edit-timestamping-service']";
+        var xpath = "./td/div/button[@data-test='edit-timestamping-service']";
         return tableServicesRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnDeleteTimestampingService(String url) {
-        var xpath = "./..//td/div/button[@data-test='delete-timestamping-service']";
+        var xpath = "./td/div/button[@data-test='delete-timestamping-service']";
         return tableServicesRowOf(url).find(xpath(xpath));
     }
 
@@ -88,6 +88,11 @@ public class TimestampingServicesPageObj {
         public SelenideElement inputUrl() {
             return $x("//div[@data-test='timestamping-service-url-input']");
         }
+
+        public SelenideElement inputRadioCostType(String costType) {
+            return $x("//div[@data-test='timestamping-service-cost-type-radio-%s']".formatted(costType.toUpperCase()));
+        }
+
 
         public SelenideElement inputCertificateFile() {
             return $x("//input[@type='file']");

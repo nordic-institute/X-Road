@@ -36,7 +36,9 @@ import org.niis.xroad.cs.admin.rest.api.converter.CertificateAuthorityDtoConvert
 import org.niis.xroad.cs.admin.rest.api.converter.OcspResponderDtoConverter;
 import org.niis.xroad.cs.openapi.IntermediateCasApi;
 import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
+import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.FileVerifier;
@@ -72,9 +74,13 @@ public class IntermediateCasController implements IntermediateCasApi {
     @Override
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     @AuditEventMethod(event = ADD_INTERMEDIATE_CA_OCSP_RESPONDER)
-    public ResponseEntity<OcspResponderDto> addIntermediateCaOcspResponder(Integer id, String url, MultipartFile certificate) {
+    public ResponseEntity<OcspResponderDto> addIntermediateCaOcspResponder(Integer id,
+                                                                           String url,
+                                                                           CostTypeDto costType,
+                                                                           MultipartFile certificate) {
         final OcspResponderRequest ocspResponderRequest = new OcspResponderAddRequest()
-                .setUrl(url);
+                .setUrl(url)
+                .setCostType(CostType.valueOf(costType.name()));
 
         if (certificate != null && !certificate.isEmpty()) {
             byte[] fileBytes = readBytes(certificate);

@@ -660,6 +660,12 @@
     },
     "timestampingServices": "Timestamping Services",
     "trustService": {
+      "cost": "Cost",
+      "costType": {
+        "FREE": "Free",
+        "PAID": "Paid",
+        "UNDEFINED": "Undefined"
+      },
       "delete": {
         "action": "Delete trust service",
         "confirmationDialog": {
@@ -725,12 +731,6 @@
         "tlsAuth": "This CA can only be used for TLS authentication"
       },
       "timestampingService": {
-        "cost": "Cost",
-        "costValues": {
-          "FREE": "Free",
-          "PAID": "Paid",
-          "UNDEFINED": "Undefined"
-        },
         "delete": {
           "dialog": {
             "message": "Are you sure you want to delete the Timestamping service with the URL {url}?",

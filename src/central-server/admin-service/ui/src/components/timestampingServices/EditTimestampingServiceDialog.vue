@@ -48,6 +48,23 @@
         />
       </div>
 
+      <div class="space-out-bottom dlg-input-width">
+        <v-radio-group
+          v-model="costType"
+          v-bind="costTypeAttrs"
+          inline
+          class="dlg-row-input"
+        >
+          <v-radio
+            v-for="type in definedCostTypes"
+            :key="type"
+            :data-test="`timestamping-service-cost-type-radio-${type}`"
+            :label="$t(`trustServices.trustService.costType.${type}`)"
+            :value="type"
+          ></v-radio>
+        </v-radio-group>
+      </div>
+
       <div v-if="!certUploadActive">
         <div class="dlg-input-width mb-6">
           <xrd-button
@@ -89,7 +106,10 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { TimestampingService } from '@/openapi-types';
 import { RouteName } from '@/global';
-import { useTimestampingServicesStore } from '@/store/modules/trust-services';
+import {
+  definedCostTypes,
+  useTimestampingServicesStore,
+} from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
 import { useNotifications } from '@/store/modules/notifications';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
@@ -106,10 +126,19 @@ const props = defineProps({
 const emits = defineEmits(['save', 'cancel']);
 
 const { defineField, handleSubmit, meta } = useForm({
-  validationSchema: { url: 'required|url' },
-  initialValues: { url: props.tsaService.url },
+  validationSchema: {
+    url: 'required|url',
+    costType: `required|one_of:${definedCostTypes}`,
+  },
+  initialValues: {
+    url: props.tsaService.url,
+    costType: props.tsaService.cost_type,
+  },
 });
 const [tasUrl, tasUrlAttrs] = defineField('url', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+const [costType, costTypeAttrs] = defineField('costType', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
@@ -128,7 +157,12 @@ const canUpdate = computed(
 const update = handleSubmit((values) => {
   loading.value = true;
 
-  updateTimestampingService(props.tsaService.id, values.url, certFile.value)
+  updateTimestampingService(
+    props.tsaService.id,
+    values.url,
+    values.costType,
+    certFile.value,
+  )
     .then(() => {
       showSuccess(t('trustServices.timestampingService.dialog.edit.success'));
       emits('save');

@@ -37,6 +37,7 @@ import org.niis.xroad.cs.admin.core.converter.OcspResponderConverter;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
 import org.niis.xroad.cs.admin.core.validation.UrlValidator;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +48,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.OCSP_RESPONDER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_COST_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
@@ -81,6 +83,7 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
             urlValidator.validateUrl(url);
             ocspInfo.setUrl(url);
         });
+        Optional.ofNullable(updateRequest.getCostType()).map(CostType::name).ifPresent(ocspInfo::setCostType);
         Optional.ofNullable(updateRequest.getCertificate()).ifPresent(ocspInfo::setCert);
         final OcspInfoEntity savedOcspInfo = ocspInfoRepository.save(ocspInfo);
 
@@ -90,6 +93,10 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
         if (savedOcspInfo.getCert() != null) {
             auditDataHelper.put(OCSP_CERT_HASH, calculateCertHexHashDelimited(savedOcspInfo.getCert()));
             auditDataHelper.put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+        }
+
+        if (savedOcspInfo.getCostType() != null) {
+            auditDataHelper.put(OCSP_COST_TYPE, savedOcspInfo.getCostType());
         }
 
         return ocspResponderConverter.toModel(savedOcspInfo);
