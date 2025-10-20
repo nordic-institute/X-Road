@@ -256,7 +256,7 @@ Upon the first installation of the packages, the system asks for the following i
 
 #### 2.6.1 Provisioning TLS certificates
 
-TLS certificates for the user interface and for the information system access point are automatically provisioned at the application startup, using OpenBao PKI secrets engine (package `xroad-secret-store-local`).  
+TLS certificates for the user interface, the information system access point and gRPC services are automatically provisioned at the application startup, using OpenBao PKI secrets engine (package `xroad-secret-store-local`).  
 
 ### 2.7 Post-Installation Checks
 

@@ -286,11 +286,12 @@ skip_migrations=false
 ```
 ## Annex B Database Users
 
-| User     | Database            | Privileges               | Description                                                                                         |
-|----------|---------------------|--------------------------|-----------------------------------------------------------------------------------------------------|
-| centerui | centerui_production | CREATE,TEMPORARY,CONNECT | The database user used to create the schema and read/write the database during application runtime. |
-| openbao  | openbao             | CREATE,TEMPORARY,CONNECT | The database user for local OpenBao (package `xroad-secret-store-local`)                            | 
-| postgres | ALL                 | ALL                      | PostgreSQL database default superuser.                                                              |
+| User           | Database            | Privileges                | Description                                                              |
+|----------------|---------------------|---------------------------|--------------------------------------------------------------------------|
+| centerui       | centerui_production | TEMPORARY,CONNECT         | The database user for application                                        |
+| centerui_admin | centerui_production | CREATE,TEMPORARY,CONNECT  | The database admin user to create/modify the schema                      |                            
+| openbao        | openbao             | CREATE,TEMPORARY,CONNECT  | The database user for local OpenBao (package `xroad-secret-store-local`) | 
+| postgres       | ALL                 | ALL                       | PostgreSQL database default superuser.                                   |
 
 ## Annex C `xroad-secret-store-local` default configuration
 
