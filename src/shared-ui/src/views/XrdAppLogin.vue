@@ -25,99 +25,117 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout>
-    <v-navigation-drawer width="600" mobile-breakpoint="md">
-      <div class="logo-bg d-flex align-center justify-center fill-height">
-        <img :src="logo" alt="X-Road 8 Logo" />
+  <v-container class="fill-height w-100 pa-0 overflow-hidden" fluid>
+    <v-row class="fill-height" no-gutters align-content-md="stretch" align-content="start">
+      <v-col
+        cols="12"
+        md="5"
+        class="logo-bg d-flex align-center justify-center position-relative"
+        :class="{
+          'horizontal-style': $vuetify.display.mdAndUp,
+          'vertical-style': $vuetify.display.smAndDown,
+        }"
+      >
+        <img :src="logoV" class="logo-v" alt="X-Road 8 Logo" />
+        <img :src="logoH" class="logo-h" alt="X-Road 8 Logo" />
         <img :src="rocket" class="rocket" alt="X-Road 8 Rocket" />
         <img :src="trail1" class="trail1" alt="X-Road 8 Trail" />
         <img :src="trail2" class="trail2" alt="X-Road 8 Trail" />
-      </div>
-    </v-navigation-drawer>
-    <v-app-bar flat color="transparent">
-      <template #append>
-        <v-select
-          :model-value="currentLanguage"
-          :items="supportedLanguages"
-          :item-props="langProps"
-          class="text-primary"
-          prepend-icon="language"
-          variant="plain"
-          @update:model-value="changeLanguage"
+      </v-col>
+      <v-col cols="12" md="7">
+        <v-row no-gutters justify="end" dense>
+          <v-col cols="auto">
+            <v-select
+              :model-value="currentLanguage"
+              :items="supportedLanguages"
+              :item-props="langProps"
+              class="text-primary"
+              prepend-icon="language"
+              variant="plain"
+              hide-details
+              single-line
+              density="compact"
+              @update:model-value="changeLanguage"
+            />
+          </v-col>
+        </v-row>
+        <v-row v-if="notifications.hasContextErrors.value" justify="center">
+          <v-col cols="11">
+            <XrdErrorNotifications :manager="notifications" />
+          </v-col>
+        </v-row>
+        <v-row
+          no-gutters
+          justify="center"
+          align="center"
+          align-content="center"
+          :class="{
+            'fill-height': $vuetify.display.mdAndUp,
+          }"
         >
-        </v-select>
-      </template>
-    </v-app-bar>
-
-    <v-main>
-      <v-row v-if="notifications.hasContextErrors" align-content="center" justify="center">
-        <v-col cols="11">
-          <XrdErrorNotifications :manager="notifications" />
-        </v-col>
-      </v-row>
-      <v-row class="fill-height" align-content="center" justify="center">
-        <v-col cols="auto">
-          <v-card variant="text" :hover="false" class="login-form">
-            <v-card-title class="font-weight-bold title-page opacity-100">
-              {{ $t('login.logIn') }}
-            </v-card-title>
-            <v-card-subtitle class="body-regular opacity-100">
-              {{ $t('global.appTitle') }}
-            </v-card-subtitle>
-            <v-form>
-              <v-text-field
-                id="username"
-                v-model="username"
-                v-bind="usernameAttrs"
-                name="username"
-                data-test="login-username-input"
-                class="xrd"
-                variant="underlined"
-                color="primary"
-                type="text"
-                :label="$t('fields.username')"
-                :error-messages="errors.username"
-                @keyup.enter="submit"
-              />
-
-              <v-text-field
-                id="password"
-                v-model="password"
-                v-bind="passwordAttrs"
-                data-test="login-password-input"
-                class="xrd"
-                name="password"
-                variant="underlined"
-                color="primary"
-                :label="$t('fields.password')"
-                :type="passwordType"
-                :error-messages="errors.password"
-                :append-inner-icon="passwordIcon"
-                @keyup.enter="submit"
-                @click:append-inner="changePasswordType"
-              />
-            </v-form>
-            <v-card-actions class="pl-0 pr-0">
-              <v-btn
-                id="submit-button"
-                data-test="login-button"
-                class="body-large font-weight-medium"
-                variant="flat"
-                color="special"
-                rounded="xl"
-                block
-                :disabled="isDisabled"
-                :loading="loading"
-                @click="submit"
-              >
+          <v-col cols="11" sm="8" md="7" lg="6" xl="5">
+            <v-card variant="text" :hover="false" class="login-form w-100">
+              <v-card-title class="font-weight-bold title-page opacity-100 pt-0 pl-0">
                 {{ $t('login.logIn') }}
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-main>
-  </v-layout>
+              </v-card-title>
+              <v-card-subtitle class="body-regular opacity-100 pt-0 pl-0">
+                {{ $t('global.appTitle') }}
+              </v-card-subtitle>
+              <v-form>
+                <v-text-field
+                  id="username"
+                  v-model="username"
+                  v-bind="usernameAttrs"
+                  name="username"
+                  data-test="login-username-input"
+                  class="xrd"
+                  variant="underlined"
+                  color="primary"
+                  type="text"
+                  :label="$t('fields.username')"
+                  :error-messages="errors.username"
+                  @keyup.enter="submit"
+                />
+
+                <v-text-field
+                  id="password"
+                  v-model="password"
+                  v-bind="passwordAttrs"
+                  data-test="login-password-input"
+                  class="xrd"
+                  name="password"
+                  variant="underlined"
+                  color="primary"
+                  :label="$t('fields.password')"
+                  :type="passwordType"
+                  :error-messages="errors.password"
+                  :append-inner-icon="passwordIcon"
+                  @keyup.enter="submit"
+                  @click:append-inner="changePasswordType"
+                />
+              </v-form>
+              <v-card-actions class="pl-0 pr-0">
+                <v-btn
+                  id="submit-button"
+                  data-test="login-button"
+                  class="body-large font-weight-medium"
+                  variant="flat"
+                  color="special"
+                  rounded="xl"
+                  block
+                  :disabled="isDisabled"
+                  :loading="loading"
+                  @click="submit"
+                >
+                  {{ $t('login.logIn') }}
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script lang="ts" setup>
@@ -125,7 +143,8 @@ import { computed, ref } from 'vue';
 
 import { useForm } from 'vee-validate';
 
-import _logoLight from '../assets/xrd8/Logo-vertical-light.svg';
+import _logoVLight from '../assets/xrd8/Logo-vertical-light.svg';
+import _logoHLight from '../assets/xrd8/Logo-horizontal-dark.svg';
 import _rocket from '../assets/xrd8/Rocket-trail.png';
 import _trail1 from '../assets/xrd8/Trail-1.png';
 import _trail2 from '../assets/xrd8/Trail-2.png';
@@ -133,8 +152,10 @@ import { useNotifications } from '../composables';
 import { useLanguageHelper } from '../plugins/i18n';
 
 import XrdErrorNotifications from '../components/XrdErrorNotifications.vue';
+import { useDisplay } from 'vuetify/framework';
 
-const logo = _logoLight;
+const logoVl = _logoVLight;
+const logoHd = _logoHLight;
 const rocket = _rocket;
 const trail1 = _trail1;
 const trail2 = _trail2;
@@ -152,6 +173,7 @@ const emit = defineEmits<{
 
 defineExpose({ clearForm, addErrors });
 
+const display = useDisplay();
 const notifications = useNotifications();
 const { currentLanguage, supportedLanguages, selectLanguage, displayNames } = useLanguageHelper();
 const { meta, resetForm, setFieldError, errors, defineField } = useForm({
@@ -160,6 +182,10 @@ const { meta, resetForm, setFieldError, errors, defineField } = useForm({
     password: 'required',
   },
 });
+
+const logoClass = computed(() => (display.smAndDown.value ? 'vertical-style' : 'horizontal-style'));
+const logoV = computed(() => logoVl);
+const logoH = computed(() => logoHd);
 
 const PASSWORD = 'password';
 const passwordType = ref(PASSWORD);
@@ -201,28 +227,66 @@ async function changeLanguage(lang: string) {
 
 <style lang="scss" scoped>
 .login-form {
-  width: 434px;
-  margin: 0 80px;
 }
 
-.v-navigation-drawer {
-  &.v-navigation-drawer--mobile div.logo-bg img {
-    display: none;
+.logo-bg {
+  background: radial-gradient(rgb(var(--v-theme-login-start)), rgb(var(--v-theme-login))) !important;
+
+  .rocket {
+    position: absolute;
   }
 
-  .logo-bg {
-    background: radial-gradient(rgb(var(--v-theme-login-start)), rgb(var(--v-theme-login)));
-    max-width: 600px;
+  .trail1 {
+    position: absolute;
+  }
+
+  .trail2 {
+    position: absolute;
+  }
+
+  &.vertical-style {
+    height: 180px;
+
+    .logo-h {
+      height: 48px;
+    }
+
+    .logo-v {
+      display: none;
+    }
 
     .rocket {
-      position: absolute;
+      bottom: -58px;
+      right: 50%;
+      width: 280px;
+    }
+
+    .trail1 {
+      top: -130px;
+      left: 50%;
+      width: 262px;
+    }
+
+    .trail2 {
+      display: none;
+    }
+  }
+
+  &.horizontal-style {
+    .logo-h {
+      display: none;
+    }
+
+    .logo-v {
+    }
+
+    .rocket {
       top: -200px;
       right: -80px;
       width: 560px;
     }
 
     .trail1 {
-      position: absolute;
       top: -200px;
       right: 170px;
       width: 512px;
@@ -230,16 +294,15 @@ async function changeLanguage(lang: string) {
     }
 
     .trail2 {
-      position: absolute;
       bottom: -185px;
       right: 300px;
       width: 512px;
       transform: rotate(135deg) scaleX(-1);
     }
+  }
 
-    .logo {
-      width: 160px;
-    }
+  .logo {
+    width: 160px;
   }
 }
 </style>
