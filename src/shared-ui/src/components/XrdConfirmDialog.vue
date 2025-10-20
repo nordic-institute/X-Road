@@ -28,6 +28,7 @@
   <v-dialog
     :model-value="true"
     class="xrd-confirm-dialog"
+    :persistent="persistent"
     :width="maxWidth ? undefined : width"
     :max-width="maxWidth ? maxWidth : undefined"
   >
@@ -117,6 +118,10 @@ const props = defineProps({
   hideCancelButton: {
     type: Boolean,
     default: false,
+  },
+  persistent: {
+    type: Boolean,
+    default: true,
   },
 });
 

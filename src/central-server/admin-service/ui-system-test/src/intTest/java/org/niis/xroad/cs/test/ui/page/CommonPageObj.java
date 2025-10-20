@@ -61,7 +61,7 @@ public class CommonPageObj {
         }
 
         public SelenideElement globalConfiguration() {
-            return $x(getTabXpath("Global Configuration"));
+            return $x(getTabXpath("Global Conf."));
         }
 
         public SelenideElement settingsTab() {

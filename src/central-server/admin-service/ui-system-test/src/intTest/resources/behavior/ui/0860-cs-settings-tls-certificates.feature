@@ -1,4 +1,6 @@
 @CentralServer
+@Settings
+@TlsCertificates
 Feature: 0860 - CS: Settings -> TLS Certificates
 
   Background:

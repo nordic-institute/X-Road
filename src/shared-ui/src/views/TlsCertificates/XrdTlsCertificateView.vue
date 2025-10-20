@@ -94,6 +94,7 @@
             <tr>
               <td>
                 <XrdLabelWithIcon
+                  data-test="view-management-service-certificate"
                   class="ml-9"
                   icon="editor_choice"
                   :label="hash"

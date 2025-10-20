@@ -1,4 +1,5 @@
 @CentralServer
+@Settings
 @GlobalResources
 
 Feature: 0340 - CS: Settings -> Global Resources

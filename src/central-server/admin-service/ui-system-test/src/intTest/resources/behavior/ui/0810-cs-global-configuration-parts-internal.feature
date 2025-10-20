@@ -1,4 +1,6 @@
 @CentralServer
+@GlobalConfiguration
+@InternalGlobalConfiguration
 @ConfigurationParts
 Feature: 0810 - CS: Global configuration: Internal configuration: Configuration parts
 

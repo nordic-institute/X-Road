@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard id="anchor" :title="title" translated>
+  <XrdCard data-test="anchor" :title="title" translated>
     <template #title-actions>
       <slot />
     </template>
@@ -41,6 +41,7 @@
     >
       <template #[`item.hash`]="{ item }">
         <XrdLabelWithIcon
+          data-test="anchor-hash"
           icon="tag"
           icon-color="tertiary"
           label-color="primary"

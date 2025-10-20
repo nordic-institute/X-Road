@@ -1,4 +1,5 @@
 @CentralServer
+@Settings
 @ApiKeys
 Feature: 0360 - CS: System Settings -> Api Keys
 
