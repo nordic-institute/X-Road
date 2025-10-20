@@ -1,6 +1,5 @@
 variable "namespace" {
   type = string
-  default = "ss"
 }
 
 variable "name" {
@@ -24,4 +23,22 @@ variable "ports" {
 
 variable "external_host" {
   type = string
+}
+
+variable "external_service_bridge_chart_repo" {
+  description = "OpenBao init chart repository"
+  type        = string
+  default     = "oci://artifactory.niis.org/xroad8-snapshot-helm"
+}
+
+variable "external_service_bridge_chart" {
+  description = "OpenBao init chart"
+  type        = string
+  default     = "external-service-bridge"
+}
+
+variable "external_service_bridge_chart_version" {
+  description = "OpenBao init chart version"
+  type        = string
+  default     = "8.0.0-beta1-SNAPSHOT"
 }

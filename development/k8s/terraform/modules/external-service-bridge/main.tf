@@ -3,7 +3,10 @@ resource "helm_release" "external_service_bridge" {
   namespace = var.namespace
   create_namespace = true
 
-  chart   = "${path.module}/../../../../../deployment/security-server/k8s/charts/external-service-bridge"
+  repository = var.external_service_bridge_chart_repo
+  chart = var.external_service_bridge_chart
+  version = var.external_service_bridge_chart_version
+
   timeout = 30
   depends_on = []
   wait = true        # Wait for resources to be ready
