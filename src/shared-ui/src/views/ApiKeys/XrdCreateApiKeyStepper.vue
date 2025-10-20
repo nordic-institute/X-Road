@@ -69,6 +69,7 @@
         <XrdWizardStep title="apiKey.createApiKey.step.keyDetails.note" sub-title="apiKey.createApiKey.step.keyDetails.noteDetail">
           <XrdFormBlock>
             <v-text-field
+              data-test="created-apikey"
               class="xrd mb-4"
               variant="plain"
               readonly

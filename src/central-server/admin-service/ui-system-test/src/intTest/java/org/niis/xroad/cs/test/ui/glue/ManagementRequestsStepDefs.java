@@ -46,6 +46,7 @@ import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSwitch;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.getSecurityServerId;
 import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.MANAGEMENT_REQUEST_ID;
@@ -257,7 +258,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     @Step("the option to show only pending requests is selected")
     public void showOnlyPendingRequestsIsSelected() {
-        vCheckbox(managementRequestsPageObj.showOnlyPendingRequests()).shouldBeChecked();
+        vSwitch(managementRequestsPageObj.showOnlyPendingRequests()).shouldBeOn();
     }
 
     @Step("the option to show only pending requests is not selected")

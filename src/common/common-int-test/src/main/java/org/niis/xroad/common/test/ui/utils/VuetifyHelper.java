@@ -138,6 +138,11 @@ public final class VuetifyHelper {
             return this;
         }
 
+        public Switch shouldBeOn() {
+            input.shouldBe(selected);
+            return this;
+        }
+
         public Switch shouldBeDisabled() {
             input.shouldBe(disabled);
             return this;

@@ -106,7 +106,7 @@
       <template #[`item.button`]="{ item }">
         <XrdBtn
           v-if="item.status === 'WAITING' && canApprove"
-          :data-test="`approve-button-${item.id}`"
+          data-test="approve-button"
           variant="text"
           text="action.approve"
           color="tertiary"
@@ -115,7 +115,7 @@
 
         <XrdBtn
           v-if="item.status === 'WAITING' && canDecline"
-          :data-test="`decline-button-${item.id}`"
+          data-test="decline-button"
           variant="text"
           text="action.decline"
           color="tertiary"

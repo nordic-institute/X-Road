@@ -90,7 +90,9 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
 
     @Step("API key is set to token {} and in Authentication header")
     public void getApiKeyAndSetAuthenticationHeaderIsSet(CommonStepDefs.TokenType type) {
-        var createdApiKey = apiKeysPage.wizard.createdApiKey().text();
+        var createdApiKey = VuetifyHelper.vTextField(apiKeysPage.wizard.createdApiKey())
+                .shouldBe(Condition.attribute("value"))
+                .getValue();
         type.setToken(createdApiKey);
         putStepData(StepDataKey.TOKEN_TYPE, type);
     }

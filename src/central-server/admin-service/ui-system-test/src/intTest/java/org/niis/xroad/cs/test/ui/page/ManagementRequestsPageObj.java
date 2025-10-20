@@ -53,7 +53,7 @@ public class ManagementRequestsPageObj {
     }
 
     public SelenideElement titleOfDetails(String title) {
-        var xpath = "//div[@class='xrd-view-title' and text()='%s']";
+        var xpath = "//header/span[contains(@class, 'title-view') and text()='%s']";
         return $x(String.format(xpath, title));
     }
 
@@ -72,29 +72,29 @@ public class ManagementRequestsPageObj {
     }
 
     public SelenideElement btnApproveManagementRequest(String text) {
-        var xpath = "../..//td/div/div/button[@data-test='approve-button']";
+        var xpath = "../..//td/button[@data-test='approve-button']";
         return tableRowOf(text).find(xpath(xpath));
     }
 
     public SelenideElement btnApproveManagementRequest() {
-        var xpath = "../..//td/div/div/button[@data-test='approve-button']";
+        var xpath = "../..//td/button[@data-test='approve-button']";
         return table().find(xpath(xpath));
     }
 
     public SelenideElement btnDeclineManagementRequest(String url) {
-        var xpath = "../..//td/div/div/button[@data-test='decline-button']";
+        var xpath = "../..//td/button[@data-test='decline-button']";
         return tableRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnDeclineManagementRequest() {
-        var xpath = "../..//td/div/div/button[@data-test='decline-button']";
+        var xpath = "../..//td/button[@data-test='decline-button']";
         return table().find(xpath(xpath));
     }
 
     public SelenideElement clickableRequestId(String status, String type, String securityServerId) {
-        var statusXpath = "../..//div[contains(text(),'%s')]";
-        var typeXpath = "../../..//span[text()='%s']";
-        var requestIdXpath = "../../..//div[contains(@class,'request-id')]";
+        var statusXpath = "../..//span[contains(text(),'%s')]";
+        var typeXpath = "../../../..//span[text()='%s']";
+        var requestIdXpath = "../../../td/div[contains(@class,'cursor-pointer')]";
         return tableRowOf(securityServerId)
                 .find(xpath(String.format(statusXpath, status)))
                 .find(xpath(String.format(typeXpath, type)))
