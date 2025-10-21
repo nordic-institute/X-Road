@@ -295,7 +295,7 @@ async function changeLanguage(lang: string) {
 
     .trail2 {
       bottom: -185px;
-      right: 300px;
+      left: -200px;
       width: 512px;
       transform: rotate(135deg) scaleX(-1);
     }
