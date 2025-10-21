@@ -53,11 +53,7 @@ import vuetify from '@/plugins/vuetify'; //
 
 import router from './router/router';
 
-import '@fontsource/open-sans/800.css';
-import '@fontsource/open-sans/700.css';
 import App from './App.vue';
-
-import '@fontsource/open-sans';
 
 const pinia = createPinia();
 pinia.use(

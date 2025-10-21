@@ -26,10 +26,7 @@
  */
 
 //resources&assets
-import '@mdi/font/css/materialdesignicons.css';
 import './assets/icons.css';
-
-import '@fontsource/open-sans';
 
 export * from './components';
 export * from './components/icons';

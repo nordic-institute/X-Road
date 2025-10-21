@@ -52,13 +52,10 @@ import { createValidators } from '@/plugins/vee-validate';
 import { createLanguageHelper } from './plugins/i18n';
 import router from './router/router';
 
-import '@fontsource/open-sans/800.css';
-import '@fontsource/open-sans/700.css';
 import App from './App.vue';
 
 import './plugins/vee-validate';
 import './filters';
-import '@fontsource/open-sans';
 import { RouteName } from '@/global';
 
 const pinia = createPinia();
