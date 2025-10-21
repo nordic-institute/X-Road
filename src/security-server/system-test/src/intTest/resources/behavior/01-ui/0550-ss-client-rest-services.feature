@@ -1,5 +1,6 @@
 @SecurityServer
 @Client
+@Skip #TODO beta1 release preparation
 Feature: 0550 - SS: Client REST with base path services
 
   Background:

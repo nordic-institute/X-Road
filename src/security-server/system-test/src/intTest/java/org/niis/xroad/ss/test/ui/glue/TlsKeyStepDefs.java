@@ -69,13 +69,13 @@ public class TlsKeyStepDefs extends BaseUiStepDefs {
 
     @Step("Export TLS certificate button is {selenideValidation}")
     public void validateExportTlsCertButton(ParameterMappers.SelenideValidation validation) {
-        tlsKeyPageObj.buttonExportCert()
+        tlsKeyPageObj.buttonDownloadCert()
                 .shouldBe(validation.getSelenideCondition());
     }
 
     @Step("TLS certificate is exported")
     public void tlsCertificateIsExported() {
-        var cert = tlsKeyPageObj.buttonExportCert().download();
+        var cert = tlsKeyPageObj.buttonDownloadCert().download();
         putStepData(StepDataKey.DOWNLOADED_FILE, cert);
     }
 
