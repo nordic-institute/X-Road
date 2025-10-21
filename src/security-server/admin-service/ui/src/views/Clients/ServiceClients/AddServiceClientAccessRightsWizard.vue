@@ -29,7 +29,6 @@
     data-test="add-subject-view"
     title="serviceClients.addServiceClientTitle"
     go-back-on-close
-    close-on-escape
   >
     <!-- eslint-disable-next-line vuetify/no-deprecated-components -->
     <XrdWizard v-model="step">

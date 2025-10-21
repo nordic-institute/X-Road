@@ -28,7 +28,6 @@
   <XrdElevatedViewFixedWidth
     id="management-service-certificate-details"
     title="cert.certificate"
-    close-on-escape
     go-back-on-close
     :loading
     :breadcrumbs="breadcrumbs"

@@ -31,7 +31,6 @@
   <XrdElevatedViewFixedWidth
     id="ocsp-responder-certificate-details"
     title="cert.certificate"
-    close-on-escape
     go-back-on-close
     :breadcrumbs
     :loading

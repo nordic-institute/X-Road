@@ -28,7 +28,6 @@
   <XrdElevatedViewFixedWidth
     id="intermediate-ca-certificate-details"
     title="cert.certificate"
-    close-on-escape
     go-back-on-close
     :breadcrumbs
     :loading

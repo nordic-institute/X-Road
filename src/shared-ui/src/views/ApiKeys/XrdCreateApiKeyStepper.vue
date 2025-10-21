@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewSimple data-test="create-api-key-stepper-view" title="apiKey.createApiKey.title" close-on-escape go-back-on-close>
+  <XrdElevatedViewSimple data-test="create-api-key-stepper-view" title="apiKey.createApiKey.title" go-back-on-close>
     <template #bellow-header>
       <XrdBreadcrumbs v-if="breadcrumbs && breadcrumbs.length > 0" :breadcrumbs="breadcrumbs" />
     </template>

@@ -27,7 +27,6 @@
 <template>
   <XrdElevatedViewFixedWidth
     title="cert.certificate"
-    close-on-escape
     fixed-height
     :loading="loading"
     :breadcrumbs="breadcrumbs"

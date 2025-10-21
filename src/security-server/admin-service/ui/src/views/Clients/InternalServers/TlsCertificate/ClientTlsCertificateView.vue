@@ -28,7 +28,6 @@
   <XrdElevatedViewFixedWidth
     title="cert.certificate"
     go-back-on-close
-    close-on-escape
     fixed-height
     :loading="loading"
     :breadcrumbs="breadcrumbs"

@@ -29,7 +29,6 @@
     :title="title"
     data-test="service-description-details-dialog"
     fixed-height
-    close-on-escape
     go-back-on-close
     :breadcrumbs="breadcrumbs"
   >

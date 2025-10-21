@@ -27,7 +27,6 @@
 <template>
   <XrdElevatedViewFixedWidth
     data-test="service-description-details-dialog"
-    close-on-escape
     :loading="loadingLocalGroup"
     :translated-title="localGroup?.code"
     :breadcrumbs="breadcrumbs"
