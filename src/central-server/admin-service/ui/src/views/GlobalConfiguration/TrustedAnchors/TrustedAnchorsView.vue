@@ -34,7 +34,6 @@
       <UploadTrustedAnchorButton @uploaded="fetchTrustedAnchors" />
     </template>
 
-
     <XrdEmptyPlaceholder
       :data="trustedAnchors"
       :loading="loading"
@@ -61,7 +60,9 @@
  * View for 'backup and restore' tab
  */
 import { defineComponent } from 'vue';
-import ConfigurationAnchorItem, { Anchor } from '../shared/ConfigurationAnchorItem.vue';
+import ConfigurationAnchorItem, {
+  Anchor,
+} from '../shared/ConfigurationAnchorItem.vue';
 import { TrustedAnchor } from '@/openapi-types';
 import { mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
@@ -116,4 +117,3 @@ export default defineComponent({
   },
 });
 </script>
-

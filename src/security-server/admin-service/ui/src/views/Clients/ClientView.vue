@@ -139,7 +139,9 @@ export default defineComponent({
   methods: {
     ...mapActions(useClient, ['fetchClient']),
     fetchData(id: string): void {
-      this.fetchClient(id).catch((error) => this.addError(error, { navigate: true }));
+      this.fetchClient(id).catch((error) =>
+        this.addError(error, { navigate: true }),
+      );
     },
   },
 });

@@ -142,7 +142,9 @@ const update = handleSubmit((values) => {
   loading.value = true;
   updateOcspResponder(props.ocspResponder.id, values.url, certFile.value)
     .then(() => {
-      addSuccessMessage('trustServices.trustService.ocspResponders.edit.success');
+      addSuccessMessage(
+        'trustServices.trustService.ocspResponders.edit.success',
+      );
       emits('save');
     })
     .catch((error) => addError(error))

@@ -36,7 +36,6 @@
 </template>
 
 <script lang="ts" setup>
-
 /**
  * Label and help icon that can be used with inputs
  */
@@ -53,6 +52,4 @@ defineProps({
 });
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

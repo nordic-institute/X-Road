@@ -214,10 +214,12 @@ import { VDateInput } from 'vuetify/labs/VDateInput';
 import axios from 'axios';
 import dayjs, { Dayjs } from 'dayjs';
 import { vMaska } from 'maska/vue';
-import {  useNotifications, XrdCard } from '@niis/shared-ui';
+import { useNotifications, XrdCard } from '@niis/shared-ui';
 import { OperationalDataInterval, Service } from '@/openapi-types';
 import { useClients } from '@/store/modules/clients';
-import TrafficChart, { TrafficSeries } from '@/views/Diagnostics/Traffic/TrafficChart.vue';
+import TrafficChart, {
+  TrafficSeries,
+} from '@/views/Diagnostics/Traffic/TrafficChart.vue';
 import { useI18n } from 'vue-i18n';
 import { debounce } from '@/util/helpers';
 import { useServiceDescriptions } from '@/store/modules/service-descriptions';
@@ -434,5 +436,4 @@ type TrafficFilter = {
 .range-separator::before {
   content: '-';
 }
-
 </style>

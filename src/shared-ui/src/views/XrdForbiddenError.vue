@@ -28,7 +28,7 @@
 <template>
   <XrdErrorPage data-test="forbidden-view" title="403.topTitle">
     <v-sheet class="xrd-403-text pt-6 pb-6 pr-15 pl-15 full-width" height="508">
-      <div class="xrd-info" style="position: relative" >
+      <div class="xrd-info" style="position: relative">
         <p class="title-page font-weight-bold mb-12">{{ $t('403.title') }}</p>
         <p class="title-container font-weight-medium mb-4">{{ $t('403.text1') }}</p>
         <p class="body-large font-weight-regular mb-12">{{ $t('403.text2') }}</p>

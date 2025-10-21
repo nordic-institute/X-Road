@@ -26,7 +26,6 @@
  -->
 <template>
   <XrdView data-test="backup-restore-view" title="tab.main.settings">
-
     <template #tabs>
       <SettingsTabs />
     </template>

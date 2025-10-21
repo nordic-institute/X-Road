@@ -168,7 +168,12 @@ import { useMail } from '@/store/modules/mail';
 import { defineComponent } from 'vue';
 import HelpButton from '@/components/ui/HelpButton.vue';
 import { MailNotificationType } from '@/openapi-types';
-import { XrdCard, XrdStatusIcon, XrdStatusChip, useNotifications } from '@niis/shared-ui';
+import {
+  XrdCard,
+  XrdStatusIcon,
+  XrdStatusChip,
+  useNotifications,
+} from '@niis/shared-ui';
 
 type TestMailStatuses = {
   [key: string]: {

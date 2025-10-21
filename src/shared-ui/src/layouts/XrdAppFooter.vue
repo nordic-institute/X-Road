@@ -30,7 +30,7 @@
       <v-col class="pt-4 text-start">
         <img :src="xroad8LogoUrl" height="40" width="150" alt="Logo" />
       </v-col>
-      <v-col  class="footer-col pt-5">
+      <v-col class="footer-col pt-5">
         <v-row>
           <v-col>
             <span class="body-regular font-weight-bold">
@@ -58,7 +58,7 @@
           </v-col>
         </v-row>
       </v-col>
-      <v-col  class="footer-col pt-5">
+      <v-col class="footer-col pt-5">
         <v-row>
           <v-col>
             <span class="body-regular font-weight-bold">
@@ -103,6 +103,4 @@ defineProps({
 const xroad8LogoUrl = xroad8Logo;
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

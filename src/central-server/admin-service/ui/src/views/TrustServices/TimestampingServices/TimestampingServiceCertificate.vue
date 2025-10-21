@@ -42,7 +42,11 @@
 <script lang="ts" setup>
 import { computed, watchEffect, ref } from 'vue';
 import { useTimestampingServices } from '@/store/modules/trust-services';
-import { XrdCertificate, XrdElevatedViewFixedWidth, useNotifications } from '@niis/shared-ui';
+import {
+  XrdCertificate,
+  XrdElevatedViewFixedWidth,
+  useNotifications,
+} from '@niis/shared-ui';
 import { RouteName } from '@/global';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';

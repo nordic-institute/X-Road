@@ -180,7 +180,11 @@ export default defineComponent({
   setup(props) {
     const { addError, addSuccessMessage } = useNotifications();
     const clientStore = useClient();
-    const { fetchServiceDescription, updateServiceDescription, deleterServiceDescription } = useServiceDescriptions();
+    const {
+      fetchServiceDescription,
+      updateServiceDescription,
+      deleterServiceDescription,
+    } = useServiceDescriptions();
     const serviceDescription = ref<ServiceDescription | undefined>(undefined);
     const { meta, values, defineField, resetForm } = useForm({
       validationSchema: computed(() => ({
@@ -314,7 +318,7 @@ export default defineComponent({
           .then((serviceDescription) =>
             this.clientStore.fetchClient(serviceDescription.client_id),
           )
-          .catch((error) => this.addError(error, true));
+          .catch((error) => this.addError(error, { navigate: true }));
       },
     },
   },

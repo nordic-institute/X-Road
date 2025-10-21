@@ -56,8 +56,8 @@
           <v-icon class="mr-1 ml-n1" icon="error" color="error" />
         </template>
         <span class="font-weight-medium body-small">
-            {{ $t('keys.globalErrors') }}
-          </span>
+          {{ $t('keys.globalErrors') }}
+        </span>
       </v-chip>
     </div>
     <div v-else-if="registered === certificateCount" class="registered">
@@ -75,8 +75,8 @@
           />
         </template>
         <span class="font-weight-medium body-small">
-            {{ $t('keys.noIssues') }}
-          </span>
+          {{ $t('keys.noIssues') }}
+        </span>
       </v-chip>
     </div>
   </div>

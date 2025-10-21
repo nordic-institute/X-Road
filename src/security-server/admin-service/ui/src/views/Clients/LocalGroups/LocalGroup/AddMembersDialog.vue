@@ -151,7 +151,13 @@ import { defineComponent, PropType } from 'vue';
 import { Client, GroupMember } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useGeneral } from '@/store/modules/general';
-import { XrdExpandable, XrdSimpleDialog, useNotifications, DialogSaveHandler, XrdBtn } from '@niis/shared-ui';
+import {
+  XrdExpandable,
+  XrdSimpleDialog,
+  useNotifications,
+  DialogSaveHandler,
+  XrdBtn,
+} from '@niis/shared-ui';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useClients } from '@/store/modules/clients';

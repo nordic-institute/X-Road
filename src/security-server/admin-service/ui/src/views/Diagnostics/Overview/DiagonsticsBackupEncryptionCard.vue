@@ -94,7 +94,13 @@
 import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { defineComponent } from 'vue';
-import { XrdCard, Status, XrdStatusChip, statusToType, useNotifications } from '@niis/shared-ui';
+import {
+  XrdCard,
+  Status,
+  XrdStatusChip,
+  statusToType,
+  useNotifications,
+} from '@niis/shared-ui';
 
 export default defineComponent({
   components: { XrdCard, XrdStatusChip },

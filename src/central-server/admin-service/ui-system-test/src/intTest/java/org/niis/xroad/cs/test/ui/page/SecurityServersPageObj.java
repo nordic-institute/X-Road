@@ -34,7 +34,7 @@ import static com.codeborne.selenide.Selenide.$x;
 @SuppressWarnings("InnerClassMayBeStatic")
 public class SecurityServersPageObj {
     public SelenideElement listRowOf(String serverCode) {
-        var xpath = "//div[@data-test='security-servers-view']//table//tbody//tr//td//div[contains(text(), '%s')]";
+        var xpath = "//div[@data-test='security-servers-view']//table//tbody//tr//td//div/span[contains(., '%s')]";
         return $x(String.format(xpath, serverCode));
     }
 

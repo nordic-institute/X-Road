@@ -106,11 +106,7 @@ import { computed, PropType, ref } from 'vue';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
 import { useForm } from 'vee-validate';
-import {
-  useBasicForm,
-  XrdFormBlock,
-  XrdFormBlockRow,
-} from '@niis/shared-ui';
+import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 const props = defineProps({
   certificationService: {

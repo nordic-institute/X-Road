@@ -32,7 +32,6 @@ import { VDataTable } from 'vuetify/components';
 import { DataTableHeader as VuetifyDataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { SortItem as VuetifySortItem } from 'vuetify/lib/components/VDataTable/composables/sort';
 
-
 // Action info for notification. In practise the "action" is navigtion to a given route.
 export interface NotificationAction {
   icon: string;

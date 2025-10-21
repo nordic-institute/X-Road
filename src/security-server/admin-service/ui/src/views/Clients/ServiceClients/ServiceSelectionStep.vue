@@ -121,7 +121,12 @@
 import { defineComponent, PropType } from 'vue';
 import { ServiceCandidate } from '@/ui-types';
 import { AccessRight, AccessRights, ServiceClient } from '@/openapi-types';
-import { XrdWizardStep, useNotifications, XrdFormBlock, XrdBtn } from '@niis/shared-ui';
+import {
+  XrdWizardStep,
+  useNotifications,
+  XrdFormBlock,
+  XrdBtn,
+} from '@niis/shared-ui';
 import { mapActions } from 'pinia';
 import { useServiceClients } from '@/store/modules/service-clients';
 import { RouteName } from '@/global';

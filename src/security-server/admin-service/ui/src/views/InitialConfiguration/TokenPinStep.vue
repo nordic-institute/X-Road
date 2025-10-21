@@ -87,7 +87,12 @@ import { defineComponent } from 'vue';
 import { PublicPathState, useForm } from 'vee-validate';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import {
+  XrdWizardStep,
+  XrdBtn,
+  XrdFormBlock,
+  XrdFormBlockRow,
+} from '@niis/shared-ui';
 
 export default defineComponent({
   components: { XrdWizardStep, XrdFormBlock, XrdFormBlockRow, XrdBtn },

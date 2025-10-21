@@ -48,7 +48,7 @@ const router = useRouter();
 const { getAllowedTabs, username, logout } = useUser();
 const allowedTabs = computed(() => getAllowedTabs(mainTabs));
 const adminHandler = computed(() => useAdminUsersHandler().adminUsersHandler());
-const dbBasedAuth = computed(()=> false);
+const dbBasedAuth = computed(() => false);
 function doLogout() {
   logout();
   router.replace({ name: RouteName.Login });

@@ -135,7 +135,11 @@ import GenerateCsrPage from '@/components/wizard/GenerateCsrPage.vue';
 import { AddMemberWizardModes, RouteName } from '@/global';
 import { useAddClient } from '@/store/modules/addClient';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import { XrdElevatedViewSimple, XrdWizard, useNotifications } from '@niis/shared-ui';
+import {
+  XrdElevatedViewSimple,
+  XrdWizard,
+  useNotifications,
+} from '@niis/shared-ui';
 
 const NO_SELECTION = 999;
 

@@ -40,9 +40,30 @@ import axios from 'axios';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 
 import {
-  XrdButton, XrdCloseButton, XrdConfirmDialog, XrdEmptyPlaceholder, XrdEmptyPlaceholderRow, XrdExpandable, XrdFileUpload, XrdFormLabel,
-  XrdIconAdd, XrdIconBase, XrdIconChecked, XrdIconChecker, XrdIconClose, XrdIconCopy, XrdIconDeclined, XrdIconEdit, XrdIconError,
-  XrdIconFolderOutline, XrdIconSortingArrow, XrdIconTooltip, XrdSimpleDialog, XrdStatusIcon, XrdSubViewContainer, XrdTitledView,
+  XrdButton,
+  XrdCloseButton,
+  XrdConfirmDialog,
+  XrdEmptyPlaceholder,
+  XrdEmptyPlaceholderRow,
+  XrdExpandable,
+  XrdFileUpload,
+  XrdFormLabel,
+  XrdIconAdd,
+  XrdIconBase,
+  XrdIconChecked,
+  XrdIconChecker,
+  XrdIconClose,
+  XrdIconCopy,
+  XrdIconDeclined,
+  XrdIconEdit,
+  XrdIconError,
+  XrdIconFolderOutline,
+  XrdIconSortingArrow,
+  XrdIconTooltip,
+  XrdSimpleDialog,
+  XrdStatusIcon,
+  XrdSubViewContainer,
+  XrdTitledView,
   setupAddErrorNavigation,
 } from '@niis/shared-ui';
 

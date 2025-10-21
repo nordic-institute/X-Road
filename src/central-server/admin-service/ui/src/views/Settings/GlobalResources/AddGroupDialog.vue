@@ -63,11 +63,7 @@
 import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
 
-import {
-  useBasicForm,
-  XrdFormBlock,
-  XrdFormBlockRow,
-} from '@niis/shared-ui';
+import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 import { useGlobalGroups } from '@/store/modules/global-groups';
 

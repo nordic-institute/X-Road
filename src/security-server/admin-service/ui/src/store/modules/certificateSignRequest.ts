@@ -26,13 +26,27 @@
  */
 import { helper } from '@niis/shared-ui';
 import {
-  AcmeEabCredentialsStatus, CertificateAuthority, Client, CsrFormat, CsrGenerate, CsrSubjectFieldDescription, Key, KeyLabelWithCsrGenerate,
-  KeyUsageType, KeyWithCertificateSigningRequestId, TokenCertificateSigningRequest, TokenType, KeyAlgorithm,
+  AcmeEabCredentialsStatus,
+  CertificateAuthority,
+  Client,
+  CsrFormat,
+  CsrGenerate,
+  CsrSubjectFieldDescription,
+  Key,
+  KeyLabelWithCsrGenerate,
+  KeyUsageType,
+  KeyWithCertificateSigningRequestId,
+  TokenCertificateSigningRequest,
+  TokenType,
+  KeyAlgorithm,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { sorCertificateAuthorities, sortCsrSubjectFields } from '@/util/sorting';
+import {
+  sorCertificateAuthorities,
+  sortCsrSubjectFields,
+} from '@/util/sorting';
 
 export interface CsrState {
   csrKey: Key | undefined;

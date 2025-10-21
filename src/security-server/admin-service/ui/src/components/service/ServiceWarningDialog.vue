@@ -40,7 +40,9 @@
         <div class="dlg-warning-header font-weight-medium">
           {{ $t(`services.warningCode.${warning.code}`) }}
         </div>
-        <div v-for="meta in warning.metadata" :key="meta" class="ml-2">{{ meta }}</div>
+        <div v-for="meta in warning.metadata" :key="meta" class="ml-2">
+          {{ meta }}
+        </div>
       </div>
     </template>
   </XrdConfirmDialog>

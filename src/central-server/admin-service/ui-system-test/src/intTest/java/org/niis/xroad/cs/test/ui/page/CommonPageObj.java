@@ -170,6 +170,6 @@ public class CommonPageObj {
     }
 
     public SelenideElement backLink() {
-        return $x("//a[@data-test='navigation-back']");
+        return $x("//a[@data-test='navigation-back'][last()]");
     }
 }

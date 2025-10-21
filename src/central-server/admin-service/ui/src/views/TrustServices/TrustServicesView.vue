@@ -28,7 +28,7 @@
   <XrdView title="tab.main.trustServices">
     <CertificationServicesList />
 
-    <TimestampingServicesList v-if="showTsaList" class="mt-4"/>
+    <TimestampingServicesList v-if="showTsaList" class="mt-4" />
   </XrdView>
 </template>
 

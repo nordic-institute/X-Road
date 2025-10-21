@@ -138,7 +138,12 @@ import { TimestampingService } from '@/openapi-types';
 import { useTimestampingServices } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
 import { DataTableHeader } from '@/ui-types';
-import { XrdCard, XrdBtn, XrdLabelWithIcon, useNotifications } from '@niis/shared-ui';
+import {
+  XrdCard,
+  XrdBtn,
+  XrdLabelWithIcon,
+  useNotifications,
+} from '@niis/shared-ui';
 
 export default defineComponent({
   components: {

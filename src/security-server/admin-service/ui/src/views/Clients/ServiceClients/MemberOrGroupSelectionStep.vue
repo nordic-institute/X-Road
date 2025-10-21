@@ -89,7 +89,12 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { ServiceClient } from '@/openapi-types';
-import { XrdWizardStep, useNotifications, XrdFormBlock, XrdBtn } from '@niis/shared-ui';
+import {
+  XrdWizardStep,
+  useNotifications,
+  XrdFormBlock,
+  XrdBtn,
+} from '@niis/shared-ui';
 import { mapActions } from 'pinia';
 import ClientName from '@/components/client/ClientName.vue';
 import { useServiceClients } from '@/store/modules/service-clients';

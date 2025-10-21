@@ -125,7 +125,13 @@ import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
 import ClientName from '@/components/client/ClientName.vue';
-import { XrdDateTime, XrdElevatedViewFixedWidth, XrdBtn, XrdLabelWithIcon, useNotifications } from '@niis/shared-ui';
+import {
+  XrdDateTime,
+  XrdElevatedViewFixedWidth,
+  XrdBtn,
+  XrdLabelWithIcon,
+  useNotifications,
+} from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useServices } from '@/store/modules/services';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
@@ -316,7 +322,7 @@ export default defineComponent({
             this.fetchServiceDescription(service.service_description_id),
           )
           .then((description) => this.fetchClient(description.client_id))
-          .catch((error) => this.addError(error, true));
+          .catch((error) => this.addError(error, { navigate: true }));
       }
       this.fetchEndpointServiceClients(this.id)
         .then((accessRights) => (this.serviceClients = accessRights))

@@ -292,7 +292,7 @@ function registerSubsystem(): void {
       exitView();
     })
     .catch((error) => {
-      addError(error, false, true);
+      addError(error, { preserve: true });
       exitView();
     });
 }

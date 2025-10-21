@@ -31,7 +31,6 @@
     accept-button-text="action.ok"
     focus-on-accept
     hide-cancel-button
-
     @accept="emit('logout')"
   />
 </template>

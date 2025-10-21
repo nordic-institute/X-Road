@@ -145,10 +145,7 @@ export default defineComponent({
     },
     statusMessage(ocsp: OcspResponder): string {
       if (ocsp.status_class === DiagnosticStatusClass.FAIL) {
-        return this.$t(
-          `error_code.${ocsp.error?.code}`,
-          ocsp.error?.metadata,
-        );
+        return this.$t(`error_code.${ocsp.error?.code}`, ocsp.error?.metadata);
       } else {
         return this.$t(
           `diagnostics.ocspResponders.ocspStatus.${ocsp.status_class}`,

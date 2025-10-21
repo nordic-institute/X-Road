@@ -270,7 +270,7 @@ export default defineComponent({
             this.fetchServiceDescription(service.service_description_id),
           )
           .then((description) => this.fetchClient(description.client_id))
-          .catch((error) => this.addError(error, true));
+          .catch((error) => this.addError(error, { navigate: true }));
       },
     },
   },

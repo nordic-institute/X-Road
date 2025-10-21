@@ -68,6 +68,5 @@ function confirmLogout(): void {
 
 function confirmLogin(): void {
   emit('token-login');
-
 }
 </script>

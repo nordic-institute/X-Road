@@ -142,7 +142,11 @@ import { AddMemberWizardModes, RouteName } from '@/global';
 import { useAddClient } from '@/store/modules/addClient';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { useGeneral } from '@/store/modules/general';
-import { XrdElevatedViewSimple, XrdWizard, useNotifications } from '@niis/shared-ui';
+import {
+  XrdElevatedViewSimple,
+  XrdWizard,
+  useNotifications,
+} from '@niis/shared-ui';
 
 const NO_SELECTION = 999;
 

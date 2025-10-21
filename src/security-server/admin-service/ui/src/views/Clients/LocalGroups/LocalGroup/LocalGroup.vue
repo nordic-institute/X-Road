@@ -324,7 +324,7 @@ export default defineComponent({
           this.setValue(res.description);
           return this.fetchClient(res.client_id || '');
         })
-        .catch((error) => this.addError(error, true));
+        .catch((error) => this.addError(error, { navigate: true }));
     },
 
     addMembers(): void {

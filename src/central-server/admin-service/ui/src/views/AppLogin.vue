@@ -25,12 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdAppLogin ref="loginForm" :loading @login="submit">
-    <template #top>
-
-      <AlertsContainer class="alerts" />
-    </template>
-  </XrdAppLogin>
+  <XrdAppLogin ref="loginForm" :loading @login="submit" />
 </template>
 
 <script lang="ts">

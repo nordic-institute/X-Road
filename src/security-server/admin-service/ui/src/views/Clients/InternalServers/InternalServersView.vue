@@ -85,7 +85,7 @@
             @navigate="openCertificate(item)"
           >
             <template #label>
-              <XrdHashValue :value="item.hash" wrap-friendly/>
+              <XrdHashValue :value="item.hash" wrap-friendly />
             </template>
           </XrdLabelWithIcon>
         </template>
@@ -123,7 +123,7 @@
                 icon="editor_choice"
               >
                 <template #label>
-                  <XrdHashValue :value="ssCertificate.hash" wrap-friendly/>
+                  <XrdHashValue :value="ssCertificate.hash" wrap-friendly />
                 </template>
               </XrdLabelWithIcon>
             </td>
@@ -160,7 +160,16 @@ import { CertificateDetails, ConnectionType } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
-import { FileUploadResult, XrdDate, XrdHashValue, XrdSubView, XrdCard, XrdBtn, XrdLabelWithIcon, useNotifications } from '@niis/shared-ui';
+import {
+  FileUploadResult,
+  XrdDate,
+  XrdHashValue,
+  XrdSubView,
+  XrdCard,
+  XrdBtn,
+  XrdLabelWithIcon,
+  useNotifications,
+} from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useSystem } from '@/store/modules/system';
 import { useTlsCertificate } from '@/store/modules/tls-certificate';

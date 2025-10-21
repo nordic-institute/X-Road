@@ -67,7 +67,11 @@ import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue
 import { RouteName } from '@/global';
 import { mapActions } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import { XrdElevatedViewSimple, XrdWizard, useNotifications } from '@niis/shared-ui';
+import {
+  XrdElevatedViewSimple,
+  XrdWizard,
+  useNotifications,
+} from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
@@ -75,10 +79,6 @@ export default defineComponent({
     WizardPageGenerateCsr,
     XrdElevatedViewSimple,
     XrdWizard,
-  },
-  setup() {
-    const { addError } = useNotifications();
-    return { addError };
   },
   props: {
     keyId: {
@@ -90,6 +90,10 @@ export default defineComponent({
       required: false,
       default: '',
     },
+  },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
   },
   data() {
     return {

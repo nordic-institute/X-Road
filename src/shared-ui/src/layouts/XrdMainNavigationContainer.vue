@@ -54,5 +54,4 @@ const logo = _logo;
     }
   }
 }
-
 </style>

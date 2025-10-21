@@ -25,9 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdAddAdminUser
-    :admin-users-handler="handler"
-  />
+  <XrdAddAdminUser :admin-users-handler="handler" />
 </template>
 
 <script lang="ts" setup>

@@ -129,7 +129,12 @@
 import { mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { defineComponent } from 'vue';
-import { XrdCard, XrdStatusChip, statusToType, StatusType } from '@niis/shared-ui';
+import {
+  XrdCard,
+  XrdStatusChip,
+  statusToType,
+  StatusType,
+} from '@niis/shared-ui';
 
 type Status = 'ok' | 'pending' | 'error';
 type Disabled = `${Status}-disabled`;

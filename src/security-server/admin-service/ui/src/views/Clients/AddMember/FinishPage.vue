@@ -158,7 +158,7 @@ export default defineComponent({
         () => {
           if (
             this.addMemberWizardMode ===
-            AddMemberWizardModes.CERTIFICATE_EXISTS &&
+              AddMemberWizardModes.CERTIFICATE_EXISTS &&
             this.registerChecked
           ) {
             this.doRegisterClient();

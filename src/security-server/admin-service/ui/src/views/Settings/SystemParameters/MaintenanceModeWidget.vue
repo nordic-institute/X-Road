@@ -147,14 +147,18 @@ async function changeMode(enable: boolean) {
   updating.value = true;
   if (enable) {
     return enableMaintenanceMode(noticeMessage.value)
-      .then(() => addSuccessMessage('diagnostics.maintenanceMode.enableSuccess'))
+      .then(() =>
+        addSuccessMessage('diagnostics.maintenanceMode.enableSuccess'),
+      )
       .then(() => update())
       .catch((error) => addError(error))
       .finally(() => (updating.value = false))
       .finally(() => close());
   } else {
     return disableMaintenanceMode()
-      .then(() => addSuccessMessage('diagnostics.maintenanceMode.disableSuccess'))
+      .then(() =>
+        addSuccessMessage('diagnostics.maintenanceMode.disableSuccess'),
+      )
       .then(() => update())
       .catch((error) => addError(error))
       .finally(() => close())

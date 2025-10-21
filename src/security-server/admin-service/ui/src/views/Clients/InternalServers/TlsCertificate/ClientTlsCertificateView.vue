@@ -68,7 +68,12 @@ import { Permissions, RouteName } from '@/global';
 import { CertificateDetails } from '@/openapi-types';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
-import { XrdCertificate, XrdElevatedViewFixedWidth, XrdBtn, useNotifications } from '@niis/shared-ui';
+import {
+  XrdCertificate,
+  XrdElevatedViewFixedWidth,
+  XrdBtn,
+  useNotifications,
+} from '@niis/shared-ui';
 import { useRouter } from 'vue-router';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
 import { useI18n } from 'vue-i18n';
@@ -135,7 +140,7 @@ async function fetchData(id: string, hash: string) {
   return fetchClient(id)
     .then(() => fetchTlsCertificate(id, hash))
     .then((cert) => (certificate.value = cert))
-    .catch((error) => addError(error, true))
+    .catch((error) => addError(error, { navigate: true }))
     .finally(() => (loading.value = false));
 }
 

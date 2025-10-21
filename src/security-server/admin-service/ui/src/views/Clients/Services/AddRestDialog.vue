@@ -90,7 +90,12 @@
 
 <script lang="ts" setup>
 import { PublicPathState, useForm } from 'vee-validate';
-import { XrdFormBlock, XrdFormBlockRow, useNotifications, DialogSaveHandler } from '@niis/shared-ui';
+import {
+  XrdFormBlock,
+  XrdFormBlockRow,
+  useNotifications,
+  DialogSaveHandler,
+} from '@niis/shared-ui';
 import { ref } from 'vue';
 import { CodeWithDetails } from '@/openapi-types';
 import ServiceWarningDialog from '@/components/service/ServiceWarningDialog.vue';

@@ -325,7 +325,8 @@ import {
   XrdCard,
   XrdSubView,
   XrdStatusChip,
-  helper, useNotifications,
+  helper,
+  useNotifications,
 } from '@niis/shared-ui';
 import {
   AddOnStatus,

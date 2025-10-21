@@ -172,6 +172,6 @@ const showDeleteServerDialog = ref(false);
 watchEffect(() => {
   securityServerStore
     .loadById(props.serverId)
-    .catch((err) => addError(err, true));
+    .catch((err) => addError(err, { navigate: true }));
 });
 </script>

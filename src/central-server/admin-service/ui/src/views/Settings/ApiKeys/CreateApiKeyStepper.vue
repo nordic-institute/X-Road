@@ -33,7 +33,11 @@
 </template>
 
 <script lang="ts" setup>
-import { XrdCreateApiKeyStepper, ApiKey, ApiKeysHandler } from '@niis/shared-ui';
+import {
+  XrdCreateApiKeyStepper,
+  ApiKey,
+  ApiKeysHandler,
+} from '@niis/shared-ui';
 import { computed } from 'vue';
 import { Roles, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';

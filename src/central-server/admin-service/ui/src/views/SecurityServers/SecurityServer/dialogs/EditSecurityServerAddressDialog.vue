@@ -60,11 +60,7 @@
 <script lang="ts" setup>
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useForm } from 'vee-validate';
-import {
-  useBasicForm,
-  XrdFormBlock,
-  XrdFormBlockRow,
-} from '@niis/shared-ui';
+import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 /**
  * Component for a Security server details view

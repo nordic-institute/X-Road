@@ -95,7 +95,13 @@ import {
   DiagnosticStatusClass,
   TimestampingServiceDiagnostics,
 } from '@/openapi-types';
-import { i18n, XrdCard, XrdStatusChip, Status, useNotifications } from '@niis/shared-ui';
+import {
+  i18n,
+  XrdCard,
+  XrdStatusChip,
+  Status,
+  useNotifications,
+} from '@niis/shared-ui';
 import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
 export default defineComponent({

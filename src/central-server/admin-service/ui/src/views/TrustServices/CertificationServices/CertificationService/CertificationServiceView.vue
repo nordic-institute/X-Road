@@ -69,7 +69,12 @@
 <script lang="ts" setup>
 import { Permissions, RouteName } from '@/global';
 import { useCertificationService } from '@/store/modules/trust-services';
-import { XrdView, XrdBtn, useNotifications, XrdViewNavigation } from '@niis/shared-ui';
+import {
+  XrdView,
+  XrdBtn,
+  useNotifications,
+  XrdViewNavigation,
+} from '@niis/shared-ui';
 import { computed, ref, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUser } from '@/store/modules/user';

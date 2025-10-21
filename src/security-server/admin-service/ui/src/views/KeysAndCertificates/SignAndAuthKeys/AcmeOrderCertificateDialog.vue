@@ -130,7 +130,7 @@ export default defineComponent({
               this.setErrors(this.$t('csr.eabCredRequired'));
             }
           })
-          .catch((error) => this.addError(error, true));
+          .catch((error) => this.addError(error, { navigate: true }));
       } else {
         this.hasAcmeEabRequiredButNoCredentials = false;
       }

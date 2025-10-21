@@ -83,8 +83,6 @@ export const useSecurityServer = defineStore('securityServer', {
         .finally(() => (this.loadingCurrent = false));
     },
     async updateAddress(securityServerId: string, address: string) {
-      this.loadingCurrent = true;
-      this.current = undefined;
       const securityServerAddress: SecurityServerAddress = {
         server_address: address,
       };
@@ -95,8 +93,7 @@ export const useSecurityServer = defineStore('securityServer', {
         )
         .then((resp) => {
           this.current = resp.data;
-        })
-        .finally(() => (this.loadingCurrent = false));
+        });
     },
     async delete(securityServerId: string) {
       return axios.delete(`/security-servers/${securityServerId}`).then(() => {

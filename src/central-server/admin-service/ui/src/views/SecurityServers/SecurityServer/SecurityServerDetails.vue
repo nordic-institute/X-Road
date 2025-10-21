@@ -90,8 +90,8 @@
       v-if="address && showEditAddressDialog"
       :address="address"
       :security-server-id="serverId"
-      @cancel="showEditAddressDialog = false"
-      @save="showEditAddressDialog = false"
+      @cancel="closeEditAddress"
+      @save="closeEditAddress"
     />
   </XrdSubView>
 </template>
@@ -160,6 +160,11 @@ export default defineComponent({
     },
     serverCode(): string | null {
       return this.securityServer?.server_id.server_code || null;
+    },
+  },
+  methods: {
+    closeEditAddress() {
+      this.showEditAddressDialog = false;
     },
   },
 });

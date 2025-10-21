@@ -25,8 +25,15 @@
  * THE SOFTWARE.
  */
 import {
-  ApprovedCertificationService, ApprovedCertificationServiceListItem, CertificateAuthority, CertificateDetails,
-  CertificationServiceFileAndSettings, CertificationServiceSettings, OcspResponder, TimestampingService, OcspResponderCertificateDetails,
+  ApprovedCertificationService,
+  ApprovedCertificationServiceListItem,
+  CertificateAuthority,
+  CertificateDetails,
+  CertificationServiceFileAndSettings,
+  CertificationServiceSettings,
+  OcspResponder,
+  TimestampingService,
+  OcspResponderCertificateDetails,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';

@@ -287,7 +287,7 @@ export default defineComponent({
       this.certificationService = this.values.csr.certificationService;
       this.csrFormat = this.values.csr.csrFormat;
       this.hasAcmeEabCredentials()
-        .catch((error) => this.addError(error, true))
+        .catch((error) => this.addError(error, { navigate: true }))
         .finally(() => this.$emit('done'));
     },
     previous(): void {

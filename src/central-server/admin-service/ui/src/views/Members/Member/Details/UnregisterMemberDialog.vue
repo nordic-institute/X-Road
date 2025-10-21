@@ -40,13 +40,13 @@
         >
           <template #memberCode>
             <span class="font-weight-bold">{{
-                member.client_id.member_code
-              }}</span>
+              member.client_id.member_code
+            }}</span>
           </template>
           <template #serverCode>
             <span class="font-weight-bold">{{
-                server.server_id.server_code
-              }}</span>
+              server.server_id.server_code
+            }}</span>
           </template>
         </i18n-t>
       </span>

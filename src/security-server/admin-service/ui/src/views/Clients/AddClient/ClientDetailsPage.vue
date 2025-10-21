@@ -149,7 +149,13 @@ import { useGeneral } from '@/store/modules/general';
 import { useUser } from '@/store/modules/user';
 import { useI18n } from 'vue-i18n';
 import { useSystem } from '@/store/modules/system';
-import { XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
+import {
+  XrdWizardStep,
+  XrdBtn,
+  XrdFormBlock,
+  XrdFormBlockRow,
+  useNotifications,
+} from '@niis/shared-ui';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

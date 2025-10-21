@@ -109,7 +109,13 @@ import { defineComponent } from 'vue';
 
 import { mapState } from 'pinia';
 
-import { XrdBtn, XrdConfirmDialog, XrdDateTime, XrdHashValue, useNotifications } from '@niis/shared-ui';
+import {
+  XrdBtn,
+  XrdConfirmDialog,
+  XrdDateTime,
+  XrdHashValue,
+  useNotifications,
+} from '@niis/shared-ui';
 
 import { Permissions } from '@/global';
 import { Anchor } from '@/openapi-types';
