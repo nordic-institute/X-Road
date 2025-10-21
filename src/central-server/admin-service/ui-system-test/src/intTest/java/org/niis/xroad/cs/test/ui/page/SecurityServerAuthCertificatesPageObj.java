@@ -61,9 +61,9 @@ public class SecurityServerAuthCertificatesPageObj {
     }
 
     public SelenideElement certificatedDetailsView() {
-        var xpath = "//main[@id='security-server-authentication-certificate']";
+        var xpath = "//div[@data-test='xrd-certificate']";
 
-        return $x(xpath).find("div#certification-service-certificate-details");
+        return $x(xpath);
     }
 
     public ElementsCollection columnHeaders() {

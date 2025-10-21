@@ -26,7 +26,7 @@
  -->
 <template>
   <XrdSubView>
-    <XrdCard data-test="security-server-details-view" :loading>
+    <XrdCard data-test="security-server-details-view" :loading="loading">
       <XrdCardTable>
         <XrdCardTableRow
           data-test="security-server-owner-name"
@@ -87,7 +87,7 @@
       </XrdCardTable>
     </XrdCard>
     <edit-security-server-address-dialog
-      v-if="address && showEditAddressDialog"
+      v-if="showEditAddressDialog"
       :address="address"
       :security-server-id="serverId"
       @cancel="closeEditAddress"
@@ -155,8 +155,8 @@ export default defineComponent({
     canEditAddress(): boolean {
       return this.hasPermission(Permissions.EDIT_SECURITY_SERVER_ADDRESS);
     },
-    address(): string | null {
-      return this.securityServer?.server_address || null;
+    address(): string {
+      return this.securityServer?.server_address ?? '';
     },
     serverCode(): string | null {
       return this.securityServer?.server_id.server_code || null;

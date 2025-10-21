@@ -133,7 +133,8 @@ public class KeyAndCertPageObj {
 
         public ElementsCollection labeledKeyCsrRows(String keyLabel) {
             return $$x(format(X_TOKEN_EXPANDABLE_CONTENT
-                            + "table//tr[@data-test='key-row' and .//span[text() = '%s']]/following-sibling::tr[.//span[@data-test='label' and text()='Request']]",
+                            + "table//tr[@data-test='key-row' and .//span[text() = '%s']]/"
+                            + "following-sibling::tr[.//span[@data-test='label' and text()='Request']]",
                     token, keyLabel));
         }
 
