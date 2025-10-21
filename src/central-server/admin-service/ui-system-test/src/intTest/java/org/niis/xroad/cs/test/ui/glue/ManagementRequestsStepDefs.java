@@ -45,7 +45,6 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSwitch;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.getSecurityServerId;
@@ -229,7 +228,6 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
-
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
     }
@@ -263,12 +261,12 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     @Step("the option to show only pending requests is not selected")
     public void showOnlyPendingRequestsIsNotSelected() {
-        vCheckbox(managementRequestsPageObj.showOnlyPendingRequests()).shouldBeUnchecked();
+        vSwitch(managementRequestsPageObj.showOnlyPendingRequests()).shouldBeOff();
     }
 
     @Step("the user clicks the checkbox to show only pending requests")
     public void showOnlyPendingRequestsIsClicked() {
-        vCheckbox(managementRequestsPageObj.showOnlyPendingRequests()).click();
+        vSwitch(managementRequestsPageObj.showOnlyPendingRequests()).click();
     }
 
     @Step("the user can not see the Approve, Decline actions for requests that have already been processed")

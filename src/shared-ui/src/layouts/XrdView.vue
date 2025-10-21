@@ -34,7 +34,7 @@
     >
       <template v-for="(bc, idx) in breadcrumbs" :key="idx">
         <span class="title-view">{{ bc.translatedTitle ? bc.title : $t(bc.title) }}</span>
-        <v-btn variant="plain" color="primary" icon="arrow_back" :to="bc.to" />
+        <v-btn data-test="navigation-back" variant="plain" color="primary" icon="arrow_back" :to="bc.to" />
       </template>
       <slot name="title">
         <span class="title-view font-weight-bold">{{ translatedTitle ? title : $t(title) }}</span>

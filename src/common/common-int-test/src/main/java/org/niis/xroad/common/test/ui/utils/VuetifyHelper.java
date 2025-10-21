@@ -157,6 +157,10 @@ public final class VuetifyHelper {
             controlElement.shouldBe(condition);
             return this;
         }
+
+        public void click() {
+            controlElement.shouldBe(visible).click();
+        }
     }
 
     public static final class TextField {

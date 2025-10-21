@@ -36,6 +36,10 @@
         :value="managementRequest?.security_server_id.member_class"
       />
       <XrdCardTableRow
+        label="managementRequestDetails.ownerCode"
+        :value="managementRequest?.security_server_id.member_code"
+      />
+      <XrdCardTableRow
         label="managementRequestDetails.serverCode"
         :value="managementRequest?.security_server_id.server_code"
       />
