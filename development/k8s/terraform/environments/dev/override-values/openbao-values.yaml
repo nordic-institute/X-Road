@@ -1,12 +1,15 @@
+global:
+  tlsDisable: false
 server:
   ha:
     enabled: true
     config: |
       ui = true
       listener "tcp" {
-        tls_disable = 1
         address = "[::]:8200"
         cluster_address = "[::]:8201"
+        tls_cert_file = "/openbao/userconfig/server-tls/tls.crt"
+        tls_key_file = "/openbao/userconfig/server-tls/tls.key"
       }
       storage "postgresql" {
         ha_enabled = "true"
@@ -18,3 +21,11 @@ server:
       secretKey: password
   extraEnvironmentVars:
     BAO_PG_CONNECTION_URL: postgres://openbao:$(BAO_PG_PASSWORD)@db-openbao.ss.svc.cluster.local:5432/openbao
+  volumes:
+  - name: userconfig-openbao-server-tls
+    secret:
+      secretName: openbao-server-tls
+  volumeMounts:
+    - mountPath: /openbao/userconfig/server-tls
+      name: userconfig-openbao-server-tls
+      readOnly: true

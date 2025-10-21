@@ -13,7 +13,7 @@ bao_api() {
 
   echo "[BAO] $description..." >&2
 
-  local response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+  local response=$(curl -s -k -w "\nHTTP_STATUS:%{http_code}" \
     --connect-timeout 5 \
     --retry 3 \
     --retry-delay 2 \

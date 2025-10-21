@@ -20,6 +20,10 @@ RUN mkdir /var/log/xroad && \
     chown -R xroad:xroad /var/cache/xroad && \
     chown -R xroad:xroad /etc/xroad
 
+# Add the capability to add trusted certificates during runtime
+RUN chgrp xroad "$JAVA_HOME/lib/security/cacerts" && \
+    chmod g+w "$JAVA_HOME/lib/security/cacerts"
+
 # Copy license files from build context
 COPY --from=build /LICENSE.txt /opt/app/LICENSE.txt
 COPY --from=build /3RD-PARTY-NOTICES.txt /opt/app/3RD-PARTY-NOTICES.txt

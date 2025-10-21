@@ -1,6 +1,6 @@
 provider "helm" {
   kubernetes = {
-    config_path = var.kubeconfig_path
+    config_path = pathexpand(var.kubeconfig_path)
   }
 }
 
@@ -19,7 +19,6 @@ module "openbao" {
   ]
 
   namespace = var.security_server_namespace
-
   openbao_db_override_values = yamldecode(file("${path.module}/override-values/openbao-db-values.yaml"))
   openbao_override_values = yamldecode(file("${path.module}/override-values/openbao-values.yaml"))
 }
@@ -87,7 +86,7 @@ module "ss0_service_bridge" {
   name          = "xrd-ss0"
 
   namespace = var.security_server_namespace
-  external_host = "host.security_server_namespace.internal"
+  external_host = "host.docker.internal"
   ports = [
     {
       name       = "proxy"

@@ -16,6 +16,17 @@ if [[ "${DEBUG:-false}" == "true" ]]; then
   DEBUG_OPTS="$DEBUG_AGENT $JMX_OPTS"
 fi
 
+for cert in /usr/local/share/ca-certificates/*.crt; do
+    alias_name=$(basename "$cert" .crt)
+    keytool -importcert \
+        -trustcacerts \
+        -file "$cert" \
+        -alias "$alias_name" \
+        -keystore "$JAVA_HOME/lib/security/cacerts" \
+        -storepass changeit \
+        -noprompt
+done
+
 exec java \
   $DEBUG_OPTS \
   -Dspring.profiles.include=containerized \

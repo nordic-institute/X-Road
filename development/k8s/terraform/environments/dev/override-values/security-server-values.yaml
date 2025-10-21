@@ -16,22 +16,99 @@ services:
     image: localhost:5555/ss-configuration-client:latest
     env:
       XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL: "10"
+    volumes:
+      - name: userconfig-openbao-server-tls
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    volumeMounts:
+      - mountPath: /usr/local/share/ca-certificates/
+        name: userconfig-openbao-server-tls
+        readOnly: true
   signer:
     image: localhost:5555/ss-signer:latest
+    volumes:
+      - name: userconfig-openbao-server-tls
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    volumeMounts:
+      - mountPath: /usr/local/share/ca-certificates/
+        name: userconfig-openbao-server-tls
+        readOnly: true
   proxy:
     image: localhost:5555/ss-proxy:latest
     env:
       XROAD_PROXY_ADDON_OP_MONITOR_ENABLED: "true"
+    volumes:
+      - name: userconfig-openbao-server-tls
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    volumeMounts:
+      - mountPath: /usr/local/share/ca-certificates/
+        name: userconfig-openbao-server-tls
+        readOnly: true
   proxy-ui-api:
     image: localhost:5555/ss-proxy-ui-api:latest
+    volumes:
+      - name: userconfig-openbao-server-tls
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    volumeMounts:
+      - mountPath: /usr/local/share/ca-certificates/
+        name: userconfig-openbao-server-tls
+        readOnly: true
   monitor:
     image: localhost:5555/ss-monitor:latest
+    volumes:
+      - name: userconfig-openbao-server-tls
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    volumeMounts:
+      - mountPath: /usr/local/share/ca-certificates/
+        name: userconfig-openbao-server-tls
+        readOnly: true
   op-monitor:
     image: localhost:5555/ss-op-monitor:latest
     enabled: true
+    volumes:
+      - name: userconfig-openbao-server-tls
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    volumeMounts:
+      - mountPath: /usr/local/share/ca-certificates/
+        name: userconfig-openbao-server-tls
+        readOnly: true
   backup-manager:
     image: localhost:5555/ss-backup-manager:latest
     env:
       SERVERCONF_INIT_IMAGE: localhost:5555/ss-db-serverconf-init:latest
       SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "true"
       PROXY_UI_SUPERUSER: xrd
+    volumes:
+      - name: userconfig-openbao-server-tls
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    volumeMounts:
+      - mountPath: /usr/local/share/ca-certificates/
+        name: userconfig-openbao-server-tls
+        readOnly: true
