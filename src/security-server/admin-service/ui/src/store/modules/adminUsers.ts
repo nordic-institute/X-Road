@@ -96,9 +96,13 @@ export function useAdminUsersHandler() {
       .post<AdminUser>('/users', user)
       .then(() => {
         router.push({ name: RouteName.AdminUsers });
-        addSuccessMessage('adminUsers.addUser.success', {
-          username: user.username,
-        });
+        addSuccessMessage(
+          'adminUsers.addUser.success',
+          {
+            username: user.username,
+          },
+          true,
+        );
       })
       .catch((err) => addError(err));
   };
