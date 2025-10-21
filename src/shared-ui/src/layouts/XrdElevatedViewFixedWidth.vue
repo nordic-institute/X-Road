@@ -29,7 +29,6 @@
     :title="title"
     :translated-title="translatedTitle"
     :loading="loading"
-    :close-on-escape="closeOnEscape"
     :closeable="closeable"
     :go-back-on-close="goBackOnClose"
     @close="emit('close')"
@@ -66,10 +65,6 @@ defineProps({
   translatedTitle: {
     type: String,
     default: undefined,
-  },
-  closeOnEscape: {
-    type: Boolean,
-    default: false,
   },
   loading: {
     type: Boolean,

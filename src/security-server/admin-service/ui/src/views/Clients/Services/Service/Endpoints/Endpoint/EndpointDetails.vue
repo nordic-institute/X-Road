@@ -28,7 +28,6 @@
   <XrdElevatedViewFixedWidth
     title="endpoints.details"
     data-test="endpoint-details-dialog"
-    close-on-escape
     go-back-on-close
     :breadcrumbs="breadcrumbs"
     @close="close"

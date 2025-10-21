@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewSimple data-test="add-admin-user-stepper-view" title="adminUsers.addUser.title" close-on-escape @close="close">
+  <XrdElevatedViewSimple data-test="add-admin-user-stepper-view" title="adminUsers.addUser.title" @close="close">
     <XrdWizard v-model="step">
       <template #header-items>
         <v-stepper-item :complete="step > 1" :value="1">{{ $t('adminUsers.addUser.step.roles.name') }}</v-stepper-item>

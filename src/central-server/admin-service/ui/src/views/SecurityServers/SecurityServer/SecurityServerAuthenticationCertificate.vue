@@ -28,7 +28,6 @@
 <template>
   <XrdElevatedViewFixedWidth
     title="cert.certificate"
-    close-on-escape
     go-back-on-close
     :breadcrumbs="breadcrumbs"
     :loading

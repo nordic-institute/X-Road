@@ -27,7 +27,6 @@
 <template>
   <XrdElevatedViewFixedWidth
     closeable
-    close-on-escape
     :translated-title="service?.full_service_code"
     :breadcrumbs="breadcrumbs"
     @close="close"

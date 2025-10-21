@@ -36,7 +36,7 @@
       </span>
 
       <slot name="append-header" />
-      <template v-if="closeable || closeOnEscape || goBackOnClose">
+      <template v-if="closeable || goBackOnClose">
         <v-spacer />
         <v-btn data-test="close-x" icon="close" variant="text" size="small" color="primary" @click="close" />
       </template>
@@ -51,7 +51,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, computed } from 'vue';
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { useNotifications } from '../composables';
@@ -66,10 +66,6 @@ const props = defineProps({
   translatedTitle: {
     type: String,
     default: undefined,
-  },
-  closeOnEscape: {
-    type: Boolean,
-    default: false,
   },
   loading: {
     type: Boolean,
@@ -99,24 +95,6 @@ function close() {
     emit('close');
   }
 }
-
-function doCloseOnEscape(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    close();
-  }
-}
-
-onMounted(() => {
-  if (props.closeOnEscape) {
-    window.addEventListener('keyup', doCloseOnEscape);
-  }
-});
-
-onUnmounted(() => {
-  if (props.closeOnEscape) {
-    window.removeEventListener('keyup', doCloseOnEscape);
-  }
-});
 </script>
 
 <style lang="scss" scoped>

@@ -26,7 +26,6 @@
  -->
 <template>
   <XrdElevatedViewFixedWidth
-    close-on-escape
     :title="titleKey"
     :breadcrumbs="breadcrumbs"
     @close="close"
