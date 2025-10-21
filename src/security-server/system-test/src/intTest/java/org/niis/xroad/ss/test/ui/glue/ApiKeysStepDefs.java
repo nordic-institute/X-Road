@@ -74,7 +74,7 @@ public class ApiKeysStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         createdApiKeyId = apiKeysPage.wizard.createdApiKeyId()
                 .shouldBe(Condition.visible)
-                .text();
+                .val();
     }
 
     @Step("Create API key wizard Finish button is clicked")

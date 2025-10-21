@@ -41,7 +41,7 @@
         :class="style.textClass"
       />
     </template>
-    <span class="font-weight-medium body-small" :class="style.textClass">
+    <span data-test="token-status-text" class="font-weight-medium body-small" :class="style.textClass">
       {{ $t(style.textKey) }}
     </span>
   </v-chip>

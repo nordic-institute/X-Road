@@ -55,7 +55,7 @@ public class AdminUsersPageObj {
     }
 
     public SelenideElement adminUserRow(String username) {
-        var xpath = "//div[@data-test='admin-users-table']//div[@class='username' and contains(text(), '%s')]";
+        var xpath = "//div[@data-test='admin-users-table']//span[@data-test='label' and text()='%s']";
         return $x(String.format(xpath, username));
     }
 

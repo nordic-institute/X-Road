@@ -54,7 +54,7 @@ public class CommonPageObj {
         }
 
         public SelenideElement changePassword() {
-            return $x("//div[@data-test='change-password-list-tile']");
+            return $x("//div[@data-test='password-button']");
         }
 
         public SelenideElement clientsTab() {
@@ -121,19 +121,19 @@ public class CommonPageObj {
 
     public class Dialog {
         public SelenideElement title() {
-            return $x("//span[@data-test='dialog-title']");
+            return $x("(//div[@data-test='dialog-simple'])[last()]//span[@data-test='dialog-title']");
         }
 
         public SelenideElement btnCancel() {
-            return $x("//button[@data-test='dialog-cancel-button']");
+            return $x("(//div[@data-test='dialog-simple'])[last()]//button[@data-test='dialog-cancel-button']");
         }
 
         public SelenideElement btnSave() {
-            return $x("//button[@data-test='dialog-save-button']");
+            return $x("(//div[@data-test='dialog-simple'])[last()]//button[@data-test='dialog-save-button']");
         }
 
         public SelenideElement btnClose() {
-            return $x("//button[@data-test='close']");
+            return $x("(//div[@data-test='dialog-simple'])[last()]//button[@data-test='close']");
         }
     }
 

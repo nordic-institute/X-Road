@@ -38,7 +38,7 @@
       </slot>
     </template>
     <slot name="text">
-      <span class="font-weight-medium body-small">{{ text ? $t(text) : translatedText }}</span>
+      <span data-test="status-text" class="font-weight-medium body-small">{{ text ? $t(text) : translatedText }}</span>
     </slot>
   </v-chip>
 </template>

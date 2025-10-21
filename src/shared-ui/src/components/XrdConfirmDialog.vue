@@ -32,7 +32,7 @@
     :width="maxWidth ? undefined : width"
     :max-width="maxWidth ? maxWidth : undefined"
   >
-    <v-card class="xrd-rounded-12 bg-surface-container-lowest">
+    <v-card data-test="dialog-simple" class="xrd-rounded-12 bg-surface-container-lowest">
       <v-card-title class="font-weight-bold title-container pa-6">
         {{ $t(title) }}
       </v-card-title>
