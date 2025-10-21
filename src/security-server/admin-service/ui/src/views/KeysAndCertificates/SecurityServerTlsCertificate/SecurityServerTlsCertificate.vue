@@ -69,6 +69,7 @@ const {
   downloadCertificate,
   uploadCertificate,
   generateCsr,
+  generateKey,
 } = useTlsCertificate();
 
 const helpImage = ref(helpImg);
@@ -97,7 +98,7 @@ const handler = computed<TlsCertificatesHandler>(() => ({
     return generateCsr(distinguishedName);
   },
   generateKey(): Promise<unknown> {
-    return Promise.resolve(undefined);
+    return generateKey();
   },
   uploadCertificate(file: File): Promise<unknown> {
     return uploadCertificate(file);
