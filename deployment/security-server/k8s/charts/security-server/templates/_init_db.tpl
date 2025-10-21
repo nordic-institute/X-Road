@@ -30,6 +30,12 @@ spec:
   backoffLimit: 3
   template:
     spec:
+      {{- with .root.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
       containers:
         - name: {{ $name }}-db-init
           image: {{ $config.image }}
