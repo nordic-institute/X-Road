@@ -37,5 +37,5 @@ variable "security_server_chart" {
 variable "security_server_chart_version" {
   description = "Security Server chart version"
   type        = string
-  default     = "8.0.0-beta1-SNAPSHOT"
+  default     = "8.0.0-beta1"
 }

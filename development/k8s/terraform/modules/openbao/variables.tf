@@ -29,5 +29,5 @@ variable "openbao_init_chart" {
 variable "openbao_init_chart_version" {
   description = "OpenBao init chart version"
   type        = string
-  default     = "8.0.0-beta1-SNAPSHOT"
+  default     = "8.0.0-beta1"
 }
