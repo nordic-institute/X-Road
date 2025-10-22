@@ -91,7 +91,8 @@ const routes = [
     path: '/',
     component: AppBase,
     name: RouteName.BaseRoute,
-    redirect: ()=>useMainTabs().firstAllowedTab.to,
+    redirect: () =>
+      useMainTabs().firstAllowedTab?.to ?? { name: RouteName.Forbidden },
     children: [
       {
         name: RouteName.Settings,

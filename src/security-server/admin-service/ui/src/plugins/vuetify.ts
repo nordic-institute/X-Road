@@ -24,10 +24,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import 'vuetify/styles'; //!!!Keep it before any component or custom CSS imports!!!
 import { Colors, createXrdVuetify } from '@niis/shared-ui';
 
-import '@niis/shared-ui/src/assets/xrd8/fonts.css';
 import '@/assets/styles.css';
 
 export default createXrdVuetify(Colors.Blue600, Colors.Blue50);
