@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="keys.orderAcmeCertificate"
     save-button-text="action.order"
     :disable-save="!meta.valid || hasAcmeEabRequiredButNoCredentials"
@@ -32,25 +33,24 @@
     @cancel="cancel"
   >
     <template #content>
-      <div class="dlg-edit-row">
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('csr.certificationService')"
-            :help-text="$t('csr.helpCertificationService')"
-          />
+      <XrdFormBlock>
+        <XrdFormBlockRow
+          description="csr.helpCertificationService"
+          adjust-against-content
+        >
           <v-select
             v-model="certificateService"
             :items="acmeCertificateServices"
             item-title="name"
-            class="wizard-form-input"
+            class="xrd"
             data-test="csr-certification-service-select"
-            variant="outlined"
+            :label="$t('csr.certificationService')"
             :error-messages="errors"
-          ></v-select>
-        </div>
-      </div>
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
@@ -59,9 +59,17 @@ import { useField } from 'vee-validate';
 import { mapActions, mapState } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { KeyUsageType, TokenCertificateSigningRequest } from '@/openapi-types';
-import { useNotifications } from '@/store/modules/notifications';
+import {
+  XrdFormBlock,
+  XrdFormBlockRow,
+  useNotifications,
+} from '@niis/shared-ui';
 
 export default defineComponent({
+  components: {
+    XrdFormBlock,
+    XrdFormBlockRow,
+  },
   props: {
     csr: {
       type: Object as PropType<TokenCertificateSigningRequest>,
@@ -74,12 +82,20 @@ export default defineComponent({
   },
   emits: ['cancel', 'save'],
   setup() {
+    const { addError } = useNotifications();
     const { meta, errors, setErrors, value, resetField } = useField(
       'certificationService',
       'required',
       { initialValue: '' },
     );
-    return { meta, errors, setErrors, certificateService: value, resetField };
+    return {
+      meta,
+      errors,
+      setErrors,
+      certificateService: value,
+      resetField,
+      addError,
+    };
   },
   data() {
     return {
@@ -114,7 +130,7 @@ export default defineComponent({
               this.setErrors(this.$t('csr.eabCredRequired'));
             }
           })
-          .catch((error) => this.showError(error, true));
+          .catch((error) => this.addError(error, { navigate: true }));
       } else {
         this.hasAcmeEabRequiredButNoCredentials = false;
       }
@@ -122,7 +138,6 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useCsr, ['hasAcmeEabCredentials']),
-    ...mapActions(useNotifications, ['showError']),
     cancel(): void {
       this.$emit('cancel');
       this.clear();
@@ -138,6 +153,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>
+<style lang="scss" scoped></style>

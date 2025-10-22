@@ -26,18 +26,21 @@
  -->
 <template>
   <div>
-    <header class="header-row d-flex mt-5 mb-5 align-center">
-      <div class="xrd-header-title">
-        <div class="xrd-view-title">
-          <slot name="title">{{ titleKey ? $t(titleKey) : title }}</slot>
+    <header class="header-row d-flex flex-row align-center mt-6 mb-6">
+      <div class="xrd-header-title me-auto fill-height">
+        <div class="d-flex flex-row align-center fill-height">
+          <div class="xrd-view-title title-view font-weight-bold">
+            <slot name="title">{{ titleKey ? $t(titleKey) : title }}</slot>
+          </div>
+          <slot name="append-title" />
         </div>
-        <slot name="append-title" />
       </div>
 
       <div class="xrd-header-buttons">
         <slot name="header-buttons" />
       </div>
     </header>
+    <div class="xrd-context-alert"></div>
     <xrd-empty-placeholder :loading="loading" :data="data" :no-items-text="$t('noData.noData')" skeleton-type="table-heading" />
 
     <slot />
@@ -69,17 +72,12 @@ defineProps({
 
 <style lang="scss" scoped>
 .xrd-header-title {
-  display: flex;
-  align-items: center;
+  height: 100%;
 }
 
 header.header-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
   width: 100%;
-  min-height: 45px;
+  height: 48px;
 
   .xrd-header-title {
     margin-left: 0 !important;

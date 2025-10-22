@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,32 +25,38 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView
-    title-key="tab.diagnostics.traffic"
+  <XrdView
     data-test="diagnostics-view"
+    title="tab.main.diagnostics"
     :loading="opMonitoringStatusLoading"
   >
-    <template v-if="opMonitoringEnabled">
-      <TrafficView />
+    <template #tabs>
+      <DiagnosticsTabs />
     </template>
-    <template v-else>
-      <v-card variant="flat" class="xrd-card diagnostic-card">
-        <v-card-title class="text-h5" data-test="diagnostics-ocsp-responders">
-          {{ $t('diagnostics.traffic.disabledTitle') }}
-        </v-card-title>
-        <v-card-text class="xrd-card-text">
-          <p>{{ $t('diagnostics.traffic.disabledMessage') }}</p>
-        </v-card-text>
-      </v-card>
-    </template>
-  </XrdTitledView>
+    <XrdSubView>
+      <template v-if="opMonitoringEnabled">
+        <TrafficView />
+      </template>
+      <template v-else>
+        <v-card variant="flat" class="xrd diagnostic-card">
+          <v-card-title class="text-h5" data-test="diagnostics-ocsp-responders">
+            {{ $t('diagnostics.traffic.disabledTitle') }}
+          </v-card-title>
+          <v-card-text class="xrd-card-text">
+            <p>{{ $t('diagnostics.traffic.disabledMessage') }}</p>
+          </v-card-text>
+        </v-card>
+      </template>
+    </XrdSubView>
+  </XrdView>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import TrafficView from '@/views/Diagnostics/Traffic/TrafficView.vue';
-import { XrdTitledView } from '@niis/shared-ui';
+import { XrdSubView, XrdView } from '@niis/shared-ui';
+import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
 
 const diagnosticsStore = useDiagnostics();
 

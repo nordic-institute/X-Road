@@ -63,10 +63,10 @@ import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
-import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidatorTest;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -114,6 +114,8 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     ClientSortingComparator clientSortingComparator;
     @Autowired
     ServiceClientSortingComparator serviceClientSortingComparator;
+    @Autowired
+    SignerRpcClient signerRpcClient;
 
     private static final SecurityServerId.Conf OWNER_SERVER_ID = SecurityServerId.Conf.create(TestUtils.getM1Ss1ClientId(),
             "owner");
@@ -147,7 +149,6 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         when(globalConfProvider.getMembers()).thenReturn(new ArrayList<>(members));
         List<TokenInfo> mockTokens = createMockTokenInfos();
         doReturn(mockTokens).when(tokenService).getAllTokens();
-        when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
         when(globalConfProvider.getGlobalGroups()).thenReturn(globalGroupInfos);
         when(globalConfProvider.getGlobalGroups(any(String[].class))).thenReturn(globalGroupInfos);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
@@ -788,8 +789,9 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertErrorWithoutMetadata(DeviationCodes.ERROR_WARNINGS_DETECTED,
                 expected);
         assertWarning(DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS,
-                WsdlValidatorTest.MOCK_VALIDATOR_WARNING,
-                expected);
+                expected,
+                "", " Summary:  Failures: 0, Warnings: 1", " <<< WARNING! ",
+                "Operation xroadGetRandom in PortType: {http://producer.x-road.eu}testServicePort has no output message");
 
         // now lets ignore the warningDeviations
         serviceDescription.setIgnoreWarnings(true);

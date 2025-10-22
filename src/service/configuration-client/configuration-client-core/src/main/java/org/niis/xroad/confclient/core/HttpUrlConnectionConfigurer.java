@@ -26,11 +26,11 @@
 
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.SystemProperties;
-
-import lombok.NoArgsConstructor;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -45,7 +45,8 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
 @Slf4j
-@NoArgsConstructor
+@ApplicationScoped
+@RequiredArgsConstructor
 public class HttpUrlConnectionConfigurer {
 
     private static final String TLS = "TLS";
@@ -61,32 +62,28 @@ public class HttpUrlConnectionConfigurer {
         }
     }
 
+    private final ConfigurationClientProperties configurationClientProperties;
+
     public void apply(HttpURLConnection conn) {
         if (conn instanceof HttpsURLConnection httpsConn) {
             logSystemPropertiesInfo();
 
-            if (!isHostNameVerificationEnabled()) {
+            if (!configurationClientProperties.globalConfHostnameVerification()) {
                 httpsConn.setHostnameVerifier(new NoopHostnameVerifier());
             }
-            if (!isTlsCertificationVerificationEnabled()) {
+            if (!configurationClientProperties.globalConfTlsCertVerification()) {
                 httpsConn.setSSLSocketFactory(SSL_SOCKET_FACTORY);
             }
         }
-        conn.setConnectTimeout(SystemProperties.getConfigurationClientDownloaderConnectTimeout());
-        conn.setReadTimeout(SystemProperties.getConfigurationClientDownloaderReadTimeout());
+
+        conn.setConnectTimeout(configurationClientProperties.downloaderConnectTimeout());
+        conn.setReadTimeout(configurationClientProperties.downloaderReadTimeout());
     }
 
-    private static boolean isHostNameVerificationEnabled() {
-        return SystemProperties.isConfigurationClientGlobalConfHostnameVerificationEnabled();
-    }
-
-    private static boolean isTlsCertificationVerificationEnabled() {
-        return SystemProperties.isConfigurationClientGlobalConfTlsCertVerificationEnabled();
-    }
-
-    private static void logSystemPropertiesInfo() {
+    private void logSystemPropertiesInfo() {
         log.info("Global conf download TLS certificate verification is {}, hostname verification is {}",
-                isEnabled(isTlsCertificationVerificationEnabled()), isEnabled(isHostNameVerificationEnabled()));
+                isEnabled(configurationClientProperties.globalConfTlsCertVerification()),
+                isEnabled(configurationClientProperties.globalConfHostnameVerification()));
     }
 
     private static String isEnabled(boolean paramValue) {

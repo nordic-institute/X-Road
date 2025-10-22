@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -30,6 +31,7 @@ export enum RouteName {
   BaseRoute = 'base',
   Keys = 'keys',
   Diagnostics = 'diagnostics',
+  DiagnosticsOverview = 'diagnostics-overview',
   DiagnosticsTraffic = 'diagnostics-traffic',
   AddSubsystem = 'add-subsystem',
   AddClient = 'add-client',
@@ -58,8 +60,11 @@ export enum RouteName {
   SSTlsCertificate = 'ss-tls-certificate',
   Token = 'token',
   Key = 'key',
+  Settings = 'settings',
   SystemParameters = 'system-parameters',
   BackupAndRestore = 'backup-and-restore',
+  AdminUsers = 'admin-users',
+  AddAdminUser = 'add-admin-user',
   AddKey = 'add-key',
   GenerateCertificateSignRequest = 'generate-csr',
   InternalTlsCertificate = 'internal-tls-certificate',
@@ -70,6 +75,7 @@ export enum RouteName {
   ServiceClientAccessRights = 'service-client-access-rights',
   InitialConfiguration = 'initial-configuration',
   AddServiceClientAccessRight = 'add-service-client-access-right',
+  NotFound = 'not-found',
 }
 
 // A "single source of truth" for permission strings
@@ -86,6 +92,7 @@ export enum Permissions {
   ADD_OPENAPI3_ENDPOINT = 'ADD_OPENAPI3_ENDPOINT', // client > services > service > endpoints > edit endpoint
   BACKUP_CONFIGURATION = 'BACKUP_CONFIGURATION', // settings > backup and restore
   CREATE_API_KEY = 'CREATE_API_KEY', // api key
+  ADD_ADMIN_USER = 'ADD_ADMIN_USER',
   DELETE_AUTH_CERT = 'DELETE_AUTH_CERT', // certificate details
   DELETE_AUTH_KEY = 'DELETE_AUTH_KEY', // key details
   DELETE_CLIENT = 'DELETE_CLIENT', // client
@@ -98,6 +105,7 @@ export enum Permissions {
   DELETE_TSP = 'DELETE_TSP', // settings > system parameters
   DELETE_WSDL = 'DELETE_WSDL', // can delete WSDL or REST
   DELETE_ENDPOINT = 'DELETE_ENDPOINT', // can delete endpoint
+  DELETE_ADMIN_USER = 'DELETE_ADMIN_USER',
   DISABLE_CLIENT = 'DISABLE_CLIENT',
   RENAME_SUBSYSTEM = 'RENAME_SUBSYSTEM',
   DIAGNOSTICS = 'DIAGNOSTICS', // diagnostics tab
@@ -130,6 +138,7 @@ export enum Permissions {
   IMPORT_UNKNOWN_CERT = 'IMPORT_UNKNOWN_CERT', // Import hardware token certificate from token
   INIT_CONFIG = 'INIT_CONFIG', // can initialise security server
   VIEW_API_KEYS = 'VIEW_API_KEYS', // api key
+  VIEW_ADMIN_USERS = 'VIEW_ADMIN_USERS',
   REFRESH_WSDL = 'REFRESH_WSDL', // client > services > refresh wsdl
   REFRESH_REST = 'REFRESH_REST', // not used?
   REFRESH_OPENAPI3 = 'REFRESH_OPENAPI3', // client > services > refresh openapi3
@@ -141,6 +150,7 @@ export enum Permissions {
   SEND_CLIENT_REG_REQ = 'SEND_CLIENT_REG_REQ', // clients > register
   SEND_OWNER_CHANGE_REQ = 'SEND_OWNER_CHANGE_REQ', // client > make owner
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
+  UPDATE_ADMIN_USER = 'UPDATE_ADMIN_USER',
   UPDATE_TOKEN_PIN = 'UPDATE_TOKEN_PIN', // token details
   UPLOAD_ANCHOR = 'UPLOAD_ANCHOR', // settings / initialisation > upload anchor
   VIEW_ACL_SUBJECT_OPEN_SERVICES = 'VIEW_ACL_SUBJECT_OPEN_SERVICES', // not needed because roles can't access the view
@@ -169,33 +179,6 @@ export enum UsageTypes {
   SIGNING = 'SIGNING',
   AUTHENTICATION = 'AUTHENTICATION',
 }
-
-export const mainTabs: Tab[] = [
-  {
-    to: { name: RouteName.Clients },
-    key: 'clients',
-    name: 'tab.main.clients',
-  },
-  {
-    to: { name: RouteName.SignAndAuthKeys },
-    key: 'keys',
-    name: 'tab.main.keys',
-  },
-  {
-    to: { name: RouteName.Diagnostics },
-    key: 'diagnostics',
-    name: 'tab.main.diagnostics',
-  },
-  {
-    to: { name: RouteName.SystemParameters },
-    key: 'settings',
-    name: 'tab.main.settings',
-    permissions: [
-      Permissions.VIEW_SYS_PARAMS,
-      Permissions.BACKUP_CONFIGURATION,
-    ],
-  },
-];
 
 // A single source of truth for roles
 export const Roles = [

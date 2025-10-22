@@ -1,0 +1,156 @@
+services:
+  configuration-client:
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
+    volumes:
+      - ./container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
+
+  signer:
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dxroad.internal.passwordstore-provider=file -Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
+      - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
+      - QUARKUS_LOG_LEVEL=DEBUG
+    volumes:
+      - ./container-files/etc/xroad/conf.d:/etc/xroad/conf.d
+  proxy:
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
+    networks:
+      xrd-ss-network:
+        aliases:
+          - ss0 #address is in global conf
+    volumes:
+      - ./container-files/etc/xroad/conf.d:/etc/xroad/conf.d
+      - ./container-files/etc/xroad/messagelog:/etc/xroad/messagelog
+    depends_on:
+      testca:
+        condition: service_healthy
+      op-monitor:
+        condition: service_healthy
+
+  ui:
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
+      - SERVER_SERVLET_SESSION_TIMEOUT=1m
+      - XROAD_COMMON_RPC_CHANNEL_OP_MONITOR_HOST=op-monitor
+    ports:
+      - "0:9999" # debug port
+    volumes:
+      - ./container-files/etc/xroad/conf.d:/etc/xroad/conf.d
+    depends_on:
+      testca:
+        condition: service_healthy
+
+  backup-manager:
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
+    ports:
+      - "0:9999" # debug port
+    volumes:
+      - ./container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
+      - ./container-files/etc/xroad/backup-keys:/etc/xroad/backup-keys
+
+  db-opmonitor:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=op-monitor
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=opmonitor
+    networks:
+      - xrd-ss-network
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "sh", "-c", "pg_isready -U opmonitor -d op-monitor -h localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  db-opmonitor-init:
+    image: ${OP_MONITOR_INIT_IMG}
+    pull_policy: always
+    environment:
+      - LIQUIBASE_COMMAND_USERNAME=opmonitor
+      - LIQUIBASE_COMMAND_PASSWORD=secret
+      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
+      - db_user=opmonitor
+      - db_schema=public
+    depends_on:
+      db-opmonitor:
+        condition: service_healthy
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+
+  op-monitor:
+    image: ${OP_MONITOR_IMG}
+    pull_policy: always
+    environment:
+      - QUARKUS_LOG_LEVEL=INFO
+      - XROAD_HOST=op-monitor
+      - XROAD_OP_MONITOR_LISTEN_ADDRESS=0.0.0.0
+      - XROAD_OP_MONITOR_SCHEME=https
+      - XROAD_OP_MONITOR_TLS_CLIENT_CERTIFICATE_REFRESH_INTERVAL=60S
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME=opmonitor
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_PASSWORD=secret
+      # we shorten here messages processing from 1 min to 1 second
+      - XROAD_OP_MONITOR_RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS=1
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-opmonitor-init:
+        condition: service_completed_successfully
+
+  testca:
+    build:
+      context: ../../../../../common/common-int-test/src/main/resources/META-INF/ca-container
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/testca/certs/" ]
+    networks:
+      - xrd-ss-network
+    volumes:
+      - ../../a2c_logs:/var/www/acme2certifier/logs
+
+  nginx:
+    image: nginx:latest
+    networks:
+      xrd-ss-network:
+        aliases:
+          - cs
+          - mock-server
+    volumes:
+      - ./nginx-container-files/etc/nginx/conf.d:/etc/nginx/conf.d
+
+  testmailserver:
+    image: axllent/mailpit
+    environment:
+      - MP_SMTP_BIND_ADDR=0.0.0.0:587
+      - MP_SMTP_REQUIRE_TLS=1
+      - MP_SMTP_TLS_KEY=/tls/testmailserver_key.pem
+      - MP_SMTP_TLS_CERT=/tls/testmailserver_cert.pem
+      - MP_SMTP_AUTH_FILE=/tls/password_file
+    networks:
+      - xrd-ss-network
+    volumes:
+      - ../../../../../common/common-int-test/src/main/resources/META-INF/mail-server-container:/tls

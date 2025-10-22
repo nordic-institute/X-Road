@@ -34,6 +34,7 @@ dependencies {
   api(libs.opentelemetry.instrumentation.annotations)
 
   testImplementation(project(":common:common-test"))
+  testImplementation(libs.logback.classic)
 }
 
 fun gitCommitHash(): String? {
@@ -65,7 +66,7 @@ fun gitCommitDate(): String? {
 }
 
 tasks.processResources {
-  filesMatching("**/version.properties") {
+  filesMatching("**/xroad-version.properties") {
     filter(
       mapOf(
         "tokens" to mapOf(

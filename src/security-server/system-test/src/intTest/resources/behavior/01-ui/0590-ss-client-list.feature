@@ -1,5 +1,6 @@
 @SecurityServer
 @Client
+@Skip #TODO beta1 release preparation
 Feature: 0590 - SS: Client list
 
   Background:

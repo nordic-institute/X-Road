@@ -25,11 +25,13 @@
  */
 package org.niis.xroad.opmonitor.api;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
@@ -43,6 +45,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.niis.xroad.common.vault.VaultClient;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -51,8 +54,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -66,33 +67,37 @@ import java.security.cert.X509Certificate;
  * Operational monitoring daemon HTTP client.
  */
 @Slf4j
+@ApplicationScoped
+@UtilityClass
 public final class OpMonitoringDaemonHttpClient {
 
     // HttpClient configuration parameters.
     private static final int DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE = 10000;
 
-    private OpMonitoringDaemonHttpClient() {
-    }
 
     /**
      * Creates HTTP client.
      *
-     * @param authKey                       the client's authentication key
-     * @param connectionTimeoutMilliseconds connection timeout in milliseconds
-     * @param socketTimeoutMilliseconds     socket timeout in milliseconds
+     * @param vaultClient trust provider for TLS
+     * @param authKey     the client's authentication key
      * @return HTTP client
      */
-    public static CloseableHttpClient createHttpClient(InternalSSLKey authKey,
-                                                       int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds)
-            throws NoSuchAlgorithmException, KeyManagementException {
-        return createHttpClient(authKey, DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS, DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE,
+    public static CloseableHttpClient createHttpClient(OpMonitorCommonProperties opMonitorCommonProperties,
+                                                       VaultClient vaultClient,
+                                                       InternalSSLKey authKey) throws NoSuchAlgorithmException, KeyManagementException {
+        int connectionTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().connectionTimeoutSeconds());
+        int socketTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().socketTimeoutSeconds());
+
+        return createHttpClient(opMonitorCommonProperties, authKey, vaultClient,
+                DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS, DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE,
                 connectionTimeoutMilliseconds, socketTimeoutMilliseconds);
     }
 
     /**
      * Creates HTTP client.
      *
+     * @param vaultClient                   trust provider for TLS
      * @param authKey                       the client's authentication key
      * @param clientMaxTotalConnections     client max total connections
      * @param clientMaxConnectionsPerRoute  client max connections per route
@@ -101,16 +106,18 @@ public final class OpMonitoringDaemonHttpClient {
      * @return HTTP client
      * initialization fails
      */
-    public static CloseableHttpClient createHttpClient(InternalSSLKey authKey,
+    public static CloseableHttpClient createHttpClient(OpMonitorCommonProperties opMonitorCommonProperties,
+                                                       InternalSSLKey authKey,
+                                                       VaultClient vaultClient,
                                                        int clientMaxTotalConnections, int clientMaxConnectionsPerRoute,
                                                        int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds)
             throws NoSuchAlgorithmException, KeyManagementException {
         log.trace("createHttpClient()");
 
-        RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create();
+        RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
-        if ("https".equalsIgnoreCase(OpMonitoringSystemProperties.getOpMonitorDaemonScheme())) {
-            sfr.register("https", createSSLSocketFactory(authKey));
+        if ("https".equalsIgnoreCase(opMonitorCommonProperties.connection().scheme())) {
+            sfr.register("https", createSSLSocketFactory(authKey, vaultClient, opMonitorCommonProperties));
         } else {
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
         }
@@ -135,38 +142,25 @@ public final class OpMonitoringDaemonHttpClient {
         return cb.build();
     }
 
-    private static SSLConnectionSocketFactory createSSLSocketFactory(InternalSSLKey authKey)
+    private static SSLConnectionSocketFactory createSSLSocketFactory(InternalSSLKey authKey,
+                                                                     VaultClient vaultClient,
+                                                                     OpMonitorCommonProperties opMonitorCommonProperties)
             throws NoSuchAlgorithmException, KeyManagementException {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(getKeyManager(authKey), new TrustManager[]{new OpMonitorTrustManager()}, new SecureRandom());
+
+        ctx.init(new KeyManager[]{new OpMonitorClientKeyManager(authKey)},
+                new TrustManager[]{new OpMonitorClientTrustManager(vaultClient)},
+                new SecureRandom());
 
         return new SSLConnectionSocketFactory(ctx.getSocketFactory(), new String[]{CryptoUtils.SSL_PROTOCOL},
-                SystemProperties.getXroadTLSCipherSuites(), NoopHostnameVerifier.INSTANCE);
+                opMonitorCommonProperties.xroadTlsCiphers(), NoopHostnameVerifier.INSTANCE);
         // We don't need hostname verification
     }
 
-    private static KeyManager[] getKeyManager(InternalSSLKey authKey) {
-        if (authKey == null) {
-            log.error("No internal TLS key required by operational monitoring daemon HTTP client");
-
-            return null;
-        }
-
-        return new KeyManager[]{new OpMonitorClientKeyManager(authKey)};
-    }
-
-    private static final class OpMonitorTrustManager implements X509TrustManager {
-        private X509Certificate opMonitorCert = null;
-
-        private OpMonitorTrustManager() {
-            String monitorCertPath = OpMonitoringSystemProperties.getOpMonitorCertificatePath();
-
-            try (InputStream monitorCertStream = new FileInputStream(monitorCertPath)) {
-                opMonitorCert = CryptoUtils.readCertificate(monitorCertStream);
-            } catch (Exception e) {
-                log.error("Could not load operational monitoring daemon certificate '{}'", monitorCertPath, e);
-            }
-        }
+    @RequiredArgsConstructor
+    private static final class OpMonitorClientTrustManager implements X509TrustManager {
+        private final VaultClient vaultClient;
+        private X509Certificate opMonitorCert;
 
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) {
@@ -182,8 +176,12 @@ public final class OpMonitoringDaemonHttpClient {
             log.trace("Received server certificate {}", chain[0]);
 
             if (opMonitorCert == null) {
-                throw new CertificateException(
-                        "Operational monitoring daemon certificate not loaded, cannot verify server");
+                try {
+                    var certChain = vaultClient.getOpmonitorTlsCredentials().getCertChain();
+                    opMonitorCert = CryptoUtils.readCertificate(certChain[0].getEncoded());
+                } catch (Exception e) {
+                    throw new CertificateException("Could not load operational monitoring daemon certificate, cannot verify server", e);
+                }
             }
 
             if (!chain[0].equals(opMonitorCert)) {
@@ -244,4 +242,5 @@ public final class OpMonitoringDaemonHttpClient {
             return ALIAS;
         }
     }
+
 }

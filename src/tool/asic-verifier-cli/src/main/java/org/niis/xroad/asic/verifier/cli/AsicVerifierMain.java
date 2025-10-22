@@ -26,15 +26,17 @@
 package org.niis.xroad.asic.verifier.cli;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.asic.AsicContainerEntries;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.GlobalConfImpl;
+import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,16 +69,16 @@ public final class AsicVerifierMain {
             showUsage();
         } else {
             var globalConfProvider = loadConf(args[0]);
-            verifyAsic(globalConfProvider, args[1]);
+            var ocspVerifierFactory = new OcspVerifierFactory();
+            verifyAsic(globalConfProvider, ocspVerifierFactory, args[1]);
         }
     }
 
     private static GlobalConfProvider loadConf(String confPath) {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, confPath);
-
         System.out.println("Loading configuration from " + confPath + "...");
         try {
-            var globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(confPath));
+            var source = new FileSystemGlobalConfSource(confPath);
+            var globalConfProvider = new GlobalConfImpl(source, new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
             verifyConfPathCorrectness(globalConfProvider);
             return globalConfProvider;
         } catch (CodedException e) {
@@ -93,12 +95,12 @@ public final class AsicVerifierMain {
         globalConfProvider.getInstanceIdentifier();
     }
 
-    private static void verifyAsic(GlobalConfProvider globalConfProvider, String fileName) {
+    private static void verifyAsic(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory, String fileName) {
         System.out.println("Verifying ASiC container \"" + fileName + "\" ...");
 
         AsicContainerVerifier verifier = null;
         try {
-            verifier = new AsicContainerVerifier(globalConfProvider, fileName);
+            verifier = new AsicContainerVerifier(globalConfProvider, ocspVerifierFactory, fileName);
             verifier.verify();
 
             onVerificationSucceeded(verifier);
@@ -108,7 +110,6 @@ public final class AsicVerifierMain {
         extractMessage(fileName);
     }
 
-    @SuppressWarnings("resource")
     private static void onVerificationSucceeded(AsicContainerVerifier verifier) {
         System.out.println(AsicUtils.buildSuccessOutput(verifier));
     }

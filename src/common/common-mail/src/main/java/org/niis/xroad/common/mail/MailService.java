@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.common.mail;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +44,7 @@ import java.util.concurrent.Executors;
 public class MailService {
 
     private final MailNotificationProperties mailNotificationProperties;
+    private final NotificationConfig notificationConfig;
     private final JavaMailSender mailSender;
 
     public MailNotificationStatus getMailNotificationStatus() {
@@ -64,19 +63,19 @@ public class MailService {
 
     private Set<MailNotificationType> getEnabledMailNotifications() {
         Set<MailNotificationType> enabledNotifications = new HashSet<>();
-        if (SystemProperties.getAcmeRenewalSuccessNotificationEnabled()) {
+        if (notificationConfig.isAcmeRenewalSuccessNotificationEnabled()) {
             enabledNotifications.add(MailNotificationType.ACME_SUCCESS);
         }
-        if (SystemProperties.getAcmeRenewalFailureNotificationEnabled()) {
+        if (notificationConfig.isAcmeRenewalFailureNotificationEnabled()) {
             enabledNotifications.add(MailNotificationType.ACME_FAILURE);
         }
-        if (SystemProperties.getAuthCertRegisteredNotificationEnabled()) {
+        if (notificationConfig.isAuthCertRegisteredNotificationEnabled()) {
             enabledNotifications.add(MailNotificationType.AUTH_CERT_REGISTERED);
         }
-        if (SystemProperties.getAcmeCertAutomaticallyActivatedNotificationEnabled()) {
+        if (notificationConfig.isCertAutoActivationNotificationEnabled()) {
             enabledNotifications.add(MailNotificationType.ACME_CERT_AUTOMATICALLY_ACTIVATED);
         }
-        if (SystemProperties.getAcmeCertAutomaticActivationFailureNotificationEnabled()) {
+        if (notificationConfig.isCertAutoActivationFailureNotificationEnabled()) {
             enabledNotifications.add(MailNotificationType.ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE);
         }
         return enabledNotifications;

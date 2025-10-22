@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 
 import lombok.SneakyThrows;
@@ -150,8 +149,6 @@ class ConfigurationParserTest {
 
     private static List<ConfigurationFile> parse(final String path,
                                                  ConfigurationSource source) throws Exception {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, path);
-
         ConfigurationParser.HASH_TO_CERT.clear();
 
         if (!source.getLocations().isEmpty()) {
@@ -163,7 +160,7 @@ class ConfigurationParserTest {
                 }
             };
 
-            return parser.parse(source.getLocations().get(0)).getFiles();
+            return parser.parse(source.getLocations().getFirst()).getFiles();
         }
 
         return null;

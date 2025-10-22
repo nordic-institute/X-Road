@@ -25,8 +25,30 @@
  * THE SOFTWARE.
  */
 
-import XrdAppBase from './XrdAppBase.vue';
-import XrdSubViewContainer from './XrdSubViewContainer.vue';
+import XrdApp from './XrdApp.vue';
 import XrdAppFooter from './XrdAppFooter.vue';
+import XrdAppToolbar from './XrdAppToolbar.vue';
+import XrdElevatedViewSimple from './XrdElevatedViewSimple.vue';
+import XrdElevatedViewFixedWidth from './XrdElevatedViewFixedWidth.vue';
+import XrdSubView from './XrdSubView.vue';
+import XrdSubViewContainer from './XrdSubViewContainer.vue';
+import XrdView from './XrdView.vue';
+import XrdViewNavigation from './XrdViewNavigation.vue';
+import XrdContainer840 from './XrdContainer840.vue';
+import XrdMainNavigation from './XrdMainNavigation.vue';
+import XrdMainNavigationContainer from './XrdMainNavigationContainer.vue';
 
-export { XrdAppBase, XrdSubViewContainer, XrdAppFooter };
+export {
+  XrdSubViewContainer,
+  XrdAppFooter,
+  XrdApp,
+  XrdView,
+  XrdElevatedViewSimple,
+  XrdElevatedViewFixedWidth,
+  XrdSubView,
+  XrdAppToolbar,
+  XrdViewNavigation,
+  XrdContainer840,
+  XrdMainNavigationContainer,
+  XrdMainNavigation,
+};

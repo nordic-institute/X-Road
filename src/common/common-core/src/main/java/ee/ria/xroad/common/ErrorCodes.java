@@ -126,6 +126,7 @@ public final class ErrorCodes {
     public static final String X_MAINTENANCE_MODE = "maintenance_mode";
     public static final String X_MALFORMED_ANCHOR = "malformed_anchor";
     public static final String X_ANCHOR_FILE_NOT_FOUND = "anchor_file_not_found";
+    public static final String X_GLOBAL_CONF_DOWNLOAD_URL_CONNECTION_FAILURE = "global_conf_download_url_connection_failure";
 
     // Signer Errors
 

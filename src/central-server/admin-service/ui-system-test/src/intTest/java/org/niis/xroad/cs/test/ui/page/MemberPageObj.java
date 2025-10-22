@@ -49,13 +49,13 @@ public class MemberPageObj {
     }
 
     public SelenideElement listRowOf(String memberName) {
-        var xpath = "//div[@data-test='members-table']//table/tbody/tr/td//div[contains(text(), '%s')]";
+        var xpath = "//div[@data-test='members-table']//table/tbody/tr/td//div[@data-test='member-name' and .//span[contains(., '%s')]]";
         return $x(String.format(xpath, memberName));
     }
 
     public SelenideElement listRowOf(String memberName, String memberCode, String memberClass) {
-        var xpath = "//div[@data-test='members-view']//table/tbody/tr[(normalize-space(td[1]/div/text()) = '%s') "
-                + " and (td[2] = '%s') and (td[3] = '%s')]";
+        var xpath = "//div[@data-test='members-view']//table/tbody/tr"
+                + "[td[1][.//span[text() = '%s']] and td[2][text() = '%s'] and td[3][text() = '%s']]";
 
         return $x(String.format(xpath, memberName, memberClass, memberCode));
     }

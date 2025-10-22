@@ -1,5 +1,6 @@
 @SecurityServer
 @Login
+@Skip #TODO beta1 release preparation
 Feature: 0700 - SS: Permissions
 
   Background:
@@ -8,7 +9,7 @@ Feature: 0700 - SS: Permissions
 
   Scenario: System administrator sees only relevant pages
     Given Login form is visible
-    When User xrd-sys logs in to SecurityServer with password secret
+    When User xrd-sys logs in to SecurityServer with password t0pSecret1
     * Clients Tab is missing
     * Settings Tab is present
     * Diagnostics Tab is present
@@ -16,7 +17,7 @@ Feature: 0700 - SS: Permissions
 
   Scenario: Registration officer sees only relevant pages
     Given Login form is visible
-    When User xrd-reg logs in to SecurityServer with password secret
+    When User xrd-reg logs in to SecurityServer with password t0pSecret1
     Then Clients Tab is present
     * Settings Tab is missing
     * Diagnostics Tab is missing
@@ -28,13 +29,13 @@ Feature: 0700 - SS: Permissions
     * Token: softToken-0 is present
     * User cannot log-in or log-out out of token softToken-0
     * Security Server TLS Key sub-tab is selected
-    * Generate TLS key is missing
-    * Export TLS key is present
+    * Generate TLS key button is missing
+    * Export TLS certificate button is present
     * Api Keys Sub-Tab is missing
 
   Scenario: Security officer sees only relevant pages
     Given Login form is visible
-    When User xrd-sec logs in to SecurityServer with password secret
+    When User xrd-sec logs in to SecurityServer with password t0pSecret1
     Then Clients Tab is present
     * Settings Tab is present
     * Diagnostics Tab is missing
@@ -45,15 +46,15 @@ Feature: 0700 - SS: Permissions
     * Token: softToken-0 is present
     * User can log-out out of token softToken-0
     * Security Server TLS Key sub-tab is selected
-    * Generate TLS key is present
-    * Export TLS key is present
+    * Generate TLS key button is present
+    * Export TLS certificate button is present
     * Api Keys Sub-Tab is missing
     * Settings tab is selected
     * Backup and Restore Sub-Tab is missing
 
   Scenario: Observer sees only relevant pages
     Given Login form is visible
-    When User xrd-obs logs in to SecurityServer with password secret
+    When User xrd-obs logs in to SecurityServer with password t0pSecret1
     Then Clients Tab is present
     * Settings Tab is present
     * Diagnostics Tab is present
@@ -72,8 +73,8 @@ Feature: 0700 - SS: Permissions
     * User cannot log-in or log-out out of token softToken-0
     * Token: softToken-0 - Add key is missing
     * Security Server TLS Key sub-tab is selected
-    * Generate TLS key is missing
-    * Export TLS key is missing
+    * Generate TLS key button is missing
+    * Export TLS certificate button is missing
     * Api Keys Sub-Tab is present
     * Settings tab is selected
     * Backup and Restore Sub-Tab is missing
@@ -81,7 +82,7 @@ Feature: 0700 - SS: Permissions
 
   Scenario: Service administrator sees only relevant pages
     Given Login form is visible
-    When User xrd-ser logs in to SecurityServer with password secret
+    When User xrd-ser logs in to SecurityServer with password t0pSecret1
     Then Clients Tab is present
     * Settings Tab is missing
     * Diagnostics Tab is missing

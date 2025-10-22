@@ -39,6 +39,7 @@ import com.codahale.metrics.MetricRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -70,11 +71,14 @@ class QueryRequestProcessor {
     QueryRequestProcessor(GlobalConfProvider globalConfProvider,
                           RequestWrapper request,
                           ResponseWrapper response,
-                          MetricRegistry healthMetricRegistry) {
+                          MetricRegistry healthMetricRegistry,
+                          OperationalDataRecordManager operationalDataRecordManager,
+                          OpMonitorProperties opMonitorProperties) {
         this.request = request;
         this.response = response;
 
-        this.operationalDataHandler = new OperationalDataRequestHandler(globalConfProvider);
+        this.operationalDataHandler = new OperationalDataRequestHandler(globalConfProvider, operationalDataRecordManager,
+                opMonitorProperties);
         this.healthDataHandler = new HealthDataRequestHandler(
                 healthMetricRegistry);
 

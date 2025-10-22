@@ -49,33 +49,13 @@ public final class DefaultFilepaths {
 
     static final String SERVER_DATABASE_PROPERTIES = "db.properties";
 
-    static final String PROXY_UI_API_SSL_PROPERTIES = "ssl.properties";
-
-    static final String KEY_CONFIGURATION_FILE = "signer/keyconf.xml";
-
-    static final String DEVICE_CONFIGURATION_FILE = "signer/devices.ini";
-
-    static final String CONFIGURATION_ANCHOR_FILE = "configuration-anchor.xml";
-
     static final String CONFIGURATION_PATH = "globalconf";
-
-    static final String LOG_PATH = "/var/log/xroad/";
-
-    static final String SECURE_LOG_PATH = "/var/lib/xroad/";
-
-    static final String OCSP_CACHE_PATH = "/var/cache/xroad/";
 
     static final String CONF_BACKUP_PATH = "/var/lib/xroad/backup/";
 
     static final String DISTRIBUTED_GLOBALCONF_PATH = "/var/lib/xroad/public";
 
     static final String TEMP_FILES_PATH = "/var/tmp/xroad/";
-
-    static final String JETTY_SERVERPROXY_CONFIGURATION_FILE = "jetty/serverproxy.xml";
-
-    static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE = "jetty/clientproxy.xml";
-
-    static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE = "jetty/ocsp-responder.xml";
 
     private static FileAttribute<Set<PosixFilePermission>> permissions =
             PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE, GROUP_READ, GROUP_WRITE));
@@ -88,8 +68,8 @@ public final class DefaultFilepaths {
      * @return path to the created temporary file
      * @throws IOException if an error occurs
      */
-    public static Path createTempFile(String prefix, String suffix) throws IOException {
-        Path tempDirPath = Paths.get(SystemProperties.getTempFilesPath());
+    public static Path createTempFile(String prefix, String suffix, String tmpDir) throws IOException {
+        Path tempDirPath = Paths.get(tmpDir);
 
         return createTempFile(tempDirPath, prefix, suffix);
     }

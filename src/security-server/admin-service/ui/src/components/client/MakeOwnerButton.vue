@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,16 +25,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="d-inline-block">
-    <xrd-button
+  <div>
+    <XrdBtn
       data-test="make-owner-button"
-      outlined
+      variant="outlined"
+      text="client.action.makeOwner.button"
       @click="confirmMakeOwner = true"
-      >{{ $t('client.action.makeOwner.button') }}</xrd-button
-    >
+    />
 
     <!-- Confirm dialog for make owner -->
-    <xrd-simple-dialog
+    <XrdSimpleDialog
       v-if="confirmMakeOwner"
       :loading="makeOwnerLoading"
       save-button-text="client.action.makeOwner.button"
@@ -42,15 +43,11 @@
       @save="makeOwner()"
     >
       <template #content>
-        {{ $t('client.action.makeOwner.confirmText1') }}
-        <br />
-        <br />
-        <b>{{ id }}</b>
-        <br />
-        <br />
-        {{ $t('client.action.makeOwner.confirmText2') }}
+        <p class="mb-6">{{ $t('client.action.makeOwner.confirmText1') }}</p>
+        <p class="font-weight-bold mb-6">{{ id }}</p>
+        <p>{{ $t('client.action.makeOwner.confirmText2') }}</p>
       </template>
-    </xrd-simple-dialog>
+    </XrdSimpleDialog>
   </div>
 </template>
 
@@ -58,10 +55,10 @@
 import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+import { XrdBtn, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdBtn },
   props: {
     id: {
       type: String,
@@ -69,6 +66,10 @@ export default defineComponent({
     },
   },
   emits: ['done'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return {
       confirmMakeOwner: false as boolean,
@@ -76,7 +77,6 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     makeOwner(): void {
       this.makeOwnerLoading = true;
 
@@ -84,11 +84,9 @@ export default defineComponent({
         .put(`/clients/${encodePathParameter(this.id)}/make-owner`, {})
         .then(
           () => {
-            this.showSuccess(this.$t('client.action.makeOwner.success'));
+            this.addSuccessMessage('client.action.makeOwner.success');
           },
-          (error) => {
-            this.showError(error);
-          },
+          (error) => this.addError(error),
         )
         .finally(() => {
           this.$emit('done', this.id);

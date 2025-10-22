@@ -25,32 +25,42 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
-
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import java.io.IOException;
+
+import static ee.ria.xroad.common.util.SignerProtoUtils.byteToChar;
 
 /**
  * Handles token pin update
  */
 @Slf4j
-@Component
+@ApplicationScoped
+@RequiredArgsConstructor
 public class UpdateSoftwareTokenPinReqHandler extends AbstractRpcHandler<UpdateSoftwareTokenPinReq, Empty> {
+    private final TokenWorkerProvider tokenWorkerProvider;
 
     @Override
     protected Empty handle(UpdateSoftwareTokenPinReq request) {
-        final TokenWorker tokenWorker = getTokenWorker(request.getTokenId());
+        final TokenWorker tokenWorker = tokenWorkerProvider.getTokenWorker(request.getTokenId());
         if (tokenWorker.isSoftwareToken()) {
-            tokenWorker.handleUpdateTokenPin(request.getOldPin().toCharArray(), request.getNewPin().toCharArray());
-            return Empty.getDefaultInstance();
+            try {
+                tokenWorker.handleUpdateTokenPin(byteToChar(request.getOldPin().toByteArray()),
+                        byteToChar(request.getNewPin().toByteArray()));
+                return Empty.getDefaultInstance();
+            } catch (IOException e) {
+                throw XrdRuntimeException.systemException(e);
+            }
         } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
+            throw XrdRuntimeException.systemInternalError("Software token not found");
         }
     }
 }

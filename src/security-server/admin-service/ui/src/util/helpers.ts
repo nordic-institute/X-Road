@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -68,40 +69,6 @@ export function isValidRestURL(str: string): boolean {
   return isValidWsdlURL(str);
 }
 
-// Save response data as a file
-export function saveResponseAsFile(
-  response: AxiosResponse,
-  defaultFileName = 'certs.tar.gz',
-): void {
-  let suggestedFileName;
-  const disposition = response.headers['content-disposition'];
-
-  if (disposition && disposition.indexOf('attachment') !== -1) {
-    const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-    const matches = filenameRegex.exec(disposition);
-    if (matches != null && matches[1]) {
-      suggestedFileName = matches[1].replace(/['"]/g, '');
-    }
-  }
-  const effectiveFileName =
-    suggestedFileName === undefined ? defaultFileName : suggestedFileName;
-  const blob = new Blob([response.data], {
-    type: response.headers['content-type'],
-  });
-
-  // Create a link to DOM and click it. This will trigger the browser to start file download.
-  const link = document.createElement('a');
-  link.href = window.URL.createObjectURL(blob);
-  link.setAttribute('download', effectiveFileName);
-  link.setAttribute('data-test', 'generated-download-link');
-  document.body.appendChild(link);
-  link.click();
-
-  // cleanup
-  document.body.removeChild(link);
-  URL.revokeObjectURL(link.href);
-}
-
 // Finds if an array of clients has a client with given member class, member code and subsystem code.
 export function containsClient(
   clients: Client[],
@@ -149,6 +116,14 @@ export function createClientId(
   return `${instanceId}:${memberClass}:${memberCode}`;
 }
 
+// Create a client ID
+export function createFullServiceId(
+  clientId: string,
+  serviceCode: string,
+): string {
+  return `${clientId}:${serviceCode}`;
+}
+
 // Debounce function
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const debounce = <F extends (...args: any[]) => any>(
@@ -180,15 +155,4 @@ export type Mutable<T> = {
 // Deep clones an object or array using JSON
 export function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
-}
-
-export function formatDateTime(
-  valueAsText: string | undefined,
-  format: string,
-): string {
-  if (!valueAsText) {
-    return '-';
-  }
-  const time = dayjs(valueAsText);
-  return time.isValid() ? time.format(format) : '-';
 }

@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -34,20 +32,25 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.acme.AcmeConfig;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class AcmeChallangeFilter implements Filter {
+
+    private final AcmeConfig acmeConfig;
 
     @Override
     @SuppressWarnings("checkstyle:MagicNumber")
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         boolean isAcmeChallenge = ((HttpServletRequest) request).getRequestURI().startsWith("/.well-known/acme-challenge");
-        int acmeChallengePort = SystemProperties.getAcmeChallengePort();
+        int acmeChallengePort = acmeConfig.getAcmeChallengePort();
         if (request.getServerPort() == acmeChallengePort && !isAcmeChallenge) {
             log.warn("only ACME challenge endpoint should be used on port {}!", acmeChallengePort);
             ((HttpServletResponse) response).sendError(404);

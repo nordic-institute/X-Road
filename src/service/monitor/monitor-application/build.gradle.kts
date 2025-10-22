@@ -1,34 +1,21 @@
 plugins {
   id("xroad.java-conventions")
-  alias(libs.plugins.shadow)
+  id("xroad.quarkus-application-conventions")
 }
 
 dependencies {
-  implementation(platform(libs.springBoot.bom))
+  implementation(platform(libs.quarkus.bom))
+  implementation(project(":lib:bootstrap-quarkus"))
+  implementation(libs.bundles.quarkus.containerized)
+  implementation(project(":common:common-rpc-quarkus"))
 
-  implementation(project(":common:common-core"))
+  implementation(libs.quarkus.extension.systemd.notify)
+
   implementation(project(":service:monitor:monitor-core"))
-  implementation(project(":service:signer:signer-client"))
 
-  implementation(libs.bundles.metrics)
-  implementation(libs.logback.classic)
-  implementation("org.springframework:spring-context")
-}
-
-tasks.shadowJar {
-  exclude("**/module-info.class")
-  archiveBaseName.set("monitor")
-  archiveClassifier.set("")
-  manifest {
-    attributes("Main-Class" to "org.niis.xroad.monitor.application.MonitorMain")
-  }
-  mergeServiceFiles()
+  testImplementation(libs.quarkus.junit5)
 }
 
 tasks.jar {
   enabled = false
-}
-
-tasks.assemble {
-  dependsOn(tasks.shadowJar)
 }

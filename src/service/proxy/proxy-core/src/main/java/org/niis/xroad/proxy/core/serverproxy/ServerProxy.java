@@ -25,11 +25,15 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.db.HibernateUtil;
+import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.common.util.JettyUtils;
 
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.inject.Singleton;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.CustomRequestLog;
@@ -39,28 +43,34 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
-import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonHttpClient;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
+import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.antidos.AntiDosConnector;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.security.cert.X509Certificate;
 import java.util.Optional;
+import java.util.stream.Stream;
+
+import static java.util.Arrays.stream;
 
 /**
  * Server proxy that handles requests of client proxies.
  */
 @Slf4j
+@Startup
+@Singleton
+@RequiredArgsConstructor
 @ArchUnitSuppressed("NoVanillaExceptions")
-public class ServerProxy implements InitializingBean, DisposableBean {
+public class ServerProxy {
 
     private static final int ACCEPTOR_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors());
 
@@ -71,45 +81,32 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     // SSL session timeout in seconds
     private static final int SSL_SESSION_TIMEOUT = 600;
 
-    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getServerProxyConnectorSoLinger();
     private static final String CLIENT_PROXY_CONNECTOR_NAME = "ClientProxyConnector";
 
     private final Server server = new Server();
 
+    private final ProxyProperties proxyProperties;
+    private final AntiDosConfiguration antiDosConfiguration;
     private final CommonBeanProxy commonBeanProxy;
+    private final ServiceHandlerLoader serviceHandlerLoader;
+    private final OpMonitorCommonProperties opMonitorCommonProperties;
+    private final VaultClient vaultClient;
+    private final VaultKeyClient vaultKeyClient;
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connMonitor;
 
-    private String listenAddress;
-
     private CloseableHttpClient opMonitorClient;
     private SslContextFactory.Server sslContextFactory;
-
-    public ServerProxy(CommonBeanProxy commonBeanProxy) throws Exception {
-        this(commonBeanProxy, SystemProperties.getServerProxyListenAddress());
-    }
-
-    public ServerProxy(CommonBeanProxy commonBeanProxy, String listenAddress) throws Exception {
-        this.commonBeanProxy = commonBeanProxy;
-        this.listenAddress = listenAddress;
-
-        configureServer();
-
-        createClient();
-        createOpMonitorClient();
-        createConnectors();
-        createHandlers();
-    }
 
     private void configureServer() throws Exception {
         log.trace("configureServer()");
 
-        Path file = Paths.get(SystemProperties.getJettyServerProxyConfFile());
+        var file = proxyProperties.server().jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
 
-        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
+        new XmlConfiguration(JettyUtils.toResource(file)).configure(server);
 
         final var writer = new Slf4jRequestLogWriter();
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
@@ -120,7 +117,10 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     private void createClient() throws Exception {
         log.trace("createClient()");
 
-        HttpClientCreator creator = new HttpClientCreator(commonBeanProxy.serverConfProvider);
+        ensureInternalTlsKeyPresent();
+
+        HttpClientCreator creator = new HttpClientCreator(commonBeanProxy.getServerConfProvider(),
+                proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
 
         connMonitor = new IdleConnectionMonitorThread(creator.getConnectionManager());
         connMonitor.setIntervalMilliseconds(IDLE_MONITOR_INTERVAL);
@@ -130,24 +130,24 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     }
 
     private void createOpMonitorClient() throws Exception {
-        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(commonBeanProxy.serverConfProvider.getSSLKey(),
-                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds()),
-                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceSocketTimeoutSeconds()));
+
+        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(
+                opMonitorCommonProperties, vaultClient, commonBeanProxy.getServerConfProvider().getSSLKey());
     }
 
     private void createConnectors() throws Exception {
         log.trace("createConnectors()");
 
-        int port = SystemProperties.getServerProxyListenPort();
+        int port = proxyProperties.server().listenPort();
 
-        ServerConnector connector = SystemProperties.isSslEnabled()
+        ServerConnector connector = proxyProperties.sslEnabled()
                 ? createClientProxySslConnector() : createClientProxyConnector();
 
         connector.setName(CLIENT_PROXY_CONNECTOR_NAME);
         connector.setPort(port);
-        connector.setHost(listenAddress);
+        connector.setHost(proxyProperties.server().listenAddress());
 
-        connector.setIdleTimeout(SystemProperties.getServerProxyConnectorInitialIdleTime());
+        connector.setIdleTimeout(proxyProperties.server().connectorInitialIdleTime());
 
         connector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)
@@ -155,21 +155,20 @@ public class ServerProxy implements InitializingBean, DisposableBean {
                 .forEach(httpCf -> {
                     httpCf.getHttpConfiguration().setSendServerVersion(false);
                     Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
-                            .ifPresent(customizer -> {
-                                customizer.setSniHostCheck(false);
-                            });
+                            .ifPresent(customizer -> customizer.setSniHostCheck(false));
                 });
 
         server.addConnector(connector);
 
-        log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), listenAddress, port);
+        log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), proxyProperties.server().listenAddress(), port);
     }
 
     private void createHandlers() {
         log.trace("createHandlers()");
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, client, opMonitorClient,
-                new ClientProxyVersionVerifier(SystemProperties.getServerProxyMinSupportedClientVersion()));
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, proxyProperties.server(), client,
+                opMonitorClient, new ClientProxyVersionVerifier(proxyProperties.server().minSupportedClientVersion().orElse(null)),
+                serviceHandlerLoader);
 
         var handler = new Handler.Sequence();
         handler.addHandler(proxyHandler);
@@ -177,24 +176,30 @@ public class ServerProxy implements InitializingBean, DisposableBean {
         server.setHandler(handler);
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        log.trace("start()");
+    @PostConstruct
+    public void init() throws Exception {
+        log.info("Initializing server proxy");
+
+        configureServer();
+
+        createClient();
+        createOpMonitorClient();
+        createConnectors();
+        createHandlers();
 
         server.start();
         connMonitor.start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
-        log.trace("stop()");
+        log.info("Shutting down server proxy..");
 
         connMonitor.shutdown();
         client.close();
         opMonitorClient.close();
         server.stop();
-
-        HibernateUtil.closeSessionFactories();
+        log.info("Shutting down server proxy.. Success!");
     }
 
     /**
@@ -205,23 +210,39 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     }
 
     private ServerConnector createClientProxyConnector() {
-        return SystemProperties.isAntiDosEnabled()
-                ? new AntiDosConnector(commonBeanProxy.globalConfProvider, server, ACCEPTOR_COUNT)
+        return antiDosConfiguration.enabled()
+                ? new AntiDosConnector(antiDosConfiguration, commonBeanProxy.getGlobalConfProvider(), server, ACCEPTOR_COUNT)
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1);
+    }
+
+    private void ensureInternalTlsKeyPresent() throws Exception {
+        try {
+
+            vaultClient.getInternalTlsCredentials();
+        } catch (Exception e) {
+            log.warn("Unable to locate internal TLS credentials, attempting to create new ones", e);
+            var vaultKeyData = vaultKeyClient.provisionNewCerts();
+            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
+                    .toArray(X509Certificate[]::new);
+            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
+            vaultClient.createInternalTlsCredentials(internalTlsKey);
+            log.info("Successfully created internal TLS credentials");
+        }
     }
 
     private ServerConnector createClientProxySslConnector() throws Exception {
         sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setNeedClientAuth(true);
         sslContextFactory.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
-        sslContextFactory.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
+        sslContextFactory.setIncludeCipherSuites(proxyProperties.xroadTlsCiphers());
         sslContextFactory.setSessionCachingEnabled(true);
         sslContextFactory.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
         sslContextFactory.setSslContext(
-                SSLContextUtil.createXroadSSLContext(commonBeanProxy.globalConfProvider, commonBeanProxy.keyConfProvider));
+                SSLContextUtil.createXroadSSLContext(commonBeanProxy.getGlobalConfProvider(), commonBeanProxy.getKeyConfProvider()));
 
-        return SystemProperties.isAntiDosEnabled()
-                ? new AntiDosConnector(commonBeanProxy.globalConfProvider, server, ACCEPTOR_COUNT, sslContextFactory)
+        return antiDosConfiguration.enabled()
+                ? new AntiDosConnector(antiDosConfiguration, commonBeanProxy.getGlobalConfProvider(), server,
+                ACCEPTOR_COUNT, sslContextFactory)
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1, sslContextFactory);
     }
 
@@ -230,7 +251,8 @@ public class ServerProxy implements InitializingBean, DisposableBean {
         if (sslContextFactory != null) {
             try {
                 sslContextFactory.setSslContext(
-                        SSLContextUtil.createXroadSSLContext(commonBeanProxy.globalConfProvider, commonBeanProxy.keyConfProvider));
+                        SSLContextUtil.createXroadSSLContext(commonBeanProxy.getGlobalConfProvider(),
+                                commonBeanProxy.getKeyConfProvider()));
                 sslContextFactory.reload(cf -> log.debug("Server SSL context reloaded"));
             } catch (Exception e) {
                 log.error("Failed to reload auth key", e);

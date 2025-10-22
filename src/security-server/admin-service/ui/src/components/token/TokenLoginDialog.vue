@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -58,9 +59,9 @@ import { Token } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { useAlerts } from '@/store/modules/alerts';
-import { useNotifications } from '@/store/modules/notifications';
 import { useTokens } from '@/store/modules/tokens';
 import { useField } from 'vee-validate';
+import { useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
   props: {
@@ -71,12 +72,21 @@ export default defineComponent({
   },
   emits: ['cancel', 'save'],
   setup() {
+    const { addSuccessMessage, addError } = useNotifications();
     const { value, meta, errors, setErrors, resetField } = useField(
       'tokenPin',
       'required',
       { initialValue: '' },
     );
-    return { tokenPin: value, meta, errors, setErrors, resetField };
+    return {
+      tokenPin: value,
+      meta,
+      errors,
+      setErrors,
+      resetField,
+      addSuccessMessage,
+      addError,
+    };
   },
   data() {
     return {
@@ -88,7 +98,6 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useAlerts, ['checkAlertStatus']),
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
       this.resetField();
@@ -108,7 +117,7 @@ export default defineComponent({
         })
         .then(() => {
           this.loading = false;
-          this.showSuccess(this.$t('keys.loggedIn'));
+          this.addSuccessMessage('keys.loggedIn');
           this.$emit('save');
         })
         .catch((error) => {
@@ -119,7 +128,7 @@ export default defineComponent({
           ) {
             this.setErrors(this.$t('keys.incorrectPin'));
           }
-          this.showError(error);
+          this.addError(error);
         })
         .finally(() => this.checkAlertStatus());
 

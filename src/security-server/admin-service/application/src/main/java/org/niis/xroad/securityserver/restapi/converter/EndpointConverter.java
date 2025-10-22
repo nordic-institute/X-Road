@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.EndpointDto;
 import org.niis.xroad.serverconf.model.Endpoint;
 import org.springframework.stereotype.Component;
@@ -35,11 +36,15 @@ import java.util.List;
 @Component
 public class EndpointConverter {
 
+    private final ClientIdConverter clientIdConverter = new ClientIdConverter();
+
     public EndpointDto convert(Endpoint endpoint) {
         EndpointDto endpointDto = new EndpointDto();
 
         endpointDto.setId(String.valueOf(endpoint.getId()));
         endpointDto.setServiceCode(endpoint.getServiceCode());
+            endpointDto.setClientId(clientIdConverter.convertId(
+                    endpoint.getClient().getIdentifier()));
         endpointDto.setMethod(EndpointDto.MethodEnum.fromValue(endpoint.getMethod()));
         endpointDto.setPath(endpoint.getPath());
         endpointDto.setGenerated(endpoint.isGenerated());

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
@@ -52,6 +51,13 @@ import static java.util.Collections.singleton;
  */
 public class TestSuiteGlobalConf extends EmptyGlobalConf {
 
+    public TestSuiteGlobalConf() {
+        super();
+    }
+    public TestSuiteGlobalConf(String confPath) {
+        super(confPath);
+    }
+
     @Override
     public String getInstanceIdentifier() {
         return "EE";
@@ -61,7 +67,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     public Collection<String> getProviderAddress(ClientId provider) {
         if (currentTestCase() == null || provider == null) {
             return singleton("http://127.0.0.1:"
-                    + SystemProperties.getServerProxyPort());
+                    + ProxyTestSuiteHelper.proxyProperties.serverProxyPort());
         }
 
         String addr = currentTestCase().getProviderAddress(
@@ -98,7 +104,9 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
 
     @Override
     public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) {
-        return new CertChainFactory(this).create(instanceIdentifier, subject, null);
+        return CertChainFactory.create(instanceIdentifier,
+                getCaCert(instanceIdentifier, subject),
+                subject, null);
     }
 
     @Override

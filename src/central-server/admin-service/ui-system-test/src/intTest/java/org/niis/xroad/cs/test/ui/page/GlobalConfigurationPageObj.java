@@ -61,7 +61,7 @@ public class GlobalConfigurationPageObj {
     }
 
     public SelenideElement signingKeyLabel(final String tokenName, final String keyLabel) {
-        return $x(format(X_TOKEN_EXPANDABLE + "//span[@data-test='key-label-text'][contains(text(), '%s')]", tokenName, keyLabel));
+        return $x(format(X_TOKEN_EXPANDABLE + "//div[@data-test='key-label-text']/span[contains(., '%s')]", tokenName, keyLabel));
     }
 
     public SelenideElement btnActivateSigningKey(final String tokenName, final String keyLabel) {
@@ -132,7 +132,7 @@ public class GlobalConfigurationPageObj {
         }
 
         public SelenideElement txtHash() {
-            return $x("//span[@data-test='anchor-hash']");
+            return $x("//div[@data-test='anchor-hash']/span");
         }
 
         public SelenideElement txtCreatedAt() {

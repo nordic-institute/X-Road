@@ -36,14 +36,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 
 @Slf4j
 public class ClientRenameRequestCallback extends BaseClientRequestCallback<ClientRenameRequestType> {
 
-    public ClientRenameRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback) {
-        super(globalConfProvider, rootCallback, ManagementRequestType.CLIENT_RENAME_REQUEST);
+    public ClientRenameRequestCallback(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                                       ManagementRequestVerifier.DecoderCallback rootCallback) {
+        super(globalConfProvider, ocspVerifierFactory, rootCallback, ManagementRequestType.CLIENT_RENAME_REQUEST);
     }
 
     @Override

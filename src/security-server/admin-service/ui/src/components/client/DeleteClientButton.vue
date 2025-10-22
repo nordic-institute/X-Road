@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,20 +25,17 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="d-inline-block">
-    <xrd-button
+  <div>
+    <XrdBtn
       data-test="delete-client-button"
-      outlined
+      variant="outlined"
+      text="action.delete"
+      prepend-icon="cancel"
       @click="confirmDelete = true"
-    >
-      <xrd-icon-base class="xrd-large-button-icon">
-        <xrd-icon-declined />
-      </xrd-icon-base>
-      {{ $t('action.delete') }}
-    </xrd-button>
+    />
 
     <!-- Confirm dialog for delete client -->
-    <xrd-confirm-dialog
+    <XrdConfirmDialog
       v-if="confirmDelete"
       :loading="deleteLoading"
       title="client.action.delete.confirmTitle"
@@ -47,7 +45,7 @@
     />
 
     <!-- Confirm dialog for deleting orphans -->
-    <xrd-confirm-dialog
+    <XrdConfirmDialog
       v-if="confirmOrphans"
       :loading="orphansLoading"
       title="client.action.removeOrphans.confirmTitle"
@@ -65,14 +63,19 @@ import { RouteName } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+import { XrdBtn, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdBtn },
   props: {
     id: {
       type: String,
       required: true,
     },
+  },
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
   },
   data() {
     return {
@@ -84,16 +87,15 @@ export default defineComponent({
   },
 
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     deleteClient(): void {
       this.deleteLoading = true;
       api.remove(`/clients/${encodePathParameter(this.id)}`).then(
         () => {
-          this.showSuccess(this.$t('client.action.delete.success'));
+          this.addSuccessMessage('client.action.delete.success');
           this.checkOrphans();
         },
         (error) => {
-          this.showError(error);
+          this.addError(error);
           this.confirmDelete = false;
           this.deleteLoading = false;
         },

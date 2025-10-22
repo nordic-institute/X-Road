@@ -99,6 +99,11 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     @Override
+    public boolean isEnforcedTokenPinPolicy() {
+        return true;
+    }
+
+    @Override
     public void initSoftwareToken(char[] password) {
         restTemplate.put("/initSoftwareToken/", password);
     }
@@ -143,7 +148,6 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
                 .setActive(json.get("active").asBoolean())
                 .setSerialNumber(json.get("serialNumber").asText())
                 .setLabel(json.get("label").asText())
-                .setSlotIndex(json.get("slotIndex").asInt())
                 .setStatus(TokenStatusInfo.valueOf(json.get("status").asText()))
                 .build());
     }

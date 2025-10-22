@@ -26,7 +26,6 @@
 package org.niis.xroad.proxy.core.messagelog;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
@@ -38,12 +37,8 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
-import ee.ria.xroad.common.util.JobManager;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -57,31 +52,15 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
  */
 @Slf4j
 public final class MessageLog {
-    private static final String LOG_MANAGER_IMPL_CLASS = SystemProperties.PREFIX + "proxy.messageLogManagerImpl";
     private static AbstractLogManager logManager;
 
     private MessageLog() {
     }
 
-    /**
-     * Initializes the message log using the provided actor system. Use control aware mailbox.
-     *
-     * @param jobManager         the job manager
-     * @param globalConfProvider global conf source provider
-     * @return false if NullLogManager was initialized, true otherwise
-     */
-    public static AbstractLogManager init(JobManager jobManager, GlobalConfProvider globalConfProvider,
-                                          ServerConfProvider serverConfProvider) {
-        Class<? extends AbstractLogManager> clazz = getLogManagerImpl();
+    public static AbstractLogManager init(AbstractLogManager logManagerImpl) {
+        log.trace("Using implementation class: {}", logManagerImpl.getClass());
 
-        log.trace("Using implementation class: {}", clazz);
-
-        try {
-            logManager = clazz.getDeclaredConstructor(JobManager.class, GlobalConfProvider.class, ServerConfProvider.class)
-                    .newInstance(jobManager, globalConfProvider, serverConfProvider);
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to initialize LogManager", e);
-        }
+        logManager = logManagerImpl;
 
         return logManager;
     }
@@ -147,7 +126,6 @@ public final class MessageLog {
         return logManager.getDiagnosticStatus();
     }
 
-
     /**
      * Returns a time-stamp record for a given message record.
      *
@@ -161,19 +139,6 @@ public final class MessageLog {
             return logManager.timestamp(record.getId());
         } catch (Exception e) {
             throw translateWithPrefix(X_TIMESTAMPING_FAILED_X, e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractLogManager> getLogManagerImpl() {
-        String logManagerImplClassName = System.getProperty(LOG_MANAGER_IMPL_CLASS, NullLogManager.class.getName());
-
-        try {
-            Class<?> clazz = Class.forName(logManagerImplClassName);
-
-            return (Class<? extends AbstractLogManager>) clazz;
-        } catch (ClassNotFoundException e) {
-            throw XrdRuntimeException.systemInternalError("Unable to load log manager impl: " + logManagerImplClassName, e);
         }
     }
 

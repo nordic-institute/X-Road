@@ -91,11 +91,11 @@ public class SystemParametersPageObj {
         }
 
         public SelenideElement btnAdd() {
-            return $x("//button[@data-test='system-parameters-add-timestamping-service-dialog-add-button']");
+            return $x("//button[@data-test='system-parameters-timestamping-services-add-button']");
         }
 
         public SelenideElement btnCancel() {
-            return $x("//button[@data-test='system-parameters-add-timestamping-service-dialog-cancel-button']");
+            return $x("//button[@data-test='dialog-cancel-button']");
         }
     }
 

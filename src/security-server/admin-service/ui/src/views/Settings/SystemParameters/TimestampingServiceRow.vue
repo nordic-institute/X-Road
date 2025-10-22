@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,25 +26,22 @@
  -->
 <template>
   <tr data-test="system-parameters-timestamping-service-row">
-    <td :class="{ disabled: !messageLogEnabled }">
+    <td :class="{ 'opacity-60': !messageLogEnabled }">
       {{ timestampingService.name }}
     </td>
-    <td :class="{ disabled: !messageLogEnabled }">
+    <td :class="{ 'opacity-60': !messageLogEnabled }">
       {{ timestampingService.url }}
     </td>
-    <td class="pr-4">
-      <xrd-button
+    <td class="text-end">
+      <XrdBtn
         v-if="showDeleteTsp"
         data-test="system-parameters-timestamping-service-delete-button"
-        :outlined="false"
-        text
+        variant="text"
+        color="tertiary"
+        text="systemParameters.timestampingServices.table.action.delete.button"
         @click="confirmDeleteDialog = true"
-      >
-        {{
-          $t('systemParameters.timestampingServices.table.action.delete.button')
-        }}
-      </xrd-button>
-      <xrd-confirm-dialog
+      />
+      <XrdConfirmDialog
         v-if="confirmDeleteDialog"
         data-test="system-parameters-timestamping-service-delete-confirm-dialog"
         :loading="deleting"
@@ -61,12 +59,12 @@ import { defineComponent, PropType } from 'vue';
 import { TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
-import { mapActions, mapState } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import { XrdBtn, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
-  name: 'TimestampingServiceRow',
+  components: { XrdBtn },
   props: {
     timestampingService: {
       type: Object as PropType<TimestampingService>,
@@ -75,6 +73,10 @@ export default defineComponent({
     messageLogEnabled: Boolean,
   },
   emits: ['deleted'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return {
       confirmDeleteDialog: false,
@@ -91,8 +93,6 @@ export default defineComponent({
     },
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-
     deleteTimestampingService(): void {
       this.deleting = true;
       api
@@ -101,33 +101,14 @@ export default defineComponent({
           this.deleting = false;
           this.confirmDeleteDialog = false;
           this.$emit('deleted');
-          this.showSuccess(
-            this.$t(
-              'systemParameters.timestampingServices.table.action.delete.success',
-            ),
+          this.addSuccessMessage(
+            'systemParameters.timestampingServices.table.action.delete.success',
           );
         })
-        .catch((error) => this.showError(error));
+        .catch((error) => this.addError(error));
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables';
-
-.disabled {
-  color: colors.$WarmGrey100;
-}
-
-tr td {
-  color: colors.$Black100;
-  font-weight: normal !important;
-}
-
-tr td:last-child {
-  width: 1%;
-  white-space: nowrap;
-}
-</style>
+<style lang="scss" scoped></style>

@@ -37,18 +37,18 @@ public class InitializationPageObj {
     public final WizardAnchor wizardAnchor = new WizardAnchor();
 
     public SelenideElement alertSoftTokenPin() {
-        return $x("//div[@data-test='global-alert-soft-token-pin']");
+        return $x("//button[@data-test='global-alert-soft-token-pin']");
     }
 
     public SelenideElement initializationView() {
-        return $x("//div[@data-test='wizard-title']")
-                .$x(".//span[contains(text(), 'Initial configuration')]");
+        return $x("//span[@data-test='view-header-title' and contains(text(), 'Initial configuration')]");
     }
 
     public static class WizardAnchor {
 
         public SelenideElement btnConfirmAnchorDetails() {
-            return $x("//button[@data-test='system-parameters-upload-configuration-anchor-dialog-confirm-button']");
+            return $x("//div[@data-test='system-parameters-upload-configuration-anchor-dialog-confirm']"
+                    + "//button[@data-test='dialog-save-button']");
         }
 
         public SelenideElement inputFile() {

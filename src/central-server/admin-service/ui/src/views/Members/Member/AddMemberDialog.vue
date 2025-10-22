@@ -35,33 +35,40 @@
     @save="add"
   >
     <template #content>
-      <v-text-field
-        v-model="memberName"
-        v-bind="memberNameAttrs"
-        variant="outlined"
-        autofocus
-        data-test="add-member-name-input"
-        class="space-out-bottom"
-        :label="$t('global.memberName')"
-      />
-      <v-select
-        v-model="memberClass"
-        v-bind="memberClassAttrs"
-        item-title="code"
-        item-value="code"
-        variant="outlined"
-        data-test="add-member-class-input"
-        class="space-out-bottom"
-        :items="memberClasses"
-        :label="$t('global.memberClass')"
-      />
-      <v-text-field
-        v-model="memberCode"
-        v-bind="memberCodeAttrs"
-        :label="$t('global.memberCode')"
-        variant="outlined"
-        data-test="add-member-code-input"
-      />
+      <XrdFormBlock>
+        <XrdFormBlockRow>
+          <v-text-field
+            v-model="memberName"
+            v-bind="memberNameAttrs"
+            data-test="add-member-name-input"
+            class="xrd"
+            autofocus
+            :label="$t('global.memberName')"
+          />
+        </XrdFormBlockRow>
+        <XrdFormBlockRow>
+          <v-select
+            v-model="memberClass"
+            v-bind="memberClassAttrs"
+            data-test="add-member-class-input"
+            class="xrd"
+            item-title="code"
+            item-value="code"
+            menu-icon="keyboard_arrow_down"
+            :items="memberClasses"
+            :label="$t('global.memberClass')"
+          />
+        </XrdFormBlockRow>
+        <XrdFormBlockRow>
+          <v-text-field
+            v-model="memberCode"
+            v-bind="memberCodeAttrs"
+            data-test="add-member-code-input"
+            class="xrd"
+            :label="$t('global.memberCode')"
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -71,7 +78,7 @@ import { computed } from 'vue';
 import { useMember } from '@/store/modules/members';
 import { useMemberClass } from '@/store/modules/member-class';
 import { useForm } from 'vee-validate';
-import { useBasicForm } from '@/util/composables';
+import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 const emits = defineEmits(['save', 'cancel']);
 const { defineField, setFieldError, meta, resetForm, handleSubmit } = useForm({
@@ -93,7 +100,7 @@ const [memberClass, memberClassAttrs] = defineField('memberClass', {
 
 const { add: addMember } = useMember();
 const memberClassStore = useMemberClass();
-const { showSuccess, t, loading, showOrTranslateErrors } = useBasicForm(
+const { addSuccessMessage, loading, showOrTranslateErrors } = useBasicForm(
   setFieldError,
   { memberCode: 'memberAddDto.memberId.memberCode' },
 );
@@ -115,11 +122,9 @@ const add = handleSubmit((values) => {
     },
   })
     .then(() => {
-      showSuccess(
-        t('members.memberSuccessfullyAdded', {
-          memberName: values.memberName,
-        }),
-      );
+      addSuccessMessage('members.memberSuccessfullyAdded', {
+        memberName: values.memberName,
+      });
       emits('save');
       resetForm();
     })

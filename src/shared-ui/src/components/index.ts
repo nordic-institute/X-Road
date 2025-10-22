@@ -25,36 +25,44 @@
  * THE SOFTWARE.
  */
 
-import XrdAlert from './XrdAlert.vue';
+import XrdBtn from './XrdBtn.vue';
 import XrdButton from './XrdButton.vue';
+import XrdCard from './XrdCard.vue';
+import XrdCardTable from './XrdCardTable.vue';
+import XrdCardTableRow from './XrdCardTableRow.vue';
 import XrdCloseButton from './XrdCloseButton.vue';
 import XrdConfirmDialog from './XrdConfirmDialog.vue';
+import XrdDataTableFooter from './XrdDataTableFooter.vue';
+import XrdDate from './XrdDate.vue';
+import XrdDateTime from './XrdDateTime.vue';
 import XrdEmptyPlaceholder from './XrdEmptyPlaceholder.vue';
 import XrdEmptyPlaceholderRow from './XrdEmptyPlaceholderRow.vue';
+import XrdErrorNotifications from './XrdErrorNotifications.vue';
 import XrdExpandable from './XrdExpandable.vue';
 import XrdFileUpload from './XrdFileUpload.vue';
 import XrdFileUploadField from './XrdFileUploadField.vue';
 import XrdFormLabel from './XrdFormLabel.vue';
+import XrdHashValue from './XrdHashValue.vue';
 import XrdHelpDialog from './XrdHelpDialog.vue';
 import XrdHelpIcon from './XrdHelpIcon.vue';
-import XrdSearch from './XrdSearch.vue';
-import XrdSimpleDialog from './XrdSimpleDialog.vue';
-import XrdStatusIcon from './XrdStatusIcon.vue';
-import XrdSubViewTitle from './XrdSubViewTitle.vue';
-import XrdTable from './XrdTable.vue';
-import XrdTitledView from './XrdTitledView.vue';
-import XrdAppIcon from './XrdAppIcon.vue';
+import XrdLabel from './XrdLabel.vue';
+import XrdLabelWithIcon from './XrdLabelWithIcon.vue';
 import XrdLanguageDropdown from './XrdLanguageDropdown.vue';
-import XrdAppDropMenu from './XrdAppDropMenu.vue';
+import XrdPagination from './XrdPagination.vue';
+import XrdSimpleDialog from './XrdSimpleDialog.vue';
+import XrdStatusChip from './XrdStatusChip.vue';
+import XrdStatusIcon from './XrdStatusIcon.vue';
 import XrdSubTabs from './XrdSubTabs.vue';
-import XrdTabsBase from './XrdTabsBase.vue';
-import XrdDataTableFooter from './XrdDataTableFooter.vue';
-import XrdSnackBar from './XrdSnackBar.vue';
-import XrdErrorNotification from './XrdErrorNotification.vue';
+import XrdTitledView from './XrdTitledView.vue';
+import XrdBanner from './XrdBanner.vue';
+import XrdContainerTitle from './XrdContainerTitle.vue';
+import XrdFormBlock from './XrdFormBlock.vue';
+import XrdFormBlockRow from './XrdFormBlockRow.vue';
+import XrdBreadcrumbs from './XrdBreadcrumbs.vue';
+import XrdCertificateFileUpload from './XrdCertificateFileUpload.vue';
 
 export {
-  XrdAppIcon,
-  XrdAlert,
+  XrdBanner,
   XrdButton,
   XrdCloseButton,
   XrdConfirmDialog,
@@ -66,17 +74,27 @@ export {
   XrdFormLabel,
   XrdHelpDialog,
   XrdHelpIcon,
-  XrdSearch,
   XrdSimpleDialog,
   XrdStatusIcon,
-  XrdSubViewTitle,
-  XrdTable,
   XrdTitledView,
   XrdLanguageDropdown,
-  XrdAppDropMenu,
   XrdSubTabs,
-  XrdTabsBase,
   XrdDataTableFooter,
-  XrdSnackBar,
-  XrdErrorNotification,
+  XrdErrorNotifications,
+  XrdBtn,
+  XrdPagination,
+  XrdCard,
+  XrdCardTable,
+  XrdCardTableRow,
+  XrdStatusChip,
+  XrdLabel,
+  XrdLabelWithIcon,
+  XrdHashValue,
+  XrdDateTime,
+  XrdDate,
+  XrdContainerTitle,
+  XrdFormBlockRow,
+  XrdFormBlock,
+  XrdBreadcrumbs,
+  XrdCertificateFileUpload,
 };

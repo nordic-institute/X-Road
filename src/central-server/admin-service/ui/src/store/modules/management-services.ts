@@ -34,7 +34,7 @@ import {
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import { saveResponseAsFile } from '@/util/helpers';
+import { helper } from '@niis/shared-ui';
 
 interface ManagementServicesState {
   managementServicesConfiguration: ManagementServicesConfiguration;
@@ -98,7 +98,7 @@ export const useManagementServices = defineStore('managementServices', {
           responseType: 'blob',
         })
         .then((resp) => {
-          saveResponseAsFile(resp, 'management-service.tar.gz');
+          helper.saveResponseAsFile(resp, 'management-service.tar.gz');
         })
         .catch((error) => {
           throw error;
@@ -128,7 +128,7 @@ export const useManagementServices = defineStore('managementServices', {
           { responseType: 'json' },
         )
         .then((res) => {
-          saveResponseAsFile(res, 'request.csr');
+          helper.saveResponseAsFile(res, 'request.csr');
         })
         .catch((error) => {
           throw error;

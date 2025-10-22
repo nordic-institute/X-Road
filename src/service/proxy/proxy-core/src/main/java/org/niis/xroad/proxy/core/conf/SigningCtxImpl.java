@@ -26,7 +26,7 @@
 package org.niis.xroad.proxy.core.conf;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.SignatureData;
 
@@ -54,6 +54,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 public class SigningCtxImpl implements SigningCtx {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
+    private final DigestAlgorithm messageSignDigestAlgorithm;
     /**
      * The subject id of the signer.
      */
@@ -78,7 +79,7 @@ public class SigningCtxImpl implements SigningCtx {
         builder.addOcspResponses(ocspResponses);
         builder.setSigningCert(cert);
 
-        return builder.build(key, SystemProperties.getProxyMessageSignDigestName());
+        return builder.build(key, messageSignDigestAlgorithm);
     }
 
     private List<OCSPResp> getOcspResponses(List<X509Certificate> certs) throws CertificateEncodingException, IOException {

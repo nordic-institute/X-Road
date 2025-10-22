@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,57 +25,50 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-icon
-    size="small"
-    :color="getServiceIconColor(service)"
-    :icon="getServiceIcon(service)"
-  />
+  <v-icon size="20" :color="serviceIconColor" :icon="serviceIcon" />
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 // Icon for a service. Shows lock icon with proper color.
-import { defineComponent, PropType } from 'vue';
+import { PropType, computed } from 'vue';
 import { Service } from '@/openapi-types';
 
-export default defineComponent({
-  props: {
-    service: {
-      type: Object as PropType<Service>,
-      required: true,
-    },
+const props = defineProps({
+  service: {
+    type: Object as PropType<Service>,
+    required: true,
   },
-  methods: {
-    getServiceIcon(service: Service): string {
-      if (!service.url.startsWith('https')) {
-        return 'mdi-lock-open-outline';
-      }
-      switch (service.ssl_auth) {
-        case undefined:
-          return 'mdi-lock-open-outline';
-        case true:
-          return 'mdi-lock';
-        case false:
-          return 'mdi-lock';
-        default:
-          return '';
-      }
-    },
+});
 
-    getServiceIconColor(service: Service): string {
-      if (!service.url.startsWith('https')) {
-        return '';
-      }
-      switch (service.ssl_auth) {
-        case undefined:
-          return '';
-        case true:
-          return '#00e500';
-        case false:
-          return '#ffd200';
-        default:
-          return '';
-      }
-    },
-  },
+const serviceIcon = computed(() => {
+  if (!props.service.url.startsWith('https')) {
+    return 'lock_open';
+  }
+  switch (props.service.ssl_auth) {
+    case undefined:
+      return 'lock_open';
+    case true:
+      return 'lock filled';
+    case false:
+      return 'lock filled';
+    default:
+      return '';
+  }
+});
+
+const serviceIconColor = computed(() => {
+  if (!props.service.url.startsWith('https')) {
+    return '';
+  }
+  switch (props.service.ssl_auth) {
+    case undefined:
+      return '';
+    case true:
+      return 'success';
+    case false:
+      return 'surface';
+    default:
+      return '';
+  }
 });
 </script>

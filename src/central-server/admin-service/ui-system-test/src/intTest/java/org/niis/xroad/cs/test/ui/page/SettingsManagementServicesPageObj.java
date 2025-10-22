@@ -36,27 +36,27 @@ public class SettingsManagementServicesPageObj {
     public final EditManagementSecurityServerDialog editManagementSecurityServerDialog = new EditManagementSecurityServerDialog();
 
     public SelenideElement serviceProviderIdentifier() {
-        return $x("//td[@data-test='management-service-provider-identifier-field']");
+        return $x("//tr[@data-test='management-service-provider-identifier-field']/td[2]");
     }
 
     public SelenideElement serviceProviderName() {
-        return $x("//td[@data-test='management-service-provider-name-field']");
+        return $x("//tr[@data-test='management-service-provider-name-field']/td[2]");
     }
 
     public SelenideElement securityServer() {
-        return $x("//td[@data-test='management-security-server-field']");
+        return $x("//tr[@data-test='management-security-server-field']/td[2]");
     }
 
     public SelenideElement wsdlAddress() {
-        return $x("//td[@data-test='management-wsdl-address-field']");
+        return $x("//tr[@data-test='management-wsdl-address-field']/td[2]");
     }
 
     public SelenideElement managementServicesAddress() {
-        return $x("//td[@data-test='management-management-services-address-field']");
+        return $x("//tr[@data-test='management-management-services-address-field']/td[2]");
     }
 
     public SelenideElement ownerGroupCode() {
-        return $x("//td[@data-test='management-owner-group-code-field']");
+        return $x("//tr[@data-test='management-owner-group-code-field']/td[2]");
     }
 
     public SelenideElement wsdlAddressCopyButton() {

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,92 +25,106 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="step-content-wrapper">
-    <div class="wizard-step-form-content">
-      <div class="action-row">
-        <div>{{ $t('initialConfiguration.anchor.info') }}</div>
-        <upload-configuration-anchor-dialog
-          init-mode
-          @uploaded="fetchConfigurationAnchor"
-        />
-      </div>
-
-      <div style="height: 120px">
-        <template v-if="configuratonAnchor">
-          <div class="wizard-row-wrap">
-            <div class="wizard-label">
-              {{ $t('initialConfiguration.anchor.hash') }}
-            </div>
-            <template v-if="configuratonAnchor">{{
-              $filters.colonize(configuratonAnchor.hash)
-            }}</template>
-          </div>
-
-          <div class="wizard-row-wrap">
-            <div class="wizard-label">
-              {{ $t('initialConfiguration.anchor.generated') }}
-            </div>
-            <template v-if="configuratonAnchor">{{
-              $filters.formatDateTime(configuratonAnchor.created_at)
-            }}</template>
-          </div>
-        </template>
-      </div>
-    </div>
-    <div class="button-footer">
-      <v-spacer></v-spacer>
-      <div>
-        <xrd-button
-          :disabled="!configuratonAnchor"
-          data-test="configuration-anchor-save-button"
-          @click="done"
-          >{{ $t(saveButtonText) }}</xrd-button
-        >
-      </div>
-    </div>
-  </div>
+  <XrdWizardStep>
+    <XrdFormBlock class="body-regular">
+      <v-row align="center" no-gutters>
+        <v-col cols="auto">{{ $t('initialConfiguration.anchor.info') }}</v-col>
+        <v-col>
+          <UploadConfigurationAnchorDialog
+            init-mode
+            @uploaded="fetchConfigurationAnchor"
+          />
+        </v-col>
+      </v-row>
+    </XrdFormBlock>
+    <v-slide-y-transition>
+      <XrdFormBlock v-if="configurationAnchor" class="mt-6 body-regular">
+        <v-row align="center" no-gutters>
+          <v-col class="font-weight-bold" cols="auto" sm="3">
+            {{ $t('initialConfiguration.anchor.hash') }}
+          </v-col>
+          <v-col sm="9">
+            <XrdHashValue :value="configurationAnchor.hash" wrap-friendly />
+          </v-col>
+        </v-row>
+        <v-row class="mt-4" align="center" no-gutters>
+          <v-col class="font-weight-bold" cols="auto" sm="3">
+            {{ $t('initialConfiguration.anchor.generated') }}
+          </v-col>
+          <v-col sm="9">
+            <XrdDateTime :value="configurationAnchor.created_at" />
+          </v-col>
+        </v-row>
+      </XrdFormBlock>
+    </v-slide-y-transition>
+    <template #footer>
+      <v-spacer />
+      <XrdBtn
+        :disabled="!configurationAnchor"
+        data-test="configuration-anchor-save-button"
+        :text="saveButtonText"
+        variant="flat"
+        @click="done"
+      />
+    </template>
+  </XrdWizardStep>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Anchor } from '@/openapi-types';
-import * as api from '@/util/api';
-import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
+
 import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+
+import {
+  useNotifications,
+  XrdBtn,
+  XrdDateTime,
+  XrdHashValue,
+  XrdWizardStep,
+  XrdFormBlock,
+} from '@niis/shared-ui';
+
+import { Anchor } from '@/openapi-types';
 import { useGeneral } from '@/store/modules/general';
+import * as api from '@/util/api';
+
+import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 
 export default defineComponent({
   components: {
     UploadConfigurationAnchorDialog,
+    XrdDateTime,
+    XrdHashValue,
+    XrdBtn,
+    XrdWizardStep,
+    XrdFormBlock,
   },
   props: {
     saveButtonText: {
       type: String,
       default: 'action.continue',
     },
-    showPreviousButton: {
-      type: Boolean,
-      default: true,
-    },
   },
   emits: ['done'],
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
+  },
   data() {
     return {
       showAnchorDialog: false as boolean,
-      configuratonAnchor: undefined as Anchor | undefined,
+      configurationAnchor: undefined as Anchor | undefined,
     };
   },
 
   methods: {
     ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance']),
-    ...mapActions(useNotifications, ['showError']),
     // Fetch anchor data so it can be shown in the UI
     fetchConfigurationAnchor() {
       api
         .get<Anchor>('/system/anchor')
-        .then((resp) => (this.configuratonAnchor = resp.data))
-        .catch((error) => this.showError(error));
+        .then((resp) => (this.configurationAnchor = resp.data))
+        .catch((error) => this.addError(error));
 
       // Fetch member classes for owner member step after anchor is ready
       this.fetchMemberClassesForCurrentInstance();
@@ -121,21 +136,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/wizards';
-
-/* Expand imported wizard class */
-.wizard-label {
-  width: 170px;
-  min-width: 170px;
-}
-
-.action-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  width: 100%;
-  margin-top: 20px;
-  margin-bottom: 50px;
-}
-</style>
+<style lang="scss" scoped></style>
