@@ -25,10 +25,12 @@ module "openbao" {
   ]
 
   namespace = var.security_server_namespace
-  openbao_db_user_password="secret"
   openbao_init_chart_repo = null
   openbao_init_chart = "${path.module}/../../../../../deployment/security-server/k8s/charts/openbao-init"
   openbao_init_chart_version = null
+
+  openbao_db_override_values = yamldecode(file("${path.module}/override-values/openbao-db-values.yaml"))
+  openbao_override_values = yamldecode(file("${path.module}/override-values/openbao-values.yaml"))
 }
 
 module "cs_service_bridge" {
@@ -136,11 +138,12 @@ module "security-server" {
   ]
 
   namespace = var.security_server_namespace
+  security_server_chart_repo = null
+  security_server_chart = "${path.module}/../../../../../deployment/security-server/k8s/charts/security-server"
+  security_server_chart_version = null
+
   serverconf_db_override_values = yamldecode(file("${path.module}/override-values/serverconf-db-values.yaml"))
   messagelog_db_override_values = yamldecode(file("${path.module}/override-values/messagelog-db-values.yaml"))
   opmonitor_db_override_values = yamldecode(file("${path.module}/override-values/opmonitor-db-values.yaml"))
   security_server_override_values = yamldecode(file("${path.module}/override-values/security-server-values.yaml"))
-  security_server_chart_repo = null
-  security_server_chart = "${path.module}/../../../../../deployment/security-server/k8s/charts/security-server"
-  security_server_chart_version = null
 }

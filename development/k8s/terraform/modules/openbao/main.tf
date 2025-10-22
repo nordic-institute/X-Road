@@ -7,30 +7,7 @@ resource "helm_release" "postgresql_openbao" {
   chart      = "postgresql"
   version    = "18.0.12"
 
-  values = [
-    yamlencode({
-      fullnameOverride = "db-openbao"
-      image = {
-        repository = "bitnamilegacy/postgresql"
-        tag = "16.6.0"
-      }
-      auth = {
-        database           = "openbao"
-        username           = var.openbao_db_user
-        password           = var.openbao_db_user_password
-      }
-      primary = {
-        resources = {
-          requests = {
-            memory = "64Mi"
-          }
-          limits = {
-            memory = "256Mi"
-          }
-        }
-      }
-    })
-  ]
+  values = [yamlencode(var.openbao_db_override_values)]
 }
 
 resource "helm_release" "openbao_secret_store" {
@@ -44,37 +21,7 @@ resource "helm_release" "openbao_secret_store" {
 
   depends_on = [helm_release.postgresql_openbao]
 
-  values = [
-    yamlencode({
-      global = {
-        namespace = var.namespace
-      }
-      server = {
-        ha = {
-          enabled = true
-          config = <<-EOF
-            ui = true
-            listener "tcp" {
-              tls_disable = 1
-              address = "[::]:8200"
-              cluster_address = "[::]:8201"
-            }
-            storage "postgresql" {
-              ha_enabled = "true"
-            }
-            service_registration "kubernetes" {}
-          EOF
-        }
-        extraSecretEnvironmentVars = [
-          { envName: "BAO_PG_PASSWORD", secretName: "db-openbao", secretKey: "password" }
-        ]
-        extraEnvironmentVars = {
-          # https://github.com/openbao/openbao-helm/issues/37 - Once this gets resolved, use $(BAO_PG_PASSWORD) instead of ${var.openbao_db_user_password}
-          BAO_PG_CONNECTION_URL = "postgres://${var.openbao_db_user}:${var.openbao_db_user_password}@db-openbao.ss.svc.cluster.local:5432/openbao"
-        }
-      }
-    })
-  ]
+  values = [yamlencode(var.openbao_override_values)]
 }
 
 resource "helm_release" "openbao_secret_store_init" {
