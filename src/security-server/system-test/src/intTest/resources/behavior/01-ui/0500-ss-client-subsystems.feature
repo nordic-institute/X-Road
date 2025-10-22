@@ -1,7 +1,6 @@
 @SecurityServer
 @UI
 @Client
-@Skip #TODO beta1 release preparation
 Feature: 0500 - SS: Client Subsystems
 
   Background:
@@ -31,16 +30,16 @@ Feature: 0500 - SS: Client Subsystems
     Then Client "<$subsystemName>" with status "<$status>" is present in the list
     Examples:
       | $member     | $memberClass | $memberCode | $subsystem    | $subsystemName | $newSubsystemName | $subsystemIdentifier       | $status    |
-      | Test member | COM          | 1234        | Testservice   | Test service   | Test service      | DEV:COM:1234:TestService   | REGISTERED |
-      | Test member | COM          | 1234        | Testsaved     | Test saved     | Test saved edited | DEV:COM:1234:TestSaved     | REGISTERED |
-      | Test member | COM          | 1234        | test-consumer | Test consumer  | Test consumer     | DEV:COM:1234:test-consumer | SAVED      |
+      | Test member | COM          | 1234        | Testservice   | Test service   | Test service      | DEV:COM:1234:TestService   | Registered |
+      | Test member | COM          | 1234        | Testsaved     | Test saved     | Test saved edited | DEV:COM:1234:TestSaved     | Registered |
+      | Test member | COM          | 1234        | test-consumer | Test consumer  | Test consumer     | DEV:COM:1234:test-consumer | Saved      |
 
   Scenario: New Subsystem is added, but management registration fails
     When Subsystem add page is opened for Client "Test member"
     And Subsystem code is set to "random-sub-1"
     When Add subsystem form is submitted
     And Register client send registration request dialog is confirmed
-    Then Client "random-sub-1" with id "DEV:COM:1234:random-sub-1" and status "SAVED" is present in the list
+    Then Client "random-sub-1" with id "DEV:COM:1234:random-sub-1" and status "Saved" is present in the list
     #And error: "Security server has no valid authentication certificate" was displayed
 
 
@@ -50,4 +49,4 @@ Feature: 0500 - SS: Client Subsystems
     And Subsystem name is set to "Named random sub 3"
     When Add subsystem form is submitted
     And Register client send registration request dialog is confirmed
-    Then Client "named-random-sub-3" with id "DEV:COM:1234:named-random-sub-3" and status "SAVED" is present in the list
+    Then Client "named-random-sub-3" with id "DEV:COM:1234:named-random-sub-3" and status "Saved" is present in the list

@@ -111,7 +111,7 @@ public class ClientPageObj {
         }
 
         public SelenideElement radioSubsystemById(String id) {
-            return $x(format("//tbody//tr[td[3][contains(.,'%s')] ]//div[@class ='v-radio']", id));
+            return $x(format("//tbody//tr[td[3][contains(.,'%s')] ]//div[contains(@class, 'v-radio')]", id));
         }
 
         public SelenideElement memberNameValue() {
