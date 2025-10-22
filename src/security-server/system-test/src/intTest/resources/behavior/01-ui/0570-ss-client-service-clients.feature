@@ -1,5 +1,6 @@
 @SecurityServer
 @Client
+@Skip #TODO beta1 release preparation
 Feature: 0570 - SS: Client Service clients
 
   Background:

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,132 +25,132 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <table class="xrd-table keys-table">
+  <div class="pr-4 pb-4 pl-4">
+    <v-table class="xrd">
       <KeysTableThead
         :sort-direction="sortDirection"
         :selected-sort="selectedSort"
         @set-sort="setSort"
       />
+      <tbody>
+        <template v-for="key in sortedKeys" :key="key.id">
+          <!-- SOFTWARE token table body -->
+          <template v-if="tokenType === tokenTypes.SOFTWARE">
+            <KeyRow
+              :token-logged-in="tokenLoggedIn"
+              :token-key="key"
+              @generate-csr="generateCsr(key)"
+              @key-click="keyClick(key)"
+            />
 
-      <tbody v-for="key in sortedKeys" :key="key.id">
-        <!-- SOFTWARE token table body -->
-        <template v-if="tokenType === tokenTypes.SOFTWARE">
-          <KeyRow
-            :token-logged-in="tokenLoggedIn"
-            :token-key="key"
-            @generate-csr="generateCsr(key)"
-            @key-click="keyClick(key)"
-          />
-
-          <CertificateRow
-            v-for="cert in key.certificates"
-            :key="cert.certificate_details.hash"
-            :cert="cert"
-            :is-acme-certificate="isAcmeCertificate(cert)"
-            @certificate-click="certificateClick(cert, key)"
-          >
-            <template #certificateAction>
-              <xrd-button
-                v-if="
-                  showRegisterCertButton &&
-                  cert.possible_actions?.includes(PossibleAction.REGISTER)
-                "
-                class="table-button-fix test-register"
-                :outlined="false"
-                text
-                @click="showRegisterCertDialog(cert)"
-                >{{ $t('action.register') }}
-              </xrd-button>
-            </template>
-          </CertificateRow>
-        </template>
-
-        <!-- HARDWARE token table body -->
-        <template v-if="tokenType === 'HARDWARE'">
-          <KeyRow
-            :token-logged-in="tokenLoggedIn"
-            :token-key="key"
-            @generate-csr="generateCsr(key)"
-            @key-click="keyClick(key)"
-          />
-
-          <CertificateRow
-            v-for="cert in key.certificates"
-            :key="cert.certificate_details.hash"
-            :cert="cert"
-            :is-acme-certificate="isAcmeCertificate(cert)"
-            @certificate-click="certificateClick(cert, key)"
-          >
-            <template #certificateAction>
-              <template v-if="canImportFromToken">
-                <xrd-button
+            <CertificateRow
+              v-for="cert in key.certificates"
+              :key="cert.certificate_details.hash"
+              :cert="cert"
+              :is-acme-certificate="isAcmeCertificate(cert)"
+              @certificate-click="certificateClick(cert, key)"
+            >
+              <template #certificateAction>
+                <XrdBtn
                   v-if="
-                    cert.possible_actions?.includes(
-                      PossibleAction.IMPORT_FROM_TOKEN,
-                    )
+                    showRegisterCertButton &&
+                    cert.possible_actions?.includes(PossibleAction.REGISTER)
                   "
-                  class="table-button-fix"
-                  :outlined="false"
-                  text
-                  @click="importCert(cert.certificate_details.hash)"
-                  >{{ $t('keys.importCert') }}
-                </xrd-button>
-
-                <!-- Special case where HW cert has auth usage -->
-                <div v-else-if="key.usage === 'AUTHENTICATION'">
-                  {{ $t('keys.authNotSupported') }}
-                </div>
+                  class="table-button-fix test-register"
+                  variant="text"
+                  text="action.register"
+                  color="tertiary"
+                  @click="showRegisterCertDialog(cert)"
+                />
               </template>
-            </template>
-          </CertificateRow>
-        </template>
+            </CertificateRow>
+          </template>
 
-        <!-- CSRs -->
-        <template
-          v-if="
-            key.certificate_signing_requests &&
-            key.certificate_signing_requests.length > 0
-          "
-        >
-          <tr v-for="req in key.certificate_signing_requests" :key="req.id">
-            <td class="td-name">
-              <div class="name-wrap">
-                <i class="icon-Certificate cert-icon" />
-                <div>{{ $t('keys.request') }}</div>
-              </div>
-            </td>
-            <td colspan="5">{{ req.id }}</td>
-            <td class="td-align-right">
-              <xrd-button
-                v-if="isAcmeCapable(req, key)"
-                :disabled="!canImportCertificate(key) || !tokenLoggedIn"
-                class="table-button-fix"
-                :outlined="false"
-                text
-                data-test="order-acme-certificate-button"
-                :loading="acmeOrderLoading[req.id]"
-                @click="openAcmeOrderCertificateDialog(req, key)"
-              >
-                {{ $t('keys.orderAcmeCertificate') }}
-              </xrd-button>
-              <xrd-button
-                v-if="
-                  req.possible_actions.includes(PossibleAction.DELETE) &&
-                  canDeleteCsr(key)
-                "
-                class="table-button-fix"
-                :outlined="false"
-                text
-                data-test="delete-csr-button"
-                @click="showDeleteCsrDialog(req, key)"
-                >{{ $t('keys.deleteCsr') }}
-              </xrd-button>
-            </td>
-          </tr>
+          <!-- HARDWARE token table body -->
+          <template v-if="tokenType === 'HARDWARE'">
+            <KeyRow
+              :token-logged-in="tokenLoggedIn"
+              :token-key="key"
+              @generate-csr="generateCsr(key)"
+              @key-click="keyClick(key)"
+            />
+
+            <CertificateRow
+              v-for="cert in key.certificates"
+              :key="cert.certificate_details.hash"
+              :cert="cert"
+              :is-acme-certificate="isAcmeCertificate(cert)"
+              @certificate-click="certificateClick(cert, key)"
+            >
+              <template #certificateAction>
+                <template v-if="canImportFromToken">
+                  <XrdBtn
+                    v-if="
+                      cert.possible_actions?.includes(
+                        PossibleAction.IMPORT_FROM_TOKEN,
+                      )
+                    "
+                    variant="text"
+                    text="keys.importCert"
+                    color="tertiary"
+                    @click="importCert(cert.certificate_details.hash)"
+                  />
+
+                  <!-- Special case where HW cert has auth usage -->
+                  <div v-else-if="key.usage === 'AUTHENTICATION'">
+                    {{ $t('keys.authNotSupported') }}
+                  </div>
+                </template>
+              </template>
+            </CertificateRow>
+          </template>
+
+          <!-- CSRs -->
+          <template
+            v-if="
+              key.certificate_signing_requests &&
+              key.certificate_signing_requests.length > 0
+            "
+          >
+            <tr v-for="req in key.certificate_signing_requests" :key="req.id">
+              <td class="td-name pl-13">
+                <XrdLabelWithIcon
+                  icon="editor_choice"
+                  color="on-surface"
+                  :label="$t('keys.request')"
+                />
+              </td>
+              <td colspan="5">{{ req.id }}</td>
+              <td class="text-end">
+                <XrdBtn
+                  v-if="isAcmeCapable(req, key)"
+                  data-test="order-acme-certificate-button"
+                  class="table-button-fix"
+                  variant="text"
+                  color="tertiary"
+                  text="keys.orderAcmeCertificate"
+                  :disabled="!canImportCertificate(key) || !tokenLoggedIn"
+                  :loading="acmeOrderLoading[req.id]"
+                  @click="openAcmeOrderCertificateDialog(req, key)"
+                />
+                <XrdBtn
+                  v-if="
+                    req.possible_actions.includes(PossibleAction.DELETE) &&
+                    canDeleteCsr(key)
+                  "
+                  data-test="delete-csr-button"
+                  class="table-button-fix"
+                  variant="text"
+                  color="tertiary"
+                  text="keys.deleteCsr"
+                  @click="showDeleteCsrDialog(req, key)"
+                />
+              </td>
+            </tr>
+          </template>
         </template>
       </tbody>
-    </table>
+    </v-table>
 
     <RegisterCertificateDialog
       :dialog="registerDialog"
@@ -185,7 +186,6 @@ import KeyRow from './KeyRow.vue';
 import CertificateRow from './CertificateRow.vue';
 import KeysTableThead from './KeysTableThead.vue';
 import {
-  CertificateAuthority,
   Key,
   KeyUsageType,
   PossibleAction,
@@ -200,19 +200,19 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { useNotifications } from '@/store/modules/notifications';
-import XrdButton from '@niis/shared-ui/src/components/XrdButton.vue';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import AcmeOrderCertificateDialog from '@/views/KeysAndCertificates/SignAndAuthKeys/AcmeOrderCertificateDialog.vue';
+import { XrdBtn, XrdLabelWithIcon, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     AcmeOrderCertificateDialog,
-    XrdButton,
+    XrdBtn,
     RegisterCertificateDialog,
     KeyRow,
     CertificateRow,
     KeysTableThead,
+    XrdLabelWithIcon,
   },
   props: {
     keys: {
@@ -234,6 +234,10 @@ export default defineComponent({
     'import-cert-by-hash',
     'refresh-list',
   ],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return {
       registerDialog: false,
@@ -273,7 +277,6 @@ export default defineComponent({
   },
 
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     ...mapActions(useCsr, ['orderAcmeCertificate']),
     setSort(sort: KeysSortColumn): void {
       // Set sort column and direction
@@ -347,11 +350,11 @@ export default defineComponent({
           { address },
         )
         .then(() => {
-          this.showSuccess(this.$t('keys.certificateRegistered'));
+          this.addSuccessMessage('keys.certificateRegistered');
           this.$emit('refresh-list');
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
         });
     },
     showDeleteCsrDialog(req: TokenCertificateSigningRequest, key: Key): void {
@@ -377,11 +380,11 @@ export default defineComponent({
         this.selectedKey?.usage,
       )
         .then(() => {
-          this.showSuccess(this.$t('keys.acmeCertOrdered'));
+          this.addSuccessMessage('keys.acmeCertOrdered');
           this.$emit('refresh-list');
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
         })
         .finally(() => {
           this.acmeOrderLoading[csrId] = false;
@@ -401,49 +404,15 @@ export default defineComponent({
           )}/csrs/${encodePathParameter(this.selectedCsr.id)}`,
         )
         .then(() => {
-          this.showSuccess(this.$t('keys.csrDeleted'));
+          this.addSuccessMessage('keys.csrDeleted');
           this.$emit('refresh-list');
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
         });
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-@use '@niis/shared-ui/src/assets/colors';
-
-.cert-icon {
-  color: colors.$WarmGrey100;
-  margin-right: 20px;
-}
-
-.keys-table {
-  margin-top: 0px;
-}
-
-.table-button-fix {
-  margin-left: auto;
-  margin-right: 0;
-}
-
-.td-align-right {
-  text-align: right;
-}
-
-td.td-name {
-  padding-left: 30px;
-  text-align: center;
-  vertical-align: middle;
-}
-
-.name-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-left: 2.7rem;
-}
-</style>
+<style lang="scss" scoped></style>

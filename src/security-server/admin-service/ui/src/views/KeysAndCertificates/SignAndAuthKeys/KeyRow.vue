@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,29 +26,28 @@
  -->
 <template>
   <tr data-test="key-row">
-    <td class="pl-8">
-      <div class="name-wrap-top">
-        <i class="icon-Key key-icon" />
-        <div class="clickable-link identifier-wrap" @click="keyClick">
-          <span v-if="!tokenKey.name || tokenKey.name === ''">{{
-            tokenKey.id
-          }}</span>
-          <span v-else>{{ tokenKey.name }}</span>
-        </div>
-      </div>
+    <td class="pl-4">
+      <XrdLabelWithIcon
+        icon="key"
+        clickable
+        semi-bold
+        spacing12
+        :label="tokenKey.name ? tokenKey.name : tokenKey.id"
+        @navigate="keyClick"
+      />
     </td>
     <td colspan="5"></td>
-    <td class="td-align-right">
-      <xrd-button
+    <td class="text-end">
+      <XrdBtn
         v-if="showGenerateCsr"
-        class="table-button-fix"
-        :outlined="false"
-        text
-        :disabled="disableGenerateCsr"
         data-test="generate-csr-button"
+        class="table-button-fix"
+        variant="text"
+        text="keys.generateCsr"
+        color="tertiary"
+        :disabled="disableGenerateCsr"
         @click="generateCsr"
-        >{{ $t('keys.generateCsr') }}</xrd-button
-      >
+      />
     </td>
   </tr>
 </template>
@@ -60,10 +60,12 @@ import { defineComponent, PropType } from 'vue';
 import { Key, PossibleAction, KeyUsageType } from '@/openapi-types';
 import { Permissions } from '@/global';
 import { mapState } from 'pinia';
+import { XrdLabelWithIcon, XrdBtn } from '@niis/shared-ui';
 
 import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
+  components: { XrdLabelWithIcon, XrdBtn },
   props: {
     tokenKey: {
       type: Object as PropType<Key>,
@@ -118,35 +120,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-@use '@niis/shared-ui/src/assets/colors';
-
-.table-button-fix {
-  margin-left: auto;
-  margin-right: 0;
-}
-
-.td-align-right {
-  text-align: right;
-}
-
-.clickable-link {
-  color: colors.$Purple100;
-  cursor: pointer;
-}
-
-.key-icon {
-  margin-right: 18px;
-  color: colors.$Purple100;
-}
-
-.name-wrap-top {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  align-content: center;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-</style>
+<style lang="scss" scoped></style>

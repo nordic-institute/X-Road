@@ -29,6 +29,8 @@
  These are not in openapi definitions.
 */
 import { VDataTable } from 'vuetify/components';
+import { DataTableHeader as VuetifyDataTableHeader } from 'vuetify/lib/components/VDataTable/types';
+import { SortItem as VuetifySortItem } from 'vuetify/lib/components/VDataTable/composables/sort';
 
 // Action info for notification. In practise the "action" is navigtion to a given route.
 export interface NotificationAction {
@@ -86,15 +88,16 @@ export interface PagingOptions {
  * Mirrors vuetify header type
  * @link https://vuetifyjs.com/en/api/v-data-table/#props-headers
  * @link https://github.com/vuetifyjs/vuetify/issues/16680#issuecomment-1724721582
+ *
+ * @deprecated use directly if needed
  */
-export type DataTableHeader = Exclude<
-  NonNullable<VDataTable['$props']['headers']>[number],
-  Readonly<unknown[]>
->;
+export type DataTableHeader = VuetifyDataTableHeader;
 
 /**
  * Mirrors vuetify SortBy type
  * @link https://vuetifyjs.com/en/api/v-data-table/#props-sort-by
  * @link https://github.com/vuetifyjs/vuetify/issues/16680#issuecomment-1724721582
+ *
+ * @deprecated use directly if needed
  */
-export type SortItem = NonNullable<VDataTable['$props']['sortBy']>[number];
+export type SortItem = VuetifySortItem;

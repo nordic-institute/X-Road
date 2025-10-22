@@ -1,0 +1,226 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+.xrd {
+  &.v-progress-linear {
+    .v-progress-linear__background {
+      background-color: rgb(var(--v-theme-surface-container))
+    }
+  }
+
+  &.v-table:not(.v-data-table) {
+    background-color: rgb(var(--v-theme-surface-container));
+
+    .v-table__wrapper {
+
+      thead {
+        th {
+          color: rgb(var(--v-theme-on-surface-variant));
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  &.v-card {
+    .v-progress-linear__background {
+      background-color: rgb(var(--v-theme-surface-container))
+    }
+  }
+
+  &.v-data-table {
+    background-color: rgb(var(--v-theme-surface-container)) !important;
+
+    .v-progress-linear__background {
+      background-color: rgb(var(--v-theme-surface-container))
+    }
+
+    thead {
+      .v-data-table__th {
+        color: rgb(var(--v-theme-on-surface-variant)) !important;
+
+        &.v-data-table__th--sorted {
+          color: rgb(var(--v-theme-on-surface)) !important;
+        }
+
+        .v-data-table-header__sort-icon {
+          margin-left: 4px;
+        }
+      }
+
+      .v-data-table__th:hover {
+        @extend .v-data-table__th;
+
+        .v-data-table-header__sort-icon {
+          opacity: 1 !important;
+        }
+      }
+    }
+
+    .v-data-table-footer {
+      .v-select {
+        .v-field__outline {
+          border: none;
+        }
+      }
+    }
+
+    tbody {
+      .v-data-table__td {
+        color: rgb(var(--v-theme-on-surface)) !important;
+
+        &.v-data-table__td--select-row i {
+          color: rgb(var(--v-theme-on-surface-variant));
+        }
+      }
+    }
+  }
+
+  &.v-text-field,
+  &.v-file-input {
+    .v-progress-linear__background {
+      background-color: rgb(var(--v-theme-surface-container))
+    }
+
+    label,
+    .v-field__prepend-inner i {
+      color: rgb(var(--v-theme-on-surface-variant));
+    }
+
+    &:not(.v-input--error) {
+      .v-field__outline::before,
+      .v-field__outline__start,
+      .v-field__outline__end {
+        border-color: rgb(var(--v-theme-border-strong));
+      }
+
+      .v-field__outline::after,
+      .v-field__outline__start,
+      .v-field__outline__end {
+        border-color: rgb(var(--v-theme-border-bright));
+      }
+
+      .v-messages__message {
+        color: rgb(var(--v-theme-on-surface));
+        opacity: 0.6;
+      }
+    }
+
+    .v-field--variant-outlined.v-field--active .v-field__overlay {
+      background-color: rgb(var(--v-theme-surface-container));
+      opacity: 1;
+    }
+
+    .v-field--variant-outlined .v-field__overlay {
+      background-color: rgb(var(--v-theme-surface-container));
+      opacity: .4;
+    }
+  }
+
+  &.v-select,
+  &.v-autocomplete,
+  &.v-combobox {
+    label,
+    .v-field__prepend-inner i,
+    .v-field__append-inner i {
+      color: rgb(var(--v-theme-on-surface-variant));
+    }
+
+    &:not(.v-input--error) {
+      .v-field__outline::before {
+        border-color: rgb(var(--v-theme-border-strong));
+      }
+
+      .v-field__outline::after {
+        border-color: rgb(var(--v-theme-border-bright));
+      }
+    }
+  }
+
+  &.v-switch.v-switch--inset {
+    .v-switch__track {
+      border: 2px solid rgb(var(--v-theme-secondary));
+    }
+
+    .v-switch__thumb.v-switch__thumb--filled {
+      background: rgb(var(--v-theme-secondary));
+
+      i::before {
+        color: rgb(var(--v-theme-on-secondary));
+        font-size: 16px;
+      }
+    }
+
+
+    &:has(input[checked]) {
+      .v-switch__track {
+        border: none;
+        background: rgb(var(--v-theme-primary));
+        opacity: 1;
+      }
+
+      .v-switch__thumb.v-switch__thumb--filled {
+        background: rgb(var(--v-theme-on-primary));
+
+        i::before {
+          color: rgb(var(--v-theme-primary));
+        }
+      }
+    }
+  }
+
+  &.v-checkbox,
+  &.v-checkbox-btn,
+  &.v-radio {
+
+    i {
+      color: rgb(var(--v-theme-on-surface-variant));
+    }
+
+    .v-label {
+      color: rgb(var(--v-theme-on-surface));
+    }
+  }
+
+  &.v-radio-group {
+    & > .v-input__control > .v-label {
+      color: rgb(var(--v-theme-on-surface-variant));
+      font-size: 12px;
+      line-height: 16px;
+      letter-spacing: 0.2px;
+    }
+  }
+
+}
+
+.v-overlay__content {
+  .xrd-select-list {
+    background: rgb(var(--v-theme-background)) !important;
+    color: rgb(var(--v-theme-on-surface)) !important;
+  }
+}

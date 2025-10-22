@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,23 +25,22 @@
  * THE SOFTWARE.
  */
 
+import { defineStore } from 'pinia';
+
 import {
   MaintenanceMode,
   NodeType,
   NodeTypeResponse,
-  SecurityServer,
   VersionInfo,
   AuthProviderType,
   AuthProviderTypeResponse,
 } from '@/openapi-types';
 import * as api from '@/util/api';
-import { defineStore } from 'pinia';
 
 export interface SystemState {
   securityServerVersion: VersionInfo;
-  securityServerNodeType: undefined | NodeType;
-  currentSecurityServer: SecurityServer;
-  securityServerAuthProviderType: undefined | AuthProviderType;
+  securityServerNodeType?: NodeType;
+  securityServerAuthProviderType?: AuthProviderType;
 }
 
 export const useSystem = defineStore('system', {
@@ -48,7 +48,6 @@ export const useSystem = defineStore('system', {
     return {
       securityServerVersion: {} as VersionInfo,
       securityServerNodeType: undefined,
-      currentSecurityServer: {} as SecurityServer,
       securityServerAuthProviderType: undefined,
     };
   },
@@ -106,6 +105,11 @@ export const useSystem = defineStore('system', {
       return api
         .get<MaintenanceMode>('/system/maintenance-mode')
         .then((resp) => resp.data);
+    },
+    async changeSecurityServerAddress(address: string) {
+      return api.put('/system/server-address', {
+        address,
+      });
     },
   },
 });

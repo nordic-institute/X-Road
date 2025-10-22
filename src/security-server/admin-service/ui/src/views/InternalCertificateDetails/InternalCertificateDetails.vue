@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,44 +25,71 @@
    THE SOFTWARE.
  -->
 <template>
-  <CertificateView v-if="certificate" :certificate-details="certificate" />
+  <XrdElevatedViewFixedWidth
+    title="cert.certificate"
+    fixed-height
+    :breadcrumbs="breadcrumbs"
+    :loading="loading"
+    @close="close"
+  >
+    <XrdCertificate v-if="certificate" :certificate="certificate" />
+  </XrdElevatedViewFixedWidth>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import * as api from '@/util/api';
+<script lang="ts" setup>
+import { ref, computed } from 'vue';
 import { CertificateDetails } from '@/openapi-types';
-import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
-import CertificateView from '@/components/certificate/CertificateView.vue';
+import {
+  XrdElevatedViewFixedWidth,
+  XrdCertificate,
+  useNotifications,
+} from '@niis/shared-ui';
+import { useTlsCertificate } from '@/store/modules/tls-certificate';
+import { useRouter } from 'vue-router';
+import { RouteName } from '@/global';
+import { useI18n } from 'vue-i18n';
 
-export default defineComponent({
-  components: {
-    CertificateView,
-  },
-  props: {},
-  data() {
-    return {
-      certificate: undefined as CertificateDetails | undefined,
-    };
-  },
-  created() {
-    this.fetchData();
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError']),
-    fetchData(): void {
-      api
-        .get<CertificateDetails>('/system/certificate')
-        .then((res) => {
-          this.certificate = res.data;
-        })
-        .catch((error) => {
-          this.showError(error);
-        });
+const { fetchTlsCertificate } = useTlsCertificate();
+
+const router = useRouter();
+const { t } = useI18n();
+const { addError } = useNotifications();
+const certificate = ref<CertificateDetails | undefined>(undefined);
+const loading = ref(false);
+
+const breadcrumbs = computed(() => [
+  {
+    title: t('tab.main.keys'),
+    to: {
+      name: RouteName.SignAndAuthKeys,
     },
   },
-});
+  {
+    title: t('tab.keys.ssTlsCertificate'),
+    to: {
+      name: RouteName.SSTlsCertificate,
+    },
+  },
+  {
+    title: t('cert.certificate'),
+  },
+]);
+
+function fetchData(): void {
+  loading.value = true;
+  fetchTlsCertificate()
+    .then((cert) => (certificate.value = cert))
+    .catch((error) => addError(error))
+    .finally(() => (loading.value = false));
+}
+
+function close() {
+  router.push({
+    name: RouteName.SSTlsCertificate,
+  });
+}
+
+fetchData();
 </script>
 
 <style lang="scss" scoped></style>

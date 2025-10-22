@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,23 +26,47 @@
  -->
 <template>
   <div class="cert-row-wrap" data-test="renewal-status">
-    <xrd-status-icon :status="status.icon" />
-    <div class="status-text">{{ status.text }}</div>
-    <div v-if="status.additionalText">
-      &nbsp;{{ status.additionalText }}
-      <v-tooltip v-if="status.tooltipText" activator="parent" location="top">
-        {{ status.tooltipText }}
-      </v-tooltip>
-    </div>
+    <XrdStatusChip v-if="status.type" :type="status.type">
+      <template #icon>
+        <xrd-status-icon class="mr-1 ml-n1" :status="status.icon" />
+      </template>
+      <template #text>
+        <span class="body-small">
+          <span class="font-weight-medium">{{ status.text }}</span>
+          <span v-if="status.additionalText">
+            &nbsp;{{ status.additionalText }}
+            <v-tooltip
+              v-if="status.tooltipText"
+              activator="parent"
+              location="top"
+            >
+              {{ status.tooltipText }}
+            </v-tooltip>
+          </span>
+        </span>
+      </template>
+    </XrdStatusChip>
+    <div v-else class="status-text">{{ status.text }}</div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
+
+import { helper, XrdStatusChip } from '@niis/shared-ui';
+
 import { CertificateStatus, TokenCertificate } from '@/openapi-types';
-import { formatDateTime } from '@/util/helpers';
+
+type Status = {
+  type?: 'error' | 'success' | 'info';
+  icon: string;
+  text: string;
+  additionalText?: string;
+  tooltipText?: string;
+};
 
 export default defineComponent({
+  components: { XrdStatusChip },
   props: {
     certificate: {
       type: Object as PropType<TokenCertificate>,
@@ -52,18 +77,20 @@ export default defineComponent({
     },
   },
   computed: {
-    status() {
+    status(): Status {
       if (
         !this.isAcmeCertificate ||
         this.certificate.status !== CertificateStatus.REGISTERED
       ) {
         return {
+          type: undefined,
           icon: '',
           text: 'N/A',
         };
       }
       if (this.certificate.renewal_error) {
         return {
+          type: 'error',
           icon: 'error',
           text: 'Renewal error:',
           additionalText: this.certificate.renewal_error,
@@ -71,22 +98,21 @@ export default defineComponent({
       }
       if (this.certificate.renewed_cert_hash) {
         return {
+          type: 'info',
           icon: 'progress-register',
           text: 'Renewal in progress',
         };
       }
-      const dateOnly = 'YYYY-MM-DD';
-      const dateAndTime = 'YYYY-MM-DD HH:mm:ss';
+
       return {
+        type: 'success',
         icon: 'ok',
         text: 'Next planned renewal on',
-        additionalText: formatDateTime(
+        additionalText: helper.formatDate(
           this.certificate.next_automatic_renewal_time,
-          dateOnly,
         ),
-        tooltipText: formatDateTime(
+        tooltipText: helper.formatDateTime(
           this.certificate.next_automatic_renewal_time,
-          dateAndTime,
         ),
       };
     },
@@ -94,23 +120,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-
-.cert-row-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.status-text {
-  font-style: normal;
-  font-weight: bold;
-  font-size: 12px;
-  line-height: 16px;
-  color: colors.$WarmGrey100;
-  margin-left: 2px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-</style>
+<style lang="scss" scoped></style>

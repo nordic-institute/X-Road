@@ -26,7 +26,7 @@
  */
 
 import { defineStore } from 'pinia';
-import { saveResponseAsFile } from '@/util/helpers';
+import { helper } from '@niis/shared-ui';
 import axios from 'axios';
 import { TrustedAnchor } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
@@ -72,7 +72,7 @@ export const useTrustedAnchor = defineStore('trustedAnchor', {
           responseType: 'blob',
         })
         .then((resp) => {
-          saveResponseAsFile(resp, 'trusted-anchor.xml');
+          helper.saveResponseAsFile(resp, 'trusted-anchor.xml');
         })
         .catch((error) => {
           throw error;

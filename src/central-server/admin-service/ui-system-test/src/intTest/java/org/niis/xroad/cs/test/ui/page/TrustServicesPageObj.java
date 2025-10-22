@@ -47,7 +47,7 @@ public class TrustServicesPageObj {
     }
 
     public SelenideElement tableServicesRowOf(String name) {
-        var xpath = "./tbody/tr/td/div[contains(text(), '%s')]";
+        var xpath = "./tbody/tr/td/div//span[contains(., '%s')]";
         return tableServices().find(xpath(String.format(xpath, name)));
     }
 
@@ -58,19 +58,19 @@ public class TrustServicesPageObj {
 
 
     public SelenideElement cardSubjectDn() {
-        return $x("//div[@data-test='subject-distinguished-name-card']/div[contains(@class, 'v-card-text')]/div");
+        return $x("//tr[@data-test='subject-distinguished-name-card']/td[2]");
     }
 
     public SelenideElement cardIssuerDn() {
-        return $x("//div[@data-test='issuer-distinguished-name-card']/div[contains(@class, 'v-card-text')]/div");
+        return $x("//tr[@data-test='issuer-distinguished-name-card']/td[2]");
     }
 
     public SelenideElement cardValidFrom() {
-        return $x("//div[@data-test='valid-from-card']/div[contains(@class, 'v-card-text')]//span");
+        return $x("//tr[@data-test='valid-from-card']/td[2]//span");
     }
 
     public SelenideElement cardValidTo() {
-        return $x("//div[@data-test='valid-to-card']/div[contains(@class, 'v-card-text')]//span");
+        return $x("//tr[@data-test='valid-to-card']/td[2]//span");
     }
 
 
@@ -79,17 +79,17 @@ public class TrustServicesPageObj {
         public final IntermediateCasPageObj intermediaCas = new IntermediateCasPageObj();
 
         public SelenideElement tabSettings() {
-            return $x("//article[@id='certification-service-view']//div[@role='tablist']"
+            return $x("//div[@data-test='trust-services-view']//div[@role='tablist']"
                     + "//a[@data-test='certification-service-settings-tab-button']");
         }
 
         public SelenideElement tabIntermediateCas() {
-            return $x("//article[@id='certification-service-view']//div[@role='tablist']"
+            return $x("//div[@data-test='trust-services-view']//div[@role='tablist']"
                     + "//a[@data-test='certification-service-intermediate-cas-tab-button']");
         }
 
         public SelenideElement tabOcspResponders() {
-            return $x("//article[@id='certification-service-view']//div[@role='tablist']"
+            return $x("//div[@data-test='trust-services-view']//div[@role='tablist']"
                     + "//a[@data-test='certification-service-ocsp-responders-tab-button']");
         }
 
@@ -98,44 +98,40 @@ public class TrustServicesPageObj {
         }
 
         public SelenideElement btnDeleteTrustService() {
-            return $x("//div[@data-test='delete-trust-service']");
+            return $x("//button[@data-test='delete-trust-service']");
         }
 
         public class CaSettings {
             public SelenideElement cardTlsAuth() {
-                return $x("//div[@data-test='tls-auth-card']/div[contains(@class, 'v-card-text')]/div");
+                return $x("//td[@data-test='tls-auth-card']");
             }
 
             public SelenideElement cardCertProfile() {
-                return $x("//div[@data-test='cert-profile-card']/div[contains(@class, 'v-card-text')]/div");
+                return $x("//td[@data-test='cert-profile-card']");
             }
 
             public SelenideElement acmeServerDirectoryUrl() {
-                return $x("//div[@data-test='cert-acme-card']//div[@data-test='acme-server-directory-url']");
+                return $x("//div[@data-test='cert-acme-card']//td[@data-test='acme-server-directory-url']");
             }
 
             public SelenideElement acmeServerIpAddress() {
-                return $x("//div[@data-test='cert-acme-card']//div[@data-test='acme-server-ip-address']");
+                return $x("//div[@data-test='cert-acme-card']//td[@data-test='acme-server-ip-address']");
             }
 
             public SelenideElement authenticationCertificateProfileId() {
-                return $x("//div[@data-test='cert-acme-card']//div[@data-test='authentication-certificate-profile-id']");
+                return $x("//div[@data-test='cert-acme-card']//td[@data-test='authentication-certificate-profile-id']");
             }
 
             public SelenideElement signingCertificateProfileId() {
-                return $x("//div[@data-test='cert-acme-card']//div[@data-test='signing-certificate-profile-id']");
+                return $x("//div[@data-test='cert-acme-card']//td[@data-test='signing-certificate-profile-id']");
             }
 
-            public SelenideElement btnEditTlsAuth() {
-                return $x("//div[@data-test='tls-auth-card']//button[@data-test='info-card-edit-button']");
-            }
-
-            public SelenideElement btnEditCertProfile() {
-                return $x("//div[@data-test='cert-profile-card']//button[@data-test='info-card-edit-button']");
+            public SelenideElement btnEditCa() {
+                return $x("//button[@data-test='edit-ca-btn']");
             }
 
             public SelenideElement btnEditAcme() {
-                return $x("//div[@data-test='cert-acme-card']//button[@data-test='info-card-edit-button']");
+                return $x("//div[@data-test='cert-acme-card']//button[@data-test='edit-ca-acme-btn']");
             }
 
             public SelenideElement checkboxTlsAuth() {
@@ -168,6 +164,10 @@ public class TrustServicesPageObj {
     public class AddDialog {
         public SelenideElement inputFile() {
             return $x("//input[@type='file']");
+        }
+
+        public SelenideElement uploadBtn() {
+            return $x("//button[@data-test='upload-file-btn']");
         }
     }
 

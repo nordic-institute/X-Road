@@ -37,27 +37,23 @@ public class TlsKeyPageObj {
     public final GenerateTlsCsrView generateTlsCsrView = new GenerateTlsCsrView();
 
     public SelenideElement buttonGenerateKey() {
-        return $x("//button[@data-test='security-server-tls-certificate-generate-key-button']");
-    }
-
-    public SelenideElement buttonImportCert() {
-        return $x("//button[@data-test='security-server-tls-certificate-import-certificate']");
+        return $x("//button[@data-test='management-service-certificate-generateKey']");
     }
 
     public SelenideElement inputTlsCertificateFile() {
         return $x("//input[@type='file']");
     }
 
-    public SelenideElement buttonExportCert() {
-        return $x("//button[@data-test='security-server-tls-certificate-export-certificate-button']");
+    public SelenideElement buttonDownloadCert() {
+        return $x("//button[@data-test='download-management-service-certificate']");
     }
 
     public SelenideElement buttonGenerateCsr() {
-        return $x("//button[@data-test='security-server-tls-certificate-generate-csr-button']");
+        return $x("//button[@data-test='management-service-certificate-generateCsr']");
     }
 
     public SelenideElement internalTlsCertificate() {
-        return $x("//div[@data-test='internal-tls-certificate']");
+        return $x("//div[@data-test='view-management-service-certificate']");
     }
 
     public static class GenerateTlsKeyAndCertificateDialog {
@@ -68,11 +64,11 @@ public class TlsKeyPageObj {
 
     public class GenerateTlsCsrView {
         public SelenideElement distinguishedNameInput() {
-            return $x("//div[@data-test='generate-internal-csr-distinguished-name-field']");
+            return $x("//div[@data-test='enter-distinguished-name']");
         }
 
         public SelenideElement btnGenerateCsr() {
-            return $x("//button[@data-test='generate-internal-csr-generate-csr-button']");
+            return $x("//button[@data-test='dialog-save-button']");
         }
 
         public SelenideElement btnDone() {

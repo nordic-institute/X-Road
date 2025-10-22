@@ -34,6 +34,9 @@ import static org.openqa.selenium.By.xpath;
 @SuppressWarnings("InnerClassMayBeStatic")
 public class ManagementRequestsPageObj {
 
+    private static final String DATA_ROW = "//td[@data-test='row-label' and contains(text(),'%s')]/../td[@data-test='row-value']";
+    private static final String RELATIVE_DATA_ROW = ".//td[@data-test='row-label' and contains(text(),'%s')]/../td[@data-test='row-value']";
+
     public final RequestInformation requestInformation = new RequestInformation();
     public final SecurityServerInformation securityServerInformation = new SecurityServerInformation();
     public final Certificate certificate = new Certificate();
@@ -49,17 +52,17 @@ public class ManagementRequestsPageObj {
 
     public SelenideElement tableRowOf(String text) {
         var xpath = "./tbody/tr/td/div[contains(text(), '%s')]";
-        return table().find(xpath(String.format(xpath, text)));
+        return table().find(xpath(xpath.formatted(text)));
     }
 
     public SelenideElement titleOfDetails(String title) {
-        var xpath = "//div[@class='xrd-view-title' and text()='%s']";
-        return $x(String.format(xpath, title));
+        var xpath = "//header/span[contains(@class, 'title-view') and text()='%s']";
+        return $x(xpath.formatted(title));
     }
 
     public SelenideElement titleOfSection(String title) {
-        var xpath = "//h2[contains(text(), '%s')]";
-        return $x(String.format(xpath, title));
+        var xpath = "//div[@data-test='view-title']/div[@data-test='view-title-text' and text() = '%s']";
+        return $x(xpath.formatted(title));
     }
 
     public SelenideElement search() {
@@ -68,133 +71,124 @@ public class ManagementRequestsPageObj {
 
     public SelenideElement tableCol(String name) {
         var xpath = "./thead/tr/th/div/span[text()='%s']/../..";
-        return table().find(xpath(String.format(xpath, name)));
+        return table().find(xpath(xpath.formatted(name)));
     }
 
     public SelenideElement btnApproveManagementRequest(String text) {
-        var xpath = "../..//td/div/div/button[@data-test='approve-button']";
+        var xpath = "../..//td/button[@data-test='approve-button']";
         return tableRowOf(text).find(xpath(xpath));
     }
 
     public SelenideElement btnApproveManagementRequest() {
-        var xpath = "../..//td/div/div/button[@data-test='approve-button']";
+        var xpath = "../..//td/button[@data-test='approve-button']";
         return table().find(xpath(xpath));
     }
 
     public SelenideElement btnDeclineManagementRequest(String url) {
-        var xpath = "../..//td/div/div/button[@data-test='decline-button']";
+        var xpath = "../..//td/button[@data-test='decline-button']";
         return tableRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnDeclineManagementRequest() {
-        var xpath = "../..//td/div/div/button[@data-test='decline-button']";
+        var xpath = "../..//td/button[@data-test='decline-button']";
         return table().find(xpath(xpath));
     }
 
     public SelenideElement clickableRequestId(String status, String type, String securityServerId) {
-        var statusXpath = "../..//div[contains(text(),'%s')]";
-        var typeXpath = "../../..//span[text()='%s']";
-        var requestIdXpath = "../../..//div[contains(@class,'request-id')]";
+        var statusXpath = "../..//span[contains(text(),'%s')]";
+        var typeXpath = "../../../..//span[text()='%s']";
+        var requestIdXpath = "../../../td/div[contains(@class,'cursor-pointer')]";
         return tableRowOf(securityServerId)
-                .find(xpath(String.format(statusXpath, status)))
-                .find(xpath(String.format(typeXpath, type)))
+                .find(xpath(statusXpath.formatted(status)))
+                .find(xpath(typeXpath.formatted(type)))
                 .find(xpath(requestIdXpath));
     }
 
     public class RequestInformation {
         public SelenideElement requestId() {
-            return $x("//td[@data-test='managementRequestDetails.requestId']");
+            return $x(DATA_ROW.formatted("Request ID"));
         }
 
         public SelenideElement received() {
-            return $x("//td[@data-test='managementRequestDetails.received']");
+            return $x(DATA_ROW.formatted("Received") + "/span");
         }
 
         public SelenideElement source() {
-            return $x("//td[@data-test='managementRequestDetails.source']");
+            return $x(DATA_ROW.formatted("Source"));
         }
 
         public SelenideElement status() {
-            return $x("//td[@data-test='managementRequestDetails.status']");
+            return $x(DATA_ROW.formatted("Status") + "//div[contains(@class, 'v-chip__content')]/span");
         }
 
         public SelenideElement comments() {
-            return $x("//td[@data-test='managementRequestDetails.comments']");
+            return $x(DATA_ROW.formatted("Comments"));
         }
     }
 
     public class SecurityServerInformation {
         private SelenideElement securityServerInformation() {
-            return $x("//section[@data-test='managementRequestDetails.securityServerInformation']");
+            return $x("//div[@data-test='view-title-text' and text() = 'Affected Security Server Information']/../..");
         }
 
         public SelenideElement ownerName() {
-            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerName']";
-            return securityServerInformation().find(xpath(xpath));
+            return securityServerInformation().find(xpath(RELATIVE_DATA_ROW.formatted("Owner Name")));
         }
 
         public SelenideElement ownerClass() {
-            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerClass']";
-            return securityServerInformation().find(xpath(xpath));
+            return securityServerInformation().find(xpath(RELATIVE_DATA_ROW.formatted("Owner Class")));
         }
 
         public SelenideElement ownerCode() {
-            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerCode']";
-            return securityServerInformation().find(xpath(xpath));
+            return securityServerInformation().find(xpath(RELATIVE_DATA_ROW.formatted("Owner Code")));
         }
 
         public SelenideElement serverCode() {
-            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.serverCode']";
-            return securityServerInformation().find(xpath(xpath));
+            return securityServerInformation().find(xpath(RELATIVE_DATA_ROW.formatted("Server Code")));
         }
 
         public SelenideElement address() {
-            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.address']";
-            return securityServerInformation().find(xpath(xpath));
+            return securityServerInformation().find(xpath(RELATIVE_DATA_ROW.formatted("Address")));
         }
     }
 
     public class Certificate {
         public SelenideElement ca() {
-            return $x("//td[@data-test='managementRequestDetails.ca']");
+            return $x(DATA_ROW.formatted("CA"));
         }
 
         public SelenideElement serialNumber() {
-            return $x("//td[@data-test='managementRequestDetails.serialNumber']");
+            return $x(DATA_ROW.formatted("Serial number"));
         }
 
         public SelenideElement subject() {
-            return $x("//td[@data-test='managementRequestDetails.subject']");
+            return $x(DATA_ROW.formatted("Subject"));
         }
 
         public SelenideElement expires() {
-            return $x("//td[@data-test='managementRequestDetails.expires']");
+            return $x(DATA_ROW.formatted("Expires") + "/span");
         }
     }
 
     public class Client {
         private SelenideElement clientInformation() {
-            return $x("//section[@data-test='managementRequestDetails.clientInformation']");
+            return $x("//div[@data-test='view-title-text' and text() = 'Client Submitted for Registration']/../..");
         }
 
         public SelenideElement ownerName() {
-            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerName']";
-            return clientInformation().find(xpath(xpath));
+            return clientInformation().find(xpath(RELATIVE_DATA_ROW.formatted("Owner Name")));
         }
 
         public SelenideElement ownerClass() {
-            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerClass']";
-            return clientInformation().find(xpath(xpath));
+            return clientInformation().find(xpath(RELATIVE_DATA_ROW.formatted("Owner Class")));
         }
 
         public SelenideElement ownerCode() {
-            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerCode']";
-            return clientInformation().find(xpath(xpath));
+            return clientInformation().find(xpath(RELATIVE_DATA_ROW.formatted("Owner Code")));
         }
 
         public SelenideElement subsystemCode() {
-            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.subsystemCode']";
-            return clientInformation().find(xpath(xpath));
+            return clientInformation().find(xpath(RELATIVE_DATA_ROW.formatted("Subsystem Code")));
         }
     }
 }

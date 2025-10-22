@@ -47,6 +47,7 @@ export const useSecurityServerAuthCert = defineStore('securityServerAuthCert', {
         >(`/security-servers/${securityServerId}/authentication-certificates`)
         .then((resp) => {
           this.authenticationCertificates = resp.data || [];
+          return this.authenticationCertificates;
         });
     },
     async deleteAuthenticationCertificate(

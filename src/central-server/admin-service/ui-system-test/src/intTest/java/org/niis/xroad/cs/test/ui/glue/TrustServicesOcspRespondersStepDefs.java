@@ -101,13 +101,13 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
         tableHeader
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-up"))
+                .shouldHave(cssClass("arrow_upward"))
                 .click();
 
         tableHeader
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-down"))
+                .shouldHave(cssClass("arrow_downward"))
                 .click();
     }
 

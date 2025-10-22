@@ -37,6 +37,7 @@ import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.or;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.tagName;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$x;
@@ -93,16 +94,16 @@ public final class VuetifyHelper {
         }
 
         public Checkbox shouldBeChecked() {
-            controlElement.$x(".//i").shouldHave(cssClass("mdi-checkbox-marked"));
+            controlElement.$x(".//i").shouldHave(cssClass("check_box"));
             return this;
         }
 
         public boolean isChecked() {
-            return controlElement.$x(".//i").has(cssClass("mdi-checkbox-marked"));
+            return controlElement.$x(".//i").has(cssClass("check_box"));
         }
 
         public Checkbox shouldBeUnchecked() {
-            controlElement.$x(".//i").shouldHave(cssClass("mdi-checkbox-blank-outline"));
+            controlElement.$x(".//i").shouldHave(cssClass("check_box_outline_blank"));
             return this;
         }
 
@@ -137,6 +138,11 @@ public final class VuetifyHelper {
             return this;
         }
 
+        public Switch shouldBeOn() {
+            input.shouldBe(selected);
+            return this;
+        }
+
         public Switch shouldBeDisabled() {
             input.shouldBe(disabled);
             return this;
@@ -150,6 +156,10 @@ public final class VuetifyHelper {
         public Switch shouldBe(WebElementCondition condition) {
             controlElement.shouldBe(condition);
             return this;
+        }
+
+        public void click() {
+            controlElement.shouldBe(visible).click();
         }
     }
 
@@ -199,6 +209,10 @@ public final class VuetifyHelper {
             input.shouldBe(condition);
             return this;
         }
+
+        public String getValue() {
+            return input.getValue();
+        }
     }
 
     public static final class Radio {
@@ -244,12 +258,18 @@ public final class VuetifyHelper {
             selectorOptionOf(val).click();
         }
 
-        public void clickAndSelect(final String val) {
+        public Select clickAndSelect(final String val) {
             click().select(val);
+            return this;
         }
 
         public Select shouldBe(WebElementCondition condition) {
             controlElement.$x(INPUT_XPATH).shouldBe(condition);
+            return this;
+        }
+
+        public Select hasValueSelected(final String val) {
+            controlElement.$x(".//span[@class='v-select__selection-text']").shouldHave(text(val));
             return this;
         }
     }

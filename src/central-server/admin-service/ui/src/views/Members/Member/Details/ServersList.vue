@@ -25,22 +25,31 @@
    THE SOFTWARE.
  -->
 <template>
-  <searchable-titled-view v-model="search" :title-key="titleKey">
+  <XrdCard :title="titleKey" class="bg-surface-container" variant="flat">
+    <template #append-title>
+      <XrdSearchField
+        v-model="search"
+        data-test="search-query-field"
+        width="360"
+        :label="$t('action.search')"
+      />
+    </template>
     <v-data-table
+      data-test="servers-table"
+      class="xrd bg-surface-container"
+      item-key="id"
+      hide-default-footer
       :loading="loading"
       :headers="headers"
       :items="servers"
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
       :loader-height="2"
-      data-test="servers-table"
     >
       <template #[`item.server_id.server_code`]="{ item }">
         <div
-          class="server-code xrd-clickable"
+          class="server-code cursor-pointer"
           :data-test="`server-${item.server_id.server_code}`"
           @click="toSecurityServerDetails(item)"
         >
@@ -50,21 +59,17 @@
       <template #[`item.action`]="{ item }">
         <slot name="actions" :server="item"></slot>
       </template>
-      <template #bottom>
-        <XrdDataTableFooter />
-      </template>
     </v-data-table>
-  </searchable-titled-view>
+  </XrdCard>
 </template>
 <script setup lang="ts">
-import { XrdDataTableFooter } from '@niis/shared-ui';
-import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
+import { XrdCard } from '@niis/shared-ui';
 import { ref } from 'vue';
-import { DataTableHeader } from '@/ui-types';
 import { SecurityServer } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 defineProps({
   servers: {

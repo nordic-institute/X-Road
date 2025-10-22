@@ -26,95 +26,83 @@
  -->
 
 <template>
-  <div class="xrd-view-common" data-test="404-view">
-    <slot name="top" />
-    <v-container>
-      <div class="xrd-view-title pt-6">{{ $t('404.pageNotFound') }}</div>
-      <v-card flat class="xrd-card custom-card">
-        <v-card-text>
-          <div class="content-wrap">
-            <v-img :src="image404Url" width="100%" height="auto" max-height="259" max-width="665"></v-img>
-
-            <div class="unicorn-text">
-              {{ $t('404.text') }}
-              <span class="unicorn-gradient">{{ $t('404.textUnicorn') }}</span>
-            </div>
-            <xrd-button
-              test-data="error-404-button"
-              color="primary"
-              gradient
-              large
-              :min_width="401"
-              :width="401"
-              class="button"
-              rounded
-              @click="routing?.toHome()"
-            >
-              {{ $t('action.goToFront') }}
-            </xrd-button>
+  <XrdErrorPage data-test="404-view" title="404.topTitle">
+    <v-container class="mx-auto" max-width="800">
+      <v-row class="xrd-error-view" no-gutters align="center">
+        <!-- Fixed width column -->
+        <v-col class="xrd-error-info">
+          <div class="xrd-error-info-text">
+            <p class="title-page font-weight-bold mb-8">{{ $t('404.title') }}</p>
+            <v-img class="xrd-404-cover-image" width="336px" height="124px" :src="image404Url" />
           </div>
-        </v-card-text>
-      </v-card>
+        </v-col>
+
+        <!-- Flexible column that takes remaining space -->
+        <v-col class="xrd-error-info">
+          <div class="xrd-error-info-text">
+            <p class="title-container font-weight-medium mb-4">{{ $t('404.text1') }}</p>
+            <p class="body-large font-weight-regular mb-12">{{ $t('404.text2') }}</p>
+            <v-btn
+              data-test="error-404-button"
+              class="go-home bg-special"
+              variant="flat"
+              rounded="pill"
+              size="large"
+              width="360"
+              @click="emit('go-home')"
+            >
+              {{ $t('404.returnToFront') }}
+            </v-btn>
+          </div>
+        </v-col>
+      </v-row>
     </v-container>
-  </div>
+  </XrdErrorPage>
 </template>
 
 <script lang="ts" setup>
-import XrdButton from '../components/XrdButton.vue';
-import image404 from '../assets/404.png';
-import { inject } from 'vue';
-import { key } from '../utils';
+import { ref, useTemplateRef, watchEffect } from 'vue';
+
+import { VContainer } from 'vuetify/components';
+import { useDisplay } from 'vuetify/framework';
+
+import image404 from '../assets/xrd8/404.svg';
+
+import XrdErrorPage from './XrdErrorPage.vue';
 
 const image404Url = image404;
 
-const routing = inject(key.routing);
+const emit = defineEmits(['go-home']);
+
+const errorContainer = useTemplateRef<VContainer>('errorContainer');
+const display = useDisplay();
+
+const COVER_WIDTH = 480;
+
+const coverWidth = ref<number | undefined>(COVER_WIDTH);
+const coverCols = ref<string | undefined>('auto');
+
+watchEffect(() => {
+  const width = display.width.value;
+  if (errorContainer.value && errorContainer.value.$el.offsetWidth) {
+    coverWidth.value = errorContainer.value.$el.offsetWidth / 2 > COVER_WIDTH ? COVER_WIDTH : undefined;
+    coverCols.value = errorContainer.value.$el.offsetWidth / 2 > COVER_WIDTH ? 'auto' : undefined;
+  }
+});
 </script>
 
 <style lang="scss" scoped>
-@use '../assets/colors';
-
-.xrd-view-common {
-  width: 100%;
+.xrd-error-view {
+  min-height: 508px;
 }
 
-.unicorn-text {
-  text-transform: uppercase;
-  color: colors.$Purple100;
-  width: 450px;
-  font-style: normal;
-  font-weight: 800;
-  font-size: 34.6667px;
-  line-height: 150%;
-  text-align: center;
-  letter-spacing: 0.02em;
-  margin-top: 60px;
-}
-
-.custom-card {
-  width: 100%;
-  margin-top: 40px;
-  margin-bottom: 30px;
-}
-
-.content-wrap {
+.xrd-error-info {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
 }
 
-.button {
-  width: 200px;
-  margin: 70px;
-}
-
-.unicorn-gradient {
-  background-color: #f3ec78;
-  background-image: linear-gradient(108deg, #e29ae6 5.28%, #663bdb 94.72%);
-  background-size: 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -moz-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -moz-text-fill-color: transparent;
+.xrd-error-info-text {
+  text-align: center;
 }
 </style>

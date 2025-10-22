@@ -1,4 +1,6 @@
 @CentralServer
+@GlobalConfiguration
+@InternalGlobalConfiguration
 @ConfigurationAnchor
 @LoadingTesting
 Feature: 0700 - CS: Global configuration: Internal configuration: Anchor

@@ -46,15 +46,15 @@ public class CommonPageObj {
     public class Menu {
 
         public SelenideElement usernameButton() {
-            return $x("//button[@data-test='username-button']");
+            return $x("//div[@data-test='user-menu']");
         }
 
         public SelenideElement logout() {
-            return $x("//div[@data-test='logout-list-tile']");
+            return $x("//div[@data-test='logout-button']");
         }
 
         public SelenideElement changePassword() {
-            return $x("//div[@data-test='change-password-list-tile']");
+            return $x("//div[@data-test='password-button']");
         }
 
         public SelenideElement clientsTab() {
@@ -74,7 +74,8 @@ public class CommonPageObj {
         }
 
         private String getTabXpath(String tabName) {
-            var xpath = "//div[contains(@class, 'main-tabs')]//a[contains(@class,'v-tab')]//span[text()='%s']";
+            var xpath = "//a[@data-test='main-navigation-item' "
+                    + "and .//div[@data-test='main-navigation-item-name' and contains(text(), '%s')]]";
             return format(xpath, tabName);
         }
     }
@@ -120,19 +121,19 @@ public class CommonPageObj {
 
     public class Dialog {
         public SelenideElement title() {
-            return $x("//span[@data-test='dialog-title']");
+            return $x("(//div[@data-test='dialog-simple'])[last()]//span[@data-test='dialog-title']");
         }
 
         public SelenideElement btnCancel() {
-            return $x("//button[@data-test='dialog-cancel-button']");
+            return $x("(//div[@data-test='dialog-simple'])[last()]//button[@data-test='dialog-cancel-button']");
         }
 
         public SelenideElement btnSave() {
-            return $x("//button[@data-test='dialog-save-button']");
+            return $x("(//div[@data-test='dialog-simple'])[last()]//button[@data-test='dialog-save-button']");
         }
 
         public SelenideElement btnClose() {
-            return $x("//button[@data-test='close']");
+            return $x("(//div[@data-test='dialog-simple'])[last()]//button[@data-test='close']");
         }
     }
 
@@ -148,7 +149,7 @@ public class CommonPageObj {
 
     public class Alerts {
         public SelenideElement alert(final String text) {
-            return $x(format("//div[@data-test='contextual-alert']//div[contains(text(), '%s')]", text));
+            return $x(format("//div[@data-test='contextual-alert']//p[contains(text(), '%s')]", text));
         }
 
         public SelenideElement btnClose() {
