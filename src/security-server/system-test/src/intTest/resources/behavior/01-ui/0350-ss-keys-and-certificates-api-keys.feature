@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @ApiKeys
 Feature: 0350 - SS: API Keys
 

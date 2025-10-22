@@ -55,8 +55,7 @@ public class ClientAddStepDefs extends BaseUiStepDefs {
 
         clientPageObj.addClientDetails.btnSelectClient().click();
         clientPageObj.addClientDetails.btnAddSelected().shouldBe(disabled);
-
-        clientPageObj.addClientDetails.radioClientById(client).click();
+        vRadio(clientPageObj.addClientDetails.radioClientById(client)).click();
         clientPageObj.addClientDetails.btnAddSelected().click();
 
         String[] idParts = client.split(":");

@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Client
 @Skip #TODO beta1 release preparation
 Feature: 0500 - SS: Client Subsystems

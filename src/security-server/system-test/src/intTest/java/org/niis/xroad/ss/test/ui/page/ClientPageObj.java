@@ -72,10 +72,10 @@ public class ClientPageObj {
     public SelenideElement tableRowWithNameAndStatus(String name, String status, String id) {
         var matchers = new ArrayList<String>(2);
         Optional.ofNullable(name)
-                .map("td[@data-test='client-name']//span[text()='%s']"::formatted)
+                .map("td[@data-test='client-name']//span/span[text()='%s']"::formatted)
                 .ifPresent(matchers::add);
         Optional.ofNullable(status)
-                .map("td[@data-test='client-status']//*[text()='%s']"::formatted)
+                .map("td[@data-test='client-status']//span[text()='%s']"::formatted)
                 .ifPresent(matchers::add);
 
         Optional.ofNullable(id)
@@ -107,11 +107,11 @@ public class ClientPageObj {
         }
 
         public SelenideElement btnSelectDialogSave() {
-            return $x("//button[@data-test='select-client-save-button']");
+            return $x("//button[@data-test='dialog-save-button']");
         }
 
         public SelenideElement radioSubsystemById(String id) {
-            return $x(format("//tbody//tr[td[3][contains(text(),'%s')] ]//div[@class ='v-selection-control__input']", id));
+            return $x(format("//tbody//tr[td[3][contains(.,'%s')] ]//div[@class ='v-radio']", id));
         }
 
         public SelenideElement memberNameValue() {
@@ -154,11 +154,11 @@ public class ClientPageObj {
         }
 
         public SelenideElement radioClientById(String id) {
-            return $x(format("//tbody//tr[td[3][contains(text(),'%s')] ]//div[@class='v-selection-control__input']", id));
+            return $x(format("//tbody//tr[td[3][contains(.,'%s')] ]//div[contains(@class, 'v-radio')]", id));
         }
 
         public SelenideElement btnAddSelected() {
-            return $x("//button[@data-test='select-client-save-button']");
+            return $x("//button[@data-test='dialog-save-button']");
         }
 
         public SelenideElement selectMemberClass() {
@@ -186,7 +186,7 @@ public class ClientPageObj {
     public static class AddClientToken {
 
         public SelenideElement radioByTokenName(String name) {
-            return $x(format("//div[.//label[text()='Token softToken-0'] and @data-test='token-radio-button']", name));
+            return $x(format("//tr[td[2][contains(., '%s')]]//div[@data-test='token-radio-button']", name));
         }
 
         public SelenideElement btnNext() {

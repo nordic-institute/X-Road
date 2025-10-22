@@ -84,13 +84,14 @@ import TimestampingServiceCertificate from '@/views/TrustServices/TimestampingSe
 import TrustServices from '@/views/TrustServices/TrustServices.vue';
 import TrustServicesView from '@/views/TrustServices/TrustServicesView.vue';
 import { useGlobalConfTabs } from '@/store/modules/global-conf-tabs';
+import { useMainTabs } from '@/store/modules/main-tabs';
 
 const routes = [
   {
     path: '/',
     component: AppBase,
     name: RouteName.BaseRoute,
-    redirect: { name: RouteName.Members },
+    redirect: ()=>useMainTabs().firstAllowedTab.to,
     children: [
       {
         name: RouteName.Settings,

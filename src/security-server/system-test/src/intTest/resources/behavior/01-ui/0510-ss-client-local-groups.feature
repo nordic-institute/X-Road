@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Client
 @Skip #TODO beta1 release preparation
 Feature: 0510 - SS: Client Local groups

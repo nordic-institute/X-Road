@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Login
 @Skip #TODO beta1 release preparation
 Feature: 0700 - SS: Permissions

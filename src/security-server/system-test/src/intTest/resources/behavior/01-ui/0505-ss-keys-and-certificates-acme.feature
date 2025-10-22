@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Initialization
 @Skip #TODO beta1 release preparation
 Feature: 0505 - SS: ACME
