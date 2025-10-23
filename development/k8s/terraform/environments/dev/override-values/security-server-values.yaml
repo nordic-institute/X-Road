@@ -2,7 +2,7 @@ init:
   serverconf:
     image: localhost:5555/ss-db-serverconf-init:latest
     dbUsername: serverconf
-    proxySuperuser: xrd
+    proxyUiSuperuser: xrd
     proxyUiSuperuserPassword: "$argon2id$v=19$m=16384,t=2,p=1$YXF3YXN6eHh6c2F3cQ$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0"
   messagelog:
     image: localhost:5555/ss-db-messagelog-init:latest
