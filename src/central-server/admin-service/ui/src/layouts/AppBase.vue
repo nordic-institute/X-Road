@@ -57,9 +57,7 @@ const sessionPollInterval = setInterval(
   () => pollSessionStatus(),
   Timeouts.POLL_SESSION_TIMEOUT,
 );
-pollSessionStatus();
 systemStore.fetchSystemStatus();
-checkAlerts();
 
 async function pollSessionStatus() {
   return userStore

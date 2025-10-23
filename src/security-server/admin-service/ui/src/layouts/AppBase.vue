@@ -55,8 +55,7 @@ const sessionPollInterval = window.setInterval(
   () => pollSessionStatus(),
   30000,
 );
-// Poll immediately to get initial alerts state
-checkAlertStatus();
+pollSessionStatus();
 
 async function pollSessionStatus() {
   return userStore
