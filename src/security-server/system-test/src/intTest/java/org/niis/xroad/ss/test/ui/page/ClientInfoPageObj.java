@@ -36,6 +36,10 @@ import static java.lang.String.format;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
 
 public class ClientInfoPageObj {
+    private static final String GROUP_TRS = "//div[contains(@data-test, 'local-groups-table')]//tbody//tr";
+    private static final String GROUP_TR_BY_CODE = GROUP_TRS + "[td[1][//span[contains(., '%s')]]]";
+    private static final String GROUP_TR_BY_INDEX = GROUP_TRS + "[%d]";
+
     public final ClientInfoNavigation navigation = new ClientInfoNavigation();
     public final Details details = new Details();
     public final LocalGroups localGroups = new LocalGroups();
@@ -58,11 +62,11 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement rowCertName() {
-            return $x("//span[contains(@class,'cert-name')]");
+            return $x("//div[@data-test='cert-name']/span");
         }
 
         public SelenideElement certificateByName(String name) {
-            return $x(format("//span[@data-test='cert-name' and text()='%s']", name));
+            return $x(format("//div[@data-test='cert-name' and span/text()='%s']", name));
         }
 
         public SelenideElement btnDisable() {
@@ -74,7 +78,7 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement renameStatusText() {
-            return $x("//div[@data-test='rename-status']//div[contains(@class,'status-text')]");
+            return $x("//div[@data-test='rename-status']//div[contains(@class,'v-chip__content')]");
         }
     }
 
@@ -157,17 +161,15 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement groupByCode(String code) {
-            return $x(format("//*[contains(@data-test, 'local-groups-table')]//*[contains(@class,'group-code') and contains(text(),'%s')]",
-                    code));
+            return $x(GROUP_TR_BY_CODE.formatted(code) + "/td[1]");
         }
 
         public SelenideElement groupByPos(int pos) {
-            return $x(format("//div[@data-test='local-groups-table']//tr[%d]//*[contains(@class,'group-code')]",
-                    pos));
+            return $x(GROUP_TR_BY_INDEX.formatted(pos) + "/td[1]/div/span");
         }
 
         public ElementsCollection groups() {
-            return $$x("//div[@data-test='local-groups-table']//tr//*[contains(@class,'group-code')]");
+            return $$x(GROUP_TRS + "/td[1]/div/span");
         }
 
         public static class Details {
@@ -186,12 +188,12 @@ public class ClientInfoPageObj {
             }
 
             public SelenideElement memberByCode(String code) {
-                return $x(format("//table[@data-test='group-members-table']/tbody/tr[td[@data-test='client-id' and text()='%s']]",
+                return $x(format("//div[@data-test='group-members-table']//tbody/tr[./td/text()='%s']",
                         code));
             }
 
             public SelenideElement btnRemoveMemberByCode(String code) {
-                return memberByCode(code).$x(".//button[ span[text()= 'Remove']]");
+                return memberByCode(code).$x(".//button[ //span[text()= 'Remove']]");
             }
 
             public ElementsCollection btnRemove() {
@@ -218,15 +220,15 @@ public class ClientInfoPageObj {
             }
 
             public SelenideElement btnSearch() {
-                return $x("//div[@class = 'search-wrap']//button");
+                return $x("//button[.//span[text() = 'Search']]");
             }
 
             public SelenideElement btnAddSelected() {
-                return $x("//button[span[text()='Add selected']]");
+                return $x("//button[@data-test='dialog-save-button']");
             }
 
             public SelenideElement checkboxSelectMember(String member) {
-                return $x(format("//table[contains(@class,'members-table')]//tr[td[3][text()='%s']]"
+                return $x(format("//tr[td[3][text()='%s']]"
                         + "//div[@data-test='add-local-group-member-checkbox']", member));
             }
         }

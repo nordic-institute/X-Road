@@ -28,7 +28,6 @@
   <XrdElevatedViewFixedWidth
     :title="title"
     data-test="service-description-details-dialog"
-    fixed-height
     go-back-on-close
     :breadcrumbs="breadcrumbs"
   >

@@ -202,7 +202,7 @@ public class KeyAndCertPageObj {
         }
 
         public SelenideElement keyAutomaticRenewalStatusByLabel(String label) {
-            return $x(format("//tbody[ tr/td//span[@data-test='label' and text() = '%s']]"
+            return $x(format("//tbody[ tr/td//span[@data-test='label' and contains(., '%s')]]"
                     + "//div[@data-test='renewal-status']", label));
         }
 
