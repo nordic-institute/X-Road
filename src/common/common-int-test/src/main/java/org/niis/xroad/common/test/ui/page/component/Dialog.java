@@ -1,7 +1,5 @@
 /*
  * The MIT License
- * <p>
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,51 +22,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.test.ui.page;
+package org.niis.xroad.common.test.ui.page.component;
 
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.common.test.ui.page.component.Dialog;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.codeborne.selenide.Selenide.$x;
 
-public class SettingsTlsCertificatesPageObj {
+public class Dialog {
 
-    public final CertificateViewPageObj certificateView = new CertificateViewPageObj();
-    public final CreateCsrDialog createCsrDialog = new CreateCsrDialog();
+    private static final String SELECTOR_TPL = "(//div[@data-test='dialog-simple' %s])[last()]";
 
-    public SelenideElement tlsCertificatesView() {
-        return $x("//div[@data-test='tls-certificates-view']");
-    }
+    private final String selector;
 
-    public SelenideElement certificateHash() {
-        return $x("//div[@data-test='view-management-service-certificate']");
-    }
-
-    public SelenideElement btnDownloadCertificate() {
-        return $x("//button[@data-test='download-management-service-certificate']");
-    }
-
-    public SelenideElement btnUploadCertificate() {
-        return $x("//button[@data-test='upload-management-service-certificate']");
-    }
-
-    public SelenideElement btnCreateKeyCertificate() {
-        return $x("//button[@data-test='management-service-certificate-generateKey']");
-    }
-
-    public SelenideElement btnCreateCsr() {
-        return $x("//button[@data-test='management-service-certificate-generateCsr']");
-    }
-
-    public static class CreateCsrDialog extends Dialog {
-
-        public SelenideElement distinguishedName() {
-            var xpath = "//div[@data-test='enter-distinguished-name']";
-            return $x(xpath);
+    public Dialog(String criteria) {
+        if (StringUtils.isEmpty(criteria)) {
+            this.selector = SELECTOR_TPL.formatted("");
+        } else {
+            this.selector = SELECTOR_TPL.formatted("and " + criteria);
         }
+    }
 
-        public SelenideElement btnGenerateCsr() {
-            return btnSave();
-        }
+    public Dialog() {
+        this(null);
+    }
+
+    public SelenideElement self() {
+        return $x(selector);
+    }
+
+    public SelenideElement title() {
+        return self().$x(".//span[@data-test='dialog-title']");
+    }
+
+    public SelenideElement btnCancel() {
+        return self().$x(".//button[@data-test='dialog-cancel-button']");
+    }
+
+    public SelenideElement btnSave() {
+        return self().$x(".//button[@data-test='dialog-save-button']");
+    }
+
+    public SelenideElement btnConfirm() {
+        return btnSave();
+    }
+
+    public SelenideElement btnDelete() {
+        return btnSave();
+    }
+
+    public SelenideElement btnClose() {
+        return self().$x(".//button[@data-test='dlg-close-x']");
     }
 }

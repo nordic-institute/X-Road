@@ -28,6 +28,7 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$x;
 
@@ -85,46 +86,18 @@ public class SecurityServerDetailsPageObj {
         return deleteSecurityServerDialog;
     }
 
-    public class EditServerAddressDialog {
+    public class EditServerAddressDialog extends Dialog {
+
         public SelenideElement inputAddress() {
             var xpath = "//div[@data-test='security-server-address-edit-field']";
             return $x(xpath);
         }
-
-        public SelenideElement btnSave() {
-            var xpath = "//button[@data-test='dialog-save-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement btnCancel() {
-            var xpath = "//button[@data-test='dialog-cancel-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement dialog() {
-            var xpath = "//div[@data-test='dialog-simple']";
-            return $x(xpath);
-        }
     }
 
-    public class DeleteSecurityServerDialog {
+    public class DeleteSecurityServerDialog extends Dialog {
+
         public SelenideElement inputSeverCode() {
             var xpath = "//div[@data-test='verify-server-code']";
-            return $x(xpath);
-        }
-
-        public SelenideElement btnDelete() {
-            var xpath = "//button[@data-test='dialog-save-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement btnCancel() {
-            var xpath = "//button[@data-test='dialog-cancel-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement dialog() {
-            var xpath = "//div[@data-test='dialog-simple']";
             return $x(xpath);
         }
     }

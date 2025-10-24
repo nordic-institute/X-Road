@@ -46,7 +46,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
                 .shouldBe(enabled, visible)
                 .click();
 
-        globalGroupDetailsPage.getAddMembersDialogObj().btnAddMembers()
+        globalGroupDetailsPage.getAddMembersDialogObj().btnSave()
                 .shouldNotBe(enabled);
     }
 
@@ -81,7 +81,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
 
     @Step("user adds selected members")
     public void addSelectedMembers() {
-        globalGroupDetailsPage.getAddMembersDialogObj().btnAddMembers()
+        globalGroupDetailsPage.getAddMembersDialogObj().btnSave()
                 .shouldBe(enabled)
                 .click();
     }

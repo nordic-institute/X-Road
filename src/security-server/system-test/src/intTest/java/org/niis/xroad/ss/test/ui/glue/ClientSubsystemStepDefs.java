@@ -45,8 +45,8 @@ public class ClientSubsystemStepDefs extends BaseUiStepDefs {
 
     @Step("Subsystem with ID {string} is selected from the window")
     public void selectSubsystem(String subsystem) {
-        vRadio(clientPageObj.subsystem.radioSubsystemById(subsystem)).click();
-        clientPageObj.subsystem.btnSelectDialogSave().click();
+        vRadio(clientPageObj.selectSubsystemDialog.radioSubsystemById(subsystem)).click();
+        clientPageObj.selectSubsystemDialog.btnSave().click();
     }
 
     @Step("Subsystem code is set to {string}")

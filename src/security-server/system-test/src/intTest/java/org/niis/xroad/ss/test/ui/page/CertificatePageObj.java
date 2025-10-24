@@ -37,10 +37,6 @@ public class CertificatePageObj {
         return $x(format("//tr[td[contains(., '%s')]]/td[2]", field));
     }
 
-    public SelenideElement btnClose() {
-        return $x("//button[@data-test='close-x']");
-    }
-
     public SelenideElement btnDelete() {
         return $x("//button[@data-test='tls-certificate-delete-button']");
     }

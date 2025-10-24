@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 import org.niis.xroad.common.test.ui.utils.VuetifyHelper.Select;
 
 import static com.codeborne.selenide.Selenide.$$x;
@@ -98,11 +99,11 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement linkTLSCertificate() {
-            return tlsCertificateTable().$x(".//span[@data-test='tls-certificate-link']");
+            return tlsCertificateTable().$x(".//div[@data-test='tls-certificate-link']");
         }
 
         public SelenideElement tlsCertificateSubjectDistinguishedName() {
-            return tlsCertificateTable().$x(".//span[@data-test='tls-certificate-subject-distinguished-name']");
+            return tlsCertificateTable().$x(".//td[@data-test='tls-certificate-subject-distinguished-name']");
         }
 
         public SelenideElement tlsCertificateNotBefore() {
@@ -209,7 +210,7 @@ public class ClientInfoPageObj {
             }
         }
 
-        public static class AddMember {
+        public static class AddMember extends Dialog {
 
             public Select selectMemberInstance() {
                 return vSelect($x("//div[@data-test='select-member-instance']"));
@@ -223,9 +224,6 @@ public class ClientInfoPageObj {
                 return $x("//button[.//span[text() = 'Search']]");
             }
 
-            public SelenideElement btnAddSelected() {
-                return $x("//button[@data-test='dialog-save-button']");
-            }
 
             public SelenideElement checkboxSelectMember(String member) {
                 return $x(format("//tr[td[3][text()='%s']]"
@@ -235,7 +233,7 @@ public class ClientInfoPageObj {
     }
 
     public static class Services {
-        public final ServicesAddSubject addSubject = new ServicesAddSubject();
+        public final ServicesAddSubjectDialog addSubjectDialog = new ServicesAddSubjectDialog();
         public final ServicesParameters servicesParameters = new ServicesParameters();
         public final ServicesEndpoints endpoints = new ServicesEndpoints();
         public final ServicesEdit servicesEdit = new ServicesEdit();
@@ -265,32 +263,37 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement headerServiceDescription(String description) {
-            return $x(format("//*[@data-test='service-description-header' and normalize-space(text())='%s']", description));
+            return $x(format("//div[@data-test='service-description-accordion' "
+                    + "and .//span[@data-test='service-description-header-url' and normalize-space(.)='%s']]", description));
+        }
+
+        public SelenideElement headerServiceDescriptionEdit(String description) {
+            return headerServiceDescription(description).$x(".//i[@data-test='service-description-header-edit']");
         }
 
         public SelenideElement headerServiceDescriptionExpand(String description) {
-            return $x(format("//div[contains(@class,'exp-header') "
-                    + "and div/div[@data-test='service-description-header' "
-                    + "and normalize-space(text())='%s']]//div[concat(@class,'exp-header')]/button", description));
+            return headerServiceDescription(description).$x(".//button[.//i[contains(@class,'chevron_right')]]");
         }
 
         public SelenideElement headerServiceToggle(String description) {
-            return $x(format("//div[div/div[@data-test='service-description-header' and normalize-space(text())='%s']]"
-                    + "//div[@data-test='service-description-enable-disable']", description));
+            return headerServiceDescription(description).$x(".//button[@data-test='service-description-enable-disable']");
+        }
+
+        public SelenideElement serviceRow(String serviceCode) {
+            return $x(format("//div[@data-test='services-table']//tbody/tr[./td[1][.//span[contains(., '%s')]]]", serviceCode));
         }
 
         public SelenideElement linkServiceCode(String serviceCode) {
-            return $x(format("//*[@data-test='service-link' and normalize-space(text())='%s']", serviceCode));
+            return serviceRow(serviceCode).$x("./td[1]/div");
         }
 
 
         public SelenideElement tableServiceUrlOfServiceCode(String serviceCode) {
-            return $x(format("//tr[td[@data-test='service-link' and normalize-space(text())='%s'] ]//td[@data-test='service-url']",
-                    serviceCode));
+            return serviceRow(serviceCode).$x("./td[2]");
         }
 
         public SelenideElement tableServiceTimeoutOfServiceCode(String serviceCode) {
-            return $x(format("//tr[td[@data-test='service-link' and normalize-space(text())='%s'] ]//td[3]", serviceCode));
+            return serviceRow(serviceCode).$x("./td[3]");
         }
 
         public SelenideElement inputDisableNotice() {
@@ -298,12 +301,11 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement accessRightsTableRowOfId(String id) {
-            return $x(format("//table[contains(@class,'group-members-table')]/tbody/tr/td[text()='%s']", id));
+            return $x(format("//div[@data-test='access-rights-subjects']//tbody/tr[td[2][text()='%s']]", id));
         }
 
         public SelenideElement accessRightsTableRowRemoveOfId(String id) {
-            return $x("//table[contains(@class,'group-members-table')]/tbody/tr[td[text()='%s']]//button[@data-test='remove-subject']"
-                    .formatted(id));
+            return accessRightsTableRowOfId(id).$x(".//button[@data-test='remove-subject']");
         }
     }
 
@@ -373,7 +375,12 @@ public class ClientInfoPageObj {
 
     }
 
-    public static class ServicesAddSubject {
+    public static class ServicesAddSubjectDialog extends Dialog {
+
+        public ServicesAddSubjectDialog() {
+            super(".//span[@data-test='dialog-title' and text() = 'Add Subjects']");
+        }
+
         private static final String PATH_BUTTON_CLEAR_INPUT = ".//i[contains(@class, 'mdi-close-circle')]";
 
         public SelenideElement inputName() {
@@ -405,7 +412,7 @@ public class ClientInfoPageObj {
         }
 
         public ElementsCollection memberTableRows() {
-            return $$x("//div[@data-test='add-subjects-dialog']//table[contains(@class,'members-table')]/tbody/tr");
+            return self().$$x(".//table/tbody/tr[td[2]]");
         }
 
         public SelenideElement memberTableRowOfId(String id) {
@@ -414,10 +421,6 @@ public class ClientInfoPageObj {
 
         public SelenideElement memberTableRowCheckboxOfId(String id) {
             return memberTableRowOfId(id).$x(".//div[@data-test='service-client-checkbox']");
-        }
-
-        public SelenideElement btnSave() {
-            return $x("//button[@data-test='save']");
         }
     }
 
@@ -431,7 +434,7 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement btnSave() {
-            return $x("//button[span[text()='Save']]");
+            return $x("//button[.//span[text()='Save']]");
         }
 
         public SelenideElement inputPath() {
@@ -558,31 +561,17 @@ public class ClientInfoPageObj {
         }
     }
 
-    public static class ServiceWarningDialog {
-        public SelenideElement title() {
-            return $x("//div[@data-test='service-warning-dialog-title']");
-        }
-
-        public SelenideElement btnCancel() {
-            return $x("//button[@data-test='dialog-cancel-button']");
-        }
+    public static class ServiceWarningDialog extends Dialog {
 
         public SelenideElement btnContinue() {
-            return $x("//button[@data-test='service-url-change-button']");
+            return btnConfirm();
         }
     }
 
-    public static class RenameClientDialog {
+    public static class RenameClientDialog extends Dialog {
+
         public SelenideElement inputName() {
             return $x("//div[@data-test='subsystem-name-input']");
-        }
-
-        public SelenideElement btnSave() {
-            return $x("//button[@data-test='dialog-save-button']");
-        }
-
-        public SelenideElement btnCancel() {
-            return $x("//button[@data-test='dialog-cancel-button']");
         }
     }
 }

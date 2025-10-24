@@ -83,7 +83,7 @@
         <v-text-field
           v-model="serviceCode"
           v-bind="serviceCodeAttr"
-          data-test="service-url-text-field"
+          data-test="service-code-text-field"
           class="xrd"
           :maxlength="255"
           :label="$t('services.serviceCode')"

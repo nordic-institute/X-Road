@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="pa-0 mt-4 xrd-rounded-16 xrd-elevation-1 bg-surface-container-lowest border overflow-hidden" fluid>
+  <v-container class="xrd-elevated-view pa-0 mt-4 xrd-rounded-16 xrd-elevation-1 bg-surface-container-lowest border overflow-hidden" fluid>
     <header
       v-if="hasTitle || $slots['append-header']"
       data-test="view-header"

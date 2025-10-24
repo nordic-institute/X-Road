@@ -32,7 +32,7 @@
     @close="close"
   >
     <template v-if="nonWsdl" #tabs>
-      <XrdViewNavigation bordered :allowed-tabs="tabs" />
+      <XrdViewNavigation class="mb-6" bordered :allowed-tabs="tabs" />
     </template>
     <router-view @update-service="fetchData" />
   </XrdElevatedViewFixedWidth>
