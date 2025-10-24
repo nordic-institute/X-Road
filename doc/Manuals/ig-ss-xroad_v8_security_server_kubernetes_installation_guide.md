@@ -138,7 +138,7 @@ helm install opmonitor-db bitnami/postgresql \
   --set image.tag=16.6.0 \
   --set auth.database=op-monitor \
   --set auth.username=opmonitor \
-  --set auth.password=<messagelog_user_password> \
+  --set auth.password=<opmonitor_user_password> \
   --set auth.enablePostgresUser=true \
   --set auth.postgresPassword=<postgres_password> \
   --set primary.resources.requests.memory=64Mi \
@@ -163,8 +163,10 @@ helm install security-server xroad/security-server \
 ```
 
 >**Note:**
->* `proxyUiSuperuser` is the initial user (with all the privileges) which can be used to login into Proxy UI admin webapp.
->* `init.serverconf.proxyUiSuperuserPassword` must be provided in argon2 hash format. For example argon2 hash of `secret` is: `$argon2id$v=19$m=16384,t=2,p=1$YXF3YXN6eHh6c2F3cQ$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0`.
+>* `proxyUiSuperuser` s the default administrative user (with full privileges) that can be used to log in to the Proxy UI admin web application.
+>* The value of `init.serverconf.proxyUiSuperuserPassword` must be provided in Argon2 hash format.
+>* Proxy UI relies on [Spring Security's default Argon2 parameters](https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/crypto/argon2/Argon2PasswordEncoder.html#defaultsForSpringSecurity_v5_8()) for password hashing, so the hash must conform to these settings.
+>* You can generate an Argon2 hash using https://argon2.online. For example, a valid Argon2 hash of the password `secret` would be: `$argon2id$v=19$m=16384,t=2,p=1$YXF3YXN6eHh6c2F3cQ$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0`.
 
 ### Appendix
 
