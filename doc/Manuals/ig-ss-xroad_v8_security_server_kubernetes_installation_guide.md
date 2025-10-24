@@ -43,14 +43,13 @@ The X-Road 8 Security Server deployment consists of:
 ### 1. Create Namespace
 
 ```bash
-kubectl create namespace security-server
+kubectl create namespace ss
 ```
 
 ### 2. Add Helm repositories
 ```bash
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add openbao https://openbao.github.io/openbao-helm
-helm repo add xroad https://artifactory.niis.org/xroad8-release-helm
 helm repo update
 ```
 
@@ -62,7 +61,7 @@ helm repo update
 # Install PostgreSQL for OpenBao
 helm install openbao-db bitnami/postgresql \
   --version 18.0.12 \
-  --namespace security-server \
+  --namespace ss \
   --set fullnameOverride=db-openbao \
   --set image.repository=bitnamilegacy/postgresql \
   --set image.tag=16.6.0 \
@@ -76,33 +75,42 @@ helm install openbao-db bitnami/postgresql \
 ```bash
 # Install OpenBao
 helm install openbao openbao/openbao \
-  --version 0.19.0
-  --namespace security-server \
+  --version 0.19.0 \
+  --namespace ss \
   --set server.ha.enabled=true \
-  --set server.ha.replicas=1 \ 
-  --set-string server.ha.config="ui = true
-listener \"tcp\" {
+  --set server.ha.replicas=1 \
+  --set-string 'server.ha.config=ui = true
+listener "tcp" {
   tls_disable = 1
-  address = \"[::]:8200\"
-  cluster_address = \"[::]:8201\"
+  address = "[::]:8200"
+  cluster_address = "[::]:8201"
 }
-storage \"postgresql\" {
-  ha_enabled = \"true\"
+storage "postgresql" {
+  ha_enabled = "true"
 }
-service_registration \"kubernetes\" {}" \
-  --set server.extraSecretEnvironmentVars[0].envName=BAO_PG_PASSWORD \
-  --set server.extraSecretEnvironmentVars[0].secretName=db-openbao \
-  --set server.extraSecretEnvironmentVars[0].secretKey=password \
-  --set server.extraEnvironmentVars.BAO_PG_CONNECTION_URL="postgres://openbao:\$(BAO_PG_PASSWORD)@db-openbao.ss.svc.cluster.local:5432/openbao"
+service_registration "kubernetes" {}' \
+  --set 'server.extraSecretEnvironmentVars[0].envName=BAO_PG_PASSWORD' \
+  --set 'server.extraSecretEnvironmentVars[0].secretName=db-openbao' \
+  --set 'server.extraSecretEnvironmentVars[0].secretKey=password' \
+  --set 'server.extraEnvironmentVars.BAO_PG_CONNECTION_URL=postgres://openbao:$(BAO_PG_PASSWORD)@db-openbao.ss.svc.cluster.local:5432/openbao'
 ```
 
-### 4. Deploy Security Server Databases
+### 5. Initialize OpenBao
+
+```bash
+# Initialize OpenBao
+helm install openbao-init oci://artifactory.niis.org/xroad8-snapshot-helm/openbao-init \
+  --version 8.0.0-beta1 \
+  --namespace ss
+```
+
+### 5. Deploy Security Server Databases
 
 ```bash
 # Serverconf database
 helm install serverconf-db bitnami/postgresql \
   --version 18.0.12 \
-  --namespace security-server \
+  --namespace ss \
   --set fullnameOverride=db-serverconf \
   --set image.repository=bitnamilegacy/postgresql \
   --set image.tag=16.6.0 \
@@ -117,7 +125,7 @@ helm install serverconf-db bitnami/postgresql \
 # Messagelog database
 helm install messagelog-db bitnami/postgresql \
   --version 18.0.12 \
-  --namespace security-server \
+  --namespace ss \
   --set fullnameOverride=db-messagelog \
   --set image.repository=bitnamilegacy/postgresql \
   --set image.tag=16.6.0 \
@@ -132,7 +140,7 @@ helm install messagelog-db bitnami/postgresql \
 # Operational Monitor database
 helm install opmonitor-db bitnami/postgresql \
   --version 18.0.12 \
-  --namespace security-server \
+  --namespace ss \
   --set fullnameOverride=db-opmonitor \
   --set image.repository=bitnamilegacy/postgresql \
   --set image.tag=16.6.0 \
@@ -145,22 +153,24 @@ helm install opmonitor-db bitnami/postgresql \
   --set primary.resources.limits.memory=256Mi
 ```
 
-### 5. Deploy Security Server
+### 6. Deploy Security Server
 
 ```bash
-helm install security-server xroad/security-server \
+helm install security-server oci://artifactory.niis.org/xroad8-snapshot-helm/security-server \
   --version 8.0.0-beta1 \
-  --namespace security-server \
+  --namespace ss \
   --set init.serverconf.dbUsername=serverconf \
   --set init.serverconf.proxyUiSuperuser=<proxy_ui_superuser> \
   --set init.serverconf.proxyUiSuperuserPassword=<proxy_ui_superuser_password> \
   --set init.messagelog.dbUsername=messagelog \
   --set init.opmonitor.dbUsername=opmonitor \
-  --set services.proxy.env.XROAD_PROXY_ADDON_OP_MONITOR_ENABLED=true \
+  --set services.proxy.env.XROAD_PROXY_ADDON_OP_MONITOR_ENABLED=\"true\" \
   --set services.op-monitor.enabled=true \
-  --set services.backup-manager.env.SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER=true \
-  --set services.backup-manager.env.PROXY_UI_SUPERUSER=xrd
+  --set services.backup-manager.env.SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER=\"true\" \
+  --set services.backup-manager.env.PROXY_UI_SUPERUSER=\"<proxy_ui_superuser>\"
 ```
+
+**Note:** The installation of the `security-server` chart may take up to several minutes to complete.
 
 >**Note:**
 >* `proxyUiSuperuser` s the default administrative user (with full privileges) that can be used to log in to the Proxy UI admin web application.
@@ -173,8 +183,8 @@ helm install security-server xroad/security-server \
 To gain access to the Security Server, you’ll need to either use port forwarding or deploy a gateway, depending on your setup.<br/>
 For instance, you can forward the proxy-ui-api and proxy services to your local machine with the following command:
 ```bash
-kubectl port-forward service/proxy-ui-api 4000:4000 -n security-server & \
-kubectl port-forward service/proxy 5500:5500 5577:5577 8080:8080 8443:8443 -n security-server & \
+kubectl port-forward service/proxy-ui-api 4000:4000 -n ss & \
+kubectl port-forward service/proxy 5500:5500 5577:5577 8080:8080 8443:8443 -n ss & \
 wait
 ```
 
