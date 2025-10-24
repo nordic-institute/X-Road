@@ -89,7 +89,7 @@
       <template v-if="showApplyToAll" #append>
         <v-checkbox
           v-model="ssl_auth_all"
-          data-test="timeout-all"
+          data-test="ssl-auth-all"
           class="xrd"
           hide-details
           @update:model-value="setTouched()"

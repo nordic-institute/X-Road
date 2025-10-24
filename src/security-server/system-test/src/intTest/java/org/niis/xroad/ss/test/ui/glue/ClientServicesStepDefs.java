@@ -173,7 +173,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().should(text(message));
         commonPageObj.snackBar.btnClose().click();
-        commonPageObj.dialog.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
     }
 
     @Step("Service add subjects dialog is opened")
@@ -435,7 +435,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
     @Step("Service {string} is updated with url {string}")
     public void editWsdlService(String name, String url) {
-        clientInfoPageObj.services.headerServiceDescription(name).click();
+        clientInfoPageObj.services.headerServiceDescriptionEdit(name).click();
 
         VuetifyHelper.TextField urlTextField = vTextField(clientInfoPageObj.services.servicesEdit.textFieldUrl());
         urlTextField.clear();
@@ -445,7 +445,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         urlTextField.setValue(url);
 
         clientInfoPageObj.services.servicesEdit.btnSaveEdit().click();
-        clientInfoPageObj.services.servicesEdit.btnContinueWarn().click();
+        commonPageObj.dialog.btnConfirm().click();
         commonPageObj.snackBar.success().shouldHave(text("Description saved"));
     }
 

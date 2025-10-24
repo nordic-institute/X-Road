@@ -36,6 +36,8 @@ import static java.lang.String.format;
 
 /**
  * Common page objects which can be found in any page.
+ * @param <M> menu type
+ * @param <S> sub menu type
  */
 @SuppressWarnings("InnerClassMayBeStatic")
 public class AbstractCommonPageObj<M extends Menu, S extends SubMenu> {

@@ -326,10 +326,6 @@ public class ClientInfoPageObj {
             return $x("//div[@data-test='service-code-text-field']");
         }
 
-        public SelenideElement btnContinueWarn() {
-            return $x("//button[@data-test='service-url-change-button']");
-        }
-
         public SelenideElement checkboxUrlApplyAll() {
             return $x("//div[@data-test='url-all']");
         }
@@ -381,7 +377,7 @@ public class ClientInfoPageObj {
             super(".//span[@data-test='dialog-title' and text() = 'Add Subjects']");
         }
 
-        private static final String PATH_BUTTON_CLEAR_INPUT = ".//i[contains(@class, 'mdi-close-circle')]";
+        private static final String PATH_BUTTON_CLEAR_INPUT = ".//i[contains(@class, 'close_small')]";
 
         public SelenideElement inputName() {
             return $x("//div[@data-test='name-text-field']");
