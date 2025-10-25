@@ -5,7 +5,7 @@ quarkus:
   vault:
     devservices:
       enabled: false
-    url: "${XROAD_SECRET_STORE_SCHEME:http}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
+    url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
     authentication:
       client-token: "${XROAD_SECRET_STORE_TOKEN}"
     connect-timeout: 15S
