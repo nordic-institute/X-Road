@@ -40,81 +40,86 @@ import java.util.Set;
 @SuppressWarnings("checkstyle:LineLength")
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class LegacyConfigPathMapping {
-    private static final Map<String, String> MAPPING = new HashMap<>();
+    private static final Map<String, Set<String>> MAPPING = new HashMap<>();
     private static final Set<String> REMOVED_KEYS = new HashSet<>();
 
     static {
-        MAPPING.put("common.configuration-path", "common-global-conf.configuration-path");
+        addMapping("common.configuration-path", "common-global-conf.configuration-path");
 
         // configuration-client
-        MAPPING.put("proxy.configuration-anchor-file", "configuration-client.configuration-anchor-file");
+        addMapping("proxy.configuration-anchor-file", "configuration-client.configuration-anchor-file");
 
         // proxy
-        MAPPING.put("proxy.ocsp-responder-port", "proxy.ocsp-responder.port");
-        MAPPING.put("proxy.ocsp-responder-listen-address", "proxy.ocsp-responder.listen-address");
-        MAPPING.put("proxy.ocsp-responder-client-connect-timeout", "proxy.ocsp-responder.client-connect-timeout");
-        MAPPING.put("proxy.ocsp-responder-client-read-timeout", "proxy.ocsp-responder.client-read-timeout");
-        MAPPING.put("proxy.jetty-ocsp-responder-configuration-file", "proxy.ocsp-responder.jetty-configuration-file");
-        MAPPING.put("proxy.server-listen-address", "proxy.server.listen-address");
-        MAPPING.put("proxy.server-listen-port", "proxy.server.listen-port");
-        MAPPING.put("proxy.server-connector-initial-idle-time", "proxy.server.connector-initial-idle-time");
-        MAPPING.put("proxy.server-support-clients-pooled-connections", "proxy.server.support-clients-pooled-connections");
-        MAPPING.put("proxy.server-min-supported-client-version", "proxy.server.min-supported-client-version");
-        MAPPING.put("proxy.jetty-serverproxy-configuration-file", "proxy.server.jetty-configuration-file");
-        MAPPING.put("proxy.connector-host", "proxy.client-proxy.connector-host");
-        MAPPING.put("proxy.client-http-port", "proxy.client-proxy.client-http-port");
-        MAPPING.put("proxy.client-https-port", "proxy.client-proxy.client-https-port");
-        MAPPING.put("proxy.jetty-clientproxy-configuration-file", "proxy.client-proxy.jetty-configuration-file");
-        MAPPING.put("proxy.client-connector-initial-idle-time", "proxy.client-proxy.client-connector-initial-idle-time");
-        MAPPING.put("proxy.client-tls-protocols", "proxy.client-proxy.client-tls-protocols");
-        MAPPING.put("proxy.client-tls-ciphers", "proxy.client-proxy.client-tls-ciphers");
-        MAPPING.put("proxy.client-httpclient-so-linger", "proxy.client-proxy.client-httpclient-so-linger");
-        MAPPING.put("proxy.client-timeout", "proxy.client-proxy.client-timeout");
-        MAPPING.put("proxy.pool-enable-connection-reuse", "proxy.client-proxy.pool-enable-connection-reuse");
-        MAPPING.put("proxy.client-httpclient-timeout", "proxy.client-proxy.client-httpclient-timeout");
-        MAPPING.put("proxy.pool-total-max-connections", "proxy.client-proxy.pool-total-max-connections");
-        MAPPING.put("proxy.pool-total-default-max-connections-per-route", "proxy.client-proxy.pool-total-default-max-connections-per-route");
-        MAPPING.put("proxy.pool-validate-connections-after-inactivity-of-millis", "proxy.client-proxy.pool-validate-connections-after-inactivity-of-millis");
-        MAPPING.put("proxy.client-idle-connection-monitor-interval", "proxy.client-proxy.client-idle-connection-monitor-interval");
-        MAPPING.put("proxy.client-idle-connection-monitor-timeout", "proxy.client-proxy.client-idle-connection-monitor-timeout");
-        MAPPING.put("proxy.client-use-idle-connection-monitor", "proxy.client-proxy.client-use-idle-connection-monitor");
-        MAPPING.put("proxy.client-fastest-connecting-ssl-uri-cache-period", "proxy.client-proxy.fastest-connecting-ssl-uri-cache-period");
-        MAPPING.put("proxy.client-use-fastest-connecting-ssl-socket-autoclose", "proxy.client-proxy.use-fastest-connecting-ssl-socket-autoclose");
-        MAPPING.put("proxy.ocsp-verifier-cache-period", "common-ocsp-verifier.cache-period");
+        addMapping("proxy.ocsp-responder-port", "proxy.ocsp-responder.port");
+        addMapping("proxy.ocsp-responder-listen-address", "proxy.ocsp-responder.listen-address");
+        addMapping("proxy.ocsp-responder-client-connect-timeout", "proxy.ocsp-responder.client-connect-timeout");
+        addMapping("proxy.ocsp-responder-client-read-timeout", "proxy.ocsp-responder.client-read-timeout");
+        addMapping("proxy.jetty-ocsp-responder-configuration-file", "proxy.ocsp-responder.jetty-configuration-file");
+        addMapping("proxy.server-listen-address", "proxy.server.listen-address");
+        addMapping("proxy.server-listen-port", "proxy.server.listen-port");
+        addMapping("proxy.server-connector-initial-idle-time", "proxy.server.connector-initial-idle-time");
+        addMapping("proxy.server-support-clients-pooled-connections", "proxy.server.support-clients-pooled-connections");
+        addMapping("proxy.server-min-supported-client-version", "proxy.server.min-supported-client-version");
+        addMapping("proxy.jetty-serverproxy-configuration-file", "proxy.server.jetty-configuration-file");
+        addMapping("proxy.connector-host", "proxy.client-proxy.connector-host");
+        addMapping("proxy.client-http-port", "proxy.client-proxy.client-http-port");
+        addMapping("proxy.client-https-port", "proxy.client-proxy.client-https-port");
+        addMapping("proxy.jetty-clientproxy-configuration-file", "proxy.client-proxy.jetty-configuration-file");
+        addMapping("proxy.client-connector-initial-idle-time", "proxy.client-proxy.client-connector-initial-idle-time");
+        addMapping("proxy.client-tls-protocols", "proxy.client-proxy.client-tls-protocols");
+        addMapping("proxy.client-tls-ciphers", "proxy.client-proxy.client-tls-ciphers");
+        addMapping("proxy.client-httpclient-so-linger", "proxy.client-proxy.client-httpclient-so-linger");
+        addMapping("proxy.client-timeout", "proxy.client-proxy.client-timeout");
+        addMapping("proxy.pool-enable-connection-reuse", "proxy.client-proxy.pool-enable-connection-reuse");
+        addMapping("proxy.client-httpclient-timeout", "proxy.client-proxy.client-httpclient-timeout");
+        addMapping("proxy.pool-total-max-connections", "proxy.client-proxy.pool-total-max-connections");
+        addMapping("proxy.pool-total-default-max-connections-per-route", "proxy.client-proxy.pool-total-default-max-connections-per-route");
+        addMapping("proxy.pool-validate-connections-after-inactivity-of-millis", "proxy.client-proxy.pool-validate-connections-after-inactivity-of-millis");
+        addMapping("proxy.client-idle-connection-monitor-interval", "proxy.client-proxy.client-idle-connection-monitor-interval");
+        addMapping("proxy.client-idle-connection-monitor-timeout", "proxy.client-proxy.client-idle-connection-monitor-timeout");
+        addMapping("proxy.client-use-idle-connection-monitor", "proxy.client-proxy.client-use-idle-connection-monitor");
+        addMapping("proxy.client-fastest-connecting-ssl-uri-cache-period", "proxy.client-proxy.fastest-connecting-ssl-uri-cache-period");
+        addMapping("proxy.client-use-fastest-connecting-ssl-socket-autoclose", "proxy.client-proxy.use-fastest-connecting-ssl-socket-autoclose");
+        addMapping("proxy.ocsp-verifier-cache-period", "common-ocsp-verifier.cache-period");
 
 
-        MAPPING.put("proxy.server-conf-cache-period", "common-server-conf.cache-period");
-        MAPPING.put("proxy.server-conf-client-cache-size", "common-server-conf.client-cache-size");
-        MAPPING.put("proxy.server-conf-service-cache-size", "common-server-conf.service-cache-size");
-        MAPPING.put("proxy.server-conf-service-endpoints-cache-size", "common-server-conf.service-endpoints-cache-size");
-        MAPPING.put("proxy.server-conf-acl-cache-size", "common-server-conf.acl-cache-size");
-        MAPPING.put("proxy.grpc-port", "proxy.rpc.port");
+        addMapping("proxy.server-conf-cache-period", "common-server-conf.cache-period");
+        addMapping("proxy.server-conf-client-cache-size", "common-server-conf.client-cache-size");
+        addMapping("proxy.server-conf-service-cache-size", "common-server-conf.service-cache-size");
+        addMapping("proxy.server-conf-service-endpoints-cache-size", "common-server-conf.service-endpoints-cache-size");
+        addMapping("proxy.server-conf-acl-cache-size", "common-server-conf.acl-cache-size");
+        addMapping("proxy.grpc-port", "proxy.rpc.port");
 
-        MAPPING.put("proxy.backup-encryption-enabled", "backup-manager.backup-encryption-enabled");
-        MAPPING.put("proxy.backup-encryption-keyids", "backup-manager.backup-encryption-keyids");
-        MAPPING.put("configuration-client.proxy-configuration-backup-cron", "backup-manager.autobackup-cron-expression");
+        addMapping("proxy.backup-encryption-enabled", "backup-manager.backup-encryption-enabled");
+        addMapping("proxy.backup-encryption-keyids", "backup-manager.backup-encryption-keyids");
+        addMapping("configuration-client.proxy-configuration-backup-cron", "backup-manager.autobackup-cron-expression");
 
         // message-log-archiver
-        MAPPING.put("message-log.archive-max-filesize", "message-log-archiver.archive-max-filesize");
-        MAPPING.put("message-log.archive-path", "message-log-archiver.archive-path");
-        MAPPING.put("message-log.archive-transfer-command", "message-log-archiver.archive-transfer-command");
-        MAPPING.put("message-log.clean-interval", "message-log-archiver.clean-interval");
-        MAPPING.put("message-log.keep-records-for", "message-log-archiver.keep-records-for");
-        MAPPING.put("message-log.archive-transaction-batch", "message-log-archiver.archive-transaction-batch");
-        MAPPING.put("message-log.archive-transfer-command-parameters", "message-log-archiver.archive-transfer-command-parameters");
+        addMapping("message-log.archive-max-filesize", "message-log-archiver.archive-max-filesize");
+        addMapping("message-log.archive-path", "message-log-archiver.archive-path");
+        addMapping("message-log.archive-transfer-command", "message-log-archiver.archive-transfer-command");
+        addMapping("message-log.clean-interval", "message-log-archiver.clean-interval");
+        addMapping("message-log.keep-records-for", "message-log-archiver.keep-records-for");
+        addMapping("message-log.archive-transaction-batch", "message-log-archiver.archive-transaction-batch");
+        addMapping("message-log.archive-transfer-command-parameters", "message-log-archiver.archive-transfer-command-parameters");
 
         // op-monitor
-        MAPPING.put("op-monitor-service.socket-timeout-seconds", "op-monitor.service.socket-timeout-seconds");
-        MAPPING.put("op-monitor-service.connection-timeout-seconds", "op-monitor.service.connection-timeout-seconds");
+        addMapping("op-monitor-service.socket-timeout-seconds", "proxy.addon.op-monitor.connection.socket-timeout-seconds");
+        addMapping("op-monitor-service.connection-timeout-seconds", "proxy.addon.op-monitor.connection.connection-timeout-seconds");
 
-        MAPPING.put("op-monitor-buffer.size", "op-monitor.buffer.size");
-        MAPPING.put("op-monitor-buffer.max-records-in-message", "op-monitor.buffer.max-records-in-message");
-        MAPPING.put("op-monitor-buffer.sending-interval-seconds", "op-monitor.buffer.sending-interval-seconds");
-        MAPPING.put("op-monitor-buffer.socket-timeout-seconds", "op-monitor.buffer.socket-timeout-seconds");
-        MAPPING.put("op-monitor-buffer.connection-timeout-seconds", "op-monitor.buffer.connection-timeout-seconds");
+        addMapping("op-monitor.host", "proxy.addon.op-monitor.connection.host");
+        addCopy("op-monitor.port", "proxy.addon.op-monitor.connection.port");
+        addCopy("op-monitor.scheme", "proxy.addon.op-monitor.connection.scheme");
+        addCopy("op-monitor.xroad-tls-ciphers", "proxy.addon.op-monitor.connection.xroad-tls-ciphers");
+
+        addMapping("op-monitor-buffer.size", "proxy.addon.op-monitor.buffer.size");
+        addMapping("op-monitor-buffer.max-records-in-message", "proxy.addon.op-monitor.buffer.max-records-in-message");
+        addMapping("op-monitor-buffer.sending-interval-seconds", "proxy.addon.op-monitor.buffer.sending-interval-seconds");
+        addMapping("op-monitor-buffer.socket-timeout-seconds", "proxy.addon.op-monitor.buffer.socket-timeout-seconds");
+        addMapping("op-monitor-buffer.connection-timeout-seconds", "proxy.addon.op-monitor.buffer.connection-timeout-seconds");
 
         // proxy-ui
-        MAPPING.put("proxy-ui-api.security-server-url", "proxy-ui-api.proxy-server-url");
+        addMapping("proxy-ui-api.security-server-url", "proxy-ui-api.proxy-server-url");
 
         MAPPING.putAll(addDatabaseMapping("serverconf"));
         MAPPING.putAll(addDatabaseMapping("messagelog"));
@@ -127,36 +132,44 @@ public class LegacyConfigPathMapping {
         REMOVED_KEYS.add("signer.device-configuration-file");
     }
 
-    private static Map<String, String> addDatabaseMapping(String dbName) {
-        Map<String, String> dbPropMapping = new HashMap<>();
+    private static void addMapping(String oldKey, String... newKeys) {
+        MAPPING.put(oldKey, Set.of(newKeys));
+    }
+
+    private static void addCopy(String key, String copyTo) {
+        MAPPING.put(key, Set.of(key, copyTo));
+    }
+
+    private static Map<String, Set<String>> addDatabaseMapping(String dbName) {
+        Map<String, Set<String>> dbPropMapping = new HashMap<>();
         dbPropMapping.put(
                 "%s.hibernate.connection.url".formatted(dbName),
-                "db.%s.hibernate.connection.url".formatted(dbName));
+                Set.of("db.%s.hibernate.connection.url".formatted(dbName)));
 
         dbPropMapping.put(
                 "%s.hibernate.connection.username".formatted(dbName),
-                "db.%s.hibernate.connection.username".formatted(dbName));
+                Set.of("db.%s.hibernate.connection.username".formatted(dbName)));
 
         dbPropMapping.put(
                 "%s.hibernate.connection.password".formatted(dbName),
-                "db.%s.hibernate.connection.password".formatted(dbName));
+                Set.of("db.%s.hibernate.connection.password".formatted(dbName)));
 
         dbPropMapping.put(
                 "%s.hibernate.jdbc.use_streams_for_binary".formatted(dbName),
-                "db.%s.hibernate.jdbc.use_streams_for_binary".formatted(dbName));
+                Set.of("db.%s.hibernate.jdbc.use_streams_for_binary".formatted(dbName)));
 
         dbPropMapping.put(
                 "%s.hibernate.connection.driver_class".formatted(dbName),
-                "db.%s.hibernate.connection.driver_class".formatted(dbName));
+                Set.of("db.%s.hibernate.connection.driver_class".formatted(dbName)));
 
         dbPropMapping.put(
                 "%s.hibernate.hikari.dataSource.currentSchema".formatted(dbName),
-                "db.%s.hibernate.hikari.dataSource.currentSchema".formatted(dbName));
+                Set.of("db.%s.hibernate.hikari.dataSource.currentSchema".formatted(dbName)));
         return dbPropMapping;
     }
 
-    static String map(String oldPath) {
-        return MAPPING.getOrDefault(oldPath, oldPath);
+    static Set<String> map(String oldPath) {
+        return MAPPING.getOrDefault(oldPath, Set.of(oldPath));
     }
 
     static boolean shouldKeep(String key) {

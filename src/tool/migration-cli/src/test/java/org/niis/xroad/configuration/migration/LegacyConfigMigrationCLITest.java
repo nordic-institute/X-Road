@@ -53,6 +53,20 @@ class LegacyConfigMigrationCLITest {
     private final YamlPropertySourceLoader yamlLoader = new YamlPropertySourceLoader();
 
     @Test
+    void testPropertyCopy() {
+        LegacyConfigMigrationCLI.main(new String[]{
+                INPUT_INI,
+                OUTPUT_YAML});
+
+        var result = loadYaml("build/local.yml");
+
+        assertEquals("test-scheme", result.getProperty("xroad.proxy.addon.op-monitor.connection.scheme"));
+        assertEquals("test-scheme", result.getProperty("xroad.op-monitor.scheme"));
+        assertEquals(1313, result.getProperty("xroad.proxy.addon.op-monitor.connection.port"));
+        assertEquals(1313, result.getProperty("xroad.op-monitor.port"));
+    }
+
+    @Test
     void shouldMigrateToYaml() {
         LegacyConfigMigrationCLI.main(new String[]{
                 INPUT_INI,

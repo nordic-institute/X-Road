@@ -68,10 +68,11 @@ public class IniUtil {
                 var sectionKey = it.next();
                 var key = section + "." + sectionKey;
                 if (LegacyConfigPathMapping.shouldKeep(key)) {
-                    var mappedKey = LegacyConfigPathMapping.map(key);
+                    var mappedKeys = LegacyConfigPathMapping.map(key);
                     var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
-
-                    insertNestedProperty(properties, mappedKey.split("\\."), resolveValue(valueStr));
+                    mappedKeys.forEach(mappedKey ->
+                            insertNestedProperty(properties, mappedKey.split("\\."), resolveValue(valueStr))
+                    );
                 }
             }
         }
@@ -105,10 +106,11 @@ public class IniUtil {
                 var sectionKey = it.next();
                 var key = String.join(".", section, sectionKey);
                 if (LegacyConfigPathMapping.shouldKeep(key)) {
-                    var mappedKey = LegacyConfigPathMapping.map(key);
+                    var mappedKeys = LegacyConfigPathMapping.map(key);
                     var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
-
-                    properties.put(String.join(".", rootPrefix, mappedKey), valueStr);
+                    mappedKeys.forEach(mappedKey ->
+                            properties.put(String.join(".", rootPrefix, mappedKey), valueStr)
+                    );
                 }
             }
         }
