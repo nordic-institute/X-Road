@@ -166,7 +166,7 @@ jobs:
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
       - name: Download workspace
-        uses: pyTooling/download-artifact@v5 # https://github.com/actions/upload-artifact/issues/38
+        uses: pyTooling/download-artifact@v6 # https://github.com/actions/upload-artifact/issues/38
         with:
           name: workspace-for-arm
       - name: Set up measurement for arm packaging
