@@ -91,7 +91,7 @@ jobs:
           task: get-measurement
           label: 'Build, unit tests and packaging'
       - name: Store files for arm packaging
-        uses: pyTooling/upload-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
+        uses: pyTooling/upload-artifact@v5 # https://github.com/actions/upload-artifact/issues/38
         with:
           name: workspace-for-arm
           include-hidden-files: true
