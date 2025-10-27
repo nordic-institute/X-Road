@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,29 +28,6 @@ import { App } from 'vue';
 import { i18n } from '@niis/shared-ui';
 
 export class Filters {
-  capitalize(value: string): string {
-    if (!value) {
-      return '';
-    }
-    value = value.toString();
-    return value.charAt(0).toUpperCase() + value.slice(1);
-  }
-
-  // Add colon for every two characters.  xxxxxx -> xx:xx:xx
-  colonize(value: string): string {
-    if (!value) {
-      return '';
-    }
-
-    const colonized = value.replace(/(.{2})/g, '$1:');
-
-    if (colonized[colonized.length - 1] === ':') {
-      return colonized.slice(0, -1);
-    }
-
-    return colonized;
-  }
-
   // Upper case every word
   upperCaseWords(value: string): string {
     if (!value) {
@@ -60,48 +38,6 @@ export class Filters {
       .split(' ')
       .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
       .join(' ');
-  }
-
-  // Format date string. Result YYYY-MM-DD.
-  formatDate(value: string): string {
-    const timestamp = Date.parse(value);
-
-    if (isNaN(timestamp)) {
-      return '-';
-    }
-
-    const date = new Date(value);
-
-    return (
-      date.getFullYear() +
-      '-' +
-      (date.getMonth() + 1).toString().padStart(2, '0') +
-      '-' +
-      date.getDate().toString().padStart(2, '0')
-    );
-  }
-
-  // Format date string. Result YYYY-MM-DD HH:MM.
-  formatDateTime(value: string): string {
-    const timestamp = Date.parse(value);
-
-    if (isNaN(timestamp)) {
-      return '-';
-    }
-
-    const date = new Date(value);
-
-    return (
-      date.getFullYear() +
-      '-' +
-      (date.getMonth() + 1).toString().padStart(2, '0') +
-      '-' +
-      date.getDate().toString().padStart(2, '0') +
-      ' ' +
-      date.getHours().toString().padStart(2, '0') +
-      ':' +
-      date.getMinutes().toString().padStart(2, '0')
-    );
   }
 
   // Format date string. Result HH:MM.

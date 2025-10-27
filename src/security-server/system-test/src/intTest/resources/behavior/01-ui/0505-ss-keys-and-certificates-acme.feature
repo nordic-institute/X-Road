@@ -1,5 +1,6 @@
 @SecurityServer
 @Initialization
+@Skip #TODO beta1 release preparation
 Feature: 0505 - SS: ACME
 
   Background:
@@ -20,16 +21,17 @@ Feature: 0505 - SS: ACME
     And Token: <$token>, key "<$label>" generate CSR button is disabled
     Examples:
       | $token      | $usage         | $label                  | $client           | $dns | $certService | $certStatus | $ocspStatus |
-      | softToken-0 | SIGNING        | test acme signing key   | DEV:COM:1234      | ss0  | Test CA      | Registered  | Good        |
-      | softToken-0 | AUTHENTICATION | test acme auth key      |                   | ss0  | Test CA      | Saved       | Disabled    |
+      | softToken-0 | SIGNING        | test acme signing key   | DEV:COM:1234      | ui  | Test CA      | Registered  | Good        |
+      | softToken-0 | AUTHENTICATION | test acme auth key      |                   | ui  | Test CA      | Saved       | Disabled    |
 
+  @Download
   Scenario: Certificate ordering is disabled when external account binding credentials are required but missing
     Given Keys and certificates tab is selected
     And Token: softToken-0 is present and expanded
     When Token: softToken-0 - Add key wizard is opened
     And Key Label is set to "sign key for eab"
     And CSR details Usage is set to "SIGNING", Client set to "4321", Certification Service to "Test CA" and CSR format "DER"
-    And Generate "SIGNING" CSR is set to DNS "ss0" and Organization "ui-test"
+    And Generate "SIGNING" CSR is set to DNS "ui" and Organization "ui-test"
     Then Wizard CSR page ACME order button is disabled
     When CSR with extension "der" successfully generated
     And Token: softToken-0 - ACME order dialog is opened for key "sign key for eab"

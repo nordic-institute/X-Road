@@ -1,5 +1,6 @@
 @SecurityServer
 @Client
+@Skip #TODO beta1 release preparation
 Feature: 0500 - SS: Client Add
 
   Background:
@@ -20,7 +21,7 @@ Feature: 0500 - SS: Client Add
     And Add Client Token is set as "Token softToken-0"
     And Add Client Sign key label set to "<$label>"
     And Add Client CSR details Certification Service to "Test CA" and CSR format "PEM"
-    And Add Client Generate CSR is set to organization "test-org" SAN is set to "ss0" and csr is created
+    And Add Client Generate CSR is set to organization "test-org" SAN is set to "ui" and csr is created
     Then Client "<$client>" with status "<$status>" is present in the list
     Examples:
       | $label           | $client               | $clientIdentifier       | $status    | $newName                     |

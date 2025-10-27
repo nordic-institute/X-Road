@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,8 +26,8 @@
  */
 
 import { defineStore } from 'pinia';
-import { useNotifications } from './notifications';
 import * as api from '@/util/api';
+import { useNotifications } from '@niis/shared-ui';
 
 export interface AlertStatus {
   currentTime?: string;
@@ -83,8 +84,8 @@ export const useAlerts = defineStore('alerts', {
   },
 
   actions: {
-    checkAlertStatus(): void {
-      api
+    async checkAlertStatus() {
+      return api
         .get<AlertsResponse>('/notifications/alerts')
         .then((resp) => {
           this.alertStatus = {
@@ -103,8 +104,8 @@ export const useAlerts = defineStore('alerts', {
           this.queried = true;
         })
         .catch((error) => {
-          const notifications = useNotifications();
-          notifications.showError(error);
+          const { addError } = useNotifications();
+          addError(error);
         });
     },
     clearAlerts(): void {

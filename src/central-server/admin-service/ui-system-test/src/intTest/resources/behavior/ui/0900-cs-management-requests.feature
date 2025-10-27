@@ -11,7 +11,6 @@ Feature: 0900 - CS: Management Requests
     And Create API key button is clicked
     And Role "Registration Officer" is being clicked
     And Create API key wizard next button is clicked
-    And Create API key wizard Create Key button is clicked
     And API key is created and visible
     Then API key is set to token REGISTRATION_OFFICER and in Authentication header
     And Create API key wizard Finish button is clicked

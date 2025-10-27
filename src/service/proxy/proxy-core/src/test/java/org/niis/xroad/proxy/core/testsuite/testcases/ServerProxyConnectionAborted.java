@@ -26,10 +26,9 @@
  */
 package org.niis.xroad.proxy.core.testsuite.testcases;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.testsuite.UsingAbortingServerProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +82,7 @@ public class ServerProxyConnectionAborted extends MessageTestCase implements Usi
         public void run() {
             try {
                 byte[] buffer = new byte[1024];
-                int port = SystemProperties.getServerProxyPort();
+                int port = ProxyTestSuiteHelper.proxyProperties.serverProxyPort();
 
                 LOG.debug("Starting to listen at 127.0.0.1:{}", port);
 

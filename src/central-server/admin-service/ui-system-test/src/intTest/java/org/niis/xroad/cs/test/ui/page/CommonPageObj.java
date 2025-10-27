@@ -43,7 +43,7 @@ public class CommonPageObj {
     public final Button button = new Button();
 
     public SelenideElement viewTitle(final String viewTitle) {
-        return $x(String.format("//div[@data-test='view-title' and text()='%s']", viewTitle));
+        return $x(String.format("//div[@data-test='view-title-text' and text()='%s']", viewTitle));
     }
 
     public class Menu {
@@ -61,7 +61,7 @@ public class CommonPageObj {
         }
 
         public SelenideElement globalConfiguration() {
-            return $x(getTabXpath("Global Configuration"));
+            return $x(getTabXpath("Global Conf."));
         }
 
         public SelenideElement settingsTab() {
@@ -69,11 +69,11 @@ public class CommonPageObj {
         }
 
         public SelenideElement usernameButton() {
-            return $x("//button[@data-test='username-button']");
+            return $x("//div[@data-test='user-menu']");
         }
 
         public SelenideElement logout() {
-            return $x("//div[@data-test='logout-list-tile']");
+            return $x("//div[@data-test='logout-button']");
         }
 
         public SelenideElement securityServersTab() {
@@ -81,7 +81,8 @@ public class CommonPageObj {
         }
 
         private String getTabXpath(String tabName) {
-            var xpath = "//div[contains(@class, 'main-tabs')]//a[contains(@class,'v-tab')]//span[text()='%s']";
+            var xpath = "//a[@data-test='main-navigation-item' "
+                    + "and .//div[@data-test='main-navigation-item-name' and contains(text(), '%s')]]";
             return String.format(xpath, tabName);
         }
     }
@@ -92,7 +93,7 @@ public class CommonPageObj {
         }
 
         public SelenideElement backupAndRestoresTab() {
-            return $x("//*[@data-test='backupandrestore-tab-button']");
+            return $x("//*[@data-test='backup-and-restore-tab-button']");
         }
 
         public SelenideElement settingsTab() {
@@ -121,6 +122,10 @@ public class CommonPageObj {
             return $x("//button[@data-test='dialog-save-button']");
         }
 
+        public SelenideElement btnUpload() {
+            return $x("//button[@data-test='upload-file-btn']");
+        }
+
         public SelenideElement btnConfirm() {
             return $x("//button[@data-test='dialog-save-button']");
         }
@@ -142,7 +147,7 @@ public class CommonPageObj {
 
     public class Alerts {
         public SelenideElement alert(final String text) {
-            return $x("//div[@data-test='contextual-alert']//div[contains(text(), '%s')]".formatted(text));
+            return $x("//div[@data-test='contextual-alert']//p[contains(text(), '%s')]".formatted(text));
         }
 
         public SelenideElement btnClose() {
@@ -165,6 +170,6 @@ public class CommonPageObj {
     }
 
     public SelenideElement backLink() {
-        return $x("//div[@data-test='navigation-back']/a");
+        return $x("//a[@data-test='navigation-back'][last()]");
     }
 }

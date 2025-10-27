@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -58,7 +57,6 @@ import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 
@@ -70,6 +68,7 @@ import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES;
 
 @Slf4j
 public class DummyService extends Server {
@@ -124,7 +123,7 @@ public class DummyService extends Server {
         SslContextFactory.Server cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
 
-        cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
+        cf.setIncludeCipherSuites(DEFAULT_XROAD_SSL_CIPHER_SUITES);
         cf.setSessionCachingEnabled(true);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
@@ -302,14 +301,12 @@ public class DummyService extends Server {
         }
 
         @Override
-        public void checkClientTrusted(X509Certificate[] certs, String authType)
-                throws CertificateException {
+        public void checkClientTrusted(X509Certificate[] certs, String authType) {
             log.debug("checkClientTrusted");
         }
 
         @Override
-        public void checkServerTrusted(X509Certificate[] certs, String authType)
-                throws CertificateException {
+        public void checkServerTrusted(X509Certificate[] certs, String authType) {
             log.debug("checkServerTrusted");
         }
     }

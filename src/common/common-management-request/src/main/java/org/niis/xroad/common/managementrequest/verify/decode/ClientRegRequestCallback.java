@@ -36,14 +36,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 
 @Slf4j
 public class ClientRegRequestCallback extends BaseClientRequestCallback<ClientRegRequestType> {
 
-    public ClientRegRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback) {
-        super(globalConfProvider, rootCallback, ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
+    public ClientRegRequestCallback(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                                    ManagementRequestVerifier.DecoderCallback rootCallback) {
+        super(globalConfProvider, ocspVerifierFactory, rootCallback, ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
     }
 
     @Override

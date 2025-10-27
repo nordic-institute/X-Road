@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,95 +25,52 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app-bar
-    class="main-toolbar"
-    theme="dark"
-    absolute
-    color="#636161"
-    flat
-    height="32"
+  <XrdAppToolbar
+    app-title="global.appTitle"
+    :authenticated="userStore.authenticated"
+    :ready="!!userStore.currentSecurityServer"
+    :server-name="serverName"
+    :node-name="nodeName"
   >
-    <div v-if="authenticated" class="auth-container">
-      <div class="server-type">{{ $t('global.appTitle').toUpperCase() }}</div>
-      <div
-        v-show="currentSecurityServer.id"
-        class="server-name"
-        data-test="app-toolbar-server-name"
-      >
-        {{
-          `${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`
-        }}
-      </div>
-      <div data-test="app-toolbar-server-address">
-        {{ currentSecurityServer.server_address }}
-      </div>
+    <div data-test="app-toolbar-server-address">
+      {{ userStore.currentSecurityServer?.server_address }}
     </div>
-    <div
-      v-if="shouldShowNodeType"
-      class="node-type ml-auto"
-      data-test="app-toolbar-node-type"
-    >
-      {{ $t(`toolbar.securityServerNodeType.${securityServerNodeType}`) }}
-    </div>
-  </v-app-bar>
+  </XrdAppToolbar>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { NodeType } from '@/openapi-types';
-import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
-import { useSystem } from '@/store/modules/system';
+<script lang="ts" setup>
+import { computed } from 'vue';
 
-export default defineComponent({
-  computed: {
-    ...mapState(useUser, ['authenticated', 'currentSecurityServer']),
-    ...mapState(useSystem, ['securityServerNodeType']),
-    shouldShowNodeType(): boolean {
-      return this.securityServerNodeType !== NodeType.STANDALONE;
-    },
-  },
+import { useI18n } from 'vue-i18n';
+
+import { XrdAppToolbar } from '@niis/shared-ui';
+
+import { NodeType } from '@/openapi-types';
+import { useSystem } from '@/store/modules/system';
+import { useUser } from '@/store/modules/user';
+
+const { t } = useI18n();
+
+const userStore = useUser();
+const systemStore = useSystem();
+
+const nodeName = computed(() => {
+  if (
+    userStore.authenticated &&
+    systemStore.securityServerNodeType !== NodeType.STANDALONE
+  ) {
+    return t(
+      `toolbar.securityServerNodeType.${systemStore.securityServerNodeType}`,
+    );
+  }
+  return '';
+});
+
+const serverName = computed(() => {
+  if (userStore.authenticated && userStore.currentSecurityServer) {
+    return `${userStore.currentSecurityServer.instance_id} : ${userStore.currentSecurityServer.server_code}`;
+  }
+  return '';
 });
 </script>
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-
-.server-name {
-  margin: 20px;
-  margin-right: 10px;
-}
-
-.server-type {
-  font-style: normal;
-  font-weight: bold;
-  margin-left: 64px;
-  user-select: none;
-
-  @media only screen and (max-width: 920px) {
-    display: none;
-  }
-}
-
-.node-type {
-  font-size: 12px;
-  font-style: normal;
-  font-weight: bold;
-  color: colors.$WarmGrey30;
-  margin-right: 64px;
-  user-select: none;
-
-  @media only screen and (max-width: 920px) {
-    margin-right: 20px;
-  }
-}
-
-.auth-container {
-  font-size: 12px;
-  line-height: 16px;
-  text-align: center;
-  color: colors.$WarmGrey30;
-  display: flex;
-  height: 100%;
-  align-items: center;
-}
-</style>
+<style lang="scss" scoped></style>

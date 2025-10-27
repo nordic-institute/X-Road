@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,199 +25,174 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper">
-    <div class="search-row mb-5">
-      <v-text-field
+  <XrdSubView>
+    <template #header>
+      <XrdRoundedSearchField
         v-model="search"
-        :label="$t('services.service')"
-        single-line
-        hide-details
-        autofocus
         data-test="search-service"
-        variant="underlined"
-        density="compact"
-        class="search-input"
-        append-inner-icon="mdi-magnify"
-      >
-      </v-text-field>
+        autofocus
+        :label="$t('services.service')"
+      />
+      <v-spacer />
+      <XrdBtn
+        v-if="showAddRestButton"
+        data-test="add-rest-button"
+        text="services.addRest"
+        prepend-icon="add_circle"
+        @click="showAddRestDialog"
+      />
 
-      <div>
-        <xrd-button
-          v-if="showAddRestButton"
-          color="primary"
-          :loading="addRestBusy"
-          outlined
-          data-test="add-rest-button"
-          class="rest-button"
-          @click="showAddRestDialog"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add />
-          </xrd-icon-base>
-          {{ $t('services.addRest') }}
-        </xrd-button>
-
-        <xrd-button
-          v-if="showAddWSDLButton"
-          :loading="addWsdlBusy"
-          data-test="add-wsdl-button"
-          class="ma-0"
-          @click="showAddWsdlDialog"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add />
-          </xrd-icon-base>
-          {{ $t('services.addWsdl') }}
-        </xrd-button>
-      </div>
-    </div>
-
-    <XrdEmptyPlaceholder
-      :data="filtered"
-      :filtered="search.length > 0"
-      :loading="loading"
-      :no-items-text="$t('noData.noServices')"
-      skeleton-type="table-heading"
-    />
-
-    <template v-if="filtered">
-      <xrd-expandable
-        v-for="(serviceDesc, index) in filtered"
-        :key="serviceDesc.id"
-        class="expandable"
-        :is-open="isExpanded(serviceDesc.id)"
-        data-test="service-description-accordion"
-        @open="$event ? descOpen(serviceDesc.id) : descClose(serviceDesc.id)"
-      >
-        <template #action>
-          <v-switch
-            :key="componentKey"
-            :model-value="!serviceDesc.disabled"
-            :disabled="!canDisable"
-            data-test="service-description-enable-disable"
-            @update:model-value="switchChanged($event, serviceDesc, index)"
-          ></v-switch>
-        </template>
-
-        <template #link>
-          <div
-            v-if="canEditServiceDesc(serviceDesc)"
-            class="clickable-link service-description-header"
-            data-test="service-description-header"
-            @click="descriptionClick(serviceDesc)"
-          >
-            {{ `${serviceDesc.type} (${serviceDesc.url})` }}
-          </div>
-          <div v-else>{{ `${serviceDesc.type} (${serviceDesc.url})` }}</div>
-        </template>
-
-        <template #content>
-          <div>
-            <div class="refresh-row">
-              <div class="refresh-time">
-                {{ $t('services.lastRefreshed') }}
-                {{ $filters.formatDateTime(serviceDesc.refreshed_at) }}
-              </div>
-              <xrd-button
-                v-if="showRefreshButton(serviceDesc.type)"
-                :key="refreshButtonComponentKey"
-                :outlined="false"
-                text
-                :loading="refreshBusy[serviceDesc.id]"
-                color="primary"
-                class="xrd-table-button"
-                data-test="refresh-button"
-                @click="refresh(serviceDesc)"
-                >{{ $t('action.refresh') }}
-              </xrd-button>
-            </div>
-
-            <table class="xrd-table">
-              <thead>
-                <tr>
-                  <th>{{ $t('services.serviceCode') }}</th>
-                  <th>{{ $t('services.url') }}</th>
-                  <th>{{ $t('services.timeout') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="service in serviceDesc.services" :key="service.id">
-                  <td
-                    class="clickable-link"
-                    data-test="service-link"
-                    @click="serviceClick(serviceDesc, service)"
-                  >
-                    {{ service.full_service_code }}
-                  </td>
-                  <td class="service-url" data-test="service-url">
-                    <serviceIcon :service="service" />
-                    {{ service.url }}
-                  </td>
-                  <td>{{ service.timeout }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </template>
-      </xrd-expandable>
+      <XrdBtn
+        v-if="showAddWSDLButton"
+        data-test="add-wsdl-button"
+        class="ml-2"
+        text="services.addWsdl"
+        prepend-icon="add_circle"
+        @click="showAddWsdlDialog"
+      />
     </template>
 
-    <AddWsdlDialog
-      :dialog="addWsdlDialog"
-      @save="wsdlSave"
-      @cancel="cancelAddWsdl"
-    />
-    <AddRestDialog
-      :dialog="addRestDialog"
-      @save="restSave"
-      @cancel="cancelAddRest"
-    />
-    <DisableServiceDescDialog
-      v-if="disableDescDialog"
-      :subject="selectedServiceDesc"
-      :subject-index="selectedIndex"
-      @cancel="disableDescCancel"
-      @save="disableDescSave"
-    />
-    <!-- Accept "save WSDL" warnings -->
-    <ServiceWarningDialog
-      :dialog="saveWsdlWarningDialog"
-      :warnings="warningInfo"
-      :loading="saveWsdlLoading"
-      @cancel="cancelSaveWsdlWarning()"
-      @accept="acceptSaveWsdlWarning()"
-    />
-    <!-- Accept "save REST/OPENAPI3" warnings -->
-    <ServiceWarningDialog
-      :dialog="saveRestWarningDialog"
-      :warnings="warningInfo"
-      :loading="saveRestLoading"
-      @cancel="cancelSaveRestWarning()"
-      @accept="acceptSaveRestWarning()"
-    />
-    <!-- Accept "refresh" warnings. -->
-    <!-- Covers WSDL, OPENAPI3 and REST. -->
-    <ServiceWarningDialog
-      :dialog="refreshWarningDialog"
-      :warnings="warningInfo"
-      :loading="refreshLoading"
-      @cancel="cancelRefresh()"
-      @accept="acceptRefreshWarning()"
-    />
-  </div>
+    <div class="wrapper">
+      <XrdEmptyPlaceholder
+        :data="filtered"
+        :filtered="search.length > 0"
+        :loading="loading"
+        :no-items-text="$t('noData.noServices')"
+        skeleton-type="table-heading"
+      />
+
+      <template v-if="filtered">
+        <XrdExpandable
+          v-for="(serviceDesc, index) in filtered"
+          :id="`service-description-${serviceDesc.id}`"
+          :key="serviceDesc.id"
+          data-test="service-description-accordion"
+          class="mt-6 border"
+          :is-open="isExpanded(serviceDesc.id)"
+          @open="$event ? descOpen(serviceDesc.id) : descClose(serviceDesc.id)"
+        >
+          <template #action>
+            <ServiceStatusChip :enabled="!serviceDesc.disabled" />
+            <XrdBtn
+              v-if="canDisable"
+              data-test="service-description-enable-disable"
+              class="ml-2"
+              variant="text"
+              :prepend-icon="serviceDesc.disabled ? 'check_circle' : 'cancel'"
+              :text="serviceDesc.disabled ? 'action.enable' : 'action.disable'"
+              :loading="enabling[serviceDesc.id]"
+              @click="switchChanged(serviceDesc, index)"
+            />
+          </template>
+
+          <template #link="{ toggle, opened }">
+            <span
+              data-test="service-description-header-url"
+              class="font-weight-medium"
+              :class="{ 'on-surface': opened, 'on-surface-variant': !opened }"
+              @click="toggle"
+            >
+              {{ serviceDesc.type }}
+              <span class="font-weight-regular"> ({{ serviceDesc.url }}) </span>
+            </span>
+            <v-icon
+              v-if="canEditServiceDesc(serviceDesc)"
+              data-test="service-description-header-edit"
+              class="ml-2"
+              icon="edit"
+              size="16"
+              color="primary"
+              @click="descriptionClick(serviceDesc)"
+            />
+          </template>
+
+          <template #content>
+            <div class="refresh-row d-flex flex-row align-center">
+              <v-spacer />
+              <div class="refresh-time body-regular">
+                {{ $t('services.lastRefreshed') }}
+                <XrdDateTime :value="serviceDesc.refreshed_at" />
+              </div>
+              <XrdBtn
+                v-if="showRefreshButton(serviceDesc.type)"
+                data-test="refresh-button"
+                class="ml-2"
+                variant="text"
+                color="tertiary"
+                text="action.refresh"
+                prepend-icon="cached"
+                :loading="refreshBusy[serviceDesc.id]"
+                @click="refresh(serviceDesc)"
+              />
+            </div>
+
+            <v-data-table
+              class="xrd"
+              hide-default-footer
+              :items="serviceDesc.services"
+              :headers="headers"
+              :items-per-page="-1"
+            >
+              <template #item.full_service_code="{ value, item }">
+                <XrdLabelWithIcon
+                  icon="settings_system_daydream"
+                  clickable
+                  semi-bold
+                  :label="value"
+                  @navigate="serviceClick(item)"
+                />
+              </template>
+              <template #item.url="{ value, item }">
+                <ServiceIcon :service="item" />
+                {{ value }}
+              </template>
+            </v-data-table>
+          </template>
+        </XrdExpandable>
+      </template>
+
+      <AddWsdlDialog
+        v-if="addWsdlDialog"
+        :client-id="id"
+        @save="wsdlSave"
+        @cancel="cancelAddWsdl"
+      />
+      <AddRestDialog
+        v-if="addRestDialog"
+        :client-id="id"
+        @save="restSave"
+        @cancel="cancelAddRest"
+      />
+      <DisableServiceDescDialog
+        v-if="disableDescDialog"
+        :subject="selectedServiceDesc"
+        :subject-index="selectedIndex"
+        @cancel="disableDescCancel"
+        @save="disableDescSave"
+      />
+      <!-- Accept "refresh" warnings. -->
+      <!-- Covers WSDL, OPENAPI3 and REST. -->
+      <ServiceWarningDialog
+        v-if="refreshWarningDialog"
+        :warnings="warningInfo"
+        :loading="refreshLoading"
+        @cancel="cancelRefresh()"
+        @accept="acceptRefreshWarning()"
+      />
+    </div>
+  </XrdSubView>
 </template>
 
 <script lang="ts">
 // View for services tab
 import { defineComponent, PropType } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 import AddWsdlDialog from './AddWsdlDialog.vue';
 import AddRestDialog from './AddRestDialog.vue';
 import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
 import ServiceWarningDialog from '@/components/service/ServiceWarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
+import ServiceStatusChip from './ServiceStatusChip.vue';
 
 import {
   CodeWithDetails,
@@ -227,23 +203,41 @@ import {
 import { ServiceTypeEnum } from '@/domain';
 import { deepClone } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
-import { useServices } from '@/store/modules/services';
 import { useUser } from '@/store/modules/user';
-import { useNotifications } from '@/store/modules/notifications';
+import {
+  XrdDateTime,
+  XrdSubView,
+  XrdBtn,
+  XrdLabelWithIcon,
+  useNotifications,
+} from '@niis/shared-ui';
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
+import { useServiceDescriptions } from '@/store/modules/service-descriptions';
+import { useGoTo } from 'vuetify';
 
 export default defineComponent({
   components: {
+    XrdBtn,
     AddWsdlDialog,
     AddRestDialog,
     DisableServiceDescDialog,
     ServiceWarningDialog,
     ServiceIcon,
+    XrdDateTime,
+    XrdSubView,
+    ServiceStatusChip,
+    XrdLabelWithIcon,
   },
   props: {
     id: {
       type: String as PropType<string>,
       required: true,
     },
+  },
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    const goTo = useGoTo();
+    return { addError, addSuccessMessage, goTo };
   },
   data() {
     return {
@@ -257,26 +251,32 @@ export default defineComponent({
       componentKey: 0 as number,
       expanded: [] as string[],
       warningInfo: [] as CodeWithDetails[],
-      saveWsdlWarningDialog: false as boolean,
-      saveRestWarningDialog: false as boolean,
       refreshWarningDialog: false as boolean,
       url: '' as string,
-      serviceType: '' as string,
+      serviceType: undefined as ServiceTypeEnum | undefined,
       serviceCode: '' as string,
       refreshId: '' as string,
-      addWsdlBusy: false as boolean,
-      addRestBusy: false as boolean,
       refreshBusy: {} as { [key: string]: boolean },
+      enabling: {} as { [key: string]: boolean },
       refreshButtonComponentKey: 0 as number,
       serviceTypeEnum: ServiceTypeEnum,
-      saveWsdlLoading: false as boolean,
-      saveRestLoading: false as boolean,
       refreshLoading: false as boolean,
     };
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useServices, ['descExpanded', 'serviceDescriptions']),
+    ...mapState(useServiceDescriptions, [
+      'descExpanded',
+      'serviceDescriptions',
+    ]),
+
+    headers() {
+      return [
+        { title: this.$t('services.serviceCode'), key: 'full_service_code' },
+        { title: this.$t('services.url'), key: 'url' },
+        { title: this.$t('services.timeout'), key: 'timeout' },
+      ] as DataTableHeader[];
+    },
 
     showAddWSDLButton(): boolean {
       return this.hasPermission(Permissions.ADD_WSDL);
@@ -342,14 +342,21 @@ export default defineComponent({
   },
 
   created() {
-    this.fetchData();
+    this.fetchData().then(() => {
+      if (this.$route.query.expand) {
+        this.goTo(`#service-description-${this.$route.query.expand}`);
+        this.descOpen(this.$route.query.expand);
+      }
+    });
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useServices, [
+    ...mapActions(useServiceDescriptions, [
       'hideDesc',
       'expandDesc',
       'fetchServiceDescriptions',
+      'enableServiceDescription',
+      'disableServiceDescription',
+      'refreshServiceDescription',
     ]),
 
     showRefreshButton(serviceDescriptionType: string): boolean {
@@ -366,14 +373,10 @@ export default defineComponent({
         params: { id: desc.id },
       });
     },
-    serviceClick(
-      serviceDescription: ServiceDescription,
-      service: Service,
-    ): void {
+    serviceClick(service: Service): void {
       this.$router.push({
         name: RouteName.ServiceParameters,
-        params: { serviceId: service.id, clientId: this.id },
-        query: { descriptionType: serviceDescription.type },
+        params: { serviceId: service.id },
       });
     },
     canEditServiceDesc(servicedescription: ServiceDescription): boolean {
@@ -390,11 +393,7 @@ export default defineComponent({
 
       return this.hasPermission(permission);
     },
-    switchChanged(
-      event: unknown,
-      serviceDesc: ServiceDescription,
-      index: number,
-    ): void {
+    switchChanged(serviceDesc: ServiceDescription, index: number): void {
       if (!serviceDesc.disabled) {
         // If user wants to disable service description:
         // - cancel the switch change
@@ -402,67 +401,30 @@ export default defineComponent({
         this.selectedServiceDesc = serviceDesc;
         this.selectedIndex = index;
         this.disableDescDialog = true;
-        this.forceUpdateSwitch(index, false);
         return;
       }
 
-      api
-        .put(
-          `/service-descriptions/${encodePathParameter(serviceDesc.id)}/enable`,
-          {},
-        )
+      this.enabling[serviceDesc.id] = true;
+      this.enableServiceDescription(serviceDesc.id)
         .then(() => {
-          this.showSuccess(this.$t('services.enableSuccess'));
+          this.addSuccessMessage('services.enableSuccess');
         })
-        .catch((error) => {
-          this.showError(error);
-        })
+        .catch((error) => this.addError(error))
         .finally(() => {
           // Whatever happens, refresh the data
           this.fetchData();
-        });
+        })
+        .finally(() => (this.enabling[serviceDesc.id] = false));
     },
 
-    disableDescCancel(
-      subject: ServiceDescription | undefined,
-      index: number,
-    ): void {
+    disableDescCancel(): void {
       // User cancels the change from dialog. Switch must be returned to original position.
       this.disableDescDialog = false;
-      this.forceUpdateSwitch(index, false);
     },
 
-    disableDescSave(
-      subject: ServiceDescription | undefined,
-      index: number,
-      notice: string,
-    ): void {
+    disableDescSave(): void {
       this.disableDescDialog = false;
-      this.forceUpdateSwitch(index, true);
-      if (subject) {
-        api
-          .put(
-            `/service-descriptions/${encodePathParameter(subject.id)}/disable`,
-            {
-              disabled_notice: notice,
-            },
-          )
-          .then(() => {
-            this.showSuccess(this.$t('services.disableSuccess'));
-          })
-          .catch((error) => {
-            this.showError(error);
-          })
-          .finally(() => {
-            this.fetchData();
-          });
-      }
-    },
-
-    forceUpdateSwitch(index: number, value: boolean): void {
-      // "force updating" the switch is needed for smooth
-      this.filtered[index].disabled = value;
-      this.componentKey += 1;
+      this.fetchData();
     },
 
     showAddRestDialog(): void {
@@ -473,128 +435,18 @@ export default defineComponent({
       this.addWsdlDialog = true;
     },
 
-    wsdlSave(url: string): void {
-      this.url = url;
-      this.addWsdlBusy = true;
-      api
-        .post(`/clients/${encodePathParameter(this.id)}/service-descriptions`, {
-          url,
-          type: this.serviceTypeEnum.WSDL,
-        })
-        .then(() => {
-          this.showSuccess(this.$t('services.wsdlAdded'));
-          this.addWsdlBusy = false;
-          this.fetchData();
-        })
-        .catch((error) => {
-          if (error?.response?.data?.warnings) {
-            this.warningInfo = error.response.data.warnings;
-            this.saveWsdlWarningDialog = true;
-          } else {
-            this.showError(error);
-            this.addWsdlBusy = false;
-          }
-        });
-
+    wsdlSave(): void {
+      this.fetchData();
       this.addWsdlDialog = false;
-    },
-
-    acceptSaveWsdlWarning(): void {
-      this.saveWsdlLoading = true;
-      api
-        .post(`/clients/${encodePathParameter(this.id)}/service-descriptions`, {
-          url: this.url,
-          type: this.serviceTypeEnum.WSDL,
-          ignore_warnings: true,
-        })
-        .then(() => {
-          this.showSuccess(this.$t('services.wsdlAdded'));
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.fetchData();
-          this.addWsdlBusy = false;
-          this.saveWsdlLoading = false;
-          this.saveWsdlWarningDialog = false;
-        });
-    },
-
-    cancelSaveWsdlWarning(): void {
-      this.addWsdlBusy = false;
-      this.saveWsdlLoading = false;
-      this.saveWsdlWarningDialog = false;
     },
 
     cancelAddWsdl(): void {
       this.addWsdlDialog = false;
     },
 
-    restSave(serviceType: string, url: string, serviceCode: string): void {
-      this.serviceType = serviceType;
-      this.url = url;
-      this.serviceCode = serviceCode;
-      this.addRestBusy = true;
-      api
-        .post(`/clients/${encodePathParameter(this.id)}/service-descriptions`, {
-          url: this.url,
-          rest_service_code: this.serviceCode,
-          type: this.serviceType,
-        })
-        .then(() => {
-          this.showSuccess(
-            this.serviceType === 'OPENAPI3'
-              ? this.$t('services.openApi3Added')
-              : this.$t('services.restAdded'),
-          );
-          this.addRestBusy = false;
-          this.fetchData();
-        })
-        .catch((error) => {
-          if (error?.response?.data?.warnings) {
-            this.warningInfo = error.response.data.warnings;
-            this.saveRestWarningDialog = true;
-          } else {
-            this.showError(error);
-            this.addRestBusy = false;
-          }
-        });
-
+    restSave(): void {
+      this.fetchData();
       this.addRestDialog = false;
-    },
-
-    acceptSaveRestWarning(): void {
-      this.saveRestLoading = true;
-      api
-        .post(`/clients/${encodePathParameter(this.id)}/service-descriptions`, {
-          url: this.url,
-          rest_service_code: this.serviceCode,
-          type: this.serviceType,
-          ignore_warnings: true,
-        })
-        .then(() => {
-          this.showSuccess(
-            this.serviceType === 'OPENAPI3'
-              ? this.$t('services.openApi3Added')
-              : this.$t('services.restAdded'),
-          );
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.fetchData();
-          this.addRestBusy = false;
-          this.saveRestLoading = false;
-          this.saveRestWarningDialog = false;
-        });
-    },
-
-    cancelSaveRestWarning(): void {
-      this.addRestBusy = false;
-      this.saveRestLoading = false;
-      this.saveRestWarningDialog = false;
     },
 
     cancelAddRest(): void {
@@ -605,17 +457,9 @@ export default defineComponent({
       this.refreshBusy[serviceDescription.id] = true;
       this.refreshButtonComponentKey += 1; // update component key to make spinner work
 
-      api
-        .put(
-          `/service-descriptions/${encodePathParameter(
-            serviceDescription.id,
-          )}/refresh`,
-          {
-            ignore_warnings: false,
-          },
-        )
+      this.refreshServiceDescription(serviceDescription.id)
         .then(() => {
-          this.showSuccess(this.$t('services.refreshed'));
+          this.addSuccessMessage('services.refreshed');
           this.fetchData();
         })
         .catch((error) => {
@@ -624,7 +468,7 @@ export default defineComponent({
             this.refreshWarningDialog = true;
             this.refreshId = serviceDescription.id;
           } else {
-            this.showError(error);
+            this.addError(error);
             this.fetchData();
           }
         })
@@ -635,21 +479,11 @@ export default defineComponent({
 
     acceptRefreshWarning(): void {
       this.refreshLoading = true;
-      api
-        .put(
-          `/service-descriptions/${encodePathParameter(
-            this.refreshId,
-          )}/refresh`,
-          {
-            ignore_warnings: true,
-          },
-        )
+      this.refreshServiceDescription(this.refreshId, true)
         .then(() => {
-          this.showSuccess(this.$t('services.refreshed'));
+          this.addSuccessMessage('services.refreshed');
         })
-        .catch((error) => {
-          this.showError(error);
-        })
+        .catch((error) => this.addError(error))
         .finally(() => {
           this.fetchData();
           this.refreshLoading = false;
@@ -673,75 +507,14 @@ export default defineComponent({
       return this.descExpanded(tokenId);
     },
 
-    fetchData(): void {
+    async fetchData() {
       this.loading = true;
-      this.fetchServiceDescriptions(this.id)
-        .catch((error) => {
-          this.showError(error);
-        })
+      return this.fetchServiceDescriptions(this.id)
+        .catch((error) => this.addError(error))
         .finally(() => (this.loading = false));
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-@use '@niis/shared-ui/src/assets/colors';
-
-.wrapper {
-}
-
-.search-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-}
-
-.rest-button {
-  margin: 0;
-  margin-right: 20px;
-}
-
-.search-input {
-  max-width: 300px;
-}
-
-.clickable-link {
-  color: colors.$Link;
-  cursor: pointer;
-}
-
-.refresh-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-end;
-  width: 100%;
-  margin-top: 24px;
-}
-
-.refresh-time {
-  margin-right: 28px;
-}
-
-.expandable {
-  margin-bottom: 24px;
-}
-
-.service-url {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 400px;
-}
-
-.service-description-header {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 700px;
-}
-</style>
+<style lang="scss" scoped></style>

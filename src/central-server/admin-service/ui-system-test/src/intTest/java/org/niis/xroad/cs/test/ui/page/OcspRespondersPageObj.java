@@ -45,22 +45,22 @@ public class OcspRespondersPageObj {
     }
 
     public SelenideElement tableRowOf(String url) {
-        var xpath = "./tbody/tr/td/div[contains(text(), '%s')]";
+        var xpath = "./tbody/tr/td/div/span[contains(., '%s')]";
         return table().find(xpath(String.format(xpath, url)));
     }
 
     public SelenideElement btnViewOcspResponder(String url) {
-        var xpath = "./../..//td/div/button[@data-test='view-ocsp-responder-certificate']";
+        var xpath = "../../..//td/button[@data-test='view-ocsp-responder-certificate']";
         return tableRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnEditOcspResponder(String url) {
-        var xpath = "./../..//td/div/button[@data-test='edit-ocsp-responder']";
+        var xpath = "../../..//td/button[@data-test='edit-ocsp-responder']";
         return tableRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnDeleteOcspResponder(String url) {
-        var xpath = "./../..//td/div/button[@data-test='delete-ocsp-responder']";
+        var xpath = "../../..//td/button[@data-test='delete-ocsp-responder']";
         return tableRowOf(url).find(xpath(xpath));
     }
 

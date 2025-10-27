@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -47,16 +46,10 @@ import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 import org.niis.xroad.serverconf.model.Client;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,8 +63,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
 import static ee.ria.xroad.common.ErrorCodes.X_MAINTENANCE_MODE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
-import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
@@ -83,16 +74,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     protected final IsAuthenticationData clientCert;
     protected final OpMonitoringData opMonitoringData;
 
-    private static final URI DUMMY_SERVICE_ADDRESS;
-
-    static {
-        try {
-            DUMMY_SERVICE_ADDRESS = new URI("https", null, "localhost", getServerProxyPort(), "/", null, null);
-        } catch (URISyntaxException e) {
-            //can not happen
-            throw new IllegalStateException("Unexpected", e);
-        }
-    }
+    private final URI dummyServiceAddress;
 
     protected AbstractClientMessageProcessor(CommonBeanProxy commonBeanProxy,
                                              RequestWrapper request, ResponseWrapper response,
@@ -102,21 +84,29 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
+
+        try {
+            dummyServiceAddress = new URI("https", null, "localhost",
+                   commonBeanProxy.getProxyProperties().serverProxyPort(), "/", null, null);
+        } catch (URISyntaxException e) {
+            //can not happen
+            throw new IllegalStateException("Unexpected", e);
+        }
     }
 
-    protected static URI getServiceAddress(URI[] addresses) {
-        if (addresses.length == 1 || !isSslEnabled()) {
+    protected URI getServiceAddress(URI[] addresses) {
+        if (addresses.length == 1 || !commonBeanProxy.getProxyProperties().sslEnabled()) {
             return addresses[0];
         }
         //postpone actual name resolution to the fastest connection selector
-        return DUMMY_SERVICE_ADDRESS;
+        return dummyServiceAddress;
     }
 
     URI[] prepareRequest(HttpSender httpSender, ServiceId requestServiceId, SecurityServerId securityServerId) {
         // If we're using SSL, we need to include the provider name in
         // the HTTP request so that server proxy could verify the SSL
         // certificate properly.
-        if (isSslEnabled()) {
+        if (commonBeanProxy.getProxyProperties().sslEnabled()) {
             httpSender.setAttribute(AuthTrustVerifier.ID_PROVIDERNAME, requestServiceId);
         }
 
@@ -131,14 +121,14 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
         httpSender.setAttribute(ID_TARGETS, addresses);
 
-        if (SystemProperties.isEnableClientProxyPooledConnectionReuse()) {
+        if (commonBeanProxy.getProxyProperties().clientProxy().poolEnableConnectionReuse()) {
             // set the servers with this subsystem as the user token, this will pool the connections per groups of
             // security servers.
             httpSender.setAttribute(HttpClientContext.USER_TOKEN, new TargetHostsUserToken(addresses));
         }
 
-        httpSender.setConnectionTimeout(SystemProperties.getClientProxyTimeout());
-        httpSender.setSocketTimeout(SystemProperties.getClientProxyHttpClientTimeout());
+        httpSender.setConnectionTimeout(commonBeanProxy.getProxyProperties().clientProxy().clientProxyTimeout());
+        httpSender.setSocketTimeout(commonBeanProxy.getProxyProperties().clientProxy().clientHttpclientTimeout());
 
         httpSender.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId().name());
         httpSender.addHeader(HEADER_PROXY_VERSION, Version.XROAD_VERSION);
@@ -172,15 +162,15 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             hostNames = hostNamesBySecurityServer(serverId, hostNames);
         }
 
-        String protocol = isSslEnabled() ? "https" : "http";
-        int port = getServerProxyPort();
+        String protocol = commonBeanProxy.getProxyProperties().sslEnabled() ? "https" : "http";
+        int port = commonBeanProxy.getProxyProperties().serverProxyPort();
 
         List<URI> addresses = new ArrayList<>(hostNames.size());
 
         var maintenanceModeErrors = new LinkedList<CodedException>();
 
         for (var host : hostNames) {
-            var inMaintenance = commonBeanProxy.globalConfProvider.getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
+            var inMaintenance = commonBeanProxy.getGlobalConfProvider().getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
                     .filter(SharedParameters.MaintenanceMode::enabled)
                     .map(mode -> buildMaintenanceModeException(null, host, mode.message()))
                     .map(maintenanceModeErrors::add)
@@ -212,7 +202,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     }
 
     private Collection<String> hostNamesByProvider(ServiceId serviceProvider) {
-        var hostNames = commonBeanProxy.globalConfProvider.getProviderAddress(serviceProvider.getClientId());
+        var hostNames = commonBeanProxy.getGlobalConfProvider().getProviderAddress(serviceProvider.getClientId());
 
         if (hostNames == null || hostNames.isEmpty()) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
@@ -223,7 +213,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     }
 
     private Collection<String> hostNamesBySecurityServer(SecurityServerId serverId, Collection<String> hostNamesByProvider) {
-        final String securityServerAddress = commonBeanProxy.globalConfProvider.getSecurityServerAddress(serverId);
+        final String securityServerAddress = commonBeanProxy.getGlobalConfProvider().getSecurityServerAddress(serverId);
 
         if (securityServerAddress == null) {
             throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);
@@ -233,7 +223,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_INVALID_SECURITY_SERVER, "Invalid security server \"%s\"", serverId);
         }
 
-        commonBeanProxy.globalConfProvider.getMaintenanceMode(serverId)
+        commonBeanProxy.getGlobalConfProvider().getMaintenanceMode(serverId)
                 .filter(SharedParameters.MaintenanceMode::enabled)
                 .ifPresent(maintenanceMode -> {
                     throw buildMaintenanceModeException(serverId, securityServerAddress, maintenanceMode.message());
@@ -282,15 +272,14 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The client identifier is missing");
         }
 
-        String status = commonBeanProxy.serverConfProvider.getMemberStatus(client);
+        String status = commonBeanProxy.getServerConfProvider().getMemberStatus(client);
         if (!Client.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
         }
     }
 
-    protected void verifyClientAuthentication(ClientId sender)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-        if (!SystemProperties.shouldVerifyClientCert()) {
+    protected void verifyClientAuthentication(ClientId sender) {
+        if (!commonBeanProxy.getProxyProperties().verifyClientCert()) {
             return;
         }
         log.trace("verifyClientAuthentication()");

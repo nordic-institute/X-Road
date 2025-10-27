@@ -50,6 +50,7 @@ public class DiagnosticsStatus implements Serializable {
     private DiagnosticStatus status;
     private OffsetDateTime prevUpdate;
     private OffsetDateTime nextUpdate;
+    @Setter
     private ErrorCode errorCode;
     @Setter
     private String description;
@@ -78,6 +79,13 @@ public class DiagnosticsStatus implements Serializable {
         this.status = status;
         this.prevUpdate = prevUpdate;
         this.nextUpdate = nextUpdate;
+    }
+
+    public DiagnosticsStatus(DiagnosticStatus status, OffsetDateTime prevUpdate, OffsetDateTime nextUpdate, String description) {
+        this.status = status;
+        this.prevUpdate = prevUpdate;
+        this.nextUpdate = nextUpdate;
+        this.description = description;
     }
 
     public DiagnosticsStatus(DiagnosticStatus status, OffsetDateTime prevUpdate, OffsetDateTime nextUpdate, ErrorCode errorCode) {

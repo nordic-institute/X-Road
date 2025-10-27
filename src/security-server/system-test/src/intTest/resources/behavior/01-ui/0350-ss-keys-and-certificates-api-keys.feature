@@ -20,9 +20,6 @@ Feature: 0350 - SS: API Keys
     Then Create API key wizard next button status is enabled
 
     When Create API key wizard next button is clicked
-    And Create API key wizard Previous button is clicked
-    And Create API key wizard next button is clicked
-    And Create API key wizard Create Key button is clicked
     Then API key is created and visible
 
     When Create API key wizard Finish button is clicked
@@ -32,7 +29,6 @@ Feature: 0350 - SS: API Keys
     Given Create API key button is clicked
     When Role "Registration Officer" is being clicked
     When Create API key wizard next button is clicked
-    And Create API key wizard Create Key button is clicked
     Then API key is created and visible
     When Create API key wizard Finish button is clicked
     Then Newly created API key is present in the list
@@ -43,7 +39,6 @@ Feature: 0350 - SS: API Keys
     Given Create API key button is clicked
     When Role "Registration Officer" is being clicked
     When Create API key wizard next button is clicked
-    And Create API key wizard Create Key button is clicked
     Then API key is created and visible
     When Create API key wizard Finish button is clicked
     Then Newly created API key is present in the list
@@ -70,7 +65,6 @@ Feature: 0350 - SS: API Keys
     And Role "System Administrator" is being clicked
     And Role "Server Observer" is being clicked
     And Create API key wizard next button is clicked
-    And Create API key wizard Create Key button is clicked
     Then API key is created and visible
     When Create API key wizard Finish button is clicked
     And Newly created API key is present in the list
@@ -78,7 +72,7 @@ Feature: 0350 - SS: API Keys
 
     When SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd-sys logs in to SecurityServer with password secret
+    And User xrd-sys logs in to SecurityServer with password t0pSecret1
     And API Keys sub-tab is selected
     When Newly created API key is edit dialog is opened
     And Role "Security Officer" is being clicked

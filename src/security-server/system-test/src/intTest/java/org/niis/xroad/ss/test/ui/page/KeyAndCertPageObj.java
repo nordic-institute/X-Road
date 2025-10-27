@@ -35,17 +35,17 @@ import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
 
 public class KeyAndCertPageObj {
-    private static final String X_FOLLOWING = "//following::";
     private static final String X_TOKEN_EXPANDABLE = "//div[@data-test='tokens-table']"
-            + "//div[span[text()='Token: %s']]";
-    private static final String X_TOKEN_EDIT_BUTTON = "//div[span[text()='Token: %s']]"
-            + "//button[@data-test='token-icon-button'][1]";
-    private static final String X_TOKEN_EXPANDABLE_W_FOLLOWING = X_TOKEN_EXPANDABLE + X_FOLLOWING;
+            + "//div[div[text()='Token: %s']]";
+
+    private static final String X_TOKEN_EXPANDABLE_HEADER = X_TOKEN_EXPANDABLE
+            + "/ancestor::div[@data-test='header']";
+
+    private static final String X_TOKEN_EXPANDABLE_CONTENT = X_TOKEN_EXPANDABLE_HEADER + "/following::div[@data-test='content']//";
 
     public final TokenLoginDialog tokenLoginDialog = new TokenLoginDialog();
     public final TokenLogoutDialog tokenLogoutDialog = new TokenLogoutDialog();
     public final TokenEdit tokenEdit = new TokenEdit();
-    public final TlsKey tlsKey = new TlsKey();
     public final AddKeyWizardDetails addKeyWizardDetails = new AddKeyWizardDetails();
     public final AddKeyWizardCsrDetails addKeyWizardCsrDetails = new AddKeyWizardCsrDetails();
     public final AddKeyWizardGenerate addKeyWizardGenerate = new AddKeyWizardGenerate();
@@ -83,7 +83,7 @@ public class KeyAndCertPageObj {
         }
 
         public SelenideElement btnSave() {
-            return $x("//button[@data-test='token-details-save']");
+            return $x("//button[@data-test='dialog-save-button']");
         }
 
     }
@@ -91,17 +91,6 @@ public class KeyAndCertPageObj {
     public static class TokenLogoutDialog {
         public SelenideElement btnLogout() {
             return $x("//button[@data-test='dialog-save-button']");
-        }
-    }
-
-    public static class TlsKey {
-
-        public SelenideElement buttonGenerateKey() {
-            return $x("//*[contains(@data-test, 'security-server-tls-certificate-generate-key-button')]");
-        }
-
-        public SelenideElement buttonExportCert() {
-            return $x("//*[contains(@data-test, 'security-server-tls-certificate-export-certificate-button')]");
         }
     }
 
@@ -118,7 +107,8 @@ public class KeyAndCertPageObj {
         }
 
         public SelenideElement tokenEditButton(String tokenKey) {
-            return $x(format(X_TOKEN_EDIT_BUTTON, tokenKey));
+            return $x(format("//div[@data-test='token-name' and div[contains(@class,'token-name') "
+                    + "and contains(text(), '%s')]]//button[@data-test='token-icon-button'][1]", tokenKey));
         }
 
         public SelenideElement tokenDeleteButton() {
@@ -126,62 +116,62 @@ public class KeyAndCertPageObj {
         }
 
         public SelenideElement tokenLabeledKey(String label) {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "table[.//th[contains(@class, 'title-col')]]//span[contains(text(), '%s')]",
+            return $x(format(X_TOKEN_EXPANDABLE_CONTENT + "table[.//tr[@data-test='key-row']//div/span[contains(., '%s')]]",
                     token, label));
         }
 
         public ElementsCollection tokenAuthKeyRows() {
-            return $$x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='auth-keys-table']//i[contains(@class,'icon-Certificate')]",
+            return $$x(format(X_TOKEN_EXPANDABLE_CONTENT + "div[@data-test='auth-keys-table']//i[contains(@class,'editor_choice')]",
                     token));
         }
 
         public SelenideElement tokenLabeledKeyGenerateCsrButton(String keyLabel) {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING
+            return $x(format(X_TOKEN_EXPANDABLE_CONTENT
                             + "tr[@data-test='key-row' and td//span[text() = '%s']]//button[@data-test='generate-csr-button']",
                     token, keyLabel));
         }
 
         public ElementsCollection labeledKeyCsrRows(String keyLabel) {
-            return $$x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING
-                            + "tr[@data-test='key-row' and td//span[text() = '%s']]//following-sibling::"
-                            + "tr[td[@class='td-name'] and //div[contains(text(), 'Request')]]",
+            return $$x(format(X_TOKEN_EXPANDABLE_CONTENT
+                            + "table//tr[@data-test='key-row' and .//span[text() = '%s']]/"
+                            + "following-sibling::tr[.//span[@data-test='label' and text()='Request']]",
                     token, keyLabel));
         }
 
         public ElementsCollection tokenSignKeyRows() {
-            return $$x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='sign-keys-table']//i[contains(@class,'icon-Certificate')]",
+            return $$x(format(X_TOKEN_EXPANDABLE_CONTENT + "div[@data-test='sign-keys-table']//i[contains(@class,'editor_choice')]",
                     token));
         }
 
         public SelenideElement btnLogin() {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "button[@data-test='token-login-button']", token));
+            return $x(format(X_TOKEN_EXPANDABLE_HEADER + "//button[@data-test='token-login-button']", token));
         }
 
         public SelenideElement btnLogout() {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "button[@data-test='token-logout-button']", token));
+            return $x(format(X_TOKEN_EXPANDABLE_HEADER + "//button[@data-test='token-logout-button']", token));
         }
 
         public SelenideElement addSigningKey() {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "button[@data-test='token-add-key-button']", token));
+            return $x(format(X_TOKEN_EXPANDABLE_HEADER + "//button[@data-test='token-add-key-button']", token));
         }
 
         public SelenideElement btnDeleteAuthCsrByPos(int pos) {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='auth-keys-table']"
+            return $x(format(X_TOKEN_EXPANDABLE_CONTENT + "div[@data-test='auth-keys-table']"
                     + "//tr//button[@data-test='delete-csr-button'][%d]", token, pos));
         }
 
         public SelenideElement btnAcmeOrderAuthCertByPos(int pos) {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='auth-keys-table']"
+            return $x(format(X_TOKEN_EXPANDABLE_CONTENT + "div[@data-test='auth-keys-table']"
                     + "//tr//button[@data-test='order-acme-certificate-button'][%d]", token, pos));
         }
 
         public SelenideElement btnDeleteSignCsrByPos(int pos) {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='sign-keys-table']"
+            return $x(format(X_TOKEN_EXPANDABLE_CONTENT + "div[@data-test='sign-keys-table']"
                     + "//tr//button[@data-test='delete-csr-button'][%d]", token, pos));
         }
 
         public SelenideElement btnAcmeOrderSignCertByPos(int pos) {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='sign-keys-table']"
+            return $x(format(X_TOKEN_EXPANDABLE_CONTENT + "div[@data-test='sign-keys-table']"
                     + "//tr//button[@data-test='order-acme-certificate-button'][%d]", token, pos));
         }
 
@@ -198,21 +188,21 @@ public class KeyAndCertPageObj {
         }
 
         public SelenideElement keyLabelByName(String label) {
-            return $x(format("//div[@class ='name-wrap-top']//div[contains(@class,'identifier-wrap')]//span[text() = '%s']", label));
+            return $x(format("//span[@data-test='label' and text() = '%s']", label));
         }
 
         public SelenideElement keyStatusByLabel(String label) {
-            return $x(format("//tbody[ tr/td/div[@class ='name-wrap-top']//div[contains(@class,'identifier-wrap')]//span[text() = '%s']]"
-                    + "//div[@class='status-text']", label));
+            return $x(format("//tbody[ tr/td//span[@data-test='label' and text() = '%s']]"
+                    + "//span[@data-test='status-text']", label));
         }
 
         public SelenideElement keyOcspStatusByLabel(String label) {
-            return $x(format("//tbody[ tr/td/div[@class ='name-wrap-top']//div[contains(@class,'identifier-wrap')]//span[text() = '%s']]"
+            return $x(format("//tbody[ tr/td//span[@data-test='label' and text() = '%s']]"
                     + "//td[@data-test='ocsp-status']", label));
         }
 
         public SelenideElement keyAutomaticRenewalStatusByLabel(String label) {
-            return $x(format("//tbody[ tr/td/div[@class ='name-wrap-top']//div[contains(@class,'identifier-wrap')]//span[text() = '%s']]"
+            return $x(format("//tbody[ tr/td//span[@data-test='label' and text() = '%s']]"
                     + "//div[@data-test='renewal-status']", label));
         }
 

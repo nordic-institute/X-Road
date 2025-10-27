@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 
 import java.io.IOException;
@@ -46,6 +46,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 @RequiredArgsConstructor
 public class ManagementRequestCertVerifier {
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
 
     public void verifyCertificate(X509Certificate memberCert, OCSPResp memberCertOcsp)
             throws OCSPException, CertificateEncodingException, IOException {
@@ -64,8 +65,8 @@ public class ManagementRequestCertVerifier {
             throw new CodedException(X_CERT_VALIDATION, "Member (owner/client) sign certificate is invalid");
         }
 
-        new OcspVerifier(globalConfProvider,
-                new OcspVerifierOptions(globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()))
+        ocspVerifierFactory.create(globalConfProvider,
+                        new OcspVerifierOptions(globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()))
                 .verifyValidityAndStatus(memberCertOcsp, memberCert, issuer);
     }
 

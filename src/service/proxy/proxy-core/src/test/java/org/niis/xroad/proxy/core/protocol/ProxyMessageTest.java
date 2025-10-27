@@ -42,12 +42,13 @@ import static org.mockito.Mockito.when;
 public class ProxyMessageTest {
 
     public static final byte[] MOCK_SOAP_MESSAGE_BODY = "<mock-soap-message-body-xml/>".getBytes(UTF_8);
+    private static final String TMP_DIR = "build/tmp";
 
     @Test
     public void soapContentTypeMimeEncodedSoap() {
         var originalContentType = "multipart/related";
 
-        ProxyMessage message = new ProxyMessage(originalContentType);
+        ProxyMessage message = new ProxyMessage(originalContentType, TMP_DIR);
 
         assertThat(message.getSoapContentType()).isEqualTo(originalContentType);
     }
@@ -56,7 +57,7 @@ public class ProxyMessageTest {
     public void soapContentTypeAttachment() throws Exception {
         var originalContentType = "original-content-type";
 
-        ProxyMessage message = new ProxyMessage(originalContentType);
+        ProxyMessage message = new ProxyMessage(originalContentType, TMP_DIR);
         message.attachment("application/octet-stream", new ByteArrayInputStream("attachment".getBytes(UTF_8)), Map.of());
 
         assertThat(message.getSoapContentType()).isEqualTo(originalContentType);
@@ -66,7 +67,7 @@ public class ProxyMessageTest {
     public void soapContentTypeTextXml() {
         var originalContentType = "application/xml";
 
-        ProxyMessage message = new ProxyMessage(originalContentType);
+        ProxyMessage message = new ProxyMessage(originalContentType, TMP_DIR);
 
         assertThat(message.getSoapContentType()).isEqualTo("text/xml; charset=UTF-8");
     }
@@ -74,7 +75,7 @@ public class ProxyMessageTest {
 
     @Test
     public void soapContent() throws Exception {
-        ProxyMessage message = new ProxyMessage("text/xml; charset=UTF-8");
+        ProxyMessage message = new ProxyMessage("text/xml; charset=UTF-8", TMP_DIR);
         message.soap(getMockSoapMessage(), Map.of());
 
         var outputStream = new ByteArrayOutputStream();
@@ -94,7 +95,7 @@ public class ProxyMessageTest {
                 --BOUNDARY--\r
                 """;
 
-        ProxyMessage message = new ProxyMessage("multipart/related; boundary=BOUNDARY");
+        ProxyMessage message = new ProxyMessage("multipart/related; boundary=BOUNDARY", TMP_DIR);
         message.soap(getMockSoapMessage(), Map.of());
 
         var outputStream = new ByteArrayOutputStream();
@@ -119,7 +120,7 @@ public class ProxyMessageTest {
                 --BOUNDARY--\r
                 """;
 
-        ProxyMessage message = new ProxyMessage("multipart/related; boundary=BOUNDARY");
+        ProxyMessage message = new ProxyMessage("multipart/related; boundary=BOUNDARY", TMP_DIR);
         message.soap(getMockSoapMessage(), Map.of());
         message.attachment("text/plain", new ByteArrayInputStream("attachment".getBytes(UTF_8)), Map.of());
 

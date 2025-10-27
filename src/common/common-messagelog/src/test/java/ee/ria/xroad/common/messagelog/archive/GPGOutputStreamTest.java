@@ -26,8 +26,6 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import org.bouncycastle.bcpg.BCPGInputStream;
 import org.bouncycastle.bcpg.PacketTags;
 import org.bouncycastle.bcpg.PublicKeyEncSessionPacket;
@@ -52,21 +50,20 @@ public class GPGOutputStreamTest {
     @Before
     public void before() {
         Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
     }
 
     @Test(expected = GPGOutputStream.GPGException.class)
     public void shouldFailIfInvalidRecipient() throws IOException {
-        final Path path = Files.createTempFile(Paths.get(SystemProperties.getTempFilesPath()), null, null);
-        try (GPGOutputStream gpgStream = new GPGOutputStream(GPG_HOME, path, KEYS)) {
+        final Path path = Files.createTempFile(Paths.get("build/tmp"), null, null);
+        try (GPGOutputStream gpgStream = new GPGOutputStream(GPG_HOME, path, KEYS, "build/tmp")) {
             gpgStream.write(42);
         }
     }
 
     @Test
     public void shouldEncrypt() throws IOException {
-        final Path path = Files.createTempFile(Paths.get(SystemProperties.getTempFilesPath()), null, null);
-        try (GPGOutputStream gpgStream = new GPGOutputStream(GPG_HOME, path, null /* self as recipient */)) {
+        final Path path = Files.createTempFile(Paths.get("build/tmp"), null, null);
+        try (GPGOutputStream gpgStream = new GPGOutputStream(GPG_HOME, path, null /* self as recipient */, "build/tmp")) {
             gpgStream.write(42);
         }
 

@@ -39,27 +39,27 @@ public class MemberDetailsPageObj {
 
 
     public SelenideElement memberNameCard(String name) {
-        var xpath = "//div[@data-test='member-name-card']//div[contains(@class, 'v-card-text')]//div[text()='%s']";
+        var xpath = "//div[@data-test='member-details']//tr[@data-test='member-name']/td[@data-test='row-value' and text()='%s']";
         return $x(String.format(xpath, name));
     }
 
     public SelenideElement memberClassCard(String name) {
-        var xpath = "//div[@data-test='member-class-card']//div[contains(@class, 'v-card-text')]//div[text()='%s']";
+        var xpath = "//div[@data-test='member-details']//tr[@data-test='member-class']/td[@data-test='row-value' and text()='%s']";
         return $x(String.format(xpath, name));
     }
 
     public SelenideElement memberCodeCard(String name) {
-        var xpath = "//div[@data-test='member-code-card']//div[contains(@class, 'v-card-text')]//div[text()='%s']";
+        var xpath = "//div[@data-test='member-details']//tr[@data-test='member-code']/td[@data-test='row-value' and text()='%s']";
         return $x(String.format(xpath, name));
     }
 
     public SelenideElement tableTitle(String name) {
-        var xpath = "//div[@class='xrd-view-title' and text()='%s']";
+        var xpath = "//div[@data-test='view-title-text' and text()='%s']";
         return $x(String.format(xpath, name));
     }
 
     public SelenideElement btnDelete() {
-        return $x("//div[@data-test='delete-member']");
+        return $x("//button[@data-test='delete-member']");
     }
 
     public SelenideElement btnEdit() {

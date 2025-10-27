@@ -27,10 +27,10 @@
 <template>
   <XrdFileUpload v-slot="{ upload, filedrop }" :accepts="accept" @file-changed="onFileSelected">
     <v-text-field
-      variant="outlined"
-      append-inner-icon="icon-Upload"
+      class="xrd"
+      prepend-inner-icon="attach_file"
       :model-value="fileTitle"
-      :label="$t(labelKey)"
+      :label="translatedLabel ? label : $t(label)"
       :autofocus="autofocus"
       @click="upload"
       @keyup.space="upload"
@@ -46,9 +46,13 @@ import XrdFileUpload from './XrdFileUpload.vue';
 import { PropType, computed } from 'vue';
 
 const props = defineProps({
-  labelKey: {
+  label: {
     type: String,
     required: true,
+  },
+  translatedLabel: {
+    type: Boolean,
+    default: false,
   },
   autofocus: {
     type: Boolean,

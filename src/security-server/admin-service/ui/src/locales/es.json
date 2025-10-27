@@ -118,11 +118,11 @@
     "status": "Estado",
     "statusText": {
       "deletionInProgress": "Eliminación en progreso",
-      "disabled": "DESHABILITADO",
+      "disabled": "Deshabilitado",
       "disablingInProgress": "Deshabilitación en progreso",
       "enablingInProgress": "Habilitación en progreso",
       "globalError": "Error global",
-      "registered": "REGISTRADO",
+      "registered": "Registrado",
       "registrationInProgress": "Registro en progreso",
       "saved": "Guardado"
     },
@@ -260,25 +260,25 @@
       "title": "Marca de tiempo"
     },
     "traffic": {
-      "period": "Período",
-      "periodInfo": "Selecciona inicio y fin",
-      "date": "Fecha",
-      "time": "Hora",
-      "party": "Parte",
-      "partyInfo": "Servicio, subsistema, miembro",
       "client": "Cliente",
-      "service": "Servicio",
+      "date": "Fecha",
+      "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instala el complemento de monitorización de datos operativos (xroad-addon-opmonitoring).",
+      "disabledTitle": "La monitorización de datos operativos está deshabilitada",
       "exchangeRole": "Rol de intercambio",
       "exchangeRoleInfo": "Productor o Consumidor",
+      "failedRequests": "Solicitudes fallidas",
+      "failure": "Fallo",
+      "party": "Parte",
+      "partyInfo": "Servicio, subsistema, miembro",
+      "period": "Período",
+      "periodInfo": "Selecciona inicio y fin",
       "producer": "Productor",
+      "service": "Servicio",
       "status": "Estado",
       "statusInfo": "Estado del intercambio de mensajes",
       "success": "Éxito",
-      "failure": "Fallo",
       "successfulRequests": "Solicitudes exitosas",
-      "failedRequests": "Solicitudes fallidas",
-      "disabledTitle": "La monitorización de datos operativos está deshabilitada",
-      "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instala el complemento de monitorización de datos operativos (xroad-addon-opmonitoring)."
+      "time": "Hora"
     },
     "connection": {
       "ok": "Ok",
@@ -444,7 +444,6 @@
     "wrong_servicedescription_type": "Tipo de descripción del servicio incorrecto",
     "wsdl_download_failed": "Falló la descarga de WSDL",
     "wsdl_exists": "WSDL existe",
-    "wsdl_validator_interrupted": "Validador de WSDL interrumpido",
     "wsdl_validator_not_executable": "El validador de WSDL no es ejecutable"
   },
   "fields": {
@@ -605,13 +604,13 @@
     "importCert": "Importar certificado.",
     "importCertSuccess": "Certificado importado con éxito",
     "incorrectPin": "PIN incorrecto. Por favor intente de nuevo.",
-    "keyAlgorithm": "Algoritmo clave:",
+    "keyAlgorithm": "Algoritmo clave",
     "keyDeleted": "Clave eliminada",
-    "keyId": "ID de clave:",
+    "keyId": "ID de clave",
     "keyInfo": "Información clave",
     "keyLabelInput": "Etiqueta de clave",
     "keySaved": "Clave guardada",
-    "label": "Etiqueta:",
+    "label": "Etiqueta",
     "logIn": "Acceso",
     "logOut": "Finalizar la sesión",
     "logOutText": "¿Cerrar sesión del token?",
@@ -629,7 +628,7 @@
       "unknown": "Desconocido"
     },
     "orderAcmeCertificate": "Solicitar certificado",
-    "readOnly": "Solo lectura:",
+    "readOnly": "Solo lectura",
     "registrationRequest": "Solicitud de registro",
     "renewal": "Renovación automática",
     "request": "Solicitud",
@@ -637,13 +636,13 @@
     "signKeyCert": "Firmar claves y certificados",
     "status": "Estado",
     "token": {
+      "deleteSuccess": "Token fue eliminado",
+      "deleteText": "¿Estás seguro que deseas eliminar este token y toda la información asociada de la configuración del servidor?",
+      "deleteTitle": "¿Eliminar token?",
       "details": "Detalles del token",
       "id": "ID de token:",
       "info": "Información del token",
-      "saved": "Token guardado",
-      "deleteText": "¿Estás seguro que deseas eliminar este token y toda la información asociada de la configuración del servidor?",
-      "deleteTitle": "¿Eliminar token?",
-      "deleteSuccess": "Token fue eliminado"
+      "saved": "Token guardado"
     },
     "tokenStatus": {
       "active": "",
@@ -781,36 +780,6 @@
     "wsdlDescription": "Descripción de WSDL",
     "wsdlDetails": "Detalles de WSDL"
   },
-  "ssTlsCertificate": {
-    "certificateImported": "Certificado importado",
-    "exportCertificate": "Exportar certificado",
-    "generateCsr": "Generar CSR",
-    "generateInternalCsr": {
-      "cancel": "Cancelar",
-      "done": "Hecho",
-      "step1": {
-        "description": "1) Primero, proporciona un nombre distinguido",
-        "label": "Nombre distinguido",
-        "placeholder": "CN = miservidorseguridad.ejemplo.com, O = Mi organización, C = ee",
-        "tooltip": "El nombre distinguido (DN) identifica de manera única a una entidad en un certificado X.509. Los siguientes tipos de atributos se encuentran comúnmente en el DN: CN = nombre común, O = nombre de la organización, C = Código de país."
-      },
-      "step2": {
-        "description": "2) Genera una nueva CSR y guárdala en un lugar seguro",
-        "generateCSR": "Generar CSR"
-      },
-      "title": "Generar solicitud de firma de certificado TLS"
-    },
-    "generateKey": "Generar clave",
-    "generateTlsAndCertificateDialog": {
-      "confirmation": "¿Generar una nueva clave y certificado TLS para el servidor de seguridad?",
-      "explanation": "El sistema generará una nueva clave TLS para el servidor de seguridad y un certificado autofirmado, reemplazando la clave y el certificado existentes.",
-      "success": "Nueva clave y certificado TLS generados correctamente",
-      "title": "Clave TLS del servidor de seguridad"
-    },
-    "importCertificate": "Importar certificado",
-    "keyCertTitle": "Clave y certificado TLS",
-    "keyText": "Clave TLS interna"
-  },
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "No se pudo determinar la información actual del servidor de seguridad. La respuesta de la API no es válida."
@@ -875,7 +844,7 @@
         "add": {
           "button": "Agregar",
           "dialog": {
-            "info": "Servicios de marca de tiempo de confianza:",
+            "info": "Servicios de marca de tiempo de confianza",
             "success": "Servicio de marca de tiempo agregado",
             "title": "Agregar servicio de marca de tiempo"
           }
@@ -932,6 +901,22 @@
     "settings": {
       "backupAndRestore": "Copia de seguridad y restauración",
       "systemParameters": "Parámetros del sistema"
+    }
+  },
+  "tlsCertificates": {
+    "generateCsr": {
+      "example": "CN = miservidorseguridad.ejemplo.com, O = Mi organización, C = ee"
+    },
+    "generateKey": {
+      "confirmation": "¿Generar una nueva clave y certificado TLS para el servidor de seguridad?",
+      "explanation": "El sistema generará una nueva clave TLS para el servidor de seguridad y un certificado autofirmado, reemplazando la clave y el certificado existentes.",
+      "success": "Nueva clave y certificado TLS generados correctamente",
+      "title": "Clave TLS del servidor de seguridad"
+    },
+    "key": "Clave y certificado TLS",
+    "title": "Clave TLS del servidor de seguridad",
+    "uploadCertificate": {
+      "success": "Certificado importado"
     }
   },
   "token": {

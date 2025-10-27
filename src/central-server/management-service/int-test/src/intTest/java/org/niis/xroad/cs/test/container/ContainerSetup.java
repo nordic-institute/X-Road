@@ -77,13 +77,14 @@ public class ContainerSetup {
                 Map<String, String> envConfig = new HashMap<>();
                 envConfig.put("xroad.management-service.api-base-url", mockServerAuxContainer.getEndpoint());
                 envConfig.put("xroad.management-service.api-token", CommonTestData.API_KEY_TOKEN_WITH_ALL_ROLES);
+                envConfig.put("spring.cloud.vault.enabled", "false");
                 return envConfig;
             }
 
             @NotNull
             @Override
             public List<Integer> additionalExposedPorts() {
-                return List.of(8085);
+                return List.of(4002);
             }
         };
     }

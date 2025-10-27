@@ -25,57 +25,54 @@
    THE SOFTWARE.
  -->
 <template>
-  <configuration-anchor-item v-if="anchor" :anchor="anchor" :loading="loading">
-    <xrd-button
+  <ConfigurationAnchorItem v-if="anchor" :anchor="anchor" :loading="loading">
+    <XrdBtn
       v-if="showRecreateAnchorButton"
       data-test="re-create-anchor-button"
+      variant="text"
+      prepend-icon="autorenew"
+      text="globalConf.anchor.recreate"
       :loading="recreating"
-      outlined
-      class="mr-4"
       @click="recreateConfigurationAnchor()"
-    >
-      <xrd-icon-base class="xrd-large-button-icon">
-        <XrdIconAdd />
-      </xrd-icon-base>
-
-      {{ $t('globalConf.anchor.recreate') }}
-    </xrd-button>
-    <xrd-button
+    />
+    <XrdBtn
       v-if="showDownloadAnchorButton"
       data-test="download-anchor-button"
+      variant="text"
+      prepend-icon="download"
+      text="globalConf.anchor.download"
       :loading="downloading"
-      outlined
       @click="downloadConfigurationAnchor()"
-    >
-      <xrd-icon-base class="xrd-large-button-icon">
-        <XrdIconDownload />
-      </xrd-icon-base>
-      {{ $t('globalConf.anchor.download') }}
-    </xrd-button>
-  </configuration-anchor-item>
+    />
+  </ConfigurationAnchorItem>
 </template>
 
 <script lang="ts">
-import { Permissions } from '@/global';
-import { useNotifications } from '@/store/modules/notifications';
-import { useUser } from '@/store/modules/user';
 import { defineComponent, PropType } from 'vue';
-import { mapActions, mapState, mapStores } from 'pinia';
+
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
+import { mapState, mapStores } from 'pinia';
+
+import { useNotifications, XrdBtn } from '@niis/shared-ui';
+
+import { Permissions } from '@/global';
 import { ConfigurationType } from '@/openapi-types';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
-import { DataTableHeader } from '@/ui-types';
-import ConfigurationAnchorItem, {
-  Anchor,
-} from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
-import { XrdIconDownload } from '@niis/shared-ui';
+import { useUser } from '@/store/modules/user';
+
+import ConfigurationAnchorItem, { Anchor } from './ConfigurationAnchorItem.vue';
 
 export default defineComponent({
-  components: { ConfigurationAnchorItem, XrdIconDownload },
+  components: { ConfigurationAnchorItem, XrdBtn },
   props: {
     configurationType: {
       type: String as PropType<ConfigurationType>,
       required: true,
     },
+  },
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
   },
   data() {
     return {
@@ -130,19 +127,18 @@ export default defineComponent({
     this.fetchConfigurationAnchor();
   },
   methods: {
-    ...mapActions(useNotifications, ['showSuccess', 'showError']),
     fetchConfigurationAnchor() {
       this.loading = true;
       this.configurationSourceStore
         .fetchConfigurationAnchor(this.configurationType)
-        .catch(this.showError)
+        .catch(this.addError)
         .finally(() => (this.loading = false));
     },
     downloadConfigurationAnchor() {
       this.downloading = true;
       this.configurationSourceStore
         .downloadConfigurationAnchor(this.configurationType)
-        .catch(this.showError)
+        .catch(this.addError)
         .finally(() => (this.downloading = false));
     },
     recreateConfigurationAnchor() {
@@ -150,19 +146,13 @@ export default defineComponent({
       this.configurationSourceStore
         .recreateConfigurationAnchor(this.configurationType)
         .then(() =>
-          this.showSuccess(
-            this.$t(`globalConf.anchor.recreateSuccess`, {
-              configurationType: this.formattedConfigurationType,
-            }),
-          ),
+          this.addSuccessMessage(`globalConf.anchor.recreateSuccess`, {
+            configurationType: this.formattedConfigurationType,
+          }),
         )
-        .catch(this.showError)
+        .catch(this.addError)
         .finally(() => (this.recreating = false));
     },
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-</style>

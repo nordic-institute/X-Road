@@ -25,27 +25,30 @@
  */
 package org.nii.xroad.common.acme;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.acme.AcmeCommonConfig;
+import org.niis.xroad.common.acme.AcmeConfig;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AcmeConfigTest {
     private AcmeCommonConfig acmeCommonConfig;
 
     private ListAppender<ILoggingEvent> appender;
     private final Logger logger = (Logger) LoggerFactory.getLogger(AcmeCommonConfig.class);
+    private final AcmeConfig config = mock(AcmeConfig.class);
 
-    @Before
+    @BeforeEach
     public void setup() {
         acmeCommonConfig = new AcmeCommonConfig();
 
@@ -54,33 +57,42 @@ public class AcmeConfigTest {
         logger.addAppender(appender);
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         logger.detachAppender(appender);
         appender.stop();
     }
 
-
     @Test
-    public void whenProxyUiApiAcmeChallengePortEnabledAndAcmeYmlNotExists() {
-        System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "true");
+    void whenProxyUiApiAcmeChallengePortEnabledAndAcmeYmlNotExists() {
+        when(config.isAcmeChallengePortEnabled()).thenReturn(true);
 
-        acmeCommonConfig.acmeProperties();
+        acmeCommonConfig.acmeProperties(config, "");
 
         assertThat(appender.list).hasSize(1);
-        assertThat(appender.list.get(0).getLevel()).isEqualTo(Level.WARN);
-        assertThat(appender.list.get(0).getMessage()).isEqualTo("Failed to load yaml configuration from {}");
+        assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.ERROR);
+        assertThat(appender.list.getFirst().getMessage()).isEqualTo("Acme challenge port enabled, but configuration is missing.");
     }
 
     @Test
-    public void whenProxyUiApiAcmeChallengePortNotEnabledAndAcmeYmlNotExists() {
-        System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "false");
+    void testAcmePropertiesBeanIsCreatedWhenPropNotSet() {
+        when(config.isAcmeChallengePortEnabled()).thenReturn(true);
 
-        acmeCommonConfig.acmeProperties();
+        assertNotNull(acmeCommonConfig.acmeProperties(config, null));
+        assertNotNull(acmeCommonConfig.acmeProperties(config, ""));
+        assertNotNull(acmeCommonConfig.acmeProperties(config, "not valid"));
+    }
+
+    @Test
+    void whenProxyUiApiAcmeChallengePortNotEnabledAndAcmeYmlNotExists() {
+        when(config.isAcmeChallengePortEnabled()).thenReturn(false);
+
+        acmeCommonConfig.acmeProperties(config, null);
 
         assertThat(appender.list).hasSize(1);
-        assertThat(appender.list.get(0).getLevel()).isEqualTo(Level.WARN);
-        assertThat(appender.list.get(0).getMessage()).isEqualTo("Configuration {} does not exist");
-
+        assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.INFO);
+        assertThat(appender.list.getFirst().getMessage())
+                .isEqualTo("Acme configuration not set, and acme challenge port not enabled. Skipping ACME configuration.");
     }
+
 }

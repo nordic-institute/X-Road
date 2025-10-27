@@ -33,19 +33,22 @@
     @accept="deleteSubsystem"
   >
     <template #text>
-      <div data-test="delete-subsystem">
+      <span
+        data-test="delete-subsystem"
+        class="font-weight-regular body-regular"
+      >
         <i18n-t
           scope="global"
           keypath="members.member.subsystems.areYouSureDelete"
         >
           <template #subsystemCode>
-            <b>{{ subsystemCode }}</b>
+            <span class="font-weight-bold">{{ subsystemCode }}</span>
           </template>
           <template #memberId>
-            <b>{{ shortMemberId }}</b>
+            <span class="font-weight-bold">{{ shortMemberId }}</span>
           </template>
         </i18n-t>
-      </div>
+      </span>
     </template>
   </xrd-confirm-dialog>
 </template>
@@ -56,10 +59,10 @@ import { mapActions, mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useMember } from '@/store/modules/members';
 import { useSystem } from '@/store/modules/system';
-import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { ClientId } from '@/openapi-types';
 import { toIdentifier, toShortMemberId } from '@/util/helpers';
+import { useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
   props: {
@@ -73,6 +76,10 @@ export default defineComponent({
     },
   },
   emits: ['delete', 'cancel'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return {
       loading: false,
@@ -86,7 +93,6 @@ export default defineComponent({
     },
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
     },
@@ -97,15 +103,16 @@ export default defineComponent({
           toIdentifier(this.member.client_id) + ':' + this.subsystemCode,
         )
         .then(() => {
-          this.showSuccess(
-            this.$t('members.member.subsystems.subsystemSuccessfullyDeleted', {
+          this.addSuccessMessage(
+            'members.member.subsystems.subsystemSuccessfullyDeleted',
+            {
               subsystemCode: this.subsystemCode,
-            }),
+            },
           );
           this.$emit('delete');
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
           this.$emit('cancel');
         })
         .finally(() => {

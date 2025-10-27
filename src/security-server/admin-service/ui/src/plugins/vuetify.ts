@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,55 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import 'vuetify/styles';
-import '@mdi/font/css/materialdesignicons.css';
-import { createVuetify } from 'vuetify';
-import { aliases, mdi } from 'vuetify/iconsets/mdi';
-import { Colors, i18n } from '@niis/shared-ui';
-import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
-import { useI18n } from 'vue-i18n';
+import 'vuetify/styles'; //!!!Keep it before any component or custom CSS imports!!!
+import { Colors, createXrdVuetify } from '@niis/shared-ui';
 
-export default createVuetify({
-  defaults: {
-    VTextField: {
-      color: 'primary',
-    },
-    VSwitch: {
-      color: 'primary',
-    },
-    VStepperItem: {
-      color: 'primary',
-    },
-    VRadioGroup: {
-      color: 'primary',
-    },
-    VRadio: {
-      color: 'primary',
-    },
-    VCheckbox: {
-      color: 'primary',
-    },
-  },
-  icons: {
-    defaultSet: 'mdi',
-    aliases,
-    sets: {
-      mdi,
-    },
-  },
-  locale: {
-    adapter: createVueI18nAdapter({ i18n, useI18n }),
-  },
-  theme: {
-    themes: {
-      light: {
-        dark: false,
-        colors: {
-          primary: Colors.Purple100,
-          secondary: Colors.Purple70,
-          error: Colors.Error,
-        },
-      },
-    },
-  },
-});
+import '@niis/shared-ui/src/assets/xrd8/fonts.css';
+import '@/assets/styles.css';
+
+export default createXrdVuetify(Colors.Blue600, Colors.Blue50);

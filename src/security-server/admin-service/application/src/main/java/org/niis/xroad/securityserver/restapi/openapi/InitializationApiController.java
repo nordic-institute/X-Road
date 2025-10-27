@@ -26,12 +26,9 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -40,6 +37,7 @@ import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConfDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,7 +45,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_CONFIGURATION;
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.GPG_KEY_GENERATION_INTERRUPTED;
 
 /**
  * Init (Security Server) controller
@@ -59,6 +56,7 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.GPG_
 @RequiredArgsConstructor
 public class InitializationApiController implements InitializationApi {
     private final InitializationService initializationService;
+    private final SignerRpcClient signerRpcClient;
 
     @Override
     @PreAuthorize("isAuthenticated()")
@@ -69,7 +67,7 @@ public class InitializationApiController implements InitializationApi {
         initializationStatusDto.setIsServerCodeInitialized(initStatus.isServerCodeInitialized());
         initializationStatusDto.setIsServerOwnerInitialized(initStatus.isServerOwnerInitialized());
         initializationStatusDto.setSoftwareTokenInitStatus(TokenInitStatusMapping.map(initStatus.getSoftwareTokenInitStatusInfo()));
-        initializationStatusDto.setEnforceTokenPinPolicy(SystemProperties.shouldEnforceTokenPinPolicy());
+        initializationStatusDto.setEnforceTokenPinPolicy(signerRpcClient.isEnforcedTokenPinPolicy());
         return new ResponseEntity<>(initializationStatusDto, HttpStatus.OK);
     }
 
@@ -87,8 +85,6 @@ public class InitializationApiController implements InitializationApi {
                     ignoreWarnings);
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
-        } catch (InterruptedException e) {
-            throw new InternalServerErrorException(e, GPG_KEY_GENERATION_INTERRUPTED.build());
         }
 
         return new ResponseEntity<>(HttpStatus.CREATED);
