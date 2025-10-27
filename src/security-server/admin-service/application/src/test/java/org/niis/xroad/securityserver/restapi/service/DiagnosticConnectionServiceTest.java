@@ -108,11 +108,11 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getGlobalConfStatusInfoThenReturnUnknownHostErrors() {
+    void getGlobalConfStatusThenReturnUnknownHostErrors() {
         when(globalConfProvider.findSourceAddresses())
                 .thenReturn(Set.of("unknown-host"));
 
-        var statuses = service.getGlobalConfStatusInfo();
+        var statuses = service.getGlobalConfStatus();
 
         assertThat(statuses)
                 .hasSize(2)
@@ -128,7 +128,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getGlobalConfStatusInfoThenReturnGlobalConfGetVersionError() throws Exception {
+    void getGlobalConfStatusThenReturnGlobalConfGetVersionError() throws Exception {
         String downloadUrl = "http://unknown-host:80/internalconf";
         HttpURLConnection mockConn = mock(HttpURLConnection.class);
         when(mockConn.getResponseCode()).thenReturn(404);
@@ -153,7 +153,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getAuthCertReqStatusInfoThenReturnSystemErrorWhenCertOk() {
+    void getAuthCertReqStatusThenReturnSystemErrorWhenCertOk() {
         TokenInfo token = mock(TokenInfo.class);
         KeyInfo key = mock(KeyInfo.class);
         CertificateInfo cert = mock(CertificateInfo.class);
@@ -168,7 +168,7 @@ class DiagnosticConnectionServiceTest {
                 .thenThrow(new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, ErrorCode.withCode("management_service_error"))
                         .build());
 
-        var status = service.getAuthCertReqStatusInfo();
+        var status = service.getAuthCertReqStatus();
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(status.getErrorCode()).isEqualTo("management_service_error");
@@ -176,7 +176,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getAuthCertReqStatusInfoThenReturnOkWhenInvalidRequestAndCertOk() {
+    void getAuthCertReqStatusThenReturnOkWhenInvalidRequestAndCertOk() {
         TokenInfo token = mock(TokenInfo.class);
         KeyInfo key = mock(KeyInfo.class);
         CertificateInfo cert = mock(CertificateInfo.class);
@@ -190,14 +190,14 @@ class DiagnosticConnectionServiceTest {
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
                 .thenThrow(new CodedException("InvalidRequest"));
 
-        var status = service.getAuthCertReqStatusInfo();
+        var status = service.getAuthCertReqStatus();
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.OK);
         assertThat(status.getErrorCode()).isNull();
     }
 
     @Test
-    void getAuthCertReqStatusInfoThenReturnInvalidCertificateDeviation() {
+    void getAuthCertReqStatusThenReturnInvalidCertificateDeviation() {
         TokenInfo token = mock(TokenInfo.class);
         KeyInfo key = mock(KeyInfo.class);
         CertificateInfo cert = mock(CertificateInfo.class);
@@ -213,7 +213,7 @@ class DiagnosticConnectionServiceTest {
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
                 .thenThrow(new CodedException(X_INVALID_REQUEST));
 
-        var status = service.getAuthCertReqStatusInfo();
+        var status = service.getAuthCertReqStatus();
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(status.getErrorCode()).isEqualTo("certificate_not_found");
@@ -222,7 +222,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getAuthCertReqStatusInfoThenReturnUnexpectedCodedExceptionMessageWhenCertOk() {
+    void getAuthCertReqStatusThenReturnUnexpectedCodedExceptionMessageWhenCertOk() {
         TokenInfo token = mock(TokenInfo.class);
         KeyInfo key = mock(KeyInfo.class);
         CertificateInfo cert = mock(CertificateInfo.class);
@@ -236,7 +236,7 @@ class DiagnosticConnectionServiceTest {
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
                 .thenThrow(new CodedException("SomeOtherCode", "random_message"));
 
-        var status = service.getAuthCertReqStatusInfo();
+        var status = service.getAuthCertReqStatus();
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(status.getErrorCode()).isEqualTo("random_message");
@@ -246,7 +246,7 @@ class DiagnosticConnectionServiceTest {
 
 
     @Test
-    void getAuthCertReqStatusInfoThenReturnNetworkError() {
+    void getAuthCertReqStatusThenReturnNetworkError() {
         TokenInfo token = mock(TokenInfo.class);
         when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
         when(token.getKeyInfo()).thenReturn(List.of());
@@ -255,7 +255,7 @@ class DiagnosticConnectionServiceTest {
                         .cause(new UnresolvedAddressException())
                         .build());
 
-        var status = service.getAuthCertReqStatusInfo();
+        var status = service.getAuthCertReqStatus();
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(status.getErrorCode()).isEqualTo("network_error");
@@ -263,14 +263,14 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getAuthCertReqStatusInfoThenReturnInternalError() {
+    void getAuthCertReqStatusThenReturnInternalError() {
         TokenInfo token = mock(TokenInfo.class);
         when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
         when(token.getKeyInfo()).thenReturn(List.of());
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
                 .thenThrow(new CodedException(X_INTERNAL_ERROR));
 
-        var status = service.getAuthCertReqStatusInfo();
+        var status = service.getAuthCertReqStatus();
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(status.getErrorCode()).isEqualTo("internal_error");
@@ -278,14 +278,14 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getAuthCertReqStatusInfoThenReturnCertificateNotFoundError() {
+    void getAuthCertReqStatusThenReturnCertificateNotFoundError() {
         TokenInfo token = mock(TokenInfo.class);
         when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
         when(token.getKeyInfo()).thenReturn(List.of());
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
                 .thenThrow(new CodedException(X_INVALID_REQUEST));
 
-        var status = service.getAuthCertReqStatusInfo();
+        var status = service.getAuthCertReqStatus();
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
         assertThat(status.getErrorCode()).isEqualTo("certificate_not_found");

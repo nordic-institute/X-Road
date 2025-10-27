@@ -192,14 +192,13 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<ConnectionStatusDto> getAuthCertReqStatus() {
-        return new ResponseEntity<>(authCertStatusConverter.convert(diagnosticConnectionService.getAuthCertReqStatusInfo()), HttpStatus.OK);
+        return new ResponseEntity<>(authCertStatusConverter.convert(diagnosticConnectionService.getAuthCertReqStatus()), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<List<GlobalConfConnectionStatusDto>> getGlobalConfStatus() {
-        return new ResponseEntity<>(globalConfStatusConverter.convert(diagnosticConnectionService.getGlobalConfStatusInfo()),
-                HttpStatus.OK);
+        return new ResponseEntity<>(globalConfStatusConverter.convert(diagnosticConnectionService.getGlobalConfStatus()), HttpStatus.OK);
     }
 
     private String systemInformationFilename() {

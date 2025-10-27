@@ -73,7 +73,7 @@ public class DiagnosticConnectionService {
     private final ManagementRequestSenderService managementRequestSenderService;
     private final HttpUrlConnectionConfigurer connectionConfigurer = new HttpUrlConnectionConfigurer();
 
-    public List<DownloadUrlConnectionStatus> getGlobalConfStatusInfo() {
+    public List<DownloadUrlConnectionStatus> getGlobalConfStatus() {
         Set<String> addresses = globalConfProvider.findSourceAddresses();
 
         return addresses.stream()
@@ -132,7 +132,7 @@ public class DiagnosticConnectionService {
         }
     }
 
-    public ConnectionStatus getAuthCertReqStatusInfo() {
+    public ConnectionStatus getAuthCertReqStatus() {
         CertValidation certValidation = validateAuthCert();
         try {
             // the error is expected, but we want to verify that the connection can be established
