@@ -38,7 +38,6 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
         name: signer-openbao-tls-certificate
-        readOnly: true
   proxy:
     env:
       XROAD_PROXY_ADDON_OP_MONITOR_ENABLED: "true"
@@ -54,7 +53,6 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
         name: proxy-openbao-tls-certificate
-        readOnly: true
   proxy-ui-api:
     env:
       SPRING_CLOUD_VAULT_SSL_TRUST_STORE: "file:/etc/xroad/ssl/openbao.crt"
@@ -70,7 +68,6 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
         name: proxy-ui-openbao-tls-certificate
-        readOnly: true
   monitor:
     env:
       QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
@@ -116,4 +113,3 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
         name: backup-manager-openbao-tls-certificate
-

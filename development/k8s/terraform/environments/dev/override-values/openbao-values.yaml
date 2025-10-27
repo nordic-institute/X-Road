@@ -21,7 +21,7 @@ server:
       secretName: db-openbao
       secretKey: password
   extraEnvironmentVars:
-    BAO_PG_CONNECTION_URL: postgres://openbao:$(BAO_PG_PASSWORD)@db-openbao.ss.svc.cluster.local:5432/openbao
+    BAO_PG_CONNECTION_URL: postgres://openbao:$(BAO_PG_PASSWORD)@db-openbao:5432/openbao
   volumes:
     - name: userconfig-openbao-server-tls
       secret:
@@ -29,4 +29,3 @@ server:
   volumeMounts:
     - mountPath: /openbao/userconfig/server-tls
       name: userconfig-openbao-server-tls
-      readOnly: true

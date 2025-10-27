@@ -23,8 +23,13 @@ resource "tls_self_signed_cert" "openbao_server" {
   }
 
   dns_names = [
-    "localhost",
-    "openbao.ss.svc.cluster.local"
+    "openbao",
+    "openbao.${var.namespace}.svc.cluster.local",
+    "localhost"
+  ]
+
+  ip_addresses = [
+    "127.0.0.1"
   ]
 
   validity_period_hours = 43800 # 5 years

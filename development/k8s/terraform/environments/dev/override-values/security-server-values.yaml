@@ -28,7 +28,6 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
         name: configuration-client-openbao-tls-certificate
-        readOnly: true
   signer:
     image: localhost:5555/ss-signer:latest
     env:
@@ -44,7 +43,6 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
         name: signer-openbao-tls-certificate
-        readOnly: true
   proxy:
     image: localhost:5555/ss-proxy:latest
     env:
@@ -61,7 +59,6 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
         name: proxy-openbao-tls-certificate
-        readOnly: true
   proxy-ui-api:
     image: localhost:5555/ss-proxy-ui-api:latest
     env:
@@ -78,7 +75,6 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
         name: proxy-ui-openbao-tls-certificate
-        readOnly: true
   monitor:
     image: localhost:5555/ss-monitor:latest
     env:
