@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.confclient.core;
+package org.niis.xroad.common.core.util;
 
 import ee.ria.xroad.common.SystemProperties;
 

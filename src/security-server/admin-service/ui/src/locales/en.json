@@ -330,6 +330,17 @@
       "failedRequests": "Failed requests",
       "disabledTitle": "Operational Data Monitoring Is Disabled",
       "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Everything ok",
+      "test": "Test",
+      "centralServer": {
+        "title": "Central Server",
+        "globalConf": "Global configuration download",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "authCertRequest": "Authentication certificate registration service"
+      }
     }
   },
   "endpoints": {
@@ -503,6 +514,7 @@
       "updating_message_signature_failed": "Updating the message signature properties in the database failed"
     },
     "network_error": "Network error",
+    "http_error": "HTTP error",
     "openapi_parsing_error": "Parsing OpenApi3 description failed",
     "orphans_not_found": "Orphan keys, certificates and/or CSRs that belong to the given client were not found",
     "pin_code_exists": "PIN code exists",
@@ -1030,7 +1042,8 @@
     },
     "diagnostics": {
       "overview": "Overview",
-      "traffic": "Traffic"
+      "traffic": "Traffic",
+      "connectionTesting": "Connection Testing"
     }
   },
   "token": {

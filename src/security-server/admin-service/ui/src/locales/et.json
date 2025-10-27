@@ -325,6 +325,17 @@
       "failedRequests": "Ebaõnnestunud päringud",
       "disabledTitle": "Operatiivandmete kogumine ei ole lubatud",
       "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks paigaldage operatiivandmete jälgimise lisandmoodul (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Kõik on korras",
+      "test": "Test",
+      "centralServer": {
+        "title": "Keskserver",
+        "globalConf": "Globaalse konfiguratsiooni allalaadimine",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "authCertRequest": "Autentimise sertifikaadid registreerimise teenus"
+      }
     }
   },
   "endpoints": {
@@ -434,6 +445,7 @@
     "invalid_service_url": "Kehtetu teenuse URL",
     "invalid_wsdl": "Kehtetu WSDL",
     "invalid_wsdl_service_identifier": "Kehtetu WSDL teenuse identifikaator",
+    "io_error": "I/O viga",
     "key_and_cert_generation_failed": "Võtme ja sertifikaadi loomine ebaõnnestus",
     "key_not_found": "Võtit ei leitud",
     "local_group_code_already_exists": "Lokaalse rühma kood on juba olemas",
@@ -450,6 +462,8 @@
     "member_code_exists": "Liikmekood on olemas",
     "member_code_not_provided": "Liikmekood puudub",
     "missing_parameter": "Parameeter puudub",
+    "network_error": "Võrguühenduse viga",
+    "http_error": "HTTP viga",
     "openapi_parsing_error": "OpenApi3 kirjelduse analüüs ebaõnnestus",
     "orphans_not_found": "Antud kliendile kuuluvaid orbvõtmeid, sertifikaate ja/või CSR-e ei leitud",
     "pin_code_exists": "PIN-kood on olemas",
@@ -972,7 +986,8 @@
     },
     "diagnostics": {
       "overview": "Ülevaade",
-      "traffic": "Päringute statistika"
+      "traffic": "Päringute statistika",
+      "connectionTesting": "Ühenduse testimine"
     }
   },
   "token": {

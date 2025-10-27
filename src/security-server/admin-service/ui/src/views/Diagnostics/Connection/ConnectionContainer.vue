@@ -24,49 +24,22 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div>
-      <XrdSubTabs :tabs />
-    </div>
-  </div>
+  <XrdTitledView title-key="tab.diagnostics.connectionTesting">
+
+    <ConnectionCentralServerView class="mt-0" />
+
+  </XrdTitledView>
 </template>
 
-<script lang="ts" setup>
-import { Permissions, RouteName } from '@/global';
-import { useUser } from '@/store/modules/user';
-import { Tab, XrdSubTabs } from '@niis/shared-ui';
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { XrdTitledView } from '@niis/shared-ui';
+import ConnectionCentralServerView from "@/views/Diagnostics/Connection/CentralServerConnectionTestingView.vue";
 
-const userStore = useUser();
-
-const tabs = getAllowedTabs();
-
-function getAllowedTabs(): Tab[] {
-  const allTabs: Tab[] = [
-    {
-      key: 'diagnostics-overview-tab-button',
-      name: 'tab.diagnostics.overview',
-      to: {
-        name: RouteName.Diagnostics,
-      },
-      permissions: [Permissions.DIAGNOSTICS],
-    },
-    {
-      key: 'diagnostics-traffic-tab-button',
-      name: 'tab.diagnostics.traffic',
-      to: {
-        name: RouteName.DiagnosticsTraffic,
-      },
-      permissions: [Permissions.DIAGNOSTICS],
-    },
-    {
-      key: 'diagnostics-connection-tab-button',
-      name: 'tab.diagnostics.connectionTesting',
-      to: {
-        name: RouteName.DiagnosticsConnection,
-      },
-      permissions: [Permissions.DIAGNOSTICS],
-    },
-  ];
-  return userStore.getAllowedTabs(allTabs);
-}
+export default defineComponent({
+  components: {
+    XrdTitledView,
+    ConnectionCentralServerView
+  },
+});
 </script>
