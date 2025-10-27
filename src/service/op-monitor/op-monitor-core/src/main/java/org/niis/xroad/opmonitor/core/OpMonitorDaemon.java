@@ -46,7 +46,6 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorTlsProperties;
 
@@ -89,7 +88,6 @@ public final class OpMonitorDaemon {
     private final Server server = new Server();
 
     private final OpMonitorProperties opMonitorProperties;
-    private final OpMonitorCommonProperties opMonitorCommonProperties;
     private final OpMonitorTlsProperties opMonitorTlsProperties;
     private final GlobalConfProvider globalConfProvider;
     private final VaultClient vaultClient;
@@ -127,10 +125,9 @@ public final class OpMonitorDaemon {
     private void createConnector()
             throws NoSuchAlgorithmException, KeyManagementException, CertificateException, IOException, InvalidKeySpecException {
         String listenAddress = opMonitorProperties.listenAddress();
-        int port = opMonitorCommonProperties.connection().port();
+        int port = opMonitorProperties.port();
 
-        String scheme = opMonitorCommonProperties.connection().scheme();
-        ServerConnector connector = "https".equalsIgnoreCase(scheme)
+        ServerConnector connector = "https".equalsIgnoreCase(opMonitorProperties.scheme())
                 ? createDaemonSslConnector() : createDaemonConnector();
 
         connector.setName(CLIENT_CONNECTOR_NAME);
@@ -158,7 +155,7 @@ public final class OpMonitorDaemon {
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
         cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
-        cf.setIncludeCipherSuites(opMonitorCommonProperties.xroadTlsCiphers());
+        cf.setIncludeCipherSuites(opMonitorProperties.xroadTlsCiphers());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
 

@@ -54,7 +54,6 @@ import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
@@ -184,11 +183,10 @@ public abstract class AbstractProxyIntegrationTest {
                 serverKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
                 proxyProperties, OCSP_VERIFIER_FACTORY, commonProperties);
 
-        OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
-                mock(MonitorRpcClient.class), commonProperties, proxyProperties, opMonitorCommonProperties);
+                mock(MonitorRpcClient.class), commonProperties, proxyProperties);
         serverProxy = new ServerProxy(proxyProperties, mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
-                opMonitorCommonProperties, new NoopVaultClient(), new NoopVaultKeyClient());
+                new NoopVaultClient(), new NoopVaultKeyClient());
         serverProxy.init();
     }
 
