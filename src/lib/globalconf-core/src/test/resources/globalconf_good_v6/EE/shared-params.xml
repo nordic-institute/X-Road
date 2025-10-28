@@ -118,7 +118,6 @@
             <ocsp>
                 <!-- Local OCSP responder simulator used currently -->
                 <url>http://127.0.0.1:8082/ocsp</url>
-                <costType>FREE</costType>
                 <!-- Extracted from: common-test/src/test/certs/ocspsigner.p12 -->
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
@@ -139,10 +138,10 @@
                     3AH22TFUUUnaTGVF+OiHtthE1u7bnwsTqWXX4PI9I3KnSaIEE55mveNq2jHVWu4r
                     Myy2flOZMonYh3dw1gmSp2yWo1YDpN3olM0Li6Lnfvg1TZd71xZ6ZkKf+MoAs+pW
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
+                <costType>FREE</costType>
             </ocsp>
             <ocsp>
                 <url>http://www.example.net/ocsp</url>
-                <costType>FREE</costType>
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
                     HhcNMTIwOTA2MTEzODMwWhcNMTQwOTA2MTEzODMwWjAWMRQwEgYDVQQDDAtPY3Nw
@@ -162,6 +161,7 @@
                     3AH22TFUUUnaTGVF+OiHtthE1u7bnwsTqWXX4PI9I3KnSaIEE55mveNq2jHVWu4r
                     Myy2flOZMonYh3dw1gmSp2yWo1YDpN3olM0Li6Lnfvg1TZd71xZ6ZkKf+MoAs+pW
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
+            <costType>FREE</costType>
             </ocsp>
         </topCA>
         <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
@@ -194,7 +194,6 @@
             <ocsp>
                 <!-- Local OCSP responder simulator used currently -->
                 <url>http://127.0.0.1:8082/ocsp</url>
-                <costType>PAID</costType>
                 <!-- Extracted from: common-test/src/test/certs/ocspsigner.p12 -->
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
@@ -215,10 +214,10 @@
                     3AH22TFUUUnaTGVF+OiHtthE1u7bnwsTqWXX4PI9I3KnSaIEE55mveNq2jHVWu4r
                     Myy2flOZMonYh3dw1gmSp2yWo1YDpN3olM0Li6Lnfvg1TZd71xZ6ZkKf+MoAs+pW
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
+                <costType>PAID</costType>
             </ocsp>
             <ocsp>
                 <url>http://www.example.net/ocsp</url>
-                <costType>FREE</costType>
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
                     HhcNMTIwOTA2MTEzODMwWhcNMTQwOTA2MTEzODMwWjAWMRQwEgYDVQQDDAtPY3Nw
@@ -238,6 +237,7 @@
                     3AH22TFUUUnaTGVF+OiHtthE1u7bnwsTqWXX4PI9I3KnSaIEE55mveNq2jHVWu4r
                     Myy2flOZMonYh3dw1gmSp2yWo1YDpN3olM0Li6Lnfvg1TZd71xZ6ZkKf+MoAs+pW
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
+                <costType>FREE</costType>
             </ocsp>
         </topCA>
         <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
@@ -370,7 +370,6 @@
     <approvedTSA>
         <name>Test TSP</name>
         <url>http://www.foo.bar</url>
-        <costType>PAID</costType>
         <cert>MIICwjCCAaqgAwIBAgIIb+RPNmkfCdYwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
             AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
             HhcNMTIxMTI5MTE1MzA2WhcNMTQxMTI5MTE1MzA2WjAVMRMwEQYDVQQDDAp0aW1l
@@ -386,6 +385,7 @@
             dGR53ya0NnSf7dlua5FLBRiOFA5kRWTft6RcEW0jGZzscL6wZn+hH99IihjqgdxV
             1GydL+BgDMfryZzhl+h1WtTwv0Bi5Gs81v8UlNUTnCCfLu9fatHx85/ttFcXEyt9
             SQze3NGcaR1i3kyZvNijzG3C+jrUnJ/lFs5AcIiPG0Emz6oZEYs=</cert>
+        <costType>PAID</costType>
     </approvedTSA>
 
     <member id="producerId">

@@ -464,6 +464,10 @@
     "missing_parameter": "Parâmetro ausente",
     "network_error": "Erro de rede",
     "http_error": "Erro HTTP",
+    "ocsp_connection_error": "Não foi possível conectar ao respondedor OCSP",
+    "ocsp_failed": "Não foi possível obter resposta do respondedor OCSP",
+    "ocsp_response_parsing_failure": "Não foi possível interpretar a resposta OCSP",
+    "ocsp_response_verification_failure": "Não foi possível verificar a resposta OCSP",
     "openapi_parsing_error": "Falha ao interpretar descrição OpenAPI 3",
     "orphans_not_found": "Não foram encontradas chaves, certificados ou CSRs órfãos vinculados ao cliente",
     "pin_code_exists": "PIN já existe",
@@ -950,7 +954,8 @@
         },
         "header": {
           "serviceURL": "URL do Serviço",
-          "timestampingService": "Serviço de Carimbo do Tempo"
+          "timestampingService": "Serviço de Carimbo do Tempo",
+          "costType": "Tipo de Custo"
         }
       },
       "title": "Serviços de Carimbo do Tempo"

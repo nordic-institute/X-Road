@@ -660,6 +660,12 @@
      },
      "timestampingServices":"Serviços de Carimbo do Tempo",
      "trustService":{
+       "cost":"Custo",
+       "costType":{
+         "FREE":"Gratuito",
+         "PAID":"Pago",
+         "UNDEFINED":"Indefinido"
+       },
         "delete":{
            "action":"Excluir serviço de confiança",
            "confirmationDialog":{
@@ -725,12 +731,6 @@
            "tlsAuth":"Esta AC pode ser usada apenas para autenticação TLS"
         },
         "timestampingService":{
-           "cost":"Custo",
-           "costValues":{
-              "FREE":"Gratuito",
-              "PAID":"Pago",
-              "UNDEFINED":"Indefinido"
-           },
            "delete":{
               "dialog":{
                  "message":"Tem certeza de que deseja excluir o serviço de carimbo do tempo com a URL {url}?",

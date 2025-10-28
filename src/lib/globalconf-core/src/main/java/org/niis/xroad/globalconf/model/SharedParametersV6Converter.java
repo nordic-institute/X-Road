@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -113,9 +114,9 @@ public class SharedParametersV6Converter {
         Map<String, ClientId> ret = new HashMap<>();
         source.getMember().forEach(member -> {
             ret.put(member.getId(), toClientId(source.getInstanceIdentifier(), member));
-            member.getSubsystem().forEach(subsystem -> {
-                ret.put(subsystem.getId(), toClientId(source.getInstanceIdentifier(), member, subsystem));
-            });
+            member.getSubsystem().forEach(
+                    subsystem -> ret.put(subsystem.getId(), toClientId(source.getInstanceIdentifier(), member, subsystem))
+            );
         });
         return ret;
     }

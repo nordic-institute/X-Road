@@ -71,7 +71,8 @@ class SharedParametersV4MarshallerTest {
         sharedParamsBuilder.instanceIdentifier("CS");
         sharedParamsBuilder.sources(List.of(new SharedParameters.ConfigurationSource())); // missing address or cert
         sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
-        assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(sharedParamsBuilder.build()));
+        SharedParameters sharedParameters = sharedParamsBuilder.build();
+        assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(sharedParameters));
     }
 
 

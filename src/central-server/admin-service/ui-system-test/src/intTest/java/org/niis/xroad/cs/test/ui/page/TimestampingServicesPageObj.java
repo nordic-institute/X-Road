@@ -93,7 +93,6 @@ public class TimestampingServicesPageObj {
             return $x("//div[@data-test='timestamping-service-cost-type-radio-%s']".formatted(costType.toUpperCase()));
         }
 
-
         public SelenideElement inputCertificateFile() {
             return $x("//input[@type='file']");
         }
