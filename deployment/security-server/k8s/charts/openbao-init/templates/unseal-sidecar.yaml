@@ -22,7 +22,7 @@ spec:
           args:
             - |
               while true; do
-                if curl -s $OPENBAO_ADDR/v1/sys/health; then
+                if curl -s -k $OPENBAO_ADDR/v1/sys/health; then
                   /scripts/unseal.sh
                 fi
                 sleep 5

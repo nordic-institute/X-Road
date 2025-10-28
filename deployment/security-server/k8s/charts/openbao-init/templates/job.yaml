@@ -12,7 +12,7 @@ spec:
         - name: wait-for-openbao
           image: {{ .Values.image }}
           imagePullPolicy: IfNotPresent
-          command: [ 'sh', '-c', 'until curl -s $OPENBAO_ADDR/v1/sys/health; do echo waiting for openbao; sleep 5; done' ]
+          command: [ 'sh', '-c', 'until curl -s -k $OPENBAO_ADDR/v1/sys/health; do echo waiting for openbao; sleep 5; done' ]
           env:
             - name: OPENBAO_ADDR
               value: {{ .Values.openbao.addr }}

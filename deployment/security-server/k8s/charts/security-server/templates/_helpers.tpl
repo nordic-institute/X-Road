@@ -108,9 +108,15 @@ spec:
                   name: {{ .secretName }}
                   key: {{ .key }}
             {{- end }}
-          {{- if .config.volumeMounts }}
+          {{- if or .config.volumeMounts .config.extraVolumeMounts }}
           volumeMounts:
-            {{- toYaml .config.volumeMounts | nindent 12 }}
+            {{- with .config.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{/* extraVolumeMounts for not overriding volumeMounts defaults */}}
+            {{- with .config.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           {{- end }}
           readinessProbe:
             httpGet:
@@ -122,9 +128,19 @@ spec:
             timeoutSeconds: 1
             successThreshold: 1
             failureThreshold: 3
-      {{- if .config.volumes }}
+      {{- if or .config.volumes .config.extraVolumes }}
       volumes:
         {{- range .config.volumes }}
+        {{- if .persistentVolumeClaim }}
+        - name: {{ .name }}
+          persistentVolumeClaim:
+            claimName: {{ $.root.Release.Name }}-{{ .persistentVolumeClaim.claimName }}
+        {{- else }}
+        - {{ toYaml . | nindent 10 }}
+        {{- end }}
+        {{- end }}
+        {{/* extraVolumes for not overriding volumes defaults */}}
+        {{- range .config.extraVolumes }}
         {{- if .persistentVolumeClaim }}
         - name: {{ .name }}
           persistentVolumeClaim:
