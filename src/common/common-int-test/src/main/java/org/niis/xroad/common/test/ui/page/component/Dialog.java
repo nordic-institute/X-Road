@@ -72,6 +72,6 @@ public class Dialog {
     }
 
     public SelenideElement btnClose() {
-        return self().$x(".//button[@data-test='dlg-close-x']");
+        return self().$x(".//i[@data-test='dlg-close-x']");
     }
 }
