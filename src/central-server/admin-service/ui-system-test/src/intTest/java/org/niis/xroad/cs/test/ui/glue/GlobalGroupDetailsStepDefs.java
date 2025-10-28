@@ -89,7 +89,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
     @Step("user closes add members dialog")
     public void closeAddMembersDialog() {
         globalGroupDetailsPage.getAddMembersDialogObj().btnClose()
-                .shouldBe(enabled)
+                .shouldNotHave(cssClass("v-icon--disabled"))
                 .click();
     }
 

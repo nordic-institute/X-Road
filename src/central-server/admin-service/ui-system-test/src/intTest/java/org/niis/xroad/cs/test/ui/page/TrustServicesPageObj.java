@@ -140,27 +140,27 @@ public class TrustServicesPageObj {
         public class EditCaSettingsDialog extends Dialog {
 
             public SelenideElement checkboxTlsAuth() {
-                return self().$x("//div[@data-test='tls-auth-checkbox']");
+                return self().$x(".//div[@data-test='tls-auth-checkbox']");
             }
 
             public SelenideElement inputCertProfile() {
-                return self().$x("//div[@data-test='cert-profile-input']");
+                return self().$x(".//div[@data-test='cert-profile-input']");
             }
 
             public SelenideElement inputAcmeServerDirectoryUrl() {
-                return self().$x("//div[@data-test='acme-server-directory-url-input']");
+                return self().$x(".//div[@data-test='acme-server-directory-url-input']");
             }
 
             public SelenideElement inputAcmeServerIpAddress() {
-                return self().$x("//div[@data-test='acme-server-ip-address-input']");
+                return self().$x(".//div[@data-test='acme-server-ip-address-input']");
             }
 
             public SelenideElement inputAuthCertProfileId() {
-                return self().$x("//div[@data-test='auth-cert-profile-id-input']");
+                return self().$x(".//div[@data-test='auth-cert-profile-id-input']");
             }
 
             public SelenideElement inputSignCertProfileId() {
-                return self().$x("//div[@data-test='sign-cert-profile-id-input']");
+                return self().$x(".//div[@data-test='sign-cert-profile-id-input']");
             }
 
         }
