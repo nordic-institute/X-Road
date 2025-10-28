@@ -35,7 +35,6 @@ import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
@@ -64,8 +63,7 @@ public class ProxyConfig {
         }
 
         @ApplicationScoped
-        public OpMonitoringBuffer opMonitoringBuffer(OpMonitorCommonProperties opMonitorCommonProperties,
-                                                     ServerConfProvider serverConfProvider,
+        public OpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider,
                                                      ProxyProperties proxyProperties,
                                                      VaultClient vaultClient)
                 throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
@@ -74,7 +72,7 @@ public class ProxyConfig {
             if (proxyProperties.addon().opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
                 var opMonitoringBuffer = new OpMonitoringBufferImpl(
-                        serverConfProvider, opMonitorCommonProperties, vaultClient,
+                        serverConfProvider, proxyProperties.addon().opMonitor(), vaultClient,
                         proxyProperties.clientProxy().poolEnableConnectionReuse());
                 opMonitoringBuffer.init();
                 return opMonitoringBuffer;

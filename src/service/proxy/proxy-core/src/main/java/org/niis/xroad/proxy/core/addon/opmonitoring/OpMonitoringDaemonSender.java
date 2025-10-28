@@ -39,12 +39,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
-import org.niis.xroad.opmonitor.api.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
@@ -74,7 +73,7 @@ public class OpMonitoringDaemonSender {
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
     private final OpMonitoringDataProcessor opMonitoringDataProcessor = new OpMonitoringDataProcessor();
-    private final OpMonitorCommonProperties opMonitorCommonProperties;
+    private final ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties;
     private final ServerConfProvider serverConfProvider;
     private final OpMonitoringBuffer opMonitoringBuffer;
     private final VaultClient vaultClient;
@@ -86,13 +85,13 @@ public class OpMonitoringDaemonSender {
 
     OpMonitoringDaemonSender(ServerConfProvider serverConfProvider,
                              OpMonitoringBuffer opMonitoringBuffer,
-                             OpMonitorCommonProperties opMonitorCommonProperties,
+                             ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties,
                              VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
             NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
         this.serverConfProvider = serverConfProvider;
         this.opMonitoringBuffer = opMonitoringBuffer;
-        this.opMonitorCommonProperties = opMonitorCommonProperties;
+        this.opMonitorProperties = opMonitorProperties;
         this.vaultClient = vaultClient;
         this.isEnabledPooledConnectionReuse = isEnabledPooledConnectionReuse;
 
@@ -125,8 +124,8 @@ public class OpMonitoringDaemonSender {
     @ArchUnitSuppressed("NoVanillaExceptions")
     private void send(String json) throws Exception {
         try (HttpSender sender = new HttpSender(httpClient, isEnabledPooledConnectionReuse)) {
-            sender.setConnectionTimeout(TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().connectionTimeoutSeconds()));
-            sender.setSocketTimeout(TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().socketTimeoutSeconds()));
+            sender.setConnectionTimeout(TimeUtils.secondsToMillis(opMonitorProperties.buffer().connectionTimeoutSeconds()));
+            sender.setSocketTimeout(TimeUtils.secondsToMillis(opMonitorProperties.buffer().socketTimeoutSeconds()));
 
             sender.doPost(getAddress(), json, MimeTypes.JSON);
 
@@ -155,8 +154,8 @@ public class OpMonitoringDaemonSender {
     }
 
     private URI getAddress() throws URISyntaxException {
-        return new URI(opMonitorCommonProperties.connection().scheme(), null,
-                opMonitorCommonProperties.connection().host(), opMonitorCommonProperties.connection().port(),
+        return new URI(opMonitorProperties.connection().scheme(), null,
+                opMonitorProperties.connection().host(), opMonitorProperties.connection().port(),
                 OpMonitoringDaemonEndpoints.STORE_DATA_PATH, null, null);
     }
 
@@ -164,10 +163,10 @@ public class OpMonitoringDaemonSender {
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
             NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
         return OpMonitoringDaemonHttpClient.createHttpClient(
-                opMonitorCommonProperties, serverConfProvider.getSSLKey(), vaultClient,
+                opMonitorProperties.connection(), serverConfProvider.getSSLKey(), vaultClient,
                 1, 1,
-                TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().connectionTimeoutSeconds()),
-                TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().socketTimeoutSeconds()));
+                TimeUtils.secondsToMillis(opMonitorProperties.buffer().connectionTimeoutSeconds()),
+                TimeUtils.secondsToMillis(opMonitorProperties.buffer().socketTimeoutSeconds()));
     }
 
     public void destroy() {

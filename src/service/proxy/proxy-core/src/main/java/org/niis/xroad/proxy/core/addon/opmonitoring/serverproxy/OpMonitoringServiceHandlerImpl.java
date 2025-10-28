@@ -35,9 +35,9 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
 import org.niis.xroad.proxy.core.serverproxy.ProxyMessageSoapEntity;
@@ -58,10 +58,9 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SER
  * Service handler for operational monitoring.
  */
 @Slf4j
-
 public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
-    private final OpMonitorCommonProperties commonProperties;
+    private final ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties;
 
     private final String opMonitorAddress;
 
@@ -70,9 +69,10 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     private HttpSender sender;
 
     public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
-                                          OpMonitorCommonProperties opMonitorCommonProperties, boolean isEnabledPooledConnectionReuse) {
+                                          ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties,
+                                          boolean isEnabledPooledConnectionReuse) {
         super(serverConfProvider, globalConfProvider);
-        this.commonProperties = opMonitorCommonProperties;
+        this.opMonitorProperties = opMonitorProperties;
         this.opMonitorAddress = getOpMonitorAddress();
         this.isEnabledPooledConnectionReuse = isEnabledPooledConnectionReuse;
     }
@@ -108,8 +108,8 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
 
         sender = createHttpSender(opMonitorClient);
-        sender.setConnectionTimeout(TimeUtils.secondsToMillis(commonProperties.service().socketTimeoutSeconds()));
-        sender.setSocketTimeout(TimeUtils.secondsToMillis(commonProperties.service().socketTimeoutSeconds()));
+        sender.setConnectionTimeout(TimeUtils.secondsToMillis(opMonitorProperties.connection().connectionTimeoutSeconds()));
+        sender.setSocketTimeout(TimeUtils.secondsToMillis(opMonitorProperties.connection().socketTimeoutSeconds()));
         sender.addHeader("accept-encoding", "");
 
         sendRequest(proxyRequestMessage, opMonitoringData);
@@ -167,9 +167,9 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private String getOpMonitorAddress() {
         return String.format("%s://%s:%s%s",
-                commonProperties.connection().scheme(),
-                commonProperties.connection().host(),
-                commonProperties.connection().port(),
+                opMonitorProperties.connection().scheme(),
+                opMonitorProperties.connection().host(),
+                opMonitorProperties.connection().port(),
                 OpMonitoringDaemonEndpoints.QUERY_DATA_PATH);
     }
 

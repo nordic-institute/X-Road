@@ -60,8 +60,10 @@ public class LegacyPropertiesMigrator {
         Map<String, Object> properties = new HashMap<>();
         props.parsedContent().forEach((key, value) -> {
             if (LegacyConfigPathMapping.shouldKeep(key.toString())) {
-                var mappedKey = PREFIX + "." + LegacyConfigPathMapping.map(key.toString());
-                properties.put(mappedKey, value);
+                var mappedKeys = LegacyConfigPathMapping.map(key.toString());
+                mappedKeys.forEach(mappedKey ->
+                        properties.put(PREFIX + "." + mappedKey, value)
+                );
             }
         });
 

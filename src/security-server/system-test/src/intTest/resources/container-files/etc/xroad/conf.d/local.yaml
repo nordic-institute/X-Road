@@ -19,6 +19,12 @@ xroad:
     addon:
       op-monitor:
         enabled: true
+        buffer:
+          socket-timeout-seconds: 1
+        connection:
+          host: op-monitor
+          scheme: https
+          socket-timeout-seconds: 1
   proxy-ui-api:
     enforce-user-password-policy: true
     rate-limit-enabled: true
@@ -34,11 +40,6 @@ xroad:
     archive-encryption-enabled: true
   op-monitor:
     scheme: https # To ensure vault-powered mTLS communication between the proxy and op-monitor daemon
-    host: op-monitor
-    buffer:
-      socket-timeout-seconds: 1
-    service:
-      socket-timeout-seconds: 1
   backup-manager:
     backup-encryption-enabled: true
     backup-encryption-keyids: [ "backup.key1@example.org", "backup.key2@example.org", "backup.key3@example.org" ]

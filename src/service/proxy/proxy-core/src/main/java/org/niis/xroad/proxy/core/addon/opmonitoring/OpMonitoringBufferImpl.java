@@ -28,9 +28,9 @@ package org.niis.xroad.proxy.core.addon.opmonitoring;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
@@ -63,17 +63,17 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
     private final OpMonitoringDaemonSender sender;
     private final SavedServiceEndpoint savedServiceEndpoint;
 
-    private final OpMonitorCommonProperties opMonitorCommonProperties;
+    private final ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties;
 
     final BlockingDeque<OpMonitoringData> buffer = new LinkedBlockingDeque<>();
 
     public OpMonitoringBufferImpl(ServerConfProvider serverConfProvider,
-                                  OpMonitorCommonProperties opMonitorCommonProperties,
+                                  ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties,
                                   VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
             NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
 
-        this.opMonitorCommonProperties = opMonitorCommonProperties;
+        this.opMonitorProperties = opMonitorProperties;
         if (ignoreOpMonitoringData()) {
             log.info("Operational monitoring buffer is switched off, no operational monitoring data is stored");
 
@@ -83,7 +83,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
             opMonitoringDataProcessor = null;
             savedServiceEndpoint = null;
         } else {
-            sender = createSender(serverConfProvider, opMonitorCommonProperties, vaultClient, isEnabledPooledConnectionReuse);
+            sender = createSender(serverConfProvider, opMonitorProperties, vaultClient, isEnabledPooledConnectionReuse);
             executorService = Executors.newSingleThreadExecutor();
             taskScheduler = Executors.newSingleThreadScheduledExecutor();
             opMonitoringDataProcessor = createDataProcessor();
@@ -96,11 +96,11 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
     }
 
     OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                          OpMonitorCommonProperties opMonCommonProperties,
+                                          ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorAddonProperties,
                                           VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
             NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
-        return new OpMonitoringDaemonSender(serverConfProvider, this, opMonCommonProperties,
+        return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorAddonProperties,
                 vaultClient, isEnabledPooledConnectionReuse);
     }
 
@@ -115,12 +115,12 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
                 data.setRestPath(savedServiceEndpoint.getPathIfExists(data));
 
                 buffer.addLast(data);
-                if (buffer.size() > opMonitorCommonProperties.buffer().size()) {
+                if (buffer.size() > opMonitorProperties.buffer().size()) {
                     synchronized (buffer) {
-                        if (buffer.size() > opMonitorCommonProperties.buffer().size()) {
+                        if (buffer.size() > opMonitorProperties.buffer().size()) {
                             buffer.removeFirst();
                             log.warn("Operational monitoring buffer overflow (limit: {}), removing oldest record. Current size: {}",
-                                    opMonitorCommonProperties.buffer().size(), buffer.size());
+                                    opMonitorProperties.buffer().size(), buffer.size());
                         }
                     }
                 }
@@ -148,7 +148,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
 
         final List<OpMonitoringData> dataToProcess = new ArrayList<>();
 
-        buffer.drainTo(dataToProcess, opMonitorCommonProperties.buffer().maxRecordsInMessage());
+        buffer.drainTo(dataToProcess, opMonitorProperties.buffer().maxRecordsInMessage());
         if (log.isDebugEnabled()) {
             log.debug("Op monitoring remaining buffer records count {}", buffer.size());
         }
@@ -180,7 +180,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
             return;
         }
 
-        var sendingIntervalSeconds = opMonitorCommonProperties.buffer().sendingIntervalSeconds();
+        var sendingIntervalSeconds = opMonitorProperties.buffer().sendingIntervalSeconds();
         taskScheduler.scheduleWithFixedDelay(this::send, sendingIntervalSeconds, sendingIntervalSeconds, TimeUnit.SECONDS);
     }
 
@@ -198,7 +198,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
     }
 
     private boolean ignoreOpMonitoringData() {
-        return opMonitorCommonProperties.buffer().size() < 1;
+        return opMonitorProperties.buffer().size() < 1;
     }
 
     int getCurrentBufferSize() {
