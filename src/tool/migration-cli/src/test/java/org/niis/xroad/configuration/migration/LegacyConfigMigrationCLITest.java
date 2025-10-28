@@ -64,6 +64,10 @@ class LegacyConfigMigrationCLITest {
         assertEquals("test-scheme", result.getProperty("xroad.op-monitor.scheme"));
         assertEquals(1313, result.getProperty("xroad.proxy.addon.op-monitor.connection.port"));
         assertEquals(1313, result.getProperty("xroad.op-monitor.port"));
+
+        assertEquals("test1,test2,test3", result.getProperty("xroad.proxy.xroad-tls-ciphers"));
+        assertEquals("test1,test2,test3", result.getProperty("xroad.op-monitor.xroad-tls-ciphers"));
+        assertEquals("test1,test2,test3", result.getProperty("xroad.proxy.addon.op-monitor.connection.xroad-tls-ciphers"));
     }
 
     @Test

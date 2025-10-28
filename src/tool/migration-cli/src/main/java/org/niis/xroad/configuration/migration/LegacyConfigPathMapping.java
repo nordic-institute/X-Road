@@ -29,6 +29,7 @@ package org.niis.xroad.configuration.migration;
 
 import lombok.NoArgsConstructor;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -110,7 +111,7 @@ public class LegacyConfigPathMapping {
         addMapping("op-monitor.host", "proxy.addon.op-monitor.connection.host");
         addCopy("op-monitor.port", "proxy.addon.op-monitor.connection.port");
         addCopy("op-monitor.scheme", "proxy.addon.op-monitor.connection.scheme");
-        addCopy("op-monitor.xroad-tls-ciphers", "proxy.addon.op-monitor.connection.xroad-tls-ciphers");
+        addCopy("proxy.xroad-tls-ciphers", "op-monitor.xroad-tls-ciphers", "proxy.addon.op-monitor.connection.xroad-tls-ciphers");
 
         addMapping("op-monitor-buffer.size", "proxy.addon.op-monitor.buffer.size");
         addMapping("op-monitor-buffer.max-records-in-message", "proxy.addon.op-monitor.buffer.max-records-in-message");
@@ -136,8 +137,10 @@ public class LegacyConfigPathMapping {
         MAPPING.put(oldKey, Set.of(newKeys));
     }
 
-    private static void addCopy(String key, String copyTo) {
-        MAPPING.put(key, Set.of(key, copyTo));
+    private static void addCopy(String key, String... copyTo) {
+        Set<String> copies = new HashSet<>(Arrays.asList(copyTo));
+        copies.add(key);
+        MAPPING.put(key, copies);
     }
 
     private static Map<String, Set<String>> addDatabaseMapping(String dbName) {
