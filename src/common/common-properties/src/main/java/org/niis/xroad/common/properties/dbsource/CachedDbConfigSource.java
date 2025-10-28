@@ -57,6 +57,8 @@ public class CachedDbConfigSource {
         ofNullable(config.getPassword()).ifPresent(p -> hikariConfig.setPassword(new String(p)));
         ofNullable(config.getSchema()).ifPresent(hikariConfig::setSchema);
 
+        hikariConfig.addDataSourceProperty("ApplicationName", config.getAppName());
+
         return new DbSourceRepository(new HikariDataSource(hikariConfig), config);
     }
 
