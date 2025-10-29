@@ -65,6 +65,9 @@ xroad:
         hikari.maximumPoolSize: 5
         hikari.minimumIdle: 1
         hikari.dataSource.ApplicationName: ${spring.application.name}-serverconf
+    messagelog:
+      hibernate:
+        hikari.dataSource.ApplicationName: ${spring.application.name}
   common-global-conf:
     refresh-rate: -1 # UI has its own refresh job.
   proxy-ui-api:
