@@ -58,7 +58,7 @@ public final class SystemProperties {
             PREFIX + "common.configuration-path";
 
     /** Current version number of the global configuration **/
-    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 5;
+    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 6;
 
     /** Minimum supported version number of the global configuration **/
     public static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;

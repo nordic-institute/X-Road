@@ -151,12 +151,15 @@ class SharedParametersLoader {
     }
 
     private SharedParameters.OcspInfo toOcspInfo(OcspResponder ocsp) {
-        return new SharedParameters.OcspInfo(ocsp.getUrl(), ocsp.getCertificate());
+        return new SharedParameters.OcspInfo(ocsp.getUrl(), ocsp.getCertificate(), ocsp.getCostType());
     }
 
     private List<SharedParameters.ApprovedTSA> getApprovedTSAs() {
         return timestampingServicesService.getTimestampingServices().stream()
-                .map(tsa -> new SharedParameters.ApprovedTSA(tsa.getName(), tsa.getUrl(), tsa.getCertificate().getEncoded()))
+                .map(tsa -> new SharedParameters.ApprovedTSA(tsa.getName(),
+                        tsa.getUrl(),
+                        tsa.getCertificate().getEncoded(),
+                        tsa.getCostType()))
                 .toList();
     }
 

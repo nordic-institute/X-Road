@@ -61,6 +61,7 @@ export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
     },
     build: {
       cssCodeSplit: false,
+      sourcemap: true,
       rollupOptions: {
         output: {
           manualChunks: function manualChunks(id) {

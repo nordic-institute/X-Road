@@ -30,6 +30,7 @@ package org.niis.xroad.cs.test.glue;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.TimestampingServicesApi;
+import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +68,8 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
                 null,
                 CertificateUtils.generateAuthCert("CN=Subject"));
 
-        final ResponseEntity<TimestampingServiceDto> response = timestampingServicesApi.addTimestampingService(url, certificate);
+        final ResponseEntity<TimestampingServiceDto> response =
+                timestampingServicesApi.addTimestampingService(url, CostTypeDto.UNDEFINED, certificate);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(CREATED))
@@ -108,7 +110,8 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
                 CertificateUtils.generateAuthCert("CN=Subject"));
 
         try {
-            final ResponseEntity<TimestampingServiceDto> response = timestampingServicesApi.addTimestampingService(url, certificate);
+            final ResponseEntity<TimestampingServiceDto> response =
+                    timestampingServicesApi.addTimestampingService(url, CostTypeDto.UNDEFINED, certificate);
             this.responseStatusCode = response.getStatusCode().value();
         } catch (FeignException feignException) {
             this.responseStatusCode = feignException.status();
@@ -168,7 +171,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
                 CertificateUtils.generateAuthCert("CN=Subject"));
 
         final ResponseEntity<TimestampingServiceDto> response =
-                timestampingServicesApi.updateTimestampingService(this.timestampingServiceId, url, certificate);
+                timestampingServicesApi.updateTimestampingService(this.timestampingServiceId, url, CostTypeDto.UNDEFINED, certificate);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -183,7 +186,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
         final String url = "https://timestamping-service-" + UUID.randomUUID();
 
         final ResponseEntity<TimestampingServiceDto> response =
-                timestampingServicesApi.updateTimestampingService(this.timestampingServiceId, url, null);
+                timestampingServicesApi.updateTimestampingService(this.timestampingServiceId, url, CostTypeDto.UNDEFINED, null);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))

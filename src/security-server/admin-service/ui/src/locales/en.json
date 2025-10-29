@@ -515,6 +515,10 @@
     },
     "network_error": "Network error",
     "http_error": "HTTP error",
+    "ocsp_connection_error": "Unable to connect to the OCSP responder",
+    "ocsp_failed": "Unable to fetch response from the OCSP responder",
+    "ocsp_response_parsing_failure": "Unable to parse the OCSP response",
+    "ocsp_response_verification_failure": "Unable to verify the OCSP response",
     "openapi_parsing_error": "Parsing OpenApi3 description failed",
     "orphans_not_found": "Orphan keys, certificates and/or CSRs that belong to the given client were not found",
     "pin_code_exists": "PIN code exists",
@@ -581,10 +585,6 @@
     },
     "maintenanceModeMessage": "Maintenance mode message",
     "memberCode": "Member Code",
-    "ocsp_connection_error": "Unable to connect to the OCSP responder",
-    "ocsp_failed": "Unable to fetch response from the OCSP responder",
-    "ocsp_response_parsing_failure": "Unable to parse the OCSP response",
-    "ocsp_response_verification_failure": "Unable to verify the OCSP response",
     "path": "path",
     "pin": "PIN",
     "securityServerAddress": "Security Server address",
@@ -1006,7 +1006,8 @@
         },
         "header": {
           "serviceURL": "Service URL",
-          "timestampingService": "Timestamping Service"
+          "timestampingService": "Timestamping Service",
+          "costType": "Cost Type"
         }
       },
       "title": "Timestamping Services"

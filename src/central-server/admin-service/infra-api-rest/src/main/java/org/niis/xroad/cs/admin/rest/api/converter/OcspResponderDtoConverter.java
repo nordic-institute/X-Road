@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +41,7 @@ public class OcspResponderDtoConverter {
         var dto = new OcspResponderDto();
         dto.setId(ocspResponder.getId());
         dto.setUrl(ocspResponder.getUrl());
+        dto.costType(CostTypeDto.valueOf(ocspResponder.getCostType().name()));
         dto.hasCertificate(ArrayUtils.isNotEmpty(ocspResponder.getCertificate()));
         return dto;
     }

@@ -172,6 +172,7 @@ POST https://{{cs_host}}:4000/api/v1/certification-services/{{ca_id}}/ocsp-respo
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 [MultipartFormData]
 url: http://{{ca_host}}:8888
+cost_type: FREE
 certificate: file,ca/ocsp.pem;
 
 HTTP 201
@@ -181,6 +182,7 @@ POST https://{{cs_host}}:4000/api/v1/timestamping-services
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 [MultipartFormData]
 url: http://{{ca_host}}:8899
+cost_type: FREE
 certificate: file,ca/tsa.pem;
 
 

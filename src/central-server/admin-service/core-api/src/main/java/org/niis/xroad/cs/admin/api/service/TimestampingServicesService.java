@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.api.service;
 
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.api.dto.TimestampServiceRequest;
+import org.niis.xroad.globalconf.model.CostType;
 
 import java.util.Set;
 
@@ -36,7 +37,7 @@ public interface TimestampingServicesService {
 
     Set<ApprovedTsa> getTimestampingServices();
 
-    ApprovedTsa add(String url, byte[] certificate);
+    ApprovedTsa add(String url, byte[] certificate, CostType costType);
 
     ApprovedTsa get(Integer id);
 

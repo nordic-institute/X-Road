@@ -47,8 +47,9 @@ import java.util.Set;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.cs.admin.api.domain.ApprovedTsa.ApprovedTsaCost.UNDEFINED;
 import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.NON_REPUDIATION;
+import static org.niis.xroad.globalconf.model.CostType.FREE;
+import static org.niis.xroad.globalconf.model.CostType.UNDEFINED;
 
 @ActiveProfiles("test")
 @SpringBootTest(classes = {ApprovedTsaMapperImpl.class, CertificateConverter.class, KeyUsageConverter.class})
@@ -104,16 +105,17 @@ class ApprovedTsaMapperTest {
         assertThat(result.getCertificate().getVersion()).isEqualTo(3);
 
         // stub values. Will be implemented in separate story
-        assertThat(result.getCost()).isEqualTo(UNDEFINED);
+        assertThat(result.getCostType()).isEqualTo(UNDEFINED);
         assertThat(result.getTimestampingInterval()).isEqualTo(60);
     }
 
     @Test
     void toEntity() throws Exception {
-        final ApprovedTsaEntity result = approvedTsaMapper.toEntity(URL, CERTIFICATE.getEncoded());
+        final ApprovedTsaEntity result = approvedTsaMapper.toEntity(URL, CERTIFICATE.getEncoded(), FREE);
 
         assertThat(result.getName()).isEqualTo("timestamp1");
         assertThat(result.getUrl()).isEqualTo(URL);
+        assertThat(result.getCostType()).isEqualTo(FREE.name());
         assertThat(result.getCert()).isEqualTo(CERTIFICATE.getEncoded());
         assertThat(result.getValidFrom()).isEqualTo(TEST_TSA_CERT_VALID_FROM);
         assertThat(result.getValidTo()).isEqualTo(TEST_TSA_CERT_VALID_TO);
@@ -124,6 +126,7 @@ class ApprovedTsaMapperTest {
 
         ReflectionTestUtils.setField(entity, "id", ID);
         entity.setUrl(URL);
+        entity.setCostType(UNDEFINED.name());
         entity.setName(NAME);
         entity.setCert(CERTIFICATE.getEncoded());
         entity.setValidFrom(VALID_FROM);

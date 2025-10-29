@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.api.dto;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.niis.xroad.globalconf.model.CostType;
 
 import java.time.Instant;
 
@@ -40,4 +41,5 @@ public class OcspResponder {
     private byte[] certificate;
     private Instant createdAt;
     private Instant updatedAt;
+    private CostType costType;
 }

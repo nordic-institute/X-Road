@@ -644,6 +644,12 @@
     },
     "timestampingServices": "Службы временных меток",
     "trustService": {
+      "cost": "Стоимость",
+      "costType": {
+        "FREE": "Бесплатно",
+        "PAID": "Платно",
+        "UNDEFINED": "Не определено"
+      },
       "delete": {
         "action": "Удалить службу доверия",
         "confirmationDialog": {
@@ -709,12 +715,6 @@
         "tlsAuth": "Этот CA может использоваться только для TLS-аутентификации"
       },
       "timestampingService": {
-        "cost": "Стоимость",
-        "costValues": {
-          "FREE": "Бесплатно",
-          "PAID": "Платно",
-          "UNDEFINED": "Не определено"
-        },
         "delete": {
           "dialog": {
             "message": "Вы уверены, что хотите удалить службу временных меток с URL {url}?",
