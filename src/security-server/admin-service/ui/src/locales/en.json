@@ -347,6 +347,7 @@
         "globalConfHttps": "https",
         "authCertRequest": "Authentication certificate registration service"
       }
+    }
   },
   "endpoints": {
     "addEndpoint": "Add Endpoint",

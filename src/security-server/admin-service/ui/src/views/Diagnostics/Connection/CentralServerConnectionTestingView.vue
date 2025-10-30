@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,115 +25,108 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card variant="flat" class="xrd-card diagnostic-card">
-    <v-card-title class="text-h5">
-      {{ $t('diagnostics.connection.centralServer.title') }}
-    </v-card-title>
-
-    <v-card-text class="xrd-card-text">
-      <table class="xrd-table">
-        <thead>
-        <tr>
-          <th class="fixed-width-10"/>
-          <th class="fixed-width-30"/>
-          <th class="status-column">{{ $t('diagnostics.status') }}</th>
-          <th class="fixed-width-50">{{ $t('diagnostics.message') }}</th>
-          <th class="fixed-width-5"/>
-        </tr>
-        </thead>
-        <tbody>
-        <tr
-          v-for="(item, index) in globalConfStatuses"
-          :key="item.download_url"
-        >
-          <td v-if="index === 0" :rowspan="globalConfStatuses.length">
-            {{ $t('diagnostics.connection.centralServer.globalConf') }}
-          </td>
-          <td>
-            <span v-if="!globalConfLoading">
-              {{ item.download_url }}
-            </span>
-          </td>
-          <td>
-            <xrd-status-icon v-if="!globalConfLoading"
-                             :status="statusIconType(item.connection_status.status_class)"
-            />
-          </td>
-          <td>
-            <span v-if="globalConfLoading">
-            </span>
-            <span v-else-if="item.connection_status.status_class === 'OK'">
+  <XrdCard
+    title="diagnostics.connection.centralServer.title"
+    class="overview-card"
+  >
+    <v-table class="xrd">
+      <thead>
+      <tr>
+        <th class="fixed-width-10"/>
+        <th class="fixed-width-30"/>
+        <th class="status-column">{{ $t('diagnostics.status') }}</th>
+        <th class="fixed-width-50">{{ $t('diagnostics.message') }}</th>
+        <th class="fixed-width-5"/>
+      </tr>
+      </thead>
+      <tbody>
+      <tr
+        v-for="(item, index) in globalConfStatuses"
+        :key="item.download_url"
+      >
+        <td v-if="index === 0" :rowspan="globalConfStatuses.length">
+          {{ $t('diagnostics.connection.centralServer.globalConf') }}
+        </td>
+        <td>
+          <span v-if="!globalConfLoading">
+            {{ item.download_url }}
+          </span>
+        </td>
+        <td>
+          <StatusAvatar :status="statusIconType(item.connection_status.status_class)"/>
+        </td>
+        <td>
+          <span v-if="globalConfLoading" />
+          <span v-if="item.connection_status.status_class === 'OK'">
             {{ $t('diagnostics.connection.ok') }}
-            </span>
-            <span v-else>
+          </span>
+          <span v-else class="error-text">
             {{ globalConfErrorMessage(item.connection_status.error) }}
           </span>
-          </td>
-          <td v-if="index === 0" :rowspan="globalConfStatuses.length">
-            <xrd-button
-              large
-              variant="text"
-              @click="testGlobalConfDownload()"
-            >
-              {{ $t('diagnostics.connection.test') }}
-            </xrd-button>
-          </td>
-        </tr>
-        <XrdEmptyPlaceholderRow
-          :colspan="5"
-          :loading="globalConfLoading"
-          :data="globalConfStatuses"
-          :no-items-text="$t('noData.noTimestampingServices')"
-        />
-        <tr>
-          <td colspan="2">
-            {{ $t('diagnostics.connection.centralServer.authCertRequest') }}
-          </td>
-          <td>
-            <span v-if="!authCertLoading">
-            <xrd-status-icon :status="statusIconType(authCertReqStatus?.status_class)"/>
-            </span>
-          </td>
-          <td>
-            <span v-if="authCertLoading">
-            </span>
-            <span v-else-if="authCertReqStatus?.status_class === 'OK'">
+        </td>
+        <td v-if="index === 0" :rowspan="globalConfStatuses.length">
+          <xrd-button
+            large
+            variant="text"
+            @click="testGlobalConfDownload()"
+          >
+            {{ $t('diagnostics.connection.test') }}
+          </xrd-button>
+        </td>
+      </tr>
+      <XrdEmptyPlaceholderRow
+        :colspan="5"
+        :loading="globalConfLoading"
+        :data="globalConfStatuses"
+        :no-items-text="$t('noData.noTimestampingServices')"
+      />
+      <tr>
+        <td colspan="2">
+          {{ $t('diagnostics.connection.centralServer.authCertRequest') }}
+        </td>
+        <td>
+          <StatusAvatar :status="statusIconType(authCertReqStatus?.status_class)"/>
+        </td>
+        <td>
+          <span v-if="authCertLoading" />
+          <span v-if="authCertReqStatus?.status_class === 'OK'">
             {{ $t('diagnostics.connection.ok') }}
           </span>
-            <span v-else>
+          <span v-else class="error-text">
             {{ authCertErrorMessage }}
           </span>
-          </td>
-          <td>
-            <xrd-button
-              large
-              variant="text"
-              @click="testAuthCertRequest()"
-            >
-              {{ $t('diagnostics.connection.test') }}
-            </xrd-button>
-          </td>
-        </tr>
-        <XrdEmptyPlaceholderRow
-          :colspan="5"
-          :loading="authCertLoading"
-          :data="authCertReqStatus"
-          :no-items-text="$t('noData.noTimestampingServices')"
-        />
-        </tbody>
-      </table>
-    </v-card-text>
-  </v-card>
+        </td>
+        <td>
+          <xrd-button
+            large
+            variant="text"
+            @click="testAuthCertRequest()"
+          >
+            {{ $t('diagnostics.connection.test') }}
+          </xrd-button>
+        </td>
+      </tr>
+      <XrdEmptyPlaceholderRow
+        :colspan="5"
+        :loading="authCertLoading"
+        :data="authCertReqStatus"
+        :no-items-text="$t('noData.noTimestampingServices')"
+      />
+      </tbody>
+    </v-table>
+  </XrdCard>
 </template>
 <script lang="ts">
-import {mapActions, mapState} from 'pinia';
-import {defineComponent} from 'vue';
-import {useDiagnostics} from "@/store/modules/diagnostics";
-import {useNotifications} from "@/store/modules/notifications";
-import type {CodeWithDetails} from "@/openapi-types";
+import { mapActions, mapState } from 'pinia';
+import { defineComponent } from 'vue';
+import { useDiagnostics } from "@/store/modules/diagnostics";
+import {useNotifications, XrdCard, XrdErrorNotifications} from '@niis/shared-ui';
+import type { CodeWithDetails } from "@/openapi-types";
+import StatusAvatar from "@/views/Diagnostics/Overview/StatusAvatar.vue";
 
 export default defineComponent({
   name: 'ConnectionCentralServerView',
+  components: {XrdErrorNotifications, XrdCard, StatusAvatar},
   data: () => ({
     authCertLoading: false,
     globalConfLoading: false,
@@ -207,9 +201,9 @@ export default defineComponent({
           this.globalConfLoading = false;
         });
     },
-    statusIconType(status: string): string {
+    statusIconType(status: string) {
       if (!status) {
-        return '';
+        return undefined;
       }
       switch (status) {
         case 'OK':
@@ -224,26 +218,6 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables';
-
-.xrd-card-text {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.diagnostic-card {
-  width: 100%;
-  margin-bottom: 30px;
-
-  &:first-of-type {
-    margin-top: 40px;
-  }
-}
-
-.status-column {
-  width: 80px;
-}
 
 .fixed-width-5 {
   width: 5%;
@@ -268,10 +242,7 @@ export default defineComponent({
   max-width: 50%;
   word-break: break-word;
 }
-
-.level-column {
-  @media only screen and (min-width: 1200px) {
-    width: 20%;
-  }
+.error-text {
+  color: rgb(var(--v-theme-error)) !important;
 }
 </style>

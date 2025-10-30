@@ -38,6 +38,8 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.ExceptionCategory;
 import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
+import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -45,11 +47,6 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.List;
 import java.util.Set;
@@ -74,43 +71,78 @@ class DiagnosticConnectionServiceTest {
     AuthCertVerifier authCertVerifier;
     @Mock
     ManagementRequestSenderService managementRequestSenderService;
+    @Mock
+    ConfClientRpcClient confClientRpcClient;
 
     DiagnosticConnectionService service;
 
     @BeforeEach
     void setUp() {
-        service = new DiagnosticConnectionService(globalConfProvider, tokenService, authCertVerifier, managementRequestSenderService);
+        service = new DiagnosticConnectionService(globalConfProvider, tokenService, authCertVerifier, managementRequestSenderService,
+                confClientRpcClient);
     }
 
     @Test
-    void checkAndGetConnectionStatusThenReturnHttp200() throws Exception {
-        String downloadUrl = "http://unknown-host:80/internalconf";
-        HttpURLConnection mockConn = mock(HttpURLConnection.class);
-        when(mockConn.getResponseCode()).thenReturn(200);
+    void getGlobalConfStatusThenReturnHttp200() {
+        when(globalConfProvider.findSourceAddresses()).thenReturn(Set.of("valid-host"));
+        var requestHttp = CheckAndGetConnectionStatusRequest.newBuilder()
+                .setProtocol("http")
+                .setAddress("valid-host")
+                .setPort(80)
+                .build();
+        var requestHttps = CheckAndGetConnectionStatusRequest.newBuilder()
+                .setProtocol("https")
+                .setAddress("valid-host")
+                .setPort(443)
+                .build();
+        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttp)).thenReturn(
+                org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("http://valid-host:80/internalconf")
+                                .build());
+        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttps)).thenReturn(
+                org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("https://valid-host:443/internalconf")
+                        .build());
 
-        URLStreamHandler handler = new URLStreamHandler() {
-            @Override
-            protected URLConnection openConnection(URL u) {
-                return mockConn;
-            }
-        };
+        var statuses = service.getGlobalConfStatus();
 
-        URL fakeUrl = URL.of(URI.create(downloadUrl), handler);
-
-        var m = DiagnosticConnectionService.class.getDeclaredMethod("checkAndGetConnectionStatus", URL.class);
-        m.setAccessible(true);
-        var status = (DownloadUrlConnectionStatus) m.invoke(service, fakeUrl);
-
-        assertThat(status.getDownloadUrl()).isEqualTo(downloadUrl);
-        assertThat(status.getConnectionStatus().getStatus()).isEqualTo(DiagnosticStatus.OK);
-        assertThat(status.getConnectionStatus().getErrorCode()).isNull();
-        assertThat(status.getConnectionStatus().getErrorMetadata()).isEmpty();
+        assertThat(statuses)
+                .hasSize(2)
+                .extracting(
+                        DownloadUrlConnectionStatus::getDownloadUrl,
+                        s -> s.getConnectionStatus().getStatus(),
+                        s -> s.getConnectionStatus().getErrorCode()
+                )
+                .containsExactlyInAnyOrder(
+                        tuple("http://valid-host:80/internalconf", DiagnosticStatus.OK, null),
+                        tuple("https://valid-host:443/internalconf", DiagnosticStatus.OK, null)
+                );
     }
 
     @Test
     void getGlobalConfStatusThenReturnUnknownHostErrors() {
         when(globalConfProvider.findSourceAddresses())
                 .thenReturn(Set.of("unknown-host"));
+        var requestHttp = CheckAndGetConnectionStatusRequest.newBuilder()
+                .setProtocol("http")
+                .setAddress("unknown-host")
+                .setPort(80)
+                .build();
+        var requestHttps = CheckAndGetConnectionStatusRequest.newBuilder()
+                .setProtocol("https")
+                .setAddress("unknown-host")
+                .setPort(443)
+                .build();
+        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttp)).thenReturn(
+                org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("http://unknown-host:80/internalconf")
+                        .setErrorCode("unknown_host")
+                        .build());
+        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttps)).thenReturn(
+                org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("https://unknown-host:443/internalconf")
+                        .setErrorCode("unknown_host")
+                        .build());
 
         var statuses = service.getGlobalConfStatus();
 
@@ -125,31 +157,6 @@ class DiagnosticConnectionServiceTest {
                         tuple("http://unknown-host:80/internalconf", DiagnosticStatus.ERROR, "unknown_host"),
                         tuple("https://unknown-host:443/internalconf", DiagnosticStatus.ERROR, "unknown_host")
                 );
-    }
-
-    @Test
-    void getGlobalConfStatusThenReturnGlobalConfGetVersionError() throws Exception {
-        String downloadUrl = "http://unknown-host:80/internalconf";
-        HttpURLConnection mockConn = mock(HttpURLConnection.class);
-        when(mockConn.getResponseCode()).thenReturn(404);
-
-        URLStreamHandler handler = new URLStreamHandler() {
-            @Override
-            protected URLConnection openConnection(URL u) {
-                return mockConn;
-            }
-        };
-
-        URL fakeUrl = URL.of(URI.create(downloadUrl), handler);
-
-        var m = DiagnosticConnectionService.class.getDeclaredMethod("checkAndGetConnectionStatus", URL.class);
-        m.setAccessible(true);
-        var status = (DownloadUrlConnectionStatus) m.invoke(service, fakeUrl);
-
-        assertThat(status.getDownloadUrl()).isEqualTo(downloadUrl);
-        assertThat(status.getConnectionStatus().getStatus()).isEqualTo(DiagnosticStatus.ERROR);
-        assertThat(status.getConnectionStatus().getErrorCode()).isEqualTo("global_conf_get_version_failed");
-        assertThat(status.getConnectionStatus().getErrorMetadata()).isEqualTo(List.of("http://unknown-host:80/internalconf — HTTP 404 "));
     }
 
     @Test

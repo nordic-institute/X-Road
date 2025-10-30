@@ -32,9 +32,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
+import org.niis.xroad.confclient.core.HttpUrlConnectionChecker;
 import org.niis.xroad.confclient.core.config.ConfClientJobConfig;
 import org.niis.xroad.confclient.proto.AdminServiceGrpc;
+import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
+import org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus;
 import org.niis.xroad.rpc.common.DiagnosticsStatus;
 import org.niis.xroad.rpc.common.Empty;
 
@@ -49,10 +53,25 @@ import static java.util.Optional.ofNullable;
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final ConfClientJobConfig.ConfigurationClientJobListener listener;
+    private final HttpUrlConnectionChecker httpUrlConnectionChecker;
 
     @Override
     public void getStatus(Empty request, StreamObserver<DiagnosticsStatus> responseObserver) {
         handleRequest(responseObserver, this::handleGetStatus);
+    }
+
+    @Override
+    public void checkAndGetConnectionStatus(CheckAndGetConnectionStatusRequest request,
+                                            StreamObserver<DownloadUrlConnectionStatus> responseObserver) {
+        handleRequest(responseObserver,
+                () -> {
+                    try {
+                        return this.handleCheckAndGetConnectionStatus(request.getProtocol(), request.getAddress(), request.getPort());
+                    } catch (Exception e) {
+                        log.error("Error in checkAndGetConnectionStatus", e);
+                        throw XrdRuntimeException.systemException(e);
+                    }
+                });
     }
 
     private DiagnosticsStatus handleGetStatus() {
@@ -70,6 +89,23 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
         }
 
         return responseBuilder.build();
+    }
+
+    private DownloadUrlConnectionStatus handleCheckAndGetConnectionStatus(String protocol, String address, int port) {
+        log.info("handler /checkAndGetConnectionStatus");
+
+        var status = httpUrlConnectionChecker.getConnectionStatus(protocol, address, port);
+
+        var builder = DownloadUrlConnectionStatus.newBuilder()
+                .setDownloadUrl(status.downloadUrl());
+
+        if (status.errorCode() != null) {
+            builder.setErrorCode(status.errorCode());
+        }
+        if (status.errorDetails() != null) {
+            builder.setErrorDetails(status.errorDetails());
+        }
+        return builder.build();
     }
 
     private <T> void handleRequest(StreamObserver<T> responseObserver, Supplier<T> handler) {

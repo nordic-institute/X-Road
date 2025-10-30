@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.core.util;
+package org.niis.xroad.confclient.core;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
