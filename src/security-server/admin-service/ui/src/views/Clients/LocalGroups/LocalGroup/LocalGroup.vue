@@ -81,6 +81,7 @@
     </XrdContainerTitle>
 
     <v-data-table
+      data-test="group-members-table"
       class="xrd xrd-rounded-12 border"
       items-per-page="-1"
       hide-default-footer

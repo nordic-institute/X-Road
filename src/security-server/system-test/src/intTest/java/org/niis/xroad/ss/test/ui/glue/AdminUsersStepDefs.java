@@ -105,34 +105,34 @@ public class AdminUsersStepDefs extends BaseUiStepDefs {
 
     @Step("Old password {} is entered")
     public void oldPasswordIsEntered(String password) {
-        vTextField(adminUsersPageObj.oldPasswordInput()).setValue(password);
+        vTextField(adminUsersPageObj.changePasswordDialog.oldPasswordInput()).setValue(password);
     }
 
     @Step("Old password input is not visible")
     public void oldPasswordInputIsNotVisible() {
-        adminUsersPageObj.oldPasswordInput().shouldNotBe(Condition.visible);
+        adminUsersPageObj.changePasswordDialog.oldPasswordInput().shouldNotBe(Condition.visible);
     }
 
     @Step("New password {} is entered")
     public void newPasswordIsEntered(String password) {
-        vTextField(adminUsersPageObj.newPasswordInput()).setValue(password);
+        vTextField(adminUsersPageObj.changePasswordDialog.newPasswordInput()).setValue(password);
     }
 
     @Step("New password's confirmation {} is entered")
     public void newPasswordConfirmationIsEntered(String confirmationPassword) {
-        vTextField(adminUsersPageObj.newPasswordConfirmationInput()).setValue(confirmationPassword);
+        vTextField(adminUsersPageObj.changePasswordDialog.newPasswordConfirmationInput()).setValue(confirmationPassword);
     }
 
     @Step("Change password dialog's Save button is clicked")
     public void saveChangePassword() {
-        adminUsersPageObj.btnSavePasswordChange().click();
+        adminUsersPageObj.changePasswordDialog.btnSave().click();
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
     }
 
     @Step("Change password dialog's Save button is clicked and error: {string} is displayed")
     @SuppressWarnings("checkstyle:MagicNumber")
     public void saveChangePasswordAndErrorIsShown(final String error) {
-        adminUsersPageObj.btnSavePasswordChange().click();
+        adminUsersPageObj.changePasswordDialog.btnSave().click();
         commonPageObj.alerts.alert(error).shouldBe(Condition.visible, ofSeconds(15));
     }
 

@@ -29,6 +29,7 @@ package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
@@ -36,6 +37,7 @@ import static com.codeborne.selenide.Selenide.$x;
 public class AdminUsersPageObj {
 
     public final AddAdminUserWizard addAdminUserWizard = new AddAdminUserWizard();
+    public final ChangePasswordDialog changePasswordDialog = new ChangePasswordDialog();
 
     public SelenideElement table() {
         return $x("//div[@data-test='admin-users-table']//table");
@@ -74,25 +76,24 @@ public class AdminUsersPageObj {
         return $x(String.format(xpath, username));
     }
 
-    public SelenideElement oldPasswordInput() {
-        return $x("//div[@data-test='old-password-input']");
-    }
-
-    public SelenideElement newPasswordInput() {
-        return $x("//div[@data-test='new-password-input']");
-    }
-
-    public SelenideElement newPasswordConfirmationInput() {
-        return $x("//div[@data-test='new-password-confirm-input']");
-    }
-
-    public SelenideElement btnSavePasswordChange() {
-        return $x("//button[@data-test='dialog-save-button']");
-    }
-
     public SelenideElement btnDeleteAdminUser(String username) {
         var xpath = "//button[@data-test='admin-user-row-%s-delete-button']";
         return $x(String.format(xpath, username));
+    }
+
+    public static class ChangePasswordDialog extends Dialog {
+
+        public SelenideElement oldPasswordInput() {
+            return $x("//div[@data-test='old-password-input']");
+        }
+
+        public SelenideElement newPasswordInput() {
+            return $x("//div[@data-test='new-password-input']");
+        }
+
+        public SelenideElement newPasswordConfirmationInput() {
+            return $x("//div[@data-test='new-password-confirm-input']");
+        }
     }
 
     public static class AddAdminUserWizard {

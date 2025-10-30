@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Skip #TODO either remove altogether or bring back those files to containers
 Feature: 0200 - SS: After installation check
 

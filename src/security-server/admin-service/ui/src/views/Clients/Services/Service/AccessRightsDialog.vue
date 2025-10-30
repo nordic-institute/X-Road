@@ -49,7 +49,7 @@
         </template>
 
         <template #content>
-          <v-container class="pa-0 pr-2">
+          <v-container class="px-4">
             <v-row>
               <v-col>
                 <v-text-field

@@ -85,7 +85,7 @@
                 {{ $t('fields.acmeServerDirectoryUrl') }}
               </th>
               <th>
-                {{ $t('fields.acmeServerDirectoryUrl') }}
+                {{ $t('fields.acmeServerIpAddress') }}
               </th>
               <th>
                 {{ $t('fields.authenticationCertificateProfileId') }}

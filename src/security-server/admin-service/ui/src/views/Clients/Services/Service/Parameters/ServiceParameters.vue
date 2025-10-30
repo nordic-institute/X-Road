@@ -89,7 +89,7 @@
       <template v-if="showApplyToAll" #append>
         <v-checkbox
           v-model="ssl_auth_all"
-          data-test="timeout-all"
+          data-test="ssl-auth-all"
           class="xrd"
           hide-details
           @update:model-value="setTouched()"
@@ -135,6 +135,7 @@
   </div>
 
   <v-data-table
+    data-test="access-rights-subjects"
     class="xrd xrd-rounded-12 border"
     hide-default-footer
     items-per-page="-1"
@@ -207,7 +208,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, watch } from 'vue';
 import AccessRightsDialog from '../AccessRightsDialog.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { Permissions } from '@/global';
@@ -249,17 +250,13 @@ export default defineComponent({
   emits: ['update-service'],
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    const { service } = useServices();
-    const { meta, values, setValues, defineComponentBinds } = useForm({
-      validationSchema: {
-        serviceUrl: 'required|max:255|wsdlUrl',
-        serviceTimeout: 'required|between:0,1000',
-      },
-      initialValues: {
-        serviceUrl: service?.url,
-        serviceTimeout: service?.timeout,
-      },
-    });
+    const { meta, values, setValues, defineComponentBinds, resetForm } =
+      useForm({
+        validationSchema: {
+          serviceUrl: 'required|max:255|wsdlUrl',
+          serviceTimeout: 'required|between:0,1000',
+        },
+      });
     const componentConfig = (state: PublicPathState) => ({
       props: {
         'error-messages': state.errors,
@@ -274,6 +271,7 @@ export default defineComponent({
       meta,
       values,
       setValues,
+      resetForm,
       serviceUrlRef,
       serviceTimeoutRef,
       addError,
@@ -337,6 +335,9 @@ export default defineComponent({
       handler(newV) {
         if (newV) {
           this.fetchData(newV.id);
+          this.resetForm({
+            values: { serviceUrl: newV.url, serviceTimeout: newV.timeout },
+          });
         }
       },
     },

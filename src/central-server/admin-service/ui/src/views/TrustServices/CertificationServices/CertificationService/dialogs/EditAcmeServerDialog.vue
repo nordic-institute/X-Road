@@ -32,7 +32,7 @@
     cancel-button-text="action.cancel"
     submittable
     :loading="loading"
-    :disable-save="!meta.valid || !meta.dirty"
+    :disable-save="isAcme ? !meta.valid || !meta.dirty : !isAcmeMeta.dirty"
     @cancel="$emit('cancel')"
     @save="updateCertificationServiceSettings"
   >
@@ -105,7 +105,7 @@
 import { computed, PropType, ref } from 'vue';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
-import { useForm } from 'vee-validate';
+import { useForm, useField } from 'vee-validate';
 import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 const props = defineProps({
@@ -117,7 +117,12 @@ const props = defineProps({
 
 const emit = defineEmits(['cancel', 'tls-auth-changed']);
 const { loading, addSuccessMessage, addError } = useBasicForm();
-const isAcme = ref(!!props.certificationService.acme_server_directory_url);
+const {
+  value: isAcme,
+  meta: isAcmeMeta,
+  resetField,
+} = useField<boolean>('isAcme');
+resetField({ value: !!props.certificationService.acme_server_directory_url });
 const validationSchema = computed(() => {
   return isAcme.value
     ? {

@@ -25,8 +25,6 @@
  * THE SOFTWARE.
  */
 
-import '@niis/shared-ui/src/assets/xrd8/fonts.css';
-import 'vuetify/styles';
 import '@/assets/styles.css';
 import { Colors, createXrdVuetify } from '@niis/shared-ui';
 

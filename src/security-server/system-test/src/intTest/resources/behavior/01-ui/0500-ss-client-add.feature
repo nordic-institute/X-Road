@@ -1,6 +1,6 @@
 @SecurityServer
+@UI
 @Client
-@Skip #TODO beta1 release preparation
 Feature: 0500 - SS: Client Add
 
   Background:
@@ -25,5 +25,5 @@ Feature: 0500 - SS: Client Add
     Then Client "<$client>" with status "<$status>" is present in the list
     Examples:
       | $label           | $client               | $clientIdentifier       | $status    | $newName                     |
-      | label-TestClient | Test client subsystem | DEV:COM:4321:TestClient | REGISTERED | Test client subsystem edited |
+      | label-TestClient | Test client subsystem | DEV:COM:4321:TestClient | Registered | Test client subsystem edited |
     #  | label-Management | Management | DEV:COM:1234:MANAGEMENT | REGISTERED |

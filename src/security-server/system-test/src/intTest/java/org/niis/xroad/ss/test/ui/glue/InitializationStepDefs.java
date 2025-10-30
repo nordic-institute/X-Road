@@ -51,7 +51,7 @@ public class InitializationStepDefs extends BaseUiStepDefs {
 
     @Step("Configuration anchor details are confirmed")
     public void confirmAnchor() {
-        initializationPageObj.wizardAnchor.btnConfirmAnchorDetails()
+        initializationPageObj.confirmAnchorDialog.btnConfirm()
                 .shouldBe(visible)
                 .click();
     }

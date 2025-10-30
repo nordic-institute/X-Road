@@ -80,6 +80,7 @@ import AppFooter from '@/layouts/AppFooter.vue';
 import { useSettingsTabs } from '@/store/modules/settings-tabs';
 import { useDiagnosticsTabs } from '@/store/modules/diagnostics-tabs';
 import { useKeysTabs } from '@/store/modules/keys-tabs';
+import { useMainTabs } from '@/store/modules/main-tabs';
 
 const baseViewParts = {
   navigation: AppMainNavigation,
@@ -91,7 +92,7 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: AppBase,
     name: RouteName.BaseRoute,
-    redirect: { name: RouteName.Clients },
+    redirect: () => useMainTabs().firstAllowedTab.to,
     children: [
       {
         name: RouteName.InitialConfiguration,

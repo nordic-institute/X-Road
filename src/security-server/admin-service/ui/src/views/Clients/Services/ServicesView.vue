@@ -127,6 +127,7 @@
             </div>
 
             <v-data-table
+              data-test="services-table"
               class="xrd"
               hide-default-footer
               :items="serviceDesc.services"

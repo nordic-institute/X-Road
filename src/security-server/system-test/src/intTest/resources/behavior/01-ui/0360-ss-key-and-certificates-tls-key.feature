@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @ApiKeys
 Feature: 0360 - SS: TLS key
 
