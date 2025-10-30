@@ -32,7 +32,6 @@ import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
-import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -109,7 +108,7 @@ public class TestContext {
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
                         monitorRpcClient, commonProperties, proxyProperties);
                 serverProxy = new ServerProxy(proxyProperties, antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
-                        new NoopVaultClient(), new NoopVaultKeyClient());
+                        new NoopVaultClient());
                 serverProxy.init();
             }
 

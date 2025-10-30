@@ -48,7 +48,6 @@ import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
-import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -186,7 +185,7 @@ public abstract class AbstractProxyIntegrationTest {
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
                 mock(MonitorRpcClient.class), commonProperties, proxyProperties);
         serverProxy = new ServerProxy(proxyProperties, mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
-                new NoopVaultClient(), new NoopVaultKeyClient());
+                new NoopVaultClient());
         serverProxy.init();
     }
 

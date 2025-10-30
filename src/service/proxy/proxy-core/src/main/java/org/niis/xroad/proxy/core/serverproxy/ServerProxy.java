@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
 
@@ -47,7 +46,6 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.antidos.AntiDosConnector;
@@ -55,11 +53,7 @@ import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
 
-import java.security.cert.X509Certificate;
 import java.util.Optional;
-import java.util.stream.Stream;
-
-import static java.util.Arrays.stream;
 
 /**
  * Server proxy that handles requests of client proxies.
@@ -89,7 +83,6 @@ public class ServerProxy {
     private final CommonBeanProxy commonBeanProxy;
     private final ServiceHandlerLoader serviceHandlerLoader;
     private final VaultClient vaultClient;
-    private final VaultKeyClient vaultKeyClient;
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connMonitor;
@@ -114,8 +107,6 @@ public class ServerProxy {
 
     private void createClient() throws Exception {
         log.trace("createClient()");
-
-        ensureInternalTlsKeyPresent();
 
         HttpClientCreator creator = new HttpClientCreator(commonBeanProxy.getServerConfProvider(),
                 proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
@@ -211,21 +202,6 @@ public class ServerProxy {
         return antiDosConfiguration.enabled()
                 ? new AntiDosConnector(antiDosConfiguration, commonBeanProxy.getGlobalConfProvider(), server, ACCEPTOR_COUNT)
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1);
-    }
-
-    private void ensureInternalTlsKeyPresent() throws Exception {
-        try {
-
-            vaultClient.getInternalTlsCredentials();
-        } catch (Exception e) {
-            log.warn("Unable to locate internal TLS credentials, attempting to create new ones", e);
-            var vaultKeyData = vaultKeyClient.provisionNewCerts();
-            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
-                    .toArray(X509Certificate[]::new);
-            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createInternalTlsCredentials(internalTlsKey);
-            log.info("Successfully created internal TLS credentials");
-        }
     }
 
     private ServerConnector createClientProxySslConnector() throws Exception {
