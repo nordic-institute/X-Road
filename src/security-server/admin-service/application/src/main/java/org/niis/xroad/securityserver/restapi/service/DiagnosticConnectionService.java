@@ -86,7 +86,7 @@ public class DiagnosticConnectionService {
         return HTTP.equals(protocol) ? PORT_80 : PORT_443;
     }
 
-    private org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus checkConnection(ConnectionConfig c) {
+    private org.niis.xroad.rpc.common.DownloadUrlConnectionStatus checkConnection(ConnectionConfig c) {
         return confClientRpcClient.checkAndGetConnectionStatus(
                 CheckAndGetConnectionStatusRequest.newBuilder()
                         .setProtocol(c.protocol())
@@ -96,7 +96,7 @@ public class DiagnosticConnectionService {
         );
     }
 
-    private DownloadUrlConnectionStatus toDownloadStatus(org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus status) {
+    private DownloadUrlConnectionStatus toDownloadStatus(org.niis.xroad.rpc.common.DownloadUrlConnectionStatus status) {
         if (!status.getErrorCode().isEmpty()) {
             return DownloadUrlConnectionStatus.error(
                     status.getDownloadUrl(),

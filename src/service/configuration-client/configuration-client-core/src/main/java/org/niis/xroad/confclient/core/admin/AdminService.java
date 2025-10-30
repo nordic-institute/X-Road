@@ -38,8 +38,8 @@ import org.niis.xroad.confclient.core.HttpUrlConnectionChecker;
 import org.niis.xroad.confclient.core.config.ConfClientJobConfig;
 import org.niis.xroad.confclient.proto.AdminServiceGrpc;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
-import org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus;
 import org.niis.xroad.rpc.common.DiagnosticsStatus;
+import org.niis.xroad.rpc.common.DownloadUrlConnectionStatus;
 import org.niis.xroad.rpc.common.Empty;
 
 import java.util.function.Supplier;

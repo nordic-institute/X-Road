@@ -80,10 +80,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -519,6 +515,13 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void getGlobalConfStatus() {
         when(globalConfProvider.findSourceAddresses()).thenReturn(Set.of("one-host"));
+        when(confClientRpcClient.checkAndGetConnectionStatus(any()))
+                .thenReturn(org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("http://one-host:80/internalconf")
+                        .build())
+                .thenReturn(org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("https://one-host:443/internalconf")
+                        .build());
 
         ResponseEntity<List<GlobalConfConnectionStatusDto>> response = diagnosticsApiController.getGlobalConfStatus();
 
@@ -538,8 +541,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(expectedUrls, actualUrls);
 
         globalConfStatuses.forEach(status -> {
-            assertEquals(DiagnosticStatusClassDto.FAIL, status.getConnectionStatus().getStatusClass());
-            assertEquals("unknown_host", status.getConnectionStatus().getError().getCode());
+            assertEquals(DiagnosticStatusClassDto.OK, status.getConnectionStatus().getStatusClass());
         });
     }
 
@@ -562,10 +564,5 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 .setNextUpdate(nextUpdate.toEpochMilli())
                 .setErrorCode(errorCode.name())
                 .build();
-    }
-
-    private void stubForDiagnosticsRequest(String requestPath, String responseBody) {
-        stubFor(get(urlEqualTo(requestPath))
-                .willReturn(aResponse().withBody(responseBody)));
     }
 }

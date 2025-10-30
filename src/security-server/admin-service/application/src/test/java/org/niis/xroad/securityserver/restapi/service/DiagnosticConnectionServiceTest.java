@@ -96,11 +96,11 @@ class DiagnosticConnectionServiceTest {
                 .setPort(443)
                 .build();
         when(confClientRpcClient.checkAndGetConnectionStatus(requestHttp)).thenReturn(
-                org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus.newBuilder()
+                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
                         .setDownloadUrl("http://valid-host:80/internalconf")
                                 .build());
         when(confClientRpcClient.checkAndGetConnectionStatus(requestHttps)).thenReturn(
-                org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus.newBuilder()
+                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
                         .setDownloadUrl("https://valid-host:443/internalconf")
                         .build());
 
@@ -134,12 +134,12 @@ class DiagnosticConnectionServiceTest {
                 .setPort(443)
                 .build();
         when(confClientRpcClient.checkAndGetConnectionStatus(requestHttp)).thenReturn(
-                org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus.newBuilder()
+                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
                         .setDownloadUrl("http://unknown-host:80/internalconf")
                         .setErrorCode("unknown_host")
                         .build());
         when(confClientRpcClient.checkAndGetConnectionStatus(requestHttps)).thenReturn(
-                org.niis.xroad.confclient.proto.DownloadUrlConnectionStatus.newBuilder()
+                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
                         .setDownloadUrl("https://unknown-host:443/internalconf")
                         .setErrorCode("unknown_host")
                         .build());
