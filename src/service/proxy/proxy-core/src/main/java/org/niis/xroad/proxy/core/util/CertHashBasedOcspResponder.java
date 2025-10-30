@@ -144,7 +144,7 @@ public class CertHashBasedOcspResponder {
         var hashes = getCertSha256Hashes(request);
         List<OCSPResp> ocspResponses = getOcspResponses(hashes);
 
-        log.debug("Returning OCSP responses for cert hashes: " + hashes);
+        log.debug("Returning OCSP responses for cert hashes: {}", hashes);
 
         try (MultiPartOutputStream mpResponse = new MultiPartOutputStream(Content.Sink.asOutputStream(response))) {
 

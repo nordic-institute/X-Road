@@ -26,7 +26,6 @@
 package org.niis.xroad.proxy.core.configuration;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
@@ -130,11 +129,6 @@ class ProxyConfig {
                                           GlobalConfProvider globalConfProvider,
                                           VaultClient vaultClient) {
         return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
-    }
-
-    @ApplicationScoped
-    ExternalProcessRunner externalProcessRunner() {
-        return new ExternalProcessRunner();
     }
 
 }
