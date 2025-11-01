@@ -5,7 +5,7 @@ set -e
 echo "[INIT] Starting OpenBao initialization..."
 
 # Check initialization status
-INIT_STATUS=$(bao_api "GET" "/v1/sys/init" "" "" "Checking init status")
+INIT_STATUS=$(bao_api "GET" "${OPENBAO_ADDR}" "/v1/sys/init" "" "" "Checking init status")
 if [ $? -ne 0 ]; then
   echo "[INIT] Failed to check initialization status"
   exit 1
@@ -17,7 +17,7 @@ if echo "$INIT_STATUS" | jq -e '.initialized == true' >/dev/null; then
 fi
 
 # Initialize OpenBao
-INIT_RESPONSE=$(bao_api "PUT" "/v1/sys/init" \
+INIT_RESPONSE=$(bao_api "PUT" "${OPENBAO_ADDR}" "/v1/sys/init" \
   "{\"secret_shares\": ${SHARES}, \"secret_threshold\": ${THRESHOLD}}" \
   "" "Initializing OpenBao")
 

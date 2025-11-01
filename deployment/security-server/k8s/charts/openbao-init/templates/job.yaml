@@ -11,15 +11,15 @@ spec:
       initContainers:
         - name: wait-for-openbao
           image: {{ .Values.image }}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           command: [ 'sh', '-c', 'until curl -s -k $OPENBAO_ADDR/v1/sys/health; do echo waiting for openbao; sleep 5; done' ]
           env:
             - name: OPENBAO_ADDR
-              value: {{ .Values.openbao.addr }}
+              value: {{ .Values.openbao.address }}
       containers:
         - name: openbao-init
           image: {{ .Values.image }}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           command: [ "/bin/sh", "-c" ]
           args:
             - |
@@ -27,14 +27,16 @@ spec:
               /scripts/init.sh
               if [ $? -eq 0 ]; then
                 echo "[MAIN] Initialization successful, starting unseal..."
-                /scripts/unseal.sh
-                if [ $? -eq 0 ]; then
-                  echo "[MAIN] Unseal successful, starting setup..."
-                  /scripts/setup.sh
-                else
-                  echo "[MAIN] Unseal failed"
-                  exit 1
-                fi
+                for node in $OPENBAO_NODES; do
+                  echo "Unsealing node: $node"
+                  /scripts/unseal.sh $node
+                  if [ $? -ne 0 ]; then
+                    echo "[MAIN] Unseal failed"
+                    exit 1
+                  fi
+                done
+                echo "[MAIN] Unseal successful, starting setup..."
+                /scripts/setup.sh
               else
                 echo "[MAIN] Initialization failed"
                 exit 1
@@ -45,13 +47,15 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: OPENBAO_ADDR
-              value: {{ .Values.openbao.addr }}
+              value: {{ .Values.openbao.address }}
+            - name: OPENBAO_NODES
+              value: "{{ if .Values.openbao.nodes }}{{ range $i, $node := .Values.openbao.nodes }}{{ if $i }} {{ end }}{{ $node }}{{ end }}{{ else }}{{ .Values.openbao.address }}{{ end }}"
             - name: SECRET_NAME
               value: {{ .Values.serviceAccount.name }}
             - name: THRESHOLD
-              value: {{ .Values.openbao.threshold | quote }}
+              value: {{ .Values.openbao.shamir.threshold | quote }}
             - name: SHARES
-              value: {{ .Values.openbao.shares | quote }}
+              value: {{ .Values.openbao.shamir.shares | quote }}
           volumeMounts:
             - name: init-script
               mountPath: /scripts

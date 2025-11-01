@@ -69,9 +69,9 @@ resource "helm_release" "openbao_secret_store" {
   chart      = "openbao"
   version    = "0.19.0"
 
-  depends_on = [null_resource.openbao_server_tls_secret]
-
   values = [yamlencode(var.openbao_override_values)]
+
+  depends_on = [null_resource.openbao_server_tls_secret]
 }
 
 resource "helm_release" "openbao_secret_store_init" {
@@ -81,6 +81,8 @@ resource "helm_release" "openbao_secret_store_init" {
   repository = var.openbao_init_chart_repo
   chart = var.openbao_init_chart
   version = var.openbao_init_chart_version
+
+  values = [yamlencode(var.openbao_init_override_values)]
 
   depends_on = [helm_release.openbao_secret_store]
 }

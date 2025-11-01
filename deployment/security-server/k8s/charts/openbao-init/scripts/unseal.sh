@@ -2,10 +2,12 @@
 set -e
 . /scripts/_common.sh
 
+OPENBAO_NODE_ADDR=${1:-$OPENBAO_ADDR}
+
 echo "[UNSEAL] Starting OpenBao unseal process..."
 
 # Check seal status
-SEAL_STATUS=$(bao_api "GET" "/v1/sys/seal-status" "" "" "Checking seal status")
+SEAL_STATUS=$(bao_api "GET" "${OPENBAO_NODE_ADDR}" "/v1/sys/seal-status" "" "" "Checking seal status")
 if [ $? -ne 0 ]; then
   echo "[UNSEAL] Failed to check seal status"
   exit 1
@@ -42,7 +44,7 @@ echo "$KEYS" | while IFS= read -r KEY; do
   echo "[UNSEAL] Processing next key..."
   PAYLOAD=$(printf '{"key": "%s"}' "$KEY")
 
-  UNSEAL_RESPONSE=$(bao_api "PUT" "/v1/sys/unseal" "$PAYLOAD" "" "Applying unseal key")
+  UNSEAL_RESPONSE=$(bao_api "PUT" "${OPENBAO_NODE_ADDR}" "/v1/sys/unseal" "$PAYLOAD" "" "Applying unseal key")
   if [ $? -ne 0 ]; then
     echo "[UNSEAL] Failed to apply key"
     exit 1
@@ -56,7 +58,7 @@ echo "$KEYS" | while IFS= read -r KEY; do
 done
 
 # Final seal check
-FINAL_STATUS=$(bao_api "GET" "/v1/sys/seal-status" "" "" "Final seal check")
+FINAL_STATUS=$(bao_api "GET" "${OPENBAO_NODE_ADDR}" "/v1/sys/seal-status" "" "" "Final seal check")
 if echo "$FINAL_STATUS" | jq -e '.sealed == false' >/dev/null; then
   echo "[UNSEAL] OpenBao successfully unsealed"
   exit 0

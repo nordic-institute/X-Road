@@ -31,6 +31,7 @@ module "openbao" {
 
   openbao_db_override_values = yamldecode(file("${path.module}/override-values/openbao-db-values.yaml"))
   openbao_override_values = yamldecode(file("${path.module}/override-values/openbao-values.yaml"))
+  openbao_init_override_values = yamldecode(file("${path.module}/override-values/openbao-init-values.yaml"))
 }
 
 module "cs_service_bridge" {

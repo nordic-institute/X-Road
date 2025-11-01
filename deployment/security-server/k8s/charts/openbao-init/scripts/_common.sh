@@ -6,10 +6,11 @@ KUBE_API="https://kubernetes.default.svc"
 
 bao_api() {
   local method=$1
-  local endpoint=$2
-  local payload=$3
-  local token=$4
-  local description=$5
+  local host=$2
+  local endpoint=$3
+  local payload=$4
+  local token=$5
+  local description=$6
 
   echo "[BAO] $description..." >&2
 
@@ -18,7 +19,7 @@ bao_api() {
     --retry 3 \
     --retry-delay 2 \
     -X "$method" \
-    "$OPENBAO_ADDR$endpoint" \
+    "$host$endpoint" \
     -H "Content-Type: application/json" \
     ${token:+-H "X-Vault-Token: $token"} \
     ${payload:+-d "$payload"})

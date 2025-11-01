@@ -15,20 +15,20 @@ if [ -z "$ROOT_TOKEN" ]; then
 fi
 
 # Enable and configure secrets engines
-bao_api "POST" "/v1/sys/mounts/xrd-pki" \
+bao_api "POST" "${OPENBAO_ADDR}" "/v1/sys/mounts/xrd-pki" \
   '{"type": "pki"}' "$ROOT_TOKEN" "Enabling PKI engine" >/dev/null
 
-bao_api "POST" "/v1/sys/mounts/xrd-secret" \
+bao_api "POST" "${OPENBAO_ADDR}" "/v1/sys/mounts/xrd-secret" \
   '{"type": "kv"}' "$ROOT_TOKEN" "Enabling KV engine" >/dev/null
 
-bao_api "POST" "/v1/sys/mounts/xrd-pki/tune" \
+bao_api "POST" "${OPENBAO_ADDR}" "/v1/sys/mounts/xrd-pki/tune" \
   '{"max_lease_ttl": "175200h"}' "$ROOT_TOKEN" "Configuring PKI lease" >/dev/null
 
-bao_api "POST" "/v1/xrd-pki/root/generate/internal" \
+bao_api "POST" "${OPENBAO_ADDR}" "/v1/xrd-pki/root/generate/internal" \
   '{"common_name": "localhost", "ttl": "175200h"}' "$ROOT_TOKEN" "Generating root certificate" >/dev/null
 
 # Configure PKI role
-bao_api "POST" "/v1/xrd-pki/roles/xrd-internal" \
+bao_api "POST" "${OPENBAO_ADDR}" "/v1/xrd-pki/roles/xrd-internal" \
   '{
   "allow_any_name": true,
   "allow_subdomains": true,
@@ -60,11 +60,11 @@ EOF
 # Use jq to create properly escaped JSON
 POLICY_PAYLOAD=$(echo "$POLICY" | jq -R -s '{ policy: . }')
 
-bao_api "PUT" "/v1/sys/policies/acl/xroad-policy" \
+bao_api "PUT" "${OPENBAO_ADDR}" "/v1/sys/policies/acl/xroad-policy" \
   "$POLICY_PAYLOAD" "$ROOT_TOKEN" "Creating policy" >/dev/null
 
 # Create client token
-TOKEN_RESPONSE=$(bao_api "POST" "/v1/auth/token/create" \
+TOKEN_RESPONSE=$(bao_api "POST" "${OPENBAO_ADDR}" "/v1/auth/token/create" \
   '{"policies": ["xroad-policy"], "display_name": "xroad-client", "ttl": "720h"}' \
   "$ROOT_TOKEN" "Creating client token")
 
