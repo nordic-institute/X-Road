@@ -80,3 +80,6 @@ with regard to the X-Road core software:
 [X-Road Community](https://x-road.global) is the global community of X-Road users and enthusisasts. The community is for anyone interested in X-Road. It's about learning from others and sharing the skills and experiences of how to create better digital services both technically and business-wise.
 
 [X-Road Academy](https://x-road.thinkific.com) provides online training for developers, users, operators, consultants, service providers and for anyone willing to learn more about X-Road.
+### Practice Contribution
+This line was added by Yerrabothula Navya Sree for testing a pull request.
+
