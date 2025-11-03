@@ -297,6 +297,7 @@ Refs: XRDDEV-123"
 ```
 
 If the commit is not related to any backlog item, the issue ID can be omitted.
+Hi, added me to the contributions lists
 
 ### Tagging
 
