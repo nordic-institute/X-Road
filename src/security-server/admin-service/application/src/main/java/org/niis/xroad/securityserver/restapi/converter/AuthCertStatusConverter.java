@@ -24,48 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { defineStore } from 'pinia';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@niis/shared-ui';
-import { useUser } from '@/store/modules/user';
+package org.niis.xroad.securityserver.restapi.converter;
 
-const tabs = [
-  {
-    key: 'diagnostics-overview-tab-button',
-    name: 'tab.diagnostics.overview',
-    to: {
-      name: RouteName.DiagnosticsOverview,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-  {
-    key: 'diagnostics-traffic-tab-button',
-    name: 'tab.diagnostics.traffic',
-    to: {
-      name: RouteName.DiagnosticsTraffic,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-  {
-    key: 'diagnostics-connection-tab-button',
-    name: 'tab.diagnostics.connectionTesting',
-    to: {
-      name: RouteName.DiagnosticsConnection,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-] as Tab[];
+import org.niis.xroad.common.core.dto.ConnectionStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetailsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;
+import org.springframework.stereotype.Component;
 
-export const useDiagnosticsTabs = defineStore('diagnostics-tabs', {
-  state: () => ({}),
-  persist: false,
-  getters: {
-    availableTabs(): Tab[] {
-      return useUser().getAllowedTabs(tabs);
-    },
-    firstAllowedTab(): Tab {
-      return this.availableTabs[0];
-    },
-  },
-  actions: {},
-});
+import java.util.Optional;
+
+@Component
+public class AuthCertStatusConverter {
+    public ConnectionStatusDto convert(ConnectionStatus connectionStatus) {
+        return new ConnectionStatusDto()
+                .error(getCodeWithDetailsDto(connectionStatus))
+                .statusClass(DiagnosticStatusClassMapping.map(connectionStatus.getStatus()));
+    }
+
+    private CodeWithDetailsDto getCodeWithDetailsDto(ConnectionStatus connectionStatus) {
+        return Optional.ofNullable(connectionStatus.getErrorCode())
+                .map(errorCode -> new CodeWithDetailsDto(errorCode)
+                        .metadata(connectionStatus.getErrorMetadata())
+                        .validationErrors(connectionStatus.getValidationErrors()))
+                .orElse(null);
+    }
+}

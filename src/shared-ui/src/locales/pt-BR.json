@@ -165,14 +165,14 @@
     "backup_generation_failed": "Falha ao gerar backup",
     "backup_restore_interrupted": "Restauração de backup interrompida",
     "core": {
-      "Signer": {
-        "CertNotFound": "Certificado não encontrado",
-        "KeyNotFound": "Chave não encontrada",
-        "NetworkError": "Signer não está acessível no momento.",
-        "PinIncorrect": "PIN inválido",
-        "TokenNotAvailable": "Token não disponível",
-        "TokenNotFound": "Token não encontrado",
-        "UnknownMember": "Signer do X-Road: Membro desconhecido"
+      "signer": {
+        "cert_not_found": "Certificado não encontrado",
+        "key_not_found": "Chave não encontrada",
+        "network_error": "Signer não está acessível no momento.",
+        "pin_incorrect": "PIN inválido",
+        "token_not_available": "Token não disponível",
+        "token_not_found": "Token não encontrado",
+        "unknown_member": "Signer do X-Road: Membro desconhecido"
       }
     },
     "generate_backup_interrupted": "Geração de backup interrompida",

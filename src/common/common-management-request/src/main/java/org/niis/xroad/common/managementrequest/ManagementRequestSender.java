@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.model.AddressChangeRequest;
 import org.niis.xroad.common.managementrequest.model.AuthCertRegRequest;
+import org.niis.xroad.common.managementrequest.model.AuthCertRegWithoutCertRequest;
 import org.niis.xroad.common.managementrequest.model.ClientDisableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientRegRequest;
@@ -127,15 +128,24 @@ public final class ManagementRequestSender {
      *                       registered
      * @param address        the IP address of the security server
      * @param authCert       the authentication certificate bytes
+     * @param dryRun         if true, the request is not actually processed
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
-    public Integer sendAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
+    public Integer sendAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert, boolean dryRun)
             throws Exception {
+        if (dryRun && authCert.length == 0) {
+            try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
+                return send(sender, getCentralServiceURI(), new AuthCertRegWithoutCertRequest(signerRpcClient, signerSignClient,
+                        authCert, securityServer.getOwner(),
+                        builder.buildAuthCertRegRequest(securityServer, address, authCert, true),
+                        signatureDigestAlgorithm));
+            }
+        }
         try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
             return send(sender, getCentralServiceURI(), new AuthCertRegRequest(signerRpcClient, signerSignClient,
                     authCert, securityServer.getOwner(),
-                    builder.buildAuthCertRegRequest(securityServer, address, authCert),
+                    builder.buildAuthCertRegRequest(securityServer, address, authCert, dryRun),
                     signatureDigestAlgorithm));
         }
     }

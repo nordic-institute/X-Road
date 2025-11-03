@@ -24,48 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { defineStore } from 'pinia';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@niis/shared-ui';
-import { useUser } from '@/store/modules/user';
+package org.niis.xroad.common.core.dto;
 
-const tabs = [
-  {
-    key: 'diagnostics-overview-tab-button',
-    name: 'tab.diagnostics.overview',
-    to: {
-      name: RouteName.DiagnosticsOverview,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-  {
-    key: 'diagnostics-traffic-tab-button',
-    name: 'tab.diagnostics.traffic',
-    to: {
-      name: RouteName.DiagnosticsTraffic,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-  {
-    key: 'diagnostics-connection-tab-button',
-    name: 'tab.diagnostics.connectionTesting',
-    to: {
-      name: RouteName.DiagnosticsConnection,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-] as Tab[];
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-export const useDiagnosticsTabs = defineStore('diagnostics-tabs', {
-  state: () => ({}),
-  persist: false,
-  getters: {
-    availableTabs(): Tab[] {
-      return useUser().getAllowedTabs(tabs);
-    },
-    firstAllowedTab(): Tab {
-      return this.availableTabs[0];
-    },
-  },
-  actions: {},
-});
+import java.io.Serializable;
+import java.util.List;
+
+@Getter
+@ToString
+@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
+public final class DownloadUrlConnectionStatus implements Serializable {
+    private String downloadUrl;
+    private ConnectionStatus connectionStatus;
+
+    private DownloadUrlConnectionStatus(ConnectionStatus connectionStatus, String downloadUrl) {
+        this.downloadUrl = downloadUrl;
+        this.connectionStatus = connectionStatus;
+    }
+
+    public static DownloadUrlConnectionStatus ok(String url) {
+        return new DownloadUrlConnectionStatus(ConnectionStatus.ok(), url);
+    }
+
+    public static DownloadUrlConnectionStatus error(String url, String errorCode, List<String> metadata) {
+        return new DownloadUrlConnectionStatus(ConnectionStatus.error(errorCode, metadata), url);
+    }
+}

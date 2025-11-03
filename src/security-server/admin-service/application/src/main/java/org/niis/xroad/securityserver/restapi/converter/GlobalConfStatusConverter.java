@@ -24,48 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { defineStore } from 'pinia';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@niis/shared-ui';
-import { useUser } from '@/store/modules/user';
+package org.niis.xroad.securityserver.restapi.converter;
 
-const tabs = [
-  {
-    key: 'diagnostics-overview-tab-button',
-    name: 'tab.diagnostics.overview',
-    to: {
-      name: RouteName.DiagnosticsOverview,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-  {
-    key: 'diagnostics-traffic-tab-button',
-    name: 'tab.diagnostics.traffic',
-    to: {
-      name: RouteName.DiagnosticsTraffic,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-  {
-    key: 'diagnostics-connection-tab-button',
-    name: 'tab.diagnostics.connectionTesting',
-    to: {
-      name: RouteName.DiagnosticsConnection,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-] as Tab[];
+import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
+import org.springframework.stereotype.Component;
 
-export const useDiagnosticsTabs = defineStore('diagnostics-tabs', {
-  state: () => ({}),
-  persist: false,
-  getters: {
-    availableTabs(): Tab[] {
-      return useUser().getAllowedTabs(tabs);
-    },
-    firstAllowedTab(): Tab {
-      return this.availableTabs[0];
-    },
-  },
-  actions: {},
-});
+import java.util.List;
+
+@Component
+public class GlobalConfStatusConverter {
+    private final AuthCertStatusConverter authCertStatusConverter = new AuthCertStatusConverter();
+
+    public List<GlobalConfConnectionStatusDto> convert(List<DownloadUrlConnectionStatus> connectionStatuses) {
+        return connectionStatuses.stream()
+                .map(this::convert)
+                .toList();
+    }
+
+    private GlobalConfConnectionStatusDto convert(DownloadUrlConnectionStatus connectionStatus) {
+        return new GlobalConfConnectionStatusDto()
+                .downloadUrl(connectionStatus.getDownloadUrl())
+                .connectionStatus(authCertStatusConverter.convert(connectionStatus.getConnectionStatus()));
+    }
+}

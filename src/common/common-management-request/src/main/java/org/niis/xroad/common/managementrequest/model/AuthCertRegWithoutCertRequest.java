@@ -24,48 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { defineStore } from 'pinia';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@niis/shared-ui';
-import { useUser } from '@/store/modules/user';
+package org.niis.xroad.common.managementrequest.model;
 
-const tabs = [
-  {
-    key: 'diagnostics-overview-tab-button',
-    name: 'tab.diagnostics.overview',
-    to: {
-      name: RouteName.DiagnosticsOverview,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-  {
-    key: 'diagnostics-traffic-tab-button',
-    name: 'tab.diagnostics.traffic',
-    to: {
-      name: RouteName.DiagnosticsTraffic,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-  {
-    key: 'diagnostics-connection-tab-button',
-    name: 'tab.diagnostics.connectionTesting',
-    to: {
-      name: RouteName.DiagnosticsConnection,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-] as Tab[];
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.MultipartOutputStream;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
-export const useDiagnosticsTabs = defineStore('diagnostics-tabs', {
-  state: () => ({}),
-  persist: false,
-  getters: {
-    availableTabs(): Tab[] {
-      return useUser().getAllowedTabs(tabs);
-    },
-    firstAllowedTab(): Tab {
-      return this.availableTabs[0];
-    },
-  },
-  actions: {},
-});
+import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+public class AuthCertRegWithoutCertRequest extends AuthCertRegRequest {
+    public AuthCertRegWithoutCertRequest(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
+                                         byte[] authCert, ClientId owner, SoapMessageImpl request,
+                                         DigestAlgorithm signatureDigestAlgorithm) {
+        super(signerRpcClient, signerSignClient, authCert, owner, request, signatureDigestAlgorithm);
+    }
+
+    @Override
+    public InputStream getRequestContent() throws IOException {
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        multipart = new MultipartOutputStream(out);
+
+        writeSoap();
+
+        multipart.close();
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+}

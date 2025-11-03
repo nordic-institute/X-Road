@@ -2390,6 +2390,61 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /diagnostics/auth-cert-req-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view authentication certificate registration request status
+      operationId: getAuthCertReqStatus
+      description: <h3>Administrator views the authentication certificate registration request status.</h3>
+      responses:
+        '200':
+          description: authentication certificate registration request status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /diagnostics/global-conf-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view global configuration download connection status
+      operationId: getGlobalConfStatus
+      description: <h3>Administrator views global configuration download connection status.</h3>
+      responses:
+        '200':
+          description: global configuration download connection status
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of statuses for the global configuration download connection
+                items:
+                  $ref: '#/components/schemas/GlobalConfConnectionStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /diagnostics/operational-monitoring:
     get:
       tags:
@@ -6003,6 +6058,35 @@ components:
           type: boolean
           readOnly: true
           description: Is usage over threshold
+    ConnectionStatus:
+      type: object
+      description: connection status
+      required:
+        - status_class
+        - error
+      properties:
+        status_class:
+          readOnly: true
+          description: connection status class
+          allOf:
+            - $ref: '#/components/schemas/DiagnosticStatusClass'
+        error:
+          $ref: '#/components/schemas/CodeWithDetails'
+    GlobalConfConnectionStatus:
+      type: object
+      description: global configuration download connection status
+      required:
+        - download_url
+        - connection_status
+      properties:
+        download_url:
+          type: string
+          format: text
+          minLength: 1
+          maxLength: 255
+          description: download url of the global configuration
+        connection_status:
+          $ref: '#/components/schemas/ConnectionStatus'
     MailNotificationStatus:
       type: object
       description: automatic e-mail notification status

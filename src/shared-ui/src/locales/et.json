@@ -164,14 +164,14 @@
     "backup_generation_failed": "Varukoopia loomine ebaõnnestus",
     "backup_restore_interrupted": "Varukoopia taastamine katkestatud",
     "core": {
-      "Signer": {
-        "CertNotFound": "Sertifikaati ei leitud",
-        "KeyNotFound": "Võtit ei leitud",
-        "NetworkError": "Signer ei ole hetkel kättesaadav",
-        "PinIncorrect": "Vale PIN-kood",
-        "TokenNotAvailable": "Krüptomoodul pole saadaval",
-        "TokenNotFound": " Krüptomoodulit ei leitud",
-        "UnknownMember": "X-Road tarkvara - signeerija: Tundmatu liige"
+      "signer": {
+        "cert_not_found": "Sertifikaati ei leitud",
+        "key_not_found": "Võtit ei leitud",
+        "network_error": "Signer ei ole hetkel kättesaadav",
+        "pin_incorrect": "Vale PIN-kood",
+        "token_not_available": "Krüptomoodul pole saadaval",
+        "token_not_found": " Krüptomoodulit ei leitud",
+        "unknown_member": "X-Road tarkvara - signeerija: Tundmatu liige"
       }
     },
     "generate_backup_interrupted": "Varukoopia loomine katkestatud",

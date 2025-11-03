@@ -28,6 +28,8 @@
 import {
   AddOnStatus,
   BackupEncryptionStatus,
+  ConnectionStatus,
+  GlobalConfConnectionStatus,
   GlobalConfDiagnostics,
   MessageLogEncryptionStatus,
   OcspResponderDiagnostics,
@@ -45,6 +47,8 @@ export interface DiagnosticsState {
   backupEncryptionDiagnostics?: BackupEncryptionStatus;
   messageLogEncryptionDiagnostics?: MessageLogEncryptionStatus;
   proxyMemoryUsageStatus?: ProxyMemoryUsageStatus;
+  authCertReqStatus?: ConnectionStatus;
+  globalConfStatuses: GlobalConfConnectionStatus[];
 }
 
 export const useDiagnostics = defineStore('diagnostics', {
@@ -57,6 +61,8 @@ export const useDiagnostics = defineStore('diagnostics', {
       backupEncryptionDiagnostics: undefined,
       messageLogEncryptionDiagnostics: undefined,
       proxyMemoryUsageStatus: undefined,
+      authCertReqStatus: undefined,
+      globalConfStatuses: [],
     };
   },
   persist: {
@@ -120,6 +126,20 @@ export const useDiagnostics = defineStore('diagnostics', {
         .get<ProxyMemoryUsageStatus>('/diagnostics/proxy-memory-usage-status')
         .then((res) => {
           this.proxyMemoryUsageStatus = res.data;
+        });
+    },
+    async fetchAuthCertReqStatus() {
+      return api
+        .get<ConnectionStatus>('/diagnostics/auth-cert-req-status')
+        .then((res) => {
+          this.authCertReqStatus = res.data;
+        });
+    },
+    async fetchGlobalConfStatuses() {
+      return api
+        .get<GlobalConfConnectionStatus[]>('/diagnostics/global-conf-status')
+        .then((res) => {
+          this.globalConfStatuses = res.data;
         });
     },
   },

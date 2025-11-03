@@ -24,48 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { defineStore } from 'pinia';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@niis/shared-ui';
-import { useUser } from '@/store/modules/user';
+package org.niis.xroad.securityserver.restapi.util;
 
-const tabs = [
-  {
-    key: 'diagnostics-overview-tab-button',
-    name: 'tab.diagnostics.overview',
-    to: {
-      name: RouteName.DiagnosticsOverview,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-  {
-    key: 'diagnostics-traffic-tab-button',
-    name: 'tab.diagnostics.traffic',
-    to: {
-      name: RouteName.DiagnosticsTraffic,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-  {
-    key: 'diagnostics-connection-tab-button',
-    name: 'tab.diagnostics.connectionTesting',
-    to: {
-      name: RouteName.DiagnosticsConnection,
-    },
-    permissions: [Permissions.DIAGNOSTICS],
-  },
-] as Tab[];
+import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 
-export const useDiagnosticsTabs = defineStore('diagnostics-tabs', {
-  state: () => ({}),
-  persist: false,
-  getters: {
-    availableTabs(): Tab[] {
-      return useUser().getAllowedTabs(tabs);
-    },
-    firstAllowedTab(): Tab {
-      return this.availableTabs[0];
-    },
-  },
-  actions: {},
-});
+import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
+import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.springframework.stereotype.Component;
+
+import java.security.cert.X509Certificate;
+
+@Component
+public final class AuthCertVerifier {
+
+    public void verify(CertificateInfo certificateInfo)
+            throws TokenCertificateService.SignCertificateNotSupportedException, InvalidCertificateException {
+        boolean isAuthCert;
+        X509Certificate certificate;
+        try {
+            certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
+            isAuthCert = CertUtils.isAuthCert(certificate);
+            if (!isAuthCert) {
+                throw new TokenCertificateService.SignCertificateNotSupportedException("not an auth cert");
+            }
+        } catch (TokenCertificateService.SignCertificateNotSupportedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InvalidCertificateException("invalid certificate", e);
+        }
+    }
+}

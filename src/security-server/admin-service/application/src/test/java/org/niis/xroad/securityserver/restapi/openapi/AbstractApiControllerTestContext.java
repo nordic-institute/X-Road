@@ -38,6 +38,7 @@ import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestCon
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
+import org.niis.xroad.securityserver.restapi.service.DiagnosticConnectionService;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
@@ -113,6 +114,8 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
 
     @MockitoSpyBean
     DiagnosticService diagnosticService;
+    @MockitoSpyBean
+    DiagnosticConnectionService diagnosticConnectionService;
     @MockitoSpyBean
     GlobalConfService globalConfService;
     @MockitoSpyBean
