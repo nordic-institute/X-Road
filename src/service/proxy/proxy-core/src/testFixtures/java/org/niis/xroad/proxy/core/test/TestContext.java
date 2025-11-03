@@ -29,7 +29,6 @@ package org.niis.xroad.proxy.core.test;
 
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
@@ -38,7 +37,6 @@ import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
@@ -108,11 +106,10 @@ public class TestContext {
 
             if (startServerProxy) {
                 AntiDosConfiguration antiDosConfiguration = mock(AntiDosConfiguration.class);
-                OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
-                        monitorRpcClient, commonProperties, proxyProperties, opMonitorCommonProperties);
+                        monitorRpcClient, commonProperties, proxyProperties);
                 serverProxy = new ServerProxy(proxyProperties, antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
-                        opMonitorCommonProperties, new NoopVaultClient(), new NoopVaultKeyClient());
+                        new NoopVaultClient(), new NoopVaultKeyClient());
                 serverProxy.init();
             }
 

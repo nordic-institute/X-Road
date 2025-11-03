@@ -33,13 +33,12 @@
 import { useRouter } from 'vue-router';
 
 import { XrdForbiddenError } from '@niis/shared-ui';
-
-import { useUser } from '@/store/modules/user';
+import { useMainTabs } from '@/store/modules/main-tabs';
 
 const { push, back } = useRouter();
-const userStore = useUser();
+const mainTabs = useMainTabs();
 
 function goHome() {
-  push(userStore.getFirstAllowedTab.to);
+  push(mainTabs.firstAllowedTab.to);
 }
 </script>

@@ -150,12 +150,12 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
 
     @Step("Following members are added to local group:")
     public void lookupAddMembers(DataTable dataTable) {
-        clientInfoPageObj.localGroups.details.addMember.btnAddSelected().shouldBe(disabled);
+        clientInfoPageObj.localGroups.details.addMember.btnSave().shouldBe(disabled);
         dataTable.asList().forEach(member -> vCheckbox(clientInfoPageObj.localGroups.details.addMember.checkboxSelectMember(member))
                 .scrollIntoView(false)
                 .click());
 
-        clientInfoPageObj.localGroups.details.addMember.btnAddSelected()
+        clientInfoPageObj.localGroups.details.addMember.btnSave()
                 .shouldBe(enabled)
                 .click();
 

@@ -38,7 +38,7 @@
     @save="save"
   >
     <template #content="{ dialogHandler }">
-      <xrd-expandable :is-open="true" class="border">
+      <XrdExpandable :is-open="true" class="border">
         <template #link="{ toggle, opened }">
           <div
             class="font-weight-medium cursor-pointer"
@@ -49,7 +49,7 @@
           </div>
         </template>
         <template #content>
-          <v-container class="pa-0 pr-2">
+          <v-container class="px-4">
             <v-row>
               <v-col>
                 <v-text-field
@@ -120,7 +120,7 @@
             </v-row>
           </v-container>
         </template>
-      </xrd-expandable>
+      </XrdExpandable>
 
       <v-data-table
         class="xrd xrd-rounded-12 border mt-6"

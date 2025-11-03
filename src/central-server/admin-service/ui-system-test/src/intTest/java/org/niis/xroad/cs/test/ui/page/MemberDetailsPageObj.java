@@ -26,6 +26,7 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$x;
 
@@ -142,18 +143,8 @@ public class MemberDetailsPageObj {
         }
     }
 
-    public class UnregisterDialog {
-        public SelenideElement dialog() {
-            return $x("//div[@data-test='unregister-member']");
-        }
+    public class UnregisterDialog extends Dialog {
 
-        public SelenideElement btnCancel() {
-            return $x("//div[@data-test='unregister-member']//button[@data-test='dialog-cancel-button']");
-        }
-
-        public SelenideElement btnConfirm() {
-            return $x("//div[@data-test='unregister-member']//button[@data-test='dialog-save-button']");
-        }
     }
 
 }

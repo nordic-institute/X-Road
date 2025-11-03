@@ -48,8 +48,7 @@ import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
-import org.niis.xroad.opmonitor.api.OpMonitoringDaemonHttpClient;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.antidos.AntiDosConnector;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -89,7 +88,6 @@ public class ServerProxy {
     private final AntiDosConfiguration antiDosConfiguration;
     private final CommonBeanProxy commonBeanProxy;
     private final ServiceHandlerLoader serviceHandlerLoader;
-    private final OpMonitorCommonProperties opMonitorCommonProperties;
     private final VaultClient vaultClient;
     private final VaultKeyClient vaultKeyClient;
 
@@ -130,9 +128,9 @@ public class ServerProxy {
     }
 
     private void createOpMonitorClient() throws Exception {
-
         opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(
-                opMonitorCommonProperties, vaultClient, commonBeanProxy.getServerConfProvider().getSSLKey());
+                proxyProperties.addon().opMonitor().connection(), vaultClient,
+                commonBeanProxy.getServerConfProvider().getSSLKey());
     }
 
     private void createConnectors() throws Exception {

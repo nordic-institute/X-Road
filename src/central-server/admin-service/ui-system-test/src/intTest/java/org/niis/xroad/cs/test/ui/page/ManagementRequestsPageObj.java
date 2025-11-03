@@ -69,6 +69,14 @@ public class ManagementRequestsPageObj {
         return $x("//div[@data-test='search-query-field']");
     }
 
+    public SelenideElement btnApproveInDetails() {
+        return $x("//button[@data-test='approve-button']");
+    }
+
+    public SelenideElement btnDeclineInDetails() {
+        return $x("//button[@data-test='decline-button']");
+    }
+
     public SelenideElement tableCol(String name) {
         var xpath = "./thead/tr/th/div/span[text()='%s']/../..";
         return table().find(xpath(xpath.formatted(name)));

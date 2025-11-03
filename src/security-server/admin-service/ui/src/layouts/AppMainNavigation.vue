@@ -27,7 +27,7 @@
 <template>
   <XrdMainNavigation
     :user-name="username || ''"
-    :tabs="allowedTabs"
+    :tabs="tabs"
     :admin-users-handler="handler"
     :database-based-authentication="dbBasedAuth"
     @logout="logout"
@@ -48,8 +48,9 @@ import { useSystem } from '@/store/modules/system';
 
 const router = useRouter();
 const { username, logoutUser } = useUser();
+const mainTabs = useMainTabs();
 
-const allowedTabs = computed(() => useMainTabs().availableTabs);
+const tabs = computed(() => mainTabs.availableTabs);
 const adminHandler = useAdminUsersHandler();
 const dbBasedAuth = computed(() => useSystem().isDatabaseBasedAuthentication);
 const handler = computed(() => adminHandler.adminUsersHandler());

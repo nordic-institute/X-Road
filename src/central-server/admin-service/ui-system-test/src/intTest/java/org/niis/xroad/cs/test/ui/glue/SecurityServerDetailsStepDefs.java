@@ -92,7 +92,7 @@ public class SecurityServerDetailsStepDefs extends BaseUiStepDefs {
         securityServerDetailsPageObj.editAddressDialog().btnSave().shouldBe(visible)
                 .shouldBe(Condition.enabled)
                 .click();
-        securityServerDetailsPageObj.editAddressDialog().dialog().shouldNotBe(visible);
+        securityServerDetailsPageObj.editAddressDialog().self().shouldNotBe(visible);
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
@@ -103,7 +103,7 @@ public class SecurityServerDetailsStepDefs extends BaseUiStepDefs {
         securityServerDetailsPageObj.editAddressDialog().btnCancel().shouldBe(visible)
                 .shouldBe(Condition.enabled)
                 .click();
-        securityServerDetailsPageObj.editAddressDialog().dialog().shouldNotBe(visible);
+        securityServerDetailsPageObj.editAddressDialog().self().shouldNotBe(visible);
     }
 
     @Step("user opens delete security server dialog")
@@ -144,7 +144,7 @@ public class SecurityServerDetailsStepDefs extends BaseUiStepDefs {
         securityServerDetailsPageObj.deleteSecurityServerDialog().btnCancel().shouldBe(visible)
                 .shouldBe(Condition.enabled)
                 .click();
-        securityServerDetailsPageObj.deleteSecurityServerDialog().dialog().shouldNotBe(visible);
+        securityServerDetailsPageObj.deleteSecurityServerDialog().self().shouldNotBe(visible);
     }
 }
 

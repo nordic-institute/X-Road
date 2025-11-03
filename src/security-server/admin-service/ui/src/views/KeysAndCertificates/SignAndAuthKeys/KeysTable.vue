@@ -32,122 +32,120 @@
         :selected-sort="selectedSort"
         @set-sort="setSort"
       />
-      <tbody>
-        <template v-for="key in sortedKeys" :key="key.id">
-          <!-- SOFTWARE token table body -->
-          <template v-if="tokenType === tokenTypes.SOFTWARE">
-            <KeyRow
-              :token-logged-in="tokenLoggedIn"
-              :token-key="key"
-              @generate-csr="generateCsr(key)"
-              @key-click="keyClick(key)"
-            />
+      <tbody v-for="key in sortedKeys" :key="key.id">
+        <!-- SOFTWARE token table body -->
+        <template v-if="tokenType === tokenTypes.SOFTWARE">
+          <KeyRow
+            :token-logged-in="tokenLoggedIn"
+            :token-key="key"
+            @generate-csr="generateCsr(key)"
+            @key-click="keyClick(key)"
+          />
 
-            <CertificateRow
-              v-for="cert in key.certificates"
-              :key="cert.certificate_details.hash"
-              :cert="cert"
-              :is-acme-certificate="isAcmeCertificate(cert)"
-              @certificate-click="certificateClick(cert, key)"
-            >
-              <template #certificateAction>
-                <XrdBtn
-                  v-if="
-                    showRegisterCertButton &&
-                    cert.possible_actions?.includes(PossibleAction.REGISTER)
-                  "
-                  class="table-button-fix test-register"
-                  variant="text"
-                  text="action.register"
-                  color="tertiary"
-                  @click="showRegisterCertDialog(cert)"
-                />
-              </template>
-            </CertificateRow>
-          </template>
-
-          <!-- HARDWARE token table body -->
-          <template v-if="tokenType === 'HARDWARE'">
-            <KeyRow
-              :token-logged-in="tokenLoggedIn"
-              :token-key="key"
-              @generate-csr="generateCsr(key)"
-              @key-click="keyClick(key)"
-            />
-
-            <CertificateRow
-              v-for="cert in key.certificates"
-              :key="cert.certificate_details.hash"
-              :cert="cert"
-              :is-acme-certificate="isAcmeCertificate(cert)"
-              @certificate-click="certificateClick(cert, key)"
-            >
-              <template #certificateAction>
-                <template v-if="canImportFromToken">
-                  <XrdBtn
-                    v-if="
-                      cert.possible_actions?.includes(
-                        PossibleAction.IMPORT_FROM_TOKEN,
-                      )
-                    "
-                    variant="text"
-                    text="keys.importCert"
-                    color="tertiary"
-                    @click="importCert(cert.certificate_details.hash)"
-                  />
-
-                  <!-- Special case where HW cert has auth usage -->
-                  <div v-else-if="key.usage === 'AUTHENTICATION'">
-                    {{ $t('keys.authNotSupported') }}
-                  </div>
-                </template>
-              </template>
-            </CertificateRow>
-          </template>
-
-          <!-- CSRs -->
-          <template
-            v-if="
-              key.certificate_signing_requests &&
-              key.certificate_signing_requests.length > 0
-            "
+          <CertificateRow
+            v-for="cert in key.certificates"
+            :key="cert.certificate_details.hash"
+            :cert="cert"
+            :is-acme-certificate="isAcmeCertificate(cert)"
+            @certificate-click="certificateClick(cert, key)"
           >
-            <tr v-for="req in key.certificate_signing_requests" :key="req.id">
-              <td class="td-name pl-13">
-                <XrdLabelWithIcon
-                  icon="editor_choice"
-                  color="on-surface"
-                  :label="$t('keys.request')"
-                />
-              </td>
-              <td colspan="5">{{ req.id }}</td>
-              <td class="text-end">
-                <XrdBtn
-                  v-if="isAcmeCapable(req, key)"
-                  data-test="order-acme-certificate-button"
-                  class="table-button-fix"
-                  variant="text"
-                  color="tertiary"
-                  text="keys.orderAcmeCertificate"
-                  :disabled="!canImportCertificate(key) || !tokenLoggedIn"
-                  :loading="acmeOrderLoading[req.id]"
-                  @click="openAcmeOrderCertificateDialog(req, key)"
-                />
+            <template #certificateAction>
+              <XrdBtn
+                v-if="
+                  showRegisterCertButton &&
+                  cert.possible_actions?.includes(PossibleAction.REGISTER)
+                "
+                class="table-button-fix test-register"
+                variant="text"
+                text="action.register"
+                color="tertiary"
+                @click="showRegisterCertDialog(cert)"
+              />
+            </template>
+          </CertificateRow>
+        </template>
+
+        <!-- HARDWARE token table body -->
+        <template v-if="tokenType === 'HARDWARE'">
+          <KeyRow
+            :token-logged-in="tokenLoggedIn"
+            :token-key="key"
+            @generate-csr="generateCsr(key)"
+            @key-click="keyClick(key)"
+          />
+
+          <CertificateRow
+            v-for="cert in key.certificates"
+            :key="cert.certificate_details.hash"
+            :cert="cert"
+            :is-acme-certificate="isAcmeCertificate(cert)"
+            @certificate-click="certificateClick(cert, key)"
+          >
+            <template #certificateAction>
+              <template v-if="canImportFromToken">
                 <XrdBtn
                   v-if="
-                    req.possible_actions.includes(PossibleAction.DELETE) &&
-                    canDeleteCsr(key)
+                    cert.possible_actions?.includes(
+                      PossibleAction.IMPORT_FROM_TOKEN,
+                    )
                   "
-                  data-test="delete-csr-button"
-                  class="table-button-fix"
                   variant="text"
+                  text="keys.importCert"
                   color="tertiary"
-                  text="keys.deleteCsr"
-                  @click="showDeleteCsrDialog(req, key)"
+                  @click="importCert(cert.certificate_details.hash)"
                 />
-              </td>
-            </tr>
-          </template>
+
+                <!-- Special case where HW cert has auth usage -->
+                <div v-else-if="key.usage === 'AUTHENTICATION'">
+                  {{ $t('keys.authNotSupported') }}
+                </div>
+              </template>
+            </template>
+          </CertificateRow>
+        </template>
+
+        <!-- CSRs -->
+        <template
+          v-if="
+            key.certificate_signing_requests &&
+            key.certificate_signing_requests.length > 0
+          "
+        >
+          <tr v-for="req in key.certificate_signing_requests" :key="req.id">
+            <td class="td-name pl-13">
+              <XrdLabelWithIcon
+                icon="editor_choice"
+                color="on-surface"
+                :label="$t('keys.request')"
+              />
+            </td>
+            <td colspan="5">{{ req.id }}</td>
+            <td class="text-end">
+              <XrdBtn
+                v-if="isAcmeCapable(req, key)"
+                data-test="order-acme-certificate-button"
+                class="table-button-fix"
+                variant="text"
+                color="tertiary"
+                text="keys.orderAcmeCertificate"
+                :disabled="!canImportCertificate(key) || !tokenLoggedIn"
+                :loading="acmeOrderLoading[req.id]"
+                @click="openAcmeOrderCertificateDialog(req, key)"
+              />
+              <XrdBtn
+                v-if="
+                  req.possible_actions.includes(PossibleAction.DELETE) &&
+                  canDeleteCsr(key)
+                "
+                data-test="delete-csr-button"
+                class="table-button-fix"
+                variant="text"
+                color="tertiary"
+                text="keys.deleteCsr"
+                @click="showDeleteCsrDialog(req, key)"
+              />
+            </td>
+          </tr>
         </template>
       </tbody>
     </v-table>

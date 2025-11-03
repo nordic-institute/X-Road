@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
@@ -81,7 +82,8 @@ public class SystemParametersPageObj {
         }
     }
 
-    public static class DialogAddTimestampingService {
+    public static class DialogAddTimestampingService extends Dialog {
+
         public SelenideElement radioGroupTimestampingServices() {
             return $x("//div[@data-test='system-parameters-add-timestamping-service-dialog-radio-group']");
         }
@@ -92,10 +94,6 @@ public class SystemParametersPageObj {
 
         public SelenideElement btnAdd() {
             return $x("//button[@data-test='system-parameters-timestamping-services-add-button']");
-        }
-
-        public SelenideElement btnCancel() {
-            return $x("//button[@data-test='dialog-cancel-button']");
         }
     }
 

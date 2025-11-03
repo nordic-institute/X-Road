@@ -30,6 +30,8 @@ package org.niis.xroad.proxy.core.configuration;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorBufferProperties;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorConnectionProperties;
 
 import java.util.Optional;
 
@@ -259,6 +261,13 @@ public interface ProxyProperties {
             @WithName("enabled")
             @WithDefault("false")
             boolean enabled();
+
+            @WithName("buffer")
+            OpMonitorBufferProperties buffer();
+
+            @WithName("connection")
+            OpMonitorConnectionProperties connection();
+
         }
 
     }

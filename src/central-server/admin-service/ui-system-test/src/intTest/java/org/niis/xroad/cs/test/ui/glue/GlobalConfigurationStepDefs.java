@@ -390,14 +390,14 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
                 .shouldBe(Condition.enabled)
                 .click();
 
-        globalConfigurationPageObj.configurationParts.btnCancelUpload()
+        globalConfigurationPageObj.configurationParts.btnCancel()
                 .shouldBe(Condition.enabled);
-        globalConfigurationPageObj.configurationParts.btnConfirmUpload()
+        globalConfigurationPageObj.configurationParts.btnConfirm()
                 .shouldNotBe(Condition.enabled);
         TimeUnit.SECONDS.sleep(2); //avoid same updated at
         globalConfigurationPageObj.configurationParts.inputConfigurationFile().uploadFile(getConfigurationFile(filename));
 
-        globalConfigurationPageObj.configurationParts.btnConfirmUpload()
+        globalConfigurationPageObj.configurationParts.btnConfirm()
                 .shouldBe(Condition.enabled)
                 .click();
 

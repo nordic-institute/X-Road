@@ -67,7 +67,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnSave().shouldBe(disabled);
         trustServicesPageObj.addDialog.inputFile().uploadFile(CertificateUtils.getAsFile(certificate));
         commonPageObj.dialog.btnSave().shouldBe(disabled);
-        commonPageObj.dialog.btnUpload().click();
+        trustServicesPageObj.addDialog.btnUpload().click();
         commonPageObj.dialog.btnSave().shouldBe(disabled);
         vTextField(trustServicesPageObj.addCaSettingsDialog.inputCertificateProfile())
                 .setValue(CERTIFICATE_PROFILE);
@@ -193,7 +193,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
     public void userCanChangeTheCertificateProfile() {
         trustServicesPageObj.certServiceDetails.caSettings.btnEditCa().click();
 
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputCertProfile())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputCertProfile())
                 .clear()
                 .setValue(NEW_CERTIFICATE_PROFILE);
 
@@ -208,7 +208,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
     @Step("user can change the TLS Auth setting")
     public void userCanChangeTheTLSAuthSetting() {
         trustServicesPageObj.certServiceDetails.caSettings.btnEditCa().click();
-        vCheckbox(trustServicesPageObj.certServiceDetails.caSettings.checkboxTlsAuth())
+        vCheckbox(trustServicesPageObj.certServiceDetails.editCaSettings.checkboxTlsAuth())
                 .click();
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
@@ -226,16 +226,16 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         String newIpAddress = "198.7.6.5";
         String newAuthCertProfileId = "10";
         String newSignCertProfileId = "11";
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerDirectoryUrl())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputAcmeServerDirectoryUrl())
                 .clear()
                 .setValue(newDirectoryUrl);
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerIpAddress())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputAcmeServerIpAddress())
                 .clear()
                 .setValue(newIpAddress);
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAuthCertProfileId())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputAuthCertProfileId())
                 .clear()
                 .setValue(newAuthCertProfileId);
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputSignCertProfileId())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputSignCertProfileId())
                 .clear()
                 .setValue(newSignCertProfileId);
 
@@ -256,10 +256,10 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
         String newDirectoryUrl = "httpss://new-test-ca/acme";
         String newIpAddress = "198.7.6.X";
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerDirectoryUrl())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputAcmeServerDirectoryUrl())
                 .clear()
                 .setValue(newDirectoryUrl);
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerIpAddress())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputAcmeServerIpAddress())
                 .clear()
                 .setValue(newIpAddress);
 

@@ -43,9 +43,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
@@ -85,17 +85,18 @@ class OpMonitoringBufferImplTest {
 
     @SuppressWarnings("checkstyle:FinalClass")
     private class TestOpMonitoringBufferImpl extends OpMonitoringBufferImpl {
-        TestOpMonitoringBufferImpl(OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
-            super(mock(ServerConfProvider.class), opMonitorCommonProperties, mock(VaultClient.class), false);
+        TestOpMonitoringBufferImpl(
+                ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties) throws Exception {
+            super(mock(ServerConfProvider.class), opMonitorProperties, mock(VaultClient.class), false);
         }
 
         @Override
         OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                              OpMonitorCommonProperties opMonitorCommonProperties,
+                                              ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties,
                                               VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
                 throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
                 NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
-            return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorCommonProperties,
+            return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorProperties,
                     vaultClient, isEnabledPooledConnectionReuse) {
                 @Override
                 CloseableHttpClient createHttpClient() {
@@ -132,11 +133,12 @@ class OpMonitoringBufferImplTest {
             return response;
         });
 
-        OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
-                "xroad.op-monitor.buffer.size", "10000"
-        ));
+        ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties =
+                ConfigUtils.initConfiguration(ProxyProperties.ProxyAddonProperties.class, Map.of(
+                        "xroad.proxy.addon.op-monitor.buffer.size", "10000"
+                )).opMonitor();
 
-        final TestOpMonitoringBufferImpl opMonitoringBuffer = new TestOpMonitoringBufferImpl(opMonitorCommonProperties);
+        final TestOpMonitoringBufferImpl opMonitoringBuffer = new TestOpMonitoringBufferImpl(opMonitorProperties);
         int requestCount = 30_000;
         AtomicInteger processedCounter = new AtomicInteger();
         try (ExecutorService executorService = Executors.newFixedThreadPool(80)) {
@@ -169,15 +171,16 @@ class OpMonitoringBufferImplTest {
 
     @Test
     void bufferOverflow() throws Exception {
-        OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
-                "xroad.op-monitor.buffer.size", "2"
-        ));
+        ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties =
+                ConfigUtils.initConfiguration(ProxyProperties.ProxyAddonProperties.class, Map.of(
+                        "xroad.proxy.addon.op-monitor.buffer.size", "2"
+                )).opMonitor();
 
-        final TestOpMonitoringBufferImpl opMonitoringBuffer = new TestOpMonitoringBufferImpl(opMonitorCommonProperties) {
+        final TestOpMonitoringBufferImpl opMonitoringBuffer = new TestOpMonitoringBufferImpl(opMonitorProperties) {
             @Override
             OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                                  OpMonitorCommonProperties opMonitorCommonProperties,
-                                                  VaultClient baultTlsCredentialsProvider,
+                                                  ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties,
+                                                  VaultClient vaultTlsCredentialsProvider,
                                                   boolean isEnabledPooledConnectionReuse) {
                 var mockedSender = mock(OpMonitoringDaemonSender.class);
                 when(mockedSender.isReady()).thenReturn(false);
@@ -211,9 +214,9 @@ class OpMonitoringBufferImplTest {
         var serverConfProvider = mock(ServerConfProvider.class);
         var vaultTlsCredentialsProvider = mock(VaultClient.class);
         new OpMonitoringBufferImpl(serverConfProvider,
-                ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
-                        "xroad.op-monitor.buffer.size", "0"
-                )),
+                ConfigUtils.initConfiguration(ProxyProperties.ProxyAddonProperties.class, Map.of(
+                        "xroad.proxy.addon.op-monitor.buffer.size", "0"
+                )).opMonitor(),
                 vaultTlsCredentialsProvider, false);
         verifyNoInteractions(serverConfProvider);
     }

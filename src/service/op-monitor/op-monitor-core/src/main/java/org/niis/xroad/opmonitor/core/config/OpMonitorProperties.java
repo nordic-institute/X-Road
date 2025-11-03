@@ -31,6 +31,8 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
+
 @ConfigMapping(prefix = "xroad.op-monitor")
 public interface OpMonitorProperties {
     String DEFAULT_MAX_RECORDS_IN_PAYLOAD = "10000";
@@ -38,6 +40,18 @@ public interface OpMonitorProperties {
     @WithName("listen-address")
     @WithDefault("localhost")
     String listenAddress();
+
+    @WithName("port")
+    @WithDefault("2080")
+    int port();
+
+    @WithName("scheme")
+    @WithDefault("http")
+    String scheme();
+
+    @WithName("xroad-tls-ciphers")
+    @WithDefault(DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING)
+    String[] xroadTlsCiphers();
 
     /**
      * The period in days for keeping operational data records in the database.

@@ -42,7 +42,15 @@
           </slot>
         </template>
         <template #append>
-          <v-icon v-if="!hideClose" icon="close" data-test="dlg-close-x" color="primary" size="default" @click="cancel" />
+          <v-icon
+            v-if="!hideClose"
+            :disabled="cancelDisabled"
+            icon="close"
+            data-test="dlg-close-x"
+            color="primary"
+            size="default"
+            @click="cancel"
+          />
         </template>
         <div class="alert-slot pl-6 pr-6">
           <XrdErrorNotifications :manager="errorManager" />

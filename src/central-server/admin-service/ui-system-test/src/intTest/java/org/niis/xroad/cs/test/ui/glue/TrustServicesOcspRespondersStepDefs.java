@@ -150,7 +150,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     public void userIsAbleViewTheCertificate() {
         ocspRespondersPageObj.addEditDialog.btnViewCertificate().click();
         ocspRespondersPageObj.certificateView.certificateDetails().shouldBe(visible);
-        ocspRespondersPageObj.certificateView.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
     }
 
     @Step("User is able change the certificate of OCSP responder with URL {}")

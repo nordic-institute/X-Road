@@ -29,6 +29,7 @@ package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
@@ -92,18 +93,7 @@ public class SecurityServerAuthCertificatesPageObj {
         return deleteDialog;
     }
 
-    public class DeleteDialog {
-        public SelenideElement deleteButton() {
-            var xpath = "//button[@data-test='dialog-save-button']";
-
-            return $x(xpath);
-        }
-
-        public SelenideElement cancelButton() {
-            var xpath = "//button[@data-test='dialog-cancel-button']";
-
-            return $x(xpath);
-        }
+    public class DeleteDialog extends Dialog {
 
         public SelenideElement inputSeverCode() {
             var xpath = "//div[@data-test='verify-server-code']";

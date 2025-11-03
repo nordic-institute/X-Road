@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.api;
+package org.niis.xroad.proxy.core.addon.opmonitoring;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -75,7 +76,6 @@ public final class OpMonitoringDaemonHttpClient {
     private static final int DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE = 10000;
 
-
     /**
      * Creates HTTP client.
      *
@@ -83,13 +83,13 @@ public final class OpMonitoringDaemonHttpClient {
      * @param authKey     the client's authentication key
      * @return HTTP client
      */
-    public static CloseableHttpClient createHttpClient(OpMonitorCommonProperties opMonitorCommonProperties,
+    public static CloseableHttpClient createHttpClient(OpMonitorConnectionProperties opMonitorConnectionProperties,
                                                        VaultClient vaultClient,
                                                        InternalSSLKey authKey) throws NoSuchAlgorithmException, KeyManagementException {
-        int connectionTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().connectionTimeoutSeconds());
-        int socketTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().socketTimeoutSeconds());
+        int connectionTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorConnectionProperties.connectionTimeoutSeconds());
+        int socketTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorConnectionProperties.socketTimeoutSeconds());
 
-        return createHttpClient(opMonitorCommonProperties, authKey, vaultClient,
+        return createHttpClient(opMonitorConnectionProperties, authKey, vaultClient,
                 DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS, DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE,
                 connectionTimeoutMilliseconds, socketTimeoutMilliseconds);
     }
@@ -106,7 +106,7 @@ public final class OpMonitoringDaemonHttpClient {
      * @return HTTP client
      * initialization fails
      */
-    public static CloseableHttpClient createHttpClient(OpMonitorCommonProperties opMonitorCommonProperties,
+    public static CloseableHttpClient createHttpClient(OpMonitorConnectionProperties opMonitorProperties,
                                                        InternalSSLKey authKey,
                                                        VaultClient vaultClient,
                                                        int clientMaxTotalConnections, int clientMaxConnectionsPerRoute,
@@ -116,8 +116,8 @@ public final class OpMonitoringDaemonHttpClient {
 
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
-        if ("https".equalsIgnoreCase(opMonitorCommonProperties.connection().scheme())) {
-            sfr.register("https", createSSLSocketFactory(authKey, vaultClient, opMonitorCommonProperties));
+        if ("https".equalsIgnoreCase(opMonitorProperties.scheme())) {
+            sfr.register("https", createSSLSocketFactory(authKey, vaultClient, opMonitorProperties));
         } else {
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
         }
@@ -144,7 +144,7 @@ public final class OpMonitoringDaemonHttpClient {
 
     private static SSLConnectionSocketFactory createSSLSocketFactory(InternalSSLKey authKey,
                                                                      VaultClient vaultClient,
-                                                                     OpMonitorCommonProperties opMonitorCommonProperties)
+                                                                     OpMonitorConnectionProperties opMonitorConnectionProperties)
             throws NoSuchAlgorithmException, KeyManagementException {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
 
@@ -153,7 +153,7 @@ public final class OpMonitoringDaemonHttpClient {
                 new SecureRandom());
 
         return new SSLConnectionSocketFactory(ctx.getSocketFactory(), new String[]{CryptoUtils.SSL_PROTOCOL},
-                opMonitorCommonProperties.xroadTlsCiphers(), NoopHostnameVerifier.INSTANCE);
+                opMonitorConnectionProperties.xroadTlsCiphers(), NoopHostnameVerifier.INSTANCE);
         // We don't need hostname verification
     }
 
