@@ -224,12 +224,12 @@ public final class VuetifyHelper {
         }
 
         public Radio shouldBeChecked() {
-            controlElement.$x(".//i").shouldHave(cssClass("mdi-radiobox-marked"));
+            controlElement.$x(".//i").shouldHave(cssClass("radio_button_checked"));
             return this;
         }
 
         public Radio shouldBeUnChecked() {
-            controlElement.$x(".//i").shouldHave(cssClass("mdi-radiobox-blank"));
+            controlElement.$x(".//i").shouldHave(cssClass("radio_button_unchecked"));
             return this;
         }
 

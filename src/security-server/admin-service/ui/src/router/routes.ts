@@ -73,6 +73,13 @@ import ServiceDescriptionDetailsView from '@/views/Clients/Services/ServiceDescr
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 import SettingsView from '@/views/Settings/SettingsView.vue';
 import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
+import TabsBase from '@/layouts/TabsBase.vue';
+import TabsBaseEmpty from '@/layouts/TabsBaseEmpty.vue';
+import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
+import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
+import DiagnosticsOverview from '@/views/Diagnostics/Overview/DiagnosticsOverview.vue';
+import TrafficContainer from '@/views/Diagnostics/Traffic/TrafficContainer.vue';
+import ConnectionContainer from "@/views/Diagnostics/Connection/ConnectionContainer.vue";
 import AdminUsersView from '@/views/Settings/AdminUsers/AdminUsersView.vue';
 import AddAdminUserView from '@/views/Settings/AdminUsers/AddAdminUserView.vue';
 import { XrdMainNavigationContainer } from '@niis/shared-ui';
@@ -80,6 +87,7 @@ import AppFooter from '@/layouts/AppFooter.vue';
 import { useSettingsTabs } from '@/store/modules/settings-tabs';
 import { useDiagnosticsTabs } from '@/store/modules/diagnostics-tabs';
 import { useKeysTabs } from '@/store/modules/keys-tabs';
+import { useMainTabs } from '@/store/modules/main-tabs';
 
 const baseViewParts = {
   navigation: AppMainNavigation,
@@ -91,7 +99,7 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: AppBase,
     name: RouteName.BaseRoute,
-    redirect: { name: RouteName.Clients },
+    redirect: () => useMainTabs().firstAllowedTab.to,
     children: [
       {
         name: RouteName.InitialConfiguration,
@@ -178,6 +186,13 @@ const routes: RouteRecordRaw[] = [
             name: RouteName.DiagnosticsTraffic,
             path: 'traffic',
             component: TrafficContainer,
+            props: true,
+            meta: { permissions: [Permissions.DIAGNOSTICS] },
+          },
+          {
+            name: RouteName.DiagnosticsConnection,
+            path: 'connection',
+            component: ConnectionContainer,
             props: true,
             meta: { permissions: [Permissions.DIAGNOSTICS] },
           },

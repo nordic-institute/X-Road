@@ -39,16 +39,19 @@ import { computed } from 'vue';
 
 import { XrdMainNavigation } from '@niis/shared-ui';
 
-import { mainTabs, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { useRouter } from 'vue-router';
 import { useAdminUsersHandler } from '@/store/modules/adminUsers';
+import { useMainTabs } from '@/store/modules/main-tabs';
 
 const router = useRouter();
-const { getAllowedTabs, username, logout } = useUser();
-const allowedTabs = computed(() => getAllowedTabs(mainTabs));
+const mainTabs = useMainTabs();
+const { username, logout } = useUser();
+const allowedTabs = computed(() => mainTabs.availableTabs);
 const adminHandler = computed(() => useAdminUsersHandler().adminUsersHandler());
 const dbBasedAuth = computed(() => false);
+
 function doLogout() {
   logout();
   router.replace({ name: RouteName.Login });

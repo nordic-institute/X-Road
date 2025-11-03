@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$x;
 import static org.openqa.selenium.By.xpath;
@@ -76,6 +77,7 @@ public class TrustServicesPageObj {
 
     public class CertServiceDetails {
         public final CaSettings caSettings = new CaSettings();
+        public final EditCaSettingsDialog editCaSettings = new EditCaSettingsDialog();
         public final IntermediateCasPageObj intermediaCas = new IntermediateCasPageObj();
 
         public SelenideElement tabSettings() {
@@ -133,30 +135,34 @@ public class TrustServicesPageObj {
             public SelenideElement btnEditAcme() {
                 return $x("//div[@data-test='cert-acme-card']//button[@data-test='edit-ca-acme-btn']");
             }
+        }
+
+        public class EditCaSettingsDialog extends Dialog {
 
             public SelenideElement checkboxTlsAuth() {
-                return $x("//div[@data-test='dialog-simple']//div[@data-test='tls-auth-checkbox']");
+                return self().$x(".//div[@data-test='tls-auth-checkbox']");
             }
 
             public SelenideElement inputCertProfile() {
-                return $x("//div[@data-test='dialog-simple']//div[@data-test='cert-profile-input']");
+                return self().$x(".//div[@data-test='cert-profile-input']");
             }
 
             public SelenideElement inputAcmeServerDirectoryUrl() {
-                return $x("//div[@data-test='dialog-simple']//div[@data-test='acme-server-directory-url-input']");
+                return self().$x(".//div[@data-test='acme-server-directory-url-input']");
             }
 
             public SelenideElement inputAcmeServerIpAddress() {
-                return $x("//div[@data-test='dialog-simple']//div[@data-test='acme-server-ip-address-input']");
+                return self().$x(".//div[@data-test='acme-server-ip-address-input']");
             }
 
             public SelenideElement inputAuthCertProfileId() {
-                return $x("//div[@data-test='dialog-simple']//div[@data-test='auth-cert-profile-id-input']");
+                return self().$x(".//div[@data-test='auth-cert-profile-id-input']");
             }
 
             public SelenideElement inputSignCertProfileId() {
-                return $x("//div[@data-test='dialog-simple']//div[@data-test='sign-cert-profile-id-input']");
+                return self().$x(".//div[@data-test='sign-cert-profile-id-input']");
             }
+
         }
 
     }
@@ -164,6 +170,10 @@ public class TrustServicesPageObj {
     public class AddDialog {
         public SelenideElement inputFile() {
             return $x("//input[@type='file']");
+        }
+
+        public SelenideElement btnUpload() {
+            return $x("//button[@data-test='upload-file-btn']");
         }
 
         public SelenideElement uploadBtn() {

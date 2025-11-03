@@ -39,11 +39,13 @@ import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.confclient.proto.AdminServiceGrpc;
 import org.niis.xroad.confclient.proto.AnchorServiceGrpc;
+import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
 import org.niis.xroad.confclient.proto.ConfigurationAnchorMessage;
 import org.niis.xroad.confclient.proto.GetGlobalConfReq;
 import org.niis.xroad.confclient.proto.GetGlobalConfRespWrapped;
 import org.niis.xroad.confclient.proto.GlobalConfServiceGrpc;
 import org.niis.xroad.rpc.common.DiagnosticsStatus;
+import org.niis.xroad.rpc.common.DownloadUrlConnectionStatus;
 import org.niis.xroad.rpc.common.Empty;
 
 @Slf4j
@@ -86,6 +88,11 @@ public class ConfClientRpcClient extends AbstractRpcClient {
     public DiagnosticsStatus getStatus() {
         return exec(() -> adminServiceBlockingStub
                 .getStatus(Empty.getDefaultInstance()));
+    }
+
+    public DownloadUrlConnectionStatus checkAndGetConnectionStatus(CheckAndGetConnectionStatusRequest request) {
+        return exec(() -> adminServiceBlockingStub
+                .checkAndGetConnectionStatus(request));
     }
 
     public GetGlobalConfRespWrapped getGlobalConf() {

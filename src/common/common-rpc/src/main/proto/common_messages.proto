@@ -78,6 +78,12 @@ message DiagnosticsStatus {
   repeated string error_code_metadata = 6;
 }
 
+message DownloadUrlConnectionStatus {
+  string download_url = 1;
+  optional string error_code = 2;
+  optional string error_details = 3;
+}
+
 enum DiagnosticStatusType {
   DIAGNOSTIC_STATUS_UNKNOWN = 0;
   DIAGNOSTIC_STATUS_OK = 1;

@@ -29,9 +29,8 @@
   <tr class="body-regular mt-4 mb-4">
     <td class="label text-primary font-weight-medium border-0 pl-0 pr-0">
       {{ $t(label) }}{{ COLON }}
-      <div>
+      <div v-if="canCopy">
         <v-btn
-          v-if="canCopy"
           rounded="pill"
           size="x-small"
           prepend-icon="content_copy"

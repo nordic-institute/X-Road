@@ -30,8 +30,9 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.page.ClientPageObj;
 
 import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientSubsystemStepDefs extends BaseUiStepDefs {
@@ -44,8 +45,8 @@ public class ClientSubsystemStepDefs extends BaseUiStepDefs {
 
     @Step("Subsystem with ID {string} is selected from the window")
     public void selectSubsystem(String subsystem) {
-        clientPageObj.subsystem.radioSubsystemById(subsystem).click();
-        clientPageObj.subsystem.btnSelectDialogSave().click();
+        vRadio(clientPageObj.selectSubsystemDialog.radioSubsystemById(subsystem)).click();
+        clientPageObj.selectSubsystemDialog.btnSave().click();
     }
 
     @Step("Subsystem code is set to {string}")
@@ -70,9 +71,9 @@ public class ClientSubsystemStepDefs extends BaseUiStepDefs {
 
     @Step("Add subsystem form is set to MemberName: {string}, MemberClass: {string}, MemberCode: {string}, SubsystemCode: {string}")
     public void validateAddSubsystemForm(String memberName, String memberClass, String memberCode, String subsystemCode) {
-        clientPageObj.subsystem.memberNameValue().shouldBe(text(memberName));
-        clientPageObj.subsystem.memberClassValue().shouldBe(text(memberClass));
-        clientPageObj.subsystem.memberCodeValue().shouldBe(text(memberCode));
+        vTextField(clientPageObj.subsystem.memberNameValue()).shouldBe(value(memberName));
+        vTextField(clientPageObj.subsystem.memberClassValue()).shouldBe(value(memberClass));
+        vTextField(clientPageObj.subsystem.memberCodeValue()).shouldBe(value(memberCode));
         vTextField(clientPageObj.subsystem.inputSubsystem()).shouldHaveText(subsystemCode);
     }
 

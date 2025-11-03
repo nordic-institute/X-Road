@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Initialization
 Feature: 0300 - SS: Keys and certificates
 

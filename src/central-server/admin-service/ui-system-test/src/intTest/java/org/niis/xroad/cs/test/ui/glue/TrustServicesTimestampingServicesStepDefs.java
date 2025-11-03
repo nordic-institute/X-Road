@@ -110,7 +110,7 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         timestampingServicesPageObj.addEditDialog.btnViewCertificate().click();
         timestampingServicesPageObj.certificateView.certificateDetails().shouldBe(visible);
 
-        timestampingServicesPageObj.certificateView.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
         timestampingServicesPageObj.tableLoading().should(appear);
     }
 

@@ -82,10 +82,6 @@ defineProps({
     type: Array as PropType<BreadcrumbItem[]>,
     default: () => [],
   },
-  fixedHeight: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 const emit = defineEmits(['close']);

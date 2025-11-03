@@ -123,16 +123,16 @@ public class MemberDetailsStepDefs extends BaseUiStepDefs {
 
     @Step("user clicks cancel in Unregister client dialog")
     public void cancelUnregisterProcess() {
-        memberDetailsPageObj.unregisterDialog().dialog().shouldBe(visible);
+        memberDetailsPageObj.unregisterDialog().self().shouldBe(visible);
         memberDetailsPageObj.unregisterDialog().btnCancel().shouldBe(visible, enabled).click();
-        memberDetailsPageObj.unregisterDialog().dialog().shouldNotBe(visible);
+        memberDetailsPageObj.unregisterDialog().self().shouldNotBe(visible);
     }
 
     @Step("user clicks Yes in Unregister client dialog")
     public void confirmUnregisterProcess() {
-        memberDetailsPageObj.unregisterDialog().dialog().shouldBe(visible);
+        memberDetailsPageObj.unregisterDialog().self().shouldBe(visible);
         memberDetailsPageObj.unregisterDialog().btnConfirm().shouldBe(visible, enabled).click();
-        memberDetailsPageObj.unregisterDialog().dialog().shouldNotBe(visible);
+        memberDetailsPageObj.unregisterDialog().self().shouldNotBe(visible);
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
