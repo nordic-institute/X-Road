@@ -51,6 +51,7 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -107,6 +108,7 @@ public class InitializationServiceTest {
         when(serverConfService.getOrCreateServerConfEntity()).thenReturn(new ServerConfEntity());
         when(serverConfService.getSecurityServerOwnerIdEntity()).thenReturn(CLIENT);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
+        when(signerRpcClient.isEnforcedTokenPinPolicy()).thenReturn(Boolean.TRUE);
         initializationService = new InitializationService(systemService, serverConfService,
                 tokenService, globalConfProvider, clientService, signerRpcClient, auditDataHelper, tokenPinValidator,
                 securityServerBackupService);
@@ -119,6 +121,7 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
         assertEquals(TokenInitStatusInfo.INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
+        assertTrue(initStatus.getTokenPinPolicyEnforced());
     }
 
     @Test
@@ -170,6 +173,14 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
         assertEquals(TokenInitStatusInfo.UNKNOWN, initStatus.getSoftwareTokenInitStatusInfo());
+    }
+
+    @Test
+    public void isSecurityServerInitializedEnforcedTokenPinPolicyFails() {
+        when(signerRpcClient.isEnforcedTokenPinPolicy()).thenThrow(XrdRuntimeException.systemInternalError("fail"));
+
+        var response = initializationService.getSecurityServerInitializationStatus();
+        assertNull(response.getTokenPinPolicyEnforced());
     }
 
     @Test
