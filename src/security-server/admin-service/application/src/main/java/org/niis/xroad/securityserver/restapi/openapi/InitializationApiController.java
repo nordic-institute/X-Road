@@ -65,7 +65,7 @@ public class InitializationApiController implements InitializationApi {
         initializationStatusDto.setIsServerCodeInitialized(initStatus.isServerCodeInitialized());
         initializationStatusDto.setIsServerOwnerInitialized(initStatus.isServerOwnerInitialized());
         initializationStatusDto.setSoftwareTokenInitStatus(TokenInitStatusMapping.map(initStatus.getSoftwareTokenInitStatusInfo()));
-        initializationStatusDto.setEnforceTokenPinPolicy(initializationStatusDto.getEnforceTokenPinPolicy());
+        initializationStatusDto.setEnforceTokenPinPolicy(initStatus.getTokenPinPolicyEnforced());
         return new ResponseEntity<>(initializationStatusDto, HttpStatus.OK);
     }
 
