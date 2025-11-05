@@ -33,6 +33,7 @@ const tabs = [
   {
     key: 'diagnostics-overview-tab-button',
     name: 'tab.diagnostics.overview',
+    icon: 'dashboard',
     to: {
       name: RouteName.DiagnosticsOverview,
     },
@@ -41,6 +42,7 @@ const tabs = [
   {
     key: 'diagnostics-traffic-tab-button',
     name: 'tab.diagnostics.traffic',
+    icon: 'sync_alt',
     to: {
       name: RouteName.DiagnosticsTraffic,
     },
