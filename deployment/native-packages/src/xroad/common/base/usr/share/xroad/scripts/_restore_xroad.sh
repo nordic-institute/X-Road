@@ -7,6 +7,7 @@
 # that is being backed up.
 
 source /usr/share/xroad/scripts/_backup_restore_common.sh
+soruce /usr/share/xroad/scripts/_openbao.sh
 
 # XXX Keep the pre-restore database dump named just like the rest of the dumps.
 # This allows the user to restore the pre-restore backup just like any other
@@ -345,7 +346,13 @@ restart_services () {
       if [[ "$servicename" == "openbao" ]]; then
         /usr/share/xroad/scripts/secret-store-wait-for.sh
 
-        /usr/share/xroad/scripts/secret-store-unseal.sh /etc/openbao/unseal-keys 2
+        local BAO_ADDR=${BAO_ADDR:-https://127.0.0.1:8200}
+        local UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
+        local THRESHOLD=3
+        unseal "$BAO_ADDR" "$(cat "$UNSEAL_KEYS_FILE" | head -n "$THRESHOLD")" "$THRESHOLD" || {
+                echo "Failed to unseal OpenBao" >&2
+                exit 1
+        }
       fi
     fi
   done

@@ -12,9 +12,9 @@ spec:
         - name: wait-for-openbao
           image: {{ .Values.image }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          command: [ 'sh', '-c', 'until curl -s -k $OPENBAO_ADDR/v1/sys/health; do echo waiting for openbao; sleep 5; done' ]
+          command: [ 'sh', '-c', 'until curl -s -k $BAO_ADDR/v1/sys/health; do echo waiting for openbao; sleep 5; done' ]
           env:
-            - name: OPENBAO_ADDR
+            - name: BAO_ADDR
               value: {{ .Values.openbao.address }}
       containers:
         - name: openbao-init
@@ -26,17 +26,7 @@ spec:
               echo "[MAIN] Starting OpenBao initialization process..."
               /scripts/init.sh
               if [ $? -eq 0 ]; then
-                echo "[MAIN] Initialization successful, starting unseal..."
-                for node in $OPENBAO_NODES; do
-                  echo "Unsealing node: $node"
-                  /scripts/unseal.sh $node
-                  if [ $? -ne 0 ]; then
-                    echo "[MAIN] Unseal failed"
-                    exit 1
-                  fi
-                done
-                echo "[MAIN] Unseal successful, starting setup..."
-                /scripts/setup.sh
+                echo "[MAIN] Initialization successful"
               else
                 echo "[MAIN] Initialization failed"
                 exit 1
@@ -46,9 +36,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: OPENBAO_ADDR
+            - name: BAO_ADDR
               value: {{ .Values.openbao.address }}
-            - name: OPENBAO_NODES
+            - name: BAO_NODES
               value: "{{ if .Values.openbao.nodes }}{{ range $i, $node := .Values.openbao.nodes }}{{ if $i }} {{ end }}{{ $node }}{{ end }}{{ else }}{{ .Values.openbao.address }}{{ end }}"
             - name: SECRET_NAME
               value: {{ .Values.serviceAccount.name }}

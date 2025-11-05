@@ -1,0 +1,1 @@
+../../../../../common/openbao/scripts/_openbao.sh

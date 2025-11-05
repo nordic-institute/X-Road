@@ -4,45 +4,6 @@ KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 KUBE_CA="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 KUBE_API="https://kubernetes.default.svc"
 
-bao_api() {
-  local method=$1
-  local host=$2
-  local endpoint=$3
-  local payload=$4
-  local token=$5
-  local description=$6
-
-  echo "[BAO] $description..." >&2
-
-  local response=$(curl -s -k -w "\nHTTP_STATUS:%{http_code}" \
-    --connect-timeout 5 \
-    --retry 3 \
-    --retry-delay 2 \
-    -X "$method" \
-    "$host$endpoint" \
-    -H "Content-Type: application/json" \
-    ${token:+-H "X-Vault-Token: $token"} \
-    ${payload:+-d "$payload"})
-
-  local curl_exit=$?
-  if [ $curl_exit -ne 0 ]; then
-    echo "[BAO] Connection failed (exit code: $curl_exit)" >&2
-    return 1
-  fi
-
-  local http_status=$(echo "$response" | grep "HTTP_STATUS" | cut -d":" -f2)
-  local body=$(echo "$response" | grep -v "HTTP_STATUS")
-
-  echo "[BAO] $description - Status: $http_status" >&2
-  echo "[BAO] $description - Response: $body" >&2
-
-  if [ "$http_status" != "200" ] && [ "$http_status" != "204" ]; then
-    return 1
-  fi
-
-  echo "$body"
-}
-
 # Kubernetes API call function
 k8s_api() {
   local method=$1
