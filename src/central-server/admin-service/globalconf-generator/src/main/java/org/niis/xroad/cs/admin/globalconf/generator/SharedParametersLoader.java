@@ -135,6 +135,7 @@ class SharedParametersLoader {
         } else {
             approvedCA.setAcmeServer(null);
         }
+        approvedCA.setDefaultCsrFormat(ca.getDefaultCsrFormat());
         return approvedCA;
     }
 

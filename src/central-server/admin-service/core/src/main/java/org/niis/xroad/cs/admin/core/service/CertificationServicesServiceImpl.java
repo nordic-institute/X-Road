@@ -110,6 +110,9 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         final var approvedCaEntity = new ApprovedCaEntity();
         approvedCaEntity.setCertProfileInfo(certificationService.getCertificateProfileInfo());
         approvedCaEntity.setAuthenticationOnly(certificationService.getTlsAuth());
+        if (certificationService.getDefaultCsrFormat() != null) {
+            approvedCaEntity.setDefaultCsrFormat(certificationService.getDefaultCsrFormat().name());
+        }
         X509Certificate certificate = handledCertificationChainRead(certificationService.getCertificate());
         approvedCaEntity.setName(CertUtils.getSubjectCommonName(certificate));
         approvedCaEntity.setAcmeServerDirectoryUrl(certificationService.getAcmeServerDirectoryUrl());
@@ -177,6 +180,9 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
                 .ifPresent(persistedApprovedCa::setAuthCertProfileId);
         Optional.ofNullable(approvedCa.getSigningCertificateProfileId())
                 .ifPresent(persistedApprovedCa::setSignCertProfileId);
+        Optional.ofNullable(approvedCa.getDefaultCsrFormat())
+                .map(Enum::name)
+                .ifPresent(persistedApprovedCa::setDefaultCsrFormat);
         final ApprovedCaEntity updatedApprovedCa = approvedCaRepository.save(persistedApprovedCa);
         addAuditData(updatedApprovedCa);
 

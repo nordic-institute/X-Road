@@ -100,6 +100,7 @@ public class SharedParameters {
         private CaInfo topCA;
         private List<CaInfo> intermediateCas;
         private String certificateProfileInfo;
+        private CsrFormat defaultCsrFormat;
         private AcmeServer acmeServer;
     }
 

@@ -89,8 +89,13 @@ public class ApprovedCaEntity extends AuditableEntity {
     @Setter
     private String certProfileInfo;
 
-    @Column(name = "acme_server_directory_url")
+    @Column(name = "default_csr_format")
     @Getter
+    @Setter
+    private String defaultCsrFormat;
+
+    @Getter
+    @Column(name = "acme_server_directory_url")
     @Setter
     private String acmeServerDirectoryUrl;
 

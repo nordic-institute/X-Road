@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.api.domain;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.niis.xroad.globalconf.model.CsrFormat;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -42,6 +43,7 @@ public class ApprovedCa extends Auditable {
     private String identifierDecoderMemberClass;
     private String identifierDecoderMethodName;
     private String certProfileInfo;
+    private CsrFormat defaultCsrFormat;
     private String acmeServerDirectoryUrl;
     private String acmeServerIpAddress;
     private String authenticationCertificateProfileId;
