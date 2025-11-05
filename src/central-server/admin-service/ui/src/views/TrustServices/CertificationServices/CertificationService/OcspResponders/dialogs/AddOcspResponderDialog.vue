@@ -69,6 +69,7 @@
               :label="$t(`trustServices.trustService.costType.${type}`)"
               :value="type"
             ></v-radio>
+          </v-radio-group>
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
