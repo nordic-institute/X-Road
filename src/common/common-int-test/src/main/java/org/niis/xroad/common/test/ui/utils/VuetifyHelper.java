@@ -217,10 +217,12 @@ public final class VuetifyHelper {
 
     public static final class Radio {
         private final SelenideElement controlElement;
+        private final SelenideElement input;
 
         private Radio(final SelenideElement vuetifyRadio) {
             this.controlElement = vuetifyRadio.shouldBe(tagName(ROOT_TAG))
                     .shouldHave(cssClass("v-radio"));
+            this.input = this.controlElement.$x(INPUT_XPATH);
         }
 
         public Radio shouldBeChecked() {
@@ -230,6 +232,11 @@ public final class VuetifyHelper {
 
         public Radio shouldBeUnChecked() {
             controlElement.$x(".//i").shouldHave(cssClass("radio_button_unchecked"));
+            return this;
+        }
+
+        public Radio isDisabled() {
+            input.shouldBe(disabled);
             return this;
         }
 
