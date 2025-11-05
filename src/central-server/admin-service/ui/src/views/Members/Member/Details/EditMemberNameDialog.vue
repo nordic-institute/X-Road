@@ -30,6 +30,7 @@
     :loading="loading"
     title="members.member.details.editMemberName"
     save-button-text="action.save"
+    save-button-icon="check"
     cancel-button-text="action.cancel"
     submittable
     :disable-save="!meta.valid || !meta.dirty"
@@ -37,15 +38,18 @@
     @save="saveNewMemberName"
   >
     <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-bind="memberName"
-          variant="outlined"
-          data-test="edit-member-name"
-          autofocus
-          :error-messages="errors.memberName"
-        ></v-text-field>
-      </div>
+      <XrdFormBlock>
+        <XrdFormBlockRow>
+          <v-text-field
+            v-bind="memberName"
+            data-test="edit-member-name"
+            class="xrd"
+            autofocus
+            :label="$t('global.memberName')"
+            :error-messages="errors.memberName"
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -53,11 +57,14 @@
 <script lang="ts" setup>
 import { useMember } from '@/store/modules/members';
 import { Client } from '@/openapi-types';
-import { useNotifications } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
 import { PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
-import { useI18n } from 'vue-i18n';
+import {
+  XrdFormBlock,
+  XrdFormBlockRow,
+  useNotifications,
+} from '@niis/shared-ui';
 
 const props = defineProps({
   member: {
@@ -75,24 +82,23 @@ const { defineComponentBinds, errors, meta, handleSubmit } = useForm({
 const memberName = defineComponentBinds('memberName');
 
 const { editMemberName } = useMember();
-const { showError, showSuccess } = useNotifications();
+const { addError, addSuccessMessage } = useNotifications();
 const loading = ref(false);
 
 function cancelEdit() {
   emits('cancel');
 }
 
-const { t } = useI18n();
 const saveNewMemberName = handleSubmit((values) => {
   loading.value = true;
   editMemberName(toIdentifier(props.member.client_id), {
     member_name: values.memberName,
   })
     .then(() => {
-      showSuccess(t('members.member.details.memberNameSaved'));
+      addSuccessMessage('members.member.details.memberNameSaved');
       emits('save');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 });
 </script>

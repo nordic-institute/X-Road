@@ -27,6 +27,7 @@
 package org.niis.xroad.ss.test.addons.api;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -42,4 +43,8 @@ public interface FeignXRoadRestRequestsApi {
 
     @GetMapping(value = "/r1/DEV/COM/1234/TestService/testOas31/test", produces = "application/json")
     ResponseEntity<String> testOas31(@RequestHeader("X-Road-Client") String xRoadClient);
+
+    @GetMapping(value = "/verificationconf", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    byte[] getVerificationConf();
+
 }

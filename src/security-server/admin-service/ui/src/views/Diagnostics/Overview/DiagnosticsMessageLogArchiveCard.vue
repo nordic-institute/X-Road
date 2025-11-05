@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,121 +25,123 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card
-    variant="flat"
-    class="xrd-card diagnostic-card"
+  <XrdCard
+    title="diagnostics.encryption.messageLog.archive.title"
+    class="overview-card"
     :class="{ disabled: !messageLogEnabled }"
   >
-    <v-card-text class="xrd-card-text">
-      <v-row no-gutters class="px-4">
-        <v-col>
-          <h3 :class="{ disabled: !messageLogEnabled }">
-            {{ $t('diagnostics.encryption.messageLog.archive.title') }}
-          </h3>
-        </v-col>
-        <v-col v-if="!messageLogEnabled" class="text-right disabled">
-          {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
-        </v-col>
-      </v-row>
-
-      <div v-if="messageLogEncryptionDiagnostics">
-        <div
-          class="sub-title status-wrapper"
-          data-test="message-log-archive-encryption-status"
+    <template v-if="!messageLogEnabled" #append-title>
+      <XrdStatusChip
+        type="inactive"
+        text="diagnostics.addOnStatus.messageLogDisabled"
+      />
+    </template>
+    <div v-if="messageLogEncryptionDiagnostics">
+      <div
+        class="status pl-4 pb-4"
+        data-test="message-log-archive-encryption-status"
+      >
+        <span class="mr-2">
+          {{ $t('diagnostics.encryption.statusTitle') }}
+        </span>
+        <XrdStatusChip
+          :type="messageLogEncryptionStatusType"
+          :text="`diagnostics.encryption.status.${messageLogArchiveEncryptionStatus}`"
         >
-          <span>
-            {{ $t('diagnostics.encryption.statusTitle') }}
-          </span>
-          <xrd-status-icon
-            :status="
-              messageLogEncryptionStatusIconType(
-                messageLogEncryptionDiagnostics.message_log_archive_encryption_status,
-              )
-            "
-          />
-          {{
-            $t(
-              `diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_archive_encryption_status}`,
-            )
-          }}
-          <span class="group-name">
-            {{ $t('diagnostics.encryption.messageLog.archive.groupingTitle') }}
-          </span>
-          {{ messageLogEncryptionDiagnostics.message_log_grouping_rule }}
-        </div>
-        <table
-          v-if="
-            messageLogEncryptionDiagnostics.message_log_archive_encryption_status
-          "
-          class="xrd-table"
-          data-test="member-encryption-status"
-        >
-          <thead>
-            <tr>
-              <th>
-                {{
-                  $t(
-                    'diagnostics.encryption.messageLog.archive.memberIdentifier',
-                  )
-                }}
-              </th>
-              <th>
-                {{ $t('diagnostics.encryption.messageLog.archive.keyId') }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="member in messageLogEncryptionDiagnostics.members"
-              :key="member.member_id"
-            >
-              <td :class="{ disabled: !messageLogEnabled }">
-                {{ member.member_id }}
-              </td>
-              <td
-                class="status-wrapper"
-                :class="{ disabled: !messageLogEnabled }"
-              >
-                {{ $filters.commaSeparate(member.keys ?? []) }}
-                <v-tooltip
-                  v-if="member.default_key_used"
-                  max-width="267px"
-                  location="right"
-                >
-                  <template #activator="{ props }">
-                    <xrd-icon-base
-                      v-bind="props"
-                      :class="messageLogEncryptionTooltipIconType"
-                    >
-                      <xrd-icon-error />
-                    </xrd-icon-base>
-                  </template>
-                  <span>{{
-                    $t(
-                      'diagnostics.encryption.messageLog.archive.defaultKeyNote',
-                    )
-                  }}</span>
-                </v-tooltip>
-              </td>
-            </tr>
-            <XrdEmptyPlaceholderRow
-              :colspan="2"
-              :loading="messageLogEncryptionLoading || addonStatusLoading"
-              :data="messageLogEncryptionDiagnostics.members"
-              :no-items-text="$t('noData.noData')"
+          <template #icon>
+            <XrdStatusIcon
+              class="mr-1 ml-n1"
+              :status="messageLogEncryptionStatusIcon"
             />
-          </tbody>
-        </table>
+          </template>
+        </XrdStatusChip>
+        <span class="group-name ml-2">
+          {{
+            $t('diagnostics.encryption.messageLog.archive.groupingTitle')
+          }}&nbsp;
+        </span>
+        <span class="font-weight-bold">
+          {{ messageLogEncryptionDiagnostics.message_log_grouping_rule }}
+        </span>
       </div>
-    </v-card-text>
-  </v-card>
+      <v-table
+        v-if="messageLogArchiveEncryptionStatus"
+        class="xrd"
+        data-test="member-encryption-status"
+      >
+        <thead>
+          <tr>
+            <th>
+              {{
+                $t('diagnostics.encryption.messageLog.archive.memberIdentifier')
+              }}
+            </th>
+            <th>
+              {{ $t('diagnostics.encryption.messageLog.archive.keyId') }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="member in messageLogEncryptionDiagnostics.members"
+            :key="member.member_id"
+          >
+            <td :class="{ disabled: !messageLogEnabled }">
+              {{ member.member_id }}
+            </td>
+            <td
+              class="status-wrapper"
+              :class="{ disabled: !messageLogEnabled }"
+            >
+              {{ $filters.commaSeparate(member.keys ?? []) }}
+              <v-tooltip
+                v-if="member.default_key_used"
+                location="right"
+                max-width="280"
+                content-class="bg-inverse-surface"
+              >
+                <template #activator="{ props }">
+                  <XrdStatusChip
+                    v-bind="props"
+                    type="warning"
+                    text="warning"
+                    :class="messageLogEncryptionTooltipIconType"
+                  />
+                </template>
+                {{
+                  $t('diagnostics.encryption.messageLog.archive.defaultKeyNote')
+                }}
+              </v-tooltip>
+            </td>
+          </tr>
+          <XrdEmptyPlaceholderRow
+            :colspan="2"
+            :loading="messageLogEncryptionLoading || addonStatusLoading"
+            :data="messageLogEncryptionDiagnostics.members"
+            :no-items-text="$t('noData.noData')"
+          />
+        </tbody>
+      </v-table>
+    </div>
+  </XrdCard>
 </template>
 <script lang="ts">
 import { mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { defineComponent } from 'vue';
+import {
+  XrdCard,
+  XrdStatusChip,
+  statusToType,
+  StatusType,
+} from '@niis/shared-ui';
+
+type Status = 'ok' | 'pending' | 'error';
+type Disabled = `${Status}-disabled`;
+type StatusAndDisabled = Status | Disabled;
 
 export default defineComponent({
+  components: { XrdStatusChip, XrdCard },
   props: {
     addonStatusLoading: {
       type: Boolean,
@@ -152,20 +155,25 @@ export default defineComponent({
       'messageLogEnabled',
       'messageLogEncryptionDiagnostics',
     ]),
-    messageLogEncryptionTooltipIconType(): string {
-      return this.messageLogEnabled === false ? 'disabled' : 'warning-icon';
+    messageLogArchiveEncryptionStatus() {
+      return this.messageLogEncryptionDiagnostics
+        ?.message_log_archive_encryption_status;
     },
-  },
-  methods: {
-    messageLogEncryptionStatusIconType(enabled: boolean): string {
+    messageLogEncryptionTooltipIconType(): string {
+      return !this.messageLogEnabled ? 'disabled' : 'warning-icon';
+    },
+    messageLogEncryptionStatusType(): StatusType {
+      return statusToType(this.messageLogEncryptionStatusIcon);
+    },
+    messageLogEncryptionStatusIcon(): StatusAndDisabled {
       if (this.messageLogEnabled) {
-        return this.encryptionStatusIconType(enabled);
+        return this.encryptionStatusIcon;
       } else {
-        return this.encryptionStatusIconType(enabled) + '-disabled';
+        return (this.encryptionStatusIcon + '-disabled') as Disabled;
       }
     },
-    encryptionStatusIconType(enabled: boolean): string {
-      switch (enabled) {
+    encryptionStatusIcon(): Status {
+      switch (this.messageLogArchiveEncryptionStatus) {
         case true:
           return 'ok';
         case false:
@@ -175,66 +183,22 @@ export default defineComponent({
       }
     },
   },
+  methods: {},
 });
 </script>
 <style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables';
-
-h3 {
-  color: colors.$Black100;
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 2rem;
-}
-
 .disabled {
-  cursor: not-allowed;
-  background: colors.$Black10;
-  color: colors.$WarmGrey100;
-}
-
-.xrd-card-text {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.diagnostic-card {
-  width: 100%;
-  margin-bottom: 30px;
-
-  &:first-of-type {
-    margin-top: 40px;
+  :deep(.v-card-title),
+  :deep(.v-card-text),
+  :deep(.v-table__wrapper) {
+    background-color: rgba(var(--v-theme-on-surface-variant), 0.08) !important;
   }
-}
 
-.status-wrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.sub-title {
-  margin-top: 30px;
-  margin-left: 16px;
-
-  font-style: normal;
-  font-weight: bold;
-  font-size: colors.$DefaultFontSize;
-  line-height: 20px;
-  color: colors.$Black100;
-
-  span {
-    font-style: normal;
-    font-weight: normal;
-    font-size: colors.$DefaultFontSize;
-    line-height: 20px;
-    padding-right: 16px;
+  :deep(.component-title-text),
+  .status,
+  th,
+  td {
+    opacity: 0.6;
   }
-}
-
-.group-name {
-  padding-left: 32px;
 }
 </style>

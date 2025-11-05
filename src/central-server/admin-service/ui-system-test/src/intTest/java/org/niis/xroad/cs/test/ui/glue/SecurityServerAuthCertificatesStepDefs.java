@@ -91,26 +91,26 @@ public class SecurityServerAuthCertificatesStepDefs extends BaseUiStepDefs {
 
     @Step("user cannot delete Authentication certificate")
     public void deleteButtonIsDisable() {
-        securityServerAuthCertificatesPageObj.getDeleteDialog().deleteButton()
+        securityServerAuthCertificatesPageObj.getDeleteDialog().btnDelete()
                 .shouldBe(visible)
                 .shouldNotBe(enabled);
     }
 
     @Step("closes delete Authentication certificate dialog")
     public void closeDeleteDialog() {
-        securityServerAuthCertificatesPageObj.getDeleteDialog().cancelButton()
+        securityServerAuthCertificatesPageObj.getDeleteDialog().btnCancel()
                 .shouldBe(visible, enabled)
                 .click();
 
-        securityServerAuthCertificatesPageObj.getDeleteDialog().deleteButton()
+        securityServerAuthCertificatesPageObj.getDeleteDialog().btnDelete()
                 .shouldNotBe(visible);
-        securityServerAuthCertificatesPageObj.getDeleteDialog().cancelButton()
+        securityServerAuthCertificatesPageObj.getDeleteDialog().btnCancel()
                 .shouldNotBe(visible);
     }
 
     @Step("deletes Authentication certificate")
     public void deleteAuthenticationCertificate() {
-        securityServerAuthCertificatesPageObj.getDeleteDialog().deleteButton()
+        securityServerAuthCertificatesPageObj.getDeleteDialog().btnDelete()
                 .shouldBe(visible, enabled)
                 .click();
 

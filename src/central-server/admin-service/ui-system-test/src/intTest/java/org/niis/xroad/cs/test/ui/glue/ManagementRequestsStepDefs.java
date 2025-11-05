@@ -45,7 +45,7 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSwitch;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.getSecurityServerId;
 import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.MANAGEMENT_REQUEST_ID;
@@ -89,7 +89,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     }
 
     private String orderDirectionClass(final boolean descending) {
-        return descending ? "mdi-arrow-down" : "mdi-arrow-up";
+        return descending ? "arrow_downward" : "arrow_upward";
     }
 
     @Step("the user clicks on search icon")
@@ -211,7 +211,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     @Step("the user clicks Approve button")
     public void userIsAbleToApproveManagementRequest() {
-        commonPageObj.button.btnApprove().click();
+        managementRequestsPageObj.btnApproveInDetails().click();
 
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
@@ -228,14 +228,13 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
-
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("the user clicks Decline button")
     public void userIsAbleToDeclineManagementRequest() {
-        commonPageObj.button.btnDecline().click();
+        managementRequestsPageObj.btnDeclineInDetails().click();
 
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
@@ -257,17 +256,17 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     @Step("the option to show only pending requests is selected")
     public void showOnlyPendingRequestsIsSelected() {
-        vCheckbox(managementRequestsPageObj.showOnlyPendingRequests()).shouldBeChecked();
+        vSwitch(managementRequestsPageObj.showOnlyPendingRequests()).shouldBeOn();
     }
 
     @Step("the option to show only pending requests is not selected")
     public void showOnlyPendingRequestsIsNotSelected() {
-        vCheckbox(managementRequestsPageObj.showOnlyPendingRequests()).shouldBeUnchecked();
+        vSwitch(managementRequestsPageObj.showOnlyPendingRequests()).shouldBeOff();
     }
 
     @Step("the user clicks the checkbox to show only pending requests")
     public void showOnlyPendingRequestsIsClicked() {
-        vCheckbox(managementRequestsPageObj.showOnlyPendingRequests()).click();
+        vSwitch(managementRequestsPageObj.showOnlyPendingRequests()).click();
     }
 
     @Step("the user can not see the Approve, Decline actions for requests that have already been processed")

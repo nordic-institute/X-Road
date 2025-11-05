@@ -143,8 +143,8 @@ archUnit {
   preConfiguredRules = listOf(
 // These rules are disabled in preparation for X-Road 8
 //    "org.niis.xroad.arch.rule.NoBeanAnnotationWithInitDestroy",
-//    "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
-//    "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
+    "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
+    "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
     "org.niis.xroad.arch.rule.NoVanillaExceptions",
   )
 }

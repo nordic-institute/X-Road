@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,40 +25,49 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
+    :disable-save="!meta.valid || !meta.dirty"
+    :loading="loading"
+    cancel-button-text="action.cancel"
+    save-button-text="action.save"
     title="systemParameters.securityServer.editDialog.title"
     data-test="security-server-address-edit-dialog"
-    save-button-text="action.save"
-    :scrollable="false"
-    :show-close="true"
-    :loading="loading"
-    :disable-save="!meta.valid || !meta.dirty"
-    @save="saveAddress"
+    submittable
     @cancel="close"
+    @save="saveAddress"
   >
     <template #content>
-      <v-text-field
-        v-bind="securityServerAddress"
-        data-test="security-server-address-edit-field"
-        :label="$t('fields.securityServerAddress')"
-        autofocus
-        variant="outlined"
-        class="dlg-row-input"
-        name="securityServerAddress"
-        :error-messages="errors.securityServerAddress"
-      />
+      <XrdFormBlock>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-bind="securityServerAddress"
+            data-test="security-server-address-edit-field"
+            class="xrd"
+            autofocus
+            :label="$t('fields.securityServerAddress')"
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import * as api from '@/util/api';
-import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { mapActions } from 'pinia';
+import {
+  XrdFormBlock,
+  XrdFormBlockRow,
+  useNotifications,
+} from '@niis/shared-ui';
+import { useSystem } from '@/store/modules/system';
 
 export default defineComponent({
+  components: {
+    XrdFormBlock,
+    XrdFormBlockRow,
+  },
   props: {
     address: {
       type: String,
@@ -66,6 +76,7 @@ export default defineComponent({
   },
   emits: ['cancel', 'addressUpdated'],
   setup(props) {
+    const { addError, addSuccessMessage } = useNotifications();
     const {
       values,
       errors,
@@ -87,6 +98,8 @@ export default defineComponent({
       resetForm,
       setFieldError,
       securityServerAddress,
+      addError,
+      addSuccessMessage,
     };
   },
   data() {
@@ -95,25 +108,22 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useSystem, ['changeSecurityServerAddress']),
     close(): void {
       this.resetForm();
       this.$emit('cancel');
     },
     saveAddress: async function () {
       this.loading = true;
-      api
-        .put('/system/server-address', {
-          address: this.values.securityServerAddress,
-        })
+      return this.changeSecurityServerAddress(this.values.securityServerAddress)
         .then(() => {
-          this.showSuccess(
-            this.$t('systemParameters.securityServer.updateSubmitted'),
+          this.addSuccessMessage(
+            'systemParameters.securityServer.updateSubmitted',
           );
           this.$emit('addressUpdated');
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
           this.close();
         })
         .finally(() => (this.loading = false));

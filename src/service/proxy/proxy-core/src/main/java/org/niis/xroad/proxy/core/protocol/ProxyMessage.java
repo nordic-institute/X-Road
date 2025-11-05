@@ -73,6 +73,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     private final String originalContentType;
     private final String originalMimeBoundary;
+    private final String tmpDir;
 
     private SoapMessageImpl soapMessage;
     @Getter
@@ -96,9 +97,10 @@ public class ProxyMessage implements ProxyMessageConsumer {
      *
      * @param originalContentType the original content type.
      */
-    public ProxyMessage(String originalContentType) {
+    public ProxyMessage(String originalContentType, String tmpDir) {
         this.originalContentType = originalContentType;
         this.originalMimeBoundary = HeaderValueUtils.getBoundary(originalContentType);
+        this.tmpDir = tmpDir;
     }
 
     /**
@@ -203,7 +205,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     @Override
     public void restBody(InputStream content) throws IOException {
         assert (restBodyCache == null);
-        restBodyCache = new CachingStream();
+        restBodyCache = new CachingStream(tmpDir);
         IOUtils.copyLarge(content, restBodyCache);
     }
 
@@ -211,7 +213,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders) throws IOException {
         log.trace("Attachment: {}", contentType);
 
-        CachingStream attachmentCacheStream = new CachingStream();
+        CachingStream attachmentCacheStream = new CachingStream(tmpDir);
         IOUtils.copyLarge(content, attachmentCacheStream);
         attachmentCache.add(new Attachment(contentType, attachmentCacheStream, additionalHeaders));
     }

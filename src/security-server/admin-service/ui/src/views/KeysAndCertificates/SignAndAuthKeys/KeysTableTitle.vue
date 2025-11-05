@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,33 +25,59 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="table-title" :class="{ 'table-closed': !arrowState }">
-    <div class="title-text" data-test="key-title-sort" @click="arrowClick">
-      <v-btn icon variant="text">
-        <xrd-icon-base v-if="arrowState">
-          <xrd-icon-sorting-arrow />
-        </xrd-icon-base>
-        <xrd-icon-base v-else class="arrow-degree">
-          <xrd-icon-sorting-arrow />
-        </xrd-icon-base>
-      </v-btn>
+  <div
+    class="table-title cursor-pointer d-flex flex-row align-center pt-2 pb-2 pl-4 pr-4"
+    :class="{ 'table-closed': !arrowState }"
+  >
+    <div
+      class="title-text font-weight-medium"
+      data-test="key-title-sort"
+      @click="arrowClick"
+    >
+      <v-btn
+        class="opacity-100"
+        variant="plain"
+        color="primary"
+        :icon="icon"
+        :ripple="false"
+      />
 
       {{ title }}
     </div>
-    <div class="status-wrap">
-      <div v-if="errors > 0" class="errors">
-        <xrd-icon-base color="red">
-          <xrd-icon-error />
-        </xrd-icon-base>
-        {{ errors }}
-        {{ $t('keys.globalErrors') }}
-      </div>
-      <div v-else-if="registered === certificateCount" class="registered">
-        <xrd-icon-base color="green">
-          <xrd-icon-checked />
-        </xrd-icon-base>
-        {{ $t('keys.noIssues') }}
-      </div>
+    <v-spacer />
+    <div v-if="errors > 0" class="errors">
+      <v-chip
+        class="xrd"
+        density="compact"
+        color="error-container"
+        variant="flat"
+      >
+        <template #prepend>
+          <v-icon class="mr-1 ml-n1" icon="error" color="error" />
+        </template>
+        <span class="font-weight-medium body-small">
+          {{ $t('keys.globalErrors') }}
+        </span>
+      </v-chip>
+    </div>
+    <div v-else-if="registered === certificateCount" class="registered">
+      <v-chip
+        class="xrd"
+        density="compact"
+        color="success-container"
+        variant="flat"
+      >
+        <template #prepend>
+          <v-icon
+            class="mr-1 ml-n1"
+            icon="check_circle filled"
+            color="success"
+          />
+        </template>
+        <span class="font-weight-medium body-small">
+          {{ $t('keys.noIssues') }}
+        </span>
+      </v-chip>
     </div>
   </div>
 </template>
@@ -58,11 +85,10 @@
 <script lang="ts">
 // View for a token
 import { defineComponent, PropType } from 'vue';
-import { Colors, XrdIconChecked, XrdIconError } from '@niis/shared-ui';
+import { Colors } from '@niis/shared-ui';
 import { CertificateStatus, Key, TokenCertificate } from '@/openapi-types';
 
 export default defineComponent({
-  components: { XrdIconError, XrdIconChecked },
   props: {
     keys: {
       type: Array as PropType<Key[]>,
@@ -86,7 +112,11 @@ export default defineComponent({
       colors: Colors,
     };
   },
-  computed: {},
+  computed: {
+    icon() {
+      return this.arrowState ? 'keyboard_arrow_down' : 'chevron_right';
+    },
+  },
   created() {
     this.countStates();
   },
@@ -111,44 +141,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-@use '@niis/shared-ui/src/assets/colors';
-
-.status-wrap {
-  text-transform: uppercase;
-  font-size: 12px;
-  font-weight: 700;
-  color: colors.$WarmGrey100;
-}
-
-.errors {
-  color: colors.$Error;
-}
-
-.table-title {
-  margin-top: -1px; // avoid double 2px border with multiple components
-  width: 100%;
-  border-top: 1px solid colors.$WarmGrey30;
-  padding: 10px;
-  padding-right: 20px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  height: 100%;
-  align-items: center;
-
-  .title-text {
-    cursor: pointer;
-  }
-}
-
-.table-closed {
-  // Show bottom border only when table is closed
-  border-bottom: 1px solid colors.$WarmGrey30;
-}
-
-.arrow-degree {
-  transform: translate(-4px) rotate(-90deg);
-}
-</style>
+<style lang="scss" scoped></style>

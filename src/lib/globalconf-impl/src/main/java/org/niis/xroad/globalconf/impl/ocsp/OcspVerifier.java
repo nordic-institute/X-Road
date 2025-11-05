@@ -26,13 +26,11 @@
 package org.niis.xroad.globalconf.impl.ocsp;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
@@ -60,8 +58,8 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
@@ -85,34 +83,19 @@ public final class OcspVerifier {
 
     private final OcspVerifierOptions options;
 
-    private static final Cache<String, SingleResp> RESPONSE_VALIDITY_CACHE;
+    private final Cache<String, SingleResp> responseValidityCache;
 
-    private static final int RESPONSE_VALIDITY_CACHE_MAX_SIZE = 1000;
-
-    static {
-        RESPONSE_VALIDITY_CACHE = CacheBuilder.newBuilder()
-                .expireAfterWrite(SystemProperties.getOcspVerifierCachePeriod(),
-                        TimeUnit.SECONDS)
-                .maximumSize(RESPONSE_VALIDITY_CACHE_MAX_SIZE)
-                .build();
+    OcspVerifier(GlobalConfProvider globalConfProvider, Cache<String, SingleResp> responseValidityCache) {
+        this(globalConfProvider, null, responseValidityCache);
     }
 
-    public OcspVerifier(GlobalConfProvider globalConfProvider) {
-        this(globalConfProvider, null);
-    }
-
-    /**
-     * Constructor
-     */
-    public OcspVerifier(GlobalConfProvider globalConfProvider, OcspVerifierOptions options) {
+    OcspVerifier(GlobalConfProvider globalConfProvider, OcspVerifierOptions options,
+                 Cache<String, SingleResp> responseValidityCache) {
         this.globalConfProvider = globalConfProvider;
+        this.responseValidityCache = responseValidityCache;
         this.ocspFreshnessSeconds = globalConfProvider.getOcspFreshnessSeconds();
 
-        if (options == null) {
-            this.options = new OcspVerifierOptions(true);
-        } else {
-            this.options = options;
-        }
+        this.options = Objects.requireNonNullElseGet(options, () -> new OcspVerifierOptions(true));
     }
 
     /**
@@ -155,7 +138,7 @@ public final class OcspVerifier {
      * @param subject  the certificate to verify
      * @param issuer   the issuer of the subject certificate
      * @throws XrdRuntimeException CodedException with appropriate error code
-     *                   if verification fails.
+     *                             if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
                                X509Certificate issuer) {
@@ -217,7 +200,7 @@ public final class OcspVerifier {
                                                     final X509Certificate issuer) {
         try {
             final String key = response.hashCode() + ":" + subject.hashCode() + ":" + issuer.hashCode();
-            return RESPONSE_VALIDITY_CACHE.get(key, () -> verifyResponseValidity(response, subject, issuer));
+            return responseValidityCache.get(key, () -> verifyResponseValidity(response, subject, issuer));
         } catch (ExecutionException | UncheckedExecutionException e) {
             throw XrdRuntimeException.systemException(e.getCause());
         }

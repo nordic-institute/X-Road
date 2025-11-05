@@ -56,6 +56,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.http.HttpField;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.proxy.core.signedmessage.Verifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,9 +136,10 @@ public class ProxyMessageDecoder {
      * @param contentType        expected content type of the input stream
      * @param hashAlgoId         hash algorithm id used when hashing parts
      */
-    public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, ProxyMessageConsumer callback,
+    public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                               ProxyMessageConsumer callback,
                                String contentType, DigestAlgorithm hashAlgoId) {
-        this(globalConfProvider, callback, contentType, true, hashAlgoId);
+        this(globalConfProvider, ocspVerifierFactory, callback, contentType, true, hashAlgoId);
     }
 
     /**
@@ -150,7 +152,8 @@ public class ProxyMessageDecoder {
      *                           should be thrown
      * @param hashAlgoId         hash algorithm id used when hashing parts
      */
-    public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, ProxyMessageConsumer callback,
+    public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                               ProxyMessageConsumer callback,
                                String contentType, boolean faultAllowed, DigestAlgorithm hashAlgoId) {
         LOG.trace("new ProxyMessageDecoder({}, {})", contentType, hashAlgoId);
 
@@ -158,7 +161,7 @@ public class ProxyMessageDecoder {
         this.contentType = contentType;
         this.faultAllowed = faultAllowed;
         this.hashAlgoId = hashAlgoId;
-        this.verifier = new Verifier(globalConfProvider);
+        this.verifier = new Verifier(globalConfProvider, ocspVerifierFactory);
     }
 
     /**
@@ -432,13 +435,13 @@ public class ProxyMessageDecoder {
             private String partContentType;
 
             @Override
-            public void startHeader() throws MimeException {
+            public void startHeader() {
                 headers = new HashMap<>();
                 partContentType = null;
             }
 
             @Override
-            public void field(Field field) throws MimeException {
+            public void field(Field field) {
                 if (field.getName().equalsIgnoreCase(
                         HEADER_CONTENT_TYPE)) {
                     partContentType = field.getBody();
@@ -453,8 +456,7 @@ public class ProxyMessageDecoder {
             }
 
             @Override
-            public void body(BodyDescriptor bd, InputStream is)
-                    throws IOException {
+            public void body(BodyDescriptor bd, InputStream is) {
                 LOG.trace("attachment body: {}", bd.getMimeType());
                 try {
                     DigestCalculator dc =

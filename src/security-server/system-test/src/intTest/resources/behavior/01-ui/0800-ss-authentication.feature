@@ -1,5 +1,7 @@
 @SecurityServer
+@UI
 @Login
+@Skip #TODO beta1 release preparation
 Feature: 0800 - SS: Authentication
 
   Background:

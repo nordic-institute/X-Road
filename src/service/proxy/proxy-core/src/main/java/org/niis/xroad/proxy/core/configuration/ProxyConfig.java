@@ -25,111 +25,82 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
-import org.niis.xroad.globalconf.impl.cert.CertHelper;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
-import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
-import org.niis.xroad.proxy.core.auth.AuthKeyChangeManager;
-import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
-import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
-import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
-import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
-import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
-import org.niis.xroad.proxy.core.signature.BatchSigner;
-import org.niis.xroad.proxy.core.signature.MessageSigner;
-import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponder;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
-@Import({
-        ProxyRpcConfig.class,
-        ProxyAdminPortConfig.class,
-        ProxyAddonConfig.class,
-        ProxyDiagnosticsConfig.class,
-        ProxyJobConfig.class,
-        ProxyMessageLogConfig.class,
-        ProxyOpMonitoringConfig.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class,
-        ServerConfBeanConfig.class,
-})
-@Configuration
-@ArchUnitSuppressed("NoVanillaExceptions")
+import io.quarkus.vault.VaultPKISecretEngineFactory;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
+import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
+import org.niis.xroad.serverconf.impl.ServerConfFactory;
+
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
+
+@Slf4j
 public class ProxyConfig {
 
-    @Bean
-    MessageSigner messageSigner(SignerRpcClient signerRpcClient) {
-        return new BatchSigner(signerRpcClient);
+    @ApplicationScoped
+    public static class OpMonitoringBufferInitializer {
+
+        @ApplicationScoped
+        public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, ProxyTlsProperties tlsProperties) {
+            return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
+        }
+
+        @ApplicationScoped
+        public OpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider,
+                                                     ProxyProperties proxyProperties,
+                                                     VaultClient vaultClient)
+                throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
+                InvalidKeySpecException, KeyManagementException {
+
+            if (proxyProperties.addon().opMonitor().enabled()) {
+                log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
+                var opMonitoringBuffer = new OpMonitoringBufferImpl(
+                        serverConfProvider, proxyProperties.addon().opMonitor(), vaultClient,
+                        proxyProperties.clientProxy().poolEnableConnectionReuse());
+                opMonitoringBuffer.init();
+                return opMonitoringBuffer;
+            } else {
+                log.debug("Initializing NoOpMonitoringBuffer");
+                return new NoOpMonitoringBuffer();
+            }
+        }
+
+        public void cleanup(@Disposes OpMonitoringBuffer opMonitoringBuffer) {
+            if (opMonitoringBuffer instanceof OpMonitoringBufferImpl impl)
+                impl.destroy();
+        }
+
     }
 
-    @Bean
-    SigningCtxProvider signingCtxProvider(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                          MessageSigner messageSigner) {
-        return new SigningCtxProviderImpl(globalConfProvider, keyConfProvider, messageSigner);
+
+    @ApplicationScoped
+    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
+                                          ServerConfCommonProperties serverConfProperties,
+                                          GlobalConfProvider globalConfProvider,
+                                          VaultClient vaultClient) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
     }
 
-    @Bean
-    CommonBeanProxy commonBeanProxy(GlobalConfProvider globalConfProvider,
-                                    KeyConfProvider keyConfProvider,
-                                    SigningCtxProvider signingCtxProvider,
-                                    ServerConfProvider serverConfProvider,
-                                    CertChainFactory certChainFactory,
-                                    CertHelper certHelper) {
-        return new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, signingCtxProvider, certChainFactory,
-                certHelper);
+    @ApplicationScoped
+    ExternalProcessRunner externalProcessRunner() {
+        return new ExternalProcessRunner();
     }
 
-    @Bean
-    ClientProxy clientProxy(CommonBeanProxy commonBeanProxy,
-                            GlobalConfProvider globalConfProvider,
-                            KeyConfProvider keyConfProvider,
-                            ServerConfProvider serverConfProvider,
-                            AuthTrustVerifier authTrustVerifier) throws Exception {
-        return new ClientProxy(commonBeanProxy, globalConfProvider, keyConfProvider, serverConfProvider, authTrustVerifier);
-    }
-
-    @Bean
-    CertHelper certHelper(GlobalConfProvider globalConfProvider) {
-        return new CertHelper(globalConfProvider);
-    }
-
-    @Bean
-    CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
-        return new CertChainFactory(globalConfProvider);
-    }
-
-    @Bean
-    AuthTrustVerifier authTrustVerifier(KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
-        return new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
-    }
-
-    @Bean
-    ServerProxy serverProxy(CommonBeanProxy commonBeanProxy) throws Exception {
-        return new ServerProxy(commonBeanProxy);
-    }
-
-    @Bean
-    CertHashBasedOcspResponder certHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
-        return new CertHashBasedOcspResponder(keyConfProvider);
-    }
-
-    @Bean
-    KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                    SignerRpcClient signerRpcClient) throws Exception {
-        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
-    }
-
-    @Bean
-    AuthKeyChangeManager authKeyChangeManager(KeyConfProvider keyConfProvider, ClientProxy clientProxy, ServerProxy serverProxy) {
-        return new AuthKeyChangeManager(keyConfProvider, clientProxy, serverProxy);
-    }
 }

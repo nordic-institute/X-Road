@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -44,6 +45,8 @@ public class ClientPageObj {
     public final AddClientCsrDetails addClientCsrDetails = new AddClientCsrDetails();
     public final AddClientGenerateCsr addClientGenerateCsr = new AddClientGenerateCsr();
     public final AddClientFinish addClientFinish = new AddClientFinish();
+    public final SelectSubsystemDialog selectSubsystemDialog = new SelectSubsystemDialog();
+    public final SelectClientDialog selectClientDialog = new SelectClientDialog();
 
     public SelenideElement btnSearch() {
         return $x("//*[contains(@class, 'mdi-magnify')]");
@@ -72,10 +75,10 @@ public class ClientPageObj {
     public SelenideElement tableRowWithNameAndStatus(String name, String status, String id) {
         var matchers = new ArrayList<String>(2);
         Optional.ofNullable(name)
-                .map("td[@data-test='client-name']//span[text()='%s']"::formatted)
+                .map("td[@data-test='client-name']//span/span[text()='%s']"::formatted)
                 .ifPresent(matchers::add);
         Optional.ofNullable(status)
-                .map("td[@data-test='client-status']//*[text()='%s']"::formatted)
+                .map("td[@data-test='client-status']//span[text()='%s']"::formatted)
                 .ifPresent(matchers::add);
 
         Optional.ofNullable(id)
@@ -104,14 +107,6 @@ public class ClientPageObj {
     public static class Subsystem {
         public SelenideElement btnSelect() {
             return $x("//button[@data-test='select-subsystem-button']");
-        }
-
-        public SelenideElement btnSelectDialogSave() {
-            return $x("//button[@data-test='select-client-save-button']");
-        }
-
-        public SelenideElement radioSubsystemById(String id) {
-            return $x(format("//tbody//tr[td[3][contains(text(),'%s')] ]//div[@class ='v-selection-control__input']", id));
         }
 
         public SelenideElement memberNameValue() {
@@ -148,17 +143,16 @@ public class ClientPageObj {
 
     }
 
+    public static class SelectSubsystemDialog extends Dialog {
+
+        public SelenideElement radioSubsystemById(String id) {
+            return $x(format("//tbody//tr[td[3][contains(.,'%s')] ]//div[contains(@class, 'v-radio')]", id));
+        }
+    }
+
     public static class AddClientDetails {
         public SelenideElement btnSelectClient() {
             return $x("//button[@data-test='select-client-button']");
-        }
-
-        public SelenideElement radioClientById(String id) {
-            return $x(format("//tbody//tr[td[3][contains(text(),'%s')] ]//div[@class='v-selection-control__input']", id));
-        }
-
-        public SelenideElement btnAddSelected() {
-            return $x("//button[@data-test='select-client-save-button']");
         }
 
         public SelenideElement selectMemberClass() {
@@ -183,11 +177,17 @@ public class ClientPageObj {
 
     }
 
+    public static class SelectClientDialog extends Dialog {
+
+        public SelenideElement radioClientById(String id) {
+            return $x(format("//tbody//tr[td[3][contains(.,'%s')] ]//div[contains(@class, 'v-radio')]", id));
+        }
+    }
 
     public static class AddClientToken {
 
         public SelenideElement radioByTokenName(String name) {
-            return $x(format("//div[.//label[text()='Token softToken-0'] and @data-test='token-radio-button']", name));
+            return $x(format("//tr[td[2][contains(., '%s')]]//div[@data-test='token-radio-button']", name));
         }
 
         public SelenideElement btnNext() {

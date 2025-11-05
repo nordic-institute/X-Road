@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,11 +26,10 @@
  -->
 <template>
   <xrd-simple-dialog
-    v-if="dialog"
     title="warning"
+    hide-close
     :cancel-button-text="cancelButtonText"
     :save-button-text="acceptButtonText"
-    :show-close="false"
     :loading="loading"
     @save="accept"
     @cancel="cancel"
@@ -55,10 +55,6 @@ import { CodeWithDetails } from '@/openapi-types';
 
 export default defineComponent({
   props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
     localizationParent: {
       type: String,
       required: true,

@@ -1,0 +1,9 @@
+serviceAccount:
+  name: "openbao-init-sa"
+  create: true
+
+image: "dwdraju/alpine-curl-jq"
+openbao:
+  addr: "https://openbao:8200"
+  threshold: 3
+  shares: 5

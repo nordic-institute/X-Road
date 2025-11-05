@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,24 +25,22 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdAppLogin ref="loginForm" :loading @login="submit">
-    <template #top>
-      <AlertsContainer class="alerts" />
-    </template>
-  </XrdAppLogin>
+  <XrdAppLogin ref="loginForm" :loading @login="submit" />
 </template>
 
 <script lang="ts">
-import { Permissions, RouteName } from '@/global';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import axios, { AxiosError } from 'axios';
-import { mapActions, mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
-import { useSystem } from '@/store/modules/system';
-import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
-import { XrdAppLogin } from '@niis/shared-ui';
-import { loading } from 'happy-dom/lib/PropertySymbol.d.ts.js';
+
+import { mapActions, mapState } from 'pinia';
+
+import axios, { AxiosError } from 'axios';
+
+import { XrdAppLogin, useNotifications } from '@niis/shared-ui';
+
+import { Permissions, RouteName } from '@/global';
+import { useSystem } from '@/store/modules/system';
+import { useUser } from '@/store/modules/user';
+import { useMainTabs } from '@/store/modules/main-tabs';
 
 interface Form {
   clearForm(): void;
@@ -52,7 +51,11 @@ interface Form {
 export default defineComponent({
   components: {
     XrdAppLogin,
-    AlertsContainer,
+  },
+  setup() {
+    const { addError, addSuccessMessage, clear, addErrorMessage } =
+      useNotifications();
+    return { addError, addSuccessMessage, clear, addErrorMessage };
   },
   data() {
     return {
@@ -60,9 +63,9 @@ export default defineComponent({
     };
   },
   computed: {
+    ...mapState(useMainTabs, ['firstAllowedTab']),
     ...mapState(useUser, [
       'hasPermission',
-      'firstAllowedTab',
       'hasInitState',
       'needsInitialization',
     ]),
@@ -79,16 +82,12 @@ export default defineComponent({
     ...mapActions(useSystem, [
       'fetchSecurityServerVersion',
       'fetchSecurityServerNodeType',
+      'fetchAuthenticationProviderType',
       'clearSystemStore',
-    ]),
-    ...mapActions(useNotifications, [
-      'showError',
-      'showErrorMessage',
-      'clearErrorNotifications',
     ]),
     async submit(username: string, password: string) {
       // Clear error notifications when route is changed
-      this.clearErrorNotifications();
+      this.clear();
 
       /* Clear user data so there is nothing left from previous sessions.
        For example user has closed browser tab without loggin out > user data is left in browser local storage */
@@ -111,10 +110,10 @@ export default defineComponent({
 
             loginForm.addErrors(this.$t('login.errorMsg401'));
           }
-          this.showErrorMessage(this.$t('login.generalError'));
+          this.addErrorMessage('login.generalError');
         } else {
           if (error instanceof Error) {
-            this.showErrorMessage(error.message);
+            this.addError(error.message);
           } else {
             throw error;
           }
@@ -131,8 +130,9 @@ export default defineComponent({
         await this.fetchInitializationData(); // Used to be inside fetchUserData()
         await this.fetchSecurityServerVersion();
         await this.fetchSecurityServerNodeType();
+        await this.fetchAuthenticationProviderType();
       } catch (error) {
-        this.showError(error as AxiosError);
+        this.addError(error as AxiosError);
       }
 
       // Clear loading state
@@ -148,9 +148,7 @@ export default defineComponent({
       await this.fetchInitializationStatus();
       await this.fetchSecurityServerNodeType();
       if (!this.hasInitState) {
-        this.showErrorMessage(
-          this.$t('initialConfiguration.noInitializationStatus'),
-        );
+        this.addErrorMessage('initialConfiguration.noInitializationStatus');
         await redirectToLogin();
       } else if (this.needsInitialization) {
         // Check if the user has permission to initialize the server
@@ -170,14 +168,4 @@ export default defineComponent({
   },
 });
 </script>
-<style lang="scss" scoped>
-.alerts {
-  top: 40px;
-  left: 0;
-  right: 0;
-  margin-left: auto;
-  margin-right: auto;
-  z-index: 100;
-  position: absolute;
-}
-</style>
+<style lang="scss" scoped></style>

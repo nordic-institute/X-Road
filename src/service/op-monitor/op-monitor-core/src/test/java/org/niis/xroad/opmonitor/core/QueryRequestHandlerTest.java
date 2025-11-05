@@ -46,6 +46,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 import org.w3c.dom.Element;
 
 import java.io.ByteArrayOutputStream;
@@ -53,6 +54,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,6 +63,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.formatFullOperationalDataAsJson;
 
@@ -97,8 +100,10 @@ public class QueryRequestHandlerTest {
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(
                 MimeTypes.TEXT_XML_UTF8, is);
+        OpMonitorProperties opMonitorProperties = mock(OpMonitorProperties.class);
 
-        QueryRequestHandler handler = new OperationalDataRequestHandler(mock(GlobalConfProvider.class)) {
+        QueryRequestHandler handler = new OperationalDataRequestHandler(mock(GlobalConfProvider.class),
+                mock(OperationalDataRecordManager.class), opMonitorProperties) {
             @Override
             protected OperationalDataRecords getOperationalDataRecords(
                     ClientId filterByClient, long recordsFrom, long recordsTo,
@@ -124,8 +129,7 @@ public class QueryRequestHandlerTest {
                 new SoapMessageDecoder.Callback() {
 
                     @Override
-                    public void soap(SoapMessage message, Map<String, String> headers)
-                            throws Exception {
+                    public void soap(SoapMessage message, Map<String, String> headers) {
                         assertEquals("cid:" + OperationalDataRequestHandler.CID,
                                 findRecordsContentId(message));
                     }
@@ -149,12 +153,12 @@ public class QueryRequestHandlerTest {
                     }
 
                     @Override
-                    public void fault(SoapFault fault) throws Exception {
+                    public void fault(SoapFault fault) {
                         throw fault.toCodedException();
                     }
                 });
 
-        decoder.parse(IOUtils.toInputStream(out.toString()));
+        decoder.parse(IOUtils.toInputStream(out.toString(), Charset.defaultCharset()));
     }
 
     @SneakyThrows
@@ -176,9 +180,11 @@ public class QueryRequestHandlerTest {
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(
                 MimeTypes.TEXT_XML_UTF8, is);
-
+        OpMonitorProperties opMonitorCommonProperties = mock(OpMonitorProperties.class);
+        when(opMonitorCommonProperties.healthStatisticsPeriodSeconds()).thenReturn(600);
+        HealthDataMetrics healthDataMetrics = new HealthDataMetrics(opMonitorCommonProperties);
         QueryRequestHandler handler = new HealthDataRequestHandler(
-                new TestMetricsRegistry());
+                new TestMetricsRegistry(healthDataMetrics));
 
         OutputStream out = new ByteArrayOutputStream();
 
@@ -188,7 +194,7 @@ public class QueryRequestHandlerTest {
         assertEquals(MimeTypes.TEXT_XML, baseContentType);
 
         SoapMessageImpl response = (SoapMessageImpl) parser.parse(
-                MimeTypes.TEXT_XML, IOUtils.toInputStream(out.toString()));
+                MimeTypes.TEXT_XML, IOUtils.toInputStream(out.toString(), Charset.defaultCharset()));
 
         GetSecurityServerHealthDataResponseType responseData =
                 JaxbUtils.createUnmarshaller(
@@ -205,18 +211,18 @@ public class QueryRequestHandlerTest {
         assertEquals(ServiceId.Conf.create("XTEE-CI-XM", "GOV", "00000001",
                         "System1", "xroad/GetRandom", "v2"),
                 responseData.getServicesEvents().getServiceEvents()
-                        .get(0).getService());
+                        .getFirst().getService());
         assertEquals(5, responseData.getServicesEvents()
-                .getServiceEvents().get(0).getLastPeriodStatistics()
+                .getServiceEvents().getFirst().getLastPeriodStatistics()
                 .getSuccessfulRequestCount());
         assertEquals(5, responseData.getServicesEvents()
-                .getServiceEvents().get(0).getLastPeriodStatistics()
+                .getServiceEvents().getFirst().getLastPeriodStatistics()
                 .getUnsuccessfulRequestCount());
     }
 
-    private final class TestMetricsRegistry extends MetricRegistry {
-        TestMetricsRegistry() throws IOException {
-            HealthDataMetrics.registerInitialMetrics(this,
+    private static final class TestMetricsRegistry extends MetricRegistry {
+        TestMetricsRegistry(HealthDataMetrics healthDataMetrics) throws IOException {
+            healthDataMetrics.registerInitialMetrics(this,
                     () -> TEST_TIMESTAMP);
 
             List<OperationalDataRecord> records = new ArrayList<>();
@@ -246,7 +252,7 @@ public class QueryRequestHandlerTest {
                 records.add(record);
             }
 
-            HealthDataMetrics.processRecords(this, records);
+            healthDataMetrics.processRecords(this, records);
         }
 
         private OperationalDataRecord createRecord(ServiceId serviceId,

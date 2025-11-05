@@ -26,6 +26,7 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$x;
 
@@ -36,27 +37,27 @@ public class SettingsManagementServicesPageObj {
     public final EditManagementSecurityServerDialog editManagementSecurityServerDialog = new EditManagementSecurityServerDialog();
 
     public SelenideElement serviceProviderIdentifier() {
-        return $x("//td[@data-test='management-service-provider-identifier-field']");
+        return $x("//tr[@data-test='management-service-provider-identifier-field']/td[2]");
     }
 
     public SelenideElement serviceProviderName() {
-        return $x("//td[@data-test='management-service-provider-name-field']");
+        return $x("//tr[@data-test='management-service-provider-name-field']/td[2]");
     }
 
     public SelenideElement securityServer() {
-        return $x("//td[@data-test='management-security-server-field']");
+        return $x("//tr[@data-test='management-security-server-field']/td[2]");
     }
 
     public SelenideElement wsdlAddress() {
-        return $x("//td[@data-test='management-wsdl-address-field']");
+        return $x("//tr[@data-test='management-wsdl-address-field']/td[2]");
     }
 
     public SelenideElement managementServicesAddress() {
-        return $x("//td[@data-test='management-management-services-address-field']");
+        return $x("//tr[@data-test='management-management-services-address-field']/td[2]");
     }
 
     public SelenideElement ownerGroupCode() {
-        return $x("//td[@data-test='management-owner-group-code-field']");
+        return $x("//tr[@data-test='management-owner-group-code-field']/td[2]");
     }
 
     public SelenideElement wsdlAddressCopyButton() {
@@ -80,7 +81,7 @@ public class SettingsManagementServicesPageObj {
         return $x(String.format(xpath, title));
     }
 
-    public class EditManagementSubsystemDialog {
+    public class EditManagementSubsystemDialog extends Dialog {
 
         public SelenideElement search() {
             return $x("//div[@data-test='management-subsystem-search-field']");
@@ -92,11 +93,12 @@ public class SettingsManagementServicesPageObj {
         }
 
         public SelenideElement selectButton() {
-            return $x("//button[@data-test='dialog-save-button']");
+            return btnSave();
         }
     }
 
-    public class EditManagementSecurityServerDialog {
+    public class EditManagementSecurityServerDialog extends Dialog {
+
 
         public SelenideElement search() {
             return $x("//div[@data-test='management-security-server-search-field']");
@@ -108,7 +110,7 @@ public class SettingsManagementServicesPageObj {
         }
 
         public SelenideElement selectButton() {
-            return $x("//button[@data-test='dialog-save-button']");
+            return btnSave();
         }
     }
 }

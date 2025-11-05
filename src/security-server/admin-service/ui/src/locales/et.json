@@ -124,16 +124,16 @@
     "owner": "Omanik",
     "status": "Olek",
     "statusText": {
-      "deletionInProgress": "TOIMUB KUSTUTAMINE",
-      "disabled": "BLOKEERITUD",
-      "disablingInProgress": "TOIMUB BLOKEERIMINE",
-      "enablingInProgress": "TOIMUB AKTIVEERIMINE",
-      "globalError": "GLOBAALNE VIGA",
+      "deletionInProgress": "Toimub kustutamine",
+      "disabled": "Blokeeritud",
+      "disablingInProgress": "Toimub blokeerimine",
+      "enablingInProgress": "Toimub aktiveerimine",
+      "globalError": "Globaalne viga",
       "nameSet": "Nime muutus rakendub alamsüsteemi registreerimisel",
       "nameSubmitted": "Nime muutmise taotlus on saadetud",
-      "registered": "REGISTREERITUD",
-      "registrationInProgress": "TOIMUB REGISTREERIMINE",
-      "saved": "SALVESTATUD"
+      "registered": "Registreeritud",
+      "registrationInProgress": "Toimub registreerimine",
+      "saved": "Salvestatud"
     },
     "subsystemCode": "Alamsüsteemi kood",
     "subsystemName": "Alamsüsteemi nimi",
@@ -238,25 +238,25 @@
         "title": "Erinevad emaili teavituste staatused"
       },
       "recipientsEmails": "Saajate e-post aadressid",
-      "status": "Staatus",
       "sentTestMail": "Saada test meil",
+      "status": "Staatus",
       "title": "Meili teavituse staatus",
       "type": {
+        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME sertifikaadi automaatse aktiveerimise teavitused",
+        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME sertifikaadi automaatse aktiveerimise ebaõnnestumise teavitused",
         "ACME_FAILURE": "ACME tõrke teavitused",
         "ACME_SUCCESS": "ACME õnnestumise teavitused",
-        "AUTH_CERT_REGISTERED": "AUTH sertifikaadi registreerimise teavitused",
-        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME sertifikaadi automaatse aktiveerimise teavitused",
-        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME sertifikaadi automaatse aktiveerimise ebaõnnestumise teavitused"
+        "AUTH_CERT_REGISTERED": "AUTH sertifikaadi registreerimise teavitused"
       },
       "types": "Meili teavituste tüübid"
     },
     "maintenanceMode": {
-      "enableTitle": "Lülita hooldusrežiim sisse",
-      "enableConfirm": "Kas sa soovid hooldusrežiimi sisse lülitada?",
-      "enableSuccess": "Hooldusrežiimi sisse lülitamine on töös",
-      "disableTitle": "Lülita hooldusrežiim välja",
       "disableConfirm": "Kas sa soovid hooldusrežiimi välja lülitada?",
       "disableSuccess": "Hooldusrežiimi välja lülitamine on töös",
+      "disableTitle": "Lülita hooldusrežiim välja",
+      "enableConfirm": "Kas sa soovid hooldusrežiimi sisse lülitada?",
+      "enableSuccess": "Hooldusrežiimi sisse lülitamine on töös",
+      "enableTitle": "Lülita hooldusrežiim sisse",
       "forbiddenEnable": "Hooldusrežiimi ei saa haldusteenuse pakkuja jaoks sisse lülitada",
       "label": "Hooldusrežiim:",
       "status": {
@@ -306,25 +306,25 @@
       "title": "Ajatembeldus"
     },
     "traffic": {
-      "period": "Periood",
-      "periodInfo": "Vali algus ja lõpp",
-      "date": "Kuupäev",
-      "time": "Kell",
-      "party": "Osapool",
-      "partyInfo": "Teenus, alamsüsteem, liige",
       "client": "Klient",
-      "service": "Teenus",
+      "date": "Kuupäev",
+      "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks paigaldage operatiivandmete jälgimise lisandmoodul (xroad-addon-opmonitoring).",
+      "disabledTitle": "Operatiivandmete kogumine ei ole lubatud",
       "exchangeRole": "Roll",
       "exchangeRoleInfo": "Teenusepakkuja või Klient",
+      "failedRequests": "Ebaõnnestunud päringud",
+      "failure": "Ebaõnnestunud",
+      "party": "Osapool",
+      "partyInfo": "Teenus, alamsüsteem, liige",
+      "period": "Periood",
+      "periodInfo": "Vali algus ja lõpp",
       "producer": "Teenusepakkuja",
+      "service": "Teenus",
       "status": "Staatus",
       "statusInfo": "Edukad või ebaõnnestunud päringud",
       "success": "Edukas",
-      "failure": "Ebaõnnestunud",
       "successfulRequests": "Edukad päringud",
-      "failedRequests": "Ebaõnnestunud päringud",
-      "disabledTitle": "Operatiivandmete kogumine ei ole lubatud",
-      "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks paigaldage operatiivandmete jälgimise lisandmoodul (xroad-addon-opmonitoring)."
+      "time": "Kell"
     },
     "connection": {
       "ok": "Kõik on korras",
@@ -452,8 +452,8 @@
     "local_group_member_already_exists": "Lokaalse rühma liige on juba olemas",
     "local_group_member_not_found": "Lokaalse rühma liiget ei leitud",
     "local_group_not_found": "Lokaalset rühma ei leitud",
-    "malformed_anchor": "Vale vorminguga ankur",
     "maintenance_mode_change_request_already_submitted": "Hooldusrežiimi muudatus on juba ootel",
+    "malformed_anchor": "Vale vorminguga ankur",
     "malformed_url": "Vale vorminguga URL",
     "management_request_sending_failed": "Halduspäringu saatmine ebaõnnestus",
     "member_already_owner": "Liige on juba omanik",
@@ -499,7 +499,6 @@
     "wrong_servicedescription_type": "Vale teenuse kirjelduse tüüp",
     "wsdl_download_failed": "WSDL-i allalaadimine ebaõnnestus",
     "wsdl_exists": "WSDL on olemas",
-    "wsdl_validator_interrupted": "WSDL valideerimine katkestatud",
     "wsdl_validator_not_executable": "WSDL valideerimist ei saa teostada"
   },
   "fields": {
@@ -664,13 +663,13 @@
     "importCertOcspVerifyWarning": "Sertifikaati ei õnnestunud aktiveerida, sest OCSP vastust ei saanud valideerida. Veateade: {errorMessage}",
     "importCertSuccess": "Sertifikaadi üleslaadimine õnnestus",
     "incorrectPin": "Vale PIN. Palun proovige uuesti.",
-    "keyAlgorithm": "Key Algorithm:",
+    "keyAlgorithm": "Key Algorithm",
     "keyDeleted": "Võti kustutatud",
-    "keyId": "Võtme ID:",
+    "keyId": "Võtme ID",
     "keyInfo": "Võtme teave",
     "keyLabelInput": "Võtme märgend",
     "keySaved": "Võti salvestatud",
-    "label": "Märgend:",
+    "label": "Märgend",
     "logIn": "Logi sisse",
     "logOut": "Logi välja",
     "logOutText": "Logi krüptomoodulist välja?",
@@ -688,7 +687,7 @@
       "unknown": "Tundmatu"
     },
     "orderAcmeCertificate": "Tellida sertifikaat",
-    "readOnly": "Ainult lugemiseks:",
+    "readOnly": "Ainult lugemiseks",
     "registrationRequest": "Registreerimistaotlus",
     "renewal": "Automaatne uuendamine",
     "request": "Päring",
@@ -696,13 +695,13 @@
     "signKeyCert": "SIGN-võtmed ja sertifikaadid",
     "status": "Olek",
     "token": {
+      "deleteSuccess": "Krüptomoodul kustutatud",
+      "deleteText": "Kas olete kindel, et soovite selle krüptomooduli ja kõik seotud informatsiooni serveri konfiguratsioonist kustutada?",
+      "deleteTitle": "Kustuta krüptomoodul?",
       "details": "Krüptomooduli detailid",
       "id": "Krüptomooduli ID:",
       "info": "Krüptomooduli teave",
-      "saved": "Krüptomoodul salvestatud",
-      "deleteText": "Kas olete kindel, et soovite selle krüptomooduli ja kõik seotud informatsiooni serveri konfiguratsioonist kustutada?",
-      "deleteTitle": "Kustuta krüptomoodul?",
-      "deleteSuccess": "Krüptomoodul kustutatud"
+      "saved": "Krüptomoodul salvestatud"
     },
     "tokenStatus": {
       "active": "",
@@ -841,36 +840,6 @@
     "wsdlDescription": "WSDL-i kirjeldus",
     "wsdlDetails": "WSDL-i detailid"
   },
-  "ssTlsCertificate": {
-    "certificateImported": "Sertifikaat imporditud",
-    "exportCertificate": "Ekspordi sertifikaat",
-    "generateCsr": "Loo CSR",
-    "generateInternalCsr": {
-      "cancel": "TÜHISTA",
-      "done": "VALMIS",
-      "step1": {
-        "description": "1) Kõigepealt määrake eristusnimi",
-        "label": "Eristusnimi",
-        "placeholder": "CN=mysecurityserver.example.com, O=Minu organisatsioon, C=EE",
-        "tooltip": "Eristusnimi (DN) identifitseerib kordumatult üksuse X.509 sertifikaadis. DN sisaldab tavaliselt järgmisi atribuudi tüüpe: CN = Üldnimi, O = Organisatsiooni nimi, C = Maakood."
-      },
-      "step2": {
-        "description": "2) Looge uus CSR ja salvestage see turvalisse kohta",
-        "generateCSR": "Loo CSR"
-      },
-      "title": "Loo TLS sertifikaadi signeerimise päring"
-    },
-    "generateKey": "Loo võti",
-    "generateTlsAndCertificateDialog": {
-      "confirmation": "Kas luua uus turvaserveri TLS võti ja sertifikaat?",
-      "explanation": "Süsteem loob uue turvaserveri TLS võtme ja endasigneeritud sertifikaadi, asendades olemasoleva võtme ja sertifikaadi.",
-      "success": "Uus turvaserveri TLS võti ja sertifikaat edukalt loodud",
-      "title": "Turvaserveri TLS võti"
-    },
-    "importCertificate": "Impordi sertifikaat",
-    "keyCertTitle": "TLS võti ja sertifikaat",
-    "keyText": "Sisemine TLS võti"
-  },
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Kehtiva turvaserveri teabe määramine ebaõnnestus. API vastus on kehtetu."
@@ -935,7 +904,7 @@
         "add": {
           "button": "Lisa",
           "dialog": {
-            "info": "Usaldatava ajatempli teenused:",
+            "info": "Usaldatava ajatempli teenused",
             "success": "Ajatempli teenus lisatud",
             "title": "Lisa ajatempli teenus"
           }
@@ -970,6 +939,11 @@
       "serviceClients": "Teenuse kliendid",
       "services": "Teenused"
     },
+    "diagnostics": {
+      "overview": "Ülevaade",
+      "traffic": "Päringute statistika",
+      "connectionTesting": "Ühenduse testimine"
+    },
     "keys": {
       "apiKey": "API võtmed",
       "signAndAuthKeys": "SIGN- ja AUTH-võtmed",
@@ -988,11 +962,22 @@
     "settings": {
       "backupAndRestore": "Varundamine ja taastamine",
       "systemParameters": "Süsteemi parameetrid"
+    }
+  },
+  "tlsCertificates": {
+    "generateCsr": {
+      "example": "CN=mysecurityserver.example.com, O=Minu organisatsioon, C=EE"
     },
-    "diagnostics": {
-      "overview": "Ülevaade",
-      "traffic": "Päringute statistika",
-      "connectionTesting": "Ühenduse testimine"
+    "generateKey": {
+      "confirmation": "Kas luua uus turvaserveri TLS võti ja sertifikaat?",
+      "explanation": "Süsteem loob uue turvaserveri TLS võtme ja endasigneeritud sertifikaadi, asendades olemasoleva võtme ja sertifikaadi.",
+      "success": "Uus turvaserveri TLS võti ja sertifikaat edukalt loodud",
+      "title": "Turvaserveri TLS võti"
+    },
+    "key": "TLS võti ja sertifikaat",
+    "title": "Turvaserveri TLS võti",
+    "uploadCertificate": {
+      "success": "Sertifikaat imporditud"
     }
   },
   "token": {

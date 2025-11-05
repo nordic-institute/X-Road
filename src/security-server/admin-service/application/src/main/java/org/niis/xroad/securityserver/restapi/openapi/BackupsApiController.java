@@ -28,12 +28,10 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.backupmanager.proto.BackupInfo;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.service.BackupService;
-import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -42,7 +40,7 @@ import org.niis.xroad.securityserver.restapi.converter.BackupConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupExtDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOutDto;
-import org.niis.xroad.securityserver.restapi.service.SecurityServerConfigurationBackupGenerator;
+import org.niis.xroad.securityserver.restapi.service.SecurityServerBackupService;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -54,11 +52,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.time.ZoneOffset;
+import java.util.Collection;
 import java.util.Set;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_INTERRUPTED;
-import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_INTERRUPTED;
+import static java.lang.Boolean.TRUE;
 
 /**
  * Backups controller
@@ -69,17 +67,14 @@ import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class BackupsApiController implements BackupsApi {
-    private final BackupService backupService;
-    private final ConfigurationRestorationService configurationRestorationService;
     private final BackupConverter backupConverter;
-    private final SecurityServerConfigurationBackupGenerator backupGenerator;
+    private final SecurityServerBackupService backupService;
     private final TokenService tokenService;
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Set<BackupDto>> getBackups() {
-        List<BackupFile> backupFiles = backupService.getBackupFiles();
-
+        Collection<BackupInfo> backupFiles = backupService.listBackups();
         return new ResponseEntity<>(backupConverter.convert(backupFiles), HttpStatus.OK);
     }
 
@@ -95,7 +90,7 @@ public class BackupsApiController implements BackupsApi {
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Resource> downloadBackup(String filename) {
-        byte[] backupFile = backupService.readBackupFile(filename);
+        byte[] backupFile = backupService.readBackup(filename);
         return ControllerUtil.createAttachmentResourceResponse(backupFile, filename);
     }
 
@@ -104,10 +99,8 @@ public class BackupsApiController implements BackupsApi {
     @AuditEventMethod(event = RestApiAuditEvent.BACKUP)
     public ResponseEntity<BackupDto> addBackup() {
         try {
-            BackupFile backupFile = backupGenerator.generateBackup();
+            BackupInfo backupFile = backupService.generateBackup();
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
-        } catch (InterruptedException e) {
-            throw new InternalServerErrorException(e, BACKUP_GENERATION_INTERRUPTED.build());
         } catch (NotFoundException e) {
             throw new InternalServerErrorException(e);
         }
@@ -117,18 +110,12 @@ public class BackupsApiController implements BackupsApi {
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     @AuditEventMethod(event = RestApiAuditEvent.BACKUP)
     public ResponseEntity<BackupExtDto> addBackupExt() {
-        try {
-            BackupFile backupFile = backupGenerator.generateBackup();
-            BackupExtDto backupExt = new BackupExtDto();
-            backupExt.setFilename(backupFile.getFilename());
-            backupExt.setCreatedAt(backupFile.getCreatedAt());
-            backupExt.setLocalConfPresent((new File("/etc/xroad/services/local.conf")).exists());
-            return new ResponseEntity<>(backupExt, HttpStatus.CREATED);
-        } catch (InterruptedException e) {
-            throw new InternalServerErrorException(e, BACKUP_GENERATION_INTERRUPTED.build());
-        } catch (NotFoundException e) {
-            throw new InternalServerErrorException(e);
-        }
+        BackupInfo backupFile = backupService.generateBackup();
+        BackupExtDto backupExt = new BackupExtDto();
+        backupExt.setFilename(backupFile.name());
+        backupExt.setCreatedAt(backupFile.createdAt().atOffset(ZoneOffset.UTC));
+        backupExt.setLocalConfPresent((new File("/etc/xroad/services/local.conf")).exists());
+        return new ResponseEntity<>(backupExt, HttpStatus.CREATED);
     }
 
     @Override
@@ -136,8 +123,8 @@ public class BackupsApiController implements BackupsApi {
     @AuditEventMethod(event = RestApiAuditEvent.UPLOAD_BACKUP)
     public ResponseEntity<BackupDto> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
         try {
-            BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, file.getOriginalFilename(),
-                    file.getBytes());
+            BackupInfo backupFile = backupService.uploadBackup(file.getOriginalFilename(), file.getBytes(),
+                    TRUE.equals(ignoreWarnings));
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
@@ -154,11 +141,9 @@ public class BackupsApiController implements BackupsApi {
         // If hardware tokens exist prior to the restore -> they will be logged out by the restore script
         TokensLoggedOutDto tokensLoggedOut = new TokensLoggedOutDto().hsmTokensLoggedOut(hasHardwareTokens);
         try {
-            configurationRestorationService.restoreFromBackup(filename);
+            backupService.restoreFromBackup(filename);
         } catch (NotFoundException e) {
             throw new InternalServerErrorException(e);
-        } catch (InterruptedException e) {
-            throw new InternalServerErrorException(e, BACKUP_RESTORATION_INTERRUPTED.build());
         }
         return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
     }

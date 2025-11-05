@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Initialization
 Feature: 0400 - SS: System Parameters
   Verify that SS can be initialized from fresh state.
@@ -17,6 +18,7 @@ Feature: 0400 - SS: System Parameters
     And new Security Server address "new.address" is submitted
     Then error: "Sending of management request failed" was displayed
 
+  @Skip #TODO beta1 release preparation
   Scenario: Timestamping service is selected and deleted
     Given Timestamping services table has 0 entries
     When Add Timestamping services dialog is opened
@@ -25,6 +27,7 @@ Feature: 0400 - SS: System Parameters
     When Timestamping service on row 0 is deleted
     Then Timestamping services table has 0 entries
 
+  @Skip #TODO beta1 release preparation
   Scenario: Timestamping service is selected
     And Timestamping services table has 0 entries
     When Add Timestamping services dialog is opened

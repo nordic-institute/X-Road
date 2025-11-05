@@ -39,6 +39,7 @@ dependencies {
   }
 
   implementation("org.springframework.boot:spring-boot-starter-jetty")
+  implementation(project(":common:common-properties"))
   implementation(libs.logback.classic)
 
   testImplementation(project(":common:common-test"))

@@ -1,4 +1,6 @@
 @CentralServer
+@GlobalConfiguration
+@ExternalGlobalConfiguration
 @ConfigurationParts
 @LoadingTesting
 Feature: 0800 - CS: Global configuration: External configuration: Configuration parts
@@ -9,6 +11,7 @@ Feature: 0800 - CS: Global configuration: External configuration: Configuration 
     And Global configuration tab is selected
     And External configuration sub-tab is selected
 
+  @Download
   Scenario Outline: User can download <content-identifier> configuration
     Given There is entry for configuration part: <content-identifier>
     And Configuration part is generated

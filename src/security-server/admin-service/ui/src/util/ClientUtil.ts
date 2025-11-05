@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,7 +30,9 @@ import {
   KeyUsageType,
   Token,
   TokenCertificate,
+  Client,
 } from '@/openapi-types';
+import { i18n } from '@niis/shared-ui';
 
 /**
  * Return true if tokens list contain any certificate with good ocsp response status with memberName matching owner_id
@@ -54,3 +57,24 @@ export const memberHasValidSignCert = (
       );
     });
 };
+
+export function clientTitle(
+  client: Client | undefined | null,
+  loading = false,
+) {
+  const { t } = i18n.global;
+  if (loading) {
+    return t('noData.loading');
+  }
+  if (client) {
+    if (client.owner) {
+      return `${client.member_name} (${t('client.owner')})`;
+    } else if (client.subsystem_code) {
+      return `${client.subsystem_name || client.subsystem_code} ${t('client.subsystemTitleSuffix')}`;
+    } else {
+      return `${client.member_name} (${t('client.member')})`;
+    }
+  }
+
+  return '';
+}

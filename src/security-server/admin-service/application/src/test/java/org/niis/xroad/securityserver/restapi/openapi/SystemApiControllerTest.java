@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.apache.commons.io.FileUtils;
@@ -35,6 +34,7 @@ import org.mockito.Mockito;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
@@ -114,7 +114,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
         when(systemService.getAnchorFileFromBytes(any(), anyBoolean())).thenReturn(anchorFile);
-        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.STANDALONE);
+        when(systemService.getServerNodeType()).thenReturn(NodeProperties.NodeType.STANDALONE);
     }
 
     @Test(expected = AccessDeniedException.class)
@@ -126,7 +126,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"GENERATE_INTERNAL_TLS_CSR"})
     public void generateSystemCertificateRequestCorrectPermission() throws InvalidDistinguishedNameException {
-        when(systemService.generateInternalCsr(any())).thenReturn("foo".getBytes());
+        when(internalTlsCertificateService.generateInternalCsr(any())).thenReturn("foo".getBytes());
         ResponseEntity<Resource> result = systemApiController.generateSystemCertificateRequest(
                 new DistinguishedNameDto().name("foobar"));
         assertNotNull(result);
@@ -162,7 +162,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
             x509Certificate = CryptoUtils.readCertificate(stream);
         }
-        given(mockRepository.getInternalTlsCertificate()).willReturn(x509Certificate);
+        given(internalTlsCertificateService.getInternalTlsCertificate()).willReturn(x509Certificate);
 
         CertificateDetailsDto certificate =
                 systemApiController.getSystemCertificate().getBody();
@@ -358,7 +358,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypePrimary() {
-        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.MASTER);
+        when(systemService.getServerNodeType()).thenReturn(NodeProperties.NodeType.PRIMARY);
         ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
         assertEquals(NodeTypeDto.PRIMARY, response.getBody().getNodeType());
     }
@@ -366,7 +366,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypeSecondary() {
-        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.SLAVE);
+        when(systemService.getServerNodeType()).thenReturn(NodeProperties.NodeType.SECONDARY);
         ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
         assertEquals(NodeTypeDto.SECONDARY, response.getBody().getNodeType());
     }

@@ -17,6 +17,9 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 
+# Generated type definitions
+src/openapi-types
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

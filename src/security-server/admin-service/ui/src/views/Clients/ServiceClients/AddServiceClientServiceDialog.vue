@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,9 +25,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     v-if="dialog"
-    :width="750"
+    :width="840"
     title="serviceClients.addService"
     scrollable
     :disable-save="filterSelections().length === 0"
@@ -34,60 +35,65 @@
     @cancel="cancel"
   >
     <template v-if="serviceCandidates.length > 0" #content>
-      <v-text-field
-        v-model="search"
-        :label="$t('serviceClients.searchPlaceHolder')"
-        single-line
-        autofocus
-        hide-details
-        data-test="search-service-client"
-        variant="underlined"
-        density="compact"
-        class="search-input"
-        append-inner-icon="mdi-magnify"
-      >
-      </v-text-field>
-      <table class="xrd-table">
-        <thead>
-          <tr>
-            <th class="selection-checkbox"></th>
-            <th>{{ $t('serviceClients.serviceCode') }}</th>
-            <th>{{ $t('serviceClients.title') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="accessRight in searchResults()"
-            :key="accessRight.id"
-            class="service-row"
-            data-test="access-right-toggle"
-          >
-            <td class="selection-checkbox">
-              <div>
-                <v-checkbox
-                  v-model="selections"
-                  :value="accessRight"
-                  data-test="access-right-checkbox-input"
-                  hide-details
-                />
-              </div>
-            </td>
-            <td>{{ accessRight.service_code }}</td>
-            <td>{{ accessRight.service_title }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <XrdFormBlock>
+        <v-text-field
+          v-model="search"
+          data-test="search-service-client"
+          density="compact"
+          class="xrd xrd-search-field mb-6"
+          prepend-inner-icon="search"
+          single-line
+          hide-details
+          autofocus
+          :label="$t('serviceClients.searchPlaceHolder')"
+        />
+
+        <v-table class="xrd">
+          <thead>
+            <tr>
+              <th class="selection-checkbox"></th>
+              <th>{{ $t('serviceClients.serviceCode') }}</th>
+              <th>{{ $t('serviceClients.title') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="accessRight in searchResults()"
+              :key="accessRight.id"
+              class="service-row"
+              data-test="access-right-toggle"
+            >
+              <td class="xrd-checkbox-column">
+                <div>
+                  <v-checkbox
+                    v-model="selections"
+                    data-test="access-right-checkbox-input"
+                    class="xrd"
+                    hide-details
+                    :value="accessRight"
+                  />
+                </div>
+              </td>
+              <td>{{ accessRight.service_code }}</td>
+              <td>{{ accessRight.service_title }}</td>
+            </tr>
+          </tbody>
+        </v-table>
+      </XrdFormBlock>
     </template>
     <template v-else #content>
       <p>{{ $t('serviceClients.noAvailableServices') }}</p>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { AccessRight } from '@/openapi-types';
 import { ServiceCandidate } from '@/ui-types';
+import { XrdFormBlock } from '@niis/shared-ui';
+
 export default defineComponent({
+  components: { XrdFormBlock },
   props: {
     dialog: {
       type: Boolean,
@@ -143,20 +149,4 @@ export default defineComponent({
   },
 });
 </script>
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-@use '@niis/shared-ui/src/assets/colors';
-
-.selection-checkbox {
-  width: 40px;
-}
-.search-input {
-  margin: 30px 0;
-  width: 50%;
-  min-width: 200px;
-}
-.service-row:hover {
-  cursor: pointer;
-  background-color: colors.$Purple10;
-}
-</style>
+<style lang="scss" scoped></style>

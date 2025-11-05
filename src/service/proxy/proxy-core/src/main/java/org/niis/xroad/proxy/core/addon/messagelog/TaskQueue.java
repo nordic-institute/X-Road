@@ -1,0 +1,209 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.proxy.core.addon.messagelog;
+
+import ee.ria.xroad.common.db.DatabaseCtx;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampFailed;
+import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampSucceeded;
+import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampTask;
+
+import java.util.Arrays;
+import java.util.List;
+
+
+/**
+ * Handles the TaskQueues -- adds tasks to the queue and sends the active queue for time-stamping.
+ */
+@Slf4j
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public class TaskQueue {
+
+    static final double TIMESTAMPED_RECORDS_RATIO_THRESHOLD = 0.7;
+    static final int TIMESTAMP_RECORDS_LIMIT_RETRY_MODE = 1;
+
+    private final Timestamper timestamper;
+    private final LogManager logManager;
+    private final DatabaseCtx messageLogDatabaseCtx;
+
+    protected void handleTimestampSucceeded(TimestampSucceeded timestampSucceededResult) {
+        log.trace("handleTimestampSucceeded");
+
+        if (log.isTraceEnabled()) {
+            log.trace("Time-stamped message records {}", Arrays.toString(timestampSucceededResult.getMessageRecords()));
+        }
+
+        boolean succeeded = true;
+        Exception failureCause = null;
+
+        try {
+            saveTimestampRecord(timestampSucceededResult);
+        } catch (Exception e) {
+            log.error("Failed to save time-stamp record to database", e);
+            failureCause = e;
+            succeeded = false;
+        } finally {
+            if (succeeded) {
+                indicateSuccess();
+                // If time-stamped records count equals to time-stamp records limit, there are probably
+                // still records to be time-stamped. Init another time-stamping round to prevent
+                // messagelog records to begin to bloat.
+                if (timestampSucceededResult.getMessageRecords().length == MessageLogProperties.getTimestampRecordsLimit()) {
+                    log.info("Time-stamped records count equaled to time-stamp records limit");
+                    handleStartTimestamping();
+                }
+            } else {
+                TimestampFailed timestampFailed = new TimestampFailed(timestampSucceededResult.getMessageRecords(), failureCause);
+                timestampFailed.setErrorsByUrl(timestampSucceededResult.getErrorsByUrl());
+                timestampFailed.putError(timestampSucceededResult.getUrl(), failureCause);
+                indicateFailure(timestampFailed);
+            }
+        }
+    }
+
+    protected void saveTimestampRecord(TimestampSucceeded message)  {
+        logManager.saveTimestampRecord(message);
+    }
+
+    private void indicateSuccess() {
+        sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.SUCCESS);
+    }
+
+    private void indicateFailure(TimestampFailed timestampFailedResult) {
+
+        // If the timestamping task queue is currently empty, it means some previous timestamping task was successful
+        // already. In that case do not indicate failure to the LogManager, otherwise the message logging may block
+        // (in non-timestamp-immediately mode) in case further no more messages are logged until the acceptable
+        // timestamp failure period is reached.
+        if (isTaskQueueEmpty()) {
+            return;
+        }
+
+        // set diagnostics status
+        logManager.putStatusMapFailures(timestampFailedResult);
+
+        sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.FAILURE);
+    }
+
+    private void sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status status) {
+        logManager.setTimestampingStatus(new SetTimestampingStatusMessage(status));
+    }
+
+    protected void handleTimestampFailed(TimestampFailed timestampFailedResult) {
+        log.trace("handleTimestampFailed");
+
+        indicateFailure(timestampFailedResult);
+    }
+
+    protected void handleStartTimestamping() {
+        handleStartTimestamping(MessageLogProperties.getTimestampRecordsLimit());
+    }
+
+    protected void handleStartTimestampingRetryMode() {
+        handleStartTimestamping(TIMESTAMP_RECORDS_LIMIT_RETRY_MODE);
+    }
+
+    private void handleStartTimestamping(int timestampRecordsLimit) {
+        List<Task> timestampTasks;
+
+        try {
+            timestampTasks = messageLogDatabaseCtx.doInTransaction(session -> getTimestampTasks(session, timestampRecordsLimit));
+        } catch (Exception e) {
+            log.error("Error getting time-stamp tasks", e);
+
+            return;
+        }
+
+        if (timestampTasks.isEmpty()) {
+            log.trace("Nothing to time-stamp, task queue is empty");
+            indicateSuccess();
+            return;
+        }
+
+        int timestampTasksSize = timestampTasks.size();
+
+        log.info("Start time-stamping {} message records", timestampTasksSize);
+
+        if (timestampTasksSize / (double) MessageLogProperties.getTimestampRecordsLimit()
+                >= TIMESTAMPED_RECORDS_RATIO_THRESHOLD) {
+            log.warn("Number of time-stamped records is over {} % of 'timestamp-records-limit' value",
+                    TIMESTAMPED_RECORDS_RATIO_THRESHOLD * 100);
+        }
+
+        final Timestamper.TimestampResult timestampResult = timestamper
+                .handleTimestampTask(createTimestampTask(timestampTasks));
+        if (timestampResult instanceof TimestampSucceeded timestampSucceeded) {
+            handleTimestampSucceeded(timestampSucceeded);
+        } else if (timestampResult instanceof TimestampFailed timestampFailed) {
+            handleTimestampFailed(timestampFailed);
+        }
+    }
+
+    private TimestampTask createTimestampTask(List<Task> timestampTasks) {
+        Long[] messageRecords = new Long[timestampTasks.size()];
+        String[] signatureHashes = new String[timestampTasks.size()];
+
+        for (int i = 0; i < timestampTasks.size(); i++) {
+            messageRecords[i] = timestampTasks.get(i).getMessageRecordNo();
+            signatureHashes[i] = timestampTasks.get(i).getSignatureHash();
+        }
+
+        return new TimestampTask(messageRecords, signatureHashes);
+    }
+
+    private boolean isTaskQueueEmpty() {
+        try {
+            return messageLogDatabaseCtx.doInTransaction(TaskQueue::getTasksQueueSize) == 0L;
+        } catch (Exception e) {
+            log.error("Could not read timestamp task queue status", e);
+
+            return false;
+        }
+    }
+
+    private List<Task> getTimestampTasks(Session session, int timestampRecordsLimit) {
+        return session.createQuery(getTaskQueueQuery(), Task.class).setMaxResults(timestampRecordsLimit).list();
+    }
+
+    private static Long getTasksQueueSize(Session session) {
+        return session.createQuery(getTaskQueueSizeQuery(), Long.class).uniqueResult();
+    }
+
+    static String getTaskQueueQuery() {
+        return "select new " + Task.class.getName() + "(m.id, m.signatureHash) "
+                + "from MessageRecordEntity m where m.timestampRecord is null order by m.id";
+    }
+
+    private static String getTaskQueueSizeQuery() {
+        return "select COUNT(*) from MessageRecordEntity m where m.timestampRecord is null";
+    }
+}

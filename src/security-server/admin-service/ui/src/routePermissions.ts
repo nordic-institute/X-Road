@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,9 +27,9 @@
 
 import { Permissions, RouteName } from '@/global';
 
-/* 
+/*
 Route permission object needs the permissions and the name.
-It could also use path for some routes that don't have name, but those routes are 
+It could also use path for some routes that don't have name, but those routes are
 restricted by their child routes. So for now this simpler system works ok.
 */
 export interface RoutePermission {
@@ -133,5 +134,14 @@ export const routePermissions: RoutePermission[] = [
   {
     name: RouteName.ClientTlsCertificate,
     permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS],
+  },
+  {
+    name: RouteName.AdminUsers,
+    permissions: [
+      Permissions.VIEW_ADMIN_USERS,
+      Permissions.ADD_ADMIN_USER,
+      Permissions.UPDATE_ADMIN_USER,
+      Permissions.DELETE_ADMIN_USER,
+    ],
   },
 ];
