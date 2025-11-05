@@ -71,7 +71,7 @@ public class ClientPageObj {
     public SelenideElement tableRowWithNameAndStatus(String name, String status, String id) {
         var matchers = new ArrayList<String>(2);
         Optional.ofNullable(name)
-                .map("td[@data-test='client-name']//span/span[text()='%s']"::formatted)
+                .map("td[@data-test='client-name']//span[text()='%s']"::formatted)
                 .ifPresent(matchers::add);
         Optional.ofNullable(status)
                 .map("td[@data-test='client-status']//span[text()='%s']"::formatted)

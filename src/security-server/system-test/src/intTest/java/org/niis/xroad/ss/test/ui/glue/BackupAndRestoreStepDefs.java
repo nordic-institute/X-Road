@@ -130,7 +130,6 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
 
     @Step("Configuration backup filter is set to last created backup")
     public void configurationBackupCountIsEqualTo() {
-        backupAndRestorePageObj.inputSearch().click();
-        vTextField(backupAndRestorePageObj.inputSearch()).shouldBe(focused).setValue(createdBackupName);
+        vTextField(backupAndRestorePageObj.inputSearch()).shouldBe(enabled).setValue(createdBackupName);
     }
 }
