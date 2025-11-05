@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class LegacyConfigMigrationCLITest {
+class LegacyConfigLegacyConfigMigrationCLITest {
     private static final String INPUT_INI = "src/test/resources/local-test.ini";
     private static final String INPUT_DB_PROPERTIES_SRC = "src/test/resources/db-test.properties";
     private static final String INPUT_DB_PROPERTIES = "build/db-test.properties";
@@ -70,19 +70,19 @@ class LegacyConfigMigrationCLITest {
 
     @Test
     void shouldThrowExceptionWhenMissingArgs() {
-        assertThrows(IllegalArgumentException.class, () -> LegacyConfigMigrationCLI.main(new String[]{}));
+        assertThrows(MigrationException.class, () -> LegacyConfigMigrationCLI.main(new String[]{}));
     }
 
     @Test
     void shouldThrowExceptionWhenInputFileDoesNotExist() {
-        assertThrows(IllegalArgumentException.class, () -> LegacyConfigMigrationCLI.main(new String[]{
+        assertThrows(MigrationException.class, () -> LegacyConfigMigrationCLI.main(new String[]{
                 "nonexistent.ini",
                 OUTPUT_YAML}));
     }
 
     @Test
     void shouldThrowExceptionWhenOutputPathIsDir() {
-        assertThrows(IllegalArgumentException.class, () -> LegacyConfigMigrationCLI.main(new String[]{
+        assertThrows(MigrationException.class, () -> LegacyConfigMigrationCLI.main(new String[]{
                 INPUT_INI,
                 "."}));
     }
