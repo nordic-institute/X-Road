@@ -30,8 +30,6 @@ import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import com.google.protobuf.Timestamp;
@@ -40,6 +38,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
+import org.niis.xroad.proxy.proto.dto.MessageLogArchiveEncryptionMember;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
@@ -139,7 +138,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     public void getMessageLogEncryptionDiagnostics() {
         when(proxyRpcClient.getMessageLogEncryptionStatus()).thenReturn(
-                new MessageLogEncryptionStatusDiagnostics(true, true, "none",
+                new org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics(true, true, "none",
                         List.of(new MessageLogArchiveEncryptionMember("memberId", Set.of("key"), false)))
         );
         ResponseEntity<MessageLogEncryptionStatusDto> response = diagnosticsApiController
@@ -151,7 +150,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(1, response.getBody().getMembers().size());
 
         when(proxyRpcClient.getMessageLogEncryptionStatus()).thenReturn(
-                new MessageLogEncryptionStatusDiagnostics(false, false, "none",
+                new org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics(false, false, "none",
                         List.of())
         );
         response = diagnosticsApiController.getMessageLogEncryptionDiagnostics();
@@ -484,8 +483,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     private org.niis.xroad.rpc.common.DiagnosticsStatus createDiagnosticsStatus(DiagnosticStatus status,
-                                                                                      Instant prevUpdate,
-                                                                                      Instant nextUpdate) {
+                                                                                Instant prevUpdate,
+                                                                                Instant nextUpdate) {
         return org.niis.xroad.rpc.common.DiagnosticsStatus.newBuilder()
                 .setStatus(DiagnosticStatusMapper.mapStatus(status))
                 .setPrevUpdate(prevUpdate.toEpochMilli())
@@ -494,8 +493,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     private org.niis.xroad.rpc.common.DiagnosticsStatus createDiagnosticsStatus(ErrorCode errorCode,
-                                                                                      Instant prevUpdate,
-                                                                                      Instant nextUpdate) {
+                                                                                Instant prevUpdate,
+                                                                                Instant nextUpdate) {
         return org.niis.xroad.rpc.common.DiagnosticsStatus.newBuilder()
                 .setStatus(DiagnosticStatusMapper.mapStatus(DiagnosticStatus.ERROR))
                 .setPrevUpdate(prevUpdate.toEpochMilli())

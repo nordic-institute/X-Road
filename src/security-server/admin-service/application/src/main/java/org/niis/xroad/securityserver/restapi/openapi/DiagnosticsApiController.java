@@ -29,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
+import org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.ProxyMemory;
 
 import lombok.RequiredArgsConstructor;

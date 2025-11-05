@@ -38,11 +38,13 @@ import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Optional;
 
 import static org.bouncycastle.openssl.PEMParser.TYPE_CERTIFICATE;
 import static org.bouncycastle.openssl.PEMParser.TYPE_PRIVATE_KEY;
 
 public interface VaultClient {
+    String PAYLOAD_KEY = "payload";
     String PRIVATEKEY_KEY = "privateKey";
     String CERTIFICATE_KEY = "certificate";
 
@@ -50,6 +52,9 @@ public interface VaultClient {
     String OPMONITOR_TLS_CREDENTIALS_PATH = "tls/opmonitor";
     String ADMIN_SERVICE_TLS_CREDENTIALS_PATH = "tls/admin-service";
     String MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH = "tls/management-service";
+
+    String PGP_MLOG_SECRET_KEY_PATH = "pgp/message-log-archival/secret-key";
+    String PGP_MLOG_PUBLIC_KEYS_PATH = "pgp/message-log-archival/public-keys";
 
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
@@ -67,6 +72,13 @@ public interface VaultClient {
 
     void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
+    void createMessageLogArchivalSigningSecretKey(String armoredPrivateKey);
+
+    Optional<String> getMessageLogArchivalSigningSecretKey();
+
+    void createMessageLogArchivalEncryptionPublicKeys(String armoredRecipientPublicKeys);
+
+    Optional<String> getMessageLogArchivalEncryptionPublicKeys();
 
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();

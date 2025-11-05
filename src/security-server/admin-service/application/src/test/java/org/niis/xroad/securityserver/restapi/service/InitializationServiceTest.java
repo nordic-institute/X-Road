@@ -94,6 +94,8 @@ public class InitializationServiceTest {
     private TokenPinValidator tokenPinValidator;
     @Mock
     private SecurityServerBackupService securityServerBackupService;
+    @Mock
+    private EncryptionInitializationService encryptionInitializationService;
 
     private InitializationService initializationService;
 
@@ -109,7 +111,7 @@ public class InitializationServiceTest {
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
         initializationService = new InitializationService(systemService, serverConfService,
                 tokenService, globalConfProvider, clientService, signerRpcClient, auditDataHelper, tokenPinValidator,
-                securityServerBackupService);
+                securityServerBackupService, encryptionInitializationService);
     }
 
     @Test

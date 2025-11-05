@@ -28,23 +28,34 @@ package ee.ria.xroad.common.messagelog;
 import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import static java.lang.String.valueOf;
 
 /**
  * Contains constants for messagelog properties.
  */
+@Slf4j
 @Deprecated(forRemoval = true)
 public final class MessageLogProperties {
 
@@ -141,8 +152,6 @@ public final class MessageLogProperties {
 
     public static final String ARCHIVE_ENCRYPTION_ENABLED = PREFIX + "archive-encryption-enabled";
 
-    public static final String ARCHIVE_GPG_HOME_DIRECTORY = PREFIX + "archive-gpg-home-directory";
-
     public static final String ARCHIVE_ENCRYPTION_KEYS_CONFIG = PREFIX + "archive-encryption-keys-config";
 
     public static final String ARCHIVE_DEFAULT_ENCRYPTION_KEY = PREFIX + "archive-default-encryption-key";
@@ -161,6 +170,8 @@ public final class MessageLogProperties {
     public static final int SECOND_COMPONENT = 1;
     public static final int THIRD_COMPONENT = 2;
     public static final int FOURTH_COMPONENT = 3;
+
+    private static Map<String, Set<String>> keyMappings = null;
 
     private MessageLogProperties() {
     }
@@ -297,10 +308,6 @@ public final class MessageLogProperties {
         return "true".equalsIgnoreCase(getProperty(ARCHIVE_ENCRYPTION_ENABLED));
     }
 
-    public static Path getArchiveGPGHome() {
-        return Paths.get(getProperty(ARCHIVE_GPG_HOME_DIRECTORY, "/etc/xroad/gpghome"));
-    }
-
     public static Path getArchiveEncryptionKeysConfig() {
         final String property = getProperty(ARCHIVE_ENCRYPTION_KEYS_CONFIG);
         return property == null ? null : Paths.get(property);
@@ -330,6 +337,22 @@ public final class MessageLogProperties {
         final String property = getProperty(MESSAGELOG_KEYSTORE_PASSWORD,
                 System.getenv().get(MESSAGELOG_KEYSTORE_PASSWORD_ENV));
         return property == null ? null : property.toCharArray();
+    }
+
+    public static Map<String, Set<String>> getKeyMappings() {
+        if (keyMappings == null) {
+            synchronized (MessageLogProperties.class) {
+                if (keyMappings == null) {
+                    Path keyMapping = MessageLogProperties.getArchiveEncryptionKeysConfig();
+                    try {
+                        keyMappings = readKeyMappings(keyMapping);
+                    } catch (Exception e) {
+                        throw XrdRuntimeException.systemInternalError("Failed to read messagelog key mappings", e);
+                    }
+                }
+            }
+        }
+        return keyMappings;
     }
 
     private static String getMessageBodyLoggingOverrideParameterName(boolean enable, boolean local) {
@@ -414,4 +437,52 @@ public final class MessageLogProperties {
         return SystemPropertySource.getPropertyResolver().getProperty(key, defaultValue);
     }
 
+    /*
+     * Reads a mapping file in format
+     * <pre>
+     * #comment on its own line is ignored
+     * memberidentifier=keyid
+     * memberidentifier= keyid2
+     * another\=member = =this is a valid key id#not a comment
+     * </pre>
+     * and returns the mappings.
+     *
+     * A member identifier can be listed multiple times.
+     *
+     * If the member identifier contains '=' it can be escaped using '\='.
+     * A literal '\=' must be written as '\\='
+     *
+     * If the member identifier starts with '#', it can be escaped using '\#'
+     * A literal '\#' in member identifier must be written as '\\#'
+     */
+    private static Map<String, Set<String>> readKeyMappings(Path mappingFile) throws IOException {
+        if (mappingFile != null && Files.exists(mappingFile)) {
+            final Map<String, Set<String>> mappings = new HashMap<>();
+            try {
+                final List<String> lines = Files.readAllLines(mappingFile);
+                for (int i = 0; i < lines.size(); i++) {
+                    final String line = lines.get(i);
+                    if (line.isEmpty() || COMMENT.matcher(line).matches()) {
+                        continue;
+                    }
+                    final String[] mapping = SPLITTER.split(line, 2);
+                    if (mapping.length != 2 || mapping[0].trim().isEmpty() || mapping[1].trim().isEmpty()) {
+                        log.warn("Invalid gpg key mapping at {}:{} ignored", mappingFile, i + 1);
+                        continue;
+                    }
+                    final String identifier = mapping[0].trim().replace("\\=", "=").replace("\\#", "#");
+                    final String keyId = mapping[1].trim();
+                    mappings.computeIfAbsent(identifier, k -> new HashSet<>()).add(keyId);
+                }
+                return mappings;
+            } catch (IOException e) {
+                log.error("Unable to read member identifier to gpg key mapping file", e);
+                throw e;
+            }
+        }
+        return Collections.emptyMap();
+    }
+
+    private static final Pattern SPLITTER = Pattern.compile("\\s*(?<!\\\\)=\\s*");
+    private static final Pattern COMMENT = Pattern.compile("^\\s*(?!\\\\)#.*$");
 }

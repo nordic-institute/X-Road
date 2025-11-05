@@ -95,6 +95,7 @@ public class InitializationService {
     private final AuditDataHelper auditDataHelper;
     private final TokenPinValidator tokenPinValidator;
     private final SecurityServerBackupService securityServerBackupService;
+    private final EncryptionInitializationService encryptionInitializationService;
 
     /**
      * Check the whole init status of the Security Server. The init status consists of the following:
@@ -371,6 +372,7 @@ public class InitializationService {
     private void generateGPGKeyPair(String nameReal) {
         log.info("Generating GPG key pair for {}", nameReal);
         securityServerBackupService.generateGpgKey(nameReal);
+        encryptionInitializationService.initializeMessageLogArchivalEncryption(nameReal);
     }
 
     /**

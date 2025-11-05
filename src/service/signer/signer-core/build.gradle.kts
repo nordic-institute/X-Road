@@ -22,5 +22,4 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":common:common-properties")))
   testImplementation(libs.mockito.core)
-  testImplementation(libs.junit.jupiter.params)
 }
