@@ -48,12 +48,8 @@ public class ClientPageObj {
     public final SelectSubsystemDialog selectSubsystemDialog = new SelectSubsystemDialog();
     public final SelectClientDialog selectClientDialog = new SelectClientDialog();
 
-    public SelenideElement btnSearch() {
-        return $x("//*[contains(@class, 'mdi-magnify')]");
-    }
-
     public SelenideElement inputSearch() {
-        return $x("//*[@data-test='search-input']");
+        return $x("//div[@data-test='search-query-field']");
     }
 
     public SelenideElement btnAddClient() {
@@ -93,7 +89,7 @@ public class ClientPageObj {
     }
 
     public ElementsCollection groups() {
-        return $$x("//tbody//tr//td[1]/span");
+        return $$x("//tbody//tr//td[1]/div");
     }
 
     public SelenideElement tableHeader(String name) {
