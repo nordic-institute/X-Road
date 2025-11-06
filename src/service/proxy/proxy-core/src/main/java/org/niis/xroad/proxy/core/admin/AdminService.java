@@ -33,7 +33,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import io.grpc.stub.StreamObserver;
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,12 +63,8 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private final TimestampStatusHandler timestampStatusHandler;
     private final ProxyMemoryStatusService proxyMemoryStatusService;
     private final EncryptionConfigProvider encryptionConfigProvider;
-    private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
-    @PostConstruct
-    public void init() {
-        messageLogEncryptionStatusDiagnostics = messageLogEncryptionStatusDiagnostics();
-    }
+    private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
     @Override
     public void getAddOnStatus(Empty request, StreamObserver<AddOnStatusResp> responseObserver) {
@@ -114,6 +109,10 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     }
 
     private MessageLogEncryptionStatusResp handleMessageLogEncryptionStatus() {
+        if (messageLogEncryptionStatusDiagnostics == null) {
+            messageLogEncryptionStatusDiagnostics = messageLogEncryptionStatusDiagnostics();
+        }
+
         List<MessageLogArchiveEncryptionMember> members = messageLogEncryptionStatusDiagnostics.members().stream()
                 .map(member -> MessageLogArchiveEncryptionMember.newBuilder()
                         .setMemberId(member.memberId())
@@ -155,7 +154,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
                 MessageLogProperties.isArchiveEncryptionEnabled(),
                 MessageLogProperties.isMessageLogEncryptionEnabled(),
                 MessageLogProperties.getArchiveGrouping().name(),
-                getMessageLogArchiveEncryptionMembers(encryptionConfigProvider, getMembers()));
+                getMessageLogArchiveEncryptionMembers());
     }
 
     private List<ClientId> getMembers() {
@@ -167,10 +166,8 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
         }
     }
 
-    private static List<org.niis.xroad.proxy.proto.dto.MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers(
-            EncryptionConfigProvider encryptionConfigProvider,
-            List<ClientId> members) {
-
+    private List<org.niis.xroad.proxy.proto.dto.MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers() {
+        var members = getMembers();
         if (!encryptionConfigProvider.isEncryptionEnabled()) {
             return Collections.emptyList();
         }

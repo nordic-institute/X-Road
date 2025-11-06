@@ -51,11 +51,8 @@ public class MessageLogEncryptionConfig {
     public BouncyCastlePgpEncryptionService pgpEncryption(PgpKeyManager keyManager) {
         var keyResolver = new PgpKeyResolver(keyManager);
         var encryptor = new StreamingPgpEncryptor();
-        // Get the signer user ID from the signing key itself (embedded during key generation)
-        // This matches the old GPG behavior where the User ID is part of the key metadata
-        String signerUserId = keyManager.getSigningKeyPair().userId();
 
-        return new BouncyCastlePgpEncryptionService(keyManager, keyResolver, encryptor, signerUserId);
+        return new BouncyCastlePgpEncryptionService(keyManager, keyResolver, encryptor);
     }
 
     @ApplicationScoped

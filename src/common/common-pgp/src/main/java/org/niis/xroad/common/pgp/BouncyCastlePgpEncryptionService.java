@@ -44,7 +44,6 @@ public class BouncyCastlePgpEncryptionService {
     private final PgpKeyManager keyManager;
     private final PgpKeyResolver keyResolver;
     private final StreamingPgpEncryptor encryptor;
-    private final String signerUserId;
 
     /**
      * Encrypts and signs a stream.
@@ -67,7 +66,7 @@ public class BouncyCastlePgpEncryptionService {
         var recipients = keyResolver.resolveRecipients(recipientKeyIds);
         var signingKeyPair = keyManager.getSigningKeyPair();
 
-        encryptor.encryptAndSign(input, output, recipients, signingKeyPair, signerUserId);
+        encryptor.encryptAndSign(input, output, recipients, signingKeyPair);
 
         long duration = System.currentTimeMillis() - startTime;
         log.debug("Encryption completed in {}ms", duration);

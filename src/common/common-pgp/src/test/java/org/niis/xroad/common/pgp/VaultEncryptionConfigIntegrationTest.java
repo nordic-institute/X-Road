@@ -264,8 +264,7 @@ class VaultEncryptionConfigIntegrationTest {
     private BouncyCastlePgpEncryptionService createBouncyCastleEncryption() {
         var keyResolver = new PgpKeyResolver(keyManager);
         var encryptor = new StreamingPgpEncryptor();
-        String signerUserId = "Test User <test@example.com>";
-        return new BouncyCastlePgpEncryptionService(keyManager, keyResolver, encryptor, signerUserId);
+        return new BouncyCastlePgpEncryptionService(keyManager, keyResolver, encryptor);
     }
 
     /**

@@ -70,14 +70,12 @@ public final class StreamingPgpEncryptor {
      * @param output         Output stream
      * @param recipients     List of recipient public keys
      * @param signingKeyPair Key pair for signing
-     * @param signerUserId   User ID of the signer (e.g., Security Server ID)
      */
     public void encryptAndSign(
             InputStream input,
             OutputStream output,
             List<PGPPublicKey> recipients,
-            PgpKeyPair signingKeyPair,
-            String signerUserId
+            PgpKeyPair signingKeyPair
     ) throws IOException, PGPException {
 
         var encryptGen = createEncryptionGenerator(recipients);
@@ -85,7 +83,7 @@ public final class StreamingPgpEncryptor {
         try (var encryptedOut = encryptGen.open(output, new byte[CIPHER_BUFFER_SIZE]);
              var compressedOut = openCompressedStream(encryptedOut)) {
 
-            var signatureGen = createSignatureGenerator(signingKeyPair, signerUserId);
+            var signatureGen = createSignatureGenerator(signingKeyPair, signingKeyPair.userId());
             signatureGen.generateOnePassVersion(false).encode(compressedOut);
 
             try (var literalOut = openLiteralStream(compressedOut)) {

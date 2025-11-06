@@ -171,7 +171,7 @@ public final class MessageLogProperties {
     public static final int THIRD_COMPONENT = 2;
     public static final int FOURTH_COMPONENT = 3;
 
-    private static Map<String, Set<String>> keyMappings = null;
+    private static volatile Map<String, Set<String>> keyMappings = null;
 
     private MessageLogProperties() {
     }
