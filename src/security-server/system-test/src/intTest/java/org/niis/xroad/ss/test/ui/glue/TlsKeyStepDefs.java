@@ -52,6 +52,7 @@ import java.util.zip.GZIPInputStream;
 
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
@@ -121,8 +122,7 @@ public class TlsKeyStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
 
         var previousCertificateHash = scenarioContext.getStepData(TLS_CERTIFICATE_HASH);
-        var currentCertificateHash = tlsKeyPageObj.internalTlsCertificate().text();
-        assertThat(currentCertificateHash).isNotEqualTo(previousCertificateHash);
+        tlsKeyPageObj.internalTlsCertificate().shouldNotHave(text(previousCertificateHash.toString()));
     }
 
     @Step("TLS CSR generation view is opened")

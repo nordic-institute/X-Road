@@ -37,7 +37,6 @@ import java.io.File;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
