@@ -38,8 +38,6 @@ import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 
-import java.io.IOException;
-
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 
@@ -60,7 +58,7 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
 
     @Override
     protected MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                          OpMonitoringData opMonitoringData) throws IOException {
+                                                          OpMonitoringData opMonitoringData) {
         var target = getTarget(request);
         log.trace("createRequestProcessor({})", target);
 
@@ -78,6 +76,7 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
         AsicContainerClientRequestProcessor processor = new AsicContainerClientRequestProcessor(
                 commonBeanProxy,
                 confClientRpcClient,
+                commonBeanProxy.getEncryptionConfigProvider(),
                 target,
                 request,
                 response);

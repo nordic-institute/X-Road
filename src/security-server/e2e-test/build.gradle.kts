@@ -15,6 +15,7 @@ intTestComposeEnv {
   env("XROAD_SECRET_STORE_TOKEN", "root-token")
 
   images(
+    "CS_IMG" to "central-server-dev",
     "OPENBAO_DEV_IMG" to "openbao-dev",
     "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
     "MESSAGELOG_INIT_IMG" to "ss-db-messagelog-init",

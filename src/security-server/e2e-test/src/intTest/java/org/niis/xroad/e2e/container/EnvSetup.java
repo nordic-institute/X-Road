@@ -84,7 +84,6 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
             envAux = new ComposeContainer("aux-", new File(COMPOSE_AUX_FILE))
                     .withLocalCompose(true)
                     .withExposedService(CS, Port.UI, forListeningPort())
-                    .withEnv("CS_IMG", customProperties.getCsImage())
                     .withEnv("CA_IMG", customProperties.getCaImage())
                     .withEnv("IS_OPENAPI_IMG", customProperties.getIsopenapiImage())
                     .withEnv("IS_SOAP_IMG", customProperties.getIssoapImage())
@@ -126,7 +125,6 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
         var env = new ComposeContainer(name + "-", files)
                 .withLocalCompose(true)
-                .withEnv("CS_IMG", customProperties.getCsImage())
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
