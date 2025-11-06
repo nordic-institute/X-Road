@@ -325,6 +325,17 @@
       "failedRequests": "Solicitações falhas",
       "disabledTitle": "Monitoramento de dados operacionais desativado",
       "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, instale o complemento de monitoramento de dados operacionais (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Tudo certo",
+      "test": "Teste",
+      "centralServer": {
+        "title": "Servidor Central",
+        "globalConf": "Download da configuração global",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "authCertRequest": "Serviço de registro de certificado de autenticação"
+      }
     }
   },
   "endpoints": {
@@ -434,6 +445,7 @@
     "invalid_service_url": "URL de serviço inválida",
     "invalid_wsdl": "WSDL inválido",
     "invalid_wsdl_service_identifier": "Identificador de serviço WSDL inválido",
+    "io_error": "Erro de E/S",
     "key_and_cert_generation_failed": "Falha ao gerar chave e certificado",
     "key_not_found": "Chave não encontrada",
     "local_group_code_already_exists": "Código de grupo local já existe",
@@ -450,6 +462,8 @@
     "member_code_exists": "Código de membro já existe",
     "member_code_not_provided": "Código de membro não informado",
     "missing_parameter": "Parâmetro ausente",
+    "network_error": "Erro de rede",
+    "http_error": "Erro HTTP",
     "openapi_parsing_error": "Falha ao interpretar descrição OpenAPI 3",
     "orphans_not_found": "Não foram encontradas chaves, certificados ou CSRs órfãos vinculados ao cliente",
     "pin_code_exists": "PIN já existe",
@@ -941,7 +955,8 @@
     },
     "diagnostics": {
       "overview": "Visão Geral",
-      "traffic": "Tráfego"
+      "traffic": "Tráfego",
+      "connectionTesting": "Teste de Conexão"
     }
   },
   "tlsCertificates": {

@@ -41,6 +41,7 @@ import ee.ria.xroad.common.util.CacheInputStream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.messagelog.MessageLogDbProperties;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
@@ -116,9 +117,10 @@ abstract class AbstractMessageLogTest {
         databaseCtx = MessageLogDatabaseConfig.create(props);
         logRecordManager = new LogRecordManager(databaseCtx);
         var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+        var encryptionConfigProvider = mock(EncryptionConfigProvider.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
                 null, null, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
-                ocspVerifierFactory, commonProperties);
+                ocspVerifierFactory, commonProperties, encryptionConfigProvider);
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 
@@ -140,7 +142,8 @@ abstract class AbstractMessageLogTest {
         logArchiverProperties.setArchiveTransactionBatchSize(10000);
         logArchiverProperties.setCleanTransactionBatchSize(10000);
 
-        logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider, commonProperties, databaseCtx);
+        logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider, encryptionConfigProvider,
+                commonProperties, databaseCtx);
         logCleanerRef = new TestLogCleaner(logArchiverProperties, databaseCtx);
     }
 

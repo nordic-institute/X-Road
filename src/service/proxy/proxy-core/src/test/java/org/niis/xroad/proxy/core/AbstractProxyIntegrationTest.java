@@ -43,12 +43,12 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
-import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -160,9 +160,10 @@ public abstract class AbstractProxyIntegrationTest {
                 TEST_GLOBAL_CONF, clientKeyConf, certHelper);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, clientKeyConf);
         VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+        EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
                 clientKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                proxyProperties, OCSP_VERIFIER_FACTORY, commonProperties);
+                proxyProperties, OCSP_VERIFIER_FACTORY, commonProperties, encryptionConfigProvider);
 
         ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(TEST_GLOBAL_CONF, clientKeyConf);
         HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
@@ -179,14 +180,15 @@ public abstract class AbstractProxyIntegrationTest {
         CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF, OCSP_VERIFIER_FACTORY);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
         VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+        EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
                 serverKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                proxyProperties, OCSP_VERIFIER_FACTORY, commonProperties);
+                proxyProperties, OCSP_VERIFIER_FACTORY, commonProperties, encryptionConfigProvider);
 
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
                 mock(MonitorRpcClient.class), commonProperties, proxyProperties);
         serverProxy = new ServerProxy(proxyProperties, mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
-                new NoopVaultClient(), new NoopVaultKeyClient());
+                new NoopVaultClient());
         serverProxy.init();
     }
 

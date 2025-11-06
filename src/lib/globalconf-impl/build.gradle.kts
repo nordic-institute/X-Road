@@ -14,7 +14,6 @@ dependencies {
   implementation(libs.smallrye.config.core)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.julOverSlf4j)
 
   testFixturesImplementation(project(":common:common-test"))

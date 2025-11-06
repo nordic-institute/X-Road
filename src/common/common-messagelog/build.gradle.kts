@@ -11,22 +11,12 @@ dependencies {
   implementation(project(":lib:asic-core"))
 
   implementation(libs.smallrye.config.core)
+  implementation(libs.jakarta.cdiApi)
+  api(libs.bouncyCastle.bcpg)
 
-  api(project(":service:configuration-client:configuration-client-model")) //TODO this is due to diagnostic status, might be dropped
-  // if messagelog moves to proxy
+  api(project(":common:common-pgp"))
+  api(project(":common:common-vault"))
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.bouncyCastle.bcpg)
-}
-
-tasks.register<Copy>("copyGpg") {
-  description = "Copy GPG keys to build directory"
-  group = "test"
-
-  from("src/test/gpg")
-  into("build/gpg")
-}
-
-tasks.test {
-  dependsOn("copyGpg")
 }

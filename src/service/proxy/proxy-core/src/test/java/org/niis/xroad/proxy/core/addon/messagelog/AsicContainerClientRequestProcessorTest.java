@@ -28,25 +28,27 @@ package org.niis.xroad.proxy.core.addon.messagelog;
 
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import org.apache.commons.lang3.SystemUtils;
 import org.bouncycastle.bcpg.BCPGInputStream;
 import org.bouncycastle.bcpg.PacketTags;
 import org.bouncycastle.bcpg.PublicKeyEncSessionPacket;
 import org.eclipse.jetty.http.HttpURI;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
+import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.common.messagelog.archive.MessageLogEncryptionConfig;
+import org.niis.xroad.common.pgp.PgpKeyGenerator;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerClientRequestProcessor;
 
@@ -57,6 +59,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -85,16 +88,18 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
     public boolean encrypted;
 
     private final ConfClientRpcClient confClientRpcClient = mock(ConfClientRpcClient.class);
+    private EncryptionConfigProvider encryptionConfigProvider;
+
 
     @Test
-    public void assertVerificationConfiguration() throws IOException {
+    public void assertVerificationConfiguration() {
         final var request = mock(RequestWrapper.class);
         final var response = mock(ResponseWrapper.class);
 
         final MockOutputStream mockOutputStream = new MockOutputStream();
 
         final AsicContainerClientRequestProcessor proc =
-                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient,
+                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient, mock(EncryptionConfigProvider.class),
                         "/verificationconf", request, response);
 
         byte[] mockZipResponse = new byte[]{'v', 'e', 'r', 'i', 'f', 'i', 'c', 'a', 't', 'i', 'o', 'n', 'c', 'o', 'n', 'f', 'z', 'i', 'p'};
@@ -111,8 +116,6 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
     @Test
     public void downloadAsicContainer() throws Exception {
-        //TODO /usr/bin/gpg is usually not present on macos
-        Assume.assumeTrue("OS not supported.", SystemUtils.IS_OS_LINUX);
 
         final String requestId = UUID.randomUUID().toString();
         final String queryId = "q-" + requestId;
@@ -136,9 +139,8 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
         final MockOutputStream mockOutputStream = new MockOutputStream();
         when(response.getOutputStream()).thenReturn(mockOutputStream);
-
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient,
+                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient, encryptionConfigProvider,
                         "/asic", request, response);
 
         processor.process();
@@ -163,9 +165,6 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
     @Test
     public void downloadUniqueAsicContainer() throws Exception {
-        //TODO /usr/bin/gpg is usually not present on macos
-        Assume.assumeTrue("OS not supported.", SystemUtils.IS_OS_LINUX);
-
         final String requestId = UUID.randomUUID().toString();
         final String queryId = "q-" + requestId;
         final RestRequest message = createRestRequest(queryId, requestId);
@@ -195,7 +194,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient,
+                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient, encryptionConfigProvider,
                         "/asic", request, response);
 
         processor.process();
@@ -248,11 +247,11 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, "false");
         System.setProperty(MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1800");
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.SUBSYSTEM.name());
-        System.setProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY, "build/gpg");
-        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/gpg/keys.ini");
+        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/resources/test/mlog-keys.ini");
         System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED, String.valueOf(encrypted));
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.MEMBER.name());
 
+        initEncryption();
         initForTest();
         testSetUp();
 
@@ -265,6 +264,21 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         TestTaskQueue.throwWhenSavingTimestamp = null;
 
         TestTimestamperWorker.failNextTimestamping(false);
+    }
+
+    private void initEncryption() {
+        var generator = new PgpKeyGenerator();
+
+        var key = generator.generate("INSTANCE/memberClass/memberCode");
+        var vaultClient = mock(VaultClient.class);
+        when(vaultClient.getMessageLogArchivalSigningSecretKey()).thenReturn(Optional.of(key.secretData()));
+        when(vaultClient.getMessageLogArchivalEncryptionPublicKeys()).thenReturn(Optional.of(key.publicData()));
+
+        var messageLogEncryptionConfig = new MessageLogEncryptionConfig();
+        var keyProvider = messageLogEncryptionConfig.keyProvider(vaultClient);
+        var keyManager = messageLogEncryptionConfig.keyManager(keyProvider);
+        var pgpEncryptionService = messageLogEncryptionConfig.pgpEncryption(keyManager);
+        encryptionConfigProvider = messageLogEncryptionConfig.encryptionConfigProvider(keyManager, pgpEncryptionService);
     }
 
     /**

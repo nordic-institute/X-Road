@@ -41,6 +41,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
@@ -120,10 +121,10 @@ class MetadataClientRequestProcessorTest {
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
         vaultKeyProvider = mock(NoopVaultKeyProvider.class);
-
+        var encryptionConfigProvider = mock(EncryptionConfigProvider.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
                 null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                proxyProperties, ocspVerifierFactory, commonProperties);
+                proxyProperties, ocspVerifierFactory, commonProperties, encryptionConfigProvider);
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
@@ -175,9 +176,10 @@ class MetadataClientRequestProcessorTest {
             }
 
         };
+
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
                 null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
-                ocspVerifierFactory, commonProperties);
+                ocspVerifierFactory, commonProperties, mock(EncryptionConfigProvider.class));
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
@@ -225,7 +227,7 @@ class MetadataClientRequestProcessorTest {
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
                 null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
-                ocspVerifierFactory, commonProperties);
+                ocspVerifierFactory, commonProperties, mock(EncryptionConfigProvider.class));
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(commonBeanProxy,

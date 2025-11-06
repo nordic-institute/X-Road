@@ -28,10 +28,9 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import com.google.protobuf.Timestamp;
@@ -40,11 +39,14 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
+import org.niis.xroad.proxy.proto.dto.MessageLogArchiveEncryptionMember;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
@@ -54,6 +56,7 @@ import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReport
 import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
 import org.niis.xroad.signer.api.dto.CertificationServiceStatus;
 import org.niis.xroad.signer.api.dto.OcspResponderStatus;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
@@ -70,17 +73,22 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -139,7 +147,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     public void getMessageLogEncryptionDiagnostics() {
         when(proxyRpcClient.getMessageLogEncryptionStatus()).thenReturn(
-                new MessageLogEncryptionStatusDiagnostics(true, true, "none",
+                new org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics(true, true, "none",
                         List.of(new MessageLogArchiveEncryptionMember("memberId", Set.of("key"), false)))
         );
         ResponseEntity<MessageLogEncryptionStatusDto> response = diagnosticsApiController
@@ -151,7 +159,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(1, response.getBody().getMembers().size());
 
         when(proxyRpcClient.getMessageLogEncryptionStatus()).thenReturn(
-                new MessageLogEncryptionStatusDiagnostics(false, false, "none",
+                new org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics(false, false, "none",
                         List.of())
         );
         response = diagnosticsApiController.getMessageLogEncryptionDiagnostics();
@@ -483,9 +491,62 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertThat(response.getBody().getFirst().getFailureCount()).isEqualTo(operationalDataInterval.getFailureCount());
     }
 
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getAuthCertReqStatus() {
+        TokenInfo tokenInfo = mock(TokenInfo.class);
+        when(tokenInfo.getKeyInfo()).thenReturn(Collections.emptyList());
+        when(tokenService.getToken(any())).thenReturn(tokenInfo);
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
+                .thenThrow(new CodedException(X_INVALID_REQUEST, "Request is invalid"));
+
+        ResponseEntity<ConnectionStatusDto> response = diagnosticsApiController.getAuthCertReqStatus();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        ConnectionStatusDto connectionStatusDto = response.getBody();
+        assertNotNull(connectionStatusDto);
+        assertEquals(DiagnosticStatusClassDto.FAIL, connectionStatusDto.getStatusClass());
+        assertEquals("certificate_not_found", connectionStatusDto.getError().getCode());
+        assertEquals("No auth cert found", connectionStatusDto.getError().getMetadata().getFirst());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getGlobalConfStatus() {
+        when(globalConfProvider.findSourceAddresses()).thenReturn(Set.of("one-host"));
+        when(confClientRpcClient.checkAndGetConnectionStatus(any()))
+                .thenReturn(org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("http://one-host:80/internalconf")
+                        .build())
+                .thenReturn(org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("https://one-host:443/internalconf")
+                        .build());
+
+        ResponseEntity<List<GlobalConfConnectionStatusDto>> response = diagnosticsApiController.getGlobalConfStatus();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        List<GlobalConfConnectionStatusDto> globalConfStatuses = response.getBody();
+        assertNotNull(globalConfStatuses);
+        assertEquals(2, globalConfStatuses.size());
+        Set<String> actualUrls = globalConfStatuses.stream()
+                .map(GlobalConfConnectionStatusDto::getDownloadUrl)
+                .collect(Collectors.toSet());
+
+        Set<String> expectedUrls = Set.of(
+                "http://one-host:80/internalconf",
+                "https://one-host:443/internalconf"
+        );
+
+        assertEquals(expectedUrls, actualUrls);
+
+        globalConfStatuses.forEach(status -> {
+            assertEquals(DiagnosticStatusClassDto.OK, status.getConnectionStatus().getStatusClass());
+        });
+    }
+
     private org.niis.xroad.rpc.common.DiagnosticsStatus createDiagnosticsStatus(DiagnosticStatus status,
-                                                                                      Instant prevUpdate,
-                                                                                      Instant nextUpdate) {
+                                                                                Instant prevUpdate,
+                                                                                Instant nextUpdate) {
         return org.niis.xroad.rpc.common.DiagnosticsStatus.newBuilder()
                 .setStatus(DiagnosticStatusMapper.mapStatus(status))
                 .setPrevUpdate(prevUpdate.toEpochMilli())
@@ -494,8 +555,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     private org.niis.xroad.rpc.common.DiagnosticsStatus createDiagnosticsStatus(ErrorCode errorCode,
-                                                                                      Instant prevUpdate,
-                                                                                      Instant nextUpdate) {
+                                                                                Instant prevUpdate,
+                                                                                Instant nextUpdate) {
         return org.niis.xroad.rpc.common.DiagnosticsStatus.newBuilder()
                 .setStatus(DiagnosticStatusMapper.mapStatus(DiagnosticStatus.ERROR))
                 .setPrevUpdate(prevUpdate.toEpochMilli())

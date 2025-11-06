@@ -15,6 +15,7 @@ quarkus:
       min-size: 0
       max-size: 1
       url: ${xroad.db.serverconf.hibernate.connection.url}
+      new-connection-sql: SET application_name='${quarkus.application.name}'
     db-kind: postgresql
     username: ${xroad.db.serverconf.hibernate.connection.username}
     password: ${xroad.db.serverconf.hibernate.connection.password}

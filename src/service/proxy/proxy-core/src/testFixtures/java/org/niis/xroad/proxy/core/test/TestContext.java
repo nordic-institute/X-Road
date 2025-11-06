@@ -28,11 +28,11 @@
 package org.niis.xroad.proxy.core.test;
 
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
-import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -90,9 +90,10 @@ public class TestContext {
                     globalConfProvider, keyConfProvider, certHelper);
             LogRecordManager logRecordManager = mock(LogRecordManager.class);
             VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+            EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
             CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
                     keyConfProvider, signingCtxProvider, certHelper, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                    proxyProperties, ocspVerifierFactory, commonProperties);
+                    proxyProperties, ocspVerifierFactory, commonProperties, encryptionConfigProvider);
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
@@ -109,7 +110,7 @@ public class TestContext {
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
                         monitorRpcClient, commonProperties, proxyProperties);
                 serverProxy = new ServerProxy(proxyProperties, antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
-                        new NoopVaultClient(), new NoopVaultKeyClient());
+                        new NoopVaultClient());
                 serverProxy.init();
             }
 

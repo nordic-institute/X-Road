@@ -67,6 +67,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
@@ -620,6 +621,14 @@ public class GlobalConfImpl implements GlobalConfProvider {
         byte[] certBytes = getPrivateParameters().getManagementService()
                 .getAuthCertRegServiceCert();
         return certBytes != null ? CryptoUtils.readCertificate(certBytes) : null;
+    }
+
+    @Override
+    public Set<String> findSourceAddresses() {
+        return getSharedParameters(getInstanceIdentifier()).getSources().stream()
+                .map(SharedParameters.ConfigurationSource::getAddress)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toSet());
     }
 
     @Override

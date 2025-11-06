@@ -28,13 +28,15 @@
 package org.niis.xroad.proxy.core.admin;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.ProxyMemory;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.proxy.core.admin.handler.TimestampStatusHandler;
 import org.niis.xroad.proxy.proto.AddOnStatusResp;
 import org.niis.xroad.proxy.proto.AdminServiceGrpc;
@@ -42,9 +44,12 @@ import org.niis.xroad.proxy.proto.MessageLogArchiveEncryptionMember;
 import org.niis.xroad.proxy.proto.MessageLogEncryptionStatusResp;
 import org.niis.xroad.proxy.proto.ProxyMemoryStatusResp;
 import org.niis.xroad.proxy.proto.TimestampStatusResp;
+import org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -55,9 +60,11 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final ServerConfProvider serverConfProvider;
     private final AddOnStatusDiagnostics addOnStatusDiagnostics;
-    private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
     private final TimestampStatusHandler timestampStatusHandler;
     private final ProxyMemoryStatusService proxyMemoryStatusService;
+    private final EncryptionConfigProvider encryptionConfigProvider;
+
+    private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
     @Override
     public void getAddOnStatus(Empty request, StreamObserver<AddOnStatusResp> responseObserver) {
@@ -102,18 +109,22 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     }
 
     private MessageLogEncryptionStatusResp handleMessageLogEncryptionStatus() {
-        List<MessageLogArchiveEncryptionMember> members = messageLogEncryptionStatusDiagnostics.getMembers().stream()
+        if (messageLogEncryptionStatusDiagnostics == null) {
+            messageLogEncryptionStatusDiagnostics = messageLogEncryptionStatusDiagnostics();
+        }
+
+        List<MessageLogArchiveEncryptionMember> members = messageLogEncryptionStatusDiagnostics.members().stream()
                 .map(member -> MessageLogArchiveEncryptionMember.newBuilder()
-                        .setMemberId(member.getMemberId())
-                        .addAllKeys(member.getKeys())
-                        .setDefaultKeyUsed(member.isDefaultKeyUsed())
+                        .setMemberId(member.memberId())
+                        .addAllKeys(member.keys())
+                        .setDefaultKeyUsed(member.defaultKeyUsed())
                         .build())
                 .toList();
 
         return MessageLogEncryptionStatusResp.newBuilder()
-                .setMessageLogArchiveEncryptionStatus(messageLogEncryptionStatusDiagnostics.isMessageLogArchiveEncryptionStatus())
-                .setMessageLogDatabaseEncryptionStatus(messageLogEncryptionStatusDiagnostics.isMessageLogDatabaseEncryptionStatus())
-                .setMessageLogGroupingRule(messageLogEncryptionStatusDiagnostics.getMessageLogGroupingRule())
+                .setMessageLogArchiveEncryptionStatus(messageLogEncryptionStatusDiagnostics.messageLogArchiveEncryptionStatus())
+                .setMessageLogDatabaseEncryptionStatus(messageLogEncryptionStatusDiagnostics.messageLogDatabaseEncryptionStatus())
+                .setMessageLogGroupingRule(messageLogEncryptionStatusDiagnostics.messageLogGroupingRule())
                 .addAllMembers(members)
                 .build();
     }
@@ -137,4 +148,33 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
         return Empty.getDefaultInstance();
     }
 
+
+    private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics() {
+        return new MessageLogEncryptionStatusDiagnostics(
+                MessageLogProperties.isArchiveEncryptionEnabled(),
+                MessageLogProperties.isMessageLogEncryptionEnabled(),
+                MessageLogProperties.getArchiveGrouping().name(),
+                getMessageLogArchiveEncryptionMembers());
+    }
+
+    private List<ClientId> getMembers() {
+        try {
+            return new ArrayList<>(serverConfProvider.getMembers());
+        } catch (Exception e) {
+            log.warn("Failed to get members from server configuration", e);
+            return Collections.emptyList();
+        }
+    }
+
+    private List<org.niis.xroad.proxy.proto.dto.MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers() {
+        var members = getMembers();
+        if (!encryptionConfigProvider.isEncryptionEnabled()) {
+            return Collections.emptyList();
+        }
+        return encryptionConfigProvider.forDiagnostics(members).encryptionMembers()
+                .stream()
+                .map(member -> new org.niis.xroad.proxy.proto.dto.MessageLogArchiveEncryptionMember(member.memberId(),
+                        member.keys(), member.defaultKeyUsed()))
+                .toList();
+    }
 }

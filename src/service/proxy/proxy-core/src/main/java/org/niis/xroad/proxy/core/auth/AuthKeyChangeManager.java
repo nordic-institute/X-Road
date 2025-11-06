@@ -31,12 +31,9 @@ import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
-
-import java.io.IOException;
 
 @Slf4j
 @ApplicationScoped
@@ -48,7 +45,7 @@ public class AuthKeyChangeManager {
     private final ServerProxy serverProxy;
 
     @PostConstruct
-    public void afterPropertiesSet() throws IOException, OperatorCreationException {
+    public void afterPropertiesSet() {
         keyConfProvider.addChangeListener(this::onAuthKeyChange);
     }
 

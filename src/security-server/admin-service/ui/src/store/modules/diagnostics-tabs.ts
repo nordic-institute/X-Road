@@ -46,6 +46,14 @@ const tabs = [
     },
     permissions: [Permissions.DIAGNOSTICS],
   },
+  {
+    key: 'diagnostics-connection-tab-button',
+    name: 'tab.diagnostics.connectionTesting',
+    to: {
+      name: RouteName.DiagnosticsConnection,
+    },
+    permissions: [Permissions.DIAGNOSTICS],
+  },
 ] as Tab[];
 
 export const useDiagnosticsTabs = defineStore('diagnostics-tabs', {

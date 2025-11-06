@@ -59,6 +59,9 @@ xroad:
     serverconf:
       hibernate:
         hikari.dataSource.ApplicationName: ${quarkus.application.name}
+    messagelog:
+      hibernate:
+        hikari.dataSource.ApplicationName: ${quarkus.application.name}
   proxy:
     tls:
       certificate-provisioning:

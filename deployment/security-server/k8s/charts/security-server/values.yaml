@@ -96,11 +96,17 @@ services:
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+      DB_CONFIG_SOURCE_ENABLED: "true"
+      DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
+      DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
       - name: "XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+      - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-serverconf"
         key: "password"
   proxy:
@@ -142,6 +148,9 @@ services:
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-messagelog:5432/messagelog"
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME: "messagelog"
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+      DB_CONFIG_SOURCE_ENABLED: "true"
+      DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
+      DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
@@ -151,6 +160,9 @@ services:
         key: "password"
       - name: "XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD"
         secretName: "db-messagelog"
+        key: "password"
+      - name: "DB_CONFIG_SOURCE_PASSWORD"
+        secretName: "db-serverconf"
         key: "password"
   proxy-ui-api:
     image: artifactory.niis.org/xroad8-snapshot-image/ss-proxy-ui-api:8.0.0-beta1
@@ -229,11 +241,17 @@ services:
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+      DB_CONFIG_SOURCE_ENABLED: "true"
+      DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
+      DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
       - name: "XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+      - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-serverconf"
         key: "password"
   op-monitor:
@@ -266,12 +284,18 @@ services:
       XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-opmonitor:5432/op-monitor"
       XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME: "opmonitor"
       XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+      DB_CONFIG_SOURCE_ENABLED: "true"
+      DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
+      DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
       - name: "XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_PASSWORD"
         secretName: "db-opmonitor"
+        key: "password"
+      - name: "DB_CONFIG_SOURCE_PASSWORD"
+        secretName: "db-serverconf"
         key: "password"
   backup-manager:
     image: artifactory.niis.org/xroad8-snapshot-image/ss-backup-manager:8.0.0-beta1
@@ -315,6 +339,9 @@ services:
       SERVERCONF_INIT_IMAGE: "artifactory.niis.org/xroad8-snapshot-image/ss-db-serverconf-init:8.0.0-beta1"
       SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "false"
       PROXY_UI_SUPERUSER: "xrd"
+      DB_CONFIG_SOURCE_ENABLED: "true"
+      DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
+      DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
@@ -327,6 +354,9 @@ services:
         key: "postgres-password"
       - name: "XROAD_OPENBAO_DB_PASSWORD"
         secretName: "db-openbao"
+        key: "password"
+      - name: "DB_CONFIG_SOURCE_PASSWORD"
+        secretName: "db-serverconf"
         key: "password"
     volumeMounts:
       - mountPath: /var/lib/xroad

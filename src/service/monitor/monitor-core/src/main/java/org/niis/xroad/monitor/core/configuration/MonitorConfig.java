@@ -25,9 +25,11 @@
  */
 package org.niis.xroad.monitor.core.configuration;
 
+import io.quarkus.vault.VaultKVSecretEngine;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -36,6 +38,11 @@ import org.niis.xroad.serverconf.impl.ServerConfFactory;
 
 @Slf4j
 public class MonitorConfig {
+
+    @ApplicationScoped
+    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
+        return new QuarkusVaultClient(kvSecretEngine);
+    }
 
     @ApplicationScoped
     ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,

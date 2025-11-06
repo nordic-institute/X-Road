@@ -95,6 +95,7 @@ public class InitializationService {
     private final AuditDataHelper auditDataHelper;
     private final TokenPinValidator tokenPinValidator;
     private final SecurityServerBackupService securityServerBackupService;
+    private final EncryptionInitializationService encryptionInitializationService;
 
     /**
      * Check the whole init status of the Security Server. The init status consists of the following:
@@ -117,7 +118,17 @@ public class InitializationService {
         initializationStatus.setServerCodeInitialized(isServerCodeInitialized);
         initializationStatus.setServerOwnerInitialized(isServerOwnerInitialized);
         initializationStatus.setSoftwareTokenInitStatusInfo(tokenInitStatus);
+        initializationStatus.setTokenPinPolicyEnforced(isTokenPinPolicyEnforced());
         return initializationStatus;
+    }
+
+    private Boolean isTokenPinPolicyEnforced() {
+        try {
+            return signerRpcClient.isEnforcedTokenPinPolicy();
+        } catch (Exception e) {
+            log.warn("Could not determine whether token pin policy is enforced", e);
+        }
+        return null;
     }
 
     /**
@@ -371,6 +382,7 @@ public class InitializationService {
     private void generateGPGKeyPair(String nameReal) {
         log.info("Generating GPG key pair for {}", nameReal);
         securityServerBackupService.generateGpgKey(nameReal);
+        encryptionInitializationService.initializeMessageLogArchivalEncryption(nameReal);
     }
 
     /**
