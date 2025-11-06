@@ -25,14 +25,8 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
-import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -46,16 +40,10 @@ import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import static org.niis.xroad.proxy.core.configuration.MessageLogDatabaseConfig.MESSAGE_LOG_DB_CTX;
 
 @Slf4j
 public class ProxyMessageLogConfig {
-    private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
     @ApplicationScoped
     public static class MessageLogInitializer {
@@ -83,35 +71,6 @@ public class ProxyMessageLogConfig {
         }
     }
 
-    @ApplicationScoped
-    MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics(ServerConfProvider serverConfProvider) throws IOException {
-        return new MessageLogEncryptionStatusDiagnostics(
-                MessageLogProperties.isArchiveEncryptionEnabled(),
-                MessageLogProperties.isMessageLogEncryptionEnabled(),
-                ARCHIVE_GROUPING.name(),
-                getMessageLogArchiveEncryptionMembers(getMembers(serverConfProvider)));
-    }
 
-    private List<ClientId> getMembers(ServerConfProvider serverConfProvider) {
-        try {
-            return new ArrayList<>(serverConfProvider.getMembers());
-        } catch (Exception e) {
-            log.warn("Failed to get members from server configuration", e);
-            return Collections.emptyList();
-        }
-    }
-
-    private static List<MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers(
-            List<ClientId> members) throws IOException {
-        EncryptionConfigProvider configProvider = EncryptionConfigProvider.getInstance(ARCHIVE_GROUPING);
-        if (!configProvider.isEncryptionEnabled()) {
-            return Collections.emptyList();
-        }
-        return configProvider.forDiagnostics(members).getEncryptionMembers()
-                .stream()
-                .map(member -> new MessageLogArchiveEncryptionMember(member.getMemberId(),
-                        member.getKeys(), member.isDefaultKeyUsed()))
-                .toList();
-    }
 
 }

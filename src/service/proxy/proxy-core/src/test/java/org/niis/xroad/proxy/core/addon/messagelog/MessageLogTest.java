@@ -38,7 +38,6 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.EncoderUtils;
@@ -66,6 +65,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampFailed;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampSucceeded;
 
@@ -478,7 +478,6 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
         log(createMessage(), createSignature());
     }
-
 
 
     // ------------------------------------------------------------------------

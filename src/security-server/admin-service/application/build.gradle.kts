@@ -35,6 +35,7 @@ dependencies {
   implementation(project(":common:common-management-request"))
   implementation(project(":common:common-api-throttling"))
   implementation(project(":common:common-mail"))
+  implementation(project(":common:common-pgp"))
   implementation(project(":common:common-properties-db-source-spring"))
   implementation(project(":security-server:openapi-model"))
   implementation(project(":service:monitor:monitor-api"))

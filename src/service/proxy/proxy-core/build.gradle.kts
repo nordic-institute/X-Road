@@ -59,8 +59,6 @@ dependencies {
 }
 
 tasks.test {
-  dependsOn("copyGpg")
-
   systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
   jvmArgs("-Xmx2G")
 }
@@ -77,12 +75,4 @@ tasks.register<JavaExec>("runProxymonitorMetaserviceTest") {
   group = "verification"
   logger.warn("WARNING: The 'runProxymonitorMetaserviceTest' task is deprecated and does nothing. It will be removed in the future versions.")
   enabled = false
-}
-
-tasks.register<Copy>("copyGpg") {
-  description = "Copy GPG keys to build directory"
-  group = "build"
-
-  from("src/test/gpg")
-  into(layout.buildDirectory.dir("gpg"))
 }

@@ -12,7 +12,9 @@ dependencies {
   implementation(libs.postgresql)
   implementation(libs.slf4j.api)
   implementation(libs.logback.classic)
+  implementation(libs.bouncyCastle.bcpg)
 
+  implementation(project(":common:common-vault-spring"))
   implementation("org.yaml:snakeyaml")
 
   testImplementation(project(":common:common-test"))
@@ -24,14 +26,14 @@ val mainClassName = "org.niis.xroad.configuration.migration.LegacyConfigMigratio
 tasks.jar {
   manifest {
     attributes("Main-Class" to mainClassName)
-    }
+  }
 }
 
 tasks.shadowJar {
   archiveClassifier.set("")
   exclude("**/module-info.class")
   from(rootProject.file("LICENSE.txt"))
-    mergeServiceFiles()
+  mergeServiceFiles()
 }
 
 tasks.jar {
