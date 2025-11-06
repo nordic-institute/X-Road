@@ -137,7 +137,7 @@
           <thead>
             <tr>
               <th class="first-column"></th>
-              <th>{{ $t('services.memberNameGroupDesc') }}</th>
+              <th>{{ $t('services.subsystemNameGroupDesc') }}</th>
               <th>{{ $t('services.idGroupCode') }}</th>
               <th>{{ $t('general.type') }}</th>
             </tr>
