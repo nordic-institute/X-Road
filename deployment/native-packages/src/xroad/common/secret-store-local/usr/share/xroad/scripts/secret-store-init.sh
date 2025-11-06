@@ -7,6 +7,13 @@ BAO_ADDR=${BAO_ADDR:-https://127.0.0.1:8200}
 ROOT_TOKEN_FILE="/etc/openbao/root-token"
 UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
 
+if wait_until_ready; then
+  echo "OpenBao is ready"
+else
+  echo "Timed out waiting for OpenBao service to become ready"
+  exit 1
+fi
+
 # Check if already initialized
 if is_initialized; then
   echo "OpenBao is already initialized"

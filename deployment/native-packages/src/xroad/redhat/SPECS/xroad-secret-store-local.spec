@@ -100,13 +100,6 @@ if [ $1 -eq 1 ]; then  # $1 == 1 means fresh install, $1 == 2 means upgrade
         exit 1
     fi
 
-    BAO_ADDR=${BAO_ADDR:-https://127.0.0.1:8200}
-    source /usr/share/xroad/scripts/_openbao.sh
-    if ! wait_until_ready; then
-        echo "Timed out waiting for OpenBao service to become ready"
-        exit 1
-    fi
-
     echo "Initializing OpenBao.."
     systemctl enable xroad-secret-store-local.service
     systemctl start xroad-secret-store-local.service
