@@ -47,7 +47,6 @@ cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc
 %attr(554,root,xroad) /usr/share/xroad/scripts/_openbao.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-init.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-init-db.sh
-%attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-wait-for.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/backup_openbao_db.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/restore_openbao_db.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt
@@ -101,7 +100,12 @@ if [ $1 -eq 1 ]; then  # $1 == 1 means fresh install, $1 == 2 means upgrade
         exit 1
     fi
 
-    /usr/share/xroad/scripts/secret-store-wait-for.sh
+    BAO_ADDR=${BAO_ADDR:-https://127.0.0.1:8200}
+    source /usr/share/xroad/scripts/_openbao.sh
+    if ! wait_until_ready; then
+        echo "Timed out waiting for OpenBao service to become ready"
+        exit 1
+    fi
 
     echo "Initializing OpenBao.."
     systemctl enable xroad-secret-store-local.service

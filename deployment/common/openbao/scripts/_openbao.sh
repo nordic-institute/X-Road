@@ -39,6 +39,29 @@ bao_api() {
   echo "$body"
 }
 
+wait_until_ready() {
+  local addr="${1:-$BAO_ADDR}"
+  local max_attempts=${2:-30}
+  local wait_seconds=${3:-1}
+
+  echo "[OPENBAO] Waiting for OpenBao to become ready at $addr"
+
+  local attempt=0
+  while [ $attempt -lt $max_attempts ]; do
+    if bao_api "GET" "$addr" "/v1/sys/init" "" "" "Checking init status"; then
+      echo "[OPENBAO] OpenBao is ready"
+      return 0
+    fi
+
+    attempt=$((attempt + 1))
+    echo "[OPENBAO] Waiting for OpenBao to become ready (attempt $attempt/$max_attempts)..."
+    sleep $wait_seconds
+  done
+
+  echo "[OPENBAO] Error: Timed out waiting for OpenBao to become ready after $((max_attempts * wait_seconds)) seconds" >&2
+  return 1
+}
+
 is_initialized() {
   local addr="${1:-$BAO_ADDR}"
   local status=$(bao_api "GET" "$addr" "/v1/sys/init" "" "" "Checking init status")
@@ -57,40 +80,40 @@ initialize() {
   echo "[OPENBAO] Initializing OpenBao with $shares shares and threshold $threshold" >&2
 
   local init_response=$(bao_api "PUT" "$addr" "/v1/sys/init" \
-      "{\"secret_shares\": $shares, \"secret_threshold\": $threshold}" \
-      "" "Initializing OpenBao")
+    "{\"secret_shares\": $shares, \"secret_threshold\": $threshold}" \
+    "" "Initializing OpenBao")
 
   if [ $? -ne 0 ]; then
-      echo "[OPENBAO] Failed to initialize OpenBao" >&2
-      return 1
+    echo "[OPENBAO] Failed to initialize OpenBao" >&2
+    return 1
   fi
 
   echo "$init_response"
 }
 
 is_sealed() {
-    local addr="${1:-$BAO_ADDR}"
-    local status=$(bao_api "GET" "$addr" "/v1/sys/seal-status" "" "" "Checking seal status")
-    if [ $? -ne 0 ]; then
-      echo "[OPENBAO] Failed to check initialization status" >&2
-      exit 1
-    fi
-    echo "$status" | jq -e '.sealed == true' >/dev/null
+  local addr="${1:-$BAO_ADDR}"
+  local status=$(bao_api "GET" "$addr" "/v1/sys/seal-status" "" "" "Checking seal status")
+  if [ $? -ne 0 ]; then
+    echo "[OPENBAO] Failed to check initialization status" >&2
+    exit 1
+  fi
+  echo "$status" | jq -e '.sealed == true' >/dev/null
 }
 
 unseal() {
   local addr="${1:-$BAO_ADDR}"
   local key="$2"
 
-  echo "[OPENBAO] Applying unseal key to $addr" >&2
+  echo "[OPENBAO] Applying unseal key to $addr"
 
   local payload=$(printf '{"key": "%s"}' "$key")
   local response=$(bao_api "PUT" "$addr" "/v1/sys/unseal" \
-      "$payload" "" "Unsealing with key" 2>/dev/null)
+    "$payload" "" "Unsealing with key" 2>/dev/null)
 
   if [ $? -ne 0 ]; then
-      echo "[OPENBAO] Failed to apply unseal key" >&2
-      return 1
+    echo "[OPENBAO] Failed to apply unseal key" >&2
+    return 1
   fi
 
   return 0
@@ -102,26 +125,26 @@ configure_pki() {
 
   # Enable PKI secrets engine
   bao_api "POST" "$addr" "/v1/sys/mounts/xrd-pki" \
-      '{"type":"pki","config":{"max_lease_ttl":"175200h"}}' \
-      "$token" "Enabling PKI secrets engine" || return 1
+    '{"type":"pki","config":{"max_lease_ttl":"175200h"}}' \
+    "$token" "Enabling PKI secrets engine" || return 1
 
   bao_api "POST" "$addr" "/v1/sys/mounts/xrd-pki/tune" \
     '{"max_lease_ttl": "175200h"}' "$token" "Configuring PKI lease" || return 1
 
   # Generate root CA
   bao_api "POST" "$addr" "/v1/xrd-pki/root/generate/internal" \
-      '{"common_name":"localhost","ttl":"175200h"}' \
-      "$token" "Generating root CA" || return 1
+    '{"common_name":"localhost","ttl":"175200h"}' \
+    "$token" "Generating root CA" || return 1
 
   # Configure URLs
   bao_api "POST" "$addr" "/v1/xrd-pki/config/urls" \
-      '{"issuing_certificates":"https://127.0.0.1:8200/v1/xrd-pki/ca","crl_distribution_points":"https://127.0.0.1:8200/v1/xrd-pki/crl"}' \
-      "$token" "Configuring PKI URLs" || return 1
+    '{"issuing_certificates":"https://127.0.0.1:8200/v1/xrd-pki/ca","crl_distribution_points":"https://127.0.0.1:8200/v1/xrd-pki/crl"}' \
+    "$token" "Configuring PKI URLs" || return 1
 
   # Configure auto-tidy
   bao_api "POST" "$addr" "/v1/xrd-pki/config/auto-tidy" \
-      '{"enabled":true,"interval_duration":"12h","tidy_cert_store":true,"tidy_revoked_certs":true}' \
-      "$token" "Configuring PKI auto-tidy" || return 1
+    '{"enabled":true,"interval_duration":"12h","tidy_cert_store":true,"tidy_revoked_certs":true}' \
+    "$token" "Configuring PKI auto-tidy" || return 1
 
   # Configure PKI role
   bao_api "POST" "$addr" "/v1/xrd-pki/roles/xrd-internal" \
@@ -149,14 +172,15 @@ path "xrd-secret" {
 path "sys/internal/ui/mounts/*" {
   capabilities = ["read", "list"]
 }
-EOF)
+EOF
+)
 
   POLICY_PAYLOAD=$(echo "$POLICY" | jq -R -s '{ policy: . }')
 
   bao_api "PUT" "$addr" "/v1/sys/policies/acl/xroad-policy" \
     "$POLICY_PAYLOAD" "$token" "Creating policy" || return 1
 
-  echo "[OPENBAO] PKI configuration completed" >&2
+  echo "[OPENBAO] PKI configuration completed"
   return 0
 }
 
@@ -167,28 +191,28 @@ configure_kv() {
   bao_api "POST" "$addr" "/v1/sys/mounts/xrd-secret" \
     '{"type": "kv"}' "$token" "Enabling KV secrets engine" || return 1
 
-  echo "[OPENBAO] KV configuration completed" >&2
+  echo "[OPENBAO] KV configuration completed"
   return 0
 }
 
 create_token() {
-    local addr="${1:-$BAO_ADDR}"
-    local token="${2:-$BAO_TOKEN}"
-    local policy="${3:-xroad-policy}"
-    local ttl="${4:-0}" # 0 means use default TTL
-    local display_name="${5:-xroad-client}"
+  local addr="${1:-$BAO_ADDR}"
+  local token="${2:-$BAO_TOKEN}"
+  local policy="${3:-xroad-policy}"
+  local ttl="${4:-0}" # 0 means use default TTL
+  local display_name="${5:-xroad-client}"
 
-    echo "[OPENBAO] Creating new token with policy: $policy" >&2
+  echo "[OPENBAO] Creating new token with policy: $policy" >&2
 
-    local token_response=$(bao_api "POST" "$addr" "/v1/auth/token/create" \
-        "{\"policies\":[\"$policy\"], \"ttl\":\"${ttl}\", \"display_name\":\"${display_name}\"}" \
-        "$token" "Creating token with policy: $policy")
+  local token_response=$(bao_api "POST" "$addr" "/v1/auth/token/create" \
+    "{\"policies\":[\"$policy\"], \"ttl\":\"${ttl}\", \"display_name\":\"${display_name}\"}" \
+    "$token" "Creating token with policy: $policy")
 
-    if [ $? -ne 0 ]; then
-        echo "[OPENBAO] Failed to create token" >&2
-        return 1
-    fi
+  if [ $? -ne 0 ]; then
+    echo "[OPENBAO] Failed to create token" >&2
+    return 1
+  fi
 
-    local client_token=$(echo "$token_response" | jq -r '.auth.client_token')
-    echo "$client_token"
+  local client_token=$(echo "$token_response" | jq -r '.auth.client_token')
+  echo "$client_token"
 }

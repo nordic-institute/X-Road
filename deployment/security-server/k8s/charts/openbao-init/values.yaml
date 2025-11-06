@@ -15,3 +15,4 @@ openbao:
   shamir:
     threshold: 3
     shares: 5
+  xroad_token_secret_name: xroad-token # Name of the Kubernetes secret that stores the X-Road access token, created during OpenBao initialization

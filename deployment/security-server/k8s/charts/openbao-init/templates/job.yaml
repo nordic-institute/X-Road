@@ -40,8 +40,10 @@ spec:
               value: {{ .Values.openbao.address }}
             - name: BAO_NODES
               value: "{{ if .Values.openbao.nodes }}{{ range $i, $node := .Values.openbao.nodes }}{{ if $i }} {{ end }}{{ $node }}{{ end }}{{ else }}{{ .Values.openbao.address }}{{ end }}"
-            - name: SECRET_NAME
+            - name: ROOT_SECRET_NAME
               value: {{ .Values.serviceAccount.name }}
+            - name: XROAD_TOKEN_SECRET_NAME
+              value: {{ .Values.openbao.xroad_token_secret_name }}
             - name: THRESHOLD
               value: {{ .Values.openbao.shamir.threshold | quote }}
             - name: SHARES

@@ -344,15 +344,24 @@ restart_services () {
 
       # Unseal OpenBao after it has been started
       if [[ "$servicename" == "openbao" ]]; then
-        /usr/share/xroad/scripts/secret-store-wait-for.sh
+        BAO_ADDR=${BAO_ADDR:-https://127.0.0.1:8200}
+        UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
+        if ! wait_until_ready; then
+          echo "Timed out waiting for OpenBao service to become ready"
+          exit 1
+        fi
 
-        local BAO_ADDR=${BAO_ADDR:-https://127.0.0.1:8200}
-        local UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
-        local THRESHOLD=3
-        unseal "$BAO_ADDR" "$(cat "$UNSEAL_KEYS_FILE" | head -n "$THRESHOLD")" "$THRESHOLD" || {
-                echo "Failed to unseal OpenBao" >&2
-                exit 1
-        }
+        while IFS= read -r key || [ -n "$key" ]; do
+          if ! unseal "$BAO_ADDR" "$key"; then
+            echo "Failed to unseal OpenBao" >&2
+            exit 1
+          fi
+
+          if ! is_sealed; then
+            echo "Successfully unsealed OpenBao"
+            break
+          fi
+        done < "$UNSEAL_KEYS_FILE"
       fi
     fi
   done
