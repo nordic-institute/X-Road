@@ -68,7 +68,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     @PostConstruct
     public void init() {
-        messageLogEncryptionStatusDiagnostics = messageLogEncryptionStatusDiagnostics(serverConfProvider, encryptionConfigProvider);
+        messageLogEncryptionStatusDiagnostics = messageLogEncryptionStatusDiagnostics();
     }
 
     @Override
@@ -150,16 +150,15 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     }
 
 
-    MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics(ServerConfProvider serverConfProvider,
-                                                                                EncryptionConfigProvider encryptionConfigProvider) {
+    private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics() {
         return new MessageLogEncryptionStatusDiagnostics(
                 MessageLogProperties.isArchiveEncryptionEnabled(),
                 MessageLogProperties.isMessageLogEncryptionEnabled(),
                 MessageLogProperties.getArchiveGrouping().name(),
-                getMessageLogArchiveEncryptionMembers(encryptionConfigProvider, getMembers(serverConfProvider)));
+                getMessageLogArchiveEncryptionMembers(encryptionConfigProvider, getMembers()));
     }
 
-    private List<ClientId> getMembers(ServerConfProvider serverConfProvider) {
+    private List<ClientId> getMembers() {
         try {
             return new ArrayList<>(serverConfProvider.getMembers());
         } catch (Exception e) {
@@ -168,8 +167,10 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
         }
     }
 
-    private static List<org.niis.xroad.proxy.proto.dto.MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers(EncryptionConfigProvider encryptionConfigProvider,
-                                                                                                                                List<ClientId> members) {
+    private static List<org.niis.xroad.proxy.proto.dto.MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers(
+            EncryptionConfigProvider encryptionConfigProvider,
+            List<ClientId> members) {
+
         if (!encryptionConfigProvider.isEncryptionEnabled()) {
             return Collections.emptyList();
         }
