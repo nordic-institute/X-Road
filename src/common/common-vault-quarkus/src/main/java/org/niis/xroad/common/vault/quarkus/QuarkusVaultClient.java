@@ -30,7 +30,9 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import io.quarkus.vault.VaultKVSecretEngine;
+import io.quarkus.vault.client.VaultClientException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
@@ -48,6 +50,7 @@ import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
+@Slf4j
 @RequiredArgsConstructor
 public class QuarkusVaultClient implements VaultClient {
 
@@ -126,11 +129,17 @@ public class QuarkusVaultClient implements VaultClient {
             throw new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.");
         }
 
-        var vaultResponse = kvSecretEngine.readSecret(path);
-        if (vaultResponse == null) {
+        try {
+            var vaultResponse = kvSecretEngine.readSecret(path);
+            if (vaultResponse == null) {
+                return Optional.empty();
+            }
+            return Optional.of(vaultResponse);
+        } catch (VaultClientException vaultResponse) {
+            log.warn("Failed to read secret from Vault at path {}: {} status {}",
+                    path, vaultResponse.getMessage(), vaultResponse.getStatus());
             return Optional.empty();
         }
-        return Optional.of(vaultResponse);
     }
 
     private InternalSSLKey getTlsCredentials(String path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
