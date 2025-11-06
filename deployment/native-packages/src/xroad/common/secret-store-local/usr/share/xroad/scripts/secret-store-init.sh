@@ -51,8 +51,9 @@ else
   done < "$UNSEAL_KEYS_FILE"
 fi
 
+export BAO_TOKEN=${BAO_TOKEN:-$(cat "$ROOT_TOKEN_FILE")}
+
 # Configure PKI if needed
-export BAO_TOKEN=$(cat "$ROOT_TOKEN_FILE")
 if curl -s -k -H "X-Vault-Token: $BAO_TOKEN" "$BAO_ADDR/v1/sys/mounts" | jq -e 'has("xrd-pki/")' >/dev/null; then
   echo "PKI store already configured"
 else
