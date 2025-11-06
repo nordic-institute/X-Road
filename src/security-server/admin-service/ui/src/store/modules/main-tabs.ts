@@ -56,6 +56,7 @@ const tabs: Tab[] = [
     permissions: [
       Permissions.VIEW_SYS_PARAMS,
       Permissions.BACKUP_CONFIGURATION,
+      Permissions.VIEW_ADMIN_USERS,
     ],
   },
 ];

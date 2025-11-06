@@ -30,6 +30,7 @@
     :loading="loadingLocalGroup"
     :translated-title="localGroup?.code"
     :breadcrumbs="breadcrumbs"
+    closeable
     @close="close"
   >
     <template #footer>

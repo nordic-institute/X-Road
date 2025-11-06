@@ -205,9 +205,6 @@ public class ClientInfoPageObj {
                 return $x("//div[@data-test='local-group-edit-description-input']");
             }
 
-            public SelenideElement btnClose() {
-                return $x("//button[@data-test='local-group-close-button']");
-            }
         }
 
         public static class AddMember extends Dialog {

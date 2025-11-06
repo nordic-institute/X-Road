@@ -57,11 +57,11 @@ public class ClientPageObj {
     }
 
     public SelenideElement linkClientDetailsOfName(String name) {
-        return $x(format("//tbody//span[contains(@class, 'client-name') and contains(text(),'%s')]", name));
+        return $x(format("//tbody//td[@data-test='client-name']//div[.//span[text()='%s']]", name));
     }
 
     public SelenideElement linkClientDetailsOfId(String id) {
-        return $x(format("//tbody/tr[td[@data-test='client-id']/span[text()='%s']]//span[contains(@class, 'client-name')]", id));
+        return $x(format("//tbody/tr[td[@data-test='client-id']/span[text()='%s']]/td[1]/div", id));
     }
 
     public SelenideElement tableRowWithNameAndStatus(String name, String status) {

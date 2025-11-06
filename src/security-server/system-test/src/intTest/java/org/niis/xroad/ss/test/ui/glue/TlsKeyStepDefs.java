@@ -50,6 +50,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
@@ -155,15 +158,16 @@ public class TlsKeyStepDefs extends BaseUiStepDefs {
         }
     }
 
-    @Step("Done button in TLS CSR generation view is clicked")
-    public void doneButtonClicked() {
-        tlsKeyPageObj.generateTlsCsrView.btnDone().click();
-    }
-
     @Step("Generated TLS certificate is successfully imported")
     public void importTlsCertificate() {
+        tlsKeyPageObj.btnUploadCertificate().shouldBe(enabled, visible).click();
+        commonPageObj.dialog.btnCancel().shouldBe(enabled);
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
+
         Optional<File> cert = getStepData(StepDataKey.CERT_FILE);
         tlsKeyPageObj.inputTlsCertificateFile().uploadFile(cert.orElseThrow());
+
+        commonPageObj.dialog.btnSave().shouldBe(enabled).click();
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         commonPageObj.snackBar.btnClose().click();

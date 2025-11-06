@@ -1,7 +1,7 @@
 @SecurityServer
 @UI
 @Diagnostics
-@Skip #TODO beta1 release preparation
+@DiagnosticsOverview
 Feature: 0900 - SS:Diagnostics - Overview
 
   Background:
