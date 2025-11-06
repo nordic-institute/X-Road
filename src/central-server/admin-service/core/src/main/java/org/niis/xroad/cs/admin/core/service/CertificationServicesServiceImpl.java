@@ -72,6 +72,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTIC
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTH_CERT_PROFILE_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERTIFICATE_PROFILE_INFO;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DEFAULT_CSR_FORMAT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
@@ -258,6 +259,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         auditDataHelper.putCertificationServiceData(Integer.toString(approvedCa.getId()), approvedCa.getCaInfo().getCert());
         auditDataHelper.put(AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());
         auditDataHelper.put(CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
+        auditDataHelper.put(DEFAULT_CSR_FORMAT, approvedCa.getDefaultCsrFormat());
         if (approvedCa.getAcmeServerDirectoryUrl() != null) {
             auditDataHelper.put(ACME_DIRECTORY_URL, approvedCa.getAcmeServerDirectoryUrl());
         }
