@@ -7,30 +7,57 @@ resource "helm_release" "postgresql_openbao" {
   chart      = "postgresql"
   version    = "18.0.12"
 
-  values = [
-    yamlencode({
-      fullnameOverride = "db-openbao"
-      image = {
-        repository = "bitnamilegacy/postgresql"
-        tag = "16.6.0"
-      }
-      auth = {
-        database           = "openbao"
-        username           = var.openbao_db_user
-        password           = var.openbao_db_user_password
-      }
-      primary = {
-        resources = {
-          requests = {
-            memory = "64Mi"
-          }
-          limits = {
-            memory = "256Mi"
-          }
-        }
-      }
-    })
+  values = [yamlencode(var.openbao_db_override_values)]
+}
+
+resource "tls_private_key" "openbao_server" {
+  algorithm   = "ECDSA"
+  ecdsa_curve = "P384"
+}
+
+resource "tls_self_signed_cert" "openbao_server" {
+  private_key_pem = tls_private_key.openbao_server.private_key_pem
+
+  subject {
+    common_name  = "openbao"
+  }
+
+  dns_names = [
+    "openbao",
+    "openbao.${var.namespace}.svc.cluster.local",
+    "localhost"
   ]
+
+  ip_addresses = [
+    "127.0.0.1"
+  ]
+
+  validity_period_hours = 43800 # 5 years
+
+  allowed_uses = [
+    "key_encipherment",
+    "digital_signature",
+    "server_auth",
+  ]
+}
+
+resource "null_resource" "openbao_server_tls_secret" {
+  provisioner "local-exec" {
+    command = <<EOT
+      cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openbao-server-tls
+  namespace: ${var.namespace}
+type: kubernetes.io/tls
+data:
+  tls.crt: ${base64encode(tls_self_signed_cert.openbao_server.cert_pem)}
+  tls.key: ${base64encode(tls_private_key.openbao_server.private_key_pem)}
+EOF
+    EOT
+  }
+  depends_on = [helm_release.postgresql_openbao]
 }
 
 resource "helm_release" "openbao_secret_store" {
@@ -42,39 +69,9 @@ resource "helm_release" "openbao_secret_store" {
   chart      = "openbao"
   version    = "0.19.0"
 
-  depends_on = [helm_release.postgresql_openbao]
+  depends_on = [null_resource.openbao_server_tls_secret]
 
-  values = [
-    yamlencode({
-      global = {
-        namespace = var.namespace
-      }
-      server = {
-        ha = {
-          enabled = true
-          config = <<-EOF
-            ui = true
-            listener "tcp" {
-              tls_disable = 1
-              address = "[::]:8200"
-              cluster_address = "[::]:8201"
-            }
-            storage "postgresql" {
-              ha_enabled = "true"
-            }
-            service_registration "kubernetes" {}
-          EOF
-        }
-        extraSecretEnvironmentVars = [
-          { envName: "BAO_PG_PASSWORD", secretName: "db-openbao", secretKey: "password" }
-        ]
-        extraEnvironmentVars = {
-          # https://github.com/openbao/openbao-helm/issues/37 - Once this gets resolved, use $(BAO_PG_PASSWORD) instead of ${var.openbao_db_user_password}
-          BAO_PG_CONNECTION_URL = "postgres://${var.openbao_db_user}:${var.openbao_db_user_password}@db-openbao.ss.svc.cluster.local:5432/openbao"
-        }
-      }
-    })
-  ]
+  values = [yamlencode(var.openbao_override_values)]
 }
 
 resource "helm_release" "openbao_secret_store_init" {

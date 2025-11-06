@@ -50,7 +50,4 @@ defineProps({
 const emit = defineEmits(['logout']);
 </script>
 
-<style lang="scss">
-@use '../assets/xrd8/global-style.scss';
-</style>
 <style lang="scss" scoped></style>

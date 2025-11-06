@@ -45,5 +45,4 @@ resource "helm_release" "security_server" {
   version = var.security_server_chart_version
 
   values = [yamlencode(var.security_server_override_values)]
-
 }

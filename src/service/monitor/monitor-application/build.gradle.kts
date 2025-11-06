@@ -7,6 +7,7 @@ dependencies {
   implementation(platform(libs.quarkus.bom))
   implementation(project(":lib:bootstrap-quarkus"))
   implementation(libs.bundles.quarkus.containerized)
+  implementation(project(":common:common-properties-db-source-quarkus"))
   implementation(project(":common:common-rpc-quarkus"))
 
   implementation(libs.quarkus.extension.systemd.notify)

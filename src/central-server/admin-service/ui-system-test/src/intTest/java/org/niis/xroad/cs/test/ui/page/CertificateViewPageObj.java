@@ -34,8 +34,4 @@ public class CertificateViewPageObj {
     public SelenideElement certificateDetails() {
         return $x("//div[@data-test='xrd-certificate']");
     }
-
-    public SelenideElement btnClose() {
-        return $x("//button[@data-test='close-x']");
-    }
 }

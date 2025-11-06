@@ -33,4 +33,11 @@ option java_multiple_files = true;
 
 service AdminService {
   rpc GetStatus(Empty) returns (DiagnosticsStatus) {}
+  rpc CheckAndGetConnectionStatus(CheckAndGetConnectionStatusRequest) returns (DownloadUrlConnectionStatus) {}
+}
+
+message CheckAndGetConnectionStatusRequest {
+  string protocol = 1;
+  string address = 2;
+  int32 port = 3;
 }

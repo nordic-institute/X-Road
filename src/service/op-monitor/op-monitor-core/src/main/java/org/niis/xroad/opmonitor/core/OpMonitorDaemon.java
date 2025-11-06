@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.codahale.metrics.MetricRegistry;
@@ -44,9 +43,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorTlsProperties;
 
@@ -59,14 +56,11 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
-import static java.util.Arrays.stream;
 
 /**
  * The main HTTP(S) request handler of the operational monitoring daemon.
@@ -89,11 +83,9 @@ public final class OpMonitorDaemon {
     private final Server server = new Server();
 
     private final OpMonitorProperties opMonitorProperties;
-    private final OpMonitorCommonProperties opMonitorCommonProperties;
     private final OpMonitorTlsProperties opMonitorTlsProperties;
     private final GlobalConfProvider globalConfProvider;
     private final VaultClient vaultClient;
-    private final VaultKeyClient vaultKeyClient;
     private final OperationalDataRecordManager operationalDataRecordManager;
     private final HealthDataMetrics healthDataMetrics;
     private final ScheduledExecutorService tlsClientCertificateRefreshScheduler =
@@ -127,10 +119,9 @@ public final class OpMonitorDaemon {
     private void createConnector()
             throws NoSuchAlgorithmException, KeyManagementException, CertificateException, IOException, InvalidKeySpecException {
         String listenAddress = opMonitorProperties.listenAddress();
-        int port = opMonitorCommonProperties.connection().port();
+        int port = opMonitorProperties.port();
 
-        String scheme = opMonitorCommonProperties.connection().scheme();
-        ServerConnector connector = "https".equalsIgnoreCase(scheme)
+        ServerConnector connector = "https".equalsIgnoreCase(opMonitorProperties.scheme())
                 ? createDaemonSslConnector() : createDaemonConnector();
 
         connector.setName(CLIENT_CONNECTOR_NAME);
@@ -150,7 +141,6 @@ public final class OpMonitorDaemon {
         return new ServerConnector(server);
     }
 
-
     private ServerConnector createDaemonSslConnector()
             throws NoSuchAlgorithmException, KeyManagementException, CertificateException, IOException, InvalidKeySpecException {
         var cf = new SslContextFactory.Server();
@@ -158,11 +148,9 @@ public final class OpMonitorDaemon {
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
         cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
-        cf.setIncludeCipherSuites(opMonitorCommonProperties.xroadTlsCiphers());
+        cf.setIncludeCipherSuites(opMonitorProperties.xroadTlsCiphers());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-
-        ensureOpMonitorTlsKeyPresent();
 
         ctx.init(new KeyManager[]{new OpMonitorSslKeyManager(vaultClient)},
                 new TrustManager[]{createTrustManager()},
@@ -179,21 +167,6 @@ public final class OpMonitorDaemon {
 
     private void registerHealthMetrics() {
         healthDataMetrics.registerInitialMetrics(healthMetricRegistry, this::getStartTimestamp);
-    }
-
-    private void ensureOpMonitorTlsKeyPresent()
-            throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        try {
-            vaultClient.getOpmonitorTlsCredentials();
-        } catch (Exception e) {
-            log.warn("Unable to locate op-monitor TLS credentials, attempting to create new ones", e);
-            var vaultKeyData = vaultKeyClient.provisionNewCerts();
-            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
-                    .toArray(X509Certificate[]::new);
-            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createOpmonitorTlsCredentials(internalTlsKey);
-            log.info("Successfully created op-monitor TLS credentials");
-        }
     }
 
     private OpMonitorSslTrustManager createTrustManager() {

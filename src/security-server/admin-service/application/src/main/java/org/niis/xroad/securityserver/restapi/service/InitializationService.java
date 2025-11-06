@@ -118,7 +118,17 @@ public class InitializationService {
         initializationStatus.setServerCodeInitialized(isServerCodeInitialized);
         initializationStatus.setServerOwnerInitialized(isServerOwnerInitialized);
         initializationStatus.setSoftwareTokenInitStatusInfo(tokenInitStatus);
+        initializationStatus.setTokenPinPolicyEnforced(isTokenPinPolicyEnforced());
         return initializationStatus;
+    }
+
+    private Boolean isTokenPinPolicyEnforced() {
+        try {
+            return signerRpcClient.isEnforcedTokenPinPolicy();
+        } catch (Exception e) {
+            log.warn("Could not determine whether token pin policy is enforced", e);
+        }
+        return null;
     }
 
     /**

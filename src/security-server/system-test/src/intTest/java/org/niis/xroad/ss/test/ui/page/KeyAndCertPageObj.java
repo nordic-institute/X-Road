@@ -29,6 +29,7 @@ package org.niis.xroad.ss.test.ui.page;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
@@ -51,17 +52,19 @@ public class KeyAndCertPageObj {
     public final AddKeyWizardGenerate addKeyWizardGenerate = new AddKeyWizardGenerate();
     public final AcmeOrderCertificateDialog acmeOrderCertificateDialog = new AcmeOrderCertificateDialog();
 
-    public static class TokenLoginDialog {
+    public static class TokenLoginDialog extends Dialog {
+
         public SelenideElement inputPin() {
             return $x("//input[@name='tokenPin']");
         }
 
         public SelenideElement btnLogin() {
-            return $x("//button[@data-test='dialog-save-button']");
+            return btnConfirm();
         }
     }
 
-    public static class TokenEdit {
+    public static class TokenEdit  extends Dialog {
+
         public SelenideElement alertTokenPolicyEnabled() {
             return $x("//*[@data-test='alert-token-policy-enabled']");
         }
@@ -81,16 +84,12 @@ public class KeyAndCertPageObj {
         public SelenideElement inputNewPinConfirm() {
             return $x("//input[@name='token.newPinConfirm']");
         }
-
-        public SelenideElement btnSave() {
-            return $x("//button[@data-test='dialog-save-button']");
-        }
-
     }
 
-    public static class TokenLogoutDialog {
+    public static class TokenLogoutDialog extends Dialog {
+
         public SelenideElement btnLogout() {
-            return $x("//button[@data-test='dialog-save-button']");
+            return btnConfirm();
         }
     }
 
@@ -202,7 +201,7 @@ public class KeyAndCertPageObj {
         }
 
         public SelenideElement keyAutomaticRenewalStatusByLabel(String label) {
-            return $x(format("//tbody[ tr/td//span[@data-test='label' and text() = '%s']]"
+            return $x(format("//tbody[ tr/td//span[@data-test='label' and contains(., '%s')]]"
                     + "//div[@data-test='renewal-status']", label));
         }
 

@@ -40,5 +40,5 @@ variable "external_service_bridge_chart" {
 variable "external_service_bridge_chart_version" {
   description = "OpenBao init chart version"
   type        = string
-  default     = "8.0.0-beta1-SNAPSHOT"
+  default     = "8.0.0-beta1"
 }

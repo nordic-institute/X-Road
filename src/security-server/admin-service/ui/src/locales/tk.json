@@ -254,6 +254,17 @@
       "success": "Üstünlik",
       "successfulRequests": "Üstünlikli talaplar",
       "time": "Wagt"
+    },
+    "connection": {
+      "ok": "Her şey yolunda",
+      "test": "Test",
+      "centralServer": {
+        "title": "Merkezi Sunucu",
+        "globalConf": "Küresel yapılandırma indirme",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "authCertRequest": "Kimlik doğrulama sertifikası kayıt servisi"
+      }
     }
   },
   "endpoints": {
@@ -369,6 +380,7 @@
     "invalid_service_url": "Gulluk url nädogry",
     "invalid_wsdl": "WSDL nädogry",
     "invalid_wsdl_service_identifier": "Gulluk WSDL identifikatory nädogry",
+    "io_error": "G/Ç hatası",
     "key_and_cert_generation_failed": "Açar we şahadatnama döredilmedi",
     "key_not_found": "Açar tapylmady",
     "local_group_code_already_exists": "Ýerli toparyň kody eýýäm bar",
@@ -384,6 +396,8 @@
     "member_code_exists": "Agzanyň kody bar",
     "member_code_not_provided": "Agzanyň kody görkezilmedi",
     "missing_parameter": "Parametrleri ýok",
+    "network_error": "Ağ hatası",
+    "http_error": "HTTP hatası",
     "openapi_parsing_error": "OpenApi3 beýanyny dernäp bolmady",
     "orphans_not_found": "Bu müşderä degişli ýiten açarlar, şahadatnamalar we/ýa-da CSR-ler tapylmady",
     "pin_code_exists": "PIN kod bar",
@@ -842,7 +856,8 @@
     },
     "diagnostics": {
       "overview": "Syn",
-      "traffic": "Trafik"
+      "traffic": "Trafik",
+      "connectionTesting": "Bağlantı testi"
     },
     "keys": {
       "apiKey": "API açarlary",

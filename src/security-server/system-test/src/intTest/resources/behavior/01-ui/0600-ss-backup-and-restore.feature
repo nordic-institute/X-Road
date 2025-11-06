@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @BackupAndRestore
 @Skip #TODO beta1 release preparation
 Feature: 0600 - SS: Backup and Restore

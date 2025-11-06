@@ -24,19 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.securityserver.restapi.converter;
 
-package org.niis.xroad.common.vault.quarkus;
+import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
+import org.springframework.stereotype.Component;
 
-import io.quarkus.vault.VaultKVSecretEngine;
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 
-@Slf4j
-public class QuarkusVaultClientConfig {
+@Component
+public class GlobalConfStatusConverter {
+    private final AuthCertStatusConverter authCertStatusConverter = new AuthCertStatusConverter();
 
-    @ApplicationScoped
-    QuarkusVaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
-        return new QuarkusVaultClient(kvSecretEngine);
+    public List<GlobalConfConnectionStatusDto> convert(List<DownloadUrlConnectionStatus> connectionStatuses) {
+        return connectionStatuses.stream()
+                .map(this::convert)
+                .toList();
     }
 
+    private GlobalConfConnectionStatusDto convert(DownloadUrlConnectionStatus connectionStatus) {
+        return new GlobalConfConnectionStatusDto()
+                .downloadUrl(connectionStatus.getDownloadUrl())
+                .connectionStatus(authCertStatusConverter.convert(connectionStatus.getConnectionStatus()));
+    }
 }

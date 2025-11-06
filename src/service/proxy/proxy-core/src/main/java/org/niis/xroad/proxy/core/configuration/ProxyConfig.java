@@ -25,17 +25,19 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import ee.ria.xroad.common.conf.InternalSSLKey;
 
+import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
@@ -50,31 +52,60 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.stream.Stream;
+
+import static java.util.Arrays.stream;
 
 @Slf4j
-public class ProxyConfig {
+class ProxyConfig {
 
     @ApplicationScoped
-    public static class OpMonitoringBufferInitializer {
+    VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, ProxyTlsProperties tlsProperties) {
+        return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
+    }
 
-        @ApplicationScoped
-        public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, ProxyTlsProperties tlsProperties) {
-            return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
+    @ApplicationScoped
+    VaultClient vaultClient(VaultKeyClient vaultKeyClient, VaultKVSecretEngine kvSecretEngine) {
+        QuarkusVaultClient vaultClient = new QuarkusVaultClient(kvSecretEngine);
+        try {
+            ensureInternalTlsKeyPresent(vaultKeyClient, vaultClient);
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
         }
+        return vaultClient;
+    }
+
+    private void ensureInternalTlsKeyPresent(VaultKeyClient vaultKeyClient, VaultClient vaultClient) throws CertificateException,
+            IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        try {
+            vaultClient.getInternalTlsCredentials();
+        } catch (Exception e) {
+            log.warn("Unable to locate internal TLS credentials, attempting to create new ones", e);
+            VaultKeyClient.VaultKeyData vaultKeyData = vaultKeyClient.provisionNewCerts();
+            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
+                    .toArray(X509Certificate[]::new);
+            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
+            vaultClient.createInternalTlsCredentials(internalTlsKey);
+            log.info("Successfully created internal TLS credentials");
+        }
+    }
+
+    @ApplicationScoped
+    static class OpMonitoringBufferInitializer {
 
         @ApplicationScoped
-        public OpMonitoringBuffer opMonitoringBuffer(OpMonitorCommonProperties opMonitorCommonProperties,
-                                                     ServerConfProvider serverConfProvider,
-                                                     ProxyProperties proxyProperties,
-                                                     VaultClient vaultClient)
+        OpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider,
+                                              ProxyProperties proxyProperties,
+                                              VaultClient vaultClient)
                 throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
                 InvalidKeySpecException, KeyManagementException {
 
             if (proxyProperties.addon().opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
                 var opMonitoringBuffer = new OpMonitoringBufferImpl(
-                        serverConfProvider, opMonitorCommonProperties, vaultClient,
+                        serverConfProvider, proxyProperties.addon().opMonitor(), vaultClient,
                         proxyProperties.clientProxy().poolEnableConnectionReuse());
                 opMonitoringBuffer.init();
                 return opMonitoringBuffer;
@@ -98,11 +129,6 @@ public class ProxyConfig {
                                           GlobalConfProvider globalConfProvider,
                                           VaultClient vaultClient) {
         return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
-    }
-
-    @ApplicationScoped
-    ExternalProcessRunner externalProcessRunner() {
-        return new ExternalProcessRunner();
     }
 
 }

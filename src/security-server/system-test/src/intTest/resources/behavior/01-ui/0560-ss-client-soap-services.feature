@@ -1,6 +1,6 @@
 @SecurityServer
+@UI
 @Client
-@Skip #TODO beta1 release preparation
 Feature: 0560 - SS: Client SOAP (through WSDL) services
 
   Background:

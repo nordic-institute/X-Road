@@ -4,6 +4,6 @@ serviceAccount:
 
 image: "dwdraju/alpine-curl-jq"
 openbao:
-  addr: "http://openbao:8200"
+  addr: "https://openbao:8200"
   threshold: 3
   shares: 5

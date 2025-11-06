@@ -27,7 +27,7 @@
 <template>
   <XrdElevatedViewFixedWidth
     title="cert.certificate"
-    fixed-height
+    closeable
     :breadcrumbs="breadcrumbs"
     :loading="loading"
     @close="close"

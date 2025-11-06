@@ -33,6 +33,7 @@ export enum RouteName {
   Diagnostics = 'diagnostics',
   DiagnosticsOverview = 'diagnostics-overview',
   DiagnosticsTraffic = 'diagnostics-traffic',
+  DiagnosticsConnection = 'diagnostics-connection',
   AddSubsystem = 'add-subsystem',
   AddClient = 'add-client',
   Clients = 'clients',

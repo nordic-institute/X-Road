@@ -37,7 +37,6 @@ import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConfDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
-import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,7 +55,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_
 @RequiredArgsConstructor
 public class InitializationApiController implements InitializationApi {
     private final InitializationService initializationService;
-    private final SignerRpcClient signerRpcClient;
 
     @Override
     @PreAuthorize("isAuthenticated()")
@@ -67,7 +65,7 @@ public class InitializationApiController implements InitializationApi {
         initializationStatusDto.setIsServerCodeInitialized(initStatus.isServerCodeInitialized());
         initializationStatusDto.setIsServerOwnerInitialized(initStatus.isServerOwnerInitialized());
         initializationStatusDto.setSoftwareTokenInitStatus(TokenInitStatusMapping.map(initStatus.getSoftwareTokenInitStatusInfo()));
-        initializationStatusDto.setEnforceTokenPinPolicy(signerRpcClient.isEnforcedTokenPinPolicy());
+        initializationStatusDto.setEnforceTokenPinPolicy(initStatus.getTokenPinPolicyEnforced());
         return new ResponseEntity<>(initializationStatusDto, HttpStatus.OK);
     }
 

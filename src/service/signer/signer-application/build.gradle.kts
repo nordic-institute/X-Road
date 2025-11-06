@@ -8,6 +8,7 @@ dependencies {
   implementation(platform(libs.quarkus.bom))
 
   implementation(project(":common:common-core"))
+  implementation(project(":common:common-properties-db-source-quarkus"))
   implementation(project(":common:common-rpc-quarkus"))
   implementation(project(":service:signer:signer-api"))
   implementation(project(":service:signer:signer-core"))

@@ -41,6 +41,7 @@ import { useUser } from '@/store/modules/user';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 
 import AlertsContainer from '@/components/AlertsContainer.vue';
+import { useMainTabs } from '@/store/modules/main-tabs';
 
 interface Form {
   clearForm(): void;
@@ -63,7 +64,7 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useUser, ['getFirstAllowedTab']),
+    ...mapState(useMainTabs, ['firstAllowedTab']),
   },
   methods: {
     ...mapActions(useUser, ['login', 'fetchUserData']),
@@ -111,7 +112,7 @@ export default defineComponent({
     },
     async routeToMembersPage() {
       this.$router
-        .replace(this.getFirstAllowedTab.to)
+        .replace(this.firstAllowedTab.to)
         .catch(swallowRedirectedNavigationError);
       this.loading = false;
     },

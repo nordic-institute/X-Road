@@ -1,3 +1,5 @@
+@SecurityServer
+@UI
 Feature: 0250 - SS: Admin Users
   The admin users management feature should be accessible when database-based authentication is enabled
 

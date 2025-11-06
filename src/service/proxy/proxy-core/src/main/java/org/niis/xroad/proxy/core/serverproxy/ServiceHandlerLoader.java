@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
-import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImpl;
@@ -49,7 +48,6 @@ public class ServiceHandlerLoader {
     private final MonitorRpcClient monitorRpcClient;
     private final CommonProperties commonProperties;
     private final ProxyProperties proxyProperties;
-    private final OpMonitorCommonProperties opMonitorCommonProperties;
 
     public Collection<ServiceHandler> loadSoapServiceHandlers() {
         Collection<ServiceHandler> handlers = new ArrayList<>();
@@ -58,7 +56,7 @@ public class ServiceHandlerLoader {
                     proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers()));
         }
         if (proxyProperties.addon().opMonitor().enabled()) {
-            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, opMonitorCommonProperties,
+            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, proxyProperties.addon().opMonitor(),
                     proxyProperties.clientProxy().poolEnableConnectionReuse()));
         }
         if (proxyProperties.addon().proxyMonitor().enabled()) {

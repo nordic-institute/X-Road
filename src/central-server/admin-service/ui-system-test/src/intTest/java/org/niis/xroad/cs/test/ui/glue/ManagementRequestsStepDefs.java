@@ -211,7 +211,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     @Step("the user clicks Approve button")
     public void userIsAbleToApproveManagementRequest() {
-        commonPageObj.button.btnApprove().click();
+        managementRequestsPageObj.btnApproveInDetails().click();
 
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
@@ -234,7 +234,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     @Step("the user clicks Decline button")
     public void userIsAbleToDeclineManagementRequest() {
-        commonPageObj.button.btnDecline().click();
+        managementRequestsPageObj.btnDeclineInDetails().click();
 
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();

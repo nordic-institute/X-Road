@@ -26,6 +26,7 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$x;
 
@@ -80,7 +81,7 @@ public class SettingsManagementServicesPageObj {
         return $x(String.format(xpath, title));
     }
 
-    public class EditManagementSubsystemDialog {
+    public class EditManagementSubsystemDialog extends Dialog {
 
         public SelenideElement search() {
             return $x("//div[@data-test='management-subsystem-search-field']");
@@ -92,11 +93,12 @@ public class SettingsManagementServicesPageObj {
         }
 
         public SelenideElement selectButton() {
-            return $x("//button[@data-test='dialog-save-button']");
+            return btnSave();
         }
     }
 
-    public class EditManagementSecurityServerDialog {
+    public class EditManagementSecurityServerDialog extends Dialog {
+
 
         public SelenideElement search() {
             return $x("//div[@data-test='management-security-server-search-field']");
@@ -108,7 +110,7 @@ public class SettingsManagementServicesPageObj {
         }
 
         public SelenideElement selectButton() {
-            return $x("//button[@data-test='dialog-save-button']");
+            return btnSave();
         }
     }
 }
