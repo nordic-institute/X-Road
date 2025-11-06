@@ -51,6 +51,7 @@ const tabs = [
   {
     key: 'diagnostics-connection-tab-button',
     name: 'tab.diagnostics.connectionTesting',
+    icon: 'network_check',
     to: {
       name: RouteName.DiagnosticsConnection,
     },
