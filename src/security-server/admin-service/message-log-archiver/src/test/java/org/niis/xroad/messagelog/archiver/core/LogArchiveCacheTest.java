@@ -464,8 +464,7 @@ class LogArchiveCacheTest {
             // Initialize encryption service
             var keyResolver = new PgpKeyResolver(keyManager);
             var encryptor = new StreamingPgpEncryptor();
-            var signerUserId = keyManager.getSigningKeyPair().userId();
-            var encryptionService = new BouncyCastlePgpEncryptionService(keyManager, keyResolver, encryptor, signerUserId);
+            var encryptionService = new BouncyCastlePgpEncryptionService(keyManager, keyResolver, encryptor);
 
             // Initialize decryptor for reading encrypted archives
             decryptor = new StreamingPgpDecryptor();

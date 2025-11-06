@@ -171,8 +171,7 @@ class LogArchiveTest {
             // Initialize encryption service
             var keyResolver = new PgpKeyResolver(keyManager);
             var encryptor = new StreamingPgpEncryptor();
-            var signerUserId = keyManager.getSigningKeyPair().userId();
-            var encryptionService = new BouncyCastlePgpEncryptionService(keyManager, keyResolver, encryptor, signerUserId);
+            var encryptionService = new BouncyCastlePgpEncryptionService(keyManager, keyResolver, encryptor);
 
             // Create encryption config provider
             encryptionConfigProvider = new VaultServerEncryptionConfigProvider(keyManager, encryptionService);
