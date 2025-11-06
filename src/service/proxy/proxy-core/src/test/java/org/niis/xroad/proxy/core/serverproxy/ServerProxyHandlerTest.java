@@ -40,7 +40,7 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -61,14 +61,15 @@ public class ServerProxyHandlerTest {
         var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         var proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
         var commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
-        var commonBeanProxy =
-                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null,
-                        null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties, new OcspVerifierFactory(),
-                        commonProperties);
 
-        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(commonBeanProxy, mock(ProxyProperties.ServerProperties.class),
-                mock(HttpClient.class), mock(HttpClient.class),
-                checkMock, mock(ServiceHandlerLoader.class));
+        var clientMessageProcessorFactory = new MessageProcessorFactory(mock(HttpClient.class), mock(HttpClient.class),
+                proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider, keyConfProvider,
+                null, new OcspVerifierFactory(), commonProperties, null, null,
+                mock(ServiceHandlerLoader.class), null);
+
+        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(clientMessageProcessorFactory,
+                mock(ProxyProperties.ServerProperties.class),
+                checkMock, globalConfProvider, new NoOpMonitoringBuffer());
 
         serverProxyHandler.handle(request, getMockedResponse(), callback);
 

@@ -38,11 +38,16 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.UriUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.IsAuthenticationData;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.IsAuthentication;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import javax.net.ssl.X509TrustManager;
@@ -65,8 +70,10 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions")
 public abstract class MessageProcessorBase {
-    protected final CommonBeanProxy commonBeanProxy;
-
+    protected final ProxyProperties proxyProperties;
+    protected final GlobalConfProvider globalConfProvider;
+    protected final ServerConfProvider serverConfProvider;
+    protected final VaultKeyProvider vaultKeyProvider;
     /**
      * The servlet request.
      */
@@ -82,24 +89,27 @@ public abstract class MessageProcessorBase {
      */
     protected final HttpClient httpClient;
 
-    protected MessageProcessorBase(CommonBeanProxy commonBeanProxy,
-                                   RequestWrapper request,
+    protected MessageProcessorBase(RequestWrapper request,
                                    ResponseWrapper response,
+                                   ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
+                                   ServerConfProvider serverConfProvider, VaultKeyProvider vaultKeyProvider,
                                    HttpClient httpClient) {
-        this.commonBeanProxy = commonBeanProxy;
+        this.proxyProperties = proxyProperties;
+        this.globalConfProvider = globalConfProvider;
+        this.serverConfProvider = serverConfProvider;
+        this.vaultKeyProvider = vaultKeyProvider;
         this.jRequest = request;
         this.jResponse = response;
         this.httpClient = httpClient;
 
-        commonBeanProxy.getGlobalConfProvider().verifyValidity();
+        this.globalConfProvider.verifyValidity();
     }
 
     /**
      * Returns a new instance of http sender.
      */
     protected HttpSender createHttpSender() {
-        return new HttpSender(httpClient,
-                commonBeanProxy.getProxyProperties().clientProxy().poolEnableConnectionReuse());
+        return new HttpSender(httpClient, proxyProperties.clientProxy().poolEnableConnectionReuse());
     }
 
     /**
@@ -159,7 +169,7 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setRepresentedParty(request.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
             opMonitoringData.setServiceType(Optional
-                    .ofNullable(commonBeanProxy.getServerConfProvider().getDescriptionType(request.getServiceId()))
+                    .ofNullable(serverConfProvider.getDescriptionType(request.getServiceId()))
                     .orElse(DescriptionType.REST).name());
             opMonitoringData.setRestMethod(request.getVerb().name());
             // we log rest path data only for PRODUCER
@@ -182,7 +192,7 @@ public abstract class MessageProcessorBase {
     }
 
     protected String getSecurityServerAddress() {
-        return commonBeanProxy.getGlobalConfProvider().getSecurityServerAddress(commonBeanProxy.getServerConfProvider().getIdentifier());
+        return globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier());
     }
 
     /**
@@ -191,7 +201,7 @@ public abstract class MessageProcessorBase {
      * In addition, this implementation allows missing (null) header.
      *
      * @return the argument as-is if it is valid
-     * @throws CodedException if the the argument is invalid
+     * @throws CodedException if the argument is invalid
      * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
      */
     protected static String validateSoapActionHeader(String soapAction) {
@@ -242,18 +252,16 @@ public abstract class MessageProcessorBase {
     protected void verifyClientAuthentication(ClientId client,
                                               IsAuthenticationData auth) {
 
-        IsAuthentication isAuthentication = commonBeanProxy.getServerConfProvider().getIsAuthentication(client);
+        IsAuthentication isAuthentication = serverConfProvider.getIsAuthentication(client);
         if (isAuthentication == null) {
             // Means the client was not found in the server conf.
             // The getIsAuthentication method implemented in ServerConfCommonImpl
             // checks if the client exists; if it does, returns the
             // isAuthentication value or NOSSL if no value is specified.
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Client '%s' not found", client);
+            throw new CodedException(X_INTERNAL_ERROR, "Client '%s' not found", client);
         }
 
-        log.trace("IS authentication for client '{}' is: {}", client,
-                isAuthentication);
+        log.trace("IS authentication for client '{}' is: {}", client, isAuthentication);
 
         if (isAuthentication == IsAuthentication.SSLNOAUTH
                 && auth.isPlaintextConnection()) {
@@ -262,8 +270,7 @@ public abstract class MessageProcessorBase {
         } else if (isAuthentication == IsAuthentication.SSLAUTH) {
             if (auth.cert() == null) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) specifies HTTPS but did not supply"
-                                + " TLS certificate", client);
+                        "Client (%s) specifies HTTPS but did not supply TLS certificate", client);
             }
 
             // Accept certificates issued by OpenBao (management requests from Proxy UI to ClientProxy within the same security server)
@@ -271,16 +278,14 @@ public abstract class MessageProcessorBase {
                 return;
             }
 
-            List<X509Certificate> isCerts = commonBeanProxy.getServerConfProvider().getIsCerts(client);
+            List<X509Certificate> isCerts = serverConfProvider.getIsCerts(client);
             if (isCerts.isEmpty()) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) has no IS certificates", client);
+                throw new CodedException(X_SSL_AUTH_FAILED, "Client (%s) has no IS certificates", client);
             }
 
             if (!isCerts.contains(auth.cert())) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) TLS certificate does not match any"
-                                + " IS certificates", client);
+                        "Client (%s) TLS certificate does not match any IS certificates", client);
             }
 
             clientIsCertPeriodValidation(client, auth.cert());
@@ -289,7 +294,7 @@ public abstract class MessageProcessorBase {
 
     private boolean clientAuthenticationIssuedByVault(IsAuthenticationData auth) {
         try {
-            var trustManager = (X509TrustManager) commonBeanProxy.getVaultKeyProvider().getTrustManager();
+            var trustManager = (X509TrustManager) vaultKeyProvider.getTrustManager();
             for (X509Certificate vaultIssuer : trustManager.getAcceptedIssuers()) {
                 try {
                     auth.cert().verify(vaultIssuer.getPublicKey());
@@ -309,16 +314,14 @@ public abstract class MessageProcessorBase {
         try {
             cert.checkValidity();
         } catch (CertificateExpiredException e) {
-            if (commonBeanProxy.getProxyProperties().enforceClientIsCertValidityPeriodCheck()) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) TLS certificate is expired", client);
+            if (proxyProperties.enforceClientIsCertValidityPeriodCheck()) {
+                throw new CodedException(X_SSL_AUTH_FAILED, "Client (%s) TLS certificate is expired", client);
             } else {
                 log.warn("Client {} TLS certificate is expired", client);
             }
         } catch (CertificateNotYetValidException e) {
-            if (commonBeanProxy.getProxyProperties().enforceClientIsCertValidityPeriodCheck()) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) TLS certificate is not yet valid", client);
+            if (proxyProperties.enforceClientIsCertValidityPeriodCheck()) {
+                throw new CodedException(X_SSL_AUTH_FAILED, "Client (%s) TLS certificate is not yet valid", client);
             } else {
                 log.warn("Client {} TLS certificate is not yet valid", client);
             }
@@ -339,6 +342,22 @@ public abstract class MessageProcessorBase {
             //"normalized path" check is redundant since path separators (/,\) are forbidden
         }
         return true;
+    }
+
+    protected IsAuthenticationData getIsAuthenticationData(RequestWrapper request, boolean logClientCert) {
+        var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
+        var cert = request.getPeerCertificates()
+                .filter(ArrayUtils::isNotEmpty)
+                .map(arr -> arr[0]);
+
+        if (logClientCert) {
+            cert.map(X509Certificate::getSubjectX500Principal)
+                    .ifPresentOrElse(
+                            subject -> log.info("Client certificate's subject: {}", subject),
+                            () -> log.info("Client certificate not found"));
+        }
+
+        return new IsAuthenticationData(cert.orElse(null), isPlaintextConnection);
     }
 
 }

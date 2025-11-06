@@ -43,17 +43,13 @@ import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.messagelog.MessageLogDbProperties;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
-import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.configuration.MessageLogDatabaseConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
@@ -73,11 +69,12 @@ import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.getServerConf;
 abstract class AbstractMessageLogTest {
 
     ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
-    OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
+    CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
+            "xroad.common.temp-files-path", "build/tmp"
+    ));
     GlobalConfProvider globalConfProvider;
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;
-    CommonBeanProxy commonBeanProxy;
     LogRecordManager logRecordManager;
     DatabaseCtx databaseCtx;
 
@@ -110,15 +107,9 @@ abstract class AbstractMessageLogTest {
                 "xroad.db.messagelog.hibernate.show_sql", "false"
         );
         var props = ConfigUtils.initConfiguration(MessageLogDbProperties.class, hibernateProperties);
-        CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
-                "xroad.common.temp-files-path", "build/tmp"
-        ));
+
         databaseCtx = MessageLogDatabaseConfig.create(props);
         logRecordManager = new LogRecordManager(databaseCtx);
-        var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
-        commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
-                ocspVerifierFactory, commonProperties);
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 

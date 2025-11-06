@@ -49,13 +49,19 @@ import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,7 +96,7 @@ import static org.eclipse.jetty.http.HttpStatus.OK_200;
 
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions")
-class ClientMessageProcessor extends AbstractClientMessageProcessor {
+public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
 
     /**
      * Timeout for waiting for the SOAP message to be read from the request.
@@ -128,7 +134,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     /**
      * Holds the proxy message output stream and associated info.
      */
-    private PipedInputStream reqIns;
+    private final PipedInputStream reqIns;
     private volatile PipedOutputStream reqOuts;
     private volatile String outputContentType;
 
@@ -136,12 +142,17 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
      * Holds the request to the server proxy.
      */
     private ProxyMessageEncoder request;
-    private String xRequestId;
+    private final String xRequestId;
 
     /**
      * Holds the response from server proxy.
      */
     private ProxyMessage response;
+
+    private final OcspVerifierFactory ocspVerifierFactory;
+    private final KeyConfProvider keyConfProvider;
+    private final SigningCtxProvider signingCtxProvider;
+    private final String tempFilesPath;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
 
@@ -157,14 +168,22 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         return Context.taskWrapping(executor);
     }
 
-    ClientMessageProcessor(CommonBeanProxy commonBeanProxy,
-                           RequestWrapper request, ResponseWrapper response,
-                           HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
+    public ClientSoapMessageProcessor(RequestWrapper request, ResponseWrapper response,
+                               ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
+                               ServerConfProvider serverConfProvider, VaultKeyProvider vaultKeyProvider,
+                               KeyConfProvider keyConfProvider, SigningCtxProvider signingCtxProvider,
+                               OcspVerifierFactory ocspVerifierFactory, String tempFilesPath,
+                               HttpClient httpClient, OpMonitoringData opMonitoringData)
             throws IOException {
-        super(commonBeanProxy, request, response, httpClient, clientCert, opMonitoringData);
+        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider,
+                httpClient, opMonitoringData);
         this.reqIns = new PipedInputStream();
         this.reqOuts = new PipedOutputStream(reqIns);
         this.xRequestId = UUID.randomUUID().toString();
+        this.ocspVerifierFactory = ocspVerifierFactory;
+        this.keyConfProvider = keyConfProvider;
+        this.signingCtxProvider = signingCtxProvider;
+        this.tempFilesPath = tempFilesPath;
     }
 
     @Override
@@ -278,11 +297,10 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     private void parseResponse(HttpSender httpSender) throws Exception {
         log.trace("parseResponse()");
 
-        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
-                commonBeanProxy.getCommonProperties().tempFilesPath());
+        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE), tempFilesPath);
 
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(),
-                commonBeanProxy.getOcspVerifierFactory(), response,
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(globalConfProvider,
+                ocspVerifierFactory, response,
                 httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
         try {
@@ -481,7 +499,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             continueProcessing();
 
             // In SSL mode, we need to send the OCSP response of our SSL cert.
-            if (commonBeanProxy.getProxyProperties().sslEnabled()) {
+            if (proxyProperties.sslEnabled()) {
                 writeOcspResponses();
             }
 
@@ -515,7 +533,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             updateOpMonitoringData();
 
             try {
-                request.sign(commonBeanProxy.getSigningCtxProvider().createSigningCtx(requestSoap.getClient()));
+                request.sign(signingCtxProvider.createSigningCtx(requestSoap.getClient()));
                 logRequestMessage();
                 request.writeSignature();
             } catch (Exception ex) {
@@ -548,9 +566,9 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         private void writeOcspResponses() throws CertificateEncodingException, IOException {
-            CertChain chain = commonBeanProxy.getKeyConfProvider().getAuthKey().certChain();
+            CertChain chain = keyConfProvider.getAuthKey().certChain();
             // exclude TopCA
-            List<OCSPResp> ocspResponses = commonBeanProxy.getKeyConfProvider().getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
+            List<OCSPResp> ocspResponses = keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
 
             for (OCSPResp ocsp : ocspResponses) {
                 request.ocspResponse(ocsp);

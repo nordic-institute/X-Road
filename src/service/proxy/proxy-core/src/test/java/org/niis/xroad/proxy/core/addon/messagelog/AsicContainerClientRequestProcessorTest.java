@@ -47,6 +47,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerClientRequestProcessor;
 
@@ -94,7 +95,9 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         final MockOutputStream mockOutputStream = new MockOutputStream();
 
         final AsicContainerClientRequestProcessor proc =
-                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient,
+                new AsicContainerClientRequestProcessor(confClientRpcClient,
+                        proxyProperties, globalConfProvider, serverConfProvider, null,
+                        logRecordManager, commonProperties.tempFilesPath(),
                         "/verificationconf", request, response);
 
         byte[] mockZipResponse = new byte[]{'v', 'e', 'r', 'i', 'f', 'i', 'c', 'a', 't', 'i', 'o', 'n', 'c', 'o', 'n', 'f', 'z', 'i', 'p'};
@@ -138,7 +141,9 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient,
+                new AsicContainerClientRequestProcessor(confClientRpcClient,
+                        proxyProperties, globalConfProvider, serverConfProvider, mock(NoopVaultKeyProvider.class),
+                        logRecordManager, commonProperties.tempFilesPath(),
                         "/asic", request, response);
 
         processor.process();
@@ -195,7 +200,9 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient,
+                new AsicContainerClientRequestProcessor(confClientRpcClient,
+                        proxyProperties, globalConfProvider, serverConfProvider, mock(NoopVaultKeyProvider.class),
+                        logRecordManager, commonProperties.tempFilesPath(),
                         "/asic", request, response);
 
         processor.process();

@@ -49,11 +49,15 @@ import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
+import org.niis.xroad.proxy.core.serverproxy.ClientProxyVersionVerifier;
+import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
+import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
+import org.niis.xroad.proxy.core.serverproxy.ServerProxyHandler;
 import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 
@@ -89,15 +93,24 @@ public class TestContext {
                     globalConfProvider, keyConfProvider, certHelper);
             LogRecordManager logRecordManager = mock(LogRecordManager.class);
             VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
-            CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
-                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                    proxyProperties, ocspVerifierFactory, commonProperties);
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
                     .proxyHttpClient(proxyProperties, authTrustVerifier, reloadingSSLSocketFactory);
-            MetadataHandler metadataHandler = new MetadataHandler(commonBeanProxy, httpClient);
-            ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(commonBeanProxy, httpClient);
+            ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
+                    monitorRpcClient, commonProperties, proxyProperties, new NoopVaultClient());
+            HttpClientCreator httpClientCreator = new HttpClientCreator(serverConfProvider,
+                    proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
+            MessageProcessorFactory messageProcessorFactory =
+                    new MessageProcessorFactory(httpClient, httpClientCreator.getHttpClient(),
+                            proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider, keyConfProvider,
+                            signingCtxProvider, ocspVerifierFactory, commonProperties, logRecordManager, null,
+                            serviceHandlerLoader, certHelper);
+
+            MetadataHandler metadataHandler = new MetadataHandler(messageProcessorFactory);
+            ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
+                    messageProcessorFactory, proxyProperties, globalConfProvider, keyConfProvider,
+                    new NoOpMonitoringBuffer());
 
             clientProxy = new ClientProxy(serverConfProvider, proxyProperties.clientProxy(), reloadingSSLSocketFactory,
                     new ListInstanceWrapper<>(List.of(metadataHandler, soapMessageHandler)));
@@ -105,10 +118,13 @@ public class TestContext {
 
             if (startServerProxy) {
                 AntiDosConfiguration antiDosConfiguration = mock(AntiDosConfiguration.class);
-                ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
-                        monitorRpcClient, commonProperties, proxyProperties);
-                serverProxy = new ServerProxy(proxyProperties, antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
-                        new NoopVaultClient());
+
+                ServerProxyHandler proxyHandler = new ServerProxyHandler(messageProcessorFactory, proxyProperties.server(),
+                        mock(ClientProxyVersionVerifier.class),
+                        globalConfProvider,
+                        new NoOpMonitoringBuffer());
+                serverProxy = new ServerProxy(proxyProperties, globalConfProvider, keyConfProvider,
+                        proxyHandler, mock(IdleConnectionMonitorThread.class), antiDosConfiguration);
                 serverProxy.init();
             }
 

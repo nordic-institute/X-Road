@@ -34,20 +34,18 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
+import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 import org.niis.xroad.proxy.core.util.PerformanceLogger;
 
 import java.io.IOException;
-import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
@@ -65,13 +63,13 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
     private static final String DEFAULT_ERROR_MESSAGE = "Request processing error";
     private static final String START_TIME_ATTRIBUTE = AbstractClientProxyHandler.class.getName() + ".START_TIME";
 
-    protected final CommonBeanProxy commonBeanProxy;
-    protected final HttpClient client;
+    protected final MessageProcessorFactory messageProcessorFactory;
     protected final boolean storeOpMonitoringData;
+    protected final OpMonitoringBuffer opMonitoringBuffer;
 
     protected abstract MessageProcessorBase createRequestProcessor(RequestWrapper request,
-                                                         ResponseWrapper response,
-                                                         OpMonitoringData opMonitoringData) throws IOException;
+                                                                   ResponseWrapper response,
+                                                                   OpMonitoringData opMonitoringData) throws IOException;
 
     @Override
     @WithSpan
@@ -92,7 +90,7 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
             if (processor != null) {
                 handled = true;
                 processor.process();
-                success(processor, start, opMonitoringData);
+                success(processor, opMonitoringData);
                 callback.succeeded();
                 if (log.isTraceEnabled()) {
                     log.info("Request successfully handled ({} ms)", System.currentTimeMillis() - start);
@@ -119,7 +117,7 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
             // Exceptions caused by incoming message and exceptions derived from faults sent by serverproxy already
             // contain full error code. Thus, we must not attach additional error code prefixes to them.
 
-            failure(processor, request, response, callback, cex, opMonitoringData);
+            failure(request, response, callback, cex, opMonitoringData);
         } catch (CodedException.Fault | ClientException e) {
             handled = true;
 
@@ -133,7 +131,7 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
             // Exceptions caused by incoming message and exceptions derived from faults sent by serverproxy already
             // contain full error code. Thus, we must not attach additional error code prefixes to them.
 
-            failure(processor, request, response, callback, e, opMonitoringData);
+            failure(request, response, callback, e, opMonitoringData);
         } catch (CodedExceptionWithHttpStatus e) {
             handled = true;
 
@@ -154,28 +152,26 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
 
             updateOpMonitoringSoapFault(opMonitoringData, cex);
 
-            failure(processor, request, response, callback, cex, opMonitoringData);
+            failure(request, response, callback, cex, opMonitoringData);
         } finally {
             if (handled) {
                 if (storeOpMonitoringData) {
                     updateOpMonitoringResponseOutTs(opMonitoringData);
-
-                    commonBeanProxy.getOpMonitoringBuffer().store(opMonitoringData);
+                    opMonitoringBuffer.store(opMonitoringData);
                 }
-
                 logPerformanceEnd(start);
             }
         }
         return handled;
     }
 
-    private static void success(MessageProcessorBase processor, long start, OpMonitoringData opMonitoringData) {
+    private static void success(MessageProcessorBase processor, OpMonitoringData opMonitoringData) {
         final boolean success = processor.verifyMessageExchangeSucceeded();
 
         updateOpMonitoringSucceeded(opMonitoringData, success);
     }
 
-    protected void failure(MessageProcessorBase processor, Request request, Response response, Callback callback,
+    protected void failure(Request request, Response response, Callback callback,
                            CodedException e, OpMonitoringData opMonitoringData) throws IOException {
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
@@ -197,22 +193,6 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
 
     static boolean isPostRequest(RequestWrapper request) {
         return request.getMethod().equalsIgnoreCase("POST");
-    }
-
-    public static IsAuthenticationData getIsAuthenticationData(RequestWrapper request, boolean logClientCert) {
-        var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
-        var cert = request.getPeerCertificates()
-                .filter(ArrayUtils::isNotEmpty)
-                .map(arr -> arr[0]);
-
-        if (logClientCert) {
-            cert.map(X509Certificate::getSubjectX500Principal)
-                    .ifPresentOrElse(
-                            subject -> log.info("Client certificate's subject: {}", subject),
-                            () -> log.info("Client certificate not found"));
-        }
-
-        return new IsAuthenticationData(cert.orElse(null), isPlaintextConnection);
     }
 
     private static long logPerformanceBegin(Request request) {

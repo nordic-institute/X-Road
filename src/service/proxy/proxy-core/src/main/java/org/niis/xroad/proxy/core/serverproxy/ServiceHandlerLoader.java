@@ -25,13 +25,20 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy.ProxyMonitorServiceHandlerImpl;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -48,6 +55,27 @@ public class ServiceHandlerLoader {
     private final MonitorRpcClient monitorRpcClient;
     private final CommonProperties commonProperties;
     private final ProxyProperties proxyProperties;
+    private final VaultClient vaultClient;
+
+    private CloseableHttpClient opMonitorHttpClient = null;
+
+    @PostConstruct
+    public void init() {
+        try {
+            if (proxyProperties.addon().opMonitor().enabled()) {
+                opMonitorHttpClient = OpMonitoringDaemonHttpClient.createHttpClient(
+                        proxyProperties.addon().opMonitor().connection(), vaultClient,
+                        serverConfProvider.getSSLKey());
+            }
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        IOUtils.closeQuietly(opMonitorHttpClient);
+    }
 
     public Collection<ServiceHandler> loadSoapServiceHandlers() {
         Collection<ServiceHandler> handlers = new ArrayList<>();
@@ -57,7 +85,7 @@ public class ServiceHandlerLoader {
         }
         if (proxyProperties.addon().opMonitor().enabled()) {
             handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, proxyProperties.addon().opMonitor(),
-                    proxyProperties.clientProxy().poolEnableConnectionReuse()));
+                    opMonitorHttpClient, proxyProperties.clientProxy().poolEnableConnectionReuse()));
         }
         if (proxyProperties.addon().proxyMonitor().enabled()) {
             handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider, monitorRpcClient));
