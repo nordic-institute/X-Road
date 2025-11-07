@@ -42,13 +42,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.Arrays;
@@ -89,7 +88,7 @@ class MetadataClientRequestProcessorTest {
 
     private GlobalConfProvider globalConfProvider;
     private ServerConfProvider serverConfProvider;
-    private VaultKeyProvider vaultKeyProvider;
+    private ClientAuthenticationService clie;
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
 
     /**
@@ -108,7 +107,7 @@ class MetadataClientRequestProcessorTest {
 
         globalConfProvider = new TestSuiteGlobalConf();
         serverConfProvider = mock(ServerConfProvider.class);
-        vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+        clie = mock(ClientAuthenticationService.class);
 
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
@@ -125,7 +124,7 @@ class MetadataClientRequestProcessorTest {
     @Test
     void shouldBeAbleToProcessListClients() {
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider,
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clie,
                         LIST_CLIENTS, mockRequest, mockResponse);
 
         assertTrue(processorToTest.canProcess(), "Wasn't able to process list clients");
@@ -134,7 +133,7 @@ class MetadataClientRequestProcessorTest {
     @Test
     void shouldNotBeAbleToProcessRandomRequest() {
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider,
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clie,
                         "getRandom", mockRequest, mockResponse);
 
         assertFalse(processorToTest.canProcess(), "Was able to process a random target");
@@ -163,7 +162,7 @@ class MetadataClientRequestProcessorTest {
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider,
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clie,
                         LIST_CLIENTS, mockRequest, mockResponse);
 
         when(mockRequest.getParametersMap()).thenReturn(Map.of());
@@ -201,7 +200,7 @@ class MetadataClientRequestProcessorTest {
         };
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider,
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clie,
                         LIST_CLIENTS, mockJsonRequest, mockResponse);
 
         when(mockJsonRequest.getParametersMap()).thenReturn(Map.of());

@@ -49,7 +49,6 @@ import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.util.io.TeeInputStream;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -61,6 +60,7 @@ import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
@@ -106,15 +106,14 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private final OcspVerifierFactory ocspVerifierFactory;
     private final String tempFilesPath;
 
-    //@SuppressWarnings("checkstyle:ParameterNumber")
     public ClientRestMessageProcessor(RequestWrapper request, ResponseWrapper response,
-                               ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                               ServerConfProvider serverConfProvider, VaultKeyProvider vaultKeyProvider,
-                               KeyConfProvider keyConfProvider, SigningCtxProvider signingCtxProvider,
-                               OcspVerifierFactory ocspVerifierFactory, String tempFilesPath,
-                               HttpClient httpClient, OpMonitoringData opMonitoringData) {
+                                      ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
+                                      ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
+                                      KeyConfProvider keyConfProvider, SigningCtxProvider signingCtxProvider,
+                                      OcspVerifierFactory ocspVerifierFactory, String tempFilesPath,
+                                      HttpClient httpClient, OpMonitoringData opMonitoringData) {
         super(request, response, proxyProperties, globalConfProvider, serverConfProvider,
-                vaultKeyProvider, httpClient, opMonitoringData);
+                clientAuthenticationService, httpClient, opMonitoringData);
         this.xRequestId = UUID.randomUUID().toString();
         this.keyConfProvider = keyConfProvider;
         this.signingCtxProvider = signingCtxProvider;

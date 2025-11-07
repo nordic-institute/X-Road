@@ -47,9 +47,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerClientRequestProcessor;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -96,9 +96,9 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
         final AsicContainerClientRequestProcessor proc =
                 new AsicContainerClientRequestProcessor(confClientRpcClient,
-                        proxyProperties, globalConfProvider, serverConfProvider, null,
-                        logRecordManager, commonProperties.tempFilesPath(),
-                        "/verificationconf", request, response);
+                        proxyProperties, globalConfProvider, serverConfProvider, logRecordManager,
+                        commonProperties.tempFilesPath(),
+                        "/verificationconf", request, response, mock(ClientAuthenticationService.class));
 
         byte[] mockZipResponse = new byte[]{'v', 'e', 'r', 'i', 'f', 'i', 'c', 'a', 't', 'i', 'o', 'n', 'c', 'o', 'n', 'f', 'z', 'i', 'p'};
 
@@ -142,9 +142,9 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
         final AsicContainerClientRequestProcessor processor =
                 new AsicContainerClientRequestProcessor(confClientRpcClient,
-                        proxyProperties, globalConfProvider, serverConfProvider, mock(NoopVaultKeyProvider.class),
+                        proxyProperties, globalConfProvider, serverConfProvider,
                         logRecordManager, commonProperties.tempFilesPath(),
-                        "/asic", request, response);
+                        "/asic", request, response, mock(ClientAuthenticationService.class));
 
         processor.process();
 
@@ -201,9 +201,9 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
         final AsicContainerClientRequestProcessor processor =
                 new AsicContainerClientRequestProcessor(confClientRpcClient,
-                        proxyProperties, globalConfProvider, serverConfProvider, mock(NoopVaultKeyProvider.class),
+                        proxyProperties, globalConfProvider, serverConfProvider,
                         logRecordManager, commonProperties.tempFilesPath(),
-                        "/asic", request, response);
+                        "/asic", request, response, mock(ClientAuthenticationService.class));
 
         processor.process();
 

@@ -49,7 +49,6 @@ import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -61,6 +60,7 @@ import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
@@ -170,12 +170,12 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
 
     public ClientSoapMessageProcessor(RequestWrapper request, ResponseWrapper response,
                                ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                               ServerConfProvider serverConfProvider, VaultKeyProvider vaultKeyProvider,
+                               ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
                                KeyConfProvider keyConfProvider, SigningCtxProvider signingCtxProvider,
                                OcspVerifierFactory ocspVerifierFactory, String tempFilesPath,
                                HttpClient httpClient, OpMonitoringData opMonitoringData)
             throws IOException {
-        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider,
+        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
                 httpClient, opMonitoringData);
         this.reqIns = new PipedInputStream();
         this.reqOuts = new PipedOutputStream(reqIns);

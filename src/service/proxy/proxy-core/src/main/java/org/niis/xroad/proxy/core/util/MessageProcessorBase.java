@@ -27,7 +27,6 @@ package org.niis.xroad.proxy.core.util;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -38,31 +37,19 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.UriUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.clientproxy.IsAuthenticationData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
-import javax.net.ssl.X509TrustManager;
-
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateNotYetValidException;
-import java.security.cert.X509Certificate;
-import java.util.List;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP_ACTION;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 /**
  * Base class for message processors.
@@ -73,7 +60,8 @@ public abstract class MessageProcessorBase {
     protected final ProxyProperties proxyProperties;
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;
-    protected final VaultKeyProvider vaultKeyProvider;
+    protected final ClientAuthenticationService clientAuthenticationService;
+
     /**
      * The servlet request.
      */
@@ -89,18 +77,17 @@ public abstract class MessageProcessorBase {
      */
     protected final HttpClient httpClient;
 
-    protected MessageProcessorBase(RequestWrapper request,
-                                   ResponseWrapper response,
+    protected MessageProcessorBase(RequestWrapper request, ResponseWrapper response,
                                    ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                                   ServerConfProvider serverConfProvider, VaultKeyProvider vaultKeyProvider,
+                                   ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
                                    HttpClient httpClient) {
         this.proxyProperties = proxyProperties;
         this.globalConfProvider = globalConfProvider;
         this.serverConfProvider = serverConfProvider;
-        this.vaultKeyProvider = vaultKeyProvider;
         this.jRequest = request;
         this.jResponse = response;
         this.httpClient = httpClient;
+        this.clientAuthenticationService = clientAuthenticationService;
 
         this.globalConfProvider.verifyValidity();
     }
@@ -138,18 +125,15 @@ public abstract class MessageProcessorBase {
      * @param opMonitoringData monitoring data to update
      * @param soapMessage      SOAP message
      */
-    protected static void updateOpMonitoringDataBySoapMessage(
-            OpMonitoringData opMonitoringData, SoapMessageImpl soapMessage) {
+    protected void updateOpMonitoringDataBySoapMessage(OpMonitoringData opMonitoringData, SoapMessageImpl soapMessage) {
         if (opMonitoringData != null && soapMessage != null) {
             opMonitoringData.setClientId(soapMessage.getClient());
             opMonitoringData.setServiceId(soapMessage.getService());
             opMonitoringData.setMessageId(soapMessage.getQueryId());
             opMonitoringData.setMessageUserId(soapMessage.getUserId());
             opMonitoringData.setMessageIssue(soapMessage.getIssue());
-            opMonitoringData.setRepresentedParty(
-                    soapMessage.getRepresentedParty());
-            opMonitoringData.setMessageProtocolVersion(
-                    soapMessage.getProtocolVersion());
+            opMonitoringData.setRepresentedParty(soapMessage.getRepresentedParty());
+            opMonitoringData.setMessageProtocolVersion(soapMessage.getProtocolVersion());
             opMonitoringData.setServiceType(DescriptionType.WSDL.name());
             opMonitoringData.setRequestSize(soapMessage.getBytes().length);
             opMonitoringData.setXRoadVersion(Version.XROAD_VERSION);
@@ -243,91 +227,6 @@ public abstract class MessageProcessorBase {
         return true;
     }
 
-    /**
-     * Verifies the authentication for the client certificate.
-     *
-     * @param client the client identifier
-     * @param auth   the authentication data of the information system
-     */
-    protected void verifyClientAuthentication(ClientId client,
-                                              IsAuthenticationData auth) {
-
-        IsAuthentication isAuthentication = serverConfProvider.getIsAuthentication(client);
-        if (isAuthentication == null) {
-            // Means the client was not found in the server conf.
-            // The getIsAuthentication method implemented in ServerConfCommonImpl
-            // checks if the client exists; if it does, returns the
-            // isAuthentication value or NOSSL if no value is specified.
-            throw new CodedException(X_INTERNAL_ERROR, "Client '%s' not found", client);
-        }
-
-        log.trace("IS authentication for client '{}' is: {}", client, isAuthentication);
-
-        if (isAuthentication == IsAuthentication.SSLNOAUTH
-                && auth.isPlaintextConnection()) {
-            throw new CodedException(X_SSL_AUTH_FAILED,
-                    "Client (%s) specifies HTTPS NO AUTH but client made plaintext connection", client);
-        } else if (isAuthentication == IsAuthentication.SSLAUTH) {
-            if (auth.cert() == null) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) specifies HTTPS but did not supply TLS certificate", client);
-            }
-
-            // Accept certificates issued by OpenBao (management requests from Proxy UI to ClientProxy within the same security server)
-            if (clientAuthenticationIssuedByVault(auth)) {
-                return;
-            }
-
-            List<X509Certificate> isCerts = serverConfProvider.getIsCerts(client);
-            if (isCerts.isEmpty()) {
-                throw new CodedException(X_SSL_AUTH_FAILED, "Client (%s) has no IS certificates", client);
-            }
-
-            if (!isCerts.contains(auth.cert())) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) TLS certificate does not match any IS certificates", client);
-            }
-
-            clientIsCertPeriodValidation(client, auth.cert());
-        }
-    }
-
-    private boolean clientAuthenticationIssuedByVault(IsAuthenticationData auth) {
-        try {
-            var trustManager = (X509TrustManager) vaultKeyProvider.getTrustManager();
-            for (X509Certificate vaultIssuer : trustManager.getAcceptedIssuers()) {
-                try {
-                    auth.cert().verify(vaultIssuer.getPublicKey());
-                    return true;
-                } catch (Exception e) {
-                    // given issuer is not the one that signed the client cert, try next
-                }
-            }
-            return false;
-        } catch (Exception e) {
-            log.warn("Failed to obtain vault key provider's trust manager", e);
-            return false;
-        }
-    }
-
-    private void clientIsCertPeriodValidation(ClientId client, X509Certificate cert) {
-        try {
-            cert.checkValidity();
-        } catch (CertificateExpiredException e) {
-            if (proxyProperties.enforceClientIsCertValidityPeriodCheck()) {
-                throw new CodedException(X_SSL_AUTH_FAILED, "Client (%s) TLS certificate is expired", client);
-            } else {
-                log.warn("Client {} TLS certificate is expired", client);
-            }
-        } catch (CertificateNotYetValidException e) {
-            if (proxyProperties.enforceClientIsCertValidityPeriodCheck()) {
-                throw new CodedException(X_SSL_AUTH_FAILED, "Client (%s) TLS certificate is not yet valid", client);
-            } else {
-                log.warn("Client {} TLS certificate is not yet valid", client);
-            }
-        }
-    }
-
     private static boolean validateIdentifierField(final CharSequence field) {
         for (int i = 0; i < field.length(); i++) {
             final char c = field.charAt(i);
@@ -342,22 +241,6 @@ public abstract class MessageProcessorBase {
             //"normalized path" check is redundant since path separators (/,\) are forbidden
         }
         return true;
-    }
-
-    protected IsAuthenticationData getIsAuthenticationData(RequestWrapper request, boolean logClientCert) {
-        var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
-        var cert = request.getPeerCertificates()
-                .filter(ArrayUtils::isNotEmpty)
-                .map(arr -> arr[0]);
-
-        if (logClientCert) {
-            cert.map(X509Certificate::getSubjectX500Principal)
-                    .ifPresentOrElse(
-                            subject -> log.info("Client certificate's subject: {}", subject),
-                            () -> log.info("Client certificate not found"));
-        }
-
-        return new IsAuthenticationData(cert.orElse(null), isPlaintextConnection);
     }
 
 }

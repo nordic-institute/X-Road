@@ -48,12 +48,12 @@ import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -119,11 +119,12 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     public AsicContainerClientRequestProcessor(ConfClientRpcClient confClientRpcClient,
                                                ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                                               ServerConfProvider serverConfProvider, VaultKeyProvider vaultKeyProvider,
+                                               ServerConfProvider serverConfProvider,
                                                LogRecordManager logRecordManager, String tempFilesPath,
-                                               String target, RequestWrapper request, ResponseWrapper response)
+                                               String target, RequestWrapper request, ResponseWrapper response,
+                                               ClientAuthenticationService clientAuthenticationService)
             throws IOException {
-        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider, null);
+        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, null);
         this.target = target;
         this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
         this.confClientRpcClient = confClientRpcClient;
@@ -178,7 +179,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void verifyClientAuthentication(ClientId clientId) {
         log.trace("verifyClientAuthentication({})", clientId);
         try {
-            verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest, proxyProperties.logClientCert()));
+            clientAuthenticationService.verifyClientAuthentication(clientId,
+                    clientAuthenticationService.getIsAuthenticationData(jRequest, proxyProperties.logClientCert()));
         } catch (CodedException ex) {
             throw new CodedExceptionWithHttpStatus(UNAUTHORIZED_401, ex);
         }

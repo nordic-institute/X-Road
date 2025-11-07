@@ -69,7 +69,7 @@ public class ValidateSoapActionTest {
     public boolean expected;
 
     @Test
-    public void testValidateSoapAction() throws Exception {
+    public void testValidateSoapAction() {
         boolean valid = true;
 
         try {

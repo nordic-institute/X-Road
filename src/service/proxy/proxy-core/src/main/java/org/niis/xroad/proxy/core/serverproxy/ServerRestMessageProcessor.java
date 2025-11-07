@@ -67,7 +67,6 @@ import org.apache.http.util.EntityUtils;
 import org.bouncycastle.operator.DigestCalculator;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
@@ -81,6 +80,7 @@ import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Client;
@@ -142,12 +142,12 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
     @SuppressWarnings("checkstyle:ParameterNumber")
     public ServerRestMessageProcessor(RequestWrapper request, ResponseWrapper response,
                                       ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                                      ServerConfProvider serverConfProvider, VaultKeyProvider vaultKeyProvider,
+                                      ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
                                       SigningCtxProvider signingCtxProvider, OcspVerifierFactory ocspVerifierFactory,
                                       CertHelper certHelper, String tempFilesPath,
                                       HttpClient httpClient, OpMonitoringData opMonitoringData,
                                       ServiceHandlerLoader serviceHandlerLoader) {
-        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider, httpClient);
+        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, httpClient);
 
         this.clientSslCerts = request.getPeerCertificates().orElse(null);
         this.opMonitoringData = opMonitoringData;

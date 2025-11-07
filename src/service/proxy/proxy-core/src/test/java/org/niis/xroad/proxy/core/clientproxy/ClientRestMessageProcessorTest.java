@@ -40,12 +40,12 @@ import org.eclipse.jetty.server.Request;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.net.URI;
@@ -81,13 +81,13 @@ class ClientRestMessageProcessorTest {
         var keyConfProvider = mock(KeyConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
         RequestWrapper request = RequestWrapper.of(getMockedRequest());
-        var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         var respWrapper = mock(ResponseWrapper.class);
         var httpClient = mock(HttpClient.class);
         var proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
         var commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
         var clientRestMessageProcessor = new ClientRestMessageProcessor(request, respWrapper,
-                proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider, keyConfProvider, null,
+                proxyProperties, globalConfProvider, serverConfProvider, mock(ClientAuthenticationService.class),
+                keyConfProvider, null,
                 new OcspVerifierFactory(), commonProperties.tempFilesPath(),
                 httpClient, opMonitoringData);
         when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);

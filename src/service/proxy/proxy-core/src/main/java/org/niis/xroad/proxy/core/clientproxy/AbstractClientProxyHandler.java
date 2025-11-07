@@ -79,10 +79,9 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
 
         long start = logPerformanceBegin(request);
         OpMonitoringData opMonitoringData = storeOpMonitoringData ? new OpMonitoringData(CLIENT, start) : null;
-        MessageProcessorBase processor = null;
 
         try {
-            processor = createRequestProcessor(
+            MessageProcessorBase processor = createRequestProcessor(
                     RequestWrapper.of(request),
                     ResponseWrapper.of(response),
                     opMonitoringData);

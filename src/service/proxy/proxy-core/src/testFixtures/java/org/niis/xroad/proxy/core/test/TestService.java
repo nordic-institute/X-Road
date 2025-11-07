@@ -90,10 +90,9 @@ public class TestService {
         connector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)
                 .map(HttpConnectionFactory.class::cast)
-                .forEach(httpCf -> {
-                    Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
-                            .ifPresent(customizer -> customizer.setSniHostCheck(false));
-                });
+                .forEach(httpCf ->
+                        Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
+                                .ifPresent(customizer -> customizer.setSniHostCheck(false)));
         server.addConnector(connector);
     }
 

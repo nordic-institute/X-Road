@@ -47,10 +47,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -85,9 +85,9 @@ public class MetadataClientRequestProcessor extends MessageProcessorBase {
     private final String target;
 
     public MetadataClientRequestProcessor(ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                                          ServerConfProvider serverConfProvider, VaultKeyProvider vaultKeyProvider,
+                                          ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
                                           String target, RequestWrapper request, ResponseWrapper response) {
-        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider, null);
+        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, null);
         this.target = target;
     }
 

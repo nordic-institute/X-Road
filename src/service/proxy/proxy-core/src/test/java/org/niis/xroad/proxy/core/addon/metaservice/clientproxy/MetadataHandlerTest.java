@@ -35,14 +35,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteKeyConf;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -69,7 +68,7 @@ class MetadataHandlerTest {
     private GlobalConfProvider globalConfProvider;
     private KeyConfProvider keyConfProvider;
     private ServerConfProvider serverConfProvider;
-    private VaultKeyProvider vaultKeyProvider;
+    private ClientAuthenticationService clientAuthenticationService;
     private MessageProcessorFactory messageProcessorFactory;
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
     private final CommonProperties commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
@@ -82,13 +81,13 @@ class MetadataHandlerTest {
         globalConfProvider = new TestSuiteGlobalConf();
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
-        vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+        clientAuthenticationService = mock(ClientAuthenticationService.class);
         mockRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
         mockHttpUri = mock(HttpURI.class);
 
         messageProcessorFactory = new MessageProcessorFactory(null, null, proxyProperties,
-                globalConfProvider, serverConfProvider, vaultKeyProvider, keyConfProvider, null,
+                globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider, null,
                 new OcspVerifierFactory(), commonProperties, null, null, null, null);
 
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);

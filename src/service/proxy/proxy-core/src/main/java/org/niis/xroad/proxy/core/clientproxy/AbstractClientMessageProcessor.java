@@ -42,11 +42,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Client;
@@ -74,19 +74,17 @@ import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSS
 @Slf4j
 abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
-    protected final IsAuthenticationData clientCert;
     protected final OpMonitoringData opMonitoringData;
 
     private final URI dummyServiceAddress;
 
     protected AbstractClientMessageProcessor(RequestWrapper request, ResponseWrapper response,
                                              ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                                             ServerConfProvider serverConfProvider, VaultKeyProvider vaultKeyProvider,
+                                             ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
                                              HttpClient httpClient, OpMonitoringData opMonitoringData) {
-        super(request, response, proxyProperties, globalConfProvider, serverConfProvider,
-                vaultKeyProvider, httpClient);
+        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
+                httpClient);
 
-        this.clientCert = getIsAuthenticationData(request, proxyProperties.logClientCert());
         this.opMonitoringData = opMonitoringData;
 
         try {
@@ -240,16 +238,14 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         var serverIdStr = serverId != null ? serverId.toString() : null;
         var message = new StringBuilder("Security server");
         if (serverId != null) {
-            message
-                    .append(" \"")
+            message.append(" \"")
                     .append(serverIdStr)
                     .append("\"");
 
         }
 
         if (StringUtils.isNotEmpty(address)) {
-            message
-                    .append(" with address \"")
+            message.append(" with address \"")
                     .append(address)
                     .append("\"");
         }
@@ -257,8 +253,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         message.append(" is in maintenance mode");
 
         if (StringUtils.isNotEmpty(maintenanceModeMessage)) {
-            message
-                    .append(". Message from \"")
+            message.append(". Message from \"")
                     .append(StringUtils.defaultIfEmpty(serverIdStr, address))
                     .append("\" administrator: ")
                     .append(maintenanceModeMessage);
@@ -283,11 +278,12 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     }
 
     protected void verifyClientAuthentication(ClientId sender) {
+        log.trace("verifyClientAuthentication()");
         if (!proxyProperties.verifyClientCert()) {
             return;
         }
-        log.trace("verifyClientAuthentication()");
-        verifyClientAuthentication(sender, clientCert);
+        IsAuthenticationData clientCert = clientAuthenticationService.getIsAuthenticationData(jRequest, proxyProperties.logClientCert());
+        clientAuthenticationService.verifyClientAuthentication(sender, clientCert);
     }
 
     @EqualsAndHashCode

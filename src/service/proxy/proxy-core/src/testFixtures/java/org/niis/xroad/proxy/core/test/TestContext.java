@@ -30,7 +30,6 @@ package org.niis.xroad.proxy.core.test;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -57,6 +56,7 @@ import org.niis.xroad.proxy.core.serverproxy.ServerProxyHandler;
 import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
@@ -92,7 +92,8 @@ public class TestContext {
             AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
                     globalConfProvider, keyConfProvider, certHelper);
             LogRecordManager logRecordManager = mock(LogRecordManager.class);
-            VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+            ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(
+                    serverConfProvider, mock(NoopVaultKeyProvider.class), proxyProperties);
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
@@ -103,7 +104,7 @@ public class TestContext {
                     proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
             MessageProcessorFactory messageProcessorFactory =
                     new MessageProcessorFactory(httpClient, httpClientCreator.getHttpClient(),
-                            proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider, keyConfProvider,
+                            proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider,
                             signingCtxProvider, ocspVerifierFactory, commonProperties, logRecordManager, null,
                             serviceHandlerLoader, certHelper);
 

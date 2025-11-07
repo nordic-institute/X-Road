@@ -35,7 +35,6 @@ import jakarta.inject.Named;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
@@ -67,7 +66,6 @@ public class MessageProcessorFactory {
     private final ProxyProperties proxyProperties;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
-    private final VaultKeyProvider vaultKeyProvider;
     private final KeyConfProvider keyConfProvider;
     private final SigningCtxProvider signingCtxProvider;
     private final OcspVerifierFactory ocspVerifierFactory;
@@ -76,12 +74,13 @@ public class MessageProcessorFactory {
     private final ServiceHandlerLoader serviceHandlerLoader;
     private final CertHelper certHelper;
     private final ConfClientRpcClient confClientRpcClient;
+    private final ClientAuthenticationService clientAuthenticationService;
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     public MessageProcessorFactory(@Named(CLIENT_PROXY_HTTP_CLIENT) HttpClient proxyHttpClient,
                                    @Named(SERVER_PROXY_HTTP_CLIENT) HttpClient serverProxyHttpClient,
                                    ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                                   ServerConfProvider serverConfProvider, VaultKeyProvider vaultKeyProvider,
+                                   ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
                                    KeyConfProvider keyConfProvider, SigningCtxProvider signingCtxProvider,
                                    OcspVerifierFactory ocspVerifierFactory, CommonProperties commonProperties,
                                    LogRecordManager logRecordManager, ConfClientRpcClient confClientRpcClient,
@@ -91,7 +90,7 @@ public class MessageProcessorFactory {
         this.proxyProperties = proxyProperties;
         this.globalConfProvider = globalConfProvider;
         this.serverConfProvider = serverConfProvider;
-        this.vaultKeyProvider = vaultKeyProvider;
+        this.clientAuthenticationService = clientAuthenticationService;
         this.keyConfProvider = keyConfProvider;
         this.signingCtxProvider = signingCtxProvider;
         this.ocspVerifierFactory = ocspVerifierFactory;
@@ -106,8 +105,8 @@ public class MessageProcessorFactory {
                                                                        OpMonitoringData opMonitoringData) {
         try {
             return new ClientSoapMessageProcessor(request, response,
-                    proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider, keyConfProvider, signingCtxProvider,
-                    ocspVerifierFactory, commonProperties.tempFilesPath(),
+                    proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider,
+                    signingCtxProvider, ocspVerifierFactory, commonProperties.tempFilesPath(),
                     proxyHttpClient, opMonitoringData);
         } catch (IOException e) {
             throw XrdRuntimeException.systemException(e);
@@ -117,7 +116,7 @@ public class MessageProcessorFactory {
     public ClientRestMessageProcessor createClientRestMessageProcessor(RequestWrapper request, ResponseWrapper response,
                                                                        OpMonitoringData opMonitoringData) {
         return new ClientRestMessageProcessor(request, response,
-                proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider, keyConfProvider, signingCtxProvider,
+                proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider, signingCtxProvider,
                 ocspVerifierFactory, commonProperties.tempFilesPath(),
                 proxyHttpClient, opMonitoringData);
     }
@@ -126,9 +125,9 @@ public class MessageProcessorFactory {
                                                                                          String target) {
         try {
             return new AsicContainerClientRequestProcessor(confClientRpcClient,
-                    proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider,
+                    proxyProperties, globalConfProvider, serverConfProvider,
                     logRecordManager, commonProperties.tempFilesPath(),
-                    target, request, response);
+                    target, request, response, clientAuthenticationService);
         } catch (IOException e) {
             throw XrdRuntimeException.systemException(e);
         }
@@ -136,7 +135,7 @@ public class MessageProcessorFactory {
 
     public MetadataClientRequestProcessor createMetadataClientRequestProcessor(RequestWrapper request, ResponseWrapper response,
                                                                                String target) {
-        return new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider,
+        return new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
                 target, request, response);
     }
 
@@ -145,7 +144,7 @@ public class MessageProcessorFactory {
     public ServerRestMessageProcessor createServerRestMessageProcessor(RequestWrapper request, ResponseWrapper response,
                                                                        OpMonitoringData opMonitoringData) {
         return new ServerRestMessageProcessor(request, response,
-                proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider,
+                proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
                 signingCtxProvider, ocspVerifierFactory, certHelper, commonProperties.tempFilesPath(),
                 serverProxyHttpClient, opMonitoringData, serviceHandlerLoader);
     }
@@ -153,7 +152,7 @@ public class MessageProcessorFactory {
     public ServerSoapMessageProcessor createServerSoapMessageProcessor(RequestWrapper request, ResponseWrapper response,
                                                                        OpMonitoringData opMonitoringData) {
         return new ServerSoapMessageProcessor(request, response,
-                proxyProperties, globalConfProvider, serverConfProvider, vaultKeyProvider,
+                proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
                 signingCtxProvider, ocspVerifierFactory, certHelper, commonProperties.tempFilesPath(),
                 serverProxyHttpClient, opMonitoringData, serviceHandlerLoader);
     }
