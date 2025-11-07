@@ -44,6 +44,7 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.net.URI;
+import java.security.cert.X509Certificate;
 import java.util.Optional;
 
 /**
@@ -170,8 +171,38 @@ public abstract class MessageProcessorBase {
         return true;
     }
 
-    protected String getSecurityServerAddress() {
+    private String getSecurityServerAddress() {
         return globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier());
+    }
+
+    protected void updateOpMonitoringClientSecurityServerAddress(OpMonitoringData opMonitoringData) {
+        try {
+            opMonitoringData.setClientSecurityServerAddress(getSecurityServerAddress());
+        } catch (Exception e) {
+            log.error("Failed to assign operational monitoring data field {}",
+                    OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
+        }
+    }
+
+    protected void updateOpMonitoringServiceSecurityServerAddress(OpMonitoringData opMonitoringData) {
+        try {
+            opMonitoringData.setServiceSecurityServerAddress(getSecurityServerAddress());
+        } catch (Exception e) {
+            log.error("Failed to assign operational monitoring data field {}",
+                    OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS, e);
+        }
+    }
+
+    protected void updateOpMonitoringClientSecurityServerAddress(OpMonitoringData opMonitoringData, X509Certificate authCert) {
+        try {
+            if (authCert != null) {
+                opMonitoringData.setClientSecurityServerAddress(globalConfProvider.getSecurityServerAddress(
+                        globalConfProvider.getServerId(authCert)));
+            }
+        } catch (Exception e) {
+            log.error("Failed to assign operational monitoring data field {}",
+                    OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
+        }
     }
 
 }

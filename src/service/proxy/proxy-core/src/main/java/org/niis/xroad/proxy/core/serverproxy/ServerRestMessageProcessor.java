@@ -169,8 +169,8 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
         xRequestId = jRequest.getHeaders().get(HEADER_REQUEST_ID);
 
         opMonitoringData.setXRequestId(xRequestId);
-        updateOpMonitoringClientSecurityServerAddress();
-        updateOpMonitoringServiceSecurityServerAddress();
+        updateOpMonitoringClientSecurityServerAddress(opMonitoringData, getClientAuthCert());
+        updateOpMonitoringServiceSecurityServerAddress(opMonitoringData);
 
         try {
             readMessage();
@@ -189,29 +189,6 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
             if (restResponseBody != null) {
                 restResponseBody.consume();
             }
-        }
-    }
-
-    private void updateOpMonitoringClientSecurityServerAddress() {
-        try {
-            X509Certificate authCert = getClientAuthCert();
-
-            if (authCert != null) {
-                opMonitoringData.setClientSecurityServerAddress(globalConfProvider.getSecurityServerAddress(
-                        globalConfProvider.getServerId(authCert)));
-            }
-        } catch (Exception e) {
-            log.error("Failed to assign operational monitoring data field {}",
-                    OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
-        }
-    }
-
-    private void updateOpMonitoringServiceSecurityServerAddress() {
-        try {
-            opMonitoringData.setServiceSecurityServerAddress(getSecurityServerAddress());
-        } catch (Exception e) {
-            log.error("Failed to assign operational monitoring data field {}",
-                    OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS, e);
         }
     }
 

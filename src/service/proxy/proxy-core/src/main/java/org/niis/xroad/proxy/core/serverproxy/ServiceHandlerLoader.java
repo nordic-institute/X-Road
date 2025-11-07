@@ -77,7 +77,7 @@ public class ServiceHandlerLoader {
         IOUtils.closeQuietly(opMonitorHttpClient);
     }
 
-    public Collection<ServiceHandler> loadSoapServiceHandlers() {
+    Collection<ServiceHandler> loadSoapServiceHandlers() {
         Collection<ServiceHandler> handlers = new ArrayList<>();
         if (proxyProperties.addon().metaservices().enabled()) {
             handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
@@ -93,7 +93,7 @@ public class ServiceHandlerLoader {
         return handlers;
     }
 
-    public Collection<RestServiceHandler> loadRestServiceHandlers() {
+    Collection<RestServiceHandler> loadRestServiceHandlers() {
         Collection<RestServiceHandler> handlers = new ArrayList<>();
         if (proxyProperties.addon().metaservices().enabled()) {
             handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties.clientProxy().clientTlsProtocols(),

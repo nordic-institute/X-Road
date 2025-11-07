@@ -126,7 +126,7 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     @WithSpan
     public void process() throws Exception {
         opMonitoringData.setXRequestId(xRequestId);
-        updateOpMonitoringClientSecurityServerAddress();
+        updateOpMonitoringClientSecurityServerAddress(opMonitoringData);
 
         try {
             restRequest = new RestRequest(
@@ -161,15 +161,6 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         IdentifierValidator.checkIdentifier(restRequest.getClientId());
         IdentifierValidator.checkIdentifier(restRequest.getServiceId());
         IdentifierValidator.checkIdentifier(restRequest.getTargetSecurityServer());
-    }
-
-    private void updateOpMonitoringClientSecurityServerAddress() {
-        try {
-            opMonitoringData.setClientSecurityServerAddress(getSecurityServerAddress());
-        } catch (Exception e) {
-            log.error("Failed to assign operational monitoring data field {}",
-                    OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
-        }
     }
 
     private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {

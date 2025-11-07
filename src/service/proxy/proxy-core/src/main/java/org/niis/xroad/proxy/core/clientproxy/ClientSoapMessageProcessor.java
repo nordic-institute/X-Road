@@ -193,7 +193,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
         log.trace("process()");
 
         opMonitoringData.setXRequestId(xRequestId);
-        updateOpMonitoringClientSecurityServerAddress();
+        updateOpMonitoringClientSecurityServerAddress(opMonitoringData);
 
         Future<?> soapHandler = SOAP_HANDLER_EXECUTOR.submit(this::handleSoap);
 
@@ -244,15 +244,6 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
     @Override
     public boolean verifyMessageExchangeSucceeded() {
         return response != null && response.getFault() == null;
-    }
-
-    private void updateOpMonitoringClientSecurityServerAddress() {
-        try {
-            opMonitoringData.setClientSecurityServerAddress(getSecurityServerAddress());
-        } catch (Exception e) {
-            log.error("Failed to assign operational monitoring data field {}",
-                    OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
-        }
     }
 
     private void processRequest() throws Exception {
