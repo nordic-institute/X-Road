@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,45 +24,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.proxy.core.util;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import org.junit.jupiter.api.Test;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+@Slf4j
+@UtilityClass
+public class IdentifierValidator {
 
+    /**
+     * Logs a warning if identifier contains invalid characters.
+     */
+    public static boolean checkIdentifier(final XRoadId id) {
+        if (id != null) {
+            if (!validateIdentifierField(id.getXRoadInstance())) {
+                log.warn("Invalid character(s) in identifier {}", id);
+                return false;
+            }
 
-/**
- * Test to verify MessageProcessorBase behavior
- */
-public class IdentifierValidatorTest {
-
-    @Test
-    public void testCheckIdentifierValid() {
-        final ServiceId valid = ServiceId.Conf.create("TEST", "CLASS", "CO DE", null, "SERVICE");
-        assertTrue(IdentifierValidator.checkIdentifier(valid));
+            for (String f : id.getFieldsForStringFormat()) {
+                if (f != null && !validateIdentifierField(f)) {
+                    log.warn("Invalid character(s) in identifier {}", id);
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
-    @Test
-    public void testCheckIdentifierInvalid() {
-        final XRoadId[] cases = {
-                ClientId.Conf.create("TEST", "CLASS", "CO\tDE"),
-                SecurityServerId.Conf.create("TEST", "CLASS", "MEMBER", "SER:VER"),
-                ServiceId.Conf.create("TE/ST", "CLASS", "MEMBER", "SYSTEM", "SERVICE"),
-                ServiceId.Conf.create("TEST", "CLA;SS", "MEMBER", "SYSTEM", "SERVICE"),
-                ServiceId.Conf.create("TEST", "CLASS", "MEM\\BER", "SYSTEM", "SERVICE"),
-                ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYS%TEM", "SERVICE"),
-                ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYSTEM", "SERVICE\u200b"),
-        };
-        for (XRoadId id : cases) {
-            assertFalse(IdentifierValidator.checkIdentifier(id));
+    private static boolean validateIdentifierField(final CharSequence field) {
+        for (int i = 0; i < field.length(); i++) {
+            final char c = field.charAt(i);
+            //ISO control char
+            if (c <= '\u001f' || (c >= '\u007f' && c <= '\u009f')) {
+                return false;
+            }
+            //Forbidden chars
+            if (c == '%' || c == ':' || c == ';' || c == '/' || c == '\\' || c == '\u200b' || c == '\ufeff') {
+                return false;
+            }
+            //"normalized path" check is redundant since path separators (/,\) are forbidden
         }
-
+        return true;
     }
 
 }

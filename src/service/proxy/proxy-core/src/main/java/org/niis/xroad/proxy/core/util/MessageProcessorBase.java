@@ -27,7 +27,6 @@ package org.niis.xroad.proxy.core.util;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.HttpSender;
@@ -205,42 +204,6 @@ public abstract class MessageProcessorBase {
             }
         }
         throw new CodedException(X_INVALID_SOAP_ACTION, "Malformed SOAPAction header");
-    }
-
-    /**
-     * Logs a warning if identifier contains invalid characters.
-     */
-    protected static boolean checkIdentifier(final XRoadId id) {
-        if (id != null) {
-            if (!validateIdentifierField(id.getXRoadInstance())) {
-                log.warn("Invalid character(s) in identifier {}", id);
-                return false;
-            }
-
-            for (String f : id.getFieldsForStringFormat()) {
-                if (f != null && !validateIdentifierField(f)) {
-                    log.warn("Invalid character(s) in identifier {}", id);
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private static boolean validateIdentifierField(final CharSequence field) {
-        for (int i = 0; i < field.length(); i++) {
-            final char c = field.charAt(i);
-            //ISO control char
-            if (c <= '\u001f' || (c >= '\u007f' && c <= '\u009f')) {
-                return false;
-            }
-            //Forbidden chars
-            if (c == '%' || c == ':' || c == ';' || c == '/' || c == '\\' || c == '\u200b' || c == '\ufeff') {
-                return false;
-            }
-            //"normalized path" check is redundant since path separators (/,\) are forbidden
-        }
-        return true;
     }
 
 }

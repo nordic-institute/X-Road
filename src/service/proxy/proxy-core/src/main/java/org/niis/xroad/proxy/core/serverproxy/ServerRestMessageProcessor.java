@@ -81,6 +81,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
+import org.niis.xroad.proxy.core.util.IdentifierValidator;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Client;
@@ -319,9 +320,9 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_MISSING_SIGNATURE, "Request does not have signature");
         }
 
-        checkIdentifier(rest.getClientId());
-        checkIdentifier(rest.getServiceId());
-        checkIdentifier(rest.getTargetSecurityServer());
+        IdentifierValidator.checkIdentifier(rest.getClientId());
+        IdentifierValidator.checkIdentifier(rest.getServiceId());
+        IdentifierValidator.checkIdentifier(rest.getTargetSecurityServer());
     }
 
     private void verifyClientStatus() {

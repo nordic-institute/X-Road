@@ -61,6 +61,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
+import org.niis.xroad.proxy.core.util.IdentifierValidator;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
@@ -157,9 +158,9 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     private void checkRequestIdentifiers() {
-        checkIdentifier(restRequest.getClientId());
-        checkIdentifier(restRequest.getServiceId());
-        checkIdentifier(restRequest.getTargetSecurityServer());
+        IdentifierValidator.checkIdentifier(restRequest.getClientId());
+        IdentifierValidator.checkIdentifier(restRequest.getServiceId());
+        IdentifierValidator.checkIdentifier(restRequest.getTargetSecurityServer());
     }
 
     private void updateOpMonitoringClientSecurityServerAddress() {

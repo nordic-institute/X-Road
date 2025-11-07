@@ -61,6 +61,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
+import org.niis.xroad.proxy.core.util.IdentifierValidator;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
@@ -235,9 +236,9 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     private void checkRequestIdentifiers() {
-        checkIdentifier(requestSoap.getClient());
-        checkIdentifier(requestSoap.getService());
-        checkIdentifier(requestSoap.getSecurityServer());
+        IdentifierValidator.checkIdentifier(requestSoap.getClient());
+        IdentifierValidator.checkIdentifier(requestSoap.getService());
+        IdentifierValidator.checkIdentifier(requestSoap.getSecurityServer());
     }
 
     @Override

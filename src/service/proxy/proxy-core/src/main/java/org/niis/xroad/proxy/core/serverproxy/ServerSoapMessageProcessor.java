@@ -65,6 +65,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
+import org.niis.xroad.proxy.core.util.IdentifierValidator;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Client;
@@ -344,9 +345,9 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         if (requestMessage.getSignature() == null) {
             throw new CodedException(X_MISSING_SIGNATURE, "Request does not have signature");
         }
-        checkIdentifier(requestMessage.getSoap().getClient());
-        checkIdentifier(requestMessage.getSoap().getService());
-        checkIdentifier(requestMessage.getSoap().getSecurityServer());
+        IdentifierValidator.checkIdentifier(requestMessage.getSoap().getClient());
+        IdentifierValidator.checkIdentifier(requestMessage.getSoap().getService());
+        IdentifierValidator.checkIdentifier(requestMessage.getSoap().getSecurityServer());
     }
 
     private void verifyClientStatus() {
