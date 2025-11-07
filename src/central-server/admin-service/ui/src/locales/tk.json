@@ -627,6 +627,7 @@
     "certProfileInput": "Şahadatnamanyň profil maglumatlary",
     "certProfileInputExplanation": "ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interfeýsi ýerine ýetirýän klassyň doly ady",
     "certificationServices": "Şahadatnama boýunça hyzmatlary",
+    "defaultCsrFormat": "Deslapky CSR formaty",
     "timestampingService": {
       "addedSuccessfully": "Wagt bellemek hyzmaty üstünlikli goşuldy",
       "dialog": {
@@ -711,6 +712,7 @@
         "acmeCapable": "Bu CA ACME üçin ulanylyp bilner",
         "acmeNotCapable": "Bu CA ACME üçin ulanylyp bilinmer",
         "certProfile": "ee.ria.xroad.common.CertificateProfileInfoProvider interfeýsi ýerine ýetiriji şahadatnamanyň (klassyň doly ady) profili barada maglumat",
+        "defaultCsrFormat": "Öňünden bellenen CSR formaty (bu CA bilen täze tassyklama we gol çekiş açarlary döredilende awtomatiki saýlanýar; el bilen üýtgedilip bilner)",
         "saveSuccess": "CA sazlamalary üstünlikli ýatda saklanyldy",
         "tlsAuth": "Bu CA diňe TLS-niň hakykylygyny tassyklamak üçin ulanylyp bilner"
       },

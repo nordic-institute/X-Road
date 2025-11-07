@@ -84,6 +84,7 @@
             </ocsp>
         </topCA>
         <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
+        <defaultCsrFormat>PEM</defaultCsrFormat>
         <acmeServer>
             <directoryURL>http://ca:8887/acme/directory</directoryURL>
             <authenticationCertificateProfileId>5</authenticationCertificateProfileId>
@@ -165,6 +166,7 @@
             </ocsp>
         </topCA>
         <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
+        <defaultCsrFormat>PEM</defaultCsrFormat>
     </approvedCA>
     <approvedCA>
         <name>pki3</name>
@@ -268,6 +270,7 @@
                 89A9e6HCmXEY1bo=</cert>
         </topCA>
         <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
+        <defaultCsrFormat>DER</defaultCsrFormat>
     </approvedCA>
 
     <approvedCA>

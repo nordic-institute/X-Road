@@ -643,7 +643,8 @@
      "certProfileInput":"Informações do perfil do certificado",
      "certProfileInputExplanation":"Nome completo da classe que implementa a interface ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider",
      "certificationServices":"Serviços de Certificação",
-     "timestampingService":{
+    "defaultCsrFormat": "Formato CSR padrão",
+    "timestampingService":{
         "addedSuccessfully":"Serviço de carimbo do tempo adicionado com sucesso",
         "dialog":{
            "add":{
@@ -727,6 +728,7 @@
            "acmeCapable":"Esta AC pode ser usada com ACME",
            "acmeNotCapable":"Esta AC não pode ser usada com ACME",
            "certProfile":"Informações do perfil do certificado (nome completo da classe que implementa a interface ee.ria.xroad.common.CertificateProfileInfoProvider)",
+           "defaultCsrFormat": "Formato CSR padrão (selecionado automaticamente ao criar novas chaves de autenticação e assinatura com esta AC; pode ser alterado manualmente)",
            "saveSuccess":"Configurações da AC salvas com sucesso",
            "tlsAuth":"Esta AC pode ser usada apenas para autenticação TLS"
         },

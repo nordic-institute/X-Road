@@ -38,7 +38,7 @@ import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 import org.niis.xroad.globalconf.schema.sharedparameters.v6.AcmeServer;
-import org.niis.xroad.globalconf.schema.sharedparameters.v6.ApprovedCATypeV3;
+import org.niis.xroad.globalconf.schema.sharedparameters.v6.ApprovedCATypeV4;
 import org.niis.xroad.globalconf.schema.sharedparameters.v6.ConfigurationSourceType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v6.GlobalGroupType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v6.GlobalSettingsType;
@@ -80,7 +80,7 @@ abstract class SharedParametersV6ToXmlConverter {
     abstract ConfigurationSourceType convert(SharedParameters.ConfigurationSource configurationSource);
 
     @Mapping(source = "intermediateCas", target = "intermediateCA")
-    abstract ApprovedCATypeV3 convert(SharedParameters.ApprovedCA approvedCa);
+    abstract ApprovedCATypeV4 convert(SharedParameters.ApprovedCA approvedCa);
 
     abstract AcmeServer convert(SharedParameters.AcmeServer acmeServer);
 

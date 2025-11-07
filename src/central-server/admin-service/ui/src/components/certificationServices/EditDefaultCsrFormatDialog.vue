@@ -37,24 +37,25 @@
   >
     <template #content>
       <div class="dlg-input-width">
-        <v-checkbox
-          v-model="tlsAuth"
-          v-bind="tlsAuthAttrs"
-          data-test="tls-auth-checkbox"
-          tabindex="0"
+        <v-select
+          v-model="defaultCsrFormat"
+          v-bind="defaultCsrFormatAttrs"
+          variant="outlined"
+          :label="$t('trustServices.defaultCsrFormat')"
+          :items="csrFormatList"
+          data-test="default-csr-format-select"
           autofocus
-          :label="$t('trustServices.addCASettingsCheckbox')"
-        />
+        ></v-select>
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts" setup>
-import { PropType, ref } from 'vue';
+import { ref, PropType } from 'vue';
 import { useForm } from 'vee-validate';
 import { useCertificationService } from '@/store/modules/trust-services';
-import { ApprovedCertificationService } from '@/openapi-types';
+import { ApprovedCertificationService, CsrFormat } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useI18n } from 'vue-i18n';
 
@@ -69,14 +70,19 @@ const emits = defineEmits(['save', 'cancel']);
 
 const { handleSubmit, meta, defineField } = useForm({
   validationSchema: {
-    tlsAuth: {},
+    defaultCsrFormat: { required: true },
   },
   initialValues: {
-    tlsAuth: props.certificationService.tls_auth,
+    defaultCsrFormat: props.certificationService.default_csr_format,
   },
 });
 
-const [tlsAuth, tlsAuthAttrs] = defineField('tlsAuth');
+const csrFormatList = Object.values(CsrFormat).map((csrFormat) => ({
+  title: csrFormat,
+  value: csrFormat,
+}));
+const [defaultCsrFormat, defaultCsrFormatAttrs] =
+  defineField('defaultCsrFormat');
 
 const { showSuccess, showError } = useNotifications();
 
@@ -93,8 +99,8 @@ const updateCertificationServiceSettings = handleSubmit((values) => {
   updateCertificationService(props.certificationService.id, {
     certificate_profile_info:
       props.certificationService.certificate_profile_info,
-    default_csr_format: props.certificationService.default_csr_format,
-    tls_auth: values.tlsAuth.toString(),
+    tls_auth: `${props.certificationService.tls_auth}`,
+    default_csr_format: values.defaultCsrFormat,
   })
     .then(() => {
       showSuccess(t('trustServices.trustService.settings.saveSuccess'));

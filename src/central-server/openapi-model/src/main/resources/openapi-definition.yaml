@@ -3302,6 +3302,8 @@ components:
         tls_auth:
           description: can the CA be used for TLS authentication
           type: boolean
+        default_csr_format:
+          $ref: '#/components/schemas/CsrFormat'
         acme_server_directory_url:
           type: string
           format: url
@@ -3556,6 +3558,8 @@ components:
         tls_auth:
           description: can the CA be used for TLS authentication
           type: string
+        default_csr_format:
+          $ref: '#/components/schemas/CsrFormat'
         acme_server_directory_url:
           format: url
           type: string
@@ -4252,6 +4256,14 @@ components:
         - PAID
         - UNDEFINED
       example: FREE
+      format: enum
+      type: string
+    CsrFormat:
+      description: CSR format
+      enum:
+        - PEM
+        - DER
+      example: PEM
       format: enum
       type: string
     PossibleTokenAction:

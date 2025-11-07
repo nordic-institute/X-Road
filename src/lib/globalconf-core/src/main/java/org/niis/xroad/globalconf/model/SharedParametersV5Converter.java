@@ -114,7 +114,7 @@ public class SharedParametersV5Converter {
         source.getMember().forEach(member -> {
             ret.put(member.getId(), toClientId(source.getInstanceIdentifier(), member));
             member.getSubsystem().forEach(subsystem ->
-                ret.put(subsystem.getId(), toClientId(source.getInstanceIdentifier(), member, subsystem))
+                    ret.put(subsystem.getId(), toClientId(source.getInstanceIdentifier(), member, subsystem))
             );
         });
         return ret;
