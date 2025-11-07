@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
+import org.niis.xroad.common.pgp.PgpKeyUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -79,7 +80,7 @@ public final class VaultServerEncryptionConfigProvider implements EncryptionConf
                     try {
                         // For server-level encryption, use the signing key (self-encryption)
                         var signingKeyPair = keyManager.getSigningKeyPair();
-                        String keyId = String.format("%016X", signingKeyPair.publicKey().getKeyID());
+                        String keyId = PgpKeyUtils.formatKeyId(signingKeyPair.publicKey().getKeyID());
 
                         log.info("Vault server encryption config: using signing key {} for self-encryption", keyId);
                         this.config = new VaultEncryptionConfig(encryption, Collections.singleton(keyId), Collections.emptyList());

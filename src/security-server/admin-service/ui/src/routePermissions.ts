@@ -40,6 +40,14 @@ export interface RoutePermission {
 // "single source of truth" for route permissions
 export const routePermissions: RoutePermission[] = [
   {
+    name: RouteName.Keys,
+    permissions: [
+      Permissions.VIEW_KEYS,
+      Permissions.VIEW_API_KEYS,
+      Permissions.VIEW_INTERNAL_TLS_CERT,
+    ],
+  },
+  {
     name: RouteName.SignAndAuthKeys,
     permissions: [Permissions.VIEW_KEYS],
   },
@@ -67,6 +75,14 @@ export const routePermissions: RoutePermission[] = [
   {
     name: RouteName.Diagnostics,
     permissions: [Permissions.DIAGNOSTICS],
+  },
+  {
+    name: RouteName.Settings,
+    permissions: [
+      Permissions.VIEW_SYS_PARAMS,
+      Permissions.BACKUP_CONFIGURATION,
+      Permissions.VIEW_ADMIN_USERS,
+    ],
   },
   {
     name: RouteName.SystemParameters,

@@ -1,7 +1,7 @@
 @SecurityServer
 @UI
-@Traffic
-@Skip #TODO beta1 release preparation
+@Diagnostics
+@DiagnosticsTraffic
 Feature: 0900 - SS:Diagnostics - Traffic
 
   Background:

@@ -48,12 +48,8 @@ public class ClientPageObj {
     public final SelectSubsystemDialog selectSubsystemDialog = new SelectSubsystemDialog();
     public final SelectClientDialog selectClientDialog = new SelectClientDialog();
 
-    public SelenideElement btnSearch() {
-        return $x("//*[contains(@class, 'mdi-magnify')]");
-    }
-
     public SelenideElement inputSearch() {
-        return $x("//*[@data-test='search-input']");
+        return $x("//div[@data-test='search-query-field']");
     }
 
     public SelenideElement btnAddClient() {
@@ -61,11 +57,11 @@ public class ClientPageObj {
     }
 
     public SelenideElement linkClientDetailsOfName(String name) {
-        return $x(format("//tbody//span[contains(@class, 'client-name') and contains(text(),'%s')]", name));
+        return $x(format("//tbody//td[@data-test='client-name']//div[.//span[text()='%s']]", name));
     }
 
     public SelenideElement linkClientDetailsOfId(String id) {
-        return $x(format("//tbody/tr[td[@data-test='client-id']/span[text()='%s']]//span[contains(@class, 'client-name')]", id));
+        return $x(format("//tbody/tr[td[@data-test='client-id']/span[text()='%s']]/td[1]/div", id));
     }
 
     public SelenideElement tableRowWithNameAndStatus(String name, String status) {
@@ -75,7 +71,7 @@ public class ClientPageObj {
     public SelenideElement tableRowWithNameAndStatus(String name, String status, String id) {
         var matchers = new ArrayList<String>(2);
         Optional.ofNullable(name)
-                .map("td[@data-test='client-name']//span/span[text()='%s']"::formatted)
+                .map("td[@data-test='client-name']//span[text()='%s']"::formatted)
                 .ifPresent(matchers::add);
         Optional.ofNullable(status)
                 .map("td[@data-test='client-status']//span[text()='%s']"::formatted)
@@ -93,7 +89,7 @@ public class ClientPageObj {
     }
 
     public ElementsCollection groups() {
-        return $$x("//tbody//tr//td[1]/span");
+        return $$x("//tbody//tr//td[1]/div");
     }
 
     public SelenideElement tableHeader(String name) {
