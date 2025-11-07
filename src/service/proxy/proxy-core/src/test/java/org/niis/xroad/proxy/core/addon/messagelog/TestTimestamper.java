@@ -27,17 +27,19 @@
 package org.niis.xroad.proxy.core.addon.messagelog;
 
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 class TestTimestamper extends Timestamper {
 
-    TestTimestamper(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, LogRecordManager logRecordManager) {
-        super(globalConfProvider, serverConfProvider, logRecordManager);
+    TestTimestamper(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, LogRecordManager logRecordManager,
+                    ProxyMessageLogProperties messageLogProperties) {
+        super(globalConfProvider, serverConfProvider, logRecordManager, messageLogProperties);
     }
 
     @Override
     protected TimestamperWorker getWorkerImpl() {
-        return new TestTimestamperWorker(globalConfProvider, logRecordManager, serverConfProvider.getTspUrl());
+        return new TestTimestamperWorker(globalConfProvider, logRecordManager, messageLogProperties, serverConfProvider.getTspUrl());
     }
 
 }

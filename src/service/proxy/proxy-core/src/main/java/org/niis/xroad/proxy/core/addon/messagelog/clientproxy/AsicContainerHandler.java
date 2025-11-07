@@ -77,6 +77,7 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
                 commonBeanProxy,
                 confClientRpcClient,
                 commonBeanProxy.getEncryptionConfigProvider(),
+                commonBeanProxy.getMessageRecordEncryption(),
                 target,
                 request,
                 response);

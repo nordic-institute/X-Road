@@ -29,11 +29,10 @@ package org.niis.xroad.proxy.core.addon.messagelog;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 
-import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
+import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -42,10 +41,11 @@ class TestLogArchiver extends LogArchiver {
 
     private static CountDownLatch gate = new CountDownLatch(1);
 
-    TestLogArchiver(LogArchiverProperties logArchiverProperties, GlobalConfProvider globalConfProvider,
-                    EncryptionConfigProvider encryptionConfigProvider, CommonProperties commonProperties,
+    TestLogArchiver(PgpKeyManager keyManager,
+                    BouncyCastlePgpEncryptionService encryptionService,
+                    GlobalConfProvider globalConfProvider,
                     DatabaseCtx messageLogDatabaseCtx) {
-        super(logArchiverProperties, encryptionConfigProvider, commonProperties, globalConfProvider, messageLogDatabaseCtx);
+        super(keyManager, encryptionService, globalConfProvider, messageLogDatabaseCtx);
     }
 
     public static void waitForArchiveSuccessful() throws Exception {

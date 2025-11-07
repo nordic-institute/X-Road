@@ -63,12 +63,12 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
     private final OpMonitoringDaemonSender sender;
     private final SavedServiceEndpoint savedServiceEndpoint;
 
-    private final ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties;
+    private final ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties;
 
     final BlockingDeque<OpMonitoringData> buffer = new LinkedBlockingDeque<>();
 
     public OpMonitoringBufferImpl(ServerConfProvider serverConfProvider,
-                                  ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties,
+                                  ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
                                   VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
             NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
@@ -96,7 +96,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
     }
 
     OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                          ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorAddonProperties,
+                                          ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorAddonProperties,
                                           VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
             NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {

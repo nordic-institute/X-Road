@@ -37,6 +37,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.Serializable;
@@ -54,6 +55,7 @@ public class Timestamper {
     final GlobalConfProvider globalConfProvider;
     final ServerConfProvider serverConfProvider;
     final LogRecordManager logRecordManager;
+    final ProxyMessageLogProperties messageLogProperties;
 
     @Data
     @RequiredArgsConstructor
@@ -68,7 +70,7 @@ public class Timestamper {
         }
     }
 
-    public abstract static sealed class TimestampResult permits TimestampSucceeded, TimestampFailed {
+    public abstract static sealed class TimestampResult {
         @Getter
         @Setter
         private Map<String, Exception> errorsByUrl = new HashMap<>();
@@ -97,7 +99,7 @@ public class Timestamper {
     }
 
     protected TimestamperWorker getWorkerImpl() {
-        return new TimestamperWorker(globalConfProvider, logRecordManager, serverConfProvider.getTspUrl());
+        return new TimestamperWorker(globalConfProvider, logRecordManager, messageLogProperties, serverConfProvider.getTspUrl());
     }
 
     public TimestampResult handleTimestampTask(TimestampTask timestampTask) {

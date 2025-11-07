@@ -16,6 +16,14 @@ xroad:
   proxy:
     ssl-enabled: false # Can be removed once UI system tests configure a functional AUTH certificate
     health-check-port: 5558
+    message-log:
+      database-encryption:
+        enabled: true
+        messagelog-keystore: /etc/xroad/messagelog/messagelog.p12
+        messagelog-keystore-password: somepassword
+        messagelog-key-id: key1
+      archiver:
+        enabled: true
     addon:
       op-monitor:
         enabled: true
@@ -32,12 +40,6 @@ xroad:
     rate-limit-requests-per-minute: 1000
     acme-challenge-port-enabled: true
     automatic-activate-acme-sign-certificate: true
-  message-log:
-    messagelog-encryption-enabled: true
-    messagelog-keystore: /etc/xroad/messagelog/messagelog.p12
-    messagelog-keystore-password: somepassword
-    messagelog-key-id: key1
-    archive-encryption-enabled: true
   op-monitor:
     scheme: https # To ensure vault-powered mTLS communication between the proxy and op-monitor daemon
   backup-manager:

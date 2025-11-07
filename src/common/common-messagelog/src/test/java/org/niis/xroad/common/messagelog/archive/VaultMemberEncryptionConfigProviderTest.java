@@ -27,16 +27,15 @@
 package org.niis.xroad.common.messagelog.archive;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
 import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.messagelog.MessageLogArchivalProperties;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyGenerator;
 import org.niis.xroad.common.pgp.PgpKeyManager;
@@ -68,9 +67,9 @@ import static org.mockito.Mockito.when;
  */
 class VaultMemberEncryptionConfigProviderTest {
 
-    private final Map<String, Set<String>> expectedMappings = new HashMap<>();
     private PgpKeyManager mockKeyManager;
     private VaultMemberEncryptionConfigProvider provider;
+    private MessageLogArchivalProperties mockProperties;
 
     // Test keys
     private PGPPublicKey testMemberKey;
@@ -78,23 +77,12 @@ class VaultMemberEncryptionConfigProviderTest {
     private String testMemberKeyId;
     private String testDefaultKeyId;
 
-    {
-        expectedMappings.put("INSTANCE/memberClass/memberCode", setOf("B23B8E993AC4632A896D39A27BE94D3451C16D33"));
-        expectedMappings.put("withEquals=", setOf("=Föö <foo@example.org>"));
-        expectedMappings.put("test", setOf("key#1", "key#2"));
-        expectedMappings.put("#comment escape#", setOf("#42"));
-        expectedMappings.put("backslash\\=equals", setOf("1"));
-        expectedMappings.put("backslash\\#hash", setOf("1"));
-    }
+    // Key IDs for testing
+    private static final String MEMBER_KEY_ID = "B23B8E993AC4632A896D39A27BE94D3451C16D33";
+    private static final String DEFAULT_KEY_ID = "B23B8E993AC4632A896D39A27BE94D3451C16D55";
 
     @BeforeEach
     void setUp() throws IOException, PGPException {
-        // Set up system properties for message log configuration
-        System.setProperty(MessageLogProperties.ARCHIVE_DEFAULT_ENCRYPTION_KEY,
-                "B23B8E993AC4632A896D39A27BE94D3451C16D55");
-        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG,
-                "build/resources/test/mlog-keys.ini");
-
         // Generate test keys
         PgpKeyGenerator keyGenerator = new PgpKeyGenerator();
 
@@ -129,24 +117,31 @@ class VaultMemberEncryptionConfigProviderTest {
         // Mock PgpKeyManager
         mockKeyManager = mock(PgpKeyManager.class);
 
-        // Mock key lookups using the configured key IDs from the INI file
-        // The INI file maps "INSTANCE/memberClass/memberCode" to "B23B8E993AC4632A896D39A27BE94D3451C16D33"
-        when(mockKeyManager.getPublicKey("B23B8E993AC4632A896D39A27BE94D3451C16D33"))
+        // Mock key lookups using the configured key IDs
+        when(mockKeyManager.getPublicKey(MEMBER_KEY_ID))
                 .thenReturn(Optional.of(testMemberKey));
-        when(mockKeyManager.getPublicKey("B23B8E993AC4632A896D39A27BE94D3451C16D55"))
+        when(mockKeyManager.getPublicKey(DEFAULT_KEY_ID))
                 .thenReturn(Optional.of(testDefaultKey));
 
         // Mock BouncyCastlePgpEncryptionService
         var mockEncryption = mock(BouncyCastlePgpEncryptionService.class);
 
-        // Create provider
-        provider = new VaultMemberEncryptionConfigProvider(mockKeyManager, mockEncryption);
-    }
+        // Mock MessageLogArchivalProperties with member-specific key mapping
+        mockProperties = mock(MessageLogArchivalProperties.class);
 
-    @AfterEach
-    void tearDown() {
-        System.clearProperty(MessageLogProperties.ARCHIVE_DEFAULT_ENCRYPTION_KEY);
-        System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG);
+        // Set up archive grouping: INSTANCE/memberClass/memberCode -> MEMBER_KEY_ID
+        Map<String, Set<String>> archiveGrouping = new HashMap<>();
+        archiveGrouping.put("INSTANCE/memberClass/memberCode", setOf(MEMBER_KEY_ID));
+        when(mockProperties.grouping()).thenReturn(archiveGrouping);
+
+        // Set up default key ID
+        when(mockProperties.defaultKeyId()).thenReturn(Optional.of(DEFAULT_KEY_ID));
+
+        // Set up grouping strategy
+        when(mockProperties.groupingStrategy()).thenReturn(GroupingStrategy.MEMBER);
+
+        // Create provider
+        provider = new VaultMemberEncryptionConfigProvider(mockKeyManager, mockEncryption, mockProperties);
     }
 
     @Test
@@ -240,15 +235,6 @@ class VaultMemberEncryptionConfigProviderTest {
     }
 
     @Test
-    void shouldParseMappings() {
-        // When: Parse the test mapping file
-        final Map<String, Set<String>> mappings = MessageLogProperties.getKeyMappings();
-
-        // Then: Should match expected mappings
-        assertEquals(expectedMappings, mappings);
-    }
-
-    @Test
     void getPublicKeysForMemberShouldReturnMemberSpecificKeys() throws Exception {
         // Given: Member with specific keys configured
         String memberId = "INSTANCE/memberClass/memberCode";
@@ -277,9 +263,10 @@ class VaultMemberEncryptionConfigProviderTest {
     @Test
     void getPublicKeysForMemberShouldReturnAllKeysWhenMemberKeyNotFoundAndNoDefault() throws Exception {
         // Given: Member with configured key that doesn't exist in key manager, and no default
-        System.clearProperty(MessageLogProperties.ARCHIVE_DEFAULT_ENCRYPTION_KEY);
         String memberId = "INSTANCE/memberClass/memberCodeMissingKey";
-        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/resources/test/mlog-keys.ini");
+
+        // Update mock to return null for default key ID (no default configured)
+        when(mockProperties.defaultKeyId()).thenReturn(Optional.empty());
 
         when(mockKeyManager.getPublicKey(anyString())).thenReturn(Optional.empty());
         Map<String, PGPPublicKey> allKeys = Map.of(
@@ -298,7 +285,7 @@ class VaultMemberEncryptionConfigProviderTest {
     }
 
     @Test
-    void forGroupingShouldThrowExceptionWhenGroupingHasNoClientId() throws IOException {
+    void forGroupingShouldThrowExceptionWhenGroupingHasNoClientId() {
         // Given: A grouping without client ID (using anonymous implementation with null clientId)
         Grouping grouping = messageRecord -> false;
 
@@ -312,7 +299,7 @@ class VaultMemberEncryptionConfigProviderTest {
     }
 
     @Test
-    void forGroupingShouldReturnConfigWithMemberSpecificKeys() throws Exception {
+    void forGroupingShouldReturnConfigWithMemberSpecificKeys() {
         // Given: A member grouping with a member that has specific keys
         ClientId clientId = ClientId.Conf.create("INSTANCE", "memberClass", "memberCode");
         Grouping grouping = new MemberGrouping(clientId);

@@ -92,10 +92,11 @@ class ClientRestMessageProcessorTest {
         var proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
         var commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
         var encryptionConfigProvider = mock(EncryptionConfigProvider.class);
+        var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
         var commonBeanProxy =
                 new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null,
                         null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties, new OcspVerifierFactory(),
-                        commonProperties, encryptionConfigProvider);
+                        commonProperties, encryptionConfigProvider, messageRecordEncryption);
         var clientRestMessageProcessor =
                 new ClientRestMessageProcessor(commonBeanProxy, request, respWrapper, httpClient, isAuthenticationData,
                         opMonitoringData);

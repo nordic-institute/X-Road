@@ -38,11 +38,11 @@ import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.messagelog.MessageRecordEncryption;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfig;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
@@ -107,14 +107,17 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private final String target;
     private final EncryptionConfigProvider encryptionConfigProvider;
     private final ConfClientRpcClient confClientRpcClient;
+    private final MessageRecordEncryption messageRecordEncryption;
 
     public AsicContainerClientRequestProcessor(CommonBeanProxy commonBeanProxy, ConfClientRpcClient confClientRpcClient,
                                                EncryptionConfigProvider encryptionConfigProvider,
+                                               MessageRecordEncryption messageRecordEncryption,
                                                String target, RequestWrapper request, ResponseWrapper response) {
         super(commonBeanProxy, request, response, null);
         this.target = target;
         this.encryptionConfigProvider = encryptionConfigProvider;
         this.confClientRpcClient = confClientRpcClient;
+        this.messageRecordEncryption = messageRecordEncryption;
     }
 
     public boolean canProcess() {
@@ -283,7 +286,6 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,
                         DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
             }
-            final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();
             try (OutputStream os = outputSupplier.get(); ZipOutputStream zos = new ZipOutputStream(os)) {
                 zos.setLevel(0);
                 for (var messageRecord : records) {
@@ -345,7 +347,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 if (record.getTimestampRecord() == null) {
                     throw new CodedException(X_INTERNAL_ERROR, MISSING_TIMESTAMP_FAULT_MESSAGE);
                 }
-                MessageRecordEncryption.getInstance().prepareDecryption(record);
+                messageRecordEncryption.prepareDecryption(record);
                 final AsicContainer asicContainer = record.toAsicContainer();
 
                 String filename = nameGen.getArchiveFilename(queryId, response, record.getId());

@@ -29,12 +29,14 @@ package org.niis.xroad.proxy.core.addon.messagelog;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.signature.Signature;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.signature.XMLSignatureException;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 import javax.xml.transform.TransformerException;
 
@@ -56,8 +58,9 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
     private MessageRecord message;
     private Signature signature;
 
-    SingleTimestampRequest(LogRecordManager logRecordManager, GlobalConfProvider globalConfProvider, Long logRecord) {
-        super(globalConfProvider, new Long[]{logRecord});
+    SingleTimestampRequest(LogRecordManager logRecordManager, ProxyMessageLogProperties messageLogProperties,
+                           GlobalConfProvider globalConfProvider, Long logRecord) {
+        super(globalConfProvider, messageLogProperties, new Long[]{logRecord});
         this.logRecordManager = logRecordManager;
     }
 
@@ -94,7 +97,7 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
     }
 
     @Override
-    Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url)  {
+    Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url) {
         byte[] timestampDer = getTimestampDer(tsResponse);
 
         try {
@@ -118,7 +121,7 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
 
         message.setSignature(signatureXml);
         String oldHash = message.getSignatureHash();
-        message.setSignatureHash(LogManager.signatureHash(signatureXml));
+        message.setSignatureHash(CryptoUtils.signatureHash(signatureXml, digestAlgorithm));
 
         logRecordManager.updateMessageRecordSignature(message, oldHash);
     }

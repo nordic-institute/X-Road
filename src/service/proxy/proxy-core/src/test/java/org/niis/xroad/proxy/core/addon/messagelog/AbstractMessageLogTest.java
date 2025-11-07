@@ -30,7 +30,6 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
@@ -50,9 +49,10 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
+import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.configuration.MessageLogDatabaseConfig;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 
@@ -67,13 +67,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.getGlobalConf;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.getServerConf;
+import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.getGlobalConf;
+import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.getServerConf;
 
 @Slf4j
 abstract class AbstractMessageLogTest {
 
-    ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+    ProxyProperties proxyProperties;
+    ProxyMessageLogProperties messageLogProperties;
     OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     GlobalConfProvider globalConfProvider;
     KeyConfProvider keyConfProvider;
@@ -81,9 +82,10 @@ abstract class AbstractMessageLogTest {
     CommonBeanProxy commonBeanProxy;
     LogRecordManager logRecordManager;
     DatabaseCtx databaseCtx;
+    org.niis.xroad.common.messagelog.MessageRecordEncryption messageRecordEncryption;
 
     LogManager logManager;
-    LogArchiverProperties logArchiverProperties;
+    LogArchiverExecutionProperties logArchiverExecutionProperties;
 
     protected final String archivesDir = "build/archive";
     protected final Path archivesPath = Paths.get(archivesDir);
@@ -92,10 +94,21 @@ abstract class AbstractMessageLogTest {
     private LogCleaner logCleanerRef;
 
     void testSetUp() throws Exception {
-        testSetUp(false);
+        testSetUp(Map.of());
     }
 
     protected void testSetUp(boolean timestampImmediately) throws Exception {
+        testSetUp(Map.of("xroad.proxy.message-log.timestamper.timestamp-immediately", String.valueOf(timestampImmediately)));
+    }
+
+    protected void testSetUp(Map<String, String> configOverrides) throws Exception {
+        // Initialize ProxyProperties with overrides
+        proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+
+        messageLogProperties = configOverrides.isEmpty()
+                ? ConfigUtils.defaultConfiguration(ProxyMessageLogProperties.class)
+                : ConfigUtils.initConfiguration(ProxyMessageLogProperties.class, configOverrides);
+
         globalConfProvider = getGlobalConf();
         keyConfProvider = mock(KeyConfProvider.class);
         serverConfProvider = new TestServerConfWrapper(getServerConf());
@@ -115,36 +128,61 @@ abstract class AbstractMessageLogTest {
                 "xroad.common.temp-files-path", "build/tmp"
         ));
         databaseCtx = MessageLogDatabaseConfig.create(props);
-        logRecordManager = new LogRecordManager(databaseCtx);
+        messageRecordEncryption = new org.niis.xroad.common.messagelog.MessageRecordEncryption(messageLogProperties.databaseEncryption());
+        logRecordManager = new LogRecordManager(databaseCtx, messageRecordEncryption);
         var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         var encryptionConfigProvider = mock(EncryptionConfigProvider.class);
+        var keyManager = mock(org.niis.xroad.common.pgp.PgpKeyManager.class);
+        var encryptionService = mock(org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
                 null, null, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
-                ocspVerifierFactory, commonProperties, encryptionConfigProvider);
-
-        System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
-
-        System.setProperty(MessageLogProperties.MESSAGE_BODY_LOGGING_ENABLED, "true");
+                ocspVerifierFactory, commonProperties, encryptionConfigProvider, messageRecordEncryption);
 
         if (useTestLogManager()) {
-            logManager = new TestLogManager(globalConfProvider, serverConfProvider, logRecordManager, databaseCtx);
+            logManager = new TestLogManager(globalConfProvider, serverConfProvider, logRecordManager, databaseCtx, messageLogProperties);
         } else {
-            logManager = new LogManager(globalConfProvider, serverConfProvider, logRecordManager, databaseCtx);
+            logManager = new LogManager(globalConfProvider, serverConfProvider, logRecordManager, databaseCtx, messageLogProperties);
         }
 
         if (!Files.exists(archivesPath)) {
             Files.createDirectory(archivesPath);
         }
 
-        logArchiverProperties = new LogArchiverProperties();
-        logArchiverProperties.setArchivePath(archivesDir);
-        logArchiverProperties.setCleanKeepRecordsFor(0);
-        logArchiverProperties.setArchiveTransactionBatchSize(10000);
-        logArchiverProperties.setCleanTransactionBatchSize(10000);
+        // Initialize logArchiverExecutionProperties from proxyProperties configuration
+        var archiverProps = messageLogProperties.archiver();
+        var databaseProps = messageLogProperties.databaseEncryption();
 
-        logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider, encryptionConfigProvider,
-                commonProperties, databaseCtx);
-        logCleanerRef = new TestLogCleaner(logArchiverProperties, databaseCtx);
+        // Create archive encryption properties
+        var archiveEncryption = new LogArchiverExecutionProperties.ArchiveEncryptionProperties(
+                archiverProps.enabled(),
+                archiverProps.defaultKeyId(),
+                archiverProps.groupingStrategy(),
+                archiverProps.grouping()
+        );
+
+        // Create database encryption properties
+        var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
+                databaseProps.enabled(),
+                databaseProps.messagelogKeystoreStr().orElse(null),
+                databaseProps.messagelogKeystorePasswordStr().orElse(null),
+                databaseProps.messagelogKeyId().orElse(null)
+        );
+
+        logArchiverExecutionProperties = new LogArchiverExecutionProperties(
+                archiveEncryption,
+                databaseEncryption,
+                archiverProps.cleanTransactionBatchSize(),
+                archiverProps.cleanKeepRecordsFor(),
+                archiverProps.transactionBatchSize(),
+                archiverProps.archivePath(),
+                archiverProps.archiveTransferCommand().orElse(null),
+                messageLogProperties.hashAlg(),
+                archiverProps.maxFilesize(),
+                archiverProps.archivePath()
+        );
+
+        logArchiverRef = new TestLogArchiver(keyManager, encryptionService, globalConfProvider, databaseCtx);
+        logCleanerRef = new TestLogCleaner(databaseCtx);
     }
 
     void testTearDown() throws Exception {
@@ -203,11 +241,11 @@ abstract class AbstractMessageLogTest {
     }
 
     void startArchiving() {
-        logArchiverRef.execute();
+        logArchiverRef.execute(logArchiverExecutionProperties);
     }
 
     void startCleaning() {
-        logCleanerRef.execute();
+        logCleanerRef.execute(logArchiverExecutionProperties);
     }
 
     static void assertMessageRecord(Object o, String queryId) {

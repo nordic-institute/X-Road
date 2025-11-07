@@ -24,11 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.messagelog.database;
+package org.niis.xroad.common.messagelog;
 
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.messagelog.MessageAttachment;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.extern.slf4j.Slf4j;
@@ -78,55 +77,58 @@ import java.util.Map;
 @Slf4j
 public final class MessageRecordEncryption {
 
-    private static volatile MessageRecordEncryption instance;
-
     private static final int AES_KEY_SIZE = 16;
     private static final int AES_BLOCK_SIZE = 16;
 
     private final Map<String, SecretKeySpec> messageKeys;
     private final Map<String, SecretKeySpec> attachmentKeys;
 
-    private final String currentKeyId = MessageLogProperties.getMessageLogKeyId();
-    private final boolean encryptionEnabled = MessageLogProperties.isMessageLogEncryptionEnabled();
+    private final String currentKeyId;
+    private final boolean encryptionEnabled;
 
-    private MessageRecordEncryption() {
+    public MessageRecordEncryption(MessageLogDatabaseEncryptionProperties properties) {
+        this.encryptionEnabled = properties.enabled();
+        this.currentKeyId = properties.messagelogKeyId().orElse(null);
+
         try {
             Map<String, SecretKeySpec> tmpMessageKeys = new HashMap<>();
             Map<String, SecretKeySpec> tmpAttachmentKeys = new HashMap<>();
 
-            final Path store = MessageLogProperties.getMessageLogKeyStore();
-            if (store != null && Files.exists(store)) {
-                final char[] password = MessageLogProperties.getMessageLogKeyStorePassword();
-                final KeyStore keyStore = KeyStore.getInstance("pkcs12");
-                try (InputStream is = Files.newInputStream(store)) {
-                    keyStore.load(is, password);
-                }
-                final HKDFBytesGenerator generator = new HKDFBytesGenerator(new SHA512Digest());
-                final Enumeration<String> aliases = keyStore.aliases();
-                final byte[] buf = new byte[AES_KEY_SIZE];
-
-                while (aliases.hasMoreElements()) {
-                    final String keyId = aliases.nextElement();
-                    final Key key = keyStore.getKey(keyId, password);
-                    if (!(key instanceof SecretKey && "RAW".equalsIgnoreCase(key.getFormat())
-                            && key.getEncoded() != null)) {
-                        log.warn("Keystore {} entry {} is not a secret key with raw encoding, ignoring", store, keyId);
-                        continue;
+            if (properties.messagelogKeystore().isPresent()) {
+                final Path store = properties.messagelogKeystore().get();
+                if (Files.exists(store)) {
+                    final char[] password = properties.messagelogKeystorePassword().orElse(null);
+                    final KeyStore keyStore = KeyStore.getInstance("pkcs12");
+                    try (InputStream is = Files.newInputStream(store)) {
+                        keyStore.load(is, password);
                     }
-                    byte[] secret = key.getEncoded();
+                    final HKDFBytesGenerator generator = new HKDFBytesGenerator(new SHA512Digest());
+                    final Enumeration<String> aliases = keyStore.aliases();
+                    final byte[] buf = new byte[AES_KEY_SIZE];
 
-                    HKDFParameters hkdfParameters =
-                            new HKDFParameters(secret, keyId.getBytes(StandardCharsets.UTF_8), null);
-                    generator.init(hkdfParameters);
-                    Arrays.clear(secret);
+                    while (aliases.hasMoreElements()) {
+                        final String keyId = aliases.nextElement();
+                        final Key key = keyStore.getKey(keyId, password);
+                        if (!(key instanceof SecretKey && "RAW".equalsIgnoreCase(key.getFormat())
+                                && key.getEncoded() != null)) {
+                            log.warn("Keystore {} entry {} is not a secret key with raw encoding, ignoring", store, keyId);
+                            continue;
+                        }
+                        byte[] secret = key.getEncoded();
 
-                    generator.generateBytes(buf, 0, AES_KEY_SIZE);
-                    tmpMessageKeys.put(keyId, new SecretKeySpec(buf, "AES"));
-                    Arrays.clear(buf);
+                        HKDFParameters hkdfParameters =
+                                new HKDFParameters(secret, keyId.getBytes(StandardCharsets.UTF_8), null);
+                        generator.init(hkdfParameters);
+                        Arrays.clear(secret);
 
-                    generator.generateBytes(buf, 0, AES_KEY_SIZE);
-                    tmpAttachmentKeys.put(keyId, new SecretKeySpec(buf, "AES"));
-                    Arrays.clear(buf);
+                        generator.generateBytes(buf, 0, AES_KEY_SIZE);
+                        tmpMessageKeys.put(keyId, new SecretKeySpec(buf, "AES"));
+                        Arrays.clear(buf);
+
+                        generator.generateBytes(buf, 0, AES_KEY_SIZE);
+                        tmpAttachmentKeys.put(keyId, new SecretKeySpec(buf, "AES"));
+                        Arrays.clear(buf);
+                    }
                 }
             }
             messageKeys = Collections.unmodifiableMap(tmpMessageKeys);
@@ -138,17 +140,6 @@ public final class MessageRecordEncryption {
         if (encryptionEnabled && (messageKeys.isEmpty() || attachmentKeys.isEmpty())) {
             log.warn("Message log encryption is enabled but no keys are available.");
         }
-    }
-
-    public static MessageRecordEncryption getInstance() {
-        if (instance == null) {
-            synchronized (MessageRecordEncryption.class) {
-                if (instance == null) {
-                    instance = new MessageRecordEncryption();
-                }
-            }
-        }
-        return instance;
     }
 
     public boolean encryptionEnabled() {
@@ -256,13 +247,6 @@ public final class MessageRecordEncryption {
         return new IvParameterSpec(ivBuf.array());
     }
 
-    /**
-     * Reloads the encryption configuration.
-     */
-    public static synchronized void reload() {
-        instance = new MessageRecordEncryption();
-    }
-
     private record CipherAttachmentStream(AttachmentStream attachmentStream, Cipher cipher) implements AttachmentStream {
         @Override
         public InputStream getStream() {
@@ -276,3 +260,4 @@ public final class MessageRecordEncryption {
         }
     }
 }
+

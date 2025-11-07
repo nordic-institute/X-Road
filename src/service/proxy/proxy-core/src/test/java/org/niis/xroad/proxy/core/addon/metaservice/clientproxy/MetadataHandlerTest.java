@@ -88,9 +88,10 @@ class MetadataHandlerTest {
         serverConfProvider = mock(ServerConfProvider.class);
         vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
+        var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
                 null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                proxyProperties, new OcspVerifierFactory(), commonProperties, encryptionConfigProvider);
+                proxyProperties, new OcspVerifierFactory(), commonProperties, encryptionConfigProvider, messageRecordEncryption);
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);

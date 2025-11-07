@@ -30,7 +30,7 @@ package org.niis.xroad.proxy.core.addon.messagelog;
 import ee.ria.xroad.common.db.DatabaseCtx;
 
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
+import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -39,8 +39,8 @@ class TestLogCleaner extends LogCleaner {
 
     private static CountDownLatch gate = new CountDownLatch(1);
 
-    TestLogCleaner(LogArchiverProperties logArchiverProperties, DatabaseCtx databaseCtx) {
-        super(logArchiverProperties, databaseCtx);
+    TestLogCleaner(DatabaseCtx databaseCtx) {
+        super(databaseCtx);
     }
 
     public static void waitForCleanSuccessful() throws Exception {
@@ -52,8 +52,8 @@ class TestLogCleaner extends LogCleaner {
     }
 
     @Override
-    protected long handleClean() {
-        final long removed = super.handleClean();
+    protected long handleClean(LogArchiverExecutionProperties executionProperties) {
+        final long removed = super.handleClean(executionProperties);
         gate.countDown();
         return removed;
     }

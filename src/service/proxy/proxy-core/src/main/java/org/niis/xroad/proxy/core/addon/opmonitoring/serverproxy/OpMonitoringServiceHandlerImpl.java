@@ -60,7 +60,7 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SER
 @Slf4j
 public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
-    private final ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties;
+    private final ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties;
 
     private final String opMonitorAddress;
 
@@ -69,7 +69,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     private HttpSender sender;
 
     public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
-                                          ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties,
+                                          ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
                                           boolean isEnabledPooledConnectionReuse) {
         super(serverConfProvider, globalConfProvider);
         this.opMonitorProperties = opMonitorProperties;

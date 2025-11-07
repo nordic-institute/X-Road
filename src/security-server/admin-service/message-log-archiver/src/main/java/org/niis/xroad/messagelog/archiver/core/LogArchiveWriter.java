@@ -26,7 +26,6 @@
 package org.niis.xroad.messagelog.archiver.core;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +33,7 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.messagelog.archive.Grouping;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -56,7 +56,6 @@ public class LogArchiveWriter implements Closeable {
 
     private final GlobalConfProvider globalConfProvider;
     private final Path outputPath;
-    private final String tmpDir;
     private final LogArchiveBase archiveBase;
 
     private final LinkingInfoBuilder linkingInfoBuilder;
@@ -66,25 +65,28 @@ public class LogArchiveWriter implements Closeable {
     private Path archiveTmp;
 
     private final EncryptionConfigProvider encryptionConfigProvider;
+    private final LogArchiverExecutionProperties executionProperties;
+
     private Grouping grouping;
 
     /**
      * Creates new LogArchiveWriter
      *
-     * @param globalConfProvider Global configuration provider
-     * @param outputPath         directory where the log archive is created
-     * @param archiveBase        interface to archive database
-     * @param tmpDir             temporary files directory
-     * @param encryption         BouncyCastle PGP encryption facade for Vault-based encryption
+     * @param globalConfProvider  Global configuration provider
+     * @param outputPath          directory where the log archive is created
+     * @param archiveBase         interface to archive database
+     * @param encryption          BouncyCastle PGP encryption facade for Vault-based encryption
+     * @param executionProperties execution properties
      */
     public LogArchiveWriter(GlobalConfProvider globalConfProvider, Path outputPath, LogArchiveBase archiveBase,
-                            String tmpDir, EncryptionConfigProvider encryption) {
+                            EncryptionConfigProvider encryption,
+                            LogArchiverExecutionProperties executionProperties) {
         this.globalConfProvider = globalConfProvider;
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
-        this.linkingInfoBuilder = new LinkingInfoBuilder(MessageLogProperties.getHashAlg());
+        this.linkingInfoBuilder = new LinkingInfoBuilder(executionProperties.digestAlgorithm());
         this.encryptionConfigProvider = encryption;
-        this.tmpDir = tmpDir;
+        this.executionProperties = executionProperties;
     }
 
     /**
@@ -131,12 +133,15 @@ public class LogArchiveWriter implements Closeable {
         logArchiveCache = new LogArchiveCache(
                 linkingInfoBuilder,
                 encryptionConfigProvider.forGrouping(grouping),
-                outputPath, tmpDir);
+                outputPath, executionProperties);
     }
 
-    private Grouping forRecord(MessageRecord record) {
-        return MessageLogProperties.getArchiveGrouping().forClient(ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(),
-                record.getMemberClass(), record.getMemberCode(), record.getSubsystemCode()));
+    private Grouping forRecord(MessageRecord messageRecord) {
+        return executionProperties.archiveEncryption().groupingStrategy().forClient(
+                ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(),
+                        messageRecord.getMemberClass(),
+                        messageRecord.getMemberCode(),
+                        messageRecord.getSubsystemCode()));
     }
 
     @Override

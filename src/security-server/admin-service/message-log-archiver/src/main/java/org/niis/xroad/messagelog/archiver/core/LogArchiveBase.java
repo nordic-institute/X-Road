@@ -34,9 +34,8 @@ public interface LogArchiveBase {
     /**
      * Saves digest entry corresponding to created log archive.
      *
-     * @param entryName
+     * @param entryName   name
      * @param lastArchive metadata of last archived entry.
-     * @throws Exception if archiving fails.
      */
     void markArchiveCreated(String entryName, DigestEntry lastArchive);
 
@@ -44,7 +43,6 @@ public interface LogArchiveBase {
      * Marks log record (either message or timestamp) as archived.
      *
      * @param logRecord the log record to be marked as archived.
-     * @throws Exception if marking records as archived fails.
      */
     void markRecordArchived(LogRecord logRecord);
 
@@ -52,7 +50,6 @@ public interface LogArchiveBase {
      * Returns metadata of last archived entry.
      *
      * @return digest and file name of last archive.
-     * @throws Exception if loading last archive fails.
      */
     DigestEntry loadLastArchive(String entryName);
 }

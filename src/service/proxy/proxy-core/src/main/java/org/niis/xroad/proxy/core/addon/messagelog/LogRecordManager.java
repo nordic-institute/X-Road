@@ -33,7 +33,6 @@ import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.messagelog.database.entity.AbstractLogRecordEntity;
 import ee.ria.xroad.messagelog.database.entity.MessageRecordEntity;
 import ee.ria.xroad.messagelog.database.mapper.MessageRecordMapper;
@@ -49,6 +48,7 @@ import org.hibernate.Session;
 import org.hibernate.query.MutationQuery;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.messagelog.MessageRecordEncryption;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -79,9 +79,12 @@ public final class LogRecordManager {
     private static final int INDEX_3 = 3;
 
     private final DatabaseCtx databaseCtx;
+    private final MessageRecordEncryption messageRecordEncryption;
 
-    public LogRecordManager(@Named(MESSAGE_LOG_DB_CTX) DatabaseCtx databaseCtx) {
+    public LogRecordManager(@Named(MESSAGE_LOG_DB_CTX) DatabaseCtx databaseCtx,
+                            MessageRecordEncryption messageRecordEncryption) {
         this.databaseCtx = databaseCtx;
+        this.messageRecordEncryption = messageRecordEncryption;
     }
 
     /**
@@ -137,15 +140,14 @@ public final class LogRecordManager {
      */
     void saveMessageRecord(MessageRecord messageRecord) {
 
-        final MessageRecordEncryption encryption = MessageRecordEncryption.getInstance();
-        final boolean encrypt = encryption.encryptionEnabled();
+        final boolean encrypt = messageRecordEncryption.encryptionEnabled();
 
         databaseCtx.doInTransaction(session -> {
             //the blob must be created within hibernate session
             messageRecord.setId(getNextRecordId(session));
 
             if (encrypt) {
-                encryption.prepareEncryption(messageRecord);
+                messageRecordEncryption.prepareEncryption(messageRecord);
             }
 
             int attachmentNo = 0;

@@ -46,9 +46,7 @@ public interface ProxyProperties {
 
     ClientProxyProperties clientProxy();
 
-    OcspResponderProperties ocspResponder();
-
-    ProxyAddonProperties addon();
+    Addon addon();
 
     @WithName("admin-port")
     @WithDefault("5566")
@@ -226,26 +224,17 @@ public interface ProxyProperties {
     }
 
     @ConfigMapping(prefix = "xroad.proxy.addon")
-    interface ProxyAddonProperties {
+    interface Addon {
         @WithName("proxy-monitor")
         ProxyAddonProxyMonitorProperties proxyMonitor();
 
         @WithName("meta-services")
         ProxyAddonMetaservicesProperties metaservices();
 
-        @WithName("message-log")
-        ProxyAddonMessageLogProperties messageLog();
-
         @WithName("op-monitor")
         ProxyAddonOpMonitorProperties opMonitor();
 
         interface ProxyAddonProxyMonitorProperties {
-            @WithName("enabled")
-            @WithDefault("true")
-            boolean enabled();
-        }
-
-        interface ProxyAddonMessageLogProperties {
             @WithName("enabled")
             @WithDefault("true")
             boolean enabled();

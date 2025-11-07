@@ -95,14 +95,42 @@ public class LegacyConfigPathMapping {
         addMapping("proxy.backup-encryption-keyids", "backup-manager.backup-encryption-keyids");
         addMapping("configuration-client.proxy-configuration-backup-cron", "backup-manager.autobackup-cron-expression");
 
-        // message-log-archiver
-        addMapping("message-log.archive-max-filesize", "message-log-archiver.archive-max-filesize");
-        addMapping("message-log.archive-path", "message-log-archiver.archive-path");
-        addMapping("message-log.archive-transfer-command", "message-log-archiver.archive-transfer-command");
-        addMapping("message-log.clean-interval", "message-log-archiver.clean-interval");
-        addMapping("message-log.keep-records-for", "message-log-archiver.keep-records-for");
-        addMapping("message-log.archive-transaction-batch", "message-log-archiver.archive-transaction-batch");
-        addMapping("message-log.archive-transfer-command-parameters", "message-log-archiver.archive-transfer-command-parameters");
+        // message-log - timestamper properties (moved to timestamper sub-section)
+        addMapping("message-log.timestamper-client-connect-timeout", "proxy.message-log.timestamper.client-connect-timeout");
+        addMapping("message-log.timestamper-client-read-timeout", "proxy.message-log.timestamper.client-read-timeout");
+        addMapping("message-log.timestamp-immediately", "proxy.message-log.timestamper.timestamp-immediately");
+        addMapping("message-log.timestamp-records-limit", "proxy.message-log.timestamper.records-limit");
+        addMapping("message-log.timestamp-retry-delay", "proxy.message-log.timestamper.retry-delay");
+        addMapping("message-log.acceptable-timestamp-failure-period", "proxy.message-log.timestamper.acceptable-timestamp-failure-period");
+
+        // message-log - body logging properties
+        addMapping("message-log.soap-body-logging", "proxy.message-log.message-body-logging");
+        addMapping("message-log.max-loggable-message-body-size", "proxy.message-log.max-loggable-message-body-size");
+        addMapping("message-log.truncated-body-allowed", "proxy.message-log.truncated-body-allowed");
+
+        // message-log - hash/digest algorithm
+        addMapping("message-log.hash-algo-id", "proxy.message-log.hash-algo-id");
+
+        // message-log - archiver properties (moved to archiver sub-section and renamed)
+        addMapping("message-log.archive-max-filesize", "proxy.message-log.archiver.max-filesize");
+        addMapping("message-log.archive-path", "proxy.message-log.archiver.archive-path");
+        addMapping("message-log.archive-transfer-command", "proxy.message-log.archiver.archive-transfer-command");
+        addMapping("message-log.clean-interval", "proxy.message-log.archiver.clean-interval");
+        addMapping("message-log.keep-records-for", "proxy.message-log.archiver.clean-keep-records-for");
+        addMapping("message-log.archive-transaction-batch", "proxy.message-log.archiver.transaction-batch-size");
+        addMapping("message-log.archive-transfer-command-parameters", "proxy.message-log.archiver.archive-transfer-command-parameters");
+
+        // message-log - archive encryption/grouping properties (moved to archiver sub-section and renamed)
+        addMapping("message-log.archive-encryption-enabled", "proxy.message-log.archiver.enabled");
+        addMapping("message-log.archive-default-encryption-key", "proxy.message-log.archiver.default-key-id");
+        addMapping("message-log.archive-grouping", "proxy.message-log.archiver.grouping-strategy");
+        addMapping("message-log.archive-encryption-keys-config", "proxy.message-log.archiver.grouping-keys");
+
+        // message-log - database encryption properties (moved to database-encryption sub-section)
+        addMapping("message-log.messagelog-encryption-enabled", "proxy.message-log.database-encryption.enabled");
+        addMapping("message-log.messagelog-keystore", "proxy.message-log.database-encryption.messagelog-keystore");
+        addMapping("message-log.messagelog-keystore-password", "proxy.message-log.database-encryption.messagelog-keystore-password");
+        addMapping("message-log.messagelog-key-id", "proxy.message-log.database-encryption.messagelog-key-id");
 
         // op-monitor
         addMapping("op-monitor-service.socket-timeout-seconds", "proxy.addon.op-monitor.connection.socket-timeout-seconds");

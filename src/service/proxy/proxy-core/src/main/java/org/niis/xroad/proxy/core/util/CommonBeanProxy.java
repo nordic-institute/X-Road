@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.core.util;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.messagelog.MessageRecordEncryption;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -63,4 +64,5 @@ public class CommonBeanProxy {
     private final OcspVerifierFactory ocspVerifierFactory;
     private final CommonProperties commonProperties;
     private final EncryptionConfigProvider encryptionConfigProvider;
+    private final MessageRecordEncryption messageRecordEncryption;
 }

@@ -33,6 +33,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.messagelog.MessageLogArchivalProperties;
+import org.niis.xroad.common.messagelog.MessageLogDatabaseEncryptionProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.addon.messagelog.LogManager;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
@@ -50,14 +52,15 @@ public class ProxyMessageLogConfig {
 
         @Startup
         @ApplicationScoped
-        AbstractLogManager messageLogManager(ProxyProperties.ProxyAddonProperties addonProperties,
+        AbstractLogManager messageLogManager(ProxyMessageLogProperties messageLogProperties,
                                              GlobalConfProvider globalConfProvider,
                                              ServerConfProvider serverConfProvider,
                                              @Named(MESSAGE_LOG_DB_CTX) DatabaseCtx messageLogDatabaseCtx,
                                              LogRecordManager logRecordManager) {
             AbstractLogManager logManager;
-            if (addonProperties.messageLog().enabled()) {
-                logManager = new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx);
+            if (messageLogProperties.enabled()) {
+                logManager = new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx,
+                        messageLogProperties);
             } else {
                 logManager = new NullLogManager(globalConfProvider, serverConfProvider);
             }
@@ -71,6 +74,13 @@ public class ProxyMessageLogConfig {
         }
     }
 
+    @ApplicationScoped
+    MessageLogArchivalProperties messageLogArchivalProperties(ProxyMessageLogProperties messageLogProperties) {
+        return messageLogProperties.archiver();
+    }
 
-
+    @ApplicationScoped
+    MessageLogDatabaseEncryptionProperties messageLogEncryptionProperties(ProxyMessageLogProperties messageLogProperties) {
+        return messageLogProperties.databaseEncryption();
+    }
 }

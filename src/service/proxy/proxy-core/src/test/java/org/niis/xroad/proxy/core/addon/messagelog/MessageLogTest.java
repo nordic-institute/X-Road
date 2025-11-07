@@ -34,7 +34,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.LogRecord;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
@@ -42,7 +41,6 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.messagelog.database.entity.AbstractLogRecordEntity;
 import ee.ria.xroad.messagelog.database.entity.ArchiveDigestEntity;
 import ee.ria.xroad.messagelog.database.entity.DigestEntryEmbeddable;
@@ -94,12 +92,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.assertTaskQueueSize;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.cleanUpDatabase;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.createMessage;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.createRestRequest;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.createSignature;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.initForTest;
+import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.assertTaskQueueSize;
+import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.cleanUpDatabase;
+import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.createMessage;
+import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.createRestRequest;
+import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.createSignature;
 
 /**
  * Contains tests to verify correct message log behavior.
@@ -140,15 +137,15 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log("02-04-2014 12:34:56.100", createMessage("forced"));
         assertTaskQueueSize(databaseCtx, 1);
 
-        MessageRecord record = findByQueryId("forced");
-        assertMessageRecord(record, "forced");
+        MessageRecord messageRecord = findByQueryId("forced");
+        assertMessageRecord(messageRecord, "forced");
 
-        TimestampRecord timestamp = timestamp(record);
+        TimestampRecord timestamp = timestamp(messageRecord);
         assertNotNull(timestamp);
 
-        record = findByQueryId("forced");
+        messageRecord = findByQueryId("forced");
 
-        assertEquals(timestamp, record.getTimestampRecord());
+        assertEquals(timestamp, messageRecord.getTimestampRecord());
         assertTaskQueueSize(databaseCtx, 0);
     }
 
@@ -164,13 +161,13 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log("02-04-2014 12:34:56.100", createMessage("forced"));
         assertTaskQueueSize(databaseCtx, 1);
 
-        MessageRecord record = findByQueryId("forced");
-        assertMessageRecord(record, "forced");
+        MessageRecord messageRecord = findByQueryId("forced");
+        assertMessageRecord(messageRecord, "forced");
 
-        TimestampRecord timestamp1 = timestamp(record);
+        TimestampRecord timestamp1 = timestamp(messageRecord);
         assertNotNull(timestamp1);
 
-        TimestampRecord timestamp2 = timestamp(record);
+        TimestampRecord timestamp2 = timestamp(messageRecord);
         assertNotNull(timestamp2);
 
         assertEquals(timestamp1, timestamp2);
@@ -219,7 +216,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(atDate, message, createSignature(), body);
         final MessageRecord logRecord = findByQueryId(message.getQueryId(), ClientId.Conf.create("XRD", "Class", "Member", "SubSystem"));
 
-        MessageRecordEncryption.getInstance().prepareDecryption(logRecord);
+        messageRecordEncryption.prepareDecryption(logRecord);
         assertEquals(logRecord.getXRequestId(), requestId);
         assertEquals(logRecord.getQueryId(), message.getQueryId());
         final AsicContainer asic = logRecord.toAsicContainer();
@@ -238,7 +235,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(message, createSignature(), List.of(attachment1, attachment2));
 
         final MessageRecord logRecord = findByQueryId(message.getQueryId());
-        MessageRecordEncryption.getInstance().prepareDecryption(logRecord);
+        messageRecordEncryption.prepareDecryption(logRecord);
         assertEquals(logRecord.getXRequestId(), requestId);
         assertEquals(logRecord.getQueryId(), message.getQueryId());
 
@@ -254,23 +251,22 @@ public class MessageLogTest extends AbstractMessageLogTest {
     @Test
     public void testTimestampRecordsLimit() throws Exception {
         log.trace("testTimestampRecordsLimit()");
-        int orig = MessageLogProperties.getTimestampRecordsLimit();
-        try {
-            TestTaskQueue.successfulMessageSizes.clear();
-            System.setProperty(MessageLogProperties.TIMESTAMP_RECORDS_LIMIT, "2");
-            log(createMessage(), createSignature());
-            log(createMessage(), createSignature());
-            log(createMessage(), createSignature());
-            log(createMessage(), createSignature());
-            log(createMessage(), createSignature());
-            assertTaskQueueSize(databaseCtx, 5);
 
-            startTimestamping();
+        // Reinitialize with custom timestamp-records-limit
+        testTearDown();
+        testSetUp(Map.of("xroad.proxy.message-log.timestamper.records-limit", "2"));
 
-            assertEquals(List.of(2, 2, 1), TestTaskQueue.successfulMessageSizes);
-        } finally {
-            System.setProperty(MessageLogProperties.TIMESTAMP_RECORDS_LIMIT, String.valueOf(orig));
-        }
+        TestTaskQueue.successfulMessageSizes.clear();
+        log(createMessage(), createSignature());
+        log(createMessage(), createSignature());
+        log(createMessage(), createSignature());
+        log(createMessage(), createSignature());
+        log(createMessage(), createSignature());
+        assertTaskQueueSize(databaseCtx, 5);
+
+        startTimestamping();
+
+        assertEquals(List.of(2, 2, 1), TestTaskQueue.successfulMessageSizes);
     }
 
     /**
@@ -282,7 +278,9 @@ public class MessageLogTest extends AbstractMessageLogTest {
     public void timestampImmediately() throws Exception {
         log.trace("timestampImmediately()");
 
-        System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, "true");
+        // Reinitialize with timestamp-immediately enabled
+        testTearDown();
+        testSetUp(true);
 
         log(createMessage(), createSignature());
         assertTaskQueueSize(databaseCtx, 0);
@@ -297,7 +295,9 @@ public class MessageLogTest extends AbstractMessageLogTest {
     public void timestampImmediatelyFail() throws Exception {
         log.trace("timestampImmediatelyFail()");
 
-        System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, "true");
+        // Reinitialize with timestamp-immediately enabled
+        testTearDown();
+        testSetUp(true);
 
         TestTimestamperWorker.failNextTimestamping(true);
 
@@ -384,7 +384,10 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
         thrown.expectError(ErrorCode.TIMESTAMPING_FAILED.code());
 
-        System.setProperty(MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1");
+        // Reinitialize with short acceptable timestamp failure period
+        testTearDown();
+        testSetUp(Map.of("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1"));
+
         TestTimestamperWorker.failNextTimestamping(true);
 
         log(createMessage(), createSignature());
@@ -489,20 +492,19 @@ public class MessageLogTest extends AbstractMessageLogTest {
      */
     @Before
     public void setUp() throws Exception {
-        // we do manual time-stamping
-        System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, "false");
-        System.setProperty(MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1800");
+        // Initialize with test-specific configuration
+        Map<String, String> config = new java.util.HashMap<>();
+        config.put("xroad.proxy.message-log.timestamper.timestamp-immediately", "false");
+        config.put("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1800");
+        config.put("xroad.proxy.message-log.archiver.grouping-strategy", GroupingStrategy.MEMBER.name());
+        config.put("xroad.proxy.message-log.archiver.archive-path", "build/archive");
+        config.put("xroad.proxy.message-log.archiver.clean-keep-records-for", "0");
+        config.put("xroad.proxy.message-log.database-encryption.enabled", String.valueOf(encrypted));
+        config.put("xroad.proxy.message-log.database-encryption.messagelog-keystore-password", "password");
+        config.put("xroad.proxy.message-log.database-encryption.messagelog-keystore", "build/resources/test/messagelog.p12");
+        config.put("xroad.proxy.message-log.database-encryption.messagelog-key-id", "key1");
 
-
-        System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.SUBSYSTEM.name());
-
-        System.setProperty(MessageLogProperties.MESSAGELOG_ENCRYPTION_ENABLED, Boolean.valueOf(encrypted).toString());
-        System.setProperty(MessageLogProperties.MESSAGELOG_KEYSTORE_PASSWORD, "password");
-        System.setProperty(MessageLogProperties.MESSAGELOG_KEYSTORE, "build/resources/test/messagelog.p12");
-        System.setProperty(MessageLogProperties.MESSAGELOG_KEY_ID, "key1");
-
-        initForTest();
-        testSetUp();
+        testSetUp(config);
 
         initLastHashStep();
 
@@ -518,7 +520,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         TestTimestamperWorker.failNextTimestamping(false);
     }
 
-    private void initLastHashStep() throws Exception {
+    private void initLastHashStep() {
         var lastArchive = new DigestEntryEmbeddable();
         lastArchive.setDigest(LAST_DIGEST);
         lastArchive.setFileName(LAST_LOG_ARCHIVE_FILE);
@@ -539,12 +541,6 @@ public class MessageLogTest extends AbstractMessageLogTest {
      */
     @After
     public void tearDown() throws Exception {
-        System.clearProperty(MessageLogProperties.MESSAGELOG_ENCRYPTION_ENABLED);
-        System.clearProperty(MessageLogProperties.MESSAGELOG_KEYSTORE_PASSWORD);
-        System.clearProperty(MessageLogProperties.MESSAGELOG_KEYSTORE);
-        System.clearProperty(MessageLogProperties.MESSAGELOG_KEY_ID);
-        System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED);
-
         testTearDown();
         cleanUpDatabase(databaseCtx);
     }
@@ -563,8 +559,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(message, signature);
     }
 
-    protected void log(Instant instant, RestRequest message, SignatureData signatureData, byte[] body)
-            throws Exception {
+    protected void log(Instant instant, RestRequest message, SignatureData signatureData, byte[] body) {
         final ByteArrayInputStream bos = new ByteArrayInputStream(body);
         final CacheInputStream cis = new CacheInputStream(bos, bos.available());
 
@@ -580,12 +575,12 @@ public class MessageLogTest extends AbstractMessageLogTest {
         logManager.log(logMessage);
     }
 
-    protected MessageRecord findByQueryId(String queryId) throws Exception {
-        ClientId clientId = ClientId.Conf.create("EE", "BUSINESS", "consumer");
+    protected MessageRecord findByQueryId(String queryId) {
+        ClientId clientId = ClientId.Conf.create("XRD", "BUSINESS", "consumer");
         return logRecordManager.getByQueryIdUnique(queryId, clientId, false, MessageLogTest::initializeAttachments);
     }
 
-    protected MessageRecord findByQueryId(String queryId, ClientId clientId) throws Exception {
+    protected MessageRecord findByQueryId(String queryId, ClientId clientId) {
         return logRecordManager.getByQueryIdUnique(queryId, clientId, false, MessageLogTest::initializeAttachments);
     }
 
@@ -596,7 +591,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     private void assertArchiveHashChain() throws Exception {
         String archiveFilePath = getArchiveFilePath();
 
-        final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg().name());
+        final MessageDigest digest = MessageDigest.getInstance(messageLogProperties.hashAlg().name());
         final Map<String, byte[]> digests = new HashMap<>();
         String linkinginfo = null;
 
@@ -627,7 +622,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
             if (prevHash == null) {
                 prevHash = parts[0];
                 assertEquals(LAST_DIGEST, prevHash);
-                assertEquals(MessageLogProperties.getHashAlg(), DigestAlgorithm.ofName(parts[2]));
+                assertEquals(messageLogProperties.hashAlg(), DigestAlgorithm.ofName(parts[2]));
             } else {
                 digest.reset();
                 digest.update(prevHash.getBytes());
@@ -644,7 +639,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertEquals("Last hash step file must start with last hash step result", lastStepInDatabase, prevHash);
     }
 
-    private String getLastHashStepInDatabase() throws Exception {
+    private String getLastHashStepInDatabase() {
         return databaseCtx.doInTransaction(session -> session
                 .createQuery(getLastDigestQuery(), String.class)
                 .setMaxResults(1)
@@ -687,7 +682,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         return new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS").parse(dateStr);
     }
 
-    private int getNumberOfRecords(final boolean archived) throws Exception {
+    private int getNumberOfRecords(final boolean archived) {
         return databaseCtx.doInTransaction(session -> {
             final CriteriaBuilder cb = session.getCriteriaBuilder();
             final CriteriaQuery<Number> query = cb.createQuery(Number.class);

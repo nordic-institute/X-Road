@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.addon.messagelog;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +35,7 @@ import org.hibernate.Session;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampFailed;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampSucceeded;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampTask;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 import java.util.Arrays;
 import java.util.List;
@@ -54,6 +54,7 @@ public class TaskQueue {
     private final Timestamper timestamper;
     private final LogManager logManager;
     private final DatabaseCtx messageLogDatabaseCtx;
+    private final ProxyMessageLogProperties.TimestamperProperties timestamperProperties;
 
     protected void handleTimestampSucceeded(TimestampSucceeded timestampSucceededResult) {
         log.trace("handleTimestampSucceeded");
@@ -77,7 +78,7 @@ public class TaskQueue {
                 // If time-stamped records count equals to time-stamp records limit, there are probably
                 // still records to be time-stamped. Init another time-stamping round to prevent
                 // messagelog records to begin to bloat.
-                if (timestampSucceededResult.getMessageRecords().length == MessageLogProperties.getTimestampRecordsLimit()) {
+                if (timestampSucceededResult.getMessageRecords().length == timestamperProperties.recordsLimit()) {
                     log.info("Time-stamped records count equaled to time-stamp records limit");
                     handleStartTimestamping();
                 }
@@ -90,7 +91,7 @@ public class TaskQueue {
         }
     }
 
-    protected void saveTimestampRecord(TimestampSucceeded message)  {
+    protected void saveTimestampRecord(TimestampSucceeded message) {
         logManager.saveTimestampRecord(message);
     }
 
@@ -125,7 +126,7 @@ public class TaskQueue {
     }
 
     protected void handleStartTimestamping() {
-        handleStartTimestamping(MessageLogProperties.getTimestampRecordsLimit());
+        handleStartTimestamping(timestamperProperties.recordsLimit());
     }
 
     protected void handleStartTimestampingRetryMode() {
@@ -153,7 +154,7 @@ public class TaskQueue {
 
         log.info("Start time-stamping {} message records", timestampTasksSize);
 
-        if (timestampTasksSize / (double) MessageLogProperties.getTimestampRecordsLimit()
+        if (timestampTasksSize / (double) timestamperProperties.recordsLimit()
                 >= TIMESTAMPED_RECORDS_RATIO_THRESHOLD) {
             log.warn("Number of time-stamped records is over {} % of 'timestamp-records-limit' value",
                     TIMESTAMPED_RECORDS_RATIO_THRESHOLD * 100);

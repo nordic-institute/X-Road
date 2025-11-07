@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.addon.messagelog;
 
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import jakarta.xml.bind.JAXBException;
 import org.bouncycastle.cms.CMSException;
@@ -35,6 +34,7 @@ import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -54,8 +54,9 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
     private String[] hashChains = null;
 
 
-    BatchTimestampRequest(GlobalConfProvider globalConfProvider, Long[] logRecords, String[] signatureHashes) {
-        super(globalConfProvider, logRecords);
+    BatchTimestampRequest(GlobalConfProvider globalConfProvider, ProxyMessageLogProperties messageLogProperties,
+                          Long[] logRecords, String[] signatureHashes) {
+        super(globalConfProvider, messageLogProperties, logRecords);
 
         this.signatureHashes = signatureHashes;
     }
@@ -84,7 +85,7 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
     }
 
     private HashChainBuilder buildHashChain(String[] hashes) throws IOException {
-        HashChainBuilder hcBuilder = new HashChainBuilder(MessageLogProperties.getHashAlg());
+        HashChainBuilder hcBuilder = new HashChainBuilder(digestAlgorithm);
 
         for (String signatureHashBase64 : hashes) {
             hcBuilder.addInputHash(decodeBase64(signatureHashBase64));

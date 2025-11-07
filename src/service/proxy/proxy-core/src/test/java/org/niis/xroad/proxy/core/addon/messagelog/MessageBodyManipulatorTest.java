@@ -37,7 +37,9 @@ import ee.ria.xroad.common.util.XmlUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -55,6 +57,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -62,16 +65,18 @@ import static org.junit.Assert.assertTrue;
  * Tests for SOAP message body manipulation
  */
 @Slf4j
-public class MessageBodyManipulatorTest {
+class MessageBodyManipulatorTest {
 
     public static final String QUERY_DIR = "../../../service/proxy/proxy-core/src/test/queries/";
 
     @Getter
     @Setter
-    private class TestableMessageBodyManipulator extends MessageBodyManipulator {
-        TestableMessageBodyManipulator(boolean globalBodyLogging,
+    private static class TestableMessageBodyManipulator extends MessageBodyManipulator {
+        TestableMessageBodyManipulator(ProxyMessageLogProperties messageLogProperties,
+                                       boolean globalBodyLogging,
                                        Collection<ClientId> localOverrides,
                                        Collection<ClientId> remoteOverrides) {
+            super(messageLogProperties);
             setConfigurator(new Configurator() {
                 @Override
                 public Collection<ClientId> getLocalProducerOverrides() {
@@ -91,7 +96,8 @@ public class MessageBodyManipulatorTest {
         }
 
         TestableMessageBodyManipulator(boolean globalBodyLogging) {
-            this(globalBodyLogging, new ArrayList<ClientId>(), new ArrayList<ClientId>());
+            this(ConfigUtils.defaultConfiguration(ProxyMessageLogProperties.class), globalBodyLogging,
+                    new ArrayList<>(), new ArrayList<>());
         }
     }
 
@@ -169,7 +175,7 @@ public class MessageBodyManipulatorTest {
      * @throws Exception when error occurs
      */
     @Test
-    public void removingBody() throws Exception {
+    void removingBody() throws Exception {
         SoapMessageImpl query = createRequest("simple.query");
         final boolean clientSide = true;
         final boolean serverSide = false;
@@ -219,8 +225,8 @@ public class MessageBodyManipulatorTest {
         Document d = parseXml(xml);
 
         NodeList nl = d.getElementsByTagNameNS("*", tagName);
-        log.debug("nodes: " + nl + ", size=" + nl.getLength());
-        assertTrue(nl.getLength() == 1);
+
+        assertEquals(1, nl.getLength());
         return nl.item(0);
     }
 
@@ -234,11 +240,10 @@ public class MessageBodyManipulatorTest {
     /**
      * Test client id search
      *
-     * @throws Exception when error occurs
      */
     @Test
-    public void clientIdSearching() throws Exception {
-        MessageBodyManipulator manipulator = new MessageBodyManipulator();
+    void clientIdSearching() {
+        MessageBodyManipulator manipulator = new MessageBodyManipulator(ConfigUtils.defaultConfiguration(ProxyMessageLogProperties.class));
         ClientId.Conf ss1 = ClientId.Conf.create("instance", "memberclass", "membercode", "ss1");
         ClientId.Conf cmember = ClientId.Conf.create("instance", "memberclass", "membercode", null);
         ClientId.Conf ss2 = ClientId.Conf.create("instance", "memberclass", "membercode", "ss2");
@@ -257,7 +262,7 @@ public class MessageBodyManipulatorTest {
                 coll1));
 
         // subsystem does not match to subsystem-less member
-        assertFalse(manipulator.isClientInCollection(ss1, Arrays.asList(cmember)));
+        assertFalse(manipulator.isClientInCollection(ss1, List.of(cmember)));
 
     }
 }

@@ -78,7 +78,7 @@ public class ProxyClientConfig {
 
     @ApplicationScoped
     @Priority(200)
-    @LookupIfProperty(name = "xroad.proxy.addon.message-log.enabled", stringValue = "true")
+    @LookupIfProperty(name = "xroad.proxy.message-log.enabled", stringValue = "true")
     AbstractClientProxyHandler asicContainerHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client,
                                                     ConfClientRpcClient confClientRpcClient) {
         return new AsicContainerHandler(commonBeanProxy, client, confClientRpcClient);
