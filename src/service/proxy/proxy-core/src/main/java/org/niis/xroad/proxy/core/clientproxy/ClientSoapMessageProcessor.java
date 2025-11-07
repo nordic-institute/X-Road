@@ -464,7 +464,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(jRequest.getContentType(),
                     handler, new SaxSoapParserImpl());
             try {
-                originalSoapAction = validateSoapActionHeader(jRequest.getHeaders().get("SOAPAction"));
+                originalSoapAction = SoapUtils.validateSoapActionHeader(jRequest.getHeaders().get("SOAPAction"));
                 soapMessageDecoder.parse(jRequest.getInputStream());
             } catch (Exception ex) {
                 throw new ClientException(translateException(ex));

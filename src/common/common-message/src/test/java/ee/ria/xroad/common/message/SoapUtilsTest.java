@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.util;
+
+package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.CodedException;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+class SoapUtilsTest {
 
-/**
- * Test to verify MessageProcessorBase behavior
- */
-@RunWith(Parameterized.class)
-public class ValidateSoapActionTest {
-
-    /**
-     * Test parameters (header value, validity)
-     */
-    @Parameters(name = "{index}: <{0}>, valid: {1}")
-    public static Collection<Object[]> data() {
+    static Collection<Object[]> soapActionData() {
         return Arrays.asList(new Object[][]{
                 {null, true},
                 {"", true},
@@ -62,23 +53,16 @@ public class ValidateSoapActionTest {
         });
     }
 
-    @Parameter
-    public String header;
-
-    @Parameter(1)
-    public boolean expected;
-
-    @Test
-    public void testValidateSoapAction() {
+    @DisplayName("Validate SOAP Action Header")
+    @ParameterizedTest(name = "{index}: <{0}>, valid: {1}")
+    @MethodSource("soapActionData")
+    void testValidateSoapAction(String header, boolean expected) {
         boolean valid = true;
-
         try {
-            MessageProcessorBase.validateSoapActionHeader(header);
+            SoapUtils.validateSoapActionHeader(header);
         } catch (CodedException e) {
             valid = false;
         }
-
-        assertEquals(valid, expected);
+        assertEquals(expected, valid);
     }
-
 }

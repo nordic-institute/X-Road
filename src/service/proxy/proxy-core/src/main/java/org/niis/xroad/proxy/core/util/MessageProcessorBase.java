@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.util;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -45,10 +44,7 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Optional;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP_ACTION;
 
 /**
  * Base class for message processors.
@@ -176,34 +172,6 @@ public abstract class MessageProcessorBase {
 
     protected String getSecurityServerAddress() {
         return globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier());
-    }
-
-    /**
-     * Validates SOAPAction header value.
-     * Valid header values are: (empty string),(""),("URI-reference")
-     * In addition, this implementation allows missing (null) header.
-     *
-     * @return the argument as-is if it is valid
-     * @throws CodedException if the argument is invalid
-     * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
-     */
-    protected static String validateSoapActionHeader(String soapAction) {
-        if (soapAction == null || soapAction.isEmpty() || "\"\"".equals(soapAction)) {
-            //allow missing, empty and "" SoapAction
-            return soapAction;
-        }
-
-        final int lastIndex = soapAction.length() - 1;
-        if (lastIndex > 1 && soapAction.charAt(0) == '"' && soapAction.charAt(lastIndex) == '"') {
-            try {
-                // try to parse the URI, ignore result
-                new URI(soapAction.substring(1, lastIndex));
-                return soapAction;
-            } catch (URISyntaxException e) {
-                throw new CodedException(X_INVALID_SOAP_ACTION, e, "Malformed SOAPAction header");
-            }
-        }
-        throw new CodedException(X_INVALID_SOAP_ACTION, "Malformed SOAPAction header");
     }
 
 }
