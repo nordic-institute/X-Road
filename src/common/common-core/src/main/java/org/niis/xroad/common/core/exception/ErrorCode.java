@@ -295,7 +295,13 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     KEY_CERT_GENERATION_FAILED("key_and_cert_generation_failed"),
 
     // ===== MEMBER ERRORS =====
-    MEMBER_CLASS_EXISTS("member_class_exists");
+    MEMBER_CLASS_EXISTS("member_class_exists"),
+
+    MISSING_SECRET("missing_secret"),
+
+    PGP_INTERNAL_ERROR("pgp_internal_error"),
+    PGP_ENCODE_FAILED("pgp_encode_failed"),
+    PGP_ENCRYPTION_KEYS_MISSING("pgp_encryption_keys_missing");
 
     private final String code;
 

@@ -41,6 +41,10 @@ public class TlsKeyPageObj {
         return $x("//button[@data-test='management-service-certificate-generateKey']");
     }
 
+    public SelenideElement btnUploadCertificate() {
+        return $x("//button[@data-test='upload-management-service-certificate']");
+    }
+
     public SelenideElement inputTlsCertificateFile() {
         return $x("//input[@type='file']");
     }
@@ -65,10 +69,6 @@ public class TlsKeyPageObj {
 
         public SelenideElement distinguishedNameInput() {
             return $x("//div[@data-test='enter-distinguished-name']");
-        }
-
-        public SelenideElement btnDone() {
-            return $x("//button[@data-test='generate-internal-csr-done-button']");
         }
 
         public SelenideElement btnGenerateCsr() {

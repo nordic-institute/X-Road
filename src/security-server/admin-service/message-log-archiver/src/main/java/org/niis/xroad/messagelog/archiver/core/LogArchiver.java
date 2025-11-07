@@ -31,13 +31,9 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.archive.DigestEntry;
-import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
-import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.messagelog.database.entity.ArchiveDigestEntity;
 import ee.ria.xroad.messagelog.database.entity.MessageRecordEntity;
-import ee.ria.xroad.messagelog.database.mapper.ArchiveDigestMapper;
 import ee.ria.xroad.messagelog.database.mapper.MessageRecordMapper;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -48,9 +44,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
+import org.niis.xroad.messagelog.archiver.mapper.ArchiveDigestMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,6 +75,7 @@ public class LogArchiver {
     public static final int FETCH_SIZE = 10;
 
     private final LogArchiverProperties logArchiverProperties;
+    private final EncryptionConfigProvider encryptionConfigProvider;
     private final CommonProperties commonProperties;
     private final GlobalConfProvider globalConfProvider;
     private final DatabaseCtx databaseCtx;
@@ -156,7 +155,8 @@ public class LogArchiver {
         return new LogArchiveWriter(globalConfProvider,
                 getArchivePath(),
                 new HibernateLogArchiveBase(session),
-                commonProperties.tempFilesPath()
+                commonProperties.tempFilesPath(),
+                encryptionConfigProvider
         );
     }
 

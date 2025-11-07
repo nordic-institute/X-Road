@@ -26,13 +26,15 @@
  */
 package org.niis.xroad.common.vault.quarkus;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import io.quarkus.vault.VaultKVSecretEngine;
+import io.quarkus.vault.client.VaultClientException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.io.ByteArrayInputStream;
@@ -43,9 +45,12 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
+@Slf4j
 @RequiredArgsConstructor
 public class QuarkusVaultClient implements VaultClient {
 
@@ -91,15 +96,59 @@ public class QuarkusVaultClient implements VaultClient {
         throw new NotImplementedException();
     }
 
-    private InternalSSLKey getTlsCredentials(String path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    @Override
+    public void createMessageLogArchivalSigningSecretKey(String armoredPrivateKey) {
+        var secret = new HashMap<String, String>();
+
+        secret.put(PAYLOAD_KEY, armoredPrivateKey);
+        kvSecretEngine.writeSecret(PGP_MLOG_SECRET_KEY_PATH, secret);
+    }
+
+    @Override
+    public Optional<String> getMessageLogArchivalSigningSecretKey() {
+        return readSecret(PGP_MLOG_SECRET_KEY_PATH)
+                .map(secret -> secret.get(PAYLOAD_KEY));
+    }
+
+    @Override
+    public void createMessageLogArchivalEncryptionPublicKeys(String armoredRecipientPublicKeys) {
+        var secret = new HashMap<String, String>();
+
+        secret.put(PAYLOAD_KEY, armoredRecipientPublicKeys);
+        kvSecretEngine.writeSecret(PGP_MLOG_PUBLIC_KEYS_PATH, secret);
+    }
+
+    @Override
+    public Optional<String> getMessageLogArchivalEncryptionPublicKeys() {
+        return readSecret(PGP_MLOG_PUBLIC_KEYS_PATH)
+                .map(secret -> secret.get(PAYLOAD_KEY));
+    }
+
+    private Optional<Map<String, String>> readSecret(String path) {
         if (kvSecretEngine == null) {
             throw new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.");
         }
 
-        var vaultResponse = kvSecretEngine.readSecret(path);
-        if (vaultResponse == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Failed to get TLS credentials from Vault. Response is null.");
+        try {
+            var vaultResponse = kvSecretEngine.readSecret(path);
+            if (vaultResponse == null) {
+                return Optional.empty();
+            }
+            return Optional.of(vaultResponse);
+        } catch (VaultClientException vaultResponse) {
+            log.warn("Failed to read secret from Vault at path {}: {} status {}",
+                    path, vaultResponse.getMessage(), vaultResponse.getStatus());
+            return Optional.empty();
         }
+    }
+
+    private InternalSSLKey getTlsCredentials(String path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        var vaultResponse = readSecret(path).orElseThrow(() ->
+                XrdRuntimeException.systemException(MISSING_SECRET)
+                        .details("Failed to get secret from Vault. Secret not found at path: " + path)
+                        .build()
+        );
+
         var certificates = CryptoUtils.readCertificates(vaultResponse.get(CERTIFICATE_KEY).getBytes());
         var privateKey = CryptoUtils.getPrivateKey(
                 new ByteArrayInputStream(vaultResponse.get(PRIVATEKEY_KEY).getBytes(StandardCharsets.UTF_8))

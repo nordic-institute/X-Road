@@ -30,8 +30,6 @@ package org.niis.xroad.proxy.proto;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.ProxyMemory;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -47,6 +45,8 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
+import org.niis.xroad.proxy.proto.dto.MessageLogArchiveEncryptionMember;
+import org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics;
 import org.niis.xroad.rpc.common.Empty;
 
 import java.security.cert.X509Certificate;

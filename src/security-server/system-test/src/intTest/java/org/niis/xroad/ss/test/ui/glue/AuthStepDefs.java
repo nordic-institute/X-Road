@@ -36,6 +36,7 @@ import org.niis.xroad.ss.test.ui.page.LoginPageObj;
 import java.time.Duration;
 
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
@@ -107,14 +108,15 @@ public class AuthStepDefs extends BaseUiStepDefs {
 
     @Given("after {} seconds, session timeout popup appears")
     public void errorMessageAboutTimeoutAppears(int duration) {
-        commonPageObj.btnSessionExpired()
-                .shouldBe(visible, Duration.ofSeconds(duration));
+        commonPageObj.dialog.btnConfirm()
+                .shouldBe(visible, Duration.ofSeconds(duration))
+                .shouldHave(text("Ok"));
 
     }
 
     @Given("OK is clicked on timeout notification popup")
     public void okIsClickedOnTimeoutNotificationPopup() {
-        commonPageObj.btnSessionExpired()
+        commonPageObj.dialog.btnConfirm()
                 .shouldBe(visible)
                 .shouldBe(enabled)
                 .click();

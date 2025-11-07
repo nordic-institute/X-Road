@@ -52,8 +52,6 @@ import ServicesView from '@/views/Clients/Services/ServicesView.vue';
 import SubsystemView from '@/views/Clients/SubsystemView.vue';
 import ClientTlsCertificateView from '@/views/Clients/InternalServers/TlsCertificate/ClientTlsCertificateView.vue';
 import DiagnosticsView from '@/views/Diagnostics/DiagnosticsView.vue';
-import DiagnosticsOverview from '@/views/Diagnostics/Overview/DiagnosticsOverview.vue';
-import TrafficContainer from '@/views/Diagnostics/Traffic/TrafficContainer.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
 import InitialConfigurationView from '@/views/InitialConfiguration/InitialConfigurationView.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
@@ -73,10 +71,6 @@ import ServiceDescriptionDetailsView from '@/views/Clients/Services/ServiceDescr
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 import SettingsView from '@/views/Settings/SettingsView.vue';
 import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
-import TabsBase from '@/layouts/TabsBase.vue';
-import TabsBaseEmpty from '@/layouts/TabsBaseEmpty.vue';
-import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
-import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
 import DiagnosticsOverview from '@/views/Diagnostics/Overview/DiagnosticsOverview.vue';
 import TrafficContainer from '@/views/Diagnostics/Traffic/TrafficContainer.vue';
 import ConnectionContainer from "@/views/Diagnostics/Connection/ConnectionContainer.vue";
@@ -205,6 +199,7 @@ const routes: RouteRecordRaw[] = [
           permissions: [
             Permissions.VIEW_SYS_PARAMS,
             Permissions.BACKUP_CONFIGURATION,
+            Permissions.VIEW_ADMIN_USERS,
           ],
         },
         components: {

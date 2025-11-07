@@ -30,12 +30,18 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.inject.Named;
 import lombok.Setter;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
+import org.niis.xroad.common.messagelog.archive.MessageLogEncryptionConfig;
+import org.niis.xroad.common.messagelog.archive.VaultArchivalPgpKeyProvider;
+import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
+import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
-import org.niis.xroad.messagelog.archiver.core.LogArchiverJob;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
-import org.niis.xroad.messagelog.archiver.core.LogCleanerJob;
+import org.niis.xroad.messagelog.archiver.job.LogArchiverJob;
+import org.niis.xroad.messagelog.archiver.job.LogCleanerJob;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,7 +50,7 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 @Configuration
 @ConditionalOnProperty(value = "xroad.message-log-archiver.enabled", havingValue = "true")
-public class MessageLogArchiverConfiguration {
+public class MessageLogArchiverConfiguration extends MessageLogEncryptionConfig {
     public static final String MESSAGE_LOG_DB_CTX = "messageLogCtx";
 
     @Bean
@@ -55,8 +61,9 @@ public class MessageLogArchiverConfiguration {
 
     @Bean
     public LogArchiver logArchiver(LogArchiverProperties properties, CommonProperties commonProperties,
+                                   EncryptionConfigProvider encryptionConfigProvider,
                                    GlobalConfProvider globalConfProvider, @Named(MESSAGE_LOG_DB_CTX) DatabaseCtx databaseCtx) {
-        return new LogArchiver(properties, commonProperties, globalConfProvider, databaseCtx);
+        return new LogArchiver(properties, encryptionConfigProvider, commonProperties, globalConfProvider, databaseCtx);
     }
 
     @Bean
@@ -74,4 +81,27 @@ public class MessageLogArchiverConfiguration {
         return new LogCleanerJob(logArchiverProperties, cleaner);
     }
 
+    @Bean
+    @Override
+    public VaultArchivalPgpKeyProvider keyProvider(VaultClient vaultClient) {
+        return super.keyProvider(vaultClient);
+    }
+
+    @Bean
+    @Override
+    public PgpKeyManager keyManager(VaultArchivalPgpKeyProvider vaultClient) {
+        return super.keyManager(vaultClient);
+    }
+
+    @Bean
+    @Override
+    public BouncyCastlePgpEncryptionService pgpEncryption(PgpKeyManager keyManager) {
+        return super.pgpEncryption(keyManager);
+    }
+
+    @Bean
+    @Override
+    public EncryptionConfigProvider encryptionConfigProvider(PgpKeyManager keyManager, BouncyCastlePgpEncryptionService encryption) {
+        return super.encryptionConfigProvider(keyManager, encryption);
+    }
 }

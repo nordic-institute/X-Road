@@ -94,10 +94,6 @@ public class AbstractCommonPageObj<M extends Menu, S extends SubMenu> {
             return self().$x(".//button[@data-test='close-x']");
         }
     }
-
-    public SelenideElement btnSessionExpired() {
-        return $x("//button[@data-test='session-expired-ok-button']");
-    }
 }
 
 

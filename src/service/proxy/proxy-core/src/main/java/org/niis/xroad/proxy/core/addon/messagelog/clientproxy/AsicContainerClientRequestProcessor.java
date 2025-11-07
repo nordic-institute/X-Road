@@ -33,12 +33,7 @@ import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.asic.AsicUtils;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.archive.EncryptionConfig;
-import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
-import ee.ria.xroad.common.messagelog.archive.GPGOutputStream;
-import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -48,6 +43,8 @@ import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfig;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
@@ -109,7 +106,6 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private static final String CONTENT_DISPOSITION_FILENAME_PREFIX = "attachment; filename=\"";
 
-    private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
 
     private final String target;
     private final EncryptionConfigProvider encryptionConfigProvider;
@@ -117,7 +113,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private final LogRecordManager logRecordManager;
     private final String tempFilesPath;
 
-    public AsicContainerClientRequestProcessor(ConfClientRpcClient confClientRpcClient,
+    public AsicContainerClientRequestProcessor(ConfClientRpcClient confClientRpcClient, EncryptionConfigProvider encryptionConfigProvider,
                                                ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
                                                ServerConfProvider serverConfProvider,
                                                LogRecordManager logRecordManager, String tempFilesPath,
@@ -126,7 +122,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             throws IOException {
         super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, null);
         this.target = target;
-        this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
+        this.encryptionConfigProvider = encryptionConfigProvider;
         this.confClientRpcClient = confClientRpcClient;
         this.logRecordManager = logRecordManager;
         this.tempFilesPath = tempFilesPath;
@@ -266,18 +262,16 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         final String filename = AsicUtils.escapeString(queryId)
                 + (response == null ? "" : (response ? "-response" : "-request")) + ".zip.gpg";
 
-        final EncryptionConfig encryptionConfig =
-                encryptionConfigProvider.forGrouping(groupingStrategy.forClient(clientId));
-
         final Path tempFile = Files.createTempFile(Paths.get(tempFilesPath), "asic", null);
 
         try {
+            final EncryptionConfig encryptionConfig =
+                    encryptionConfigProvider.forClientId(clientId);
             final CheckedSupplier<OutputStream> supplier = () -> {
                 jResponse.setContentType(MimeTypes.BINARY);
                 jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
-                return new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
-                        encryptionConfig.getEncryptionKeys(), tempFilesPath);
+                return encryptionConfig.createEncryptionStream(tempFile, tempFilesPath);
             };
 
             writeContainers(clientId, queryId, nameGen, response, supplier);
@@ -303,20 +297,20 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();
             try (OutputStream os = outputSupplier.get(); ZipOutputStream zos = new ZipOutputStream(os)) {
                 zos.setLevel(0);
-                for (MessageRecord record : records) {
-                    if (record.getTimestampRecord() == null) {
+                for (var messageRecord : records) {
+                    if (messageRecord.getTimestampRecord() == null) {
                         // Only happens if there are matching messages that are sent after
                         // the ensureTimestamped check was made. Ignore to emulate the previous behavior.
                         continue;
                     }
-                    messageRecordEncryption.prepareDecryption(record);
+                    messageRecordEncryption.prepareDecryption(messageRecord);
                     final ZipEntry entry = new ZipEntry(
-                            nameGen.getArchiveFilename(queryId, record.isResponse(), record.getId()));
-                    entry.setLastModifiedTime(FileTime.from(record.getTime(), TimeUnit.MILLISECONDS));
+                            nameGen.getArchiveFilename(queryId, messageRecord.isResponse(), messageRecord.getId()));
+                    entry.setLastModifiedTime(FileTime.from(messageRecord.getTime(), TimeUnit.MILLISECONDS));
                     zos.putNextEntry(entry);
 
                     try (EntryStream es = new EntryStream(zos)) {
-                        record.toAsicContainer().write(es);
+                        messageRecord.toAsicContainer().write(es);
                     }
                     zos.closeEntry();
                 }
@@ -351,11 +345,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeAsicContainer(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-                                    boolean response) throws IOException {
-
-        final EncryptionConfig encryptionConfig =
-                encryptionConfigProvider.forGrouping(groupingStrategy.forClient(clientId));
-        final boolean encryptionEnabled = encryptionConfig.isEnabled();
+                                    boolean response) {
 
         logRecordManager.getByQueryIdUnique(queryId, clientId, response, record -> {
             try {
@@ -370,7 +360,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 final AsicContainer asicContainer = record.toAsicContainer();
 
                 String filename = nameGen.getArchiveFilename(queryId, response, record.getId());
-                if (encryptionEnabled) {
+                if (encryptionConfigProvider.isEncryptionEnabled()) {
                     filename += ".gpg";
                     jResponse.setContentType(MimeTypes.BINARY);
                 } else {
@@ -379,7 +369,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
 
-                if (encryptionEnabled) {
+                if (encryptionConfigProvider.isEncryptionEnabled()) {
+                    final var encryptionConfig = encryptionConfigProvider.forClientId(clientId);
                     encryptContainer(encryptionConfig, asicContainer);
                 } else {
                     asicContainer.write(jResponse.getOutputStream());
@@ -398,8 +389,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         final Path tempFile = Files.createTempFile(
                 Paths.get(tempFilesPath), "asic", null);
         try {
-            try (OutputStream os = new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
-                    encryptionConfig.getEncryptionKeys(), tempFilesPath)) {
+            try (OutputStream os = encryptionConfig.createEncryptionStream(tempFile,tempFilesPath)) {
                 asicContainer.write(os);
             }
             try (InputStream is = Files.newInputStream(tempFile); var out = jResponse.getOutputStream()) {

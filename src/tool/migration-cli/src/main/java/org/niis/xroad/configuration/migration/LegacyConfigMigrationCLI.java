@@ -32,12 +32,68 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.nio.file.Paths;
 
+/**
+ * Unified CLI for X-Road migrations.
+ * Supports:
+ * - Configuration migration (INI/properties to DB)
+ * - PGP key migration (GPG to Vault)
+ */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LegacyConfigMigrationCLI {
 
+    private static final String OPTION_PGP_KEYS = "--pgp-keys";
+
     public static void main(String[] args) {
-        validateArgs(args);
+        try {
+            if (args.length > 0 && OPTION_PGP_KEYS.equals(args[0])) {
+                migratePgpKeys(args);
+            } else {
+                migrateConfiguration(args);
+            }
+        } catch (Exception e) {
+            log.error("Migration failed: {}", e.getMessage(), e);
+            throw new MigrationException("Migration failed", e);
+        }
+    }
+
+    private static void migratePgpKeys(String[] args) {
+        if (args.length < 2) {
+            logPgpUsageAndThrow("Configuration file required");
+        }
+
+        String configFile = args[1];
+
+        validateFilePath(configFile, "configuration");
+
+        if (!new File(configFile).exists()) {
+            throw new IllegalArgumentException("Configuration file does not exist: " + configFile);
+        }
+
+        log.info("Starting PGP key migration");
+        log.info("  INI config: {}", configFile);
+
+        log.warn("PGP key migration requires Vault configuration");
+        log.info("Configuration file validated: {}", configFile);
+        log.info("To complete migration, ensure Vault is configured and accessible");
+
+        //TODO provide vault configuration
+
+        // Note: PGP key migration requires Vault configuration and is not yet implemented in CLI
+        // Example of how this would work with proper vault client:
+        // VaultClient vaultClient = createVaultClient();
+        // PgpKeyMigrator migrator = new PgpKeyMigrator(vaultClient);
+        // MigrationResult result = migrator.migrateFromConfig(Paths.get(configFile));
+        // log.info("Migration result: {}", result);
+        // log.info("Keys stored in Vault");
+
+        // Configuration migration should be done separately:
+        // MessageLogIniToDbMigrator.main(new String[] { mappingFile, dbPropertiesFile });
+    }
+
+    private static void migrateConfiguration(String[] args) {
+        validateConfigArgs(args);
+
         try {
             var input = args[0];
 
@@ -56,36 +112,30 @@ public class LegacyConfigMigrationCLI {
                 }
             }
         } catch (Exception e) {
-            throw new MigrationException("Migration failed", e);
+            throw new MigrationException("Configuration migration failed", e);
         }
     }
 
-
-    private static void validateArgs(String[] args) {
-        // Check if no arguments provided
+    private static void validateConfigArgs(String[] args) {
         if (args.length == 0) {
-            logUsageAndThrow("No arguments provided");
+            logConfigUsageAndThrow("No arguments provided");
         }
 
-        // Get input file
         String inputFile = args[0];
         boolean isPropertiesFile = inputFile.endsWith(".properties");
 
-        // Validate number of arguments based on file type
         if (isPropertiesFile && args.length != 1) {
-            logUsageAndThrow("Properties file migration requires only input file");
+            logConfigUsageAndThrow("Properties file migration requires only input file");
         }
         if (!isPropertiesFile && args.length != 2) {
-            logUsageAndThrow("INI file migration requires both input and output files");
+            logConfigUsageAndThrow("INI file migration requires both input and output files");
         }
 
-        // Validate input file
         validateFilePath(inputFile, "input");
         if (!new File(inputFile).exists()) {
             throw new IllegalArgumentException("Input file does not exist: " + inputFile);
         }
 
-        // Validate output file if provided
         if (args.length == 2) {
             validateFilePath(args[1], "output");
         }
@@ -104,9 +154,19 @@ public class LegacyConfigMigrationCLI {
         }
     }
 
-    private static void logUsageAndThrow(String message) {
-        log.error("Usage: <input file> [output file]");
+    private static void logConfigUsageAndThrow(String message) {
+        log.error("Configuration Migration Usage: <input file> [output file]");
+        log.error("  Properties: <file.properties>");
+        log.error("  INI: <input.ini> <output.yaml>");
         throw new IllegalArgumentException(message);
     }
 
+    private static void logPgpUsageAndThrow(String message) {
+        log.error("PGP Key Migration Usage: --pgp-keys <ini-config-file>");
+        log.error("  - PGP keys will be stored in Vault");
+        log.error("  - Configuration migration should be done separately using MessageLogIniToDbMigrator");
+        log.error("  Example: --pgp-keys /etc/xroad/conf.d/local.ini");
+        throw new IllegalArgumentException(message);
+    }
 }
+
