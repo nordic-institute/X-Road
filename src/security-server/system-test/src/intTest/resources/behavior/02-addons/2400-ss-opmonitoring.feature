@@ -1,6 +1,5 @@
 @SecurityServer
 @Addon
-@Skip #TODO beta1 release preparation
 Feature: 2400 - SS: Operational monitoring services
 
   Scenario: Retrieving Operational Data of Security Server

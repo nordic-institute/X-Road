@@ -35,6 +35,7 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
+import org.niis.xroad.common.pgp.PgpKeyUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -84,7 +85,7 @@ public final class VaultMemberEncryptionConfigProvider implements EncryptionConf
 
             // Convert PGPPublicKey objects to key ID strings
             Set<String> keyIds = publicKeys.stream()
-                    .map(key -> String.format("%016X", key.getKeyID()))
+                    .map(key -> PgpKeyUtils.formatKeyId(key.getKeyID()))
                     .collect(Collectors.toSet());
 
             log.debug("Using {} key(s) {} for encrypting member {} archives",
@@ -123,7 +124,7 @@ public final class VaultMemberEncryptionConfigProvider implements EncryptionConf
             }
 
             Set<String> keyIds = publicKeys.stream()
-                    .map(key -> String.format("%016X", key.getKeyID()))
+                    .map(key -> PgpKeyUtils.formatKeyId(key.getKeyID()))
                     .collect(Collectors.toSet());
 
             log.debug("Member {} has {} encryption key(s): {}", memberId, keyIds.size(), keyIds);

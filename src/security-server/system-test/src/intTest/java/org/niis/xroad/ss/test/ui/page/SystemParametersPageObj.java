@@ -93,7 +93,7 @@ public class SystemParametersPageObj {
         }
 
         public SelenideElement btnAdd() {
-            return $x("//button[@data-test='system-parameters-timestamping-services-add-button']");
+            return btnSave();
         }
     }
 

@@ -105,7 +105,7 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.localGroups.details.btnRemove().shouldBe(empty);
         clientInfoPageObj.localGroups.details.btnDelete().shouldNotBe(visible);
 
-        clientInfoPageObj.localGroups.details.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
     }
 
     @Step("Local group details are editable")
@@ -114,7 +114,7 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.localGroups.details.btnRemoveAll().shouldBe(visible);
         clientInfoPageObj.localGroups.details.btnDelete().shouldBe(visible);
 
-        clientInfoPageObj.localGroups.details.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
     }
 
     @Step("Local group is deleted")

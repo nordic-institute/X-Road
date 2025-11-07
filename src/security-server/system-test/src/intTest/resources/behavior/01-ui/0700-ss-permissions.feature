@@ -1,7 +1,6 @@
 @SecurityServer
 @UI
 @Login
-@Skip #TODO beta1 release preparation
 Feature: 0700 - SS: Permissions
 
   Background:
@@ -87,7 +86,7 @@ Feature: 0700 - SS: Permissions
     Then Clients Tab is present
     * Settings Tab is missing
     * Diagnostics Tab is missing
-    * Keys and Certificates Tab is missing
+    * Keys and Certificates Tab is present
     * Add clients button is missing
 
     * Client "Test service" is opened
