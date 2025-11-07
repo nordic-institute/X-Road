@@ -202,6 +202,12 @@ extract_to_tmp_restore_dir () {
       mv ${RESTORE_DIR}/etc/xroad/db.properties ${RESTORE_DIR}/etc/xroad/db.properties.restored
       cp /etc/xroad/db.properties ${RESTORE_DIR}/etc/xroad/db.properties
   fi
+  # keep existing db_libpq.env
+  if [ -f /etc/xroad/db_libpq.env ] && [ -f ${RESTORE_DIR}/etc/xroad/db_libpq.env ]
+  then
+      mv ${RESTORE_DIR}/etc/xroad/db_libpq.env ${RESTORE_DIR}/etc/xroad/db_libpq.env.restored
+      cp /etc/xroad/db_libpq.env ${RESTORE_DIR}/etc/xroad/db_libpq.env
+  fi
   # keep existing xroad.properties
   if [ -f /etc/xroad/xroad.properties ]
   then
