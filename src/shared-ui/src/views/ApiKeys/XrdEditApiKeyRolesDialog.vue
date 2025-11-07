@@ -73,7 +73,7 @@ import { PropType, ref, computed } from 'vue';
 
 import { useNotifications, useRunning } from '../../composables';
 
-import { XrdFormBlock } from '../../components';
+import { XrdSimpleDialog, XrdFormBlock } from '../../components';
 
 import { ApiKeysHandler, ApiKey } from '../../types';
 

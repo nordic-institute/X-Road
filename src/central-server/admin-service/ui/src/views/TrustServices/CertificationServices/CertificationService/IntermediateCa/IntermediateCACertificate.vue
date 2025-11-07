@@ -44,18 +44,11 @@ import { computed, ref, watchEffect } from 'vue';
 
 import { useI18n } from 'vue-i18n';
 
-import {
-  useNotifications,
-  XrdCertificate,
-  XrdElevatedViewFixedWidth,
-} from '@niis/shared-ui';
+import { useNotifications, XrdCertificate, XrdElevatedViewFixedWidth, Breadcrumb } from '@niis/shared-ui';
 
 import { RouteName } from '@/global';
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
-import {
-  useCertificationService,
-  useIntermediateCasService,
-} from '@/store/modules/trust-services';
+import { useCertificationService, useIntermediateCasService } from '@/store/modules/trust-services';
 
 const props = defineProps({
   intermediateCaId: {
@@ -78,7 +71,7 @@ const breadcrumbs = computed(() => {
       title: t('tab.main.trustServices'),
       to: { name: RouteName.TrustServices },
     },
-  ];
+  ] as Breadcrumb[];
 
   if (certificationServiceStore.current) {
     crumbs.push({
@@ -86,7 +79,7 @@ const breadcrumbs = computed(() => {
       to: {
         name: RouteName.CertificationServiceDetails,
         params: {
-          certificationServiceId: certificationServiceStore.current?.id,
+          certificationServiceId: certificationServiceStore.current.id,
         },
       },
     });
@@ -96,7 +89,7 @@ const breadcrumbs = computed(() => {
       to: {
         name: RouteName.CertificationServiceIntermediateCas,
         params: {
-          certificationServiceId: certificationServiceStore.current?.id,
+          certificationServiceId: certificationServiceStore.current.id,
         },
       },
     });
@@ -105,11 +98,11 @@ const breadcrumbs = computed(() => {
   if (intermediateCasServiceStore.current) {
     crumbs.push({
       title:
-        intermediateCasServiceStore.current?.ca_certificate.subject_common_name,
+      intermediateCasServiceStore.current?.ca_certificate.subject_common_name,
       to: {
         name: RouteName.IntermediateCaDetails,
         params: {
-          intermediateCaId: String(intermediateCasServiceStore.current?.id),
+          intermediateCaId: String(intermediateCasServiceStore.current.id),
         },
       },
     });

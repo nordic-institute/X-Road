@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     v-if="dialog"
     title="login.logIn"
     save-button-text="login.logIn"
@@ -36,20 +36,22 @@
     @cancel="cancel"
   >
     <template #content>
-      <div class="pt-5 dlg-input-width">
-        <v-text-field
-          v-model="tokenPin"
-          type="password"
-          variant="outlined"
-          :label="$t('fields.tokenPin')"
-          autofocus
-          name="tokenPin"
-          :error-messages="errors"
-          @keyup.enter="save"
-        ></v-text-field>
-      </div>
+      <XrdFormBlock>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-model="tokenPin"
+            class="xrd"
+            type="password"
+            name="tokenPin"
+            autofocus
+            :label="$t('fields.tokenPin')"
+            :error-messages="errors"
+            @keyup.enter="save"
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
@@ -61,9 +63,15 @@ import { encodePathParameter } from '@/util/api';
 import { useAlerts } from '@/store/modules/alerts';
 import { useTokens } from '@/store/modules/tokens';
 import { useField } from 'vee-validate';
-import { useNotifications } from '@niis/shared-ui';
+import {
+  XrdSimpleDialog,
+  useNotifications,
+  XrdFormBlock,
+  XrdFormBlockRow,
+} from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow },
   props: {
     dialog: {
       type: Boolean,
@@ -137,7 +145,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>

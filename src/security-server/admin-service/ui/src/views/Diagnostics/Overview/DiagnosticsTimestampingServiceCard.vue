@@ -101,11 +101,12 @@ import {
   XrdStatusChip,
   Status,
   useNotifications,
+  XrdEmptyPlaceholderRow,
 } from '@niis/shared-ui';
 import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
 export default defineComponent({
-  components: { StatusAvatar, XrdCard, XrdStatusChip },
+  components: { StatusAvatar, XrdCard, XrdStatusChip, XrdEmptyPlaceholderRow },
   props: {
     addonStatusLoading: {
       type: Boolean,

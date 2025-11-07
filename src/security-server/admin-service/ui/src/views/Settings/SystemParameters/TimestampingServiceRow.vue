@@ -61,10 +61,10 @@ import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { XrdBtn, useNotifications } from '@niis/shared-ui';
+import { XrdBtn, useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { XrdBtn },
+  components: { XrdBtn, XrdConfirmDialog },
   props: {
     timestampingService: {
       type: Object as PropType<TimestampingService>,

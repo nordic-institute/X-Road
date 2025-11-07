@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     cancel-button-text="action.cancel"
     save-button-text="action.save"
     title="globalGroup.editDescription"
@@ -49,13 +49,18 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
 import { useForm } from 'vee-validate';
 
-import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import {
+  XrdSimpleDialog,
+  useBasicForm,
+  XrdFormBlock,
+  XrdFormBlockRow,
+} from '@niis/shared-ui';
 
 import { useGlobalGroups } from '@/store/modules/global-groups';
 

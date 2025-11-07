@@ -126,6 +126,7 @@ import {
   XrdCard,
   XrdCardTableRow,
   helper,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { useKeys } from '@/store/modules/keys';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
@@ -140,6 +141,7 @@ export default defineComponent({
     XrdElevatedViewFixedWidth,
     XrdBtn,
     WarningDialog,
+    XrdConfirmDialog,
   },
   props: {
     id: {

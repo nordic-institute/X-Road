@@ -28,6 +28,7 @@
 import * as Sorting from '@/views/KeysAndCertificates/SignAndAuthKeys/keyColumnSorting';
 import { CertificateOcspStatus } from '@/openapi-types';
 import { KeysSortColumn } from '@/views/KeysAndCertificates/SignAndAuthKeys/keyColumnSorting';
+import { expect, describe, it } from 'vitest'
 
 // Simplified mock version of Keys
 const keysUnsorted: any[] = [

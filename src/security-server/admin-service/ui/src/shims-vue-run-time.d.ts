@@ -25,14 +25,20 @@
  * THE SOFTWARE.
  */
 
-import VueRoute from 'vue-router';
+import { Router, RouteLocationNormalizedLoaded } from 'vue-router';
 import { Filters } from '@/filters';
-import VueI18n from 'vue-i18n';
+import { Locale } from 'vue-i18n';
+import { DisplayInstance } from 'vuetify';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
-    $router: VueRoute;
+    $router: Router;
+    $route: RouteLocationNormalizedLoaded;
     $filters: Filters;
-    $t: VueI18n;
+    $vuetify: { display: DisplayInstance };
+
+    $t(key: Key, named?: Record<string, unknown> | string[]): string;
+
+    $te(key: Key, locale?: Locale): boolean;
   }
 }

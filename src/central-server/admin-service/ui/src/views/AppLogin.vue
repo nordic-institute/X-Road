@@ -38,7 +38,6 @@ import { XrdAppLogin, useNotifications } from '@niis/shared-ui';
 
 import { useSystem } from '@/store/modules/system';
 import { useUser } from '@/store/modules/user';
-import { swallowRedirectedNavigationError } from '@/util/helpers';
 
 import AlertsContainer from '@/components/AlertsContainer.vue';
 import { useMainTabs } from '@/store/modules/main-tabs';
@@ -112,8 +111,7 @@ export default defineComponent({
     },
     async routeToMembersPage() {
       this.$router
-        .replace(this.firstAllowedTab.to)
-        .catch(swallowRedirectedNavigationError);
+        .replace(this.firstAllowedTab.to);
       this.loading = false;
     },
   },

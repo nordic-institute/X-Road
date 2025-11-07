@@ -163,6 +163,7 @@ import {
   XrdFormBlockRow,
   helper,
   XrdWizardStep,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { useClients } from '@/store/modules/clients';
 import { useClient } from '@/store/modules/client';
@@ -211,27 +212,23 @@ defineRule('uniqueClient', uniqueClient);
 
 const { meta, handleSubmit, defineField, setFieldValue } = useForm({
   validationSchema: {
-    'addClient.subsystemCode': 'required|xrdIdentifier|max:255|uniqueClient',
-    'addClient.subsystemName': 'max:255',
+    addSubsystemCode: 'required|xrdIdentifier|max:255|uniqueClient',
+    addSubsystemName: 'max:255',
   },
   initialValues: {
-    'addClient.subsystemCode': '',
-    'addClient.subsystemName': '',
+    addSubsystemCode: '',
+    addSubsystemName: '',
   },
 });
 
 const [subsystemCode, subsystemCodeAttrs] = defineField(
-  'addClient.subsystemCode',
-  {
-    props: helper.veePropMapper,
-  },
+  'addSubsystemCode',
+  helper.veeDefaultFieldConfig(),
 );
 
 const [subsystemName, subsystemNameAttrs] = defineField(
-  'addClient.subsystemName',
-  {
-    props: helper.veePropMapper,
-  },
+  'addSubsystemName',
+  helper.veeDefaultFieldConfig(),
 );
 
 const showSelectClient = ref(false);
@@ -258,8 +255,8 @@ const done = handleSubmit((values) => {
       member_name: props.memberName,
       member_class: props.memberClass,
       member_code: props.memberCode,
-      subsystem_code: values.addClient.subsystemCode,
-      subsystem_name: values.addClient.subsystemName,
+      subsystem_code: values.addSubsystemCode,
+      subsystem_name: values.addSubsystemName,
     },
     ignore_warnings: false,
   };
@@ -305,8 +302,8 @@ function exitView(): void {
 }
 
 function saveSelectedClient(selectedMember: Client): void {
-  setFieldValue('addClient.subsystemCode', selectedMember.subsystem_code || '');
-  setFieldValue('addClient.subsystemName', selectedMember.subsystem_name || '');
+  setFieldValue('addSubsystemCode', selectedMember.subsystem_code || '');
+  setFieldValue('addSubsystemName', selectedMember.subsystem_name || '');
 
   showSelectClient.value = false;
 }

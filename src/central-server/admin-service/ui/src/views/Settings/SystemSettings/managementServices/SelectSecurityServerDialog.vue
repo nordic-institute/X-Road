@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="systemSettings.selectSecurityServer.title"
     save-button-text="action.select"
     width="824"
@@ -76,7 +76,7 @@
         </template>
       </v-data-table-server>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
@@ -85,7 +85,11 @@ import { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { mapStores } from 'pinia';
 
-import { useNotifications, XrdPagination } from '@niis/shared-ui';
+import {
+  XrdSimpleDialog,
+  useNotifications,
+  XrdPagination,
+} from '@niis/shared-ui';
 
 import {
   ManagementServicesConfiguration,
@@ -93,7 +97,7 @@ import {
 } from '@/openapi-types';
 import { useManagementServices } from '@/store/modules/management-services';
 import { useSecurityServer } from '@/store/modules/security-servers';
-import { DataQuery } from '@/ui-types';
+import { DataQuery, PagingOptions } from '@/ui-types';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { debounce } from '@/util/helpers';
 
@@ -102,7 +106,7 @@ import { debounce } from '@/util/helpers';
 let that: any;
 
 export default defineComponent({
-  components: { XrdPagination },
+  components: { XrdSimpleDialog, XrdPagination },
   props: {
     currentSecurityServer: {
       type: String,
@@ -193,11 +197,21 @@ export default defineComponent({
         this.loading = false;
       }
     },
-    changeOptions: async function ({ itemsPerPage, page, sortBy }) {
+    changeOptions: async function ({
+      itemsPerPage,
+      page,
+      sortBy,
+    }: PagingOptions) {
       this.pagingOptions.itemsPerPage = itemsPerPage;
       this.pagingOptions.page = page;
       this.pagingOptions.sortBy = sortBy[0]?.key;
-      this.pagingOptions.sortOrder = sortBy[0]?.order;
+      const order = sortBy[0]?.order;
+      this.pagingOptions.sortOrder =
+        order === undefined
+          ? undefined
+          : order === true || order === 'asc'
+            ? 'asc'
+            : 'desc';
       await this.findServers();
     },
     cancel(): void {

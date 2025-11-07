@@ -26,8 +26,8 @@
  */
 
 import 'vuetify/styles';
-import '../assets/xrd8/global-style.scss';
-import '../assets/xrd8/fonts.css';
+import '../assets/global-style.scss';
+import '../assets/fonts.css';
 
 import { createVuetify } from 'vuetify/framework';
 import { msrAliases, msr, createLightTheme } from '../utils';

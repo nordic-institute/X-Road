@@ -30,7 +30,7 @@
   </v-avatar>
 </template>
 <script lang="ts" setup>
-import { Status } from '@niis/shared-ui';
+import { XrdStatusIcon, Status } from '@niis/shared-ui';
 import { computed } from 'vue';
 
 const props = defineProps<{ status?: Status }>();

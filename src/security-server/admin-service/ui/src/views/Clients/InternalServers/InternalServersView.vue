@@ -168,10 +168,11 @@ import {
   XrdCard,
   XrdBtn,
   XrdLabelWithIcon,
+  XrdEmptyPlaceholderRow,
   useNotifications,
+  XrdFileUpload,
 } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
-import { useSystem } from '@/store/modules/system';
 import { useTlsCertificate } from '@/store/modules/tls-certificate';
 
 export default defineComponent({
@@ -182,6 +183,8 @@ export default defineComponent({
     XrdDate,
     XrdBtn,
     XrdLabelWithIcon,
+    XrdEmptyPlaceholderRow,
+    XrdFileUpload,
   },
   props: {
     id: {

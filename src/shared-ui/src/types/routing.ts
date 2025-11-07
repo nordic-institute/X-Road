@@ -57,5 +57,5 @@ export type XrdRoute = RouteRecordRaw & {
 export type Breadcrumb = {
   title: string;
   translatedTitle?: boolean;
-  to: RouteLocationRaw;
+  to?: RouteLocationRaw;
 };

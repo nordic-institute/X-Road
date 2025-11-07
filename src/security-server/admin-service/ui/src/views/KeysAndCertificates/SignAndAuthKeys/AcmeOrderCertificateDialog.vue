@@ -60,6 +60,7 @@ import { mapActions, mapState } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { KeyUsageType, TokenCertificateSigningRequest } from '@/openapi-types';
 import {
+  XrdSimpleDialog,
   XrdFormBlock,
   XrdFormBlockRow,
   useNotifications,
@@ -67,6 +68,7 @@ import {
 
 export default defineComponent({
   components: {
+    XrdSimpleDialog,
     XrdFormBlock,
     XrdFormBlockRow,
   },

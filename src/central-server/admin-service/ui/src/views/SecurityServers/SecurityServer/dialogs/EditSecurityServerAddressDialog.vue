@@ -28,7 +28,7 @@
   Member details view
 -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="securityServers.dialogs.editAddress.title"
     data-test="security-server-address-edit-dialog"
     save-button-text="action.save"
@@ -54,13 +54,18 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useForm } from 'vee-validate';
-import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import {
+  XrdSimpleDialog,
+  useBasicForm,
+  XrdFormBlock,
+  XrdFormBlockRow,
+} from '@niis/shared-ui';
 
 /**
  * Component for a Security server details view

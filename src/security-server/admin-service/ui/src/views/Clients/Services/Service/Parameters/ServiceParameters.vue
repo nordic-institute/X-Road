@@ -230,6 +230,7 @@ import {
   XrdBtn,
   XrdLabelWithIcon,
   useNotifications,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useServiceDescriptions } from '@/store/modules/service-descriptions';
@@ -246,6 +247,7 @@ export default defineComponent({
     XrdFormBlockRow,
     XrdBtn,
     XrdLabelWithIcon,
+    XrdConfirmDialog,
   },
   emits: ['update-service'],
   setup() {

@@ -66,7 +66,7 @@ import { ref, useTemplateRef, watchEffect } from 'vue';
 import { VContainer } from 'vuetify/components';
 import { useDisplay } from 'vuetify/framework';
 
-import image404 from '../assets/xrd8/404.svg';
+import image404 from '../assets/404.svg';
 
 import XrdErrorPage from './XrdErrorPage.vue';
 

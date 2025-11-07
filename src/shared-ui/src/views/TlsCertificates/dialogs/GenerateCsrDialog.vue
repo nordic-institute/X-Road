@@ -88,7 +88,7 @@ const [distinguishedName, distinguishedNameAttrs] = defineField('distinguishedNa
 
 const { loading } = useBasicForm();
 
-function submit(handler: DialogSaveHandler) {
+function submit(evt: Event, handler: DialogSaveHandler) {
   handleSubmit((values) => {
     loading.value = true;
     props.handler

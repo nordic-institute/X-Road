@@ -28,6 +28,7 @@ import { useUser } from '@/store/modules/user';
 import { InitializationStatus, TokenInitStatus } from '@/openapi-types';
 import { createPinia } from 'pinia';
 import { setActivePinia } from 'pinia';
+import { expect, describe, it, beforeEach } from 'vitest'
 
 describe('Initialize store', () => {
   beforeEach(() => {
@@ -42,6 +43,7 @@ describe('Initialize store', () => {
       is_server_code_initialized: false,
       is_server_owner_initialized: false,
       software_token_init_status: TokenInitStatus.UNKNOWN,
+      enforce_token_pin_policy: false,
     };
 
     store.storeInitStatus(mockInitStatus);
@@ -53,6 +55,7 @@ describe('Initialize store', () => {
       is_server_code_initialized: false,
       is_server_owner_initialized: false,
       software_token_init_status: TokenInitStatus.NOT_INITIALIZED,
+      enforce_token_pin_policy: false,
     };
 
     store.storeInitStatus(mockInitStatus);
@@ -64,6 +67,7 @@ describe('Initialize store', () => {
       is_server_code_initialized: true,
       is_server_owner_initialized: true,
       software_token_init_status: TokenInitStatus.INITIALIZED,
+      enforce_token_pin_policy: false,
     };
 
     store.storeInitStatus(mockInitStatus);

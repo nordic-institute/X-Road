@@ -71,6 +71,7 @@ import {
   XrdFormBlock,
   XrdFormBlockRow,
   XrdCertificateFileUpload,
+  XrdSimpleDialog,
 } from '@niis/shared-ui';
 
 const emits = defineEmits(['save', 'cancel']);

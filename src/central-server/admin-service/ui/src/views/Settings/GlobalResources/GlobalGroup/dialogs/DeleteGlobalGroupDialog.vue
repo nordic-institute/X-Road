@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     accept-button-text="action.yes"
     title="globalGroup.deleteGroup"
     text="globalGroup.areYouSure"
@@ -42,7 +42,7 @@
 
 import { defineComponent } from 'vue';
 
-import { mapActions, mapStores } from 'pinia';
+import { mapStores } from 'pinia';
 
 import { XrdConfirmDialog, useNotifications } from '@niis/shared-ui';
 

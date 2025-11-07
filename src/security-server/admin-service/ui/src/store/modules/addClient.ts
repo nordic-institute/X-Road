@@ -112,7 +112,7 @@ export const useAddClient = defineStore('addClient', {
       const user = useUser();
 
       // If for some reason the currentSecurityServer doesn't exist
-      if (!user.currentSecurityServer.instance_id) return undefined;
+      if (!user.currentSecurityServer?.instance_id) return undefined;
 
       // Instance id is always the same with current server and members
       return createClientId(

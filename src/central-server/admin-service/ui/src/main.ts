@@ -40,9 +40,6 @@ import { createPersistedState } from 'pinia-plugin-persistedstate';
 
 import {
   setupAddErrorNavigation,
-  XrdConfirmDialog,
-  XrdEmptyPlaceholder,
-  XrdSimpleDialog,
 } from '@niis/shared-ui';
 
 import { createFilters } from '@/filters';
@@ -77,10 +74,6 @@ app.use(router);
 app.use(vuetify);
 app.use(validation);
 app.use(createFilters());
-//components
-app.component('XrdSimpleDialog', XrdSimpleDialog);
-app.component('XrdConfirmDialog', XrdConfirmDialog);
-app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
 
 // translations
 createLanguageHelper()

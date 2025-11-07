@@ -55,7 +55,7 @@ import { PropType, computed, useTemplateRef, onMounted } from 'vue';
 import { ConfigurationType } from '@/openapi-types';
 import { useToken } from '@/store/modules/tokens';
 import TokenExpandable from './TokenExpandable.vue';
-import { useRunning, XrdCard } from '@niis/shared-ui';
+import { useRunning, XrdEmptyPlaceholder } from '@niis/shared-ui';
 import { useRoute } from 'vue-router';
 
 type TokenExpandableType = InstanceType<typeof TokenExpandable>;

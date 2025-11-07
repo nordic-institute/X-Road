@@ -80,11 +80,11 @@ import { AddError, DialogSaveHandler } from '../types';
 const props = defineProps({
   title: {
     type: String,
-    required: true,
+    default: '',
   },
   translatedTitle: {
     type: String,
-    required: true,
+    default: '',
   },
   text: {
     type: String,

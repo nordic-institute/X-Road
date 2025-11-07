@@ -126,7 +126,7 @@
 import { ref, computed, PropType } from 'vue';
 import { useRouter } from 'vue-router';
 import { PublicPathState, useForm } from 'vee-validate';
-import { AdminUser } from '@/openapi-types';
+import { AdminUser } from '../../openapi-types';
 import { XrdElevatedViewSimple } from '../../layouts';
 import { XrdWizard, XrdWizardStep } from '../../components/wizard';
 import { XrdBtn, XrdFormBlock, XrdFormBlockRow } from '../../components';

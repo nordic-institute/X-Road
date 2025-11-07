@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     v-if="dialog"
     title="warning"
     cancel-button-text="action.cancel"
@@ -37,11 +37,12 @@
     <template #content>
       <div data-test="dialog-content-text">
         <template v-if="errorResponse">{{
-          $t('keys.unregisterError')
-        }}</template>
+            $t('keys.unregisterError')
+          }}
+        </template>
       </div>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
@@ -50,8 +51,10 @@
  */
 
 import { defineComponent } from 'vue';
+import { XrdSimpleDialog } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdSimpleDialog },
   props: {
     dialog: {
       type: Boolean,
