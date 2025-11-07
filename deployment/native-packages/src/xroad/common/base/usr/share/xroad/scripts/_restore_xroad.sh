@@ -7,7 +7,7 @@
 # that is being backed up.
 
 source /usr/share/xroad/scripts/_backup_restore_common.sh
-soruce /usr/share/xroad/scripts/_openbao.sh
+source /usr/share/xroad/scripts/_openbao.sh
 
 # XXX Keep the pre-restore database dump named just like the rest of the dumps.
 # This allows the user to restore the pre-restore backup just like any other
