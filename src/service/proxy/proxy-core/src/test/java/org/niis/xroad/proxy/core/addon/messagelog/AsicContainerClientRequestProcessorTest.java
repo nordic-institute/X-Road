@@ -100,10 +100,10 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         final MockOutputStream mockOutputStream = new MockOutputStream();
 
         final AsicContainerClientRequestProcessor proc =
-                new AsicContainerClientRequestProcessor(confClientRpcClient,
+                new AsicContainerClientRequestProcessor(confClientRpcClient, mock(EncryptionConfigProvider.class),
                         proxyProperties, globalConfProvider, serverConfProvider, logRecordManager,
                         commonProperties.tempFilesPath(), "/verificationconf", request, response,
-                        mock(ClientAuthenticationService.class), mock(EncryptionConfigProvider.class));
+                        mock(ClientAuthenticationService.class));
 
         byte[] mockZipResponse = new byte[]{'v', 'e', 'r', 'i', 'f', 'i', 'c', 'a', 't', 'i', 'o', 'n', 'c', 'o', 'n', 'f', 'z', 'i', 'p'};
 
@@ -143,10 +143,10 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         final MockOutputStream mockOutputStream = new MockOutputStream();
         when(response.getOutputStream()).thenReturn(mockOutputStream);
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(confClientRpcClient,
+                new AsicContainerClientRequestProcessor(confClientRpcClient, encryptionConfigProvider,
                         proxyProperties, globalConfProvider, serverConfProvider,
                         logRecordManager, commonProperties.tempFilesPath(),
-                        "/asic", request, response, mock(ClientAuthenticationService.class), encryptionConfigProvider);
+                        "/asic", request, response, mock(ClientAuthenticationService.class));
 
         processor.process();
 
@@ -199,10 +199,10 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(confClientRpcClient,
+                new AsicContainerClientRequestProcessor(confClientRpcClient, encryptionConfigProvider,
                         proxyProperties, globalConfProvider, serverConfProvider,
                         logRecordManager, commonProperties.tempFilesPath(),
-                        "/asic", request, response, mock(ClientAuthenticationService.class), encryptionConfigProvider);
+                        "/asic", request, response, mock(ClientAuthenticationService.class));
 
         processor.process();
 

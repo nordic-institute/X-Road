@@ -43,6 +43,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
@@ -171,7 +172,7 @@ public abstract class AbstractProxyIntegrationTest {
         MessageProcessorFactory messageProcessorFactory =
                 new MessageProcessorFactory(httpClient, null, proxyProperties, TEST_GLOBAL_CONF, TEST_SERVER_CONF,
                         clientAuthenticationService, clientKeyConf, signingCtxProvider, OCSP_VERIFIER_FACTORY, commonProperties, null,
-                        null, null, null);
+                        null, null, null, mock(EncryptionConfigProvider.class));
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(messageProcessorFactory,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer());
@@ -194,7 +195,7 @@ public abstract class AbstractProxyIntegrationTest {
                 null, httpClientCreator.getHttpClient(), proxyProperties, TEST_GLOBAL_CONF, TEST_SERVER_CONF,
                 clientAuthenticationService, serverKeyConf,
                 signingCtxProvider, OCSP_VERIFIER_FACTORY, commonProperties, null, null,
-                serviceHandlerLoader, certHelper);
+                serviceHandlerLoader, certHelper, mock(EncryptionConfigProvider.class));
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(messageProcessorFactory, proxyProperties.server(),
                 mock(ClientProxyVersionVerifier.class), TEST_GLOBAL_CONF,
                 new NoOpMonitoringBuffer());

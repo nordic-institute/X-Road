@@ -34,6 +34,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Named;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -75,6 +76,7 @@ public class MessageProcessorFactory {
     private final CertHelper certHelper;
     private final ConfClientRpcClient confClientRpcClient;
     private final ClientAuthenticationService clientAuthenticationService;
+    private final EncryptionConfigProvider encryptionConfigProvider;
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     public MessageProcessorFactory(@Named(CLIENT_PROXY_HTTP_CLIENT) HttpClient proxyHttpClient,
@@ -84,7 +86,8 @@ public class MessageProcessorFactory {
                                    KeyConfProvider keyConfProvider, SigningCtxProvider signingCtxProvider,
                                    OcspVerifierFactory ocspVerifierFactory, CommonProperties commonProperties,
                                    LogRecordManager logRecordManager, ConfClientRpcClient confClientRpcClient,
-                                   ServiceHandlerLoader serviceHandlerLoader, CertHelper certHelper) {
+                                   ServiceHandlerLoader serviceHandlerLoader, CertHelper certHelper,
+                                   EncryptionConfigProvider encryptionConfigProvider) {
         this.proxyHttpClient = proxyHttpClient;
         this.serverProxyHttpClient = serverProxyHttpClient;
         this.proxyProperties = proxyProperties;
@@ -99,6 +102,7 @@ public class MessageProcessorFactory {
         this.confClientRpcClient = confClientRpcClient;
         this.serviceHandlerLoader = serviceHandlerLoader;
         this.certHelper = certHelper;
+        this.encryptionConfigProvider = encryptionConfigProvider;
     }
 
     public ClientSoapMessageProcessor createClientSoapMessageProcessor(RequestWrapper request, ResponseWrapper response,
@@ -123,14 +127,10 @@ public class MessageProcessorFactory {
 
     public AsicContainerClientRequestProcessor createAsicContainerClientRequestProcessor(RequestWrapper request, ResponseWrapper response,
                                                                                          String target) {
-        try {
-            return new AsicContainerClientRequestProcessor(confClientRpcClient,
-                    proxyProperties, globalConfProvider, serverConfProvider,
-                    logRecordManager, commonProperties.tempFilesPath(),
-                    target, request, response, clientAuthenticationService);
-        } catch (IOException e) {
-            throw XrdRuntimeException.systemException(e);
-        }
+        return new AsicContainerClientRequestProcessor(confClientRpcClient, encryptionConfigProvider,
+                proxyProperties, globalConfProvider, serverConfProvider,
+                logRecordManager, commonProperties.tempFilesPath(),
+                target, request, response, clientAuthenticationService);
     }
 
     public MetadataClientRequestProcessor createMetadataClientRequestProcessor(RequestWrapper request, ResponseWrapper response,

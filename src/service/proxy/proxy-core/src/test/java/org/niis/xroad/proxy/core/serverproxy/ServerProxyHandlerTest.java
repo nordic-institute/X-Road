@@ -32,6 +32,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.junit.Test;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -65,7 +66,7 @@ public class ServerProxyHandlerTest {
         var clientMessageProcessorFactory = new MessageProcessorFactory(mock(HttpClient.class), mock(HttpClient.class),
                 proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider,
                 null, new OcspVerifierFactory(), commonProperties, null, null,
-                mock(ServiceHandlerLoader.class), null);
+                mock(ServiceHandlerLoader.class), null, mock(EncryptionConfigProvider.class));
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(clientMessageProcessorFactory,
                 mock(ProxyProperties.ServerProperties.class),

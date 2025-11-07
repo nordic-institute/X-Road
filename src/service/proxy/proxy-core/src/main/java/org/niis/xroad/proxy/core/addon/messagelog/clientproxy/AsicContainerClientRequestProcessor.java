@@ -118,8 +118,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                                                ServerConfProvider serverConfProvider,
                                                LogRecordManager logRecordManager, String tempFilesPath,
                                                String target, RequestWrapper request, ResponseWrapper response,
-                                               ClientAuthenticationService clientAuthenticationService)
-            throws IOException {
+                                               ClientAuthenticationService clientAuthenticationService) {
         super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, null);
         this.target = target;
         this.encryptionConfigProvider = encryptionConfigProvider;
@@ -389,7 +388,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         final Path tempFile = Files.createTempFile(
                 Paths.get(tempFilesPath), "asic", null);
         try {
-            try (OutputStream os = encryptionConfig.createEncryptionStream(tempFile,tempFilesPath)) {
+            try (OutputStream os = encryptionConfig.createEncryptionStream(tempFile, tempFilesPath)) {
                 asicContainer.write(os);
             }
             try (InputStream is = Files.newInputStream(tempFile); var out = jResponse.getOutputStream()) {

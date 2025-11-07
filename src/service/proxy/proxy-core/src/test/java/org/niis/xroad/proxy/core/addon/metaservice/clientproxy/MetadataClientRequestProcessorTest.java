@@ -88,7 +88,7 @@ class MetadataClientRequestProcessorTest {
 
     private GlobalConfProvider globalConfProvider;
     private ServerConfProvider serverConfProvider;
-    private ClientAuthenticationService clie;
+    private ClientAuthenticationService clientAuthenticationService;
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
 
     /**
@@ -107,7 +107,7 @@ class MetadataClientRequestProcessorTest {
 
         globalConfProvider = new TestSuiteGlobalConf();
         serverConfProvider = mock(ServerConfProvider.class);
-        clie = mock(ClientAuthenticationService.class);
+        clientAuthenticationService = mock(ClientAuthenticationService.class);
 
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
@@ -124,7 +124,7 @@ class MetadataClientRequestProcessorTest {
     @Test
     void shouldBeAbleToProcessListClients() {
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clie,
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
                         LIST_CLIENTS, mockRequest, mockResponse);
 
         assertTrue(processorToTest.canProcess(), "Wasn't able to process list clients");
@@ -133,7 +133,7 @@ class MetadataClientRequestProcessorTest {
     @Test
     void shouldNotBeAbleToProcessRandomRequest() {
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clie,
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
                         "getRandom", mockRequest, mockResponse);
 
         assertFalse(processorToTest.canProcess(), "Was able to process a random target");
@@ -162,7 +162,7 @@ class MetadataClientRequestProcessorTest {
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clie,
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
                         LIST_CLIENTS, mockRequest, mockResponse);
 
         when(mockRequest.getParametersMap()).thenReturn(Map.of());
@@ -200,7 +200,7 @@ class MetadataClientRequestProcessorTest {
         };
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clie,
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
                         LIST_CLIENTS, mockJsonRequest, mockResponse);
 
         when(mockJsonRequest.getParametersMap()).thenReturn(Map.of());

@@ -33,6 +33,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import org.eclipse.jetty.http.HttpURI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -88,7 +89,8 @@ class MetadataHandlerTest {
 
         messageProcessorFactory = new MessageProcessorFactory(null, null, proxyProperties,
                 globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider, null,
-                new OcspVerifierFactory(), commonProperties, null, null, null, null);
+                new OcspVerifierFactory(), commonProperties, null, null, null,
+                null, mock(EncryptionConfigProvider.class));
 
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
         when(mockHttpUri.getPath()).thenReturn("/target");
