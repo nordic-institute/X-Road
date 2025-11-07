@@ -38,9 +38,10 @@
 import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
-import { useNotifications } from '@niis/shared-ui';
+import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdConfirmDialog },
   props: {
     hash: {
       type: String,

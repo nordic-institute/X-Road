@@ -43,12 +43,13 @@ import { defineComponent, PropType } from 'vue';
 
 import { mapStores } from 'pinia';
 
-import { useNotifications } from '@niis/shared-ui';
+import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 import { ConfigurationSigningKey } from '@/openapi-types';
 import { useSigningKey } from '@/store/modules/signing-keys';
 
 export default defineComponent({
+  components: { XrdConfirmDialog },
   props: {
     signingKey: {
       type: Object as PropType<ConfigurationSigningKey>,

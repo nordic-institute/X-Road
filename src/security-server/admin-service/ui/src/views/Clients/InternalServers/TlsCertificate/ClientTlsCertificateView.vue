@@ -72,6 +72,7 @@ import {
   XrdElevatedViewFixedWidth,
   XrdBtn,
   useNotifications,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { useRouter } from 'vue-router';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';

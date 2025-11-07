@@ -33,7 +33,7 @@
     text="action.restore"
     @click="showConfirmation = true"
   />
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     v-if="showConfirmation && canBackup"
     :loading="restoring"
     title="backup.restoreFromBackup.dialog.title"

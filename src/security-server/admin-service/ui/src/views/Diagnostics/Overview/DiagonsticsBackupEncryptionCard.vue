@@ -100,10 +100,12 @@ import {
   XrdStatusChip,
   statusToType,
   useNotifications,
+  XrdEmptyPlaceholderRow,
+  XrdStatusIcon,
 } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { XrdCard, XrdStatusChip },
+  components: { XrdStatusIcon, XrdCard, XrdStatusChip, XrdEmptyPlaceholderRow },
   setup() {
     const { addError } = useNotifications();
     return { addError };

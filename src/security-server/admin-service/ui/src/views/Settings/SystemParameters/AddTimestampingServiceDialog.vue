@@ -87,6 +87,7 @@ import { Permissions } from '@/global';
 import { TimestampingService } from '@/openapi-types';
 import { sortTimestampingServices } from '@/util/sorting';
 import {
+  XrdSimpleDialog,
   XrdBtn,
   XrdFormBlock,
   XrdFormBlockRow,
@@ -95,6 +96,7 @@ import {
 
 export default defineComponent({
   components: {
+    XrdSimpleDialog,
     XrdBtn,
     XrdFormBlock,
     XrdFormBlockRow,

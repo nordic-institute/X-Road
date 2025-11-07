@@ -67,12 +67,17 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { PublicPathState, useForm } from 'vee-validate';
 import { DialogSaveHandler, useNotifications } from '@niis/shared-ui';
-import { XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import {
+  XrdFormBlock,
+  XrdFormBlockRow,
+  XrdSimpleDialog,
+} from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     XrdFormBlock,
     XrdFormBlockRow,
+    XrdSimpleDialog,
   },
   props: {
     id: {

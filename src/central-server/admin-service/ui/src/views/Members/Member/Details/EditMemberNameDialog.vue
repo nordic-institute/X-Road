@@ -26,7 +26,7 @@
  -->
 
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     :loading="loading"
     title="members.member.details.editMemberName"
     save-button-text="action.save"
@@ -51,7 +51,7 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
@@ -61,6 +61,7 @@ import { toIdentifier } from '@/util/helpers';
 import { PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
 import {
+  XrdSimpleDialog,
   XrdFormBlock,
   XrdFormBlockRow,
   useNotifications,

@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     title="managementRequests.dialog.approve.title"
     focus-on-accept
     :data="messageData"
@@ -48,13 +48,13 @@
         :text="$t('managementRequests.dialog.approve.newMemberWarning')"
       />
     </template>
-  </xrd-confirm-dialog>
+  </XrdConfirmDialog>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { useManagementRequests } from '@/store/modules/management-requests';
-import { useNotifications } from '@niis/shared-ui';
+import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 /**
  * General component for Management request actions

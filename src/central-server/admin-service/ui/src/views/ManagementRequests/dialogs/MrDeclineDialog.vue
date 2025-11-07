@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     title="managementRequests.dialog.decline.title"
     text="managementRequests.dialog.decline.bodyMessage"
     focus-on-accept
@@ -39,8 +39,7 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { useManagementRequests } from '@/store/modules/management-requests';
-import { useI18n } from 'vue-i18n';
-import { useNotifications } from '@niis/shared-ui';
+import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 /**
  * General component for Management request actions

@@ -82,7 +82,11 @@ import { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { mapStores } from 'pinia';
 
-import { useNotifications, XrdPagination } from '@niis/shared-ui';
+import {
+  useNotifications,
+  XrdPagination,
+  XrdSimpleDialog,
+} from '@niis/shared-ui';
 
 import { Client, PagedClients } from '@/openapi-types';
 import { useClient } from '@/store/modules/clients';
@@ -96,7 +100,7 @@ import { debounce } from '@/util/helpers';
 let that: any;
 
 export default defineComponent({
-  components: { XrdPagination },
+  components: { XrdPagination, XrdSimpleDialog },
   props: {
     currentSubsystemId: {
       type: String,

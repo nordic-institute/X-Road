@@ -70,7 +70,12 @@ import { computed, PropType } from 'vue';
 
 import { useForm } from 'vee-validate';
 
-import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import {
+  useBasicForm,
+  XrdFormBlock,
+  XrdFormBlockRow,
+  XrdSimpleDialog,
+} from '@niis/shared-ui';
 
 import { MemberClass } from '@/openapi-types';
 import { useMemberClass } from '@/store/modules/member-class';

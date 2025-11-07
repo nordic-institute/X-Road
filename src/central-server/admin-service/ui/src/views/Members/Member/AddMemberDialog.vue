@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     :disable-save="!meta.valid"
     :loading="loading"
     cancel-button-text="action.cancel"
@@ -70,7 +70,7 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
@@ -78,7 +78,12 @@ import { computed } from 'vue';
 import { useMember } from '@/store/modules/members';
 import { useMemberClass } from '@/store/modules/member-class';
 import { useForm } from 'vee-validate';
-import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import {
+  useBasicForm,
+  XrdFormBlock,
+  XrdFormBlockRow,
+  XrdSimpleDialog,
+} from '@niis/shared-ui';
 
 const emits = defineEmits(['save', 'cancel']);
 const { defineField, setFieldError, meta, resetForm, handleSubmit } = useForm({

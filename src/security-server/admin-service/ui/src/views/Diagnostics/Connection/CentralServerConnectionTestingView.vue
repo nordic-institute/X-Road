@@ -31,87 +31,87 @@
   >
     <v-table class="xrd">
       <thead>
-      <tr>
-        <th class="fixed-width-10"/>
-        <th class="fixed-width-30"/>
-        <th class="status-column">{{ $t('diagnostics.status') }}</th>
-        <th class="fixed-width-50">{{ $t('diagnostics.message') }}</th>
-        <th class="fixed-width-5"/>
-      </tr>
+        <tr>
+          <th class="fixed-width-10" />
+          <th class="fixed-width-30" />
+          <th class="status-column">{{ $t('diagnostics.status') }}</th>
+          <th class="fixed-width-50">{{ $t('diagnostics.message') }}</th>
+          <th class="fixed-width-5" />
+        </tr>
       </thead>
       <tbody>
-      <tr
-        v-for="(item, index) in globalConfStatuses"
-        :key="item.download_url"
-      >
-        <td v-if="index === 0" :rowspan="globalConfStatuses.length">
-          {{ $t('diagnostics.connection.centralServer.globalConf') }}
-        </td>
-        <td>
-          <span v-if="!globalConfLoading">
-            {{ item.download_url }}
-          </span>
-        </td>
-        <td>
-          <StatusAvatar :status="statusIconType(item.connection_status.status_class)"/>
-        </td>
-        <td>
-          <span v-if="globalConfLoading" />
-          <span v-if="item.connection_status.status_class === 'OK'">
-            {{ $t('diagnostics.connection.ok') }}
-          </span>
-          <span v-else class="error-text">
-            {{ globalConfErrorMessage(item.connection_status.error) }}
-          </span>
-        </td>
-        <td v-if="index === 0" :rowspan="globalConfStatuses.length">
-          <xrd-button
-            large
-            variant="text"
-            @click="testGlobalConfDownload()"
-          >
-            {{ $t('diagnostics.connection.test') }}
-          </xrd-button>
-        </td>
-      </tr>
-      <XrdEmptyPlaceholderRow
-        :colspan="5"
-        :loading="globalConfLoading"
-        :data="globalConfStatuses"
-        :no-items-text="$t('noData.noTimestampingServices')"
-      />
-      <tr>
-        <td colspan="2">
-          {{ $t('diagnostics.connection.centralServer.authCertRequest') }}
-        </td>
-        <td>
-          <StatusAvatar :status="statusIconType(authCertReqStatus?.status_class)"/>
-        </td>
-        <td>
-          <span v-if="authCertLoading" />
-          <span v-if="authCertReqStatus?.status_class === 'OK'">
-            {{ $t('diagnostics.connection.ok') }}
-          </span>
-          <span v-else class="error-text">
-            {{ authCertErrorMessage }}
-          </span>
-        </td>
-        <td>
-          <xrd-button
-            large
-            variant="text"
-            @click="testAuthCertRequest()"
-          >
-            {{ $t('diagnostics.connection.test') }}
-          </xrd-button>
-        </td>
-      </tr>
-      <XrdEmptyPlaceholderRow
-        :colspan="5"
-        :loading="authCertLoading"
-        :data="authCertReqStatus"
-        :no-items-text="$t('noData.noTimestampingServices')"
-      />
+        <tr
+          v-for="(item, index) in globalConfStatuses"
+          :key="item.download_url"
+        >
+          <td v-if="index === 0" :rowspan="globalConfStatuses.length">
+            {{ $t('diagnostics.connection.centralServer.globalConf') }}
+          </td>
+          <td>
+            <span v-if="!globalConfLoading">
+              {{ item.download_url }}
+            </span>
+          </td>
+          <td>
+            <StatusAvatar
+              :status="statusIconType(item.connection_status.status_class)"
+            />
+          </td>
+          <td>
+            <span v-if="globalConfLoading" />
+            <span v-if="item.connection_status.status_class === 'OK'">
+              {{ $t('diagnostics.connection.ok') }}
+            </span>
+            <span v-else class="error-text">
+              {{ globalConfErrorMessage(item.connection_status.error) }}
+            </span>
+          </td>
+          <td v-if="index === 0" :rowspan="globalConfStatuses.length">
+            <XrdBtn
+              variant="text"
+              text="diagnostics.connection.test"
+              @click="testGlobalConfDownload()"
+            />
+          </td>
+        </tr>
+        <XrdEmptyPlaceholderRow
+          :colspan="5"
+          :loading="globalConfLoading"
+          :data="globalConfStatuses"
+          :no-items-text="$t('noData.noTimestampingServices')"
+        />
+        <tr>
+          <td colspan="2">
+            {{ $t('diagnostics.connection.centralServer.authCertRequest') }}
+          </td>
+          <td>
+            <StatusAvatar
+              :status="statusIconType(authCertReqStatus?.status_class)"
+            />
+          </td>
+          <td>
+            <span v-if="authCertLoading" />
+            <span v-if="authCertReqStatus?.status_class === 'OK'">
+              {{ $t('diagnostics.connection.ok') }}
+            </span>
+            <span v-else class="error-text">
+              {{ authCertErrorMessage }}
+            </span>
+          </td>
+          <td>
+            <XrdBtn
+              variant="text"
+              text="diagnostics.connection.test"
+              @click="testAuthCertRequest()"
+            />
+          </td>
+        </tr>
+        <XrdEmptyPlaceholderRow
+          :colspan="5"
+          :loading="authCertLoading"
+          :data="authCertReqStatus"
+          :no-items-text="$t('noData.noTimestampingServices')"
+        />
       </tbody>
     </v-table>
   </XrdCard>
@@ -119,14 +119,28 @@
 <script lang="ts">
 import { mapActions, mapState } from 'pinia';
 import { defineComponent } from 'vue';
-import { useDiagnostics } from "@/store/modules/diagnostics";
-import {useNotifications, XrdCard, XrdErrorNotifications} from '@niis/shared-ui';
-import type { CodeWithDetails } from "@/openapi-types";
-import StatusAvatar from "@/views/Diagnostics/Overview/StatusAvatar.vue";
+import { useDiagnostics } from '@/store/modules/diagnostics';
+import {
+  useNotifications,
+  XrdCard,
+  XrdEmptyPlaceholderRow,
+  XrdBtn,
+} from '@niis/shared-ui';
+import type { CodeWithDetails } from '@/openapi-types';
+import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
 export default defineComponent({
   name: 'ConnectionCentralServerView',
-  components: {XrdErrorNotifications, XrdCard, StatusAvatar},
+  components: {
+    XrdCard,
+    StatusAvatar,
+    XrdEmptyPlaceholderRow,
+    XrdBtn,
+  },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
+  },
   data: () => ({
     authCertLoading: false,
     globalConfLoading: false,
@@ -135,8 +149,8 @@ export default defineComponent({
     ...mapState(useDiagnostics, ['authCertReqStatus', 'globalConfStatuses']),
 
     authCertErrorMessage() {
-      const err = this.authCertReqStatus?.error
-      return this.formatErrorForUi(err)
+      const err = this.authCertReqStatus?.error;
+      return this.formatErrorForUi(err);
     },
   },
   created() {
@@ -144,48 +158,52 @@ export default defineComponent({
     this.testGlobalConfDownload();
   },
   methods: {
-    ...mapActions(useNotifications, ['showError']),
-    ...mapActions(useDiagnostics, ['fetchAuthCertReqStatus', 'fetchGlobalConfStatuses']),
+    ...mapActions(useDiagnostics, [
+      'fetchAuthCertReqStatus',
+      'fetchGlobalConfStatuses',
+    ]),
 
     globalConfErrorMessage(error: CodeWithDetails) {
-      return this.formatErrorForUi(error)
+      return this.formatErrorForUi(error);
     },
 
     formatErrorForUi(err?: {
-      code?: string
-      metadata?: string[]
-      validation_errors?: Record<string, string[]>
+      code?: string;
+      metadata?: string[];
+      validation_errors?: Record<string, string[]>;
     }) {
-      if (!err) return ''
+      if (!err) return '';
 
-      const {code, metadata = [], validation_errors = {}} = err
+      const { code, metadata = [], validation_errors = {} } = err;
       const buildKey = (rawKey?: string) => {
-        if (!rawKey) return ''
-        return rawKey.includes('.') ? rawKey : `error_code.${rawKey}`
-      }
-      const codeKey = buildKey(code)
-      const codeText = codeKey ? (this.$t(codeKey) as string) : ''
-      const metaText = metadata.length ? metadata.join(', ') : ''
-      const header = [codeText, metaText].filter(Boolean).join(' : ')
-      const veEntries = Object.entries(validation_errors)
+        if (!rawKey) return '';
+        return rawKey.includes('.') ? rawKey : `error_code.${rawKey}`;
+      };
+      const codeKey = buildKey(code);
+      const codeText = codeKey ? (this.$t(codeKey) as string) : '';
+      const metaText = metadata.length ? metadata.join(', ') : '';
+      const header = [codeText, metaText].filter(Boolean).join(' : ');
+      const veEntries = Object.entries(validation_errors);
       const veText = veEntries.length
         ? veEntries
-          .map(([field, msgs]) => {
-            const labelKey = buildKey(field)
-            const label = this.$te(labelKey) ? (this.$t(labelKey) as string) : field
-            return `${label}: ${msgs.join(', ')}`
-          })
-          .join(' | ')
-        : ''
+            .map(([field, msgs]) => {
+              const labelKey = buildKey(field);
+              const label = this.$te(labelKey)
+                ? (this.$t(labelKey) as string)
+                : field;
+              return `${label}: ${msgs.join(', ')}`;
+            })
+            .join(' | ')
+        : '';
 
-      return [header, veText].filter(Boolean).join(' | ')
+      return [header, veText].filter(Boolean).join(' | ');
     },
 
     testAuthCertRequest() {
       this.authCertLoading = true;
       this.fetchAuthCertReqStatus()
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
         })
         .finally(() => {
           this.authCertLoading = false;
@@ -195,7 +213,7 @@ export default defineComponent({
       this.globalConfLoading = true;
       this.fetchGlobalConfStatuses()
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
         })
         .finally(() => {
           this.globalConfLoading = false;
@@ -218,7 +236,6 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-
 .fixed-width-5 {
   width: 5%;
   max-width: 5%;

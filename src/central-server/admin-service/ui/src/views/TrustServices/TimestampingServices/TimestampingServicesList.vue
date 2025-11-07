@@ -132,7 +132,7 @@
 import { defineComponent } from 'vue';
 import AddTimestampingServiceDialog from './dialogs/AddTimestampingServiceDialog.vue';
 import EditTimestampingServiceDialog from './dialogs/EditTimestampingServiceDialog.vue';
-import { mapActions, mapState, mapStores } from 'pinia';
+import { mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
 import { useTimestampingServices } from '@/store/modules/trust-services';
@@ -143,6 +143,7 @@ import {
   XrdBtn,
   XrdLabelWithIcon,
   useNotifications,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 
 export default defineComponent({
@@ -152,6 +153,7 @@ export default defineComponent({
     XrdLabelWithIcon,
     AddTimestampingServiceDialog,
     EditTimestampingServiceDialog,
+    XrdConfirmDialog,
   },
   setup() {
     const { addError, addSuccessMessage } = useNotifications();

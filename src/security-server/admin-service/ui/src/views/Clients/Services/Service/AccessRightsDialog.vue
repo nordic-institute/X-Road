@@ -176,7 +176,6 @@ import {
   XrdExpandable,
   XrdSimpleDialog,
   XrdBtn,
-  AddError,
   DialogSaveHandler,
 } from '@niis/shared-ui';
 import ClientName from '@/components/client/ClientName.vue';

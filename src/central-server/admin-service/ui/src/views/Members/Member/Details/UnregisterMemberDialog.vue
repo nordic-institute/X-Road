@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     :loading="loading"
     title="members.member.details.unregisterMember"
     focus-on-accept
@@ -51,14 +51,14 @@
         </i18n-t>
       </span>
     </template>
-  </xrd-confirm-dialog>
+  </XrdConfirmDialog>
 </template>
 
 <script setup lang="ts">
 import { PropType, ref } from 'vue';
 import { Client, SecurityServer } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
-import { useNotifications } from '@niis/shared-ui';
+import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 const props = defineProps({
   server: {

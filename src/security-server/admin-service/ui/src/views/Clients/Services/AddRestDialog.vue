@@ -95,6 +95,7 @@ import {
   XrdFormBlockRow,
   useNotifications,
   DialogSaveHandler,
+  XrdSimpleDialog,
 } from '@niis/shared-ui';
 import { ref } from 'vue';
 import { CodeWithDetails } from '@/openapi-types';

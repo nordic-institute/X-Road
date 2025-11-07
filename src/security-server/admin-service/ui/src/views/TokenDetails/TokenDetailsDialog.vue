@@ -218,6 +218,7 @@ import {
   XrdBtn,
   DialogSaveHandler,
   helper,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 
 type PinType = 'password' | 'text';
@@ -229,6 +230,7 @@ export default defineComponent({
     XrdFormBlock,
     XrdFormBlockRow,
     XrdBtn,
+    XrdConfirmDialog,
   },
   props: {
     id: {

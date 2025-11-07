@@ -57,6 +57,7 @@ import { ServiceDescription } from '@/openapi-types';
 import {
   XrdFormBlock,
   XrdFormBlockRow,
+  XrdSimpleDialog,
   useNotifications,
   DialogSaveHandler,
 } from '@niis/shared-ui';

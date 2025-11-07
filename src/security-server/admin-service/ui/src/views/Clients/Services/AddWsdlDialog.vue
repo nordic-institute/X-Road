@@ -65,6 +65,7 @@ import {
   DialogSaveHandler,
   XrdFormBlock,
   XrdFormBlockRow,
+  XrdSimpleDialog,
 } from '@niis/shared-ui';
 import { ref } from 'vue';
 import { CodeWithDetails } from '@/openapi-types';

@@ -71,6 +71,7 @@
 import { defineComponent } from 'vue';
 import { PublicPathState, useForm } from 'vee-validate';
 import {
+  XrdSimpleDialog,
   XrdFormBlock,
   XrdFormBlockRow,
   DialogSaveHandler,
@@ -82,6 +83,7 @@ import { Endpoint } from '@/openapi-types';
 
 export default defineComponent({
   components: {
+    XrdSimpleDialog,
     XrdFormBlock,
     XrdFormBlockRow,
   },

@@ -49,7 +49,7 @@
 <script lang="ts" setup>
 import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow, XrdCertificateFileUpload } from '../../../components';
 import { useBasicForm, useFileRef } from '../../../composables';
-import { AddError, TlsCertificatesHandler, DialogSaveHandler } from '../../../types';
+import { TlsCertificatesHandler, DialogSaveHandler } from '../../../types';
 
 import { PropType } from 'vue';
 

@@ -28,7 +28,7 @@
   <XrdCard class="mb-4">
     <v-container fluid>
       <v-row dense>
-        <v-col cols="2">
+        <v-col cols="2" align-self="end">
           <v-date-input
             v-model="filters.startDate"
             class="xrd date-input"
@@ -39,7 +39,7 @@
             :label="$t('diagnostics.traffic.date')"
           />
         </v-col>
-        <v-col cols="1">
+        <v-col cols="1" align-self="end">
           <v-text-field
             v-model="filters.startTime"
             v-maska="'##:##'"
@@ -50,7 +50,7 @@
           />
         </v-col>
         <v-col cols="2"><span class="range-separator"></span></v-col>
-        <v-col cols="2">
+        <v-col cols="2" align-self="end">
           <v-date-input
             v-model="filters.endDate"
             class="xrd date-input"
@@ -61,7 +61,7 @@
             data-test="period-end-date"
           />
         </v-col>
-        <v-col cols="1">
+        <v-col cols="1" align-self="end">
           <v-text-field
             v-model="filters.endTime"
             v-maska="'##:##'"
@@ -84,7 +84,7 @@
         </v-col>
       </v-row>
       <v-row dense>
-        <v-col cols="4">
+        <v-col cols="4" align-self="end">
           <v-select
             v-model="filters.client"
             data-test="select-client"
@@ -105,7 +105,7 @@
             </template>
           </v-select>
         </v-col>
-        <v-col cols="4">
+        <v-col cols="4" align-self="end">
           <v-select
             v-model="filters.service"
             data-test="select-service"
@@ -140,7 +140,7 @@
         </v-col>
       </v-row>
       <v-row dense>
-        <v-col>
+        <v-col align-self="end">
           <v-select
             v-model="filters.exchangeRole"
             data-test="select-exchangeRole"
@@ -168,7 +168,7 @@
         </v-col>
       </v-row>
       <v-row dense>
-        <v-col>
+        <v-col align-self="end">
           <v-select
             v-model="filters.status"
             data-test="select-status"
@@ -214,7 +214,7 @@ import { VDateInput } from 'vuetify/labs/VDateInput';
 import axios from 'axios';
 import dayjs, { Dayjs } from 'dayjs';
 import { vMaska } from 'maska/vue';
-import { useNotifications, XrdCard } from '@niis/shared-ui';
+import { useNotifications, XrdCard, XrdFormLabel } from '@niis/shared-ui';
 import { OperationalDataInterval, Service } from '@/openapi-types';
 import { useClients } from '@/store/modules/clients';
 import TrafficChart, {

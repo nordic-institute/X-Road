@@ -60,11 +60,13 @@ import {
   XrdFormBlock,
   XrdFormBlockRow,
   useNotifications,
+  XrdSimpleDialog,
 } from '@niis/shared-ui';
 import { useSystem } from '@/store/modules/system';
 
 export default defineComponent({
   components: {
+    XrdSimpleDialog,
     XrdFormBlock,
     XrdFormBlockRow,
   },

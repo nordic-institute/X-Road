@@ -28,7 +28,7 @@
   Member details view
 -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="securityServers.dialogs.deleteAddress.title"
     data-test="security-server-delete-dialog"
     save-button-text="action.delete"
@@ -65,7 +65,7 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
@@ -75,6 +75,7 @@ import { useSecurityServer } from '@/store/modules/security-servers';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
 import {
+  XrdSimpleDialog,
   XrdFormBlock,
   XrdFormBlockRow,
   useNotifications,

@@ -40,30 +40,6 @@ import axios from 'axios';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 
 import {
-  XrdButton,
-  XrdCloseButton,
-  XrdConfirmDialog,
-  XrdEmptyPlaceholder,
-  XrdEmptyPlaceholderRow,
-  XrdExpandable,
-  XrdFileUpload,
-  XrdFormLabel,
-  XrdIconAdd,
-  XrdIconBase,
-  XrdIconChecked,
-  XrdIconChecker,
-  XrdIconClose,
-  XrdIconCopy,
-  XrdIconDeclined,
-  XrdIconEdit,
-  XrdIconError,
-  XrdIconFolderOutline,
-  XrdIconSortingArrow,
-  XrdIconTooltip,
-  XrdSimpleDialog,
-  XrdStatusIcon,
-  XrdSubViewContainer,
-  XrdTitledView,
   setupAddErrorNavigation,
 } from '@niis/shared-ui';
 
@@ -101,33 +77,6 @@ app.use(router);
 app.use(vuetify);
 app.use(createFilters());
 app.use(createValidators());
-//icons
-app.component('XrdIconFolderOutline', XrdIconFolderOutline);
-app.component('XrdIconBase', XrdIconBase);
-app.component('XrdIconChecker', XrdIconChecker);
-app.component('XrdIconChecked', XrdIconChecked);
-app.component('XrdIconClose', XrdIconClose);
-app.component('XrdIconAdd', XrdIconAdd);
-app.component('XrdIconCopy', XrdIconCopy);
-app.component('XrdIconError', XrdIconError);
-app.component('XrdIconTooltip', XrdIconTooltip);
-app.component('XrdIconSortingArrow', XrdIconSortingArrow);
-app.component('XrdIconDeclined', XrdIconDeclined);
-app.component('XrdStatusIcon', XrdStatusIcon);
-app.component('XrdIconEdit', XrdIconEdit);
-//components
-app.component('XrdButton', XrdButton);
-app.component('XrdSubViewContainer', XrdSubViewContainer);
-app.component('XrdSimpleDialog', XrdSimpleDialog);
-app.component('XrdConfirmDialog', XrdConfirmDialog);
-app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
-app.component('XrdEmptyPlaceholderRow', XrdEmptyPlaceholderRow);
-app.component('XrdCloseButton', XrdCloseButton);
-app.component('XrdFileUpload', XrdFileUpload);
-app.component('XrdFormLabel', XrdFormLabel);
-app.component('XrdExpandable', XrdExpandable);
-app.component('XrdTitledView', XrdTitledView);
-// translations
 
 createLanguageHelper()
   .then((plugin) => app.use(plugin))

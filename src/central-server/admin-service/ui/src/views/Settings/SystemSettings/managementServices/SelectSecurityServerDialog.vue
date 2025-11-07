@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="systemSettings.selectSecurityServer.title"
     save-button-text="action.select"
     width="824"
@@ -76,7 +76,7 @@
         </template>
       </v-data-table-server>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
@@ -85,7 +85,7 @@ import { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { mapStores } from 'pinia';
 
-import { useNotifications, XrdPagination } from '@niis/shared-ui';
+import { XrdSimpleDialog, useNotifications, XrdPagination } from '@niis/shared-ui';
 
 import {
   ManagementServicesConfiguration,
@@ -102,7 +102,7 @@ import { debounce } from '@/util/helpers';
 let that: any;
 
 export default defineComponent({
-  components: { XrdPagination },
+  components: { XrdSimpleDialog, XrdPagination },
   props: {
     currentSecurityServer: {
       type: String,

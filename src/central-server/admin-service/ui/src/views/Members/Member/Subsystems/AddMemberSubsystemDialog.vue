@@ -69,6 +69,7 @@ import {
   XrdFormBlock,
   XrdFormBlockRow,
   useNotifications,
+  XrdSimpleDialog,
 } from '@niis/shared-ui';
 
 const props = defineProps({

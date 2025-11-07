@@ -51,19 +51,19 @@
         >
           <template #certificateAction>
             <template v-if="canImportFromToken">
-              <xrd-button
+              <XrdBtn
                 v-if="
                   cert.possible_actions?.includes(
                     PossibleAction.IMPORT_FROM_TOKEN,
                   )
                 "
                 class="table-button-fix"
-                :outlined="false"
-                text
+                variant="text"
+                color="tertiary"
+                text="keys.importCert"
                 data-test="import-from-token-button"
                 @click="importCert(cert.certificate_details.hash)"
-                >{{ $t('keys.importCert') }}</xrd-button
-              >
+              />
 
               <!-- Special case where HW cert has auth usage -->
               <div v-else-if="key.usage === 'AUTHENTICATION'">
@@ -96,12 +96,14 @@ import { KeysSortColumn } from './keyColumnSorting';
 import * as Sorting from './keyColumnSorting';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import { XrdBtn } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     KeyRow,
     CertificateRow,
     KeysTableThead,
+    XrdBtn,
   },
   props: {
     keys: {

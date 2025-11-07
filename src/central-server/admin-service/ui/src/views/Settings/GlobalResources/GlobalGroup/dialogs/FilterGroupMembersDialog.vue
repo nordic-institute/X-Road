@@ -117,7 +117,7 @@ import { defineComponent } from 'vue';
 
 import { mapStores } from 'pinia';
 
-import { XrdFormBlock } from '@niis/shared-ui';
+import { XrdFormBlock, XrdSimpleDialog } from '@niis/shared-ui';
 
 import { useGlobalGroups } from '@/store/modules/global-groups';
 
@@ -135,7 +135,7 @@ const initialState = () => {
 };
 
 export default defineComponent({
-  components: { XrdBtn, XrdFormBlock },
+  components: { XrdBtn, XrdFormBlock, XrdSimpleDialog },
   props: {
     groupCode: {
       type: String,

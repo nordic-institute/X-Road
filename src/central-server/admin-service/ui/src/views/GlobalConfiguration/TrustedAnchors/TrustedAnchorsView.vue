@@ -70,7 +70,7 @@ import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import UploadTrustedAnchorButton from './UploadTrustedAnchorButton.vue';
 import DownloadTrustedAnchorButton from './DownloadTrustedAnchorButton.vue';
 import DeleteTrustedAnchorButton from './DeleteTrustedAnchorButton.vue';
-import { XrdSubView, useNotifications } from '@niis/shared-ui';
+import { XrdSubView, useNotifications, XrdEmptyPlaceholder } from '@niis/shared-ui';
 
 function convert(source: TrustedAnchor): Anchor {
   return {
@@ -87,6 +87,7 @@ export default defineComponent({
     DownloadTrustedAnchorButton,
     UploadTrustedAnchorButton,
     ConfigurationAnchorItem,
+    XrdEmptyPlaceholder,
   },
   setup() {
     const { addError, addSuccessMessage } = useNotifications();

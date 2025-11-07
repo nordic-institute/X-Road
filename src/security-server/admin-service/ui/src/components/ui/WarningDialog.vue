@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="warning"
     hide-close
     :cancel-button-text="cancelButtonText"
@@ -45,15 +45,17 @@
         </div>
       </div>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
 // A dialog for backend warnings
 import { defineComponent, PropType } from 'vue';
 import { CodeWithDetails } from '@/openapi-types';
+import { XrdSimpleDialog } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdSimpleDialog },
   props: {
     localizationParent: {
       type: String,
@@ -91,7 +93,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>

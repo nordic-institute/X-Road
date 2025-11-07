@@ -163,6 +163,7 @@ import {
   XrdFormBlockRow,
   helper,
   XrdWizardStep,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { useClients } from '@/store/modules/clients';
 import { useClient } from '@/store/modules/client';

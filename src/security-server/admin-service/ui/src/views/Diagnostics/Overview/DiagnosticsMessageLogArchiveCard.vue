@@ -134,6 +134,8 @@ import {
   XrdStatusChip,
   statusToType,
   StatusType,
+  XrdEmptyPlaceholderRow,
+  XrdStatusIcon,
 } from '@niis/shared-ui';
 
 type Status = 'ok' | 'pending' | 'error';
@@ -141,7 +143,7 @@ type Disabled = `${Status}-disabled`;
 type StatusAndDisabled = Status | Disabled;
 
 export default defineComponent({
-  components: { XrdStatusChip, XrdCard },
+  components: { XrdStatusChip, XrdCard, XrdEmptyPlaceholderRow, XrdStatusIcon },
   props: {
     addonStatusLoading: {
       type: Boolean,
