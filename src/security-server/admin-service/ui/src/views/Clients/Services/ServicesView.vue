@@ -350,7 +350,7 @@ export default defineComponent({
     this.fetchData().then(() => {
       if (this.$route.query.expand) {
         this.goTo(`#service-description-${this.$route.query.expand}`);
-        this.descOpen(this.$route.query.expand);
+        this.descOpen(this.$route.query.expand as string);
       }
     });
   },

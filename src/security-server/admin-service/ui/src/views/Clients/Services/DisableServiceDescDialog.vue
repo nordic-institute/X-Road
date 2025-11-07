@@ -87,7 +87,7 @@ function cancel(): void {
   clear();
 }
 
-function save(handler: DialogSaveHandler): void {
+function save(evt: Event, handler: DialogSaveHandler): void {
   disabling.value = true;
   disableServiceDescription(props.subject.id, notice.value)
     .then(() => addSuccessMessage('services.disableSuccess'))

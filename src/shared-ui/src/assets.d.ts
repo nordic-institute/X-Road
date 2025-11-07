@@ -24,4 +24,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-/// <reference types="vite/client" />
+
+declare module '*.png' {
+  const value: string;
+  export = value;
+}
+
+declare module '*.svg' {
+  const value: string;
+  export = value;
+}

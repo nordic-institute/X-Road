@@ -37,7 +37,6 @@
     :disabled="disabled"
     :loading="loading"
     :type="submit ? 'submit' : 'button'"
-    @click="emit('click', $event)"
   >
     <template v-if="prependIcon || $slots.prepend" #prepend>
       <slot name="prepend">
@@ -56,7 +55,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, PropType, ref, useTemplateRef } from 'vue';
+import { computed, onMounted, PropType, useTemplateRef } from 'vue';
 
 import { VBtn } from 'vuetify/components';
 
@@ -120,7 +119,6 @@ const props = defineProps({
     default: 'secondary',
   },
 });
-const emit = defineEmits(['click']);
 
 const fontWeight = computed(() => (props.bold ? 'font-weight-bold' : props.regular ? 'font-weight-regular' : 'font-weight-medium'));
 

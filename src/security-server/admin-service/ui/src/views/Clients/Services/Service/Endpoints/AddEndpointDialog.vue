@@ -137,7 +137,7 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useServices, ['addEndpoint']),
-    save(handler: DialogSaveHandler): void {
+    save(evt: Event, handler: DialogSaveHandler): void {
       this.adding = true;
       this.addEndpoint(this.serviceId, {
         method: this.values.method as Endpoint.method,

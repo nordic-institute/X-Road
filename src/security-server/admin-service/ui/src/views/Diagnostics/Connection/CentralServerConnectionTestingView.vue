@@ -180,7 +180,7 @@ export default defineComponent({
         return rawKey.includes('.') ? rawKey : `error_code.${rawKey}`;
       };
       const codeKey = buildKey(code);
-      const codeText = codeKey ? (this.$t(codeKey) as string) : '';
+      const codeText = codeKey ? this.$t(codeKey) : '';
       const metaText = metadata.length ? metadata.join(', ') : '';
       const header = [codeText, metaText].filter(Boolean).join(' : ');
       const veEntries = Object.entries(validation_errors);
@@ -219,7 +219,7 @@ export default defineComponent({
           this.globalConfLoading = false;
         });
     },
-    statusIconType(status: string) {
+    statusIconType(status?: string) {
       if (!status) {
         return undefined;
       }

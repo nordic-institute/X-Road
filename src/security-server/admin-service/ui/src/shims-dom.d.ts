@@ -25,57 +25,11 @@
  * THE SOFTWARE.
  */
 
-/*
-Startpoint of the Vue application.
-Sets up plugins and 3rd party components that the app uses.
-Creates a new Vue instance with the Vue function.
-Initialises the app root component.
-*/
-import vuetify from './plugins/vuetify'; //!!!Keep it before any component imports!!!
-import { createApp } from 'vue';
+declare global {
+  interface FocusOptions {
+    preventScroll?: boolean;
+    focusVisible?: boolean;
+  }
+}
 
-import { createPinia } from 'pinia';
-
-import axios from 'axios';
-import { createPersistedState } from 'pinia-plugin-persistedstate';
-
-import { setupAddErrorNavigation } from '@niis/shared-ui';
-
-import { createFilters } from '@/filters';
-import { createValidators } from '@/plugins/vee-validate';
-
-import { createLanguageHelper } from './plugins/i18n';
-import router from './router/router';
-
-import App from './App.vue';
-
-import './plugins/vee-validate';
-import './filters';
-import { RouteName } from '@/global';
-
-const pinia = createPinia();
-pinia.use(
-  createPersistedState({
-    storage: sessionStorage,
-  }),
-);
-
-axios.defaults.baseURL = import.meta.env.VITE_VUE_APP_BASE_URL;
-axios.defaults.headers.get.Accepts = 'application/json';
-
-setupAddErrorNavigation(router, {
-  404: {
-    name: RouteName.NotFound,
-  },
-});
-
-const app = createApp(App);
-app.use(pinia);
-app.use(router);
-app.use(vuetify);
-app.use(createFilters());
-app.use(createValidators());
-
-createLanguageHelper()
-  .then((plugin) => app.use(plugin))
-  .finally(() => app.mount('#app'));
+export {};

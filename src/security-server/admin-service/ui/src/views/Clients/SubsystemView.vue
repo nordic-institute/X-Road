@@ -143,9 +143,8 @@ export default defineComponent({
       return this.client?.subsystem_name || '';
     },
     showUnregister(): boolean {
-      if (!this.client) return false;
+      if (!this.client?.status) return false;
       return (
-        this.client &&
         this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
         [
           ClientStatus.REGISTERED,
@@ -155,8 +154,8 @@ export default defineComponent({
       );
     },
     showRename(): boolean {
+      if (!this.client?.status) return false;
       return (
-        this.client &&
         this.doesSupportSubsystemNames &&
         this.hasPermission(Permissions.RENAME_SUBSYSTEM) &&
         RenameStatus.NAME_SUBMITTED !== this.client.rename_status &&
@@ -168,7 +167,7 @@ export default defineComponent({
 
     showDelete(): boolean {
       if (
-        !this.client ||
+        !this.client?.status ||
         (this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
           [
             ClientStatus.REGISTERED,

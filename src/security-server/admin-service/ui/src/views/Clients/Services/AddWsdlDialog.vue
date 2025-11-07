@@ -104,7 +104,7 @@ function cancel(): void {
   clear();
 }
 
-function save(handler: DialogSaveHandler): void {
+function save(evt: Event, handler: DialogSaveHandler): void {
   warningDialog.value = false;
   saving.value = true;
   dialogHandler.value = handler;

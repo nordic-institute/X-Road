@@ -229,7 +229,7 @@ export default defineComponent({
     ...mapActions(useGeneral, ['fetchMemberClasses', 'fetchXroadInstances']),
     ...mapActions(useClients, ['searchClients']),
     ...mapActions(useLocalGroups, ['addLocalGroupMembers']),
-    checkboxChange(id: string, event: boolean): void {
+    checkboxChange(id: string, event: unknown): void {
       if (event) {
         this.selectedIds.push(id);
       } else {
@@ -286,7 +286,7 @@ export default defineComponent({
       this.clearForm();
       this.$emit('cancel');
     },
-    save(handler: DialogSaveHandler): void {
+    save(evt: Event, handler: DialogSaveHandler): void {
       this.addLocalGroupMembers(this.localGroupId, this.selectedIds)
         .then(() => this.clearForm())
         .then(() => this.$emit('members-added', this.selectedIds))

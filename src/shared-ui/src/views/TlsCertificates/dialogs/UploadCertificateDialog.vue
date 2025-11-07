@@ -26,33 +26,20 @@
  -->
 <template>
   <XrdSimpleDialog
-    title="tlsCertificates.generateCsr.title"
-    save-button-text="action.generateCsr"
+    ref="dialog"
+    title="tlsCertificates.uploadCertificate.title"
+    save-button-text="action.upload"
     cancel-button-text="action.cancel"
     submittable
     :loading="loading"
-    :disable-save="!meta.valid"
+    :disable-save="!certFile"
+    @save="upload"
     @cancel="emit('cancel')"
-    @save="submit"
   >
-    <template #text>
-      {{ $t('tlsCertificates.generateCsr.content') }}
-    </template>
     <template #content>
       <XrdFormBlock>
         <XrdFormBlockRow full-length>
-          <v-text-field
-            v-model="distinguishedName"
-            v-bind="distinguishedNameAttrs"
-            class="xrd"
-            autofocus
-            data-test="enter-distinguished-name"
-            :placeholder="$t('tlsCertificates.generateCsr.example')"
-            :label="$t('tlsCertificates.generateCsr.distinguishedName')"
-            :hint="$t('tlsCertificates.generateCsr.tooltip')"
-            persistent-hint
-          >
-          </v-text-field>
+          <XrdCertificateFileUpload v-model:file="certFile" autofocus label="tlsCertificates.uploadCertificate.label" />
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
@@ -60,13 +47,10 @@
 </template>
 
 <script lang="ts" setup>
-import { useForm } from 'vee-validate';
-
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow, XrdCertificateFileUpload } from '../../../components';
+import { useBasicForm, useFileRef } from '../../../composables';
 import { TlsCertificatesHandler, DialogSaveHandler } from '../../../types';
 
-import { useBasicForm } from '../../../composables';
-
-import { XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '../../../components';
 import { PropType } from 'vue';
 
 const props = defineProps({
@@ -76,28 +60,25 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['cancel', 'generate']);
+const emit = defineEmits(['cancel', 'upload']);
 
-const { handleSubmit, defineField, meta } = useForm({
-  validationSchema: { distinguishedName: 'required' },
-});
+const { loading, addSuccessMessage } = useBasicForm();
+const certFile = useFileRef();
 
-const [distinguishedName, distinguishedNameAttrs] = defineField('distinguishedName', {
-  props: (state) => ({ 'error-messages': state.errors }),
-});
-
-const { loading } = useBasicForm();
-
-function submit(handler: DialogSaveHandler) {
-  handleSubmit((values) => {
-    loading.value = true;
-    props.handler
-      .generateCsr(values.distinguishedName)
-      .then(() => emit('generate'))
-      .catch((error) => {
-        handler.addError(error);
-      })
-      .finally(() => (loading.value = false));
-  })();
+function upload(evt: Event, handler: DialogSaveHandler): void {
+  if (!certFile.value) {
+    return;
+  }
+  loading.value = true;
+  props.handler
+    .uploadCertificate(certFile.value)
+    .then(() => {
+      addSuccessMessage('tlsCertificates.uploadCertificate.success');
+      emit('upload');
+    })
+    .catch((error) => {
+      handler.addError(error);
+    })
+    .finally(() => (loading.value = false));
 }
 </script>

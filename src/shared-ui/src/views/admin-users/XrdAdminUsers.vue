@@ -164,7 +164,7 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted, PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { AdminUser } from '@/openapi-types';
+import { AdminUser } from '../../openapi-types';
 import { AdminUsersHandler } from '../../types';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { XrdView, XrdSubView } from '../../layouts';

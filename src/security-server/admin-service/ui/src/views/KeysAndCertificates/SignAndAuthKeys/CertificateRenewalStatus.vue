@@ -59,7 +59,7 @@ import { CertificateStatus, TokenCertificate } from '@/openapi-types';
 
 type Status = {
   type?: 'error' | 'success' | 'info';
-  icon: string;
+  icon: 'error' | 'progress-register' | 'ok';
   text: string;
   additionalText?: string;
   tooltipText?: string;
@@ -84,7 +84,7 @@ export default defineComponent({
       ) {
         return {
           type: undefined,
-          icon: '',
+          icon: 'error',
           text: 'N/A',
         };
       }

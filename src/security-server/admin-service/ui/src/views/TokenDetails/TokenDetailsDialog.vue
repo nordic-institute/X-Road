@@ -394,7 +394,7 @@ export default defineComponent({
     toggleType(type: PinType): PinType {
       return type === 'password' ? 'text' : 'password';
     },
-    async save(handler: DialogSaveHandler): Promise<void> {
+    async save(evt: Event, handler: DialogSaveHandler): Promise<void> {
       this.saving = true;
 
       try {
