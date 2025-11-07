@@ -69,22 +69,41 @@ import SettingsView from '@/views/Settings/SettingsView.vue';
 import SystemSettingsView from '@/views/Settings/SystemSettings/SystemSettingsView.vue';
 import ManagementServiceCertificate from '@/views/Settings/TlsCertificates/ManagementServiceCertificate.vue';
 import ManagementServiceTlsCertificateView from '@/views/Settings/TlsCertificates/ManagementServiceTlsCertificateView.vue';
-import CertificationServiceCertificate from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceCertificate.vue';
+import CertificationServiceCertificate
+  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceCertificate.vue';
 import CertificationServiceDetails from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceDetails.vue';
-import CertificationServiceIntermediateCas from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceIntermediateCas.vue';
-import CertificationServiceOcspResponders from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceOcspResponders.vue';
-import CertificationServiceSettings from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceSettings.vue';
+import CertificationServiceIntermediateCas
+  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceIntermediateCas.vue';
+import CertificationServiceOcspResponders
+  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceOcspResponders.vue';
+import CertificationServiceSettings
+  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceSettings.vue';
 import CertificationServiceView from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceView.vue';
-import IntermediateCACertificate from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCACertificate.vue';
-import IntermediateCaDetails from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaDetails.vue';
-import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaOcspResponders.vue';
+import IntermediateCACertificate
+  from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCACertificate.vue';
+import IntermediateCaDetails
+  from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaDetails.vue';
+import IntermediateCaOcspResponders
+  from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaOcspResponders.vue';
 import IntermediateCaView from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaView.vue';
-import OcspResponderCertificate from '@/views/TrustServices/CertificationServices/CertificationService/OcspResponders/OcspResponderCertificate.vue';
+import OcspResponderCertificate
+  from '@/views/TrustServices/CertificationServices/CertificationService/OcspResponders/OcspResponderCertificate.vue';
 import TimestampingServiceCertificate from '@/views/TrustServices/TimestampingServices/TimestampingServiceCertificate.vue';
 import TrustServices from '@/views/TrustServices/TrustServices.vue';
 import TrustServicesView from '@/views/TrustServices/TrustServicesView.vue';
 import { useGlobalConfTabs } from '@/store/modules/global-conf-tabs';
 import { useMainTabs } from '@/store/modules/main-tabs';
+
+const commonParts = {
+  navigation: AppMainNavigation,
+  footer: AppFooter,
+  alerts: AlertsContainer,
+};
+
+const elevatedParts = {
+  navigation: XrdMainNavigationContainer,
+  alerts: AlertsContainer,
+};
 
 const routes = [
   {
@@ -107,10 +126,8 @@ const routes = [
           ],
         },
         components: {
+          ...commonParts,
           default: SettingsView,
-          navigation: AppMainNavigation,
-          footer: AppFooter,
-          alerts: AlertsContainer,
         },
         redirect: () => useSettingsTabs().firstAllowedTab.to,
         props: {
@@ -179,9 +196,8 @@ const routes = [
         name: RouteName.ManagementServiceCertificateDetails,
         path: '/tls-certificates-details',
         components: {
+          ...elevatedParts,
           default: ManagementServiceCertificate,
-          navigation: XrdMainNavigationContainer,
-          alerts: AlertsContainer,
         },
         meta: { permissions: [Permissions.VIEW_TLS_CERTIFICATES] },
       },
@@ -190,9 +206,8 @@ const routes = [
         name: RouteName.CreateApiKey,
         path: '/keys/apikey/create',
         components: {
+          ...elevatedParts,
           default: CreateApiKeyStepper,
-          navigation: XrdMainNavigationContainer,
-          alerts: AlertsContainer,
         },
         props: {
           default: true,
@@ -203,10 +218,8 @@ const routes = [
       {
         path: '/members',
         components: {
+          ...commonParts,
           default: MembersView,
-          navigation: AppMainNavigation,
-          footer: AppFooter,
-          alerts: AlertsContainer,
         },
         children: [
           {
@@ -251,9 +264,7 @@ const routes = [
         path: '/security-servers',
         components: {
           default: SecurityServersView,
-          navigation: AppMainNavigation,
-          footer: AppFooter,
-          alerts: AlertsContainer,
+          ...commonParts,
         },
         meta: { permissions: [Permissions.VIEW_SECURITY_SERVERS] },
         children: [
@@ -319,8 +330,7 @@ const routes = [
         name: RouteName.SecurityServerAuthenticationCertificate,
         components: {
           default: SecurityServerAuthenticationCertificate,
-          navigation: XrdMainNavigationContainer,
-          alerts: AlertsContainer,
+          ...commonParts,
         },
         props: { default: true },
         meta: {
@@ -332,8 +342,7 @@ const routes = [
         path: '/trust-services',
         components: {
           default: TrustServices,
-          navigation: AppMainNavigation,
-          alerts: AlertsContainer,
+          ...commonParts,
         },
         children: [
           {
@@ -411,8 +420,7 @@ const routes = [
         path: '/timestamping-service-certificate/:timestampingServiceId',
         components: {
           default: TimestampingServiceCertificate,
-          navigation: XrdMainNavigationContainer,
-          alerts: AlertsContainer,
+          ...elevatedParts,
         },
         meta: {
           permissions: [Permissions.VIEW_APPROVED_TSAS],
@@ -426,8 +434,7 @@ const routes = [
         path: '/certification-services/:certificationServiceId/certificate-details',
         components: {
           default: CertificationServiceCertificate,
-          navigation: XrdMainNavigationContainer,
-          alerts: AlertsContainer,
+          ...elevatedParts,
         },
         meta: {
           permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
@@ -441,8 +448,7 @@ const routes = [
         path: 'ocsp-responder/:ocspResponderId/certificate-details',
         components: {
           default: OcspResponderCertificate,
-          navigation: XrdMainNavigationContainer,
-          alerts: AlertsContainer,
+          ...elevatedParts,
         },
         meta: {
           permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
@@ -456,8 +462,7 @@ const routes = [
         path: '/intermediate-cas/:intermediateCaId/certificate-details',
         components: {
           default: IntermediateCACertificate,
-          navigation: XrdMainNavigationContainer,
-          alerts: AlertsContainer,
+          ...elevatedParts,
         },
         meta: {
           permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
@@ -472,8 +477,7 @@ const routes = [
         path: '/init',
         components: {
           default: InitialConfigurationView,
-          navigation: XrdMainNavigationContainer,
-          alerts: AlertsContainer,
+          ...elevatedParts,
         },
         meta: { permissions: [Permissions.INIT_CONFIG] },
       },
@@ -482,8 +486,7 @@ const routes = [
         path: '/management-requests',
         components: {
           default: ManagementRequests,
-          navigation: AppMainNavigation,
-          alerts: AlertsContainer,
+          ...commonParts,
         },
         children: [
           {
@@ -514,8 +517,7 @@ const routes = [
         path: '/global-configuration',
         components: {
           default: GlobalConfigurationView,
-          navigation: AppMainNavigation,
-          alerts: AlertsContainer,
+          ...commonParts,
         },
         props: {
           subTabs: true,
@@ -555,9 +557,7 @@ const routes = [
         name: RouteName.NotFound,
         components: {
           default: AppError,
-          navigation: AppMainNavigation,
-          alerts: AlertsContainer,
-          footer: AppFooter,
+          ...commonParts,
         },
       },
       {
@@ -565,9 +565,7 @@ const routes = [
         name: RouteName.Forbidden,
         components: {
           default: AppForbidden,
-          navigation: AppMainNavigation,
-          alerts: AlertsContainer,
-          footer: AppFooter,
+          ...commonParts,
         },
       },
     ],
