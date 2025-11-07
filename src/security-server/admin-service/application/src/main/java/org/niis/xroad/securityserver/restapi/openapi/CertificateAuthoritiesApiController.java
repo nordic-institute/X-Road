@@ -47,6 +47,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.AcmeOrderDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CsrSubjectFieldDescriptionDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritizationStrategyDto;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
@@ -106,6 +107,13 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
 
         Set<CertificateAuthorityDto> cas = certificateAuthorityConverter.convert(caDtos);
         return new ResponseEntity<>(cas, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_APPROVED_CERTIFICATE_AUTHORITIES')")
+    public ResponseEntity<ServicePrioritizationStrategyDto> getOcspPrioritizationStrategy() {
+        var strategy = certificateAuthorityService.getOcspPrioritizationStrategy();
+        return new ResponseEntity<>(ServicePrioritizationStrategyDto.valueOf(strategy.name()), HttpStatus.OK);
     }
 
     @SuppressWarnings("squid:S3655") // see reason below

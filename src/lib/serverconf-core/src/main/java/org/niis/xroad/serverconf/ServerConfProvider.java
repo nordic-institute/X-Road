@@ -189,6 +189,8 @@ public interface ServerConfProvider {
      */
     List<String> getTspUrl();
 
+    String getTspCostType(String tspUrl);
+
     /**
      * @param serviceId the service identifier
      * @return the type of the service as {@link DescriptionType}

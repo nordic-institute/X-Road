@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
@@ -209,6 +210,8 @@ public class CertificateAuthorityService {
         builder.subjectDnPath(subjectDnPath);
         builder.topCa(subjectDnPath.size() <= 1 && subjectName.equals(subjectDnPath.getFirst()));
 
+        builder.ocspUrlsAndCostTypes(globalConfService.getOcspResponderAddressesAndCostTypes(certificate));
+
         return builder.build();
     }
 
@@ -227,6 +230,10 @@ public class CertificateAuthorityService {
             issuer = subjectsToIssuers.get(current);
         }
         return pathElements;
+    }
+
+    public SystemProperties.ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
+        return SystemProperties.getOcspPrioritizationStrategy();
     }
 
     public boolean isAcmeExternalAccountBindingRequired(String caName) throws CertificateAuthorityNotFoundException {

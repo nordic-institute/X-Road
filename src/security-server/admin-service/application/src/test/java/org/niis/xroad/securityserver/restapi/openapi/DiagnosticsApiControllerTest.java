@@ -36,18 +36,20 @@ import com.google.protobuf.Timestamp;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CaOcspDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OperationalDataIntervalDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
@@ -337,20 +339,22 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                         + DiagnosticStatus.OK + "\",\"url\":\""
                         + OCSP_URL_1 + "\",\"prevUpdate\":\"" + PREVIOUS_UPDATE + "\",\"nextUpdate\":\"" + NEXT_UPDATE
                         + "\"}}}}}");
+        when(globalConfProvider.getOcspResponderCostType(any(), any())).thenReturn(CostType.PAID);
 
-        ResponseEntity<Set<OcspResponderDiagnosticsDto>> response =
+        ResponseEntity<Set<CaOcspDiagnosticsDto>> response =
                 diagnosticsApiController.getOcspRespondersDiagnostics();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<OcspResponderDiagnosticsDto> diagnosticsSet = response.getBody();
+        Set<CaOcspDiagnosticsDto> diagnosticsSet = response.getBody();
         assertEquals(1, diagnosticsSet.size());
-        OcspResponderDiagnosticsDto diagnostics = diagnosticsSet.stream().findFirst().orElse(null);
+        CaOcspDiagnosticsDto diagnostics = diagnosticsSet.stream().findFirst().orElse(null);
         assertEquals(1, diagnostics.getOcspResponders().size());
         assertEquals(CA_NAME_1, diagnostics.getDistinguishedName());
         assertEquals(DiagnosticStatusClassDto.OK, diagnostics.getOcspResponders().get(0).getStatusClass());
         assertEquals(PREVIOUS_UPDATE, diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(OCSP_URL_1, diagnostics.getOcspResponders().get(0).getUrl());
+        assertEquals(CostTypeDto.PAID, diagnostics.getOcspResponders().get(0).getCostType());
     }
 
     @Test
@@ -360,20 +364,22 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                         + "\"ocspResponderStatusMap\":{\"" + OCSP_URL_2 + "\":{\"diagnosticStatus\":\""
                         + DiagnosticStatus.UNINITIALIZED + "\",\"url\":\"" + OCSP_URL_2
                         + "\",\"nextUpdate\":\"" + NEXT_UPDATE + "\"}}}}}");
+        when(globalConfProvider.getOcspResponderCostType(any(), any())).thenReturn(CostType.FREE);
 
-        ResponseEntity<Set<OcspResponderDiagnosticsDto>> response =
+        ResponseEntity<Set<CaOcspDiagnosticsDto>> response =
                 diagnosticsApiController.getOcspRespondersDiagnostics();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<OcspResponderDiagnosticsDto> diagnosticsSet = response.getBody();
+        Set<CaOcspDiagnosticsDto> diagnosticsSet = response.getBody();
         assertEquals(1, diagnosticsSet.size());
-        OcspResponderDiagnosticsDto diagnostics = diagnosticsSet.stream().findFirst().orElse(null);
+        CaOcspDiagnosticsDto diagnostics = diagnosticsSet.stream().findFirst().orElse(null);
         assertEquals(1, diagnostics.getOcspResponders().size());
         assertEquals(CA_NAME_2, diagnostics.getDistinguishedName());
         assertEquals(DiagnosticStatusClassDto.WAITING, diagnostics.getOcspResponders().get(0).getStatusClass());
         assertNull(diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(OCSP_URL_2, diagnostics.getOcspResponders().get(0).getUrl());
+        assertEquals(CostTypeDto.FREE, diagnostics.getOcspResponders().get(0).getCostType());
     }
 
     @Test
@@ -383,14 +389,15 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                         + "\",\"ocspResponderStatusMap\":{\"" + OCSP_URL_1 + "\":{\"diagnosticStatus\":\"" + DiagnosticStatus.ERROR
                         + "\",\"errorCode\":\"" + ErrorCode.OCSP_RESPONSE_PARSING_FAILURE + "\",\"url\":\"" + OCSP_URL_1
                         + "\",\"nextUpdate\":\"" + NEXT_UPDATE_MIDNIGHT + "\"}}}}}");
+        when(globalConfProvider.getOcspResponderCostType(any(), any())).thenReturn(CostType.PAID);
 
-        ResponseEntity<Set<OcspResponderDiagnosticsDto>> response = diagnosticsApiController
+        ResponseEntity<Set<CaOcspDiagnosticsDto>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<OcspResponderDiagnosticsDto> diagnosticsSet = response.getBody();
+        Set<CaOcspDiagnosticsDto> diagnosticsSet = response.getBody();
         assertEquals(1, diagnosticsSet.size());
-        OcspResponderDiagnosticsDto diagnostics = diagnosticsSet.stream().findFirst().orElse(null);
+        CaOcspDiagnosticsDto diagnostics = diagnosticsSet.stream().findFirst().orElse(null);
         assertEquals(1, diagnostics.getOcspResponders().size());
         assertEquals(CA_NAME_1, diagnostics.getDistinguishedName());
         assertEquals(ErrorCode.OCSP_RESPONSE_PARSING_FAILURE.code(), diagnostics.getOcspResponders()
@@ -399,6 +406,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertNull(diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(OCSP_URL_1, diagnostics.getOcspResponders().get(0).getUrl());
+        assertEquals(CostTypeDto.PAID, diagnostics.getOcspResponders().get(0).getCostType());
     }
 
     @Test
@@ -408,14 +416,15 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                         + "\",\"ocspResponderStatusMap\":{\"" + OCSP_URL_2 + "\":{\"diagnosticStatus\":\"" + DiagnosticStatus.UNKNOWN
                         + "\",\"url\":\"" + OCSP_URL_2 + "\",\"prevUpdate\":\""
                         + PREVIOUS_UPDATE_MIDNIGHT + "\",\"nextUpdate\":\"" + NEXT_UPDATE_MIDNIGHT + "\"}}}}}");
+        when(globalConfProvider.getOcspResponderCostType(any(), any())).thenReturn(CostType.FREE);
 
-        ResponseEntity<Set<OcspResponderDiagnosticsDto>> response = diagnosticsApiController
+        ResponseEntity<Set<CaOcspDiagnosticsDto>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<OcspResponderDiagnosticsDto> diagnosticsSet = response.getBody();
+        Set<CaOcspDiagnosticsDto> diagnosticsSet = response.getBody();
         assertEquals(1, diagnosticsSet.size());
-        OcspResponderDiagnosticsDto diagnostics = diagnosticsSet
+        CaOcspDiagnosticsDto diagnostics = diagnosticsSet
                 .stream()
                 .findFirst()
                 .orElse(null);
@@ -425,6 +434,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(PREVIOUS_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(OCSP_URL_2, diagnostics.getOcspResponders().get(0).getUrl());
+        assertEquals(CostTypeDto.FREE, diagnostics.getOcspResponders().get(0).getCostType());
     }
 
     @Test

@@ -32,8 +32,10 @@ import ee.ria.xroad.common.util.TimeUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -42,6 +44,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test TimestampingServiceDiagnosticConverter
@@ -53,7 +57,10 @@ public class TimestampingServiceDiagnosticConverterTest {
 
     @Before
     public void setup() {
-        timestampingServiceDiagnosticConverter = new TimestampingServiceDiagnosticConverter();
+        ServerConfProvider serverConfProvider = mock(ServerConfProvider.class);
+        when(serverConfProvider.getTspCostType(URL_1)).thenReturn(CostTypeDto.PAID.name());
+        when(serverConfProvider.getTspCostType(URL_2)).thenReturn(CostTypeDto.FREE.name());
+        timestampingServiceDiagnosticConverter = new TimestampingServiceDiagnosticConverter(serverConfProvider);
     }
 
     @Test
@@ -67,6 +74,8 @@ public class TimestampingServiceDiagnosticConverterTest {
 
         assertEquals(DiagnosticStatusClassDto.OK, timestampingServiceDiagnostics.getStatusClass());
         assertEquals(now, timestampingServiceDiagnostics.getPrevUpdateAt());
+        assertEquals(URL_1, timestampingServiceDiagnostics.getUrl());
+        assertEquals(CostTypeDto.PAID, timestampingServiceDiagnostics.getCostType());
     }
 
     @Test
@@ -95,8 +104,12 @@ public class TimestampingServiceDiagnosticConverterTest {
         assertEquals(ErrorCode.TIMESTAMP_TOKEN_SIGNER_INFO_NOT_FOUND.code(), firstDiagnostic.getError().getCode());
         assertEquals(DiagnosticStatusClassDto.FAIL, firstDiagnostic.getStatusClass());
         assertEquals(prevUpdate, firstDiagnostic.getPrevUpdateAt());
+        assertEquals(URL_1, firstDiagnostic.getUrl());
+        assertEquals(CostTypeDto.PAID, firstDiagnostic.getCostType());
 
         assertEquals(DiagnosticStatusClassDto.WAITING, secondDiagnostic.getStatusClass());
         assertEquals(prevUpdate2, secondDiagnostic.getPrevUpdateAt());
+        assertEquals(URL_2, secondDiagnostic.getUrl());
+        assertEquals(CostTypeDto.FREE, secondDiagnostic.getCostType());
     }
 }
