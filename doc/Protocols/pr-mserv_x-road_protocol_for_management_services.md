@@ -34,6 +34,7 @@ Doc. ID: PR-MSERV
 | 11.12.2023 | 1.17    | *clientDisable* and *clientEnable* services                                  | Madis Loitmaa        |
 | 07.03.2025 | 1.18    | Add *clientRename* management service and update *clientReg* service         | Ovidijus Narkevičius |
 | 29.04.2025 | 1.19    | Add *maintenanceModeEnable* and *maintenanceModeDisable* management services | Ovidijus Narkevičius |
+| 29.04.2025 | 1.20    | Update Introduction section                                                  | Mohamed Elbeltagy    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -90,6 +91,12 @@ Management services are services provided by the X-Road governing organization t
 * *clientDisable* - disabling Security Server's client subsystem temporarily.
 
 * *clientEnable* - enabling disabled Security Server's client subsystem.
+
+* *clientRename* - renaming Security Server's client subsystem.
+
+* *maintenanceModeEnable* - enabling Security Server's maintenance mode.
+
+* *maintenanceModeDisable* - disabling Security Server's maintenance mode.
 
 
 The management services are implemented as standard X-Road services (see \[[PR-MESS](#Ref_PR-MESS)\] for detailed description of the protocol) that are offered by the X-Road governing authority. The exception is the *authCertReg* service that, for technical reasons, is implemented as HTTPS POST (see below for details).
