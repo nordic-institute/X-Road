@@ -44,16 +44,8 @@
 
 <script lang="ts" setup>
 import { ref, computed, watchEffect } from 'vue';
-import {
-  useOcspResponderService,
-  useCertificationService,
-  useIntermediateCasService,
-} from '@/store/modules/trust-services';
-import {
-  XrdCertificate,
-  XrdElevatedViewFixedWidth,
-  useNotifications,
-} from '@niis/shared-ui';
+import { useOcspResponderService, useCertificationService, useIntermediateCasService } from '@/store/modules/trust-services';
+import { XrdCertificate, XrdElevatedViewFixedWidth, useNotifications } from '@niis/shared-ui';
 import { OcspResponderCertificateDetails } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { useI18n } from 'vue-i18n';
@@ -174,7 +166,6 @@ watchEffect(() => {
           certificateDetails.value.intermediate_ca_id,
         );
       }
-      return Promise.resolve();
     })
     .catch((err) => addError(err, { navigate: true }))
     .finally(() => (loading.value = false));

@@ -80,6 +80,13 @@ const loading = ref(false);
 const emit = defineEmits(['cancel', 'unregister']);
 
 function unregister() {
+  if (
+    !props.member.client_id.encoded_id ||
+    !props.server.server_id.encoded_id
+  ) {
+    throw "Either client ID or server ID doesn't have ecodeded_id";
+  }
+
   loading.value = true;
   memberStore
     .unregister(

@@ -24,43 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-/*
- TypeScript typings that are used in UI, but not in backend.
- These are not in openapi definitions.
-*/
-import { DataTableHeader as VuetifyDataTableHeader } from 'vuetify/lib/components/VDataTable/types';
-import { SortItem as VuetifySortItem } from 'vuetify/lib/components/VDataTable/composables/sort';
 
-// Action info for notification. In practise the "action" is navigtion to a given route.
-
-export interface DataQuery {
-  itemsPerPage: number;
-  page: number;
-  sortBy?: string;
-  sortOrder?: string;
-  search?: string;
+declare global {
+  interface FocusOptions {
+    preventScroll?: boolean;
+    focusVisible?: boolean;
+  }
 }
 
-export interface PagingOptions {
-  itemsPerPage: number;
-  page: number;
-  sortBy: { key: string; order?: boolean | 'asc' | 'desc' }[];
-}
-
-/**
- * Mirrors vuetify header type
- * @link https://vuetifyjs.com/en/api/v-data-table/#props-headers
- * @link https://github.com/vuetifyjs/vuetify/issues/16680#issuecomment-1724721582
- *
- * @deprecated use directly if needed
- */
-export type DataTableHeader = VuetifyDataTableHeader;
-
-/**
- * Mirrors vuetify SortBy type
- * @link https://vuetifyjs.com/en/api/v-data-table/#props-sort-by
- * @link https://github.com/vuetifyjs/vuetify/issues/16680#issuecomment-1724721582
- *
- * @deprecated use directly if needed
- */
-export type SortItem = VuetifySortItem;
+export {};

@@ -91,7 +91,7 @@ import {
 import { Client, PagedClients } from '@/openapi-types';
 import { useClient } from '@/store/modules/clients';
 import { useManagementServices } from '@/store/modules/management-services';
-import { DataQuery } from '@/ui-types';
+import { DataQuery, PagingOptions } from '@/ui-types';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { debounce } from '@/util/helpers';
 
@@ -204,11 +204,21 @@ export default defineComponent({
         .catch((error) => this.addError(error))
         .finally(() => (this.loading = false));
     },
-    changeOptions: async function ({ itemsPerPage, page, sortBy }) {
+    changeOptions: async function ({
+      itemsPerPage,
+      page,
+      sortBy,
+    }: PagingOptions) {
       this.pagingOptions.itemsPerPage = itemsPerPage;
       this.pagingOptions.page = page;
       this.pagingOptions.sortBy = sortBy[0]?.key;
-      this.pagingOptions.sortOrder = sortBy[0]?.order;
+      const order = sortBy[0]?.order;
+      this.pagingOptions.sortOrder =
+        order === undefined
+          ? undefined
+          : order === true || order === 'asc'
+            ? 'asc'
+            : 'desc';
       this.fetchClients();
     },
     cancel(): void {

@@ -103,7 +103,7 @@ import { Permissions, RouteName } from '@/global';
 import { Client } from '@/openapi-types';
 import { useClient } from '@/store/modules/clients';
 import { useUser } from '@/store/modules/user';
-import { DataQuery } from '@/ui-types';
+import { DataQuery, PagingOptions } from '@/ui-types';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { debounce, toIdentifier } from '@/util/helpers';
 
@@ -191,11 +191,21 @@ export default defineComponent({
         },
       });
     },
-    changeOptions: async function ({ itemsPerPage, page, sortBy }) {
+    changeOptions: async function ({
+      itemsPerPage,
+      page,
+      sortBy,
+    }: PagingOptions) {
       this.dataQuery.itemsPerPage = itemsPerPage;
       this.dataQuery.page = page;
       this.dataQuery.sortBy = sortBy[0]?.key;
-      this.dataQuery.sortOrder = sortBy[0]?.order;
+      const order = sortBy[0]?.order;
+      this.dataQuery.sortOrder =
+        order === undefined
+          ? undefined
+          : order === true || order === 'asc'
+            ? 'asc'
+            : 'desc';
       this.fetchClients();
     },
     fetchClients: async function () {
