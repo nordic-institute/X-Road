@@ -137,7 +137,6 @@ import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
 import { useTimestampingServices } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
-import { DataTableHeader } from '@/ui-types';
 import {
   XrdCard,
   XrdBtn,
@@ -145,6 +144,7 @@ import {
   useNotifications,
   XrdConfirmDialog,
 } from '@niis/shared-ui';
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 export default defineComponent({
   components: {
