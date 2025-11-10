@@ -29,6 +29,7 @@ package org.niis.xroad.management.rpc;
 
 
 import io.grpc.ManagedChannel;
+import io.grpc.stub.StreamObserver;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -51,7 +52,7 @@ public class ManagementRpcClient extends AbstractRpcClient {
     private final ManagementRpcChannelProperties rpcChannelProperties;
 
     private ManagedChannel channel;
-    private MessageLogArchiverServiceGrpc.MessageLogArchiverServiceBlockingStub archiverServiceBlockingStub;
+    private MessageLogArchiverServiceGrpc.MessageLogArchiverServiceStub archiverServiceStub;
 
     @Override
     public ErrorOrigin getRpcOrigin() {
@@ -64,8 +65,7 @@ public class ManagementRpcClient extends AbstractRpcClient {
                 rpcChannelProperties.port());
         channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
 
-        archiverServiceBlockingStub = MessageLogArchiverServiceGrpc.newBlockingStub(channel).withInterceptors().withWaitForReady();
-
+        archiverServiceStub = MessageLogArchiverServiceGrpc.newStub(channel).withWaitForReady();
     }
 
     @Override
@@ -76,13 +76,11 @@ public class ManagementRpcClient extends AbstractRpcClient {
         }
     }
 
-    public MessageLogArchivalResp triggerArchival(MessageLogArchivalRequest request) {
-        return exec(() -> archiverServiceBlockingStub
-                .triggerArchival(request));
+    public void triggerArchival(MessageLogArchivalRequest request, StreamObserver<MessageLogArchivalResp> responseObserver) {
+        archiverServiceStub.triggerArchival(request, responseObserver);
     }
 
-    public MessageLogCleanupResp triggerCleanup(MessageLogCleanupRequest request) {
-        return exec(() -> archiverServiceBlockingStub
-                .triggerCleanup(request));
+    public void triggerCleanup(MessageLogCleanupRequest request, StreamObserver<MessageLogCleanupResp> responseObserver) {
+        archiverServiceStub.triggerCleanup(request, responseObserver);
     }
 }

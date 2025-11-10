@@ -28,7 +28,7 @@ package org.niis.xroad.messagelog.archiver.core;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import io.grpc.stub.StreamObserver;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
@@ -43,92 +43,121 @@ import org.niis.xroad.messagelog.archiver.proto.StringList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
-@RequiredArgsConstructor
 public class MessageLogArchiverService extends MessageLogArchiverServiceGrpc.MessageLogArchiverServiceImplBase {
 
+    private static final long SHUTDOWN_TIMEOUT_SECONDS = 120;
+
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor(Thread.ofVirtual().factory());
     private final LogArchiver logArchiver;
     private final LogCleaner logCleaner;
 
+    public MessageLogArchiverService(@Nonnull LogArchiver logArchiver, @Nonnull LogCleaner logCleaner) {
+        this.logArchiver = logArchiver;
+        this.logCleaner = logCleaner;
+    }
+
+    public void destroy() {
+        log.info("Shutting down MessageLogArchiverService executor");
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                log.warn("Executor did not terminate within {} seconds, forcing shutdown", SHUTDOWN_TIMEOUT_SECONDS);
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Shutdown interrupted, forcing shutdown", e);
+            executorService.shutdownNow();
+        }
+    }
+
     @Override
     public void triggerArchival(MessageLogArchivalRequest request, StreamObserver<MessageLogArchivalResp> responseObserver) {
-        log.debug("Received archival trigger request");
+        log.info("Received archival trigger request");
 
-        try {
-            LogArchiverExecutionProperties executionProperties = mapToExecutionProperties(request.getMessageLogConfig());
-            logArchiver.execute(executionProperties);
+        var executionProperties = mapToExecutionProperties(request.getMessageLogConfig());
 
-            MessageLogArchivalResp response = MessageLogArchivalResp.newBuilder()
-                    .setSuccess(true)
-                    .setMessage("Archival completed successfully")
-                    .build();
+        executorService.submit(() -> {
+            try {
+                log.info("Starting archival operation");
+                logArchiver.execute(executionProperties);
+                log.info("Archival operation completed successfully");
 
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error during archival", e);
+                var response = MessageLogArchivalResp.newBuilder()
+                        .setSuccess(true)
+                        .setMessage("Archival completed successfully")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+            } catch (Exception e) {
+                log.error("Archival operation failed", e);
 
-            MessageLogArchivalResp response = MessageLogArchivalResp.newBuilder()
-                    .setSuccess(false)
-                    .setMessage("Archival failed: " + e.getMessage())
-                    .build();
-
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-        }
+                var response = MessageLogArchivalResp.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Archival failed: " + e.getMessage())
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+            }
+        });
     }
 
     @Override
     public void triggerCleanup(MessageLogCleanupRequest request, StreamObserver<MessageLogCleanupResp> responseObserver) {
         log.info("Received cleanup trigger request");
 
-        try {
-            LogArchiverExecutionProperties executionProperties = mapToExecutionProperties(request.getMessageLogConfig());
-            logCleaner.execute(executionProperties);
+        var executionProperties = mapToExecutionProperties(request.getMessageLogConfig());
 
-            MessageLogCleanupResp response = MessageLogCleanupResp.newBuilder()
-                    .setSuccess(true)
-                    .setMessage("Cleanup completed successfully")
-                    .setRecordsRemoved(0) // LogCleaner doesn't return count currently
-                    .build();
+        executorService.submit(() -> {
+            try {
+                log.info("Starting cleanup operation");
+                logCleaner.execute(executionProperties);
+                log.info("Cleanup operation completed successfully");
 
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error during cleanup", e);
+                var response = MessageLogCleanupResp.newBuilder()
+                        .setSuccess(true)
+                        .setMessage("Cleanup completed successfully")
+                        .setRecordsRemoved(0)
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+            } catch (Exception e) {
+                log.error("Cleanup operation failed", e);
 
-            MessageLogCleanupResp response = MessageLogCleanupResp.newBuilder()
-                    .setSuccess(false)
-                    .setMessage("Cleanup failed: " + e.getMessage())
-                    .setRecordsRemoved(0)
-                    .build();
-
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-        }
+                var response = MessageLogCleanupResp.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Cleanup failed: " + e.getMessage())
+                        .setRecordsRemoved(0)
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+            }
+        });
     }
 
     private LogArchiverExecutionProperties mapToExecutionProperties(MessageLogConfig config) {
-        GroupingStrategy archiveGroupingStrategy = parseGroupingStrategy(config.getArchiveGroupingStrategy());
-        DigestAlgorithm digestAlgorithm = DigestAlgorithm.ofName(config.getDigestAlgorithm());
-        Map<String, Set<String>> archiveGrouping = convertArchiveGrouping(config.getArchiveGroupingMap());
+        var archiveGroupingStrategy = parseGroupingStrategy(config.getArchiveGroupingStrategy());
+        var digestAlgorithm = DigestAlgorithm.ofName(config.getDigestAlgorithm());
+        var archiveGrouping = convertArchiveGrouping(config.getArchiveGroupingMap());
 
-        // Create archive encryption properties
         var archiveEncryption = new LogArchiverExecutionProperties.ArchiveEncryptionProperties(
                 config.getArchiveEncryptionEnabled(),
-                config.hasArchiveEncryptionDefaultKeyId() ? Optional.of(config.getArchiveEncryptionDefaultKeyId()) : Optional.empty(),
+                optionalOf(config.hasArchiveEncryptionDefaultKeyId(), config::getArchiveEncryptionDefaultKeyId),
                 archiveGroupingStrategy,
                 archiveGrouping
         );
 
-        // Create database encryption properties
         var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
                 config.getMessagelogEncryptionEnabled(),
-                config.hasMessagelogKeystore() ? config.getMessagelogKeystore() : null,
-                config.hasMessagelogKeystorePassword() ? config.getMessagelogKeystorePassword() : null,
-                config.hasMessagelogKeyId() ? config.getMessagelogKeyId() : null
+                nullableOf(config.hasMessagelogKeystore(), config::getMessagelogKeystore),
+                nullableOf(config.hasMessagelogKeystorePassword(), config::getMessagelogKeystorePassword),
+                nullableOf(config.hasMessagelogKeyId(), config::getMessagelogKeyId)
         );
 
         return new LogArchiverExecutionProperties(
@@ -138,11 +167,19 @@ public class MessageLogArchiverService extends MessageLogArchiverServiceGrpc.Mes
                 config.getCleanKeepRecordsFor(),
                 config.getArchiveTransactionBatchSize(),
                 config.getArchivePath(),
-                config.hasArchiveTransferCommand() ? config.getArchiveTransferCommand() : null,
+                nullableOf(config.hasArchiveTransferCommand(), config::getArchiveTransferCommand),
                 digestAlgorithm,
                 config.getArchiveMaxFilesize(),
                 config.getTmpDir()
         );
+    }
+
+    private <T> Optional<T> optionalOf(boolean condition, java.util.function.Supplier<T> supplier) {
+        return condition ? Optional.of(supplier.get()) : Optional.empty();
+    }
+
+    private <T> T nullableOf(boolean condition, java.util.function.Supplier<T> supplier) {
+        return condition ? supplier.get() : null;
     }
 
     private GroupingStrategy parseGroupingStrategy(String strategy) {

@@ -61,7 +61,7 @@ public class MessageLogArchiverConfiguration extends MessageLogEncryptionConfig 
         return new LogCleaner(databaseCtx);
     }
 
-    @Bean
+    @Bean(destroyMethod = "destroy")
     public MessageLogArchiverService messageLogArchiverService(LogArchiver logArchiver, LogCleaner logCleaner) {
         return new MessageLogArchiverService(logArchiver, logCleaner);
     }

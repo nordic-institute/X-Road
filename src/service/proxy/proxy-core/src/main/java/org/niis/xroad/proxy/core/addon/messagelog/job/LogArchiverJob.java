@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog.job;
 
+import io.grpc.stub.StreamObserver;
 import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.ScheduledExecution;
@@ -39,7 +40,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.management.rpc.ManagementRpcClient;
 import org.niis.xroad.messagelog.archiver.proto.MessageLogArchivalRequest;
 import org.niis.xroad.messagelog.archiver.proto.MessageLogArchivalResp;
-import org.niis.xroad.messagelog.archiver.proto.MessageLogConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 @Slf4j
@@ -72,23 +72,42 @@ public class LogArchiverJob {
     }
 
     void execute(ScheduledExecution execution) {
+        var startTime = System.currentTimeMillis();
+        
         try {
-            log.debug("Executing {}", this.getClass().getSimpleName());
+            log.info("Starting Message-Log archival job");
 
-            MessageLogConfig config = configMapper.buildMessageLogConfig();
-            MessageLogArchivalRequest request = MessageLogArchivalRequest.newBuilder()
+            var config = configMapper.buildMessageLogConfig();
+            var request = MessageLogArchivalRequest.newBuilder()
                     .setMessageLogConfig(config)
                     .build();
 
-            MessageLogArchivalResp response = rpcClient.triggerArchival(request);
+            rpcClient.triggerArchival(request, new StreamObserver<>() {
+                @Override
+                public void onNext(MessageLogArchivalResp response) {
+                    var duration = System.currentTimeMillis() - startTime;
+                    
+                    if (response.getSuccess()) {
+                        log.info("Message-Log archival completed successfully in {} ms: {}", duration, response.getMessage());
+                    } else {
+                        log.error("Message-Log archival failed after {} ms: {}", duration, response.getMessage());
+                    }
+                }
 
-            if (response.getSuccess()) {
-                log.info("Log archival completed successfully: {}", response.getMessage());
-            } else {
-                log.error("Log archival failed: {}", response.getMessage());
-            }
+                @Override
+                public void onError(Throwable t) {
+                    var duration = System.currentTimeMillis() - startTime;
+                    log.error("Message-Log archival RPC failed after {} ms", duration, t);
+                }
+
+                @Override
+                public void onCompleted() {
+                    log.debug("Message-Log archival RPC stream closed");
+                }
+            });
         } catch (Exception e) {
-            log.error("Error when triggering log archival via management rpc", e);
+            var duration = System.currentTimeMillis() - startTime;
+            log.error("Error triggering Message-Log archival job after {} ms", duration, e);
         }
     }
 }

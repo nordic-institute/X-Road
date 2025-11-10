@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog.job;
 
+import io.grpc.stub.StreamObserver;
 import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.ScheduledExecution;
@@ -39,7 +40,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.management.rpc.ManagementRpcClient;
 import org.niis.xroad.messagelog.archiver.proto.MessageLogCleanupRequest;
 import org.niis.xroad.messagelog.archiver.proto.MessageLogCleanupResp;
-import org.niis.xroad.messagelog.archiver.proto.MessageLogConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 @Slf4j
@@ -72,24 +72,43 @@ public class LogCleanerJob {
     }
 
     void execute(ScheduledExecution execution) {
+        var startTime = System.currentTimeMillis();
+        
         try {
-            log.debug("Executing {}", this.getClass().getSimpleName());
+            log.info("Starting Message-Log cleanup job");
 
-            MessageLogConfig config = configMapper.buildMessageLogConfig();
-            MessageLogCleanupRequest request = MessageLogCleanupRequest.newBuilder()
+            var config = configMapper.buildMessageLogConfig();
+            var request = MessageLogCleanupRequest.newBuilder()
                     .setMessageLogConfig(config)
                     .build();
 
-            MessageLogCleanupResp response = rpcClient.triggerCleanup(request);
+            rpcClient.triggerCleanup(request, new StreamObserver<>() {
+                @Override
+                public void onNext(MessageLogCleanupResp response) {
+                    var duration = System.currentTimeMillis() - startTime;
+                    
+                    if (response.getSuccess()) {
+                        log.info("Message-Log cleanup completed successfully in {} ms: {} (records removed: {})",
+                                duration, response.getMessage(), response.getRecordsRemoved());
+                    } else {
+                        log.error("Message-Log cleanup failed after {} ms: {}", duration, response.getMessage());
+                    }
+                }
 
-            if (response.getSuccess()) {
-                log.info("Log cleanup completed successfully: {} (records removed: {})",
-                        response.getMessage(), response.getRecordsRemoved());
-            } else {
-                log.error("Log cleanup failed: {}", response.getMessage());
-            }
+                @Override
+                public void onError(Throwable t) {
+                    var duration = System.currentTimeMillis() - startTime;
+                    log.error("Message-Log cleanup RPC failed after {} ms", duration, t);
+                }
+
+                @Override
+                public void onCompleted() {
+                    log.debug("Message-Log cleanup RPC stream closed");
+                }
+            });
         } catch (Exception e) {
-            log.error("Error when triggering log cleanup via management rpc", e);
+            var duration = System.currentTimeMillis() - startTime;
+            log.error("Error triggering Message-Log cleanup job after {} ms", duration, e);
         }
     }
 }
