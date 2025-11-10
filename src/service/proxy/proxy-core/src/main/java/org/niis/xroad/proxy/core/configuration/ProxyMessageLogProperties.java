@@ -108,8 +108,12 @@ public interface ProxyMessageLogProperties {
 
     interface ArchiverProperties extends MessageLogArchivalProperties {
         @WithName("enabled")
-        @WithDefault("false")
+        @WithDefault("true")
         boolean enabled();
+
+        @WithName("encryption-enabled")
+        @WithDefault("false")
+        boolean encryptionEnabled();
 
         @WithName("archive-interval")
         @WithDefault("0 0 0/6 1/1 * ?")

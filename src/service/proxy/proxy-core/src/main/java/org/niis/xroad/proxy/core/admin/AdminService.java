@@ -152,7 +152,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics() {
         return new MessageLogEncryptionStatusDiagnostics(
-                messageLogProperties.archiver().enabled(),
+                messageLogProperties.archiver().encryptionEnabled(),
                 messageLogProperties.databaseEncryption().enabled(),
                 messageLogProperties.archiver().groupingStrategy().name(),
                 getMessageLogArchiveEncryptionMembers());

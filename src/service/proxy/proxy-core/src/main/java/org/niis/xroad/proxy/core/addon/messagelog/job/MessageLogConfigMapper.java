@@ -53,7 +53,7 @@ public class MessageLogConfigMapper {
         var databaseEncryptionProps = messageLogProperties.databaseEncryption();
 
         MessageLogConfig.Builder builder = MessageLogConfig.newBuilder()
-                .setArchiveEncryptionEnabled(archiverProps.enabled())
+                .setArchiveEncryptionEnabled(archiverProps.encryptionEnabled())
                 .setArchiveGroupingStrategy(archiverProps.groupingStrategy().name())
                 .setCleanTransactionBatchSize(archiverProps.cleanTransactionBatchSize())
                 .setCleanKeepRecordsFor(archiverProps.cleanKeepRecordsFor())

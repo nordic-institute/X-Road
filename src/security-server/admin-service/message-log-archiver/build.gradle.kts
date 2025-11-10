@@ -9,7 +9,7 @@ dependencies {
   implementation(project(":common:common-db"))
   implementation(project(":common:common-messagelog"))
   implementation(project(":common:common-rpc"))
-  implementation(project(":addons:messagelog:messagelog-db"))
+  api(project(":addons:messagelog:messagelog-db"))
   implementation(project(":security-server:admin-service:message-log-archiver-api"))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:asic-core"))

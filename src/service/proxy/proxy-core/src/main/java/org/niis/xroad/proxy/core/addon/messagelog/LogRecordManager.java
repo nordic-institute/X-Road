@@ -33,12 +33,12 @@ import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 import ee.ria.xroad.messagelog.database.entity.AbstractLogRecordEntity;
 import ee.ria.xroad.messagelog.database.entity.MessageRecordEntity;
 import ee.ria.xroad.messagelog.database.mapper.MessageRecordMapper;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Named;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -57,7 +57,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.niis.xroad.proxy.core.configuration.MessageLogDatabaseConfig.MESSAGE_LOG_DB_CTX;
 
 /**
  * Log record manager handles saving of log records to database.
@@ -81,7 +80,7 @@ public final class LogRecordManager {
     private final DatabaseCtx databaseCtx;
     private final MessageRecordEncryption messageRecordEncryption;
 
-    public LogRecordManager(@Named(MESSAGE_LOG_DB_CTX) DatabaseCtx databaseCtx,
+    public LogRecordManager(MessageLogDatabaseCtx databaseCtx,
                             MessageRecordEncryption messageRecordEncryption) {
         this.databaseCtx = databaseCtx;
         this.messageRecordEncryption = messageRecordEncryption;

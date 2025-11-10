@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -36,6 +35,7 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -81,7 +81,7 @@ abstract class AbstractMessageLogTest {
     TestServerConfWrapper serverConfProvider;
     CommonBeanProxy commonBeanProxy;
     LogRecordManager logRecordManager;
-    DatabaseCtx databaseCtx;
+    MessageLogDatabaseCtx databaseCtx;
     org.niis.xroad.common.messagelog.MessageRecordEncryption messageRecordEncryption;
 
     LogManager logManager;
@@ -154,7 +154,7 @@ abstract class AbstractMessageLogTest {
 
         // Create archive encryption properties
         var archiveEncryption = new LogArchiverExecutionProperties.ArchiveEncryptionProperties(
-                archiverProps.enabled(),
+                archiverProps.encryptionEnabled(),
                 archiverProps.defaultKeyId(),
                 archiverProps.groupingStrategy(),
                 archiverProps.grouping()

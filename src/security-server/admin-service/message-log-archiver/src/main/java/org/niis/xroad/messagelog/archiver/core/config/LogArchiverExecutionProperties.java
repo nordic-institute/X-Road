@@ -60,7 +60,7 @@ public record LogArchiverExecutionProperties(
      * Archive encryption configuration
      */
     public record ArchiveEncryptionProperties(
-            boolean enabled,
+            boolean encryptionEnabled,
             Optional<String> defaultKeyId,
             GroupingStrategy groupingStrategy,
             Map<String, Set<String>> grouping

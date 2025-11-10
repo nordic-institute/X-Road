@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,34 +23,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package ee.ria.xroad.messagelog.database;
 
-package org.niis.xroad.proxy.application;
+import ee.ria.xroad.common.db.DatabaseCtx;
 
-import io.quarkus.test.junit.QuarkusTestProfile;
+import jakarta.inject.Inject;
 
 import java.util.Map;
 
-import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
-import static java.lang.String.valueOf;
+public class MessageLogDatabaseCtx extends DatabaseCtx {
+    private static final String DB_NAME = "messagelog";
 
-public class ProxyTestProfile implements QuarkusTestProfile {
-
-    @Override
-    public Map<String, String> getConfigOverrides() {
-        return Map.of(
-                "quarkus.log.level", "INFO",
-                "xroad.common-global-conf.source", "FILESYSTEM",
-
-                "xroad.proxy.client-proxy.client-http-port", valueOf(findRandomPort()),
-                "xroad.proxy.client-proxy.client-https-port", valueOf(findRandomPort()),
-                "xroad.proxy.server.listen-port", valueOf(findRandomPort()),
-                "xroad.common-rpc.use-tls", "false",
-
-                "xroad.db.messagelog.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
-                "xroad.db.messagelog.hibernate.connection.url", "jdbc:hsqldb:mem:securelog;sql.syntax_pgs=true;",
-                "xroad.db.messagelog.hibernate.connection.username", "securelog",
-                "xroad.db.messagelog.hibernate.connection.password", "securelog"
-        );
+    @Inject
+    public MessageLogDatabaseCtx(Map<String, String> hibernateProperties) {
+        super(DB_NAME, hibernateProperties);
     }
 
 }

@@ -271,7 +271,7 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
         var keyManager = messageLogEncryptionConfig.keyManager(keyProvider);
         var pgpEncryptionService = messageLogEncryptionConfig.pgpEncryption(keyManager);
         var messageLogProperties = mock(org.niis.xroad.common.messagelog.MessageLogArchivalProperties.class);
-        when(messageLogProperties.enabled()).thenReturn(encrypted);
+        when(messageLogProperties.encryptionEnabled()).thenReturn(encrypted);
         when(messageLogProperties.defaultKeyId()).thenReturn(Optional.empty());
         when(messageLogProperties.groupingStrategy()).thenReturn(GroupingStrategy.NONE);
         when(messageLogProperties.grouping()).thenReturn(Map.of());

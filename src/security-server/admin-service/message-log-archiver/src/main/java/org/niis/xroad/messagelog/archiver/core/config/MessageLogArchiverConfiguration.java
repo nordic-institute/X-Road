@@ -26,9 +26,8 @@
  */
 package org.niis.xroad.messagelog.archiver.core.config;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
-import jakarta.inject.Named;
 import lombok.Setter;
 import org.niis.xroad.common.messagelog.archive.MessageLogEncryptionConfig;
 import org.niis.xroad.common.messagelog.archive.VaultArchivalPgpKeyProvider;
@@ -39,31 +38,26 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
 import org.niis.xroad.messagelog.archiver.core.MessageLogArchiverService;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
 @Setter
 @Configuration
-@ConditionalOnProperty(value = "xroad.message-log-archiver.enabled", havingValue = "true")
 public class MessageLogArchiverConfiguration extends MessageLogEncryptionConfig {
-    public static final String MESSAGE_LOG_DB_CTX = "messageLogCtx";
 
     @Bean
-    @Named(MESSAGE_LOG_DB_CTX)
-    public DatabaseCtx datbaseCtx(MessageLogDatabaseProperties properties) {
-        return new DatabaseCtx("messagelog", properties.hibernate());
+    public MessageLogDatabaseCtx datbaseCtx(MessageLogDatabaseProperties properties) {
+        return new MessageLogDatabaseCtx(properties.hibernate());
     }
 
     @Bean
-    public LogArchiver logArchiver(GlobalConfProvider globalConfProvider, @Named(MESSAGE_LOG_DB_CTX) DatabaseCtx databaseCtx,
+    public LogArchiver logArchiver(GlobalConfProvider globalConfProvider, MessageLogDatabaseCtx databaseCtx,
                                    PgpKeyManager keyManager, BouncyCastlePgpEncryptionService encryptionService) {
         return new LogArchiver(keyManager, encryptionService, globalConfProvider, databaseCtx);
     }
 
     @Bean
-    public LogCleaner logCleaner(@Named(MESSAGE_LOG_DB_CTX) DatabaseCtx databaseCtx) {
+    public LogCleaner logCleaner(MessageLogDatabaseCtx databaseCtx) {
         return new LogCleaner(databaseCtx);
     }
 

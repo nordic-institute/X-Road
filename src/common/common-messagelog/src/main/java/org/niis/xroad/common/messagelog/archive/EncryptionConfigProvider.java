@@ -69,7 +69,7 @@ public interface EncryptionConfigProvider {
     static EncryptionConfigProvider create(PgpKeyManager keyManager,
                                            BouncyCastlePgpEncryptionService encryption,
                                            MessageLogArchivalProperties messageLogArchivalProperties) {
-        if (messageLogArchivalProperties.enabled()) {
+        if (messageLogArchivalProperties.encryptionEnabled()) {
             return switch (messageLogArchivalProperties.groupingStrategy()) {
                 case MEMBER, SUBSYSTEM -> new VaultMemberEncryptionConfigProvider(keyManager, encryption, messageLogArchivalProperties);
                 default -> new VaultServerEncryptionConfigProvider(keyManager, encryption);

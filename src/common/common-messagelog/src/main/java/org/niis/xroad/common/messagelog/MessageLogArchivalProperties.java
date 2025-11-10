@@ -35,7 +35,8 @@ import java.util.Set;
  * Message log archival properties
  */
 public interface MessageLogArchivalProperties {
-    boolean enabled();
+
+    boolean encryptionEnabled();
 
     Optional<String> defaultKeyId();
 
