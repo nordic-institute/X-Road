@@ -107,9 +107,6 @@ public interface ProxyMessageLogProperties {
     }
 
     interface ArchiverProperties extends MessageLogArchivalProperties {
-        @WithName("enabled")
-        @WithDefault("true")
-        boolean enabled();
 
         @WithName("encryption-enabled")
         @WithDefault("false")

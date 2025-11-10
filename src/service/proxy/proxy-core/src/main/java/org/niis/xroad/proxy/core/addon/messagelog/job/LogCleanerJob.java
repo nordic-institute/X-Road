@@ -57,8 +57,7 @@ public class LogCleanerJob {
     public void init() {
         var archiverProps = messageLogProperties.archiver();
 
-        if (archiverProps.enabled()
-                && StringUtils.isNotBlank(archiverProps.cleanInterval())
+        if (StringUtils.isNotBlank(archiverProps.cleanInterval())
                 && !SchedulerUtils.isOff(archiverProps.cleanInterval())) {
             log.info("Scheduling {}", this.getClass().getSimpleName());
             scheduler.newJob(this.getClass().getSimpleName())

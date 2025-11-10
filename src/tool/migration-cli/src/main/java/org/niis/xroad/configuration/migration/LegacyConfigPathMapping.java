@@ -121,7 +121,7 @@ public class LegacyConfigPathMapping {
         addMapping("message-log.archive-transfer-command-parameters", "proxy.message-log.archiver.archive-transfer-command-parameters");
 
         // message-log - archive encryption/grouping properties (moved to archiver sub-section and renamed)
-        addMapping("message-log.archive-encryption-enabled", "proxy.message-log.archiver.enabled");
+        addMapping("message-log.archive-encryption-enabled", "proxy.message-log.archiver.encryption-enabled");
         addMapping("message-log.archive-default-encryption-key", "proxy.message-log.archiver.default-key-id");
         addMapping("message-log.archive-grouping", "proxy.message-log.archiver.grouping-strategy");
         addMapping("message-log.archive-encryption-keys-config", "proxy.message-log.archiver.grouping-keys");
