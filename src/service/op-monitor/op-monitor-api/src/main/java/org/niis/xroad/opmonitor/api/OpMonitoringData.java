@@ -48,7 +48,7 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.P
 @ToString
 public class OpMonitoringData {
 
-    public static String ERROR_FAILED_TO_ASSIGN_FIELD = "Failed to assign operational monitoring data field {}";
+    public static final String ERROR_FAILED_TO_ASSIGN_FIELD = "Failed to assign operational monitoring data field {}";
 
     // The following fields correspond to the schema defined in
     // src/op-monitor-daemon/core/src/main/resources/store_operational_data_request_schema.yaml .
