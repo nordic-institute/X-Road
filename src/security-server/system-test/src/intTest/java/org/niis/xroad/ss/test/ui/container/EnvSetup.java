@@ -65,6 +65,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     public static final String OP_MONITOR = "op-monitor";
     public static final String NGINX = "nginx";
     public static final String DB_SERVERCONF_INIT = "db-serverconf-init";
+    public static final String OPENBAO = "openbao";
 
     private static final String COMPOSE_SS_FILE = "build/resources/intTest/compose.main.yaml";
     private static final String COMPOSE_SYSTEMTEST_FILE = "build/resources/intTest/compose.systemtest.yaml";
@@ -93,7 +94,8 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(CONFIGURATION_CLIENT))
                 .withLogConsumer(MONITOR, createLogConsumer(MONITOR))
                 .withLogConsumer(BACKUP_MANAGER, createLogConsumer(BACKUP_MANAGER))
-                .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR));
+                .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR))
+                .withLogConsumer(OPENBAO, createLogConsumer(OPENBAO));
 
         env.start();
 

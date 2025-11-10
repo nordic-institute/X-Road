@@ -57,6 +57,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     private static final String COMPOSE_SS_HSM_FILE = "build/resources/intTest/compose.ss-hsm.e2e.yaml";
 
     private static final String CS = "cs";
+    private static final String OPENBAO = "openbao";
     private static final String PROXY = "proxy";
     private static final String UI = "ui";
     private static final String SIGNER = "signer";
@@ -131,7 +132,8 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
-                .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER));
+                .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER))
+                .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO));
 
         env.start();
         connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER);
