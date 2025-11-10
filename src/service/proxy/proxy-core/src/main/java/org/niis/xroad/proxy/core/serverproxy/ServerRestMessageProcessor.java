@@ -169,8 +169,8 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
         xRequestId = jRequest.getHeaders().get(HEADER_REQUEST_ID);
 
         opMonitoringData.setXRequestId(xRequestId);
-        updateOpMonitoringClientSecurityServerAddress(opMonitoringData, getClientAuthCert());
-        updateOpMonitoringServiceSecurityServerAddress(opMonitoringData);
+        opMonitoringDataHelper.updateOpMonitoringClientSecurityServerAddress(opMonitoringData, getClientAuthCert());
+        opMonitoringDataHelper.updateOpMonitoringServiceSecurityServerAddress(opMonitoringData);
 
         try {
             readMessage();
@@ -282,7 +282,7 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
     }
 
     private void updateOpMonitoringDataByRequest() {
-        updateOpMonitoringDataByRestRequest(opMonitoringData, requestMessage.getRest());
+        opMonitoringDataHelper.updateOpMonitoringDataByRestRequest(opMonitoringData, requestMessage.getRest());
         opMonitoringData.setRequestAttachmentCount(0);
         opMonitoringData.setRequestSize(requestMessage.getRest().getMessageBytes().length
                 + decoder.getAttachmentsByteCount());

@@ -126,7 +126,7 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     @WithSpan
     public void process() throws Exception {
         opMonitoringData.setXRequestId(xRequestId);
-        updateOpMonitoringClientSecurityServerAddress(opMonitoringData);
+        opMonitoringDataHelper.updateOpMonitoringClientSecurityServerAddress(opMonitoringData);
 
         try {
             restRequest = new RestRequest(
@@ -175,7 +175,7 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         if (restRequest.getQueryId() == null) {
             restRequest.setQueryId(globalConfProvider.getInstanceIdentifier() + "-" + UUID.randomUUID());
         }
-        updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
+        opMonitoringDataHelper.updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
         try (HttpSender httpSender = createHttpSender()) {
             sendRequest(httpSender);
             parseResponse(httpSender);

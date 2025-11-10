@@ -193,7 +193,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
         log.trace("process()");
 
         opMonitoringData.setXRequestId(xRequestId);
-        updateOpMonitoringClientSecurityServerAddress(opMonitoringData);
+        opMonitoringDataHelper.updateOpMonitoringClientSecurityServerAddress(opMonitoringData);
 
         Future<?> soapHandler = SOAP_HANDLER_EXECUTOR.submit(this::handleSoap);
 
@@ -479,7 +479,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             requestSoap = (SoapMessageImpl) message;
             requestServiceId = requestSoap.getService();
 
-            updateOpMonitoringDataBySoapMessage(opMonitoringData, requestSoap);
+            opMonitoringDataHelper.updateOpMonitoringDataBySoapMessage(opMonitoringData, requestSoap);
 
             if (request == null) {
                 request = new ProxyMessageEncoder(reqOuts, SoapUtils.getHashAlgoId());

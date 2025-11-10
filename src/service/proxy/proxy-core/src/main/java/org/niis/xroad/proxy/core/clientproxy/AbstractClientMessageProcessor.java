@@ -155,7 +155,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId) {
+    private List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId) {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
         var hostNames = hostNamesByProvider(serviceProvider);
@@ -241,7 +241,6 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             message.append(" \"")
                     .append(serverIdStr)
                     .append("\"");
-
         }
 
         if (StringUtils.isNotEmpty(address)) {

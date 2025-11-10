@@ -170,8 +170,8 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         xRequestId = jRequest.getHeaders().get(HEADER_REQUEST_ID);
 
         opMonitoringData.setXRequestId(xRequestId);
-        updateOpMonitoringClientSecurityServerAddress(opMonitoringData, getClientAuthCert());
-        updateOpMonitoringServiceSecurityServerAddress(opMonitoringData);
+        opMonitoringDataHelper.updateOpMonitoringClientSecurityServerAddress(opMonitoringData, getClientAuthCert());
+        opMonitoringDataHelper.updateOpMonitoringServiceSecurityServerAddress(opMonitoringData);
 
         try {
             readMessage();
@@ -273,7 +273,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
                     throws CertificateEncodingException, IOException {
                 super.soap(soapMessage, additionalHeaders);
 
-                updateOpMonitoringDataBySoapMessage(opMonitoringData, soapMessage);
+                opMonitoringDataHelper.updateOpMonitoringDataBySoapMessage(opMonitoringData, soapMessage);
 
                 requestServiceId = soapMessage.getService();
 
