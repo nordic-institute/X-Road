@@ -4,7 +4,7 @@ services:
     pull_policy: always
     environment:
       - BAO_ADDR=http://0.0.0.0:8200
-      - BAO_DEV_ROOT_TOKEN_ID=${XROAD_SECRET_STORE_TOKEN}
+      - BAO_TOKEN=${XROAD_SECRET_STORE_TOKEN}
     healthcheck:
       interval: 5s
       retries: 40

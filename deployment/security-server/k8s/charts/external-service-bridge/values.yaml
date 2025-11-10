@@ -2,6 +2,9 @@ service:
   name: xrd-cs
   namespace: default
 
+image: "bitnamilegacy/kubectl:latest"
+imagePullPolicy: IfNotPresent
+
 externalHost: "host.docker.internal"
 
 ports:
