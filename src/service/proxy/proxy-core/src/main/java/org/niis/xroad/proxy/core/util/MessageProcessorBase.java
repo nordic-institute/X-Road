@@ -179,8 +179,7 @@ public abstract class MessageProcessorBase {
         try {
             opMonitoringData.setClientSecurityServerAddress(getSecurityServerAddress());
         } catch (Exception e) {
-            log.error("Failed to assign operational monitoring data field {}",
-                    OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
+            log.error(OpMonitoringData.ERROR_FAILED_TO_ASSIGN_FIELD, OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
         }
     }
 
@@ -188,8 +187,7 @@ public abstract class MessageProcessorBase {
         try {
             opMonitoringData.setServiceSecurityServerAddress(getSecurityServerAddress());
         } catch (Exception e) {
-            log.error("Failed to assign operational monitoring data field {}",
-                    OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS, e);
+            log.error(OpMonitoringData.ERROR_FAILED_TO_ASSIGN_FIELD, OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS, e);
         }
     }
 
@@ -200,8 +198,7 @@ public abstract class MessageProcessorBase {
                         globalConfProvider.getServerId(authCert)));
             }
         } catch (Exception e) {
-            log.error("Failed to assign operational monitoring data field {}",
-                    OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
+            log.error(OpMonitoringData.ERROR_FAILED_TO_ASSIGN_FIELD, OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
         }
     }
 
