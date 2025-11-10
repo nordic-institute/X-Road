@@ -65,7 +65,7 @@ public class SecurityServerConfiguration {
     }
 
     @Bean(initMethod = "init", destroyMethod = "destroy")
-    @ConditionalOnProperty(prefix = "xroad.proxy-ui-api.rpc", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(name = "xroad.proxy-ui-api.rpc.enabled", havingValue = "true", matchIfMissing = true)
     public AdminManagementRpcServer adminManagementRpcServer(List<BindableService> services,
                                                              AdminRpcServerProperties rpcServerProperties,
                                                              RpcCredentialsConfigurer rpcCredentialsConfigurer) {
