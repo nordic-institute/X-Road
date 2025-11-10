@@ -25,34 +25,15 @@
  * THE SOFTWARE.
  */
 
-// New UI colors
-$Purple10: #efebfb;
-$Purple20: #e0d8f8;
-$Purple30: #d1c4f4;
-$Purple70: #9376e6;
-$Purple100: #663cdc;
+import { Router } from 'vue-router';
+import { DisplayInstance } from 'vuetify/framework';
 
-$Black10: #e8e8e8;
-$Black30: #bcbbbb;
-$Black50: #908e8e;
-$Black70: #636161;
-$Black100: #211e1e;
-$White100: #ffffff;
+declare module '@vue/runtime-core' {
+  interface ComponentCustomProperties {
+    $router: Router;
 
-$WarmGrey10: #f4f3f6;
-$WarmGrey20: #eae8ee;
-$WarmGrey30: #dedce4;
-$WarmGrey50: #c9c6d3;
-$WarmGrey70: #b4afc2;
-$WarmGrey100: #575169;
+    $vuetify: { display: DisplayInstance };
 
-$Error: #ec4040;
-$Warning: #f5a623;
-$Success100: #0cc177;
-$Success10: #e6f8f1;
-
-$Background: #e5e5e5;
-$Link: $Purple100;
-
-$DefaultShadow: 20px 20px 30px rgba(148, 141, 168, 0.3);
-$DefaultFontSize: 14px;
+    $t(key: Key, named?: Record<string, unknown> | string[]): string;
+  }
+}

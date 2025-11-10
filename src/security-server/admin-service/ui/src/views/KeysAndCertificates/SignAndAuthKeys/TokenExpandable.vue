@@ -211,11 +211,11 @@ import {
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useTokens } from '@/store/modules/tokens';
-import { FileUploadResult } from '@/ui-types';
 import { XrdExpandable, XrdBtn, useNotifications } from '@niis/shared-ui';
 import TokenStatusChip from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusChip.vue';
 import { useTokenCertificates } from '@/store/modules/token-certificates';
 import TokenDetailsDialog from '@/views/TokenDetails/TokenDetailsDialog.vue';
+import { FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
@@ -227,6 +227,7 @@ export default defineComponent({
     KeysTableTitle,
     UnknownKeysTable,
     TokenLoggingButton,
+    XrdFileUpload,
   },
   props: {
     token: {

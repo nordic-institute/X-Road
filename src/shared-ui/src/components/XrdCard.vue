@@ -33,7 +33,7 @@
     >
       <slot v-if="title || $slots.title" name="title" :title="title">
         <div data-test="view-title-text" class="font-weight-medium title-component component-title-text">
-          {{ translated ? title : $t(title) }}
+          {{ title ? $t(title) : translatedTitle }}
         </div>
       </slot>
       <div v-if="$slots['append-title']" class="ml-6">
@@ -65,9 +65,9 @@ const props = defineProps({
     type: String,
     default: 'surface-container',
   },
-  translated: {
-    type: Boolean,
-    default: false,
+  translatedTitle: {
+    type: String,
+    default: undefined,
   },
   loading: {
     type: Boolean,

@@ -90,10 +90,10 @@
 import { defineComponent, PropType } from 'vue';
 import { AccessRight } from '@/openapi-types';
 import { ServiceCandidate } from '@/ui-types';
-import { XrdFormBlock } from '@niis/shared-ui';
+import { XrdFormBlock, XrdSimpleDialog } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { XrdFormBlock },
+  components: { XrdFormBlock, XrdSimpleDialog },
   props: {
     dialog: {
       type: Boolean,

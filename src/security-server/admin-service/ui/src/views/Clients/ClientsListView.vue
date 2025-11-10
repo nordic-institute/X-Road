@@ -219,6 +219,7 @@ import {
   XrdBtn,
   XrdLabel,
   useNotifications,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { AxiosError } from 'axios';
 import SubsystemName from '@/components/client/SubsystemName.vue';
@@ -232,6 +233,7 @@ export default defineComponent({
     XrdBtn,
     XrdLabelWithIcon,
     XrdLabel,
+    XrdConfirmDialog,
   },
   setup() {
     const { addError, addSuccessMessage } = useNotifications();

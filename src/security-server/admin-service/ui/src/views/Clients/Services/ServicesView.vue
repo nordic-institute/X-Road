@@ -211,6 +211,8 @@ import {
   XrdBtn,
   XrdLabelWithIcon,
   useNotifications,
+  XrdExpandable,
+  XrdEmptyPlaceholder,
 } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useServiceDescriptions } from '@/store/modules/service-descriptions';
@@ -228,6 +230,8 @@ export default defineComponent({
     XrdSubView,
     ServiceStatusChip,
     XrdLabelWithIcon,
+    XrdExpandable,
+    XrdEmptyPlaceholder,
   },
   props: {
     id: {
@@ -346,7 +350,7 @@ export default defineComponent({
     this.fetchData().then(() => {
       if (this.$route.query.expand) {
         this.goTo(`#service-description-${this.$route.query.expand}`);
-        this.descOpen(this.$route.query.expand);
+        this.descOpen(this.$route.query.expand as string);
       }
     });
   },

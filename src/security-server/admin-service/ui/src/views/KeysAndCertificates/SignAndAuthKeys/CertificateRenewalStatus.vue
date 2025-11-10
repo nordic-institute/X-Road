@@ -28,7 +28,7 @@
   <div class="cert-row-wrap" data-test="renewal-status">
     <XrdStatusChip v-if="status.type" :type="status.type">
       <template #icon>
-        <xrd-status-icon class="mr-1 ml-n1" :status="status.icon" />
+        <XrdStatusIcon class="mr-1 ml-n1" :status="status.icon" />
       </template>
       <template #text>
         <span class="body-small">
@@ -53,20 +53,20 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 
-import { helper, XrdStatusChip } from '@niis/shared-ui';
+import { helper, XrdStatusChip, XrdStatusIcon } from '@niis/shared-ui';
 
 import { CertificateStatus, TokenCertificate } from '@/openapi-types';
 
 type Status = {
   type?: 'error' | 'success' | 'info';
-  icon: string;
+  icon: 'error' | 'progress-register' | 'ok';
   text: string;
   additionalText?: string;
   tooltipText?: string;
 };
 
 export default defineComponent({
-  components: { XrdStatusChip },
+  components: { XrdStatusChip, XrdStatusIcon },
   props: {
     certificate: {
       type: Object as PropType<TokenCertificate>,
@@ -84,7 +84,7 @@ export default defineComponent({
       ) {
         return {
           type: undefined,
-          icon: '',
+          icon: 'error',
           text: 'N/A',
         };
       }

@@ -167,7 +167,7 @@ import {
 } from '@/openapi-types';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { useUser } from '@/store/modules/user';
-import { DataQuery } from '@/ui-types';
+import { DataQuery, PagingOptions } from '@/ui-types';
 import { debounce } from '@/util/helpers';
 
 import MrConfirmDialog from './dialogs/MrConfirmDialog.vue';
@@ -292,11 +292,17 @@ function navigateToDetails(reqId: number): void {
   });
 }
 
-async function changeOptions({ itemsPerPage, page, sortBy }) {
+async function changeOptions({ itemsPerPage, page, sortBy }: PagingOptions) {
   dataQuery.itemsPerPage = itemsPerPage;
   dataQuery.page = page;
   dataQuery.sortBy = sortBy[0]?.key;
-  dataQuery.sortOrder = sortBy[0]?.order;
+  const order = sortBy[0]?.order;
+  dataQuery.sortOrder =
+    order === undefined
+      ? undefined
+      : order === true || order === 'asc'
+        ? 'asc'
+        : 'desc';
   await fetchItems();
 }
 

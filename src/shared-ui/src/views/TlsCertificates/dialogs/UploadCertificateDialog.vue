@@ -25,23 +25,60 @@
    THE SOFTWARE.
  -->
 <template>
-  <wizard-row-wrap :label="$t(label)" :tooltip="tooltip ? $t(tooltip) : ''">
-    <slot></slot>
-  </wizard-row-wrap>
+  <XrdSimpleDialog
+    ref="dialog"
+    title="tlsCertificates.uploadCertificate.title"
+    save-button-text="action.upload"
+    cancel-button-text="action.cancel"
+    submittable
+    :loading="loading"
+    :disable-save="!certFile"
+    @save="upload"
+    @cancel="emit('cancel')"
+  >
+    <template #content>
+      <XrdFormBlock>
+        <XrdFormBlockRow full-length>
+          <XrdCertificateFileUpload v-model:file="certFile" autofocus label="tlsCertificates.uploadCertificate.label" />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
+    </template>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
-import WizardRowWrap from '@/components/ui/WizardRowWrap.vue';
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow, XrdCertificateFileUpload } from '../../../components';
+import { useBasicForm, useFileRef } from '../../../composables';
+import { TlsCertificatesHandler, DialogSaveHandler } from '../../../types';
 
-defineProps({
-  label: {
-    type: String,
+import { PropType } from 'vue';
+
+const props = defineProps({
+  handler: {
+    type: Object as PropType<TlsCertificatesHandler>,
     required: true,
   },
-  tooltip: {
-    type: String,
-    required: false,
-    default: '',
-  },
 });
+
+const emit = defineEmits(['cancel', 'upload']);
+
+const { loading, addSuccessMessage } = useBasicForm();
+const certFile = useFileRef();
+
+function upload(evt: Event, handler: DialogSaveHandler): void {
+  if (!certFile.value) {
+    return;
+  }
+  loading.value = true;
+  props.handler
+    .uploadCertificate(certFile.value)
+    .then(() => {
+      addSuccessMessage('tlsCertificates.uploadCertificate.success');
+      emit('upload');
+    })
+    .catch((error) => {
+      handler.addError(error);
+    })
+    .finally(() => (loading.value = false));
+}
 </script>

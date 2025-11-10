@@ -71,6 +71,7 @@
 import { defineComponent } from 'vue';
 import { PublicPathState, useForm } from 'vee-validate';
 import {
+  XrdSimpleDialog,
   XrdFormBlock,
   XrdFormBlockRow,
   DialogSaveHandler,
@@ -82,6 +83,7 @@ import { Endpoint } from '@/openapi-types';
 
 export default defineComponent({
   components: {
+    XrdSimpleDialog,
     XrdFormBlock,
     XrdFormBlockRow,
   },
@@ -135,7 +137,7 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useServices, ['addEndpoint']),
-    save(handler: DialogSaveHandler): void {
+    save(evt: Event, handler: DialogSaveHandler): void {
       this.adding = true;
       this.addEndpoint(this.serviceId, {
         method: this.values.method as Endpoint.method,

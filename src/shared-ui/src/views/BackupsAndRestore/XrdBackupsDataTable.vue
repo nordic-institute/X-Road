@@ -92,7 +92,7 @@
         </div>
       </template>
     </v-data-table>
-    <xrd-confirm-dialog
+    <XrdConfirmDialog
       v-if="uploadedFile !== null && needsConfirmation"
       data-test="backup-upload-confirm-overwrite-dialog"
       title="backup.uploadBackup.confirmationDialog.title"

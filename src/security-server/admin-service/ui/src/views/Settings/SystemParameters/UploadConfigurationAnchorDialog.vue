@@ -115,12 +115,13 @@ import {
   XrdDateTime,
   XrdHashValue,
   useNotifications,
+  FileUploadResult,
+  XrdFileUpload,
 } from '@niis/shared-ui';
 
 import { Permissions } from '@/global';
 import { Anchor } from '@/openapi-types';
 import { useUser } from '@/store/modules/user';
-import { FileUploadResult } from '@/ui-types';
 import * as api from '@/util/api';
 import { PostPutPatch } from '@/util/api';
 
@@ -131,7 +132,13 @@ const EmptyAnchorPreview: Anchor = {
 
 export default defineComponent({
   name: 'UploadConfigurationAnchorDialog',
-  components: { XrdConfirmDialog, XrdHashValue, XrdBtn, XrdDateTime },
+  components: {
+    XrdConfirmDialog,
+    XrdHashValue,
+    XrdBtn,
+    XrdDateTime,
+    XrdFileUpload,
+  },
   props: {
     initMode: {
       type: Boolean,

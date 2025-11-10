@@ -26,10 +26,7 @@
  */
 
 //resources&assets
-import './assets/icons.css';
-
 export * from './components';
-export * from './components/icons';
 export * from './components/admin-users';
 export * from './components/wizard';
 export * from './layouts';

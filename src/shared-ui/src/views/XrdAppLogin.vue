@@ -143,11 +143,11 @@ import { computed, ref } from 'vue';
 
 import { useForm } from 'vee-validate';
 
-import _logoVLight from '../assets/xrd8/Logo-vertical-light.svg';
-import _logoHLight from '../assets/xrd8/Logo-horizontal-dark.svg';
-import _rocket from '../assets/xrd8/Rocket-trail.png';
-import _trail1 from '../assets/xrd8/Trail-1.png';
-import _trail2 from '../assets/xrd8/Trail-2.png';
+import _logoVLight from '../assets/Logo-vertical-light.svg';
+import _logoHLight from '../assets/Logo-horizontal-dark.svg';
+import _rocket from '../assets/Rocket-trail.png';
+import _trail1 from '../assets/Trail-1.png';
+import _trail2 from '../assets/Trail-2.png';
 import { useNotifications } from '../composables';
 import { useLanguageHelper } from '../plugins/i18n';
 

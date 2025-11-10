@@ -44,9 +44,9 @@
 <script lang="ts" setup>
 import { VContainer } from 'vuetify/components';
 
-import imageRocketTrail from '../assets/xrd8/Rocket-trail.png';
-import imageTrail1 from '../assets/xrd8/Trail-1.png';
-import imageTrail2 from '../assets/xrd8/Trail-2.png';
+import imageRocketTrail from '../assets/Rocket-trail.png';
+import imageTrail1 from '../assets/Trail-1.png';
+import imageTrail2 from '../assets/Trail-2.png';
 import { XrdView } from '../layouts';
 
 defineProps({

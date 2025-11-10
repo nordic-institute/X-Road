@@ -89,16 +89,12 @@ import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import { SecurityServer } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
-import { mapActions, mapStores } from 'pinia';
+import { mapStores } from 'pinia';
 import { debounce } from '@/util/helpers';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
-import { DataQuery, DataTableHeader } from '@/ui-types';
-import {
-  XrdView,
-  XrdPagination,
-  XrdLabelWithIcon,
-  useNotifications,
-} from '@niis/shared-ui';
+import { DataQuery, PagingOptions } from '@/ui-types';
+import { XrdView, XrdPagination, XrdLabelWithIcon, useNotifications } from '@niis/shared-ui';
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -175,11 +171,21 @@ export default defineComponent({
       });
     },
 
-    findServers: async function ({ itemsPerPage, page, sortBy }) {
+    findServers: async function ({
+                                   itemsPerPage,
+                                   page,
+                                   sortBy,
+                                 }: PagingOptions) {
       this.dataQuery.itemsPerPage = itemsPerPage;
       this.dataQuery.page = page;
       this.dataQuery.sortBy = sortBy[0]?.key;
-      this.dataQuery.sortOrder = sortBy[0]?.order;
+      const order = sortBy[0]?.order;
+      this.dataQuery.sortOrder =
+        order === undefined
+          ? undefined
+          : order === true || order === 'asc'
+            ? 'asc'
+            : 'desc';
       this.fetchServers();
     },
     fetchServers: async function () {

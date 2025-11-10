@@ -32,7 +32,7 @@
       class="view-header d-flex flex-row align-center pt-6 pr-6 pl-6 mb-4"
     >
       <span v-if="hasTitle" data-test="view-header-title" class="title-view font-weight-bold">
-        {{ translatedTitle ? translatedTitle : $t(title) }}
+        {{ title ? $t(title) : translatedTitle }}
       </span>
 
       <slot name="append-header" />

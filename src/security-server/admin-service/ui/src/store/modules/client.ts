@@ -31,11 +31,11 @@ import { encodePathParameter } from '@/util/api';
 import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
 
 export interface ClientState {
-  client: Client | null;
+  client: Client | undefined;
   signCertificates: TokenCertificate[];
   connection_type: string | null;
   tlsCertificates: CertificateDetails[];
-  ssCertificate: CertificateDetails | null;
+  ssCertificate: CertificateDetails | undefined;
   clientLoading: boolean;
 }
 
@@ -47,11 +47,11 @@ function clientBaseUrl(clientId: string, path = '') {
 export const useClient = defineStore('client', {
   state: (): ClientState => {
     return {
-      client: null,
+      client: undefined,
       signCertificates: [],
       connection_type: null,
       tlsCertificates: [],
-      ssCertificate: null,
+      ssCertificate: undefined,
       clientLoading: false,
     };
   },
@@ -71,7 +71,7 @@ export const useClient = defineStore('client', {
       }
 
       this.clientLoading = true;
-      this.client = null;
+      this.client = undefined;
       return api
         .get<Client>(clientBaseUrl(id))
         .then((res) => {

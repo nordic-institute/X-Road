@@ -123,6 +123,7 @@ import {
   XrdDateTime,
   XrdLabelWithIcon,
   XrdSubView,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 
 import { Permissions, RouteName } from '@/global';

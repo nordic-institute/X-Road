@@ -25,25 +25,11 @@
  * THE SOFTWARE.
  */
 
-// Shared styles for dialogs
-
-.dlg-edit-row {
-  display: flex;
-  align-content: center;
-  align-items: flex-end;
-  margin-top: 0px;
-  margin-bottom: 0px;
-
-  .dlg-row-title {
-    min-width: 100px;
-    padding-bottom: 20px;
-  }
-
-  .dlg-row-input {
-    margin-left: 10px;
+declare global {
+  interface FocusOptions {
+    preventScroll?: boolean;
+    focusVisible?: boolean;
   }
 }
 
-.dlg-warning-header {
-  font-weight: bold;
-}
+export {};

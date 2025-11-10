@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="globalGroup.dialog.addMembers.title"
     width="824"
     save-button-text="action.add"
@@ -72,7 +72,7 @@
         </template>
       </v-data-table-server>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
@@ -81,7 +81,7 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
-import { useBasicForm, XrdPagination } from '@niis/shared-ui';
+import { XrdSimpleDialog, useBasicForm, XrdPagination } from '@niis/shared-ui';
 
 import { PagedClients } from '@/openapi-types';
 import { useClient } from '@/store/modules/clients';

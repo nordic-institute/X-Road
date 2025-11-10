@@ -74,6 +74,7 @@ import {
   XrdBtn,
   useNotifications,
   XrdViewNavigation,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { computed, ref, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';

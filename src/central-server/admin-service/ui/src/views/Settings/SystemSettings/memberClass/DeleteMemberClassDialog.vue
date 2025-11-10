@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     data-test="system-settings-member-class-delete-confirm-dialog"
     title="action.confirm"
     text="systemSettings.deleteMemberClass"
@@ -40,12 +40,13 @@ import { defineComponent, PropType } from 'vue';
 
 import { mapStores } from 'pinia';
 
-import { useNotifications } from '@niis/shared-ui';
+import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 import { MemberClass } from '@/openapi-types';
 import { useMemberClass } from '@/store/modules/member-class';
 
 export default defineComponent({
+  components: { XrdConfirmDialog },
   props: {
     memberClass: {
       type: Object as PropType<MemberClass>,

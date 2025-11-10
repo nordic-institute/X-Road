@@ -28,7 +28,7 @@
   <div class="cert-row-wrap">
     <XrdStatusChip :type="chipType" :text="status">
       <template #icon>
-        <xrd-status-icon class="mr-1 ml-n1" :status="statusIconType" />
+        <XrdStatusIcon class="mr-1 ml-n1" :status="statusIconType" />
       </template>
     </XrdStatusChip>
   </div>
@@ -37,10 +37,10 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { CertificateStatus, TokenCertificate } from '@/openapi-types';
-import { XrdStatusChip } from '@niis/shared-ui';
+import { XrdStatusChip, XrdStatusIcon } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { XrdStatusChip },
+  components: { XrdStatusChip, XrdStatusIcon },
   props: {
     certificate: {
       type: Object as PropType<TokenCertificate>,

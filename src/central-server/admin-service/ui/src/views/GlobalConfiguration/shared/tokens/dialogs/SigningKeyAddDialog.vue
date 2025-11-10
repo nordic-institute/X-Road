@@ -63,6 +63,7 @@ import {
   useNotifications,
   XrdFormBlock,
   XrdFormBlockRow,
+  XrdSimpleDialog,
 } from '@niis/shared-ui';
 
 import { ConfigurationSigningKey, ConfigurationType } from '@/openapi-types';
@@ -72,6 +73,7 @@ export default defineComponent({
   components: {
     XrdFormBlock,
     XrdFormBlockRow,
+    XrdSimpleDialog,
   },
   props: {
     configurationType: {

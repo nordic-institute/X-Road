@@ -100,7 +100,7 @@
       </v-data-table>
 
       <!-- Edit Roles dialog -->
-      <xrd-simple-dialog
+      <XrdSimpleDialog
         v-if="showRolesEditDialog"
         :translated-title="$t('adminUsers.table.action.edit.dialog.title', { username: selectedUser?.username })"
         :dialog="showRolesEditDialog"
@@ -134,7 +134,7 @@
             </v-checkbox>
           </XrdFormBlock>
         </template>
-      </xrd-simple-dialog>
+      </XrdSimpleDialog>
 
       <XrdAdminUserPasswordChangeDialog
         v-if="showPasswordChangeDialog"
@@ -146,7 +146,7 @@
       />
 
       <!-- Confirm delete dialog -->
-      <xrd-confirm-dialog
+      <XrdConfirmDialog
         v-if="showDeleteConfirmationDialog"
         :data-test="`admin-user-row-${selectedUser?.username}-delete-confirmation`"
         :dialog="showDeleteConfirmationDialog"
@@ -164,11 +164,11 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted, PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { AdminUser } from '@/openapi-types';
+import { AdminUser } from '../../openapi-types';
 import { AdminUsersHandler } from '../../types';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { XrdView, XrdSubView } from '../../layouts';
-import { XrdBtn, XrdFormBlock, XrdLabelWithIcon } from '../../components';
+import { XrdSimpleDialog, XrdBtn, XrdFormBlock, XrdLabelWithIcon, XrdConfirmDialog } from '../../components';
 import { XrdAdminUserPasswordChangeDialog } from '../../components/admin-users';
 
 const props = defineProps({

@@ -84,10 +84,13 @@ export class Filters {
   }
 
   bytes(
-    value,
+    value?: number,
     byteFormat: ByteFormat = ByteFormat.MB,
     fractionDigits: number = 1,
   ): string {
+    if (value == undefined) {
+      return '-';
+    }
     switch (byteFormat) {
       case ByteFormat.kB:
         return (value / 1024).toFixed(fractionDigits) + ByteFormat.kB;

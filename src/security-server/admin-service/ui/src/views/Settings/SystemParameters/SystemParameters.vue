@@ -327,6 +327,8 @@ import {
   XrdStatusChip,
   helper,
   useNotifications,
+  XrdEmptyPlaceholderRow,
+  XrdStatusIcon,
 } from '@niis/shared-ui';
 import {
   AddOnStatus,
@@ -340,7 +342,7 @@ import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddTimestampingServiceDialog.vue';
-import { mapActions, mapState } from 'pinia';
+import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
 import { sortTimestampingServices } from '@/util/sorting';
@@ -349,6 +351,7 @@ import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
 
 export default defineComponent({
   components: {
+    XrdStatusIcon,
     SettingsTabs,
     MaintenanceModeWidget,
     EditSecurityServerAddressDialog,
@@ -363,6 +366,7 @@ export default defineComponent({
     XrdCard,
     XrdSubView,
     XrdStatusChip,
+    XrdEmptyPlaceholderRow,
   },
   setup() {
     const { addError } = useNotifications();

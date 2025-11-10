@@ -130,6 +130,7 @@ import {
   XrdBtn,
   useNotifications,
   useHistory,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { useRouter } from 'vue-router';
 import { useTokenCertificates } from '@/store/modules/token-certificates';

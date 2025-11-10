@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     cancel-button-text="action.cancel"
     save-button-text="action.add"
     save-button-icon="add_circle"
@@ -136,7 +136,7 @@
         </v-expand-transition>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
@@ -144,6 +144,7 @@ import { computed, ref } from 'vue';
 import { useForm } from 'vee-validate';
 import { useCertificationService } from '@/store/modules/trust-services';
 import {
+  XrdSimpleDialog,
   useBasicForm,
   useFileRef,
   XrdBtn,

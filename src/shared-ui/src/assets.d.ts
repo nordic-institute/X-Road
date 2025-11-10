@@ -25,60 +25,12 @@
  * THE SOFTWARE.
  */
 
-@use "material-symbols-rounded";
-@use "text-styles";
-@use "vuetify-overrides";
-
-body {
-  color: rgb(var(--v-theme-on-surface));
+declare module '*.png' {
+  const value: string;
+  export = value;
 }
 
-%special-bh-gradient {
-  background: radial-gradient(rgb(var(--v-theme-special-start)) 12%, rgb(var(--v-theme-special)) 100%);
-}
-
-.bg-special {
-  @extend %special-bh-gradient;
-  //TODO XRD8 special hover/focus/pressed layers are a bit weird
-  &.v-btn--disabled .v-btn__overlay {
-    @extend %special-bh-gradient;
-  }
-}
-
-.xrd-rounded-16 {
-  border-radius: 16px !important;
-}
-
-.xrd-rounded-12 {
-  border-radius: 12px !important;
-}
-
-.xrd-elevation-1 {
-  box-shadow: 0 16px 40px -24px rgb(var(--v-theme-elevation-1));
-}
-
-.xrd {
-  &.bg-success-container {
-    background-color: rgba(var(--v-theme-success-container), 0.15) !important;
-  }
-
-  &.bg-info-container {
-    background-color: rgba(var(--v-theme-info-container), 0.15) !important;
-  }
-
-  &.bg-warning-container {
-    background-color: rgba(var(--v-theme-warning-container), 0.15) !important;
-  }
-
-  &.bg-error-container {
-    background-color: rgba(var(--v-theme-error-container), 0.10) !important;
-  }
-}
-
-.xrd-checkbox-column {
-  width: 50px;
-}
-
-.xrd-search-field {
-  max-width: 320px;
+declare module '*.svg' {
+  const value: string;
+  export = value;
 }

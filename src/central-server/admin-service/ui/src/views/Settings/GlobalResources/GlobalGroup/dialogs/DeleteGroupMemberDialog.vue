@@ -68,7 +68,12 @@ import { computed, PropType } from 'vue';
 
 import { useForm } from 'vee-validate';
 
-import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import {
+  useBasicForm,
+  XrdFormBlock,
+  XrdFormBlockRow,
+  XrdSimpleDialog,
+} from '@niis/shared-ui';
 
 import { GroupMemberListView } from '@/openapi-types';
 import { useGlobalGroups } from '@/store/modules/global-groups';

@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     :loading="loading"
     title="members.member.subsystems.deleteSubsystem"
     focus-on-accept
@@ -47,22 +47,23 @@
         </i18n-t>
       </span>
     </template>
-  </xrd-confirm-dialog>
+  </XrdConfirmDialog>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { mapActions, mapState, mapStores } from 'pinia';
+import { mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useSystem } from '@/store/modules/system';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { ClientId } from '@/openapi-types';
-import { useNotifications } from '@niis/shared-ui';
+import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 export default defineComponent({
   name: 'UnregisterMemberSubsystemDialog',
+  components: { XrdConfirmDialog },
   props: {
     subsystemCode: {
       type: String,

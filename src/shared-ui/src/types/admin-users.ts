@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-import { AdminUser } from '@/openapi-types';
+import { AdminUser } from '../openapi-types';
 
 export interface AdminUsersHandler {
   fetchAll(): Promise<AdminUser[] | void>;
