@@ -92,11 +92,11 @@ public class SystemParametersPageObj {
     }
 
     public SelenideElement tableApprovedCasOcspUrlByRow(int index, String url) {
-        return tableApprovedCasRows().get(index).$x(format("./td[3][text() = '%s']", url));
+        return tableApprovedCasRows().get(index).$x(format("./td[3]//*[text() = '%s']", url));
     }
 
     public SelenideElement tableApprovedCasOcspCostTypeByRow(int index, String costType) {
-        return tableApprovedCasRows().get(index).$x(format("./td[4][text() = '%s']", costType));
+        return tableApprovedCasRows().get(index).$x(format("./td[4]//*[text() = '%s']", costType));
     }
 
     public SelenideElement ocspPrioritizationStrategy() {
