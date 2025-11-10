@@ -31,12 +31,10 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpClient;
-import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
+import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
@@ -47,13 +45,11 @@ import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 @Slf4j
 public class AsicContainerHandler extends AbstractClientProxyHandler {
 
-    private final ConfClientRpcClient confClientRpcClient;
     /**
      * Constructor
      */
-    public AsicContainerHandler(CommonBeanProxy commonBeanProxy, HttpClient client, ConfClientRpcClient confClientRpcClient) {
-        super(commonBeanProxy, client, false);
-        this.confClientRpcClient = confClientRpcClient;
+    public AsicContainerHandler(MessageProcessorFactory messageProcessorFactory) {
+        super(messageProcessorFactory, false, null);
     }
 
     @Override
@@ -69,21 +65,14 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
         }
 
         if (target == null) {
-            throw new CodedException(X_INVALID_REQUEST,
-                    "Target must not be null");
+            throw new CodedException(X_INVALID_REQUEST, "Target must not be null");
         }
 
-        AsicContainerClientRequestProcessor processor = new AsicContainerClientRequestProcessor(
-                commonBeanProxy,
-                confClientRpcClient,
-                commonBeanProxy.getEncryptionConfigProvider(),
-                target,
-                request,
-                response);
+        AsicContainerClientRequestProcessor processor = messageProcessorFactory
+                .createAsicContainerClientRequestProcessor(request, response, target);
 
         if (processor.canProcess()) {
             log.trace("Processing with AsicContainerRequestProcessor");
-
             return processor;
         }
 

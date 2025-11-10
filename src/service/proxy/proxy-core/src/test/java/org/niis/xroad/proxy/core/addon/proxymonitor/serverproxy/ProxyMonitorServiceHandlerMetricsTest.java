@@ -42,7 +42,6 @@ import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -173,8 +172,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         when(mockMonitorClient.getMetrics(anyList(), anyBoolean())).thenReturn(resp.getMetrics());
 
         // execution
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(HttpClient.class),
-                mock(OpMonitoringData.class));
+        handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
 
         //verification
         assertThat("Wrong content type", handlerToTest.getResponseContentType(), is(TEXT_XML_UTF8));
@@ -204,7 +202,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         assertThat(responseDataMetrics.getName(), is(expectedMetricsSetName));
         assertThat(responseDataMetrics.getMetrics().size(), is(1));
 
-        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
+        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().getFirst();
         assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
     }
@@ -252,8 +250,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
                 anyBoolean())).thenReturn(resp.getMetrics());
 
         // execution
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(HttpClient.class),
-                mock(OpMonitoringData.class));
+        handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
 
         //verification
         assertThat("Wrong content type", handlerToTest.getResponseContentType(), is(TEXT_XML_UTF8));
@@ -283,7 +280,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         assertThat(responseDataMetrics.getName(), is(expectedMetricsSetName));
         assertThat(responseDataMetrics.getMetrics().size(), is(1));
 
-        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
+        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().getFirst();
         assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
     }

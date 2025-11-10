@@ -31,11 +31,10 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
+import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
@@ -49,14 +48,14 @@ public class MetadataHandler extends AbstractClientProxyHandler {
     /**
      * Constructor
      */
-    public MetadataHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
-        super(commonBeanProxy, client, false);
+    public MetadataHandler(MessageProcessorFactory messageProcessorFactory) {
+        super(messageProcessorFactory, false, null);
     }
 
     @Override
     protected MessageProcessorBase createRequestProcessor(RequestWrapper request,
-                                                ResponseWrapper response,
-                                                OpMonitoringData opMonitoringData) {
+                                                          ResponseWrapper response,
+                                                          OpMonitoringData opMonitoringData) {
         var target = getTarget(request);
         log.trace("createRequestProcessor({})", target);
 
@@ -71,7 +70,8 @@ public class MetadataHandler extends AbstractClientProxyHandler {
                     "Target must not be null");
         }
 
-        MetadataClientRequestProcessor processor = new MetadataClientRequestProcessor(commonBeanProxy, target, request, response);
+        MetadataClientRequestProcessor processor = messageProcessorFactory
+                .createMetadataClientRequestProcessor(request, response, target);
         if (processor.canProcess()) {
             log.trace("Processing with MetadataClientRequestProcessor");
             return processor;

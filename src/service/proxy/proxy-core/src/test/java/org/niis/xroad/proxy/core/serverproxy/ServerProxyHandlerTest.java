@@ -35,13 +35,13 @@ import org.junit.Test;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
+import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -59,18 +59,18 @@ public class ServerProxyHandlerTest {
         var keyConfProvider = mock(KeyConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
         var checkMock = mock(ClientProxyVersionVerifier.class);
-        var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+        var clientAuthenticationService = mock(ClientAuthenticationService.class);
         var proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
         var commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
-        var encryptionConfigProvider = mock(EncryptionConfigProvider.class);
-        var commonBeanProxy =
-                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null,
-                        null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties, new OcspVerifierFactory(),
-                        commonProperties, encryptionConfigProvider);
 
-        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(commonBeanProxy, mock(ProxyProperties.ServerProperties.class),
-                mock(HttpClient.class), mock(HttpClient.class),
-                checkMock, mock(ServiceHandlerLoader.class));
+        var clientMessageProcessorFactory = new MessageProcessorFactory(mock(HttpClient.class), mock(HttpClient.class),
+                proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider,
+                null, new OcspVerifierFactory(), commonProperties, null, null,
+                mock(ServiceHandlerLoader.class), null, mock(EncryptionConfigProvider.class));
+
+        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(clientMessageProcessorFactory,
+                mock(ProxyProperties.ServerProperties.class),
+                checkMock, globalConfProvider, new NoOpMonitoringBuffer());
 
         serverProxyHandler.handle(request, getMockedResponse(), callback);
 

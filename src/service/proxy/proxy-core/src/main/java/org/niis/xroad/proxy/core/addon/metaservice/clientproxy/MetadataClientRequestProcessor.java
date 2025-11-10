@@ -36,7 +36,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Streams;
 import com.google.common.net.MediaType;
@@ -47,9 +47,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.MemberInfo;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -63,7 +66,7 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_CLIENTS;
  * Soap metadata client request processor
  */
 @Slf4j
-class MetadataClientRequestProcessor extends MessageProcessorBase {
+public class MetadataClientRequestProcessor extends MessageProcessorBase {
 
     static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
 
@@ -75,28 +78,26 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     static {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         MAPPER = mapper;
     }
 
     private final String target;
 
-    MetadataClientRequestProcessor(CommonBeanProxy commonBeanProxy,
-                                   String target, RequestWrapper request, ResponseWrapper response) {
-        super(commonBeanProxy, request, response, null);
-
+    public MetadataClientRequestProcessor(ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
+                                          ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
+                                          String target, RequestWrapper request, ResponseWrapper response) {
+        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, null);
         this.target = target;
     }
 
     public boolean canProcess() {
-        // $FALL-THROUGH$
         return target.equals(LIST_CLIENTS);
     }
 
     @Override
     @ArchUnitSuppressed("NoVanillaExceptions")
     public void process() throws Exception {
-        // to nothing
         if (target.equals(LIST_CLIENTS)) {
             handleListClients();
         }
@@ -109,7 +110,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
         String instanceIdentifier = getInstanceIdentifierFromRequest();
 
         ClientListType list = OBJECT_FACTORY.createClientListType();
-        commonBeanProxy.getGlobalConfProvider().getMembers(instanceIdentifier).stream()
+        globalConfProvider.getMembers(instanceIdentifier).stream()
                 .map(this::toDto)
                 .forEach(list.getMember()::add);
 
@@ -147,7 +148,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     private String getInstanceIdentifierFromRequest() throws Exception {
         String instanceIdentifier = jRequest.getParameter(PARAM_INSTANCE_IDENTIFIER);
         if (StringUtils.isBlank(instanceIdentifier)) {
-            instanceIdentifier = commonBeanProxy.getGlobalConfProvider().getInstanceIdentifier();
+            instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         }
 
         return instanceIdentifier;

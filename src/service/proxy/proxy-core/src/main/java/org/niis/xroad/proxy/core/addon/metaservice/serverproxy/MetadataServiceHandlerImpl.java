@@ -180,8 +180,7 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public void startHandling(RequestWrapper servletRequest,
-                              ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
+    public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
                               OpMonitoringData opMonitoringData)
             throws SOAPException, JAXBException, IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException {
 

@@ -38,17 +38,14 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.PreEncodedHttpField;
 import org.eclipse.jetty.server.Request;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.net.URI;
@@ -79,26 +76,20 @@ class ClientRestMessageProcessorTest {
         verifyOpMonitoringData(opMonitoringData.getData());
     }
 
-    @SneakyThrows
     private ClientRestMessageProcessor createMockedClientRestMessageProcessor(OpMonitoringData opMonitoringData) {
         var globalConfProvider = mock(GlobalConfProvider.class);
         var keyConfProvider = mock(KeyConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
         RequestWrapper request = RequestWrapper.of(getMockedRequest());
-        var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         var respWrapper = mock(ResponseWrapper.class);
         var httpClient = mock(HttpClient.class);
-        var isAuthenticationData = mock(IsAuthenticationData.class);
         var proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
         var commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
-        var encryptionConfigProvider = mock(EncryptionConfigProvider.class);
-        var commonBeanProxy =
-                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null,
-                        null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties, new OcspVerifierFactory(),
-                        commonProperties, encryptionConfigProvider);
-        var clientRestMessageProcessor =
-                new ClientRestMessageProcessor(commonBeanProxy, request, respWrapper, httpClient, isAuthenticationData,
-                        opMonitoringData);
+        var clientRestMessageProcessor = new ClientRestMessageProcessor(request, respWrapper,
+                proxyProperties, globalConfProvider, serverConfProvider, mock(ClientAuthenticationService.class),
+                keyConfProvider, null,
+                new OcspVerifierFactory(), commonProperties.tempFilesPath(),
+                httpClient, opMonitoringData);
         when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);
         when(serverConfProvider.getIsAuthentication(any())).thenReturn(NOSSL);
         when(serverConfProvider.getMaintenanceMode()).thenReturn(new ServerConfProvider.MaintenanceMode(false, null));

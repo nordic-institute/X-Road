@@ -47,7 +47,6 @@ import jakarta.xml.soap.SOAPMessage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
@@ -149,7 +148,6 @@ public class MetadataServiceHandlerTest {
     private static MessageFactory messageFactory;
     private static Marshaller marshaller;
 
-    private HttpClient httpClientMock;
     private RequestWrapper mockRequest;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
@@ -196,7 +194,6 @@ public class MetadataServiceHandlerTest {
         });
         globalConfProvider = new TestSuiteGlobalConf();
 
-        httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
         mockProxyMessage = mock(ProxyMessage.class);
 
@@ -319,8 +316,7 @@ public class MetadataServiceHandlerTest {
 
         // execution
 
-        handlerToTest.startHandling(mockRequest, mockProxyMessage,
-                httpClientMock, mock(OpMonitoringData.class));
+        handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
 
         // verification
         assertThat("Content type does not match", handlerToTest.getResponseContentType(), is(TEXT_XML_UTF8));
@@ -383,8 +379,7 @@ public class MetadataServiceHandlerTest {
 
         // execution
 
-        handlerToTest.startHandling(mockRequest, mockProxyMessage,
-                httpClientMock, mock(OpMonitoringData.class));
+        handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
 
         // verification
         assertThat("Content type does not match", handlerToTest.getResponseContentType(), is(TEXT_XML_UTF8));
@@ -427,7 +422,7 @@ public class MetadataServiceHandlerTest {
         // execution, should throw..
 
         var ce = assertThrows(CodedException.class, () -> handlerToTest.startHandling(mockRequest, mockProxyMessage,
-                httpClientMock, mock(OpMonitoringData.class)));
+                mock(OpMonitoringData.class)));
 
         assertEquals(X_INVALID_REQUEST, ce.getFaultCode());
         assertTrue(ce.getMessage().contains("Missing serviceCode in message body"));
@@ -459,7 +454,7 @@ public class MetadataServiceHandlerTest {
         // execution, should throw..
 
         var ce = assertThrows(CodedException.class, () -> handlerToTest.startHandling(mockRequest, mockProxyMessage,
-                httpClientMock, mock(OpMonitoringData.class)));
+                mock(OpMonitoringData.class)));
 
         assertEquals(X_UNKNOWN_SERVICE, ce.getFaultCode());
         assertTrue(ce.getMessage().contains("Could not find wsdl URL for service"));
@@ -496,7 +491,7 @@ public class MetadataServiceHandlerTest {
         // execution, should throw..
 
         var re = assertThrows(RuntimeException.class, () -> handlerToTest.startHandling(mockRequest, mockProxyMessage,
-                httpClientMock, mock(OpMonitoringData.class)));
+                mock(OpMonitoringData.class)));
 
         assertTrue(re.getMessage().contains("Received HTTP error: 403 - Forbidden"));
     }
@@ -529,7 +524,7 @@ public class MetadataServiceHandlerTest {
 
         // execution
         handlerToTest.startHandling(mockRequest, mockProxyMessage,
-                httpClientMock, mock(OpMonitoringData.class));
+                mock(OpMonitoringData.class));
 
         // verification
         TestMimeContentHandler handler = parseWsdlResponse(handlerToTest.getResponseContent(),
@@ -574,7 +569,7 @@ public class MetadataServiceHandlerTest {
         // execution
 
         handlerToTest.startHandling(mockRequest, mockProxyMessage,
-                httpClientMock, mock(OpMonitoringData.class));
+                mock(OpMonitoringData.class));
 
         // verification
         final List<String> expectedWSDLServiceNames =
@@ -613,7 +608,7 @@ public class MetadataServiceHandlerTest {
         TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId, true);
 
         var ce = assertThrows(CodedException.class, () -> handlerToTest.startHandling(mockRequest, mockProxyMessage,
-                httpClientMock, mock(OpMonitoringData.class)));
+                mock(OpMonitoringData.class)));
 
         assertEquals(X_INVALID_SERVICE_TYPE, ce.getFaultCode());
 
