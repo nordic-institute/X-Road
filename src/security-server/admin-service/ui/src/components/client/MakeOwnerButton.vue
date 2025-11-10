@@ -55,10 +55,10 @@
 import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { XrdBtn, useNotifications } from '@niis/shared-ui';
+import { XrdBtn, useNotifications, XrdSimpleDialog } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { XrdBtn },
+  components: { XrdBtn, XrdSimpleDialog },
   props: {
     id: {
       type: String,

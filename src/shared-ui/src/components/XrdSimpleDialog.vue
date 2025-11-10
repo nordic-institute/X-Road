@@ -192,7 +192,7 @@ const props = defineProps({
 
 const emit = defineEmits<{
   cancel: [];
-  save: [handler: DialogSaveHandler];
+  save: [evt: Event, handler: DialogSaveHandler];
 }>();
 
 const errorManager = useLocalErrorManager();
@@ -208,15 +208,15 @@ const contentStyle = computed(() => {
   return style;
 });
 
-function submit() {
+function submit(evt: Event) {
   if (props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
-    emit('save', handler.value);
+    emit('save', evt, handler.value);
   }
 }
 
-function save() {
+function save(evt: Event) {
   if (!props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
-    emit('save', handler.value);
+    emit('save', evt, handler.value);
   }
 }
 

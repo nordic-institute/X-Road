@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="trustServices.caSettings"
     save-button-text="action.save"
     save-button-icon="check"
@@ -98,15 +98,20 @@
         </v-expand-transition>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
-import { computed, PropType, ref } from 'vue';
+import { computed, PropType } from 'vue';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
 import { useForm, useField } from 'vee-validate';
-import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import {
+  XrdSimpleDialog,
+  useBasicForm,
+  XrdFormBlock,
+  XrdFormBlockRow,
+} from '@niis/shared-ui';
 
 const props = defineProps({
   certificationService: {

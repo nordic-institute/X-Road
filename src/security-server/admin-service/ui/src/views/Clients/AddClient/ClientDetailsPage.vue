@@ -378,7 +378,7 @@ export default defineComponent({
           memberClass: memberClass,
           memberCode: memberCode,
         })
-        .catch((error: Error) => that.showError(error))
+        .catch((error: Error) => that.addError(error))
         .finally(() => (that.checkRunning = false));
     }, 600),
   },

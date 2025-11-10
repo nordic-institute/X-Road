@@ -26,29 +26,12 @@
  */
 
 // Filters an array of objects excluding specified object key
-import { NavigationFailure } from 'vue-router';
 import { ClientId, ManagementRequestType } from '@/openapi-types';
-import { AxiosResponse } from 'axios';
 import { i18n } from '@niis/shared-ui';
-import dayjs from 'dayjs';
 
 // Deep clones an object or array using JSON
 export function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
-}
-
-export function swallowRedirectedNavigationError(
-  error: NavigationFailure,
-): void {
-  // NavigationFailureType.redirected = 2, but does not work here?
-  //TODO maybe irrelevant?
-  if (2 == error.type) {
-    // ignore errors caused by redirect in beforeEach route guard
-    // eslint-disable-next-line no-console
-    console.debug('Redirected navigation error ignored', error);
-    return;
-  }
-  throw error;
 }
 
 // Debounce function
@@ -57,7 +40,7 @@ export const debounce = <F extends (...args: any[]) => any>(
   func: F,
   waitFor: number,
 ): ((...args: Parameters<F>) => Promise<ReturnType<F>>) => {
-  let timeout: number | undefined;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
 
   return (...args: Parameters<F>): Promise<ReturnType<F>> =>
     new Promise((resolve) => {

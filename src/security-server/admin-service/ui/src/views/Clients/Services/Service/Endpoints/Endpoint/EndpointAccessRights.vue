@@ -131,6 +131,7 @@ import {
   XrdBtn,
   XrdLabelWithIcon,
   useNotifications,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useServices } from '@/store/modules/services';
@@ -149,6 +150,7 @@ export default defineComponent({
     ClientName,
     AccessRightsDialog,
     XrdDateTime,
+    XrdConfirmDialog,
   },
   props: {
     id: {

@@ -94,8 +94,6 @@ import { defineComponent } from 'vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 import { memberHasValidSignCert } from '@/util/ClientUtil';
 import { mapActions, mapState } from 'pinia';
 
@@ -144,7 +142,7 @@ export default defineComponent({
       );
     },
     canRegisterClient(): boolean {
-      const memberName = `${this.currentSecurityServer.instance_id}:${this.memberClass}:${this.memberCode}`;
+      const memberName = `${this.currentSecurityServer?.instance_id}:${this.memberClass}:${this.memberCode}`;
       return memberHasValidSignCert(memberName, this.tokens);
     },
   },
@@ -245,7 +243,7 @@ export default defineComponent({
     },
 
     doRegisterClient(): void {
-      if (!this.currentSecurityServer.instance_id) {
+      if (!this.currentSecurityServer?.instance_id) {
         // Should not happen
         throw new Error('Current security server is missing instance id');
       }

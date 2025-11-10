@@ -81,6 +81,7 @@
             </td>
           </tr>
           <XrdEmptyPlaceholderRow
+            colspan="1"
             :loading="backupEncryptionLoading"
             :data="backupEncryptionDiagnostics.backup_encryption_keys"
             :no-items-text="$t('noData.noBackUpEncryptionKeys')"
@@ -94,16 +95,10 @@
 import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { defineComponent } from 'vue';
-import {
-  XrdCard,
-  Status,
-  XrdStatusChip,
-  statusToType,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdCard, Status, XrdStatusChip, statusToType, useNotifications, XrdEmptyPlaceholderRow, XrdStatusIcon } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { XrdCard, XrdStatusChip },
+  components: { XrdStatusIcon, XrdCard, XrdStatusChip, XrdEmptyPlaceholderRow },
   setup() {
     const { addError } = useNotifications();
     return { addError };

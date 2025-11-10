@@ -218,6 +218,7 @@ import {
   XrdBtn,
   DialogSaveHandler,
   helper,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 
 type PinType = 'password' | 'text';
@@ -229,6 +230,7 @@ export default defineComponent({
     XrdFormBlock,
     XrdFormBlockRow,
     XrdBtn,
+    XrdConfirmDialog,
   },
   props: {
     id: {
@@ -392,7 +394,7 @@ export default defineComponent({
     toggleType(type: PinType): PinType {
       return type === 'password' ? 'text' : 'password';
     },
-    async save(handler: DialogSaveHandler): Promise<void> {
+    async save(evt: Event, handler: DialogSaveHandler): Promise<void> {
       this.saving = true;
 
       try {

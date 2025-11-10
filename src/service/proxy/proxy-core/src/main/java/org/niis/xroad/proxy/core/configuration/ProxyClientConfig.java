@@ -34,7 +34,6 @@ import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
@@ -47,7 +46,9 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerHandler;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
 import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
@@ -57,37 +58,46 @@ import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
 import org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 
 @Slf4j
 public class ProxyClientConfig {
 
+    public static final String CLIENT_PROXY_HTTP_CLIENT = "proxyHttpClient";
+
     @ApplicationScoped
     @Priority(1)
-    // must be the last handler
-    AbstractClientProxyHandler clientSoapMessageHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client) {
-        return new ClientSoapMessageHandler(commonBeanProxy, client);
+        // must be the last handler
+    AbstractClientProxyHandler clientSoapMessageHandler(ProxyProperties proxyProperties,
+                                                        MessageProcessorFactory messageProcessorFactory,
+                                                        GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                                        OpMonitoringBuffer opMonitoringBuffer) {
+        return new ClientSoapMessageHandler(messageProcessorFactory, proxyProperties, globalConfProvider, keyConfProvider,
+                opMonitoringBuffer);
     }
 
     @ApplicationScoped
     @Priority(100)
     @LookupIfProperty(name = "xroad.proxy.addon.meta-services.enabled", stringValue = "true")
-    AbstractClientProxyHandler metadataHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client) {
-        return new MetadataHandler(commonBeanProxy, client);
+    AbstractClientProxyHandler metadataHandler(MessageProcessorFactory messageProcessorFactory) {
+        return new MetadataHandler(messageProcessorFactory);
     }
 
     @ApplicationScoped
     @Priority(200)
     @LookupIfProperty(name = "xroad.proxy.message-log.enabled", stringValue = "true")
-    AbstractClientProxyHandler asicContainerHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client,
-                                                    ConfClientRpcClient confClientRpcClient) {
-        return new AsicContainerHandler(commonBeanProxy, client, confClientRpcClient);
+    AbstractClientProxyHandler asicContainerHandler(MessageProcessorFactory messageProcessorFactory) {
+        return new AsicContainerHandler(messageProcessorFactory);
     }
 
     @ApplicationScoped
     @Priority(1000)
-    AbstractClientProxyHandler clientRestMessageHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client) {
-        return new ClientRestMessageHandler(commonBeanProxy, client);
+    AbstractClientProxyHandler clientRestMessageHandler(ProxyProperties proxyProperties,
+                                                        MessageProcessorFactory messageProcessorFactory,
+                                                        GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                                        OpMonitoringBuffer opMonitoringBuffer) {
+        return new ClientRestMessageHandler(messageProcessorFactory, proxyProperties, globalConfProvider, keyConfProvider,
+                opMonitoringBuffer);
     }
 
     @ApplicationScoped
@@ -96,7 +106,7 @@ public class ProxyClientConfig {
         private IdleConnectionMonitorThread connectionMonitor;
 
         @ApplicationScoped
-        @Named("proxyHttpClient")
+        @Named(CLIENT_PROXY_HTTP_CLIENT)
         public CloseableHttpClient proxyHttpClient(ProxyProperties proxyProperties,
                                                    AuthTrustVerifier authTrustVerifier,
                                                    ReloadingSSLSocketFactory reloadingSSLSocketFactory) {
@@ -130,7 +140,7 @@ public class ProxyClientConfig {
             return cb.build();
         }
 
-        public void dispose(@Disposes @Named("proxyHttpClient") CloseableHttpClient httpClient) {
+        public void dispose(@Disposes @Named(CLIENT_PROXY_HTTP_CLIENT) CloseableHttpClient httpClient) {
             if (connectionMonitor != null) {
                 connectionMonitor.shutdown();
             }

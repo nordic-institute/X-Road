@@ -132,6 +132,7 @@ import {
   XrdCardTable,
   XrdCardTableRow,
   XrdLabelWithIcon,
+  XrdEmptyPlaceholderRow,
   useNotifications,
 } from '@niis/shared-ui';
 import CertificateStatusChip from '@/components/certificate/CertificateStatusChip.vue';
@@ -147,6 +148,7 @@ export default defineComponent({
     XrdCardTableRow,
     XrdCardTable,
     XrdLabelWithIcon,
+    XrdEmptyPlaceholderRow,
   },
   props: {
     id: {

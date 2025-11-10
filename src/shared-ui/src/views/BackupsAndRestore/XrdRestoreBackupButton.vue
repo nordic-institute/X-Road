@@ -33,7 +33,7 @@
     text="action.restore"
     @click="showConfirmation = true"
   />
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     v-if="showConfirmation && canBackup"
     :loading="restoring"
     title="backup.restoreFromBackup.dialog.title"
@@ -47,8 +47,6 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-
-import { mapActions } from 'pinia';
 
 import { useNotifications } from '../../composables';
 import { BackupHandler } from '../../types';
@@ -75,6 +73,10 @@ export default defineComponent({
     },
   },
   emits: ['refresh-backups'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return {
       showConfirmation: false,
@@ -83,7 +85,6 @@ export default defineComponent({
   },
   computed: {},
   methods: {
-    ...mapActions(useNotifications, ['addError', 'addSuccessMessage']),
     restoreFromBackup() {
       this.restoring = true;
       this.backupHandler

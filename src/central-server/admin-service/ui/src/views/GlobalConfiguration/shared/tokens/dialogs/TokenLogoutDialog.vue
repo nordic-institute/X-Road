@@ -42,12 +42,13 @@ import { defineComponent, PropType } from 'vue';
 
 import { mapActions } from 'pinia';
 
-import { useNotifications } from '@niis/shared-ui';
+import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 import { Token } from '@/openapi-types';
 import { useToken } from '@/store/modules/tokens';
 
 export default defineComponent({
+  components: { XrdConfirmDialog },
   props: {
     token: {
       type: Object as PropType<Token>,

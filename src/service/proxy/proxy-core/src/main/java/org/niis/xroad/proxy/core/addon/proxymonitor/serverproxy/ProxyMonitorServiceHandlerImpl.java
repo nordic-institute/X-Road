@@ -43,7 +43,6 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -126,7 +125,7 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
 
     @Override
     public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
-                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData)
+                              OpMonitoringData opMonitoringData)
             throws ParserConfigurationException, IOException, SAXException, SOAPException, JAXBException {
 
         // It's required that in case of proxy monitor service (where SOAP

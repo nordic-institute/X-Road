@@ -30,24 +30,21 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpURI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteKeyConf;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
+import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
@@ -65,16 +62,15 @@ import static org.mockito.Mockito.when;
  */
 class MetadataHandlerTest {
 
-    private HttpClient httpClientMock;
     private RequestWrapper mockRequest;
     private HttpURI mockHttpUri;
     private ResponseWrapper mockResponse;
 
-    private CommonBeanProxy commonBeanProxy;
     private GlobalConfProvider globalConfProvider;
     private KeyConfProvider keyConfProvider;
     private ServerConfProvider serverConfProvider;
-    private VaultKeyProvider vaultKeyProvider;
+    private ClientAuthenticationService clientAuthenticationService;
+    private MessageProcessorFactory messageProcessorFactory;
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
     private final CommonProperties commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
 
@@ -86,16 +82,18 @@ class MetadataHandlerTest {
         globalConfProvider = new TestSuiteGlobalConf();
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
-        vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+        clientAuthenticationService = mock(ClientAuthenticationService.class);
         EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
         var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
-        commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                proxyProperties, new OcspVerifierFactory(), commonProperties, encryptionConfigProvider, messageRecordEncryption);
-        httpClientMock = mock(HttpClient.class);
+
         mockRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
         mockHttpUri = mock(HttpURI.class);
+
+        messageProcessorFactory = new MessageProcessorFactory(null, null, proxyProperties,
+                globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider, null,
+                new OcspVerifierFactory(), commonProperties, null, null, null,
+                null, encryptionConfigProvider, messageRecordEncryption);
 
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
         when(mockHttpUri.getPath()).thenReturn("/target");
@@ -106,7 +104,7 @@ class MetadataHandlerTest {
 
         when(mockRequest.getMethod()).thenReturn("POST");
 
-        MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy, httpClientMock);
+        MetadataHandler handlerToTest = new MetadataHandler(messageProcessorFactory);
 
         MessageProcessorBase returnValue =
                 handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
@@ -119,7 +117,7 @@ class MetadataHandlerTest {
 
         when(mockRequest.getMethod()).thenReturn("GET");
 
-        MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy, httpClientMock);
+        MetadataHandler handlerToTest = new MetadataHandler(messageProcessorFactory);
 
         MessageProcessorBase returnValue =
                 handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
@@ -130,7 +128,7 @@ class MetadataHandlerTest {
     @Test
     void shouldThrowWhenTargetNull() {
 
-        MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy, httpClientMock);
+        MetadataHandler handlerToTest = new MetadataHandler(messageProcessorFactory);
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn(null);
 
@@ -146,7 +144,7 @@ class MetadataHandlerTest {
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn("/listClients");
 
-        MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy, httpClientMock);
+        MetadataHandler handlerToTest = new MetadataHandler(messageProcessorFactory);
 
         MessageProcessorBase result = handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 

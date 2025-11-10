@@ -80,11 +80,15 @@ import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { defineComponent } from 'vue';
 import { DiagnosticStatusClass } from '@/openapi-types';
-import { XrdCard, useNotifications } from '@niis/shared-ui';
+import {
+  XrdCard,
+  useNotifications,
+  XrdEmptyPlaceholderRow,
+} from '@niis/shared-ui';
 import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
 export default defineComponent({
-  components: { StatusAvatar, XrdCard },
+  components: { StatusAvatar, XrdCard, XrdEmptyPlaceholderRow },
   setup() {
     const { addError } = useNotifications();
     return { addError };

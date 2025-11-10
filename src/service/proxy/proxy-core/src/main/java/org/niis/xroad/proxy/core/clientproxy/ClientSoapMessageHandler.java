@@ -30,13 +30,14 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import org.apache.http.client.HttpClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-
-import java.io.IOException;
+import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
@@ -48,20 +49,25 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * the request itself.
  */
 public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
+    private final ProxyProperties proxyProperties;
+    private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
 
-    public ClientSoapMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
-        super(commonBeanProxy, client, true);
+    public ClientSoapMessageHandler(MessageProcessorFactory messageProcessorFactory, ProxyProperties proxyProperties,
+                                    GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                    OpMonitoringBuffer opMonitoringBuffer) {
+        super(messageProcessorFactory, true, opMonitoringBuffer);
+        this.proxyProperties = proxyProperties;
+        this.globalConfProvider = globalConfProvider;
+        this.keyConfProvider = keyConfProvider;
     }
 
     @Override
-    protected MessageProcessorBase createRequestProcessor(
-            RequestWrapper request, ResponseWrapper response,
-            OpMonitoringData opMonitoringData) throws IOException {
+    protected MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
+                                                          OpMonitoringData opMonitoringData) {
         verifyCanProcess(request);
 
-        return new ClientMessageProcessor(commonBeanProxy,
-                request, response, client, getIsAuthenticationData(request, commonBeanProxy.getProxyProperties().logClientCert()),
-                opMonitoringData);
+        return messageProcessorFactory.createClientSoapMessageProcessor(request, response, opMonitoringData);
     }
 
     private void verifyCanProcess(RequestWrapper request) {
@@ -71,13 +77,13 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
                     request.getMethod());
         }
 
-        commonBeanProxy.getGlobalConfProvider().verifyValidity();
+        globalConfProvider.verifyValidity();
 
-        if (!commonBeanProxy.getProxyProperties().sslEnabled()) {
+        if (!proxyProperties.sslEnabled()) {
             return;
         }
 
-        AuthKey authKey = commonBeanProxy.getKeyConfProvider().getAuthKey();
+        AuthKey authKey = keyConfProvider.getAuthKey();
         if (authKey.certChain() == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");

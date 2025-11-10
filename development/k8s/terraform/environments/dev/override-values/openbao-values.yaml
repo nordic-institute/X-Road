@@ -3,7 +3,7 @@ global:
 server:
   ha:
     enabled: true
-    replicas: 1
+    replicas: 2
     config: |
       ui = true
       listener "tcp" {

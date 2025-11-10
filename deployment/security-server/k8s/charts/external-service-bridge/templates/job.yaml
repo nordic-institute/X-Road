@@ -9,7 +9,8 @@ spec:
       serviceAccountName: {{ .Values.service.name }}-resolver
       containers:
         - name: resolver
-          image: bitnami/kubectl:latest
+          image: {{ .Values.image }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           command: [ "/bin/sh", "/scripts/resolve.sh" ]
           volumeMounts:
             - name: scripts

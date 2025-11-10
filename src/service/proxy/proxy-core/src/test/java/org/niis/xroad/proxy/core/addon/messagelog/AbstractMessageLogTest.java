@@ -40,21 +40,16 @@ import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.messagelog.MessageLogDbProperties;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
-import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.configuration.MessageLogDatabaseConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
@@ -75,11 +70,12 @@ abstract class AbstractMessageLogTest {
 
     ProxyProperties proxyProperties;
     ProxyMessageLogProperties messageLogProperties;
-    OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
+    CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
+            "xroad.common.temp-files-path", "build/tmp"
+    ));
     GlobalConfProvider globalConfProvider;
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;
-    CommonBeanProxy commonBeanProxy;
     LogRecordManager logRecordManager;
     MessageLogDatabaseCtx databaseCtx;
     org.niis.xroad.common.messagelog.MessageRecordEncryption messageRecordEncryption;
@@ -124,19 +120,13 @@ abstract class AbstractMessageLogTest {
                 "xroad.db.messagelog.hibernate.show_sql", "false"
         );
         var props = ConfigUtils.initConfiguration(MessageLogDbProperties.class, hibernateProperties);
-        CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
-                "xroad.common.temp-files-path", "build/tmp"
-        ));
+
         databaseCtx = MessageLogDatabaseConfig.create(props);
         messageRecordEncryption = new org.niis.xroad.common.messagelog.MessageRecordEncryption(messageLogProperties.databaseEncryption());
         logRecordManager = new LogRecordManager(databaseCtx, messageRecordEncryption);
-        var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
-        var encryptionConfigProvider = mock(EncryptionConfigProvider.class);
+
         var keyManager = mock(org.niis.xroad.common.pgp.PgpKeyManager.class);
         var encryptionService = mock(org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService.class);
-        commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
-                ocspVerifierFactory, commonProperties, encryptionConfigProvider, messageRecordEncryption);
 
         if (useTestLogManager()) {
             logManager = new TestLogManager(globalConfProvider, serverConfProvider, logRecordManager, databaseCtx, messageLogProperties);

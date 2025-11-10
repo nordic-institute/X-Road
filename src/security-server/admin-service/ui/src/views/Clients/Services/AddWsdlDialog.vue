@@ -65,6 +65,7 @@ import {
   DialogSaveHandler,
   XrdFormBlock,
   XrdFormBlockRow,
+  XrdSimpleDialog,
 } from '@niis/shared-ui';
 import { ref } from 'vue';
 import { CodeWithDetails } from '@/openapi-types';
@@ -103,7 +104,7 @@ function cancel(): void {
   clear();
 }
 
-function save(handler: DialogSaveHandler): void {
+function save(evt: Event, handler: DialogSaveHandler): void {
   warningDialog.value = false;
   saving.value = true;
   dialogHandler.value = handler;

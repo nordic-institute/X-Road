@@ -3,11 +3,9 @@ kind: ConfigMap
 metadata:
   name: {{ .Values.serviceAccount.name }}-script
 data:
-  _common.sh: |
-    {{- .Files.Get "scripts/_common.sh" | nindent 4 }}
+  _openbao.sh: |
+    {{- .Files.Get "scripts/_openbao.sh" | nindent 4 }}
+  _k8s.sh: |
+    {{- .Files.Get "scripts/_k8s.sh" | nindent 4 }}
   init.sh: |
     {{- .Files.Get "scripts/init.sh" | nindent 4 }}
-  setup.sh: |
-    {{- .Files.Get "scripts/setup.sh" | nindent 4 }}
-  unseal.sh: |
-    {{- .Files.Get "scripts/unseal.sh" | nindent 4 }}

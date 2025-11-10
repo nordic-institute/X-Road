@@ -198,7 +198,7 @@ public class RestMetadataServiceHandlerTest {
         ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
         handlerToTest.startHandling(mockRequest, mockProxyMessage, mockDecoder, mockEncoder, httpClientMock,
-                httpClientMock, mock(OpMonitoringData.class));
+                mock(OpMonitoringData.class));
 
         RestResponse restResponse = handlerToTest.getRestResponse();
         assertEquals(HttpStatus.SC_OK, restResponse.getResponseCode());
@@ -228,7 +228,7 @@ public class RestMetadataServiceHandlerTest {
         ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
         handlerToTest.startHandling(mockRequest, mockProxyMessage, mockDecoder, mockEncoder, httpClientMock,
-                httpClientMock, mock(OpMonitoringData.class));
+                mock(OpMonitoringData.class));
 
         RestResponse restResponse = handlerToTest.getRestResponse();
         assertEquals(HttpStatus.SC_OK, restResponse.getResponseCode());
@@ -259,7 +259,7 @@ public class RestMetadataServiceHandlerTest {
         ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
         handlerToTest.startHandling(mockRequest, mockProxyMessage, mockDecoder, mockEncoder, httpClientMock,
-                httpClientMock, mock(OpMonitoringData.class));
+                mock(OpMonitoringData.class));
 
         RestResponse restResponse = handlerToTest.getRestResponse();
         assertEquals(HttpStatus.SC_OK, restResponse.getResponseCode());
@@ -288,7 +288,7 @@ public class RestMetadataServiceHandlerTest {
 
 
         handlerToTest.startHandling(mockRequest, mockProxyMessage, mockDecoder, mockEncoder, httpClientMock,
-                httpClientMock, mock(OpMonitoringData.class));
+                mock(OpMonitoringData.class));
 
         CachingStream yamlFileResponseBody = handlerToTest.getRestResponseBody();
         String yaml = new BufferedReader(
@@ -327,7 +327,7 @@ public class RestMetadataServiceHandlerTest {
         when(mockProxyMessage.getRest()).thenReturn(secondaryMockRestRequest);
 
         handlerToTest.startHandling(mockRequest, mockProxyMessage, mockDecoder, mockEncoder, httpClientMock,
-                httpClientMock, mock(OpMonitoringData.class));
+                mock(OpMonitoringData.class));
 
         CachingStream jsonFileResponseBody = handlerToTest.getRestResponseBody();
         String json = new BufferedReader(
@@ -359,7 +359,7 @@ public class RestMetadataServiceHandlerTest {
         when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
 
         handlerToTest.startHandling(mockRequest, mockProxyMessage, mockDecoder, mockEncoder, httpClientMock,
-                httpClientMock, mock(OpMonitoringData.class));
+                mock(OpMonitoringData.class));
     }
 
 }

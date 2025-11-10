@@ -65,16 +65,19 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     private final String opMonitorAddress;
 
     private final boolean isEnabledPooledConnectionReuse;
+    private final HttpClient opMonitorHttpClient;
+
 
     private HttpSender sender;
 
     public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
                                           ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
-                                          boolean isEnabledPooledConnectionReuse) {
+                                          HttpClient opMonitorHttpClient, boolean isEnabledPooledConnectionReuse) {
         super(serverConfProvider, globalConfProvider);
         this.opMonitorProperties = opMonitorProperties;
         this.opMonitorAddress = getOpMonitorAddress();
         this.isEnabledPooledConnectionReuse = isEnabledPooledConnectionReuse;
+        this.opMonitorHttpClient = opMonitorHttpClient;
     }
 
     @Override
@@ -104,10 +107,10 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     @Override
     public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
-                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData) {
+                              OpMonitoringData opMonitoringData) {
         log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
 
-        sender = createHttpSender(opMonitorClient);
+        sender = createHttpSender(opMonitorHttpClient);
         sender.setConnectionTimeout(TimeUtils.secondsToMillis(opMonitorProperties.connection().connectionTimeoutSeconds()));
         sender.setSocketTimeout(TimeUtils.secondsToMillis(opMonitorProperties.connection().socketTimeoutSeconds()));
         sender.addHeader("accept-encoding", "");

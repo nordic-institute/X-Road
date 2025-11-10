@@ -47,7 +47,6 @@ import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
@@ -65,13 +64,18 @@ import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
+import org.niis.xroad.proxy.core.serverproxy.ClientProxyVersionVerifier;
+import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
+import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
+import org.niis.xroad.proxy.core.serverproxy.ServerProxyHandler;
 import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
 import org.niis.xroad.proxy.core.test.TestService;
 import org.niis.xroad.proxy.core.test.TestSigningCtxProvider;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
+import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.niis.xroad.test.keyconf.TestKeyConf;
@@ -159,18 +163,22 @@ public abstract class AbstractProxyIntegrationTest {
         clientAuthTrustVerifier = new LoggingAuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
                 TEST_GLOBAL_CONF, clientKeyConf, certHelper);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, clientKeyConf);
-        VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+        ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(TEST_SERVER_CONF,
+                new NoopVaultKeyProvider(), proxyProperties);
+
         EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
         var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
-        CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                clientKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                proxyProperties, OCSP_VERIFIER_FACTORY, commonProperties, encryptionConfigProvider, messageRecordEncryption);
 
         ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(TEST_GLOBAL_CONF, clientKeyConf);
         HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
                 .proxyHttpClient(proxyProperties, clientAuthTrustVerifier, reloadingSSLSocketFactory);
+        MessageProcessorFactory messageProcessorFactory =
+                new MessageProcessorFactory(httpClient, null, proxyProperties, TEST_GLOBAL_CONF, TEST_SERVER_CONF,
+                        clientAuthenticationService, clientKeyConf, signingCtxProvider, OCSP_VERIFIER_FACTORY, commonProperties, null,
+                        null, null, null, encryptionConfigProvider, messageRecordEncryption);
 
-        ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(commonBeanProxy, httpClient);
+        ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(messageProcessorFactory,
+                proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer());
         clientProxy = new ClientProxy(TEST_SERVER_CONF, proxyProperties.clientProxy(), reloadingSSLSocketFactory,
                 new ListInstanceWrapper<>(List.of(restMessageHandler)));
         clientProxy.init();
@@ -180,17 +188,26 @@ public abstract class AbstractProxyIntegrationTest {
         serverKeyConf = new TestKeyConf(TEST_GLOBAL_CONF);
         CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF, OCSP_VERIFIER_FACTORY);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
-        VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+
         EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
         var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
-        CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                serverKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                proxyProperties, OCSP_VERIFIER_FACTORY, commonProperties, encryptionConfigProvider, messageRecordEncryption);
 
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
-                mock(MonitorRpcClient.class), commonProperties, proxyProperties);
-        serverProxy = new ServerProxy(proxyProperties, mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
-                new NoopVaultClient());
+                mock(MonitorRpcClient.class), commonProperties, proxyProperties, new NoopVaultClient());
+        HttpClientCreator httpClientCreator = new HttpClientCreator(TEST_SERVER_CONF,
+                proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
+        ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(
+                TEST_SERVER_CONF, new NoopVaultKeyProvider(), proxyProperties);
+        MessageProcessorFactory messageProcessorFactory = new MessageProcessorFactory(
+                null, httpClientCreator.getHttpClient(), proxyProperties, TEST_GLOBAL_CONF, TEST_SERVER_CONF,
+                clientAuthenticationService, serverKeyConf,
+                signingCtxProvider, OCSP_VERIFIER_FACTORY, commonProperties, null, null,
+                serviceHandlerLoader, certHelper, encryptionConfigProvider, messageRecordEncryption);
+        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(messageProcessorFactory, proxyProperties.server(),
+                mock(ClientProxyVersionVerifier.class), TEST_GLOBAL_CONF,
+                new NoOpMonitoringBuffer());
+        serverProxy = new ServerProxy(proxyProperties, TEST_GLOBAL_CONF, serverKeyConf,
+                serverProxyHandler, mock(IdleConnectionMonitorThread.class), mock(AntiDosConfiguration.class));
         serverProxy.init();
     }
 

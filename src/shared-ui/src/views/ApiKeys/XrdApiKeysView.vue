@@ -132,12 +132,11 @@ import { SortItem } from 'vuetify/lib/components/VDataTable/composables/sort';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 import { useNotifications } from '../../composables';
-import { XrdBtn, XrdCard, XrdLabelWithIcon } from '../../components';
+import { XrdBtn, XrdCard, XrdLabelWithIcon, XrdConfirmDialog } from '../../components';
 import { XrdSubView, XrdView } from '../../layouts';
 
 import XrdEditApiKeyRolesDialog from './XrdEditApiKeyRolesDialog.vue';
 import { ApiKeysHandler, ApiKey } from '../../types';
-import { ca } from 'vuetify/locale';
 
 export default defineComponent({
   components: {
@@ -147,6 +146,7 @@ export default defineComponent({
     XrdCard,
     XrdBtn,
     XrdLabelWithIcon,
+    XrdConfirmDialog,
   },
   props: {
     handler: {

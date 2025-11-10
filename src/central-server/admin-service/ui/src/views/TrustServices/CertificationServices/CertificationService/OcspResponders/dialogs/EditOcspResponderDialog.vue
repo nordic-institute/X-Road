@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="trustServices.trustService.ocspResponders.edit.dialog.title"
     save-button-text="action.save"
     cancel-button-text="action.cancel"
@@ -74,7 +74,7 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
@@ -85,6 +85,7 @@ import { OcspResponder } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { useForm } from 'vee-validate';
 import {
+  XrdSimpleDialog,
   useBasicForm,
   useFileRef,
   XrdFormBlock,

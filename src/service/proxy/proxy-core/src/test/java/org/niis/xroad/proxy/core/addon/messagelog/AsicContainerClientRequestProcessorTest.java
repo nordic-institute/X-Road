@@ -47,6 +47,7 @@ import org.niis.xroad.common.pgp.PgpKeyGenerator;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerClientRequestProcessor;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -87,8 +88,10 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
         final MockOutputStream mockOutputStream = new MockOutputStream();
 
         final AsicContainerClientRequestProcessor proc =
-                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient, mock(EncryptionConfigProvider.class),
-                        messageRecordEncryption, "/verificationconf", request, response);
+                new AsicContainerClientRequestProcessor(confClientRpcClient, mock(EncryptionConfigProvider.class),
+                        proxyProperties, globalConfProvider, serverConfProvider, logRecordManager,
+                        commonProperties.tempFilesPath(), messageRecordEncryption, "/verificationconf", request, response,
+                        mock(ClientAuthenticationService.class));
 
         byte[] mockZipResponse = new byte[]{'v', 'e', 'r', 'i', 'f', 'i', 'c', 'a', 't', 'i', 'o', 'n', 'c', 'o', 'n', 'f', 'z', 'i', 'p'};
 
@@ -130,8 +133,11 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
         final MockOutputStream mockOutputStream = new MockOutputStream();
         when(response.getOutputStream()).thenReturn(mockOutputStream);
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient, encryptionConfigProvider,
-                        messageRecordEncryption, "/asic", request, response);
+                new AsicContainerClientRequestProcessor(confClientRpcClient, encryptionConfigProvider,
+                        proxyProperties, globalConfProvider, serverConfProvider,
+                        logRecordManager, commonProperties.tempFilesPath(), messageRecordEncryption,
+                        "/asic", request, response, mock(ClientAuthenticationService.class));
+
 
         processor.process();
 
@@ -186,8 +192,11 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(commonBeanProxy, confClientRpcClient, encryptionConfigProvider,
-                        messageRecordEncryption, "/asic", request, response);
+                new AsicContainerClientRequestProcessor(confClientRpcClient, encryptionConfigProvider,
+                        proxyProperties, globalConfProvider, serverConfProvider,
+                        logRecordManager, commonProperties.tempFilesPath(), messageRecordEncryption,
+                        "/asic", request, response, mock(ClientAuthenticationService.class));
+
 
         processor.process();
 
@@ -243,7 +252,7 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
         config.put("xroad.proxy.message-log.timestamper.timestamp-immediately", "false");
         config.put("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1800");
         config.put("xroad.proxy.message-log.archiver.grouping-strategy", GroupingStrategy.MEMBER.name());
-        config.put("xroad.proxy.message-log.archiver.enabled", String.valueOf(encrypted));
+        config.put("xroad.proxy.message-log.archiver.encryption-enabled", String.valueOf(encrypted));
 
         testSetUp(config);
 

@@ -64,15 +64,14 @@
 import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { mapActions } from 'pinia';
 import { PublicPathState, useForm } from 'vee-validate';
-import { DialogSaveHandler, useNotifications } from '@niis/shared-ui';
-import { XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import { DialogSaveHandler, useNotifications, XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     XrdFormBlock,
     XrdFormBlockRow,
+    XrdSimpleDialog,
   },
   props: {
     id: {
@@ -123,7 +122,7 @@ export default defineComponent({
       this.resetForm();
       this.$emit('cancel');
     },
-    save(handler: DialogSaveHandler): void {
+    save(evt: Event, handler: DialogSaveHandler): void {
       this.saving = true;
       api
         .post(`/clients/${encodePathParameter(this.id)}/local-groups`, {
