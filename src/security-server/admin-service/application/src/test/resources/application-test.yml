@@ -32,8 +32,6 @@ xroad:
         jdbc:
           use_streams_for_binary: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  message-log-archiver:
-    enabled: false
   common-rpc:
     use-tls: false
 

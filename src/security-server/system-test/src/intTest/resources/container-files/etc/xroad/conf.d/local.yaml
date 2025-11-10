@@ -23,7 +23,7 @@ xroad:
         messagelog-keystore-password: somepassword
         messagelog-key-id: key1
       archiver:
-        enabled: true
+        encryption-enabled: false
     addon:
       op-monitor:
         enabled: true
