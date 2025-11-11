@@ -211,9 +211,9 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
     @Step("user can change the default CSR format")
     public void userCanChangeTheDefaultCsrFormat() {
-        trustServicesPageObj.certServiceDetails.caSettings.btnEditDefaultCsrFormat().click();
+        trustServicesPageObj.certServiceDetails.caSettings.btnEditCa().click();
 
-        vSelect(trustServicesPageObj.certServiceDetails.caSettings.selectDefaultCsrFormat())
+        vSelect(trustServicesPageObj.certServiceDetails.editCaSettings.selectDefaultCsrFormat())
                 .clickAndSelect(CsrFormat.PEM.name());
 
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();

@@ -113,7 +113,7 @@ public class TrustServicesPageObj {
             }
 
             public SelenideElement defaultCsrFormat() {
-                return $x("//div[@data-test='default-csr-format-card']/div[contains(@class, 'v-card-text')]/div");
+                return $x("//td[@data-test='default-csr-format-card']");
             }
 
             public SelenideElement acmeServerDirectoryUrl() {
@@ -136,10 +136,6 @@ public class TrustServicesPageObj {
                 return $x("//button[@data-test='edit-ca-btn']");
             }
 
-            public SelenideElement btnEditDefaultCsrFormat() {
-                return $x("//div[@data-test='default-csr-format-card']//button[@data-test='info-card-edit-button']");
-            }
-
             public SelenideElement btnEditAcme() {
                 return $x("//div[@data-test='cert-acme-card']//button[@data-test='edit-ca-acme-btn']");
             }
@@ -156,7 +152,7 @@ public class TrustServicesPageObj {
             }
 
             public SelenideElement selectDefaultCsrFormat() {
-                return $x("//div[@data-test='dialog-simple']//div[@data-test='default-csr-format-select']");
+                return $x(".//div[@data-test='default-csr-format-select']");
             }
 
             public SelenideElement inputAcmeServerDirectoryUrl() {
