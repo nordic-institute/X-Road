@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.19  
+Version: 1.20  
 Doc. ID: PR-MSERV
 
 | Date       | Version | Description                                                                  | Author               |
