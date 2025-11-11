@@ -62,6 +62,7 @@ class SharedParametersV6MarshallerTest {
                 ))
         ));
         approvedCA.setCertificateProfileInfo("certProfileInfo");
+        approvedCA.setDefaultCsrFormat(CsrFormat.DER);
         sharedParamsBuilder.approvedCAs(List.of(approvedCA));
 
         SharedParameters.ApprovedTSA approvedTSA =

@@ -78,6 +78,7 @@ export const useCertificationService = defineStore('certificationService', {
       );
       formData.append('tls_auth', newCas.tls_auth || '');
       formData.append('certificate', newCas.certificate);
+      formData.append('default_csr_format', newCas.default_csr_format);
       formData.append(
         'acme_server_directory_url',
         newCas.acme_server_directory_url || '',

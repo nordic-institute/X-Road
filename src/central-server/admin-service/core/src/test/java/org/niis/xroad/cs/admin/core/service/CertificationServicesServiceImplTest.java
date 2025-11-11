@@ -56,6 +56,7 @@ import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
 import org.niis.xroad.cs.admin.core.validation.IpAddressValidator;
 import org.niis.xroad.cs.admin.core.validation.UrlValidator;
 import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.security.cert.CertificateEncodingException;
@@ -156,6 +157,7 @@ class CertificationServicesServiceImplTest {
         assertEquals(CA_NAME, certificationService.getName());
         assertEquals(VALID_FROM, certificationService.getNotBefore());
         assertEquals(VALID_TO, certificationService.getNotAfter());
+        assertEquals(CsrFormat.PEM, certificationService.getDefaultCsrFormat());
         assertEquals(ACME_SERVER_DIRECTORY_URL, certificationService.getAcmeServerDirectoryUrl());
         assertEquals(ACME_SERVER_IP_ADDRESS, certificationService.getAcmeServerIpAddress());
         assertTrue(certificationService.getTlsAuth());
@@ -274,6 +276,7 @@ class CertificationServicesServiceImplTest {
         ca.setAuthenticationOnly(true);
         ca.setCertProfileInfo(CERT_PROFILE);
         ca.setCaInfo(caInfo());
+        ca.setDefaultCsrFormat(CsrFormat.PEM.name());
         ca.setAcmeServerDirectoryUrl(ACME_SERVER_DIRECTORY_URL);
         ca.setAcmeServerIpAddress(ACME_SERVER_IP_ADDRESS);
         ca.setIntermediateCaInfos(Set.of(caInfo(), caInfo()));

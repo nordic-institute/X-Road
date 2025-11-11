@@ -53,6 +53,16 @@
 
     <info-card
       class="mb-6"
+      :title-text="$t('trustServices.trustService.settings.defaultCsrFormat')"
+      :action-text="$t('action.edit')"
+      :show-action="allowEditSettings"
+      :info-text="currentCertificationService?.default_csr_format || ''"
+      data-test="default-csr-format-card"
+      @action-clicked="showEditDefaultCsrFormatDialog = true"
+    />
+
+    <info-card
+      class="mb-6"
       :title-text="acmeCardTitle"
       :action-text="$t('action.edit')"
       :show-action="allowEditSettings"
@@ -106,6 +116,13 @@
       @save="hideEditCertProfileDialog"
     ></EditCertProfileDialog>
 
+    <EditDefaultCsrFormatDialog
+      v-if="showEditDefaultCsrFormatDialog && currentCertificationService"
+      :certification-service="currentCertificationService"
+      @cancel="hideEditDefaultCsrFormatDialog"
+      @save="hideEditDefaultCsrFormatDialog"
+    ></EditDefaultCsrFormatDialog>
+
     <EditAcmeServerDialog
       v-if="showEditAcmeServerDialog && currentCertificationService"
       :certification-service="currentCertificationService"
@@ -128,10 +145,12 @@ import { useUser } from '@/store/modules/user';
 import EditCertProfileDialog from '@/components/certificationServices/EditCertProfileDialog.vue';
 import EditTlsAuthDialog from '@/components/certificationServices/EditTlsAuthDialog.vue';
 import EditAcmeServerDialog from '@/components/certificationServices/EditAcmeServerDialog.vue';
+import EditDefaultCsrFormatDialog from "@/components/certificationServices/EditDefaultCsrFormatDialog.vue";
 
 export default defineComponent({
   name: 'CertificationServiceSettings',
   components: {
+    EditDefaultCsrFormatDialog,
     EditTlsAuthDialog,
     EditCertProfileDialog,
     EditAcmeServerDialog,
@@ -141,6 +160,7 @@ export default defineComponent({
     return {
       showEditTlsAuthDialog: false,
       showEditCertProfileDialog: false,
+      showEditDefaultCsrFormatDialog: false,
       showEditAcmeServerDialog: false,
     };
   },
@@ -162,6 +182,9 @@ export default defineComponent({
     },
     hideEditCertProfileDialog() {
       this.showEditCertProfileDialog = false;
+    },
+    hideEditDefaultCsrFormatDialog() {
+      this.showEditDefaultCsrFormatDialog = false;
     },
     hideEditAcmeServerDialog() {
       this.showEditAcmeServerDialog = false;
