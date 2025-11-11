@@ -61,38 +61,38 @@ public class HealthDataMetricsUtilTest {
         String expectedServiceId = "EE/GOV/testmember/testsub/testservice/v1";
         assertEquals(expectedServiceId, serviceId.toShortString());
 
-        String jmxKey = getLastRequestTimestampGaugeName(serviceId, true);
-        assertEquals(jmxKey, "lastSuccessfulRequestTimestamp("
+        String key = getLastRequestTimestampGaugeName(serviceId, true);
+        assertEquals(key, "lastSuccessfulRequestTimestamp("
                 + serviceId.toShortString() + ")");
 
-        String regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
-        assertTrue(jmxKey.matches(regex));
+        String regex = HealthDataMetricsUtil.formatMetricMatchRegexp(key);
+        assertTrue(key.matches(regex));
 
-        jmxKey = getLastRequestTimestampGaugeName(serviceId, false);
-        assertEquals(jmxKey, "lastUnsuccessfulRequestTimestamp("
+        key = getLastRequestTimestampGaugeName(serviceId, false);
+        assertEquals(key, "lastUnsuccessfulRequestTimestamp("
                 + serviceId.toShortString() + ")");
 
-        regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
-        assertTrue(jmxKey.matches(regex));
+        regex = HealthDataMetricsUtil.formatMetricMatchRegexp(key);
+        assertTrue(key.matches(regex));
 
-        jmxKey = getRequestCounterName(serviceId, true);
-        assertEquals(jmxKey, "successfulRequestCount("
+        key = getRequestCounterName(serviceId, true);
+        assertEquals(key, "successfulRequestCount("
                 + serviceId.toShortString() + ")");
 
-        regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
-        assertTrue(jmxKey.matches(regex));
+        regex = HealthDataMetricsUtil.formatMetricMatchRegexp(key);
+        assertTrue(key.matches(regex));
 
-        jmxKey = getRequestCounterName(serviceId, false);
-        assertEquals(jmxKey, "unsuccessfulRequestCount("
+        key = getRequestCounterName(serviceId, false);
+        assertEquals(key, "unsuccessfulRequestCount("
                 + serviceId.toShortString() + ")");
 
-        regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
-        assertTrue(jmxKey.matches(regex));
+        regex = HealthDataMetricsUtil.formatMetricMatchRegexp(key);
+        assertTrue(key.matches(regex));
 
-        jmxKey = getServiceTypeName(serviceId);
-        assertEquals(jmxKey, "serviceType(" + serviceId.toShortString() + ")");
-        regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
-        assertTrue(jmxKey.matches(regex));
+        key = getServiceTypeName(serviceId);
+        assertEquals(key, "serviceType(" + serviceId.toShortString() + ")");
+        regex = HealthDataMetricsUtil.formatMetricMatchRegexp(key);
+        assertTrue(key.matches(regex));
     }
 
     @Test
@@ -140,8 +140,8 @@ public class HealthDataMetricsUtilTest {
                 serviceId, true);
         assertEquals(lastSuccessfulRequestTsKey,
                 "lastSuccessfulRequestTimestamp(EE/BÖÖ/testmember"
-                        + "/testservice_provider/&#91;&quot;Með_suð_í_"
-                        + "eyrum&quot;&#93;/v012)");
+                        + "/testservice_provider/[\"Með_suð_í_"
+                        + "eyrum\"]/v012)");
 
         String regex = HealthDataMetricsUtil.formatMetricMatchRegexp(
                 lastSuccessfulRequestTsKey);
@@ -164,9 +164,9 @@ public class HealthDataMetricsUtilTest {
 
         String requestDurationKey = getRequestDurationName(serviceId);
         assertEquals(requestDurationKey,
-                "requestDuration(EE/foo&#46;bar/testmember"
+                "requestDuration(EE/foo.bar/testmember"
                         + "/testservice_provider"
-                        + "/Закрой&#46;за&#46;мной&#46;дверь&#46;я&#46;ухожу)");
+                        + "/Закрой.за.мной.дверь.я.ухожу)");
 
         String regex = HealthDataMetricsUtil.formatMetricMatchRegexp(
                 requestDurationKey);
@@ -189,9 +189,9 @@ public class HealthDataMetricsUtilTest {
 
         String requestDurationKey = getRequestDurationName(serviceId);
         assertEquals(requestDurationKey,
-                "requestDuration(EE&#32;TEST/foo&#92;bar"
-                        + "/testmember&#44;&#32;simple/testservice_provider"
-                        + "/a&#32;service&#32;with&#32;spaces)");
+                "requestDuration(EE TEST/foo\\bar"
+                        + "/testmember, simple/testservice_provider"
+                        + "/a service with spaces)");
 
         String regex = HealthDataMetricsUtil.formatMetricMatchRegexp(
                 requestDurationKey);

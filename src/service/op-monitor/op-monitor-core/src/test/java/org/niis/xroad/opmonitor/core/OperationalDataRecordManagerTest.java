@@ -70,7 +70,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
      * @throws Exception if an error occurs.
      */
     @Before
-    public void beforeTest() throws Exception {
+    public void beforeTest() {
         int cleaned = DATABASE_CTX.doInTransaction(
                 session -> session.createMutationQuery("delete OperationalDataRecordEntity")
                         .executeUpdate());
