@@ -31,8 +31,8 @@ import com.google.common.collect.Sets;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
 
@@ -41,10 +41,10 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.formatFullOperationalDataAsJson;
@@ -66,10 +66,8 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
     /**
      * Cleanup the stored records before each test.
-     *
-     * @throws Exception if an error occurs.
      */
-    @Before
+    @BeforeEach
     public void beforeTest() {
         int cleaned = DATABASE_CTX.doInTransaction(
                 session -> session.createMutationQuery("delete OperationalDataRecordEntity")

@@ -137,7 +137,7 @@ public final class OpMonitorDaemon {
     }
 
     private ServerConnector createDaemonSslConnector()
-            throws NoSuchAlgorithmException, KeyManagementException, CertificateException, IOException, InvalidKeySpecException {
+            throws NoSuchAlgorithmException, KeyManagementException {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);

@@ -27,10 +27,10 @@ package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.identifier.ServiceId;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.opmonitor.core.HealthDataMetricsUtil.getLastRequestTimestampGaugeName;
 import static org.niis.xroad.opmonitor.core.HealthDataMetricsUtil.getRequestCounterName;
 import static org.niis.xroad.opmonitor.core.HealthDataMetricsUtil.getRequestDurationName;

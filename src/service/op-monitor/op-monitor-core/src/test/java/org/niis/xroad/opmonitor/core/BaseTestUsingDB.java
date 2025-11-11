@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.opmonitor.core.config.OpMonitorDbProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
@@ -65,7 +65,7 @@ public class BaseTestUsingDB {
      *
      * @throws Exception if an error occurs.
      */
-    @BeforeClass
+    @BeforeAll
     public static void setUpBeforeClass() throws Exception {
         prepareDatabase(DATABASE_CTX);
     }

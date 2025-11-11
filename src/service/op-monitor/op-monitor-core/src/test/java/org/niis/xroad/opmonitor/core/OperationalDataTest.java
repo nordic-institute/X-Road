@@ -31,14 +31,14 @@ import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.internal.util.config.ConfigurationHelper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.fillMinimalOperationalData;
@@ -55,7 +55,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
     /**
      * Begins a transaction.
      */
-    @Before
+    @BeforeEach
     public void beginTransaction() {
         session = DATABASE_CTX.beginTransaction();
     }
@@ -64,7 +64,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
      * Rolls back the transaction after each test so we always start with an
      * empty database.
      */
-    @After
+    @AfterEach
     public void rollbackTransaction() {
         DATABASE_CTX.rollbackTransaction();
     }
