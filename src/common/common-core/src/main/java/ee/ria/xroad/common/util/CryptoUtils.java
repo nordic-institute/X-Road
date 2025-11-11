@@ -70,9 +70,12 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Collection;
 
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.crypto.identifier.Providers.SUN_RSA_SIGN;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * This class contains various security and certificate related utility methods.
@@ -174,7 +177,7 @@ public final class CryptoUtils {
      */
     public static CertificateID createCertId(BigInteger subjectSerialNumber,
                                              X509Certificate issuer)
-            throws OCSPException, OperatorCreationException, CertificateEncodingException, IOException {
+            throws OCSPException, CertificateEncodingException, IOException {
         return new CertificateID(Digests.createDigestCalculator(DigestAlgorithm.SHA1),
                 new X509CertificateHolder(issuer.getEncoded()),
                 subjectSerialNumber);
@@ -446,5 +449,15 @@ public final class CryptoUtils {
         try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(out))) {
             writer.writeObject(readCertificate(certBytes));
         }
+    }
+
+    public static String signatureHash(String signatureXml,
+                                       ee.ria.xroad.common.crypto.identifier.DigestAlgorithm hashAlg) throws IOException {
+        return encodeBase64(getInputHash(signatureXml, hashAlg));
+    }
+
+    private static byte[] getInputHash(String str,
+                                       ee.ria.xroad.common.crypto.identifier.DigestAlgorithm hashAlg) throws IOException {
+        return calculateDigest(hashAlg, str.getBytes(UTF_8));
     }
 }

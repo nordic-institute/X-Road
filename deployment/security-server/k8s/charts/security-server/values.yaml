@@ -140,6 +140,7 @@ services:
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
+      XROAD_COMMON_RPC_CHANNEL_MANAGEMENT_HOST: "proxy-ui-api"
       XROAD_OP_MONITOR_HOST: "op-monitor"
       XROAD_OP_MONITOR_SCHEME: https
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"

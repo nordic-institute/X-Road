@@ -24,23 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog.archiver.job;
+package org.niis.xroad.management.rpc;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.messagelog.archiver.core.LogCleaner;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
-import org.springframework.scheduling.annotation.Scheduled;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
-@Slf4j
-@RequiredArgsConstructor
-public class LogCleanerJob {
-    private final LogArchiverProperties logArchiverProperties;
-    private final LogCleaner logCleaner;
+@ConfigMapping(prefix = ManagementRpcChannelProperties.PREFIX)
+public interface ManagementRpcChannelProperties extends RpcChannelProperties {
+    String PREFIX = "xroad.common-rpc.channel.management";
+    String DEFAULT_HOST = "127.0.0.1";
+    String DEFAULT_PORT = "4060";
+    String DEFAULT_DEADLINE_AFTER = "60000";
 
-    @Scheduled(cron = "${xroad.message-log-archiver.clean-interval}")
-    public void archive() {
-        log.info("Executing LogCleanerJob with cron {}", logArchiverProperties.getCleanInterval());
-        logCleaner.execute();
-    }
+
+    @Override
+    @WithDefault(DEFAULT_HOST)
+    String host();
+
+    @Override
+    @WithDefault(DEFAULT_PORT)
+    int port();
+
+    @Override
+    @WithName("deadline-after")
+    @WithDefault(DEFAULT_DEADLINE_AFTER)
+    int deadlineAfter();
+
 }

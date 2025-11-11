@@ -26,11 +26,10 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import jakarta.xml.bind.JAXBException;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.signature.XMLSignatureException;
 import org.bouncycastle.asn1.ASN1Encoding;
@@ -45,6 +44,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 import javax.xml.transform.TransformerException;
 
@@ -64,14 +64,26 @@ import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMPING_FAILED
 import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_RESPONSE_VALIDATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_TOKEN_ENCODING_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.TSP_CERTIFICATE_NOT_FOUND;
-import static org.niis.xroad.proxy.core.addon.messagelog.TimestamperUtil.addSignerCertificate;
 import static org.niis.xroad.proxy.core.addon.messagelog.TimestamperUtil.getTimestampResponse;
 
 @Slf4j
-@RequiredArgsConstructor
-public abstract class AbstractTimestampRequest {
+abstract class AbstractTimestampRequest {
     protected final GlobalConfProvider globalConfProvider;
+    protected final ProxyMessageLogProperties messageLogProperties;
+    protected final TimestamperUtil timestamperUtil;
+    protected final DigestAlgorithm digestAlgorithm;
+
     protected final Long[] logRecords;
+
+    protected AbstractTimestampRequest(GlobalConfProvider globalConfProvider,
+                                       ProxyMessageLogProperties messageLogProperties,
+                                       Long[] logRecords) {
+        this.globalConfProvider = globalConfProvider;
+        this.messageLogProperties = messageLogProperties;
+        this.logRecords = logRecords;
+        this.timestamperUtil = new TimestamperUtil(messageLogProperties.timestamper());
+        this.digestAlgorithm = messageLogProperties.hashAlg();
+    }
 
     abstract byte[] getRequestData() throws XMLSignatureException, JAXBException, IOException;
 
@@ -95,7 +107,7 @@ public abstract class AbstractTimestampRequest {
         }
     }
 
-    protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)  {
+    protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls) {
         log.debug("tspUrls: {}", tspUrls);
         Map<String, Exception> errorsByUrl = new HashMap<>();
         for (String url : tspUrls) {
@@ -128,9 +140,9 @@ public abstract class AbstractTimestampRequest {
         return timestampFailed;
     }
 
-    private static InputStream getTsRequestInputStream(TimeStampRequest tsRequest, String url) {
+    private InputStream getTsRequestInputStream(TimeStampRequest tsRequest, String url) {
         try {
-            return TimestamperUtil.makeTsRequest(tsRequest, url);
+            return timestamperUtil.makeTsRequest(tsRequest, url);
         } catch (IOException e) {
             throw XrdRuntimeException.systemException(ErrorCode.TIMESTAMP_PROVIDER_CONNECTION_FAILED)
                     .details("Could not get response from TSP")
@@ -139,24 +151,22 @@ public abstract class AbstractTimestampRequest {
     }
 
     private TimeStampRequest createTimestampRequest(byte[] data) {
-        TimeStampRequestGenerator reqgen = new TimeStampRequestGenerator();
+        var requestGenerator = new TimeStampRequestGenerator();
 
-        var tsaHashAlg = MessageLogProperties.getHashAlg();
-
-        log.trace("Creating time-stamp request (algorithm: {})", tsaHashAlg);
+        log.trace("Creating time-stamp request (algorithm: {})", digestAlgorithm);
 
         byte[] digest;
         try {
-            digest = calculateDigest(tsaHashAlg, data);
+            digest = calculateDigest(digestAlgorithm, data);
         } catch (IOException e) {
             throw XrdRuntimeException.systemException(CALCULATING_MESSAGE_DIGEST_FAILED)
                     .cause(e)
                     .build();
         }
 
-        ASN1ObjectIdentifier algorithm = getAlgorithmIdentifier(tsaHashAlg).getAlgorithm();
+        ASN1ObjectIdentifier algorithm = getAlgorithmIdentifier(digestAlgorithm).getAlgorithm();
 
-        return reqgen.generate(algorithm, digest);
+        return requestGenerator.generate(algorithm, digest);
     }
 
     protected byte[] getTimestampDer(TimeStampResponse tsResponse) {
@@ -185,9 +195,9 @@ public abstract class AbstractTimestampRequest {
         return signerCertificate;
     }
 
-    private static TimeStampToken getTimeStampToken(TimeStampResponse tsResponse, X509Certificate signerCertificate) {
+    private TimeStampToken getTimeStampToken(TimeStampResponse tsResponse, X509Certificate signerCertificate) {
         try {
-            return addSignerCertificate(tsResponse, signerCertificate);
+            return timestamperUtil.addSignerCertificate(tsResponse, signerCertificate);
         } catch (CMSException | TSPException | CertificateEncodingException | IOException e) {
             throw XrdRuntimeException.systemException(ADDING_SIGNATURE_TO_TS_TOKEN_FAILED)
                     .details("Adding signer certificate to timestamp token failed")

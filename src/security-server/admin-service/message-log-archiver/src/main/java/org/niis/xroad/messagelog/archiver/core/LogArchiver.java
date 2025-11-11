@@ -31,7 +31,6 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.messagelog.database.entity.ArchiveDigestEntity;
 import ee.ria.xroad.messagelog.database.entity.MessageRecordEntity;
 import ee.ria.xroad.messagelog.database.mapper.MessageRecordMapper;
@@ -44,10 +43,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
+import org.niis.xroad.common.messagelog.MessageRecordEncryption;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
+import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
+import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 import org.niis.xroad.messagelog.archiver.mapper.ArchiveDigestMapper;
 
 import java.io.IOException;
@@ -74,17 +75,16 @@ public class LogArchiver {
 
     public static final int FETCH_SIZE = 10;
 
-    private final LogArchiverProperties logArchiverProperties;
-    private final EncryptionConfigProvider encryptionConfigProvider;
-    private final CommonProperties commonProperties;
+    private final PgpKeyManager keyManager;
+    private final BouncyCastlePgpEncryptionService encryptionService;
     private final GlobalConfProvider globalConfProvider;
     private final DatabaseCtx databaseCtx;
 
-    public void execute() {
+    public void execute(LogArchiverExecutionProperties executionProperties) {
         try {
             Long maxRecordId = databaseCtx.doInTransaction(this::getMaxRecordId);
             if (maxRecordId != null) {
-                while (handleArchive(maxRecordId)) {
+                while (handleArchive(executionProperties, maxRecordId)) {
                     // body intentionally empty
                 }
             }
@@ -100,16 +100,16 @@ public class LogArchiver {
                 .executeUpdate();
     }
 
-    private boolean handleArchive(long maxRecordId) {
+    private boolean handleArchive(LogArchiverExecutionProperties executionProperties, long maxRecordId) {
         return databaseCtx.doInTransaction(session -> {
-            final int limit = logArchiverProperties.getArchiveTransactionBatchSize();
+            final int limit = executionProperties.archiveTransactionBatchSize();
             final long start = System.currentTimeMillis();
-            final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();
+            final MessageRecordEncryption messageRecordEncryption = new MessageRecordEncryption(executionProperties.databaseEncryption());
 
             int recordsArchived = 0;
             log.info("Archiving log records...");
 
-            try (LogArchiveWriter archiveWriter = createLogArchiveWriter(session)) {
+            try (LogArchiveWriter archiveWriter = createLogArchiveWriter(executionProperties, session)) {
                 List<Long> recordIds = new ArrayList<>(100);
                 try (Stream<MessageRecordEntity> records = getNonArchivedMessageRecords(session, maxRecordId, limit)) {
                     for (Iterator<MessageRecordEntity> it = records.iterator(); it.hasNext(); ) {
@@ -118,7 +118,7 @@ public class LogArchiver {
                         recordIds.add(messageRecord.getId());
                         messageRecordEncryption.prepareDecryption(messageRecord);
                         if (archiveWriter.write(messageRecord)) {
-                            logArchiverProperties.getArchiveTransferCommand().ifPresent(this::runTransferCommand);
+                            executionProperties.archiveTransferCommandOpt().ifPresent(this::runTransferCommand);
                         }
                         //evict record from persistence context to avoid running out of memory
                         session.detach(entity);
@@ -142,7 +142,7 @@ public class LogArchiver {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
             } finally {
                 if (recordsArchived > 0) {
-                    logArchiverProperties.getArchiveTransferCommand().ifPresent(this::runTransferCommand);
+                    executionProperties.archiveTransferCommandOpt().ifPresent(this::runTransferCommand);
                     log.info("Archived {} log records in {} ms", recordsArchived, System.currentTimeMillis() - start);
                 }
             }
@@ -151,17 +151,21 @@ public class LogArchiver {
         });
     }
 
-    private LogArchiveWriter createLogArchiveWriter(Session session) throws IOException {
+    private LogArchiveWriter createLogArchiveWriter(LogArchiverExecutionProperties executionProperties, Session session)
+            throws IOException {
+        var encryptionConfigProvider = EncryptionConfigProvider.create(keyManager,
+                encryptionService, executionProperties.archiveEncryption());
+
         return new LogArchiveWriter(globalConfProvider,
-                getArchivePath(),
+                getArchivePath(executionProperties),
                 new HibernateLogArchiveBase(session),
-                commonProperties.tempFilesPath(),
-                encryptionConfigProvider
+                encryptionConfigProvider,
+                executionProperties
         );
     }
 
-    private Path getArchivePath() throws IOException {
-        var archivePath = Paths.get(logArchiverProperties.getArchivePath());
+    private Path getArchivePath(LogArchiverExecutionProperties executionProperties) throws IOException {
+        var archivePath = Paths.get(executionProperties.archivePath());
         if (!Files.isDirectory(archivePath)) {
             throw new IOException("Log output path (" + archivePath + ") must be directory");
         }

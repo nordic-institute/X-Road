@@ -62,11 +62,13 @@ public class ServerProxyHandlerTest {
         var clientAuthenticationService = mock(ClientAuthenticationService.class);
         var proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
         var commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
+        var encryptionConfigProvider = mock(EncryptionConfigProvider.class);
+        var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
 
         var clientMessageProcessorFactory = new MessageProcessorFactory(mock(HttpClient.class), mock(HttpClient.class),
                 proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider,
                 null, new OcspVerifierFactory(), commonProperties, null, null,
-                mock(ServiceHandlerLoader.class), null, mock(EncryptionConfigProvider.class));
+                mock(ServiceHandlerLoader.class), null, encryptionConfigProvider, messageRecordEncryption);
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(clientMessageProcessorFactory,
                 mock(ProxyProperties.ServerProperties.class),

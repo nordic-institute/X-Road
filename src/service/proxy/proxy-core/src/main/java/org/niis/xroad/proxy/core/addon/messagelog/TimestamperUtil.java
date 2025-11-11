@@ -26,9 +26,8 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-
-import lombok.experimental.UtilityClass;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.cmp.PKIFreeText;
@@ -44,6 +43,7 @@ import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,13 +62,12 @@ import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_NON_GRANT
 import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_RESPONSE_OBJECT_CREATION_FAILED;
 
 @Slf4j
-@UtilityClass
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 final class TimestamperUtil {
+    private final ProxyMessageLogProperties.TimestamperProperties timeStamperProperties;
 
-
-    @SuppressWarnings("unchecked")
-    static TimeStampToken addSignerCertificate(TimeStampResponse tsResponse,
-                                               X509Certificate signerCertificate)
+    TimeStampToken addSignerCertificate(TimeStampResponse tsResponse,
+                                        X509Certificate signerCertificate)
             throws CertificateEncodingException, IOException, CMSException, TSPException {
         CMSSignedData cms = tsResponse.getTimeStampToken().toCMSSignedData();
 
@@ -80,10 +79,10 @@ final class TimestamperUtil {
                 new JcaCertStore(collection), cms.getAttributeCertificates(), cms.getCRLs()));
     }
 
-    static InputStream makeTsRequest(TimeStampRequest req, String tspUrl) throws IOException {
+    InputStream makeTsRequest(TimeStampRequest req, String tspUrl) throws IOException {
         byte[] request = req.getEncoded();
 
-        URL url =  URI.create(tspUrl).toURL();
+        URL url = URI.create(tspUrl).toURL();
         HttpURLConnection con = getHttpURLConnectionToTimestampingProvider(url, request);
 
         OutputStream out = con.getOutputStream();
@@ -107,19 +106,19 @@ final class TimestamperUtil {
         return con.getInputStream();
     }
 
-    private static HttpURLConnection getHttpURLConnectionToTimestampingProvider(URL url, byte[] request) throws IOException {
+    private HttpURLConnection getHttpURLConnectionToTimestampingProvider(URL url, byte[] request) throws IOException {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setDoOutput(true);
         con.setDoInput(true);
-        con.setConnectTimeout(MessageLogProperties.getTimestamperClientConnectTimeout());
-        con.setReadTimeout(MessageLogProperties.getTimestamperClientReadTimeout());
+        con.setConnectTimeout(timeStamperProperties.clientConnectTimeout());
+        con.setReadTimeout(timeStamperProperties.clientReadTimeout());
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-type", "application/timestamp-query");
         con.setRequestProperty("Content-length", String.valueOf(request.length));
         return con;
     }
 
-    static TimeStampResponse getTimestampResponse(InputStream in) throws TSPException, IOException {
+    static TimeStampResponse getTimestampResponse(InputStream in) {
         TimeStampResp response = readTimestampResponse(in);
 
         BigInteger status = response.getStatus().getStatus();

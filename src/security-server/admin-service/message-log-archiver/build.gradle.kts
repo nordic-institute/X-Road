@@ -8,8 +8,10 @@ dependencies {
 
   implementation(project(":common:common-db"))
   implementation(project(":common:common-messagelog"))
-  implementation(project(":addons:messagelog:messagelog-db"))
-  implementation(project(":lib:globalconf-spring"))
+  implementation(project(":common:common-rpc"))
+  api(project(":addons:messagelog:messagelog-db"))
+  implementation(project(":security-server:admin-service:message-log-archiver-api"))
+  implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:asic-core"))
   implementation("org.springframework.boot:spring-boot-starter")
   implementation(libs.mapstruct)

@@ -33,6 +33,7 @@ import org.apache.xml.security.signature.XMLSignatureException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampTask;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -49,9 +50,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.NO_TIMESTAMPING_PRO
  */
 @Slf4j
 @RequiredArgsConstructor
-public class TimestamperWorker {
+class TimestamperWorker {
     final GlobalConfProvider globalConfProvider;
     final LogRecordManager logRecordManager;
+    final ProxyMessageLogProperties messageLogProperties;
 
     private final List<String> tspUrls;
 
@@ -128,11 +130,11 @@ public class TimestamperWorker {
     }
 
     protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
-        return new SingleTimestampRequest(logRecordManager, globalConfProvider, logRecord);
+        return new SingleTimestampRequest(logRecordManager, messageLogProperties, globalConfProvider, logRecord);
     }
 
     protected AbstractTimestampRequest createBatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
-        return new BatchTimestampRequest(globalConfProvider, logRecords, signatureHashes);
+        return new BatchTimestampRequest(globalConfProvider, messageLogProperties, logRecords, signatureHashes);
     }
 
 }

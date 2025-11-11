@@ -27,10 +27,8 @@ package org.niis.xroad.messagelog.archiver.core;
 
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Description;
@@ -49,6 +47,7 @@ import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
+import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 import org.niix.xroad.common.pgp.test.StreamingPgpDecryptor;
 
 import java.io.ByteArrayInputStream;
@@ -64,6 +63,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -101,9 +101,12 @@ class LogArchiveCacheTest {
     private static final long LOG_TIME_REQUEST_LARGE_EARLIEST = 1428664660610L;
     private static final long LOG_TIME_RESPONSE_NORMAL = 1428664927050L;
 
+    private static final long DEFAULT_ARCHIVE_MAX_FILESIZE = 33554432L;
+
     private long id = 0;
     private boolean encrypted;
     private LogArchiveCache cache;
+    private long archiveMaxFilesize = DEFAULT_ARCHIVE_MAX_FILESIZE;
 
     // Encryption components (initialized when encrypted = true)
     private PgpKeyManager keyManager;
@@ -112,6 +115,7 @@ class LogArchiveCacheTest {
     @BeforeEach
     void setup() {
         id = 0;
+        archiveMaxFilesize = DEFAULT_ARCHIVE_MAX_FILESIZE;
     }
 
     @AfterEach
@@ -129,8 +133,8 @@ class LogArchiveCacheTest {
     void addOneEntryOfNormalSize(boolean useEncryption) throws Exception {
         // Given
         encrypted = useEncryption;
-        cache = createCache();
         setMaxArchiveSizeDefault();
+        cache = createCache();
 
         // When
         cache.add(createRequestRecordNormal());
@@ -152,8 +156,8 @@ class LogArchiveCacheTest {
     void rotateImmediatelyWhenOneEntryIsTooLarge(boolean useEncryption) throws Exception {
         // Given
         encrypted = useEncryption;
-        cache = createCache();
         setMaxArchiveSizeSmall();
+        cache = createCache();
 
         // When
         cache.add(createRequestRecordTooLarge());
@@ -185,8 +189,8 @@ class LogArchiveCacheTest {
     void addMultipleRecordsWithRotationMeanwhile(boolean useEncryption) throws Exception {
         // Given
         encrypted = useEncryption;
-        cache = createCache();
         setMaxArchiveSizeMedium();
+        cache = createCache();
 
         // First record
         cache.add(createRequestRecordNormal());
@@ -217,8 +221,8 @@ class LogArchiveCacheTest {
     void avoidNameClashWhenFileWithSameNameIsAlreadyInSameZip(boolean useEncryption) throws Exception {
         // Given
         encrypted = useEncryption;
-        cache = createCache();
         setMaxArchiveSizeDefault();
+        cache = createCache();
 
         cache.close();
         cache = createCache();
@@ -289,20 +293,44 @@ class LogArchiveCacheTest {
     }
 
     private void setMaxArchiveSizeSmall() {
-        setMaxArchiveSize(ARCHIVE_SIZE_SMALL);
+        archiveMaxFilesize = ARCHIVE_SIZE_SMALL;
     }
 
     private void setMaxArchiveSizeMedium() {
-        setMaxArchiveSize(ARCHIVE_SIZE_MEDIUM);
+        archiveMaxFilesize = ARCHIVE_SIZE_MEDIUM;
     }
 
     private void setMaxArchiveSizeDefault() {
-        setMaxArchiveSize(null);
+        archiveMaxFilesize = DEFAULT_ARCHIVE_MAX_FILESIZE;
     }
 
-    private void setMaxArchiveSize(Integer value) {
-        String propertyValue = value != null ? Integer.toString(value) : "";
-        System.setProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE, propertyValue);
+    private LogArchiverExecutionProperties createExecutionProperties() {
+        var archiveEncryption = new LogArchiverExecutionProperties.ArchiveEncryptionProperties(
+                false,
+                Optional.empty(),
+                GroupingStrategy.NONE,
+                Map.of()
+        );
+        
+        var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
+                false,
+                null,
+                null,
+                null
+        );
+        
+        return new LogArchiverExecutionProperties(
+                archiveEncryption,
+                databaseEncryption,
+                100,
+                30,
+                100,
+                "build/slog",
+                null,
+                DigestAlgorithm.SHA512,
+                archiveMaxFilesize,
+                "build/tmp"
+        );
     }
 
     private MessageRecord createRequestRecordNormal() throws Exception {
@@ -334,15 +362,15 @@ class LogArchiveCacheTest {
 
     private MessageRecord createMessageRecord(AsicContainerParams params) throws Exception {
         MessageRecord messageRecord = mock(MessageRecord.class);
-        when(messageRecord.getId()).thenReturn(params.getId());
-        when(messageRecord.getQueryId()).thenReturn(params.getQueryId());
-        when(messageRecord.isResponse()).thenReturn(params.isResponse());
-        when(messageRecord.getTime()).thenReturn(params.getCreationTime());
+        when(messageRecord.getId()).thenReturn(params.id());
+        when(messageRecord.getQueryId()).thenReturn(params.queryId());
+        when(messageRecord.isResponse()).thenReturn(params.response());
+        when(messageRecord.getTime()).thenReturn(params.creationTime());
 
         AsicContainer container = mock(AsicContainer.class);
         doAnswer(invocation -> {
             OutputStream os = (OutputStream) invocation.getArguments()[0];
-            os.write(params.getBytes());
+            os.write(params.bytes());
             return null;
         }).when(container).write(any(OutputStream.class));
 
@@ -479,7 +507,8 @@ class LogArchiveCacheTest {
         return new LogArchiveCache(
                 builder,
                 encryptionConfig,
-                Paths.get("build/tmp/"), "build/tmp"
+                Paths.get("build/tmp/"),
+                createExecutionProperties()
         );
     }
 
@@ -499,13 +528,6 @@ class LogArchiveCacheTest {
         }
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    private static final class AsicContainerParams {
-        private final Long id;
-        private final String queryId;
-        private final boolean response;
-        private final byte[] bytes;
-        private final long creationTime;
+    private record AsicContainerParams(Long id, String queryId, boolean response, byte[] bytes, long creationTime) {
     }
 }

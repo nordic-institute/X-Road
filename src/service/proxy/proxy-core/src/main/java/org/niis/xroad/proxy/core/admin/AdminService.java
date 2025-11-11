@@ -30,7 +30,6 @@ package org.niis.xroad.proxy.core.admin;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.ProxyMemory;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -38,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.proxy.core.admin.handler.TimestampStatusHandler;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.proxy.proto.AddOnStatusResp;
 import org.niis.xroad.proxy.proto.AdminServiceGrpc;
 import org.niis.xroad.proxy.proto.MessageLogArchiveEncryptionMember;
@@ -63,6 +63,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private final TimestampStatusHandler timestampStatusHandler;
     private final ProxyMemoryStatusService proxyMemoryStatusService;
     private final EncryptionConfigProvider encryptionConfigProvider;
+    private final ProxyMessageLogProperties messageLogProperties;
 
     private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
@@ -151,9 +152,9 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics() {
         return new MessageLogEncryptionStatusDiagnostics(
-                MessageLogProperties.isArchiveEncryptionEnabled(),
-                MessageLogProperties.isMessageLogEncryptionEnabled(),
-                MessageLogProperties.getArchiveGrouping().name(),
+                messageLogProperties.archiver().encryptionEnabled(),
+                messageLogProperties.databaseEncryption().enabled(),
+                messageLogProperties.archiver().groupingStrategy().name(),
                 getMessageLogArchiveEncryptionMembers());
     }
 

@@ -73,7 +73,7 @@ public class OpMonitoringDaemonSender {
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
     private final OpMonitoringDataProcessor opMonitoringDataProcessor = new OpMonitoringDataProcessor();
-    private final ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties;
+    private final ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties;
     private final ServerConfProvider serverConfProvider;
     private final OpMonitoringBuffer opMonitoringBuffer;
     private final VaultClient vaultClient;
@@ -85,7 +85,7 @@ public class OpMonitoringDaemonSender {
 
     OpMonitoringDaemonSender(ServerConfProvider serverConfProvider,
                              OpMonitoringBuffer opMonitoringBuffer,
-                             ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties,
+                             ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
                              VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
             NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {

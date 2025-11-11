@@ -90,6 +90,7 @@ class ClientRestMessageProcessorTest {
                 keyConfProvider, null,
                 new OcspVerifierFactory(), commonProperties.tempFilesPath(),
                 httpClient, opMonitoringData);
+
         when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);
         when(serverConfProvider.getIsAuthentication(any())).thenReturn(NOSSL);
         when(serverConfProvider.getMaintenanceMode()).thenReturn(new ServerConfProvider.MaintenanceMode(false, null));

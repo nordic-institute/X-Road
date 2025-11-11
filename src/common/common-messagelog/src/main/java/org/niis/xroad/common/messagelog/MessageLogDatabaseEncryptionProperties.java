@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,21 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog.archiver.core.config;
+package org.niis.xroad.common.messagelog;
 
-import lombok.Setter;
-import org.niis.xroad.common.properties.CommonProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import java.nio.file.Path;
+import java.util.Optional;
 
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = CommonProperties.PREFIX)
-public class SpringCommonProperties implements CommonProperties {
-    private String tempFilesPath = DEFAULT_TEMP_FILES_PATH;
+/**
+ * Message log database encryption properties
+ */
+public interface MessageLogDatabaseEncryptionProperties {
+    /**
+     * @return true if message log database encryption is enabled
+     */
+    boolean enabled();
 
-    @Override
-    public String tempFilesPath() {
-        return tempFilesPath;
-    }
+    /**
+     * @return keystore path for messagelog encryption keys or empty if not defined
+     */
+    Optional<Path> messagelogKeystore();
+
+    /**
+     * @return keystore password or empty if not defined
+     */
+    Optional<char[]> messagelogKeystorePassword();
+
+    /**
+     * @return message log encryption key ID or empty if not defined
+     */
+    Optional<String> messagelogKeyId();
 }
+

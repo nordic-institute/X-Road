@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,6 +74,9 @@ public class ExampleJpaTest {
 
     @MockitoBean
     ServerConfDatabaseCtx databaseCtx;
+
+    @MockitoBean
+    MessageLogDatabaseCtx messageLogDatabaseCtx;
 
     @Test
     public void testTestEntityManager() {

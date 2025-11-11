@@ -24,27 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog.archiver.core.config;
+package org.niis.xroad.securityserver.restapi.config;
 
-
-import lombok.Getter;
-import lombok.Setter;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
-import java.util.Optional;
-
-@Getter
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = "xroad.message-log-archiver")
-public class LogArchiverProperties {
-    private boolean enabled;
-    private String archiveInterval;
-    private String cleanInterval;
-    private int cleanTransactionBatchSize;
-    private int cleanKeepRecordsFor;
-    private int archiveTransactionBatchSize;
-    private String archivePath;
-    private Optional<String> archiveTransferCommand = Optional.empty();
+@ConfigurationProperties(prefix = "xroad.proxy-ui-api.rpc")
+public record AdminRpcServerProperties(
+        boolean enabled,
+        String listenAddress,
+        int port
+) implements RpcServerProperties {
 }

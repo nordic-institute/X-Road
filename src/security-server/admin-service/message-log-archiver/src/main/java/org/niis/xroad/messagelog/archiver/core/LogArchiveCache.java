@@ -26,7 +26,6 @@
 package org.niis.xroad.messagelog.archiver.core;
 
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import com.google.common.io.CountingOutputStream;
@@ -36,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfig;
+import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -56,8 +56,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveMaxFilesize;
-
 /**
  * Encapsulates logic of creating log archive from ASiC containers.
  */
@@ -72,7 +70,8 @@ class LogArchiveCache implements Closeable {
 
     private final LinkingInfoBuilder linkingInfoBuilder;
     private final Path workingDir;
-    private final String tmpDir;
+
+    private final LogArchiverExecutionProperties executionProperties;
 
     private AsicContainerNameGenerator nameGenerator;
     private State state = State.NEW;
@@ -90,11 +89,11 @@ class LogArchiveCache implements Closeable {
 
     LogArchiveCache(LinkingInfoBuilder linkingInfoBuilder,
                     @Nullable EncryptionConfig encryptionConfig,
-                    Path workingDir, String tmpDir) {
+                    Path workingDir, LogArchiverExecutionProperties executionProperties) {
         this.linkingInfoBuilder = linkingInfoBuilder;
         this.encryptionConfig = encryptionConfig;
         this.workingDir = workingDir;
-        this.tmpDir = tmpDir;
+        this.executionProperties = executionProperties;
         resetCacheState();
     }
 
@@ -163,8 +162,8 @@ class LogArchiveCache implements Closeable {
         deleteArchiveArtifacts(null);
     }
 
-    private void validateMessageRecord(MessageRecord record) {
-        if (record == null) {
+    private void validateMessageRecord(MessageRecord messageRecord) {
+        if (messageRecord == null) {
             throw new IllegalArgumentException("Message record to be archived must not be null");
         }
     }
@@ -196,7 +195,7 @@ class LogArchiveCache implements Closeable {
     }
 
     private boolean archiveExceedsRotationSize() {
-        return archivesTotalSize > getArchiveMaxFilesize();
+        return archivesTotalSize > executionProperties.archiveMaxFilesize();
     }
 
     private void addContainerToArchive(MessageRecord messageRecord)
@@ -204,7 +203,7 @@ class LogArchiveCache implements Closeable {
         String archiveFilename = nameGenerator.getArchiveFilename(messageRecord.getQueryId(), messageRecord.isResponse(),
                 messageRecord.getId());
 
-        final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg().name());
+        final MessageDigest digest = MessageDigest.getInstance(executionProperties.digestAlgorithm().name());
         final ZipEntry entry = new ZipEntry(archiveFilename);
         entry.setLastModifiedTime(FileTime.from(messageRecord.getTime(), TimeUnit.MILLISECONDS));
         archiveTmp.putNextEntry(entry);
@@ -225,7 +224,7 @@ class LogArchiveCache implements Closeable {
         deleteArchiveArtifacts(null);
         archiveTmpFile = Files.createTempFile(workingDir, "tmp-mlog-", ".tmp");
         if (encryptionConfig != null) {
-            outputStream = encryptionConfig.createEncryptionStream(archiveTmpFile, tmpDir);
+            outputStream = encryptionConfig.createEncryptionStream(archiveTmpFile, executionProperties.tmpDir());
         } else {
             outputStream = Files.newOutputStream(archiveTmpFile);
         }

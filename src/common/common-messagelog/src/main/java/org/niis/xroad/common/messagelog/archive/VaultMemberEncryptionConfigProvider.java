@@ -27,17 +27,17 @@
 package org.niis.xroad.common.messagelog.archive;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.messagelog.MessageLogArchivalProperties;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,23 +51,20 @@ import java.util.stream.Collectors;
  * Supports multiple keys per member for redundancy.
  */
 @Slf4j
+@RequiredArgsConstructor
 public final class VaultMemberEncryptionConfigProvider implements EncryptionConfigProvider {
     private final PgpKeyManager keyManager;
     private final BouncyCastlePgpEncryptionService encryption;
-
-    VaultMemberEncryptionConfigProvider(PgpKeyManager keyManager, BouncyCastlePgpEncryptionService encryption) {
-        this.keyManager = keyManager;
-        this.encryption = encryption;
-    }
+    private final MessageLogArchivalProperties messageLogArchivalProperties;
 
     @Override
-    public EncryptionConfig forClientId(ClientId clientId) throws IOException {
-        var grouping = MessageLogProperties.getArchiveGrouping().forClient(clientId);
+    public EncryptionConfig forClientId(ClientId clientId) {
+        var grouping = messageLogArchivalProperties.groupingStrategy().forClient(clientId);
         return forGrouping(grouping);
     }
 
     @Override
-    public EncryptionConfig forGrouping(Grouping grouping) throws IOException {
+    public EncryptionConfig forGrouping(Grouping grouping) {
         if (grouping.clientId() == null) {
             throw new IllegalArgumentException("Expected a grouping with a client identifier");
         }
@@ -145,10 +142,10 @@ public final class VaultMemberEncryptionConfigProvider implements EncryptionConf
      * @param memberId Member identifier in format "INSTANCE/CLASS/CODE"
      * @return List of public keys for encryption (can contain multiple keys)
      */
-    public List<PGPPublicKey> getPublicKeysForMember(String memberId) throws IOException, PGPException {
+    public List<PGPPublicKey> getPublicKeysForMember(String memberId) throws PGPException {
 
         // Check if member-specific keys are configured (can be multiple)
-        Set<String> keyIdsForMember = MessageLogProperties.getKeyMappings().get(memberId);
+        Set<String> keyIdsForMember = messageLogArchivalProperties.grouping().get(memberId);
         if (keyIdsForMember != null && !keyIdsForMember.isEmpty()) {
             List<PGPPublicKey> memberKeys = keyIdsForMember.stream()
                     .map(keyManager::getPublicKey)
@@ -167,8 +164,8 @@ public final class VaultMemberEncryptionConfigProvider implements EncryptionConf
         }
 
         // Fall back to default key
-        if (MessageLogProperties.getArchiveDefaultEncryptionKey() != null) {
-            var defaultKey = keyManager.getPublicKey(MessageLogProperties.getArchiveDefaultEncryptionKey());
+        if (messageLogArchivalProperties.defaultKeyId().isPresent()) {
+            var defaultKey = keyManager.getPublicKey(messageLogArchivalProperties.defaultKeyId().get());
             if (defaultKey.isPresent()) {
                 return Collections.singletonList(defaultKey.get());
             }

@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.auth;
 
 import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
 import jakarta.servlet.http.Cookie;
 import org.junit.Before;
@@ -110,6 +111,9 @@ public class CsrfWebMvcTest {
     @MockitoBean
     ServerConfDatabaseCtx databaseCtx;
 
+    @MockitoBean
+    MessageLogDatabaseCtx messageLogDatabaseCtx;
+
     @Before
     // setup mock auth in the SecurityContext and mock both auth providers (form login and api-key)
     public void setup() {
@@ -129,6 +133,7 @@ public class CsrfWebMvcTest {
 
     /**
      * Test login with mocked authentication. Should return 200 with a valid CSRF token in a cookie
+     *
      * @throws Exception
      */
     @Test
@@ -143,6 +148,7 @@ public class CsrfWebMvcTest {
 
     /**
      * Test getting user data for the currently logged in user. Uses mocked authentication in a mock session.
+     *
      * @throws Exception
      */
     @Test
@@ -164,6 +170,7 @@ public class CsrfWebMvcTest {
     /**
      * Test getting user data for the currently logged in user. Uses mocked authentication in a mock session.
      * XSRF header value should not match
+     *
      * @throws Exception
      */
     @Test
@@ -179,6 +186,7 @@ public class CsrfWebMvcTest {
     /**
      * Test getting user data for the currently logged in user. Uses mocked authentication in a mock session.
      * XSRF cookie value should not match
+     *
      * @throws Exception
      */
     @Test
@@ -194,6 +202,7 @@ public class CsrfWebMvcTest {
     /**
      * Test getting user data for the currently logged in user. This mimics an api user request so no cookies
      * should be returned
+     *
      * @throws Exception
      */
     @Test
