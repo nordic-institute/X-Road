@@ -26,48 +26,49 @@
  -->
 <template>
   <XrdWizardStep>
-    <XrdFormBlock>
-      <v-text-field
-        v-model="search"
-        data-test="search-service-client"
-        density="compact"
-        class="xrd xrd-search-field mb-4"
-        prepend-inner-icon="search"
-        single-line
-        hide-details
-        autofocus
-        :label="$t('serviceClients.memberGroupStep')"
-      >
-      </v-text-field>
-
-      <v-table data-test="service-clients-table" class="xrd">
-        <thead>
-          <tr>
-            <th class="checkbox-column"></th>
-            <th>{{ $t('serviceClients.name') }}</th>
-            <th>{{ $t('serviceClients.id') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="candidate in filteredCandidates" :key="candidate.id">
-            <td class="xrd-checkbox-column">
-              <v-radio
-                :key="candidate.id"
-                v-model="selection"
-                data-test="candidate-selection"
-                class="xrd"
-                :disabled="isDisabled(candidate)"
-                @click="updateSelection(candidate)"
-              />
-            </td>
-            <td class="identifier-wrap">
-              <client-name :service-client="candidate" />
-            </td>
-            <td class="identifier-wrap">{{ candidate.id }}</td>
-          </tr>
-        </tbody>
-      </v-table>
-    </XrdFormBlock>
+    <v-table
+      data-test="service-clients-table"
+      class="xrd xrd-rounded-12 border bg-surface-container"
+    >
+      <template #top>
+        <v-text-field
+          v-model="search"
+          data-test="search-service-client"
+          density="compact"
+          class="xrd xrd-search-field mt-2 ml-4 mb-6"
+          prepend-inner-icon="search"
+          single-line
+          hide-details
+          autofocus
+          :label="$t('serviceClients.memberGroupStep')"
+        />
+      </template>
+      <thead>
+        <tr>
+          <th class="checkbox-column"></th>
+          <th>{{ $t('serviceClients.name') }}</th>
+          <th>{{ $t('serviceClients.id') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="candidate in filteredCandidates" :key="candidate.id">
+          <td class="xrd-checkbox-column">
+            <v-radio
+              :key="candidate.id"
+              v-model="selection"
+              data-test="candidate-selection"
+              class="xrd"
+              :disabled="isDisabled(candidate)"
+              @click="updateSelection(candidate)"
+            />
+          </td>
+          <td class="identifier-wrap">
+            <client-name :service-client="candidate" />
+          </td>
+          <td class="identifier-wrap">{{ candidate.id }}</td>
+        </tr>
+      </tbody>
+    </v-table>
     <template #footer>
       <XrdBtn
         data-test="cancel-button"

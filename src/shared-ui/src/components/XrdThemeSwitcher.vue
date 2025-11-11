@@ -25,59 +25,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdBtn
-    v-if="canDownload"
-    data-test="download-anchor-button"
-    variant="text"
-    color="primary"
-    prepend-icon="download"
-    text="action.download"
-    :loading="loading"
-    @click="download"
-  />
+  <v-btn variant="outlined" :size="size" :icon="themeIcon" color="primary" @click="toggle()" />
 </template>
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapState, mapStores } from 'pinia';
-import { useUser } from '@/store/modules/user';
-import { Permissions } from '@/global';
-import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
-import { XrdBtn, useNotifications } from '@niis/shared-ui';
 
-export default defineComponent({
-  components: {
-    XrdBtn,
-  },
-  props: {
-    hash: {
-      type: String,
-      required: true,
-    },
-  },
-  setup() {
-    const { addError } = useNotifications();
-    return { addError };
-  },
-  data() {
-    return {
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapState(useUser, ['hasPermission']),
-    ...mapStores(useTrustedAnchor),
-    canDownload(): boolean {
-      return this.hasPermission(Permissions.DOWNLOAD_TRUSTED_ANCHOR);
-    },
-  },
-  methods: {
-    download() {
-      this.loading = true;
-      this.trustedAnchorStore
-        .downloadTrustedAnchor(this.hash)
-        .catch((error) => this.addError(error))
-        .finally(() => (this.loading = false));
-    },
+<script lang="ts" setup>
+import { computed } from 'vue';
+
+import { useThemeHelper } from '../composables';
+
+defineProps({
+  size: {
+    type: [String, Number],
+    default: 'default',
   },
 });
+
+const { toggle, isDark } = useThemeHelper();
+
+const themeIcon = computed(() => (isDark.value ? 'wb_sunny' : 'bedtime'));
 </script>
+
+<style lang="scss" scoped></style>

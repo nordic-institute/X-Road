@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-tabs bg-color="surface-container-low" grow class="rounded-xl" :class="{ border: bordered }">
+  <v-tabs bg-color="surface-container-low" class="rounded-xl" grow :class="{ border: bordered }">
     <v-tab
       v-for="tab in allowedTabs"
       :key="tab.key"
@@ -33,8 +33,6 @@
       selected-class="xrd-tab--active"
       variant="text"
       rounded="xl"
-      base-color="primary"
-      color="tertiary"
       draggable="false"
       hide-slider
       :to="tab.to"
@@ -66,9 +64,11 @@ defineProps({
 <style lang="scss" scoped>
 .xrd-tab {
   background-color: rgb(var(--v-theme-surface-container-low));
+  color: rgb(var(--v-theme-primary));
 
   &.xrd-tab--active {
-    background-color: rgb(var(--v-theme-on-accent));
+    background-color: rgb(var(--v-theme-accent-container));
+    color: rgb(var(--v-theme-on-accent-container));
   }
 }
 </style>

@@ -30,7 +30,8 @@
       v-if="statusStyle"
       class="xrd"
       density="compact"
-      :color="statusStyle.bgColor"
+      variant="flat"
+      :class="[statusStyle.bgColor]"
     >
       <template #prepend>
         <XrdStatusIcon class="mr-1 ml-n1" :status="statusStyle.status" />
@@ -98,7 +99,7 @@ const statusStyle = computed<StatusStyle | undefined>(() => {
 function asSuccess(textKey: string, status: Status) {
   return createStatusStyle(
     textKey,
-    'success-container',
+    'bg-success-container',
     'on-success-container',
     status,
   );
@@ -107,7 +108,7 @@ function asSuccess(textKey: string, status: Status) {
 function asInfo(textKey: string, status: Status) {
   return createStatusStyle(
     textKey,
-    'info-container',
+    'bg-info-container',
     'on-info-container',
     status,
   );
@@ -116,7 +117,7 @@ function asInfo(textKey: string, status: Status) {
 function asWarning(textKey: string, status: Status) {
   return createStatusStyle(
     textKey,
-    'warning-container',
+    'bg-warning-container',
     'on-warning-container',
     status,
   );
@@ -125,7 +126,7 @@ function asWarning(textKey: string, status: Status) {
 function asError(textKey: string, status: Status) {
   return createStatusStyle(
     textKey,
-    'error-container',
+    'bg-error-container',
     'on-error-container',
     status,
   );

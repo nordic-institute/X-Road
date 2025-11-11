@@ -28,18 +28,10 @@
   <XrdSubView data-test="security-server-clients-view">
     <template #header>
       <div>
-        <v-text-field
+        <XrdRoundedSearchField
           v-model="search"
           data-test="search-query-field"
-          class="xrd"
-          bg-color="surface-container"
-          variant="outlined"
-          rounded="pill"
-          density="compact"
           width="320"
-          prepend-inner-icon="search"
-          single-line
-          hide-details
           :label="$t('action.search')"
         />
       </div>
@@ -47,7 +39,7 @@
 
     <!-- Table -->
     <v-data-table
-      class="xrd bg-surface-container xrd-rounded-12"
+      class="xrd bg-surface-container xrd-rounded-12 border"
       item-key="id"
       hide-default-footer
       :loading="loading"

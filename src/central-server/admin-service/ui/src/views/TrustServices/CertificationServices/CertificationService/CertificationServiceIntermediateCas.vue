@@ -39,7 +39,7 @@
     <v-data-table
       data-test="intermediate-cas-table"
       item-key="id"
-      class="xrd"
+      class="xrd border"
       hide-default-footer
       must-sort
       :loading="loading"

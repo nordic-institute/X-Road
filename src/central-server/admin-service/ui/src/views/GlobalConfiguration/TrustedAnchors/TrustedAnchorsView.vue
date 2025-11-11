@@ -70,7 +70,11 @@ import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import UploadTrustedAnchorButton from './UploadTrustedAnchorButton.vue';
 import DownloadTrustedAnchorButton from './DownloadTrustedAnchorButton.vue';
 import DeleteTrustedAnchorButton from './DeleteTrustedAnchorButton.vue';
-import { XrdSubView, useNotifications, XrdEmptyPlaceholder } from '@niis/shared-ui';
+import {
+  XrdSubView,
+  useNotifications,
+  XrdEmptyPlaceholder,
+} from '@niis/shared-ui';
 
 function convert(source: TrustedAnchor): Anchor {
   return {

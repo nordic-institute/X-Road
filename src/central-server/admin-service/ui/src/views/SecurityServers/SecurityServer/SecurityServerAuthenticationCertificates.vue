@@ -28,7 +28,7 @@
   <XrdSubView data-test="security-server-authentication-certificates-view">
     <!-- Table -->
     <v-data-table
-      class="xrd bg-surface-container xrd-rounded-12"
+      class="xrd bg-surface-container xrd-rounded-12 border"
       item-key="id"
       hide-default-footer
       :loading="loading"

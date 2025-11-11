@@ -128,7 +128,6 @@
  */
 import { defineComponent } from 'vue';
 import SortButton from './SortButton.vue';
-import { Colors } from '@niis/shared-ui';
 import { KeysSortColumn } from './keyColumnSorting';
 
 export default defineComponent({
@@ -148,7 +147,6 @@ export default defineComponent({
   emits: ['set-sort'],
   data() {
     return {
-      colors: Colors,
       titleSort: false,
       sortColumn: KeysSortColumn,
       hoverName: false,

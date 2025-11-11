@@ -35,51 +35,50 @@
     @cancel="cancel"
   >
     <template v-if="serviceCandidates.length > 0" #content>
-      <XrdFormBlock>
-        <v-text-field
-          v-model="search"
-          data-test="search-service-client"
-          density="compact"
-          class="xrd xrd-search-field mb-6"
-          prepend-inner-icon="search"
-          single-line
-          hide-details
-          autofocus
-          :label="$t('serviceClients.searchPlaceHolder')"
-        />
-
-        <v-table class="xrd">
-          <thead>
-            <tr>
-              <th class="selection-checkbox"></th>
-              <th>{{ $t('serviceClients.serviceCode') }}</th>
-              <th>{{ $t('serviceClients.title') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="accessRight in searchResults()"
-              :key="accessRight.id"
-              class="service-row"
-              data-test="access-right-toggle"
-            >
-              <td class="xrd-checkbox-column">
-                <div>
-                  <v-checkbox
-                    v-model="selections"
-                    data-test="access-right-checkbox-input"
-                    class="xrd"
-                    hide-details
-                    :value="accessRight"
-                  />
-                </div>
-              </td>
-              <td>{{ accessRight.service_code }}</td>
-              <td>{{ accessRight.service_title }}</td>
-            </tr>
-          </tbody>
-        </v-table>
-      </XrdFormBlock>
+      <v-table class="xrd border xrd-rounded-12 bg-surface-container">
+        <template #top>
+          <v-text-field
+            v-model="search"
+            data-test="search-service-client"
+            density="compact"
+            class="xrd xrd-search-field mt-2 ml-4 mb-6"
+            prepend-inner-icon="search"
+            single-line
+            hide-details
+            autofocus
+            :label="$t('serviceClients.searchPlaceHolder')"
+          />
+        </template>
+        <thead>
+          <tr>
+            <th class="selection-checkbox"></th>
+            <th>{{ $t('serviceClients.serviceCode') }}</th>
+            <th>{{ $t('serviceClients.title') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="accessRight in searchResults()"
+            :key="accessRight.id"
+            class="service-row"
+            data-test="access-right-toggle"
+          >
+            <td class="xrd-checkbox-column">
+              <div>
+                <v-checkbox
+                  v-model="selections"
+                  data-test="access-right-checkbox-input"
+                  class="xrd"
+                  hide-details
+                  :value="accessRight"
+                />
+              </div>
+            </td>
+            <td>{{ accessRight.service_code }}</td>
+            <td>{{ accessRight.service_title }}</td>
+          </tr>
+        </tbody>
+      </v-table>
     </template>
     <template v-else #content>
       <p>{{ $t('serviceClients.noAvailableServices') }}</p>

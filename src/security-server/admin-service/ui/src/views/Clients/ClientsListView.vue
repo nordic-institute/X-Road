@@ -28,13 +28,10 @@
   <XrdView title="tab.main.clients">
     <template #append-header>
       <div class="ml-6">
-        <v-text-field
+        <XrdSearchField
           v-model="search"
           data-test="search-query-field"
-          class="xrd"
           width="320"
-          prepend-inner-icon="search"
-          single-line
           :label="$t('action.search')"
         />
       </div>
@@ -62,7 +59,7 @@
 
     <!-- @vue-ignore -->
     <v-data-table
-      class="xrd xrd-rounded-16"
+      class="xrd xrd-rounded-16 border"
       item-key="id"
       must-sort
       hide-default-footer

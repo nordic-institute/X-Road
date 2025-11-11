@@ -26,6 +26,11 @@
  */
 
 import '@/assets/styles.css';
-import { Colors, createXrdVuetify } from '@niis/shared-ui';
+import { Color, createXrdVuetify } from '@niis/shared-ui';
 
-export default createXrdVuetify(Colors.Magenta900, Colors.Maroon100);
+export default createXrdVuetify(
+  Color.M_900,
+  Color.D_100,
+  Color.M_100,
+  Color.D_800,
+);

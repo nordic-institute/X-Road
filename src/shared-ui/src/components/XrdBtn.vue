@@ -59,7 +59,7 @@ import { computed, onMounted, PropType, useTemplateRef } from 'vue';
 
 import { VBtn } from 'vuetify/components';
 
-import { Color } from '../types';
+import { PropColor } from '../types';
 
 const props = defineProps({
   text: {
@@ -115,7 +115,7 @@ const props = defineProps({
     default: 'flat',
   },
   color: {
-    type: String as PropType<Color>,
+    type: String as PropType<PropColor>,
     default: 'secondary',
   },
 });

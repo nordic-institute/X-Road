@@ -40,7 +40,7 @@
     <v-data-table
       item-value="id"
       data-test="ocsp-responders-table"
-      class="xrd"
+      class="xrd border"
       hide-default-footer
       must-sort
       :loading="loading"
