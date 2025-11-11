@@ -29,3 +29,4 @@ export * from './basic-form';
 export * from './running';
 export * from './local-error-manager';
 export * from './notifications-manager';
+export * from './theme-helper';

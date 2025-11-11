@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi;
 
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
+
 import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
@@ -86,6 +88,9 @@ class ApplicationIpRateLimitTest {
 
     @MockitoBean
     ServerConfDatabaseCtx databaseCtx;
+
+    @MockitoBean
+    MessageLogDatabaseCtx messageLogDatabaseCtx;
 
     @MockitoBean
     GlobalConfProvider globalConfProvider;

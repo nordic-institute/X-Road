@@ -13,6 +13,7 @@ dependencies {
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:signer:signer-client"))
   implementation(project(":service:monitor:monitor-rpc-client"))
+  implementation(project(":security-server:admin-service:management-rpc-client"))
 
   implementation(libs.quarkus.scheduler)
 
@@ -33,7 +34,10 @@ dependencies {
   implementation(libs.semver4j)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(project(":security-server:admin-service:message-log-archiver"))
+  testImplementation(project(":security-server:admin-service:message-log-archiver")) {
+    exclude(group = "org.springframework.boot")
+  }
+
   testImplementation(testFixtures(project(":common:common-properties")))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
@@ -64,14 +68,14 @@ tasks.test {
 }
 
 val runMetaserviceTest by tasks.registering(JavaExec::class) {
-  // empty task for pipelines backwards compatibility. can be removed after 7.9 release.
+// empty task for pipelines backwards compatibility. can be removed after 7.9 release.
   group = "verification"
   logger.warn("WARNING: The 'runMetaserviceTest' task is deprecated and does nothing. It will be removed in the future versions.")
   enabled = false
 }
 
 tasks.register<JavaExec>("runProxymonitorMetaserviceTest") {
-  // empty task for pipelines backwards compatibility. can be removed after 7.9 release.
+// empty task for pipelines backwards compatibility. can be removed after 7.9 release.
   group = "verification"
   logger.warn("WARNING: The 'runProxymonitorMetaserviceTest' task is deprecated and does nothing. It will be removed in the future versions.")
   enabled = false

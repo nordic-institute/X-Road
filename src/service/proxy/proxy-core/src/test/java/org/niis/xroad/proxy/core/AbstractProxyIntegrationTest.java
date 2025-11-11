@@ -166,13 +166,16 @@ public abstract class AbstractProxyIntegrationTest {
         ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(TEST_SERVER_CONF,
                 new NoopVaultKeyProvider(), proxyProperties);
 
+        EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
+        var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
+
         ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(TEST_GLOBAL_CONF, clientKeyConf);
         HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
                 .proxyHttpClient(proxyProperties, clientAuthTrustVerifier, reloadingSSLSocketFactory);
         MessageProcessorFactory messageProcessorFactory =
                 new MessageProcessorFactory(httpClient, null, proxyProperties, TEST_GLOBAL_CONF, TEST_SERVER_CONF,
                         clientAuthenticationService, clientKeyConf, signingCtxProvider, OCSP_VERIFIER_FACTORY, commonProperties, null,
-                        null, null, null, mock(EncryptionConfigProvider.class));
+                        null, null, null, encryptionConfigProvider, messageRecordEncryption);
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(messageProcessorFactory,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer());
@@ -185,6 +188,10 @@ public abstract class AbstractProxyIntegrationTest {
         serverKeyConf = new TestKeyConf(TEST_GLOBAL_CONF);
         CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF, OCSP_VERIFIER_FACTORY);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
+
+        EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
+        var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
+
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
                 mock(MonitorRpcClient.class), commonProperties, proxyProperties, new NoopVaultClient());
         HttpClientCreator httpClientCreator = new HttpClientCreator(TEST_SERVER_CONF,
@@ -195,7 +202,7 @@ public abstract class AbstractProxyIntegrationTest {
                 null, httpClientCreator.getHttpClient(), proxyProperties, TEST_GLOBAL_CONF, TEST_SERVER_CONF,
                 clientAuthenticationService, serverKeyConf,
                 signingCtxProvider, OCSP_VERIFIER_FACTORY, commonProperties, null, null,
-                serviceHandlerLoader, certHelper, mock(EncryptionConfigProvider.class));
+                serviceHandlerLoader, certHelper, encryptionConfigProvider, messageRecordEncryption);
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(messageProcessorFactory, proxyProperties.server(),
                 mock(ClientProxyVersionVerifier.class), TEST_GLOBAL_CONF,
                 new NoOpMonitoringBuffer());

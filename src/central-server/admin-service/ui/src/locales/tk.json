@@ -634,6 +634,12 @@
     },
     "timestampingServices": "Wagt bellemek hyzmatlary",
     "trustService": {
+      "cost": "Bahasy",
+      "costType": {
+        "FREE": "Mugt",
+        "PAID": "Tölenen",
+        "UNDEFINED": "Kesgitlenmedik"
+      },
       "delete": {
         "action": "Ynam hyzmatyny poz",
         "confirmationDialog": {
@@ -699,12 +705,6 @@
         "tlsAuth": "Bu CA diňe TLS-niň hakykylygyny tassyklamak üçin ulanylyp bilner"
       },
       "timestampingService": {
-        "cost": "Bahasy",
-        "costValues": {
-          "FREE": "Mugt",
-          "PAID": "Tölenen",
-          "UNDEFINED": "Kesgitlenmedik"
-        },
         "delete": {
           "dialog": {
             "message": "Siz dogurdanam {url} URL-ly wagty bellemek gullugyny pozmak isleýärsiňizmi?",

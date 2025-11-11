@@ -45,7 +45,7 @@
 
     <v-data-table
       data-test="local-groups-table"
-      class="xrd xrd-rounded-12"
+      class="xrd xrd-rounded-12 border"
       no-data-text="noData.noLocalGroups"
       items-per-page="-1"
       hide-default-footer

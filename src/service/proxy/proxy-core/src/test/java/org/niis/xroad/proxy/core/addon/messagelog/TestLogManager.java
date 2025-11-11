@@ -31,6 +31,7 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.time.Duration;
@@ -44,8 +45,8 @@ class TestLogManager extends LogManager {
     private static CountDownLatch setTimestampingStatusLatch = new CountDownLatch(1);
 
     TestLogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, LogRecordManager logRecordManager,
-                   DatabaseCtx messageLogDatabaseCtx) {
-        super(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx);
+                   DatabaseCtx messageLogDatabaseCtx, ProxyMessageLogProperties messageLogProperties) {
+        super(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx, messageLogProperties);
     }
 
     static void initSetTimestampingStatusLatch() {
@@ -80,7 +81,7 @@ class TestLogManager extends LogManager {
 
     @Override
     protected TestTaskQueue getTaskQueueImpl(Timestamper timestamper) {
-        return new TestTaskQueue(timestamper, this, messageLogDatabaseCtx);
+        return new TestTaskQueue(timestamper, this, messageLogDatabaseCtx, messageLogProperties);
     }
 
     /**
@@ -93,7 +94,7 @@ class TestLogManager extends LogManager {
 
     @Override
     protected TestTimestamper getTimestamperImpl() {
-        return new TestTimestamper(globalConfProvider, serverConfProvider, logRecordManager);
+        return new TestTimestamper(globalConfProvider, serverConfProvider, logRecordManager, messageLogProperties);
     }
 
     @Override

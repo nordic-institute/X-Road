@@ -30,15 +30,16 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.xml.bind.JAXBException;
@@ -48,6 +49,7 @@ import org.apache.commons.io.input.BoundedInputStream;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
@@ -62,13 +64,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
 import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
-import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getAcceptableTimestampFailurePeriodSeconds;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getHashAlg;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getTimestampRetryDelay;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.shouldTimestampImmediately;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.niis.xroad.common.core.exception.ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMPING_FAILED;
@@ -80,9 +76,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMPING_FAILED
 @Slf4j
 public class LogManager extends AbstractLogManager {
 
-    static final long MAX_LOGGABLE_BODY_SIZE = MessageLogProperties.getMaxLoggableBodySize();
-    static final boolean TRUNCATED_BODY_ALLOWED = MessageLogProperties.isTruncatedBodyAllowed();
-
     // Date at which a time-stamping first failed.
     private Instant timestampFailed;
 
@@ -90,6 +83,7 @@ public class LogManager extends AbstractLogManager {
     protected final ServerConfProvider serverConfProvider;
     protected final LogRecordManager logRecordManager;
     protected final DatabaseCtx messageLogDatabaseCtx;
+    protected final ProxyMessageLogProperties messageLogProperties;
 
     private final Timestamper timestamper;
     private final TimestamperJob timestamperJob;
@@ -97,14 +91,16 @@ public class LogManager extends AbstractLogManager {
     // package private for testing
     final TaskQueue taskQueue;
 
-    public LogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, LogRecordManager logRecordManager,
-                      DatabaseCtx messageLogDatabaseCtx) {
+    public LogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                      LogRecordManager logRecordManager, DatabaseCtx messageLogDatabaseCtx,
+                      ProxyMessageLogProperties messageLogProperties) {
         super(globalConfProvider, serverConfProvider);
 
         this.globalConfProvider = globalConfProvider;
         this.serverConfProvider = serverConfProvider;
         this.logRecordManager = logRecordManager;
         this.messageLogDatabaseCtx = messageLogDatabaseCtx;
+        this.messageLogProperties = messageLogProperties;
         this.timestamper = getTimestamperImpl();
         this.taskQueue = getTaskQueueImpl(timestamper);
         this.timestamperJob = createTimestamperJob(taskQueue);
@@ -115,7 +111,8 @@ public class LogManager extends AbstractLogManager {
     }
 
     private TimestamperJob createTimestamperJob(TaskQueue taskQueueParam) {
-        return new TimestamperJob(globalConfProvider, getTimestamperJobInitialDelay(), taskQueueParam);
+        return new TimestamperJob(globalConfProvider, getTimestamperJobInitialDelay(), taskQueueParam,
+                messageLogProperties.timestamper().retryDelay());
     }
 
     /**
@@ -132,7 +129,7 @@ public class LogManager extends AbstractLogManager {
     @Override
     public void log(LogMessage message) {
         try {
-            boolean shouldTimestampImmediately = shouldTimestampImmediately();
+            boolean shouldTimestampImmediately = messageLogProperties.timestamper().timestampImmediately();
 
             verifyCanLogMessage(shouldTimestampImmediately);
 
@@ -182,11 +179,11 @@ public class LogManager extends AbstractLogManager {
     // ------------------------------------------------------------------------
 
     protected TaskQueue getTaskQueueImpl(Timestamper timestamperParam) {
-        return new TaskQueue(timestamperParam, this, messageLogDatabaseCtx);
+        return new TaskQueue(timestamperParam, this, messageLogDatabaseCtx, messageLogProperties.timestamper());
     }
 
     protected Timestamper getTimestamperImpl() {
-        return new Timestamper(globalConfProvider, serverConfProvider, logRecordManager);
+        return new Timestamper(globalConfProvider, serverConfProvider, logRecordManager, messageLogProperties);
     }
 
     private TimestampRecord timestampImmediately(MessageRecord logRecord) {
@@ -207,11 +204,11 @@ public class LogManager extends AbstractLogManager {
         }
     }
 
-    private static MessageRecord createMessageRecord(SoapLogMessage message)
+    private MessageRecord createMessageRecord(SoapLogMessage message)
             throws IOException, SOAPException, JAXBException, IllegalAccessException {
         log.trace("createMessageRecord()");
 
-        var manipulator = new MessageBodyManipulator();
+        var manipulator = new MessageBodyManipulator(messageLogProperties);
 
         MessageRecord messageRecord = new MessageRecord(
                 message.getQueryId(),
@@ -228,9 +225,9 @@ public class LogManager extends AbstractLogManager {
             messageRecord.setHashChain(message.getSignature().getHashChain());
         } else if (manipulator.isBodyLogged(message)) {
             // log attachments for non-batch signatures
-            if (MAX_LOGGABLE_BODY_SIZE > 0) {
+            if (messageLogProperties.maxLoggableMessageBodySize() > 0) {
                 messageRecord.setAttachmentStreams(message.getAttachments()
-                        .stream().map(LogManager::boundedAttachmentStream).toList());
+                        .stream().map(this::boundedAttachmentStream).toList());
             }
 
         }
@@ -239,14 +236,16 @@ public class LogManager extends AbstractLogManager {
         return messageRecord;
     }
 
-    private static AttachmentStream boundedAttachmentStream(AttachmentStream attachment) {
+    private AttachmentStream boundedAttachmentStream(AttachmentStream attachment) {
         return new AttachmentStream() {
             @Override
             public InputStream getStream() {
-                if (attachment.getSize() > MAX_LOGGABLE_BODY_SIZE && !TRUNCATED_BODY_ALLOWED) {
+                if (attachment.getSize() > messageLogProperties.maxLoggableMessageBodySize()
+                        && !messageLogProperties.truncatedBodyAllowed()) {
                     throw new CodedException(X_LOGGING_FAILED_X, "Message attachment size exceeds maximum loggable size");
                 }
-                final BoundedInputStream body = new BoundedInputStream(attachment.getStream(), MAX_LOGGABLE_BODY_SIZE);
+                final BoundedInputStream body = new BoundedInputStream(attachment.getStream(),
+                        messageLogProperties.maxLoggableMessageBodySize());
                 body.setPropagateClose(false);
                 return body;
             }
@@ -258,10 +257,10 @@ public class LogManager extends AbstractLogManager {
         };
     }
 
-    private static MessageRecord createMessageRecord(RestLogMessage message) throws IOException {
+    private MessageRecord createMessageRecord(RestLogMessage message) throws IOException {
         log.trace("createMessageRecord()");
 
-        final MessageBodyManipulator manipulator = new MessageBodyManipulator();
+        final MessageBodyManipulator manipulator = new MessageBodyManipulator(messageLogProperties);
         MessageRecord messageRecord = new MessageRecord(
                 message.getQueryId(),
                 manipulator.getLoggableMessageText(message),
@@ -274,17 +273,19 @@ public class LogManager extends AbstractLogManager {
 
         if (message.getBody() != null
                 && message.getBody().size() > 0
-                && MAX_LOGGABLE_BODY_SIZE > 0
+                && messageLogProperties.maxLoggableMessageBodySize() > 0
                 && manipulator.isBodyLogged(message)) {
-            if (message.getBody().size() > MAX_LOGGABLE_BODY_SIZE && !TRUNCATED_BODY_ALLOWED) {
+            if (message.getBody().size() > messageLogProperties.maxLoggableMessageBodySize()
+                    && !messageLogProperties.truncatedBodyAllowed()) {
                 throw new CodedException(X_LOGGING_FAILED_X, "Message size exceeds maximum loggable size");
             }
             final BoundedInputStream body = BoundedInputStream.builder()
                     .setInputStream(message.getBody())
-                    .setMaxCount(MAX_LOGGABLE_BODY_SIZE)
+                    .setMaxCount(messageLogProperties.maxLoggableMessageBodySize())
                     .setPropagateClose(false)
                     .get();
-            messageRecord.setAttachmentStream(body, Math.min(message.getBody().size(), MAX_LOGGABLE_BODY_SIZE));
+            messageRecord.setAttachmentStream(body, Math.min(message.getBody().size(),
+                    messageLogProperties.maxLoggableMessageBodySize()));
         }
 
         if (message.getSignature().isBatchSignature()) {
@@ -377,7 +378,7 @@ public class LogManager extends AbstractLogManager {
         }
 
         if (!shouldTimestampImmediately) {
-            int period = getAcceptableTimestampFailurePeriodSeconds();
+            int period = messageLogProperties.timestamper().acceptableTimestampFailurePeriod();
 
             if (period == 0) { // check disabled
                 return;
@@ -393,12 +394,8 @@ public class LogManager extends AbstractLogManager {
         }
     }
 
-    static String signatureHash(String signatureXml) throws IOException {
-        return encodeBase64(getInputHash(signatureXml));
-    }
-
-    private static byte[] getInputHash(String str) throws IOException {
-        return calculateDigest(getHashAlg(), str.getBytes(UTF_8));
+    private String signatureHash(String signatureXml) throws IOException {
+        return CryptoUtils.signatureHash(signatureXml, DigestAlgorithm.ofName(messageLogProperties.hashAlgoIdStr()));
     }
 
     /**
@@ -407,7 +404,7 @@ public class LogManager extends AbstractLogManager {
     public static class TimestamperJob {
         private static final int MIN_INTERVAL_SECONDS = 60;
         private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
-        private static final int TIMESTAMP_RETRY_DELAY_SECONDS = getTimestampRetryDelay();
+        private final int timestampRetryDelaySeconds;
 
         // Flag for indicating backoff retry state
         private boolean retryMode = false;
@@ -417,8 +414,10 @@ public class LogManager extends AbstractLogManager {
         private final TaskQueue taskQueue;
         private ScheduledFuture<?> scheduledTask;
 
-        public TimestamperJob(GlobalConfProvider globalConfProvider, Duration initialDelay, TaskQueue taskQueue) {
+        public TimestamperJob(GlobalConfProvider globalConfProvider, Duration initialDelay, TaskQueue taskQueue,
+                              int timestampRetryDelaySeconds) {
             this.globalConfProvider = globalConfProvider;
+            this.timestampRetryDelaySeconds = timestampRetryDelaySeconds;
             log.trace("Initializing TimestamperJob");
             this.taskQueue = taskQueue;
             this.taskScheduler = Executors.newSingleThreadScheduledExecutor();
@@ -435,7 +434,7 @@ public class LogManager extends AbstractLogManager {
 
         void onFailure() {
             log.info("Batch time-stamping failed, switching to retry backoff schedule");
-            log.info("Time-stamping retry delay value is: {}s", TIMESTAMP_RETRY_DELAY_SECONDS);
+            log.info("Time-stamping retry delay value is: {}s", timestampRetryDelaySeconds);
             // Move into recover-from-failed state.
             // Cancel next tick and start backoff schedule.
             retryMode = true;
@@ -489,8 +488,8 @@ public class LogManager extends AbstractLogManager {
             }
 
             if (retryMode) {
-                actualInterval = (TIMESTAMP_RETRY_DELAY_SECONDS < actualInterval && TIMESTAMP_RETRY_DELAY_SECONDS > 0)
-                        ? TIMESTAMP_RETRY_DELAY_SECONDS : actualInterval;
+                actualInterval = (timestampRetryDelaySeconds < actualInterval && timestampRetryDelaySeconds > 0)
+                        ? timestampRetryDelaySeconds : actualInterval;
             }
 
             int intervalSeconds = Math.min(Math.max(actualInterval, MIN_INTERVAL_SECONDS), MAX_INTERVAL_SECONDS);

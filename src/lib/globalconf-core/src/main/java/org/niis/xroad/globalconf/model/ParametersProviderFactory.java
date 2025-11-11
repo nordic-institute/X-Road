@@ -56,6 +56,12 @@ public final class ParametersProviderFactory {
                     SharedParametersV5::new,
                     PrivateParametersV3::new, // Version 5 private parameters are the same as version 3
                     PrivateParametersV3::new
+            ),
+            6, new ParamsConstructors(
+                    SharedParametersV6::new,
+                    SharedParametersV6::new,
+                    PrivateParametersV3::new, // Version 6 private parameters are the same as version 3
+                    PrivateParametersV3::new
             )
     );
 

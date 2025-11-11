@@ -26,57 +26,56 @@
  -->
 <template>
   <XrdWizardStep sub-title="wizard.token.info">
-    <XrdFormBlock>
-      <v-text-field
-        v-model="search"
-        data-test="token-search-input"
-        class="xrd w-50 mb-6"
-        density="compact"
-        prepend-inner-icon="search"
-        single-line
-        hide-details
-        autofocus
-        :label="$t('wizard.token.tokenName')"
-      />
-
-      <v-radio-group v-model="tokenGroup">
-        <v-data-table
-          class="xrd"
-          hide-default-footer
-          :headers="headers"
-          :items="filteredTokens"
-        >
-          <template #item.radio="{ item }">
-            <v-radio
-              data-test="token-radio-button"
-              class="xrd"
-              :value="item"
-              :disabled="!item.logged_in"
-            />
-          </template>
-          <template #item.name="{ value: name }">
-            {{ `Token ${name}` }}
-          </template>
-          <template #item.actions="{ item }">
-            <XrdBtn
-              v-if="item.logged_in"
-              data-test="token-logout-button"
-              variant="text"
-              text="wizard.token.loggedIn"
-              disabled
-            />
-            <XrdBtn
-              v-else
-              data-test="token-login-button"
-              variant="text"
-              text="keys.logIn"
-              :disabled="!item.available"
-              @click="confirmLogin(item)"
-            />
-          </template>
-        </v-data-table>
-      </v-radio-group>
-    </XrdFormBlock>
+    <v-radio-group v-model="tokenGroup">
+      <v-data-table
+        class="xrd border xrd-rounded-12 bg-surface-container"
+        hide-default-footer
+        :headers="headers"
+        :items="filteredTokens"
+      >
+        <template #top>
+          <v-text-field
+            v-model="search"
+            data-test="token-search-input"
+            class="xrd w-50 mt-2 ml-4 mb-6"
+            density="compact"
+            prepend-inner-icon="search"
+            single-line
+            hide-details
+            autofocus
+            :label="$t('wizard.token.tokenName')"
+          />
+        </template>
+        <template #item.radio="{ item }">
+          <v-radio
+            data-test="token-radio-button"
+            class="xrd"
+            :value="item"
+            :disabled="!item.logged_in"
+          />
+        </template>
+        <template #item.name="{ value: name }">
+          {{ `Token ${name}` }}
+        </template>
+        <template #item.actions="{ item }">
+          <XrdBtn
+            v-if="item.logged_in"
+            data-test="token-logout-button"
+            variant="text"
+            text="wizard.token.loggedIn"
+            disabled
+          />
+          <XrdBtn
+            v-else
+            data-test="token-login-button"
+            variant="text"
+            text="keys.logIn"
+            :disabled="!item.available"
+            @click="confirmLogin(item)"
+          />
+        </template>
+      </v-data-table>
+    </v-radio-group>
     <TokenLoginDialog
       :dialog="loginDialog"
       @cancel="loginDialog = false"

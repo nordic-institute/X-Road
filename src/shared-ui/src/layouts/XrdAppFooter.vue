@@ -91,7 +91,10 @@
 </template>
 
 <script lang="ts" setup>
-import xroad8Logo from '../assets/Logo-horizontal-light.svg';
+import logoLight from '../assets/Logo-horizontal-light.svg';
+import logoDark from '../assets/Logo-horizontal-dark.svg';
+import { computed } from 'vue';
+import { useThemeHelper } from '../composables';
 
 defineProps({
   appVersion: {
@@ -100,7 +103,9 @@ defineProps({
   },
 });
 
-const xroad8LogoUrl = xroad8Logo;
+const { isDark } = useThemeHelper();
+
+const xroad8LogoUrl = computed(() => (isDark.value ? logoDark : logoLight));
 </script>
 
 <style lang="scss" scoped></style>

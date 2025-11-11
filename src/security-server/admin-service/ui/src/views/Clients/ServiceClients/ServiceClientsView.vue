@@ -45,7 +45,7 @@
 
     <v-data-table
       data-test="service-clients-main-view-table"
-      class="xrd"
+      class="xrd border"
       item-key="id"
       no-data-text="noData.noServiceClients"
       hide-default-footer

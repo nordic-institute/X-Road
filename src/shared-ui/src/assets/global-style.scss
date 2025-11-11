@@ -59,19 +59,19 @@ body {
 
 .xrd {
   &.bg-success-container {
-    background-color: rgba(var(--v-theme-success-container), 0.15) !important;
+    background-color: rgba(var(--v-theme-success-container), var(--v-success-container-opacity)) !important;
   }
 
   &.bg-info-container {
-    background-color: rgba(var(--v-theme-info-container), 0.15) !important;
+    background-color: rgba(var(--v-theme-info-container), var(--v-info-container-opacity)) !important;
   }
 
   &.bg-warning-container {
-    background-color: rgba(var(--v-theme-warning-container), 0.15) !important;
+    background-color: rgba(var(--v-theme-warning-container), var(--v-warning-container-opacity)) !important;
   }
 
   &.bg-error-container {
-    background-color: rgba(var(--v-theme-error-container), 0.10) !important;
+    background-color: rgba(var(--v-theme-error-container), var(--v-error-container-opacity)) !important;
   }
 }
 

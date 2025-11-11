@@ -28,6 +28,7 @@
 package org.niis.xroad.proxy.core.test;
 
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.messagelog.MessageRecordEncryption;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
@@ -96,6 +97,10 @@ public class TestContext {
             ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(
                     serverConfProvider, mock(NoopVaultKeyProvider.class), proxyProperties);
 
+            EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
+            MessageRecordEncryption messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
+
+
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
                     .proxyHttpClient(proxyProperties, authTrustVerifier, reloadingSSLSocketFactory);
@@ -107,7 +112,7 @@ public class TestContext {
                     new MessageProcessorFactory(httpClient, httpClientCreator.getHttpClient(),
                             proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider,
                             signingCtxProvider, ocspVerifierFactory, commonProperties, logRecordManager, null,
-                            serviceHandlerLoader, certHelper, mock(EncryptionConfigProvider.class));
+                            serviceHandlerLoader, certHelper, encryptionConfigProvider, messageRecordEncryption);
 
             MetadataHandler metadataHandler = new MetadataHandler(messageProcessorFactory);
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(

@@ -50,7 +50,7 @@ public class ProxyRpcServer extends ManagedRpcServer {
 
     public ProxyRpcServer(RpcServerProperties rpcServerProperties,
                           RpcCredentialsConfigurer rpcCredentialsConfigurer,
-                          ProxyProperties.ProxyAddonProperties addonProperties,
+                          ProxyProperties.Addon addonProperties,
                           AdminService adminService,
                           InternalTlsService internalTlsService) {
         super(getServices(addonProperties, adminService, internalTlsService), rpcServerProperties, rpcCredentialsConfigurer);
@@ -68,7 +68,7 @@ public class ProxyRpcServer extends ManagedRpcServer {
         super.destroy();
     }
 
-    private static List<BindableService> getServices(ProxyProperties.ProxyAddonProperties addonProperties,
+    private static List<BindableService> getServices(ProxyProperties.Addon addonProperties,
                                                      AdminService adminService,
                                                      InternalTlsService internalTlsService) {
         List<BindableService> rpcServices = new ArrayList<>();

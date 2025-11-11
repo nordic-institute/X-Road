@@ -27,23 +27,19 @@
 package org.niis.xroad.proxy.core.addon.messagelog;
 
 import ee.ria.xroad.common.message.RestRequest;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
+import jakarta.annotation.Nonnull;
 import org.bouncycastle.bcpg.BCPGInputStream;
 import org.bouncycastle.bcpg.PacketTags;
 import org.bouncycastle.bcpg.PublicKeyEncSessionPacket;
 import org.eclipse.jetty.http.HttpURI;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.common.messagelog.archive.MessageLogEncryptionConfig;
@@ -65,35 +61,27 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.cleanUpDatabase;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.createRestRequest;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.createSignature;
-import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.initForTest;
+import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.cleanUpDatabase;
+import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.createRestRequest;
+import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.createSignature;
 
-@RunWith(Parameterized.class)
-public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
-
-    @Parameterized.Parameters(name = "encrypted = {0}")
-    public static Object[] params() {
-        return new Object[]{Boolean.FALSE, Boolean.TRUE};
-    }
-
-    @Parameterized.Parameter()
-    public boolean encrypted;
+class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
 
     private final ConfClientRpcClient confClientRpcClient = mock(ConfClientRpcClient.class);
     private EncryptionConfigProvider encryptionConfigProvider;
+    private boolean encrypted;
 
-
-    @Test
-    public void assertVerificationConfiguration() {
+    @ParameterizedTest(name = "encrypted = {0}")
+    @ValueSource(booleans = {false, true})
+    void assertVerificationConfiguration(boolean encryptionEnabled) throws Exception {
+        setUpWithEncryption(encryptionEnabled);
         final var request = mock(RequestWrapper.class);
         final var response = mock(ResponseWrapper.class);
 
@@ -102,7 +90,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         final AsicContainerClientRequestProcessor proc =
                 new AsicContainerClientRequestProcessor(confClientRpcClient, mock(EncryptionConfigProvider.class),
                         proxyProperties, globalConfProvider, serverConfProvider, logRecordManager,
-                        commonProperties.tempFilesPath(), "/verificationconf", request, response,
+                        commonProperties.tempFilesPath(), messageRecordEncryption, "/verificationconf", request, response,
                         mock(ClientAuthenticationService.class));
 
         byte[] mockZipResponse = new byte[]{'v', 'e', 'r', 'i', 'f', 'i', 'c', 'a', 't', 'i', 'o', 'n', 'c', 'o', 'n', 'f', 'z', 'i', 'p'};
@@ -117,8 +105,10 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         assertArrayEquals(mockZipResponse, mockOutputStream.bos.toByteArray());
     }
 
-    @Test
-    public void downloadAsicContainer() throws Exception {
+    @ParameterizedTest(name = "encrypted = {0}")
+    @ValueSource(booleans = {false, true})
+    void downloadAsicContainer(boolean encryptionEnabled) throws Exception {
+        setUpWithEncryption(encryptionEnabled);
 
         final String requestId = UUID.randomUUID().toString();
         final String queryId = "q-" + requestId;
@@ -132,11 +122,11 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         final var request = mock(RequestWrapper.class);
         final var httpURI = mock(HttpURI.class);
         when(request.getHttpURI()).thenReturn(httpURI);
-        when(request.getParameter(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
-        when(request.getParameter(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
-        when(request.getParameter(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
-        when(request.getParameter(Mockito.eq("subsystemCode"))).thenReturn(message.getClientId().getSubsystemCode());
-        when(request.getParameter(Mockito.eq("queryId"))).thenReturn(queryId);
+        when(request.getParameter("xRoadInstance")).thenReturn(message.getClientId().getXRoadInstance());
+        when(request.getParameter("memberClass")).thenReturn(message.getClientId().getMemberClass());
+        when(request.getParameter("memberCode")).thenReturn(message.getClientId().getMemberCode());
+        when(request.getParameter("subsystemCode")).thenReturn(message.getClientId().getSubsystemCode());
+        when(request.getParameter("queryId")).thenReturn(queryId);
 
         final var response = mock(ResponseWrapper.class);
 
@@ -145,8 +135,9 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         final AsicContainerClientRequestProcessor processor =
                 new AsicContainerClientRequestProcessor(confClientRpcClient, encryptionConfigProvider,
                         proxyProperties, globalConfProvider, serverConfProvider,
-                        logRecordManager, commonProperties.tempFilesPath(),
+                        logRecordManager, commonProperties.tempFilesPath(), messageRecordEncryption,
                         "/asic", request, response, mock(ClientAuthenticationService.class));
+
 
         processor.process();
 
@@ -168,8 +159,10 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         }
     }
 
-    @Test
-    public void downloadUniqueAsicContainer() throws Exception {
+    @ParameterizedTest(name = "encrypted = {0}")
+    @ValueSource(booleans = {false, true})
+    void downloadUniqueAsicContainer(boolean encryptionEnabled) throws Exception {
+        setUpWithEncryption(encryptionEnabled);
         final String requestId = UUID.randomUUID().toString();
         final String queryId = "q-" + requestId;
         final RestRequest message = createRestRequest(queryId, requestId);
@@ -186,11 +179,11 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         final var request = mock(RequestWrapper.class);
         final var httpURI = mock(HttpURI.class);
         when(request.getHttpURI()).thenReturn(httpURI);
-        when(request.getParameter(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
-        when(request.getParameter(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
-        when(request.getParameter(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
-        when(request.getParameter(Mockito.eq("subsystemCode"))).thenReturn(message.getClientId().getSubsystemCode());
-        when(request.getParameter(Mockito.eq("queryId"))).thenReturn(queryId);
+        when(request.getParameter("xRoadInstance")).thenReturn(message.getClientId().getXRoadInstance());
+        when(request.getParameter("memberClass")).thenReturn(message.getClientId().getMemberClass());
+        when(request.getParameter("memberCode")).thenReturn(message.getClientId().getMemberCode());
+        when(request.getParameter("subsystemCode")).thenReturn(message.getClientId().getSubsystemCode());
+        when(request.getParameter("queryId")).thenReturn(queryId);
         when(request.getParametersMap()).thenReturn(params);
 
         final var response = mock(ResponseWrapper.class);
@@ -201,8 +194,9 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         final AsicContainerClientRequestProcessor processor =
                 new AsicContainerClientRequestProcessor(confClientRpcClient, encryptionConfigProvider,
                         proxyProperties, globalConfProvider, serverConfProvider,
-                        logRecordManager, commonProperties.tempFilesPath(),
+                        logRecordManager, commonProperties.tempFilesPath(), messageRecordEncryption,
                         "/asic", request, response, mock(ClientAuthenticationService.class));
+
 
         processor.process();
 
@@ -228,7 +222,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
             throws IOException {
         try (BCPGInputStream is = new BCPGInputStream(
                 new ByteArrayInputStream(mockOutputStream.bos.toByteArray()))) {
-            Assert.assertEquals(PacketTags.PUBLIC_KEY_ENC_SESSION, is.nextPacketTag());
+            assertEquals(PacketTags.PUBLIC_KEY_ENC_SESSION, is.nextPacketTag());
             final PublicKeyEncSessionPacket packet = (PublicKeyEncSessionPacket) is.readPacket();
             assertNotNull(packet.getEncSessionKey());
         }
@@ -239,7 +233,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
         @Override
-        public void write(byte[] b, int off, int len) {
+        public void write(@Nonnull byte[] b, int off, int len) {
             bos.write(b, off, len);
         }
 
@@ -249,18 +243,18 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         }
     }
 
-    @Before
-    public void setUp() throws Exception {
-        System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, "false");
-        System.setProperty(MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1800");
-        System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.SUBSYSTEM.name());
-        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/resources/test/mlog-keys.ini");
-        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED, String.valueOf(encrypted));
-        System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.MEMBER.name());
-
+    private void setUpWithEncryption(boolean encryptionEnabled) throws Exception {
+        this.encrypted = encryptionEnabled;
         initEncryption();
-        initForTest();
-        testSetUp();
+
+        // Initialize with test-specific configuration
+        Map<String, String> config = new java.util.HashMap<>();
+        config.put("xroad.proxy.message-log.timestamper.timestamp-immediately", "false");
+        config.put("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1800");
+        config.put("xroad.proxy.message-log.archiver.grouping-strategy", GroupingStrategy.MEMBER.name());
+        config.put("xroad.proxy.message-log.archiver.encryption-enabled", String.valueOf(encrypted));
+
+        testSetUp(config);
 
         // initialize states
         initLogManager();
@@ -285,7 +279,13 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         var keyProvider = messageLogEncryptionConfig.keyProvider(vaultClient);
         var keyManager = messageLogEncryptionConfig.keyManager(keyProvider);
         var pgpEncryptionService = messageLogEncryptionConfig.pgpEncryption(keyManager);
-        encryptionConfigProvider = messageLogEncryptionConfig.encryptionConfigProvider(keyManager, pgpEncryptionService);
+        var messageLogProperties = mock(org.niis.xroad.common.messagelog.MessageLogArchivalProperties.class);
+        when(messageLogProperties.encryptionEnabled()).thenReturn(encrypted);
+        when(messageLogProperties.defaultKeyId()).thenReturn(Optional.empty());
+        when(messageLogProperties.groupingStrategy()).thenReturn(GroupingStrategy.NONE);
+        when(messageLogProperties.grouping()).thenReturn(Map.of());
+        encryptionConfigProvider = messageLogEncryptionConfig.encryptionConfigProvider(keyManager, pgpEncryptionService,
+                messageLogProperties);
     }
 
     /**
@@ -293,14 +293,8 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
      *
      * @throws Exception in case of any unexpected errors
      */
-    @After
-    public void tearDown() throws Exception {
-        System.clearProperty(MessageLogProperties.MESSAGELOG_ENCRYPTION_ENABLED);
-        System.clearProperty(MessageLogProperties.MESSAGELOG_KEYSTORE_PASSWORD);
-        System.clearProperty(MessageLogProperties.MESSAGELOG_KEYSTORE);
-        System.clearProperty(MessageLogProperties.MESSAGELOG_KEY_ID);
-        System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED);
-
+    @AfterEach
+    void tearDown() throws Exception {
         testTearDown();
         cleanUpDatabase(databaseCtx);
     }

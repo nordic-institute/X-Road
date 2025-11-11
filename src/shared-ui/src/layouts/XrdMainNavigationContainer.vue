@@ -31,14 +31,25 @@
     </v-list-item>
 
     <slot />
+    <template #append>
+      <div class="w-100 text-center">
+        <XrdThemeSwitcher class="mx-auto" />
+      </div>
+    </template>
   </v-navigation-drawer>
   <slot name="sub-nav" />
 </template>
 
 <script lang="ts" setup>
-import _logo from '../assets/Logo-vertical-dark.svg';
+import _logoLight from '../assets/Logo-vertical-dark.svg';
+import _logoDark from '../assets/Logo-vertical-light.svg';
+import { computed } from 'vue';
+import { useThemeHelper } from '../composables';
+import { XrdThemeSwitcher } from '../components';
 
-const logo = _logo;
+const { isDark } = useThemeHelper();
+
+const logo = computed(() => (isDark.value ? _logoDark : _logoLight));
 </script>
 <style lang="scss" scoped>
 .xrd-rail-nav {

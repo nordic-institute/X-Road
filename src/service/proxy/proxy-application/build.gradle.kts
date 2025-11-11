@@ -25,6 +25,7 @@ dependencies {
 
   testImplementation(libs.quarkus.junit5)
   testImplementation(project(":common:common-test"))
+  testImplementation(libs.hsqldb)
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
 }
 

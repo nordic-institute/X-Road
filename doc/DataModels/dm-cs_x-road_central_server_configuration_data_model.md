@@ -1,6 +1,6 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.16
+Version: 1.17
 Doc. ID: DM-CS
 
 | Date       | Version | Description                                                                      | Author               |
@@ -30,6 +30,7 @@ Doc. ID: DM-CS
 | 09.01.2025 | 1.14    | Restructure heading levels to work better with the documentation platform        | Raido Kaju           |
 | 21.03.2025 | 1.15    | Syntax dand styling fixes                                                        | Pauline Dimmek       |
 | 30.04.2025 | 1.16    | Added maintenance mode related fields to security_servers table                  | Ovidijus Narkevičius |
+| 28.10.2025 | 1.17    | Added cost type columns to ocsp_infos and approved_tsas                          | Mikk-Erik Bachmann   |
 
 
 
@@ -295,16 +296,17 @@ New record creation process starts when an X-Road system administrator receives 
 
 #### 2.6.1 Attributes
 
-| Name        | Columns           | Name        | Columns           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| name | character varying(255) |  | Name of the TSA, used in user interfaces. Technically, this is the subject name of the TSA certificate. |
-| url | character varying(255) |  | URL that is used for sending time-stamping requests. Must correspond to the URL format. Cannot be NULL. |
-| cert | bytea |  | TSA certificate that is used to verify issued time stamps. Stored in DER-encoded form. Cannot be NULL. |
-| valid_from | timestamp without time zone |  | Start of validity period of the TSA's certificate. Extracted from the uploaded certificate. |
-| valid_to | timestamp without time zone |  | End of validity period of the TSA's certificate. Extracted from the uploaded certificate. |
-| created_at | timestamp without time zone | NOT NULL | Record creation time, managed automatically. |
-| updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically. |
+| Name       |           Columns           | Name     |                                                 Columns                                                 |
+|:-----------|:---------------------------:|:---------|:-------------------------------------------------------------------------------------------------------:|
+| id [PK]    |           integer           | NOT NULL |                                               Primary key                                               |
+| name       |   character varying(255)    |          | Name of the TSA, used in user interfaces. Technically, this is the subject name of the TSA certificate. |
+| url        |   character varying(255)    |          | URL that is used for sending time-stamping requests. Must correspond to the URL format. Cannot be NULL. |
+| cert       |            bytea            |          | TSA certificate that is used to verify issued time stamps. Stored in DER-encoded form. Cannot be NULL.  |
+| valid_from | timestamp without time zone |          |       Start of validity period of the TSA's certificate. Extracted from the uploaded certificate.       |
+| valid_to   | timestamp without time zone |          |        End of validity period of the TSA's certificate. Extracted from the uploaded certificate.        |
+| created_at | timestamp without time zone | NOT NULL |                              Record creation time, managed automatically.                               |
+| updated_at | timestamp without time zone | NOT NULL |                            Record last modified time, managed automatically.                            |
+| cost_type  |   character varying(255)    | NOT NULL |                  Cost type of the TSA, either FREE, PAID or UNDEFINED. Cannot be NULL.                  |
 
 ### 2.7 AUTH_CERTS
 
@@ -543,14 +545,15 @@ The record is created when a new OCSP responder needs to be registered for eithe
 
 #### 2.17.2 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key. |
-| url  | character varying(255) |  | URL of the OCSP server. Must correspond to the URL format. Cannot be NULL. |
-| cert  | bytea |  | Certificate used by the OCSP server to sign OCSP responses (in DER encoding). |
-| ca_info_id [FK] | integer |  | ID of the CA info record this OCSP info belongs to. References id attribute of ca_infos entity. Cannot be NULL. |
-| created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
-| updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically.  |
+| Name            |            Type             | Modifiers |                                                   Description                                                   |
+|:----------------|:---------------------------:|:----------|:---------------------------------------------------------------------------------------------------------------:|
+| id [PK]         |           integer           | NOT NULL  |                                                  Primary key.                                                   |
+| url             |   character varying(255)    |           |                   URL of the OCSP server. Must correspond to the URL format. Cannot be NULL.                    |
+| cert            |            bytea            |           |                  Certificate used by the OCSP server to sign OCSP responses (in DER encoding).                  |
+| ca_info_id [FK] |           integer           |           | ID of the CA info record this OCSP info belongs to. References id attribute of ca_infos entity. Cannot be NULL. |
+| created_at      | timestamp without time zone | NOT NULL  |                                  Record creation time, managed automatically.                                   |
+| updated_at      | timestamp without time zone | NOT NULL  |                                Record last modified time, managed automatically.                                |
+| cost_type       |    character varying(255)   | NOT NULL  |                  Cost type of the OCSP server, either FREE, PAID or UNDEFINED. Cannot be NULL.                  |
 
 ### 2.18 REQUEST_PROCESSINGS
 

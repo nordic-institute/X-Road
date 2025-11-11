@@ -172,7 +172,7 @@ jobs:
           list-tests: 'failed'
 
       - name: Upload intTest reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: Integration Test reports

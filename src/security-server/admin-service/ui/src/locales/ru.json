@@ -398,6 +398,10 @@
     "missing_parameter": "Отсутствует параметр",
     "network_error": "Ошибка сети",
     "http_error": "Ошибка HTTP",
+    "ocsp_connection_error": "Не удалось подключиться к OCSP-ответчику",
+    "ocsp_failed": "Не удалось получить ответ от OCSP-ответчика",
+    "ocsp_response_parsing_failure": "Не удалось разобрать ответ OCSP",
+    "ocsp_response_verification_failure": "Не удалось проверить ответ OCSP",
     "openapi_parsing_error": "Не удалось разобрать описание OpenApi3",
     "orphans_not_found": "Одинокие ключи, сертификаты и/или CSR, принадлежащие данному клиенту, не найдены",
     "pin_code_exists": "PIN-код существует",
@@ -839,7 +843,8 @@
         },
         "header": {
           "serviceURL": "URL службы",
-          "timestampingService": "Служба временных меток"
+          "timestampingService": "Служба временных меток",
+          "costType": "Тип стоимости"
         }
       },
       "title": "Службы временных меток"

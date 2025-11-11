@@ -83,6 +83,9 @@ class MetadataHandlerTest {
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
         clientAuthenticationService = mock(ClientAuthenticationService.class);
+        EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
+        var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
+
         mockRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
         mockHttpUri = mock(HttpURI.class);
@@ -90,7 +93,7 @@ class MetadataHandlerTest {
         messageProcessorFactory = new MessageProcessorFactory(null, null, proxyProperties,
                 globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider, null,
                 new OcspVerifierFactory(), commonProperties, null, null, null,
-                null, mock(EncryptionConfigProvider.class));
+                null, encryptionConfigProvider, messageRecordEncryption);
 
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
         when(mockHttpUri.getPath()).thenReturn("/target");

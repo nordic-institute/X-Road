@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.messagelog.archiver.core;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.LogRecord;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 
@@ -49,11 +49,13 @@ import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -106,8 +108,6 @@ class LogArchiveTest {
 
     @AfterEach
     void tearDown() {
-        System.clearProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE);
-        System.clearProperty(MessageLogProperties.ARCHIVE_GROUPING);
         FileUtils.deleteQuietly(Paths.get("build/slog").toFile());
     }
 
@@ -123,11 +123,9 @@ class LogArchiveTest {
     void writeAndRotate(boolean encrypted, GroupingStrategy groupingStrategy) throws Exception {
         // Given
         initializeEncryptionConfig(encrypted);
-        System.setProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE, "50");
-        System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, groupingStrategy.name());
 
         // When
-        writeRecordsToLog(false);
+        writeRecordsToLog(false, 50L, groupingStrategy);
 
         // Then
         assertTrue(rotated);
@@ -142,11 +140,9 @@ class LogArchiveTest {
     void testFinishAfterRotate(boolean encrypted, GroupingStrategy groupingStrategy) throws Exception {
         // Given
         initializeEncryptionConfig(encrypted);
-        System.setProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE, "3000");
-        System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, groupingStrategy.name());
 
         // When
-        writeRecordsToLog(true);
+        writeRecordsToLog(true, 3000L, groupingStrategy);
 
         // Then
         assertTrue(rotated);
@@ -180,8 +176,8 @@ class LogArchiveTest {
         }
     }
 
-    private void writeRecordsToLog(boolean finishAfterRotate) throws Exception {
-        try (LogArchiveWriter writer = getWriter()) {
+    private void writeRecordsToLog(boolean finishAfterRotate, long maxFilesize, GroupingStrategy groupingStrategy) throws Exception {
+        try (LogArchiveWriter writer = createWriter(maxFilesize, groupingStrategy)) {
             outer:
             for (int i = 0; i < NUM_TIMESTAMPS; i++) {
                 TimestampRecord ts = nextTimestampRecord();
@@ -198,11 +194,13 @@ class LogArchiveTest {
         }
     }
 
-    private LogArchiveWriter getWriter() {
+    private LogArchiveWriter createWriter(long maxFilesize, GroupingStrategy groupingStrategy) {
+        LogArchiverExecutionProperties executionProperties = createExecutionProperties(maxFilesize, groupingStrategy);
         return new LogArchiveWriter(globalConfProvider,
                 Paths.get("build/slog"),
-                dummyLogArchiveBase(), "build/tmp",
-                encryptionConfigProvider) {
+                dummyLogArchiveBase(),
+                encryptionConfigProvider,
+                executionProperties) {
 
             @Override
             protected void rotate() throws IOException {
@@ -210,6 +208,35 @@ class LogArchiveTest {
                 rotated = true;
             }
         };
+    }
+
+    private LogArchiverExecutionProperties createExecutionProperties(long maxFilesize, GroupingStrategy groupingStrategy) {
+        var archiveEncryption = new LogArchiverExecutionProperties.ArchiveEncryptionProperties(
+                false,
+                Optional.empty(),
+                groupingStrategy,
+                Map.of()
+        );
+        
+        var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
+                false,
+                null,
+                null,
+                null
+        );
+        
+        return new LogArchiverExecutionProperties(
+                archiveEncryption,
+                databaseEncryption,
+                100,
+                30,
+                100,
+                "build/slog",
+                null,
+                DigestAlgorithm.SHA512,
+                maxFilesize,
+                "build/tmp"
+        );
     }
 
     private LogArchiveBase dummyLogArchiveBase() {

@@ -29,6 +29,7 @@
     v-if="canDelete"
     data-test="delete-anchor-button"
     variant="text"
+    color="primary"
     prepend-icon="delete_forever"
     text="action.delete"
     @click="showDialog = true"

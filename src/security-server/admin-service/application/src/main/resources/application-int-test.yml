@@ -11,8 +11,6 @@ xroad:
   proxy-ui-api:
     cache-default-ttl: -1
     cache-api-key-ttl: -1
-  message-log-archiver:
-    enabled: false
 
 server:
   ssl:

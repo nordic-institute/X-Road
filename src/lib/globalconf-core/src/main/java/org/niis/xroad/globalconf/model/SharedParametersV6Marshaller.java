@@ -24,27 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog.archiver.core.config;
+package org.niis.xroad.globalconf.model;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.schema.sharedparameters.v6.ObjectFactory;
+import org.niis.xroad.globalconf.schema.sharedparameters.v6.SharedParametersTypeV6;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import javax.xml.validation.Schema;
 
-import java.util.Optional;
+public class SharedParametersV6Marshaller extends AbstractSharedParametersMarshaller<SharedParametersTypeV6> {
+    private static final JAXBContext JAXB_CONTEXT = createJaxbContext();
 
-@Getter
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = "xroad.message-log-archiver")
-public class LogArchiverProperties {
-    private boolean enabled;
-    private String archiveInterval;
-    private String cleanInterval;
-    private int cleanTransactionBatchSize;
-    private int cleanKeepRecordsFor;
-    private int archiveTransactionBatchSize;
-    private String archivePath;
-    private Optional<String> archiveTransferCommand = Optional.empty();
+    private static JAXBContext createJaxbContext() {
+        try {
+            return JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    @Override
+    JAXBContext getJaxbContext() {
+        return JAXB_CONTEXT;
+    }
+
+    @Override
+    Schema getSchema() {
+        return SharedParametersSchemaValidatorV6.getSchema();
+    }
+
+    @Override
+    JAXBElement<SharedParametersTypeV6> convert(SharedParameters parameters) {
+        return new ObjectFactory().createConf(SharedParametersV6ToXmlConverter.INSTANCE.convert(parameters));
+    }
 }

@@ -85,7 +85,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload Signer test report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: Signer Integration Test report
@@ -164,7 +164,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload Op-Monitor test report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: Op-Monitor Integration Test report

@@ -413,6 +413,10 @@
     "missing_parameter": "Parámetro faltante",
     "network_error": "Error de red",
     "http_error": "Error HTTP",
+    "ocsp_connection_error": "Incapaz de conectarse al servicio OCSP Responder",
+    "ocsp_failed": "No se puede obtener la respuesta del servicio OCSP Responder",
+    "ocsp_response_parsing_failure": "Incapaz de analizar la respuesta OCSP",
+    "ocsp_response_verification_failure": "No se puede verificar la respuesta OCSP",
     "openapi_parsing_error": "Error al analizar la descripción de OpenApi3",
     "orphans_not_found": "Las claves huérfanas, certificados y/o CSR que pertenecen al cliente dado no fueron encontrados",
     "pin_code_exists": "El código PIN ya existe",
@@ -863,7 +867,8 @@
         },
         "header": {
           "serviceURL": "URL de servicio",
-          "timestampingService": "Servicio de marca de tiempo"
+          "timestampingService": "Servicio de marca de tiempo",
+          "costType": "Tipo de costo"
         }
       },
       "title": "Servicios de marca de tiempo"

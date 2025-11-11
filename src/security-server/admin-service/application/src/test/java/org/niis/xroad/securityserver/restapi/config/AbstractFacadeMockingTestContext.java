@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
+
 import org.junit.runner.RunWith;
 import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
 import org.niis.xroad.common.acme.AcmeService;
@@ -85,5 +87,7 @@ public abstract class AbstractFacadeMockingTestContext {
     @MockitoBean
     protected BackupManagerRpcClient backupManagerRpcClient;
     @MockitoBean
-    ServerConfDatabaseCtx databaseCtx;
+    protected ServerConfDatabaseCtx databaseCtx;
+    @MockitoBean
+    protected MessageLogDatabaseCtx messageLogDatabaseCtx;
 }

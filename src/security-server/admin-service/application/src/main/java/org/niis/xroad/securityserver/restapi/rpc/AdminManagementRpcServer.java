@@ -24,23 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog.archiver.job;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.messagelog.archiver.core.LogCleaner;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
-import org.springframework.scheduling.annotation.Scheduled;
+package org.niis.xroad.securityserver.restapi.rpc;
 
-@Slf4j
-@RequiredArgsConstructor
-public class LogCleanerJob {
-    private final LogArchiverProperties logArchiverProperties;
-    private final LogCleaner logCleaner;
+import io.grpc.BindableService;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.server.ManagedRpcServer;
+import org.niis.xroad.securityserver.restapi.config.AdminRpcServerProperties;
 
-    @Scheduled(cron = "${xroad.message-log-archiver.clean-interval}")
-    public void archive() {
-        log.info("Executing LogCleanerJob with cron {}", logArchiverProperties.getCleanInterval());
-        logCleaner.execute();
+import java.io.IOException;
+import java.util.List;
+
+public class AdminManagementRpcServer extends ManagedRpcServer {
+
+    public AdminManagementRpcServer(List<BindableService> services,
+                                    AdminRpcServerProperties rpcServerProperties,
+                                    RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+        super(services, rpcServerProperties, rpcCredentialsConfigurer);
+    }
+
+    @Override
+    public void init() throws IOException {
+        super.init();
+    }
+
+    @Override
+    public void destroy() throws InterruptedException {
+        super.destroy();
     }
 }

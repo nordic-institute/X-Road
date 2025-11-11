@@ -25,32 +25,27 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
-import jakarta.enterprise.inject.Produces;
-import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.niis.xroad.common.messagelog.MessageLogDbProperties;
 
 /**
  * Message log database context.
  */
 public class MessageLogDatabaseConfig {
-    public static final String MESSAGE_LOG_DB_CTX = "messageLogCtx";
 
-    @Produces
-    @Named(MESSAGE_LOG_DB_CTX)
-    @ApplicationScoped
-    DatabaseCtx serverConfCtx(MessageLogDbProperties messageLogDbProperties) {
+    @Singleton
+    MessageLogDatabaseCtx serverConfCtx(MessageLogDbProperties messageLogDbProperties) {
         return create(messageLogDbProperties);
     }
 
-    public static DatabaseCtx create(MessageLogDbProperties messageLogDbProperties) {
-        return new DatabaseCtx("messagelog", messageLogDbProperties.hibernate());
+    public static MessageLogDatabaseCtx create(MessageLogDbProperties messageLogDbProperties) {
+        return new MessageLogDatabaseCtx(messageLogDbProperties.hibernate());
     }
 
-    public void cleanup(@Named(MESSAGE_LOG_DB_CTX) @Disposes DatabaseCtx databaseCtx)  {
+    public void cleanup(@Disposes MessageLogDatabaseCtx databaseCtx) {
         databaseCtx.destroy();
     }
 }

@@ -53,6 +53,7 @@ import XrdFormBlock from './XrdFormBlock.vue';
 import XrdFormBlockRow from './XrdFormBlockRow.vue';
 import XrdBreadcrumbs from './XrdBreadcrumbs.vue';
 import XrdCertificateFileUpload from './XrdCertificateFileUpload.vue';
+import XrdThemeSwitcher from './XrdThemeSwitcher.vue';
 
 export {
   XrdBanner,
@@ -83,4 +84,5 @@ export {
   XrdFormBlock,
   XrdBreadcrumbs,
   XrdCertificateFileUpload,
+  XrdThemeSwitcher,
 };

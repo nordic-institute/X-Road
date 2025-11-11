@@ -398,6 +398,10 @@
     "missing_parameter": "Parametrleri ýok",
     "network_error": "Ağ hatası",
     "http_error": "HTTP hatası",
+    "ocsp_connection_error": "OCSP jogap berijisine birigip bolmaýar",
+    "ocsp_failed": "OCSP jogap berijisinden jogap alyp bolmaýar",
+    "ocsp_response_parsing_failure": "OCSP jogabyny seljerip bolmaýar",
+    "ocsp_response_verification_failure": "OCSP jogabyny barlap bolmaýar",
     "openapi_parsing_error": "OpenApi3 beýanyny dernäp bolmady",
     "orphans_not_found": "Bu müşderä degişli ýiten açarlar, şahadatnamalar we/ýa-da CSR-ler tapylmady",
     "pin_code_exists": "PIN kod bar",
@@ -839,7 +843,8 @@
         },
         "header": {
           "serviceURL": "URL gullugy",
-          "timestampingService": "Wagt belleme gullugy"
+          "timestampingService": "Wagt belleme gullugy",
+          "costType": "Nagt töleg görnüşi"
         }
       },
       "title": "Wagt belleme gulluklary"

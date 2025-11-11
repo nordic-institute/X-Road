@@ -34,8 +34,8 @@ import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.message.BasicHeader;
@@ -55,9 +55,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @Slf4j
-final class TestUtil {
-    private TestUtil() {
-    }
+@UtilityClass
+final class ProxyTestUtil {
 
     static final String TSP_CERT =
             "MIICwjCCAaqgAwIBAgIIb+RPNmkfCdYwDQYJKoZIhvcNAQEFBQAwNzERMA8G"
@@ -102,10 +101,6 @@ final class TestUtil {
                         + "signserver/tsa?workerName=TimeStampSigner");
             }
         };
-    }
-
-    static void initForTest() {
-        MessageRecordEncryption.reload();
     }
 
     static void cleanUpDatabase(DatabaseCtx databaseCtx) {

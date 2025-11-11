@@ -24,21 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog.archiver.core.config;
+package org.niis.xroad.management.rpc;
 
-import lombok.Setter;
-import org.niis.xroad.common.properties.CommonProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = CommonProperties.PREFIX)
-public class SpringCommonProperties implements CommonProperties {
-    private String tempFilesPath = DEFAULT_TEMP_FILES_PATH;
+@ConfigMapping(prefix = ManagementRpcChannelProperties.PREFIX)
+public interface ManagementRpcChannelProperties extends RpcChannelProperties {
+    String PREFIX = "xroad.common-rpc.channel.management";
+    String DEFAULT_HOST = "127.0.0.1";
+    String DEFAULT_PORT = "4060";
+    String DEFAULT_DEADLINE_AFTER = "60000";
+
 
     @Override
-    public String tempFilesPath() {
-        return tempFilesPath;
-    }
+    @WithDefault(DEFAULT_HOST)
+    String host();
+
+    @Override
+    @WithDefault(DEFAULT_PORT)
+    int port();
+
+    @Override
+    @WithName("deadline-after")
+    @WithDefault(DEFAULT_DEADLINE_AFTER)
+    int deadlineAfter();
+
 }

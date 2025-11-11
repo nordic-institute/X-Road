@@ -1,25 +1,25 @@
 // Load local properties if they exist
 val localPropertiesFile = file("gradle-local.properties")
 if (localPropertiesFile.exists()) {
-    gradle.projectsLoaded {
-        val localProps = java.util.Properties().apply {
-            load(localPropertiesFile.inputStream())
-        }
-        // Override properties from local file
-        localProps.forEach { (key, value) ->
-            gradle.rootProject.extensions.extraProperties.set(key.toString(), value.toString())
-        }
+  gradle.projectsLoaded {
+    val localProps = java.util.Properties().apply {
+      load(localPropertiesFile.inputStream())
     }
+    // Override properties from local file
+    localProps.forEach { (key, value) ->
+      gradle.rootProject.extensions.extraProperties.set(key.toString(), value.toString())
+    }
+  }
 }
 
 rootProject.name = "x-road-core"
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenCentral()
-        mavenLocal()
-    }
+  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  repositories {
+    mavenCentral()
+    mavenLocal()
+  }
 }
 
 // Common projects
@@ -141,6 +141,8 @@ include("security-server:admin-service:application")
 include("security-server:admin-service:infra-jpa")
 include("security-server:admin-service:ui")
 include("security-server:admin-service:message-log-archiver")
+include("security-server:admin-service:message-log-archiver-api")
+include("security-server:admin-service:management-rpc-client")
 include("security-server:system-test")
 include("security-server:e2e-test")
 

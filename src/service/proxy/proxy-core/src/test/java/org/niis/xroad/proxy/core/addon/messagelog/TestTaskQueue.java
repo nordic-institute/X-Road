@@ -32,6 +32,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampFailed;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampSucceeded;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +52,9 @@ class TestTaskQueue extends TaskQueue {
 
     static Exception throwWhenSavingTimestamp;
 
-    TestTaskQueue(Timestamper timestamper, LogManager logManager, DatabaseCtx messageLogDatabaseCtx) {
-        super(timestamper, logManager, messageLogDatabaseCtx);
+    TestTaskQueue(Timestamper timestamper, LogManager logManager, DatabaseCtx messageLogDatabaseCtx,
+                  ProxyMessageLogProperties messageLogProperties) {
+        super(timestamper, logManager, messageLogDatabaseCtx, messageLogProperties.timestamper());
     }
 
     static void initGateLatch() {
@@ -85,7 +87,6 @@ class TestTaskQueue extends TaskQueue {
      * Waits for a call to saveTimestampRecord for a defined time.
      *
      * @return true when call came, false if timeouted waiting.
-     * @throws Exception
      */
     static boolean waitForTimestampSaved() throws Exception {
         log.trace("waitForTimestampSaved()");

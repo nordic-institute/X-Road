@@ -28,13 +28,10 @@
   <XrdView title="members.header">
     <template #append-header>
       <div class="ml-6">
-        <v-text-field
+        <XrdSearchField
           v-model="search"
           data-test="search-query-field"
-          class="xrd"
           width="320"
-          prepend-inner-icon="search"
-          single-line
           :label="$t('action.search')"
           @update:model-value="debouncedFetchClients"
         />
@@ -50,7 +47,7 @@
     </template>
     <v-data-table-server
       data-test="members-table"
-      class="xrd bg-surface-container xrd-rounded-16"
+      class="xrd bg-surface-container xrd-rounded-16 border"
       item-key="client_id.encoded_id"
       :page="page"
       :loading="loading"

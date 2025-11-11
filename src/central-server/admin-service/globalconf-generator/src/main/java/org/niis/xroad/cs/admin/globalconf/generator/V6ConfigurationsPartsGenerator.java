@@ -24,23 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog.archiver.job;
+package org.niis.xroad.cs.admin.globalconf.generator;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.messagelog.archiver.core.LogArchiver;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverProperties;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.niis.xroad.globalconf.model.ConfigurationConstants;
+import org.springframework.stereotype.Component;
 
-@Slf4j
+import java.util.List;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+
+@Component
 @RequiredArgsConstructor
-public class LogArchiverJob {
-    private final LogArchiverProperties logArchiverProperties;
-    private final LogArchiver logArchiver;
+public class V6ConfigurationsPartsGenerator implements ConfigurationPartsGenerator {
 
-    @Scheduled(cron = "${xroad.message-log-archiver.archive-interval}")
-    public void archive() {
-        log.info("Executing LogArchiverJob with cron {}", logArchiverProperties.getArchiveInterval());
-        logArchiver.execute();
+    private static final int CONFIGURATION_VERSION = 6;
+
+    private final PrivateParametersV3Generator privateParametersV3Generator;
+    private final SharedParametersV6Generator sharedParametersV6Generator;
+
+    public int getConfigurationVersion() {
+        return CONFIGURATION_VERSION;
     }
+
+    public List<ConfigurationPart> generateConfigurationParts() {
+        return List.of(
+                ConfigurationPart.builder()
+                        .contentIdentifier(ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS)
+                        .filename(ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS)
+                        .data(privateParametersV3Generator.generate().getBytes(UTF_8))
+                        .build(),
+                ConfigurationPart.builder()
+                        .contentIdentifier(CONTENT_ID_SHARED_PARAMETERS)
+                        .filename(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS)
+                        .data(sharedParametersV6Generator.generate().getBytes(UTF_8))
+                        .build());
+    }
+
 }

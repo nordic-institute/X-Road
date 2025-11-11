@@ -31,13 +31,10 @@
   >
     <template #append-header>
       <div class="ml-6">
-        <v-text-field
+        <XrdSearchField
           v-model="filterQuery"
           data-test="search-query-field"
-          class="xrd"
           width="320"
-          prepend-inner-icon="search"
-          single-line
           :label="$t('action.search')"
         />
       </div>
@@ -46,20 +43,19 @@
         <v-switch
           v-model="showOnlyPending"
           data-test="show-only-pending-requests"
-          class="xrd"
+          class="xrd ml-3"
           false-icon="close"
           true-icon="check"
           hide-details
           inset
           :label="$t('managementRequests.showOnlyPending')"
           @update:model-value="fetchItems"
-        >
-        </v-switch>
+        />
       </div>
     </template>
     <v-data-table-server
       data-test="management-requests-table"
-      class="xrd bg-surface-container xrd-rounded-16"
+      class="xrd bg-surface-container xrd-rounded-16 border"
       item-key="id"
       :sort-by="sortBy"
       :loading="loading"

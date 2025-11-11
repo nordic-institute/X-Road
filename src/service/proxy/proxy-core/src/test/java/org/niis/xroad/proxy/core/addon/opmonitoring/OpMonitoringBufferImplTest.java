@@ -86,13 +86,13 @@ class OpMonitoringBufferImplTest {
     @SuppressWarnings("checkstyle:FinalClass")
     private class TestOpMonitoringBufferImpl extends OpMonitoringBufferImpl {
         TestOpMonitoringBufferImpl(
-                ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties) throws Exception {
+                ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties) throws Exception {
             super(mock(ServerConfProvider.class), opMonitorProperties, mock(VaultClient.class), false);
         }
 
         @Override
         OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                              ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties,
+                                              ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
                                               VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
                 throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
                 NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
@@ -133,8 +133,8 @@ class OpMonitoringBufferImplTest {
             return response;
         });
 
-        ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties =
-                ConfigUtils.initConfiguration(ProxyProperties.ProxyAddonProperties.class, Map.of(
+        ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties =
+                ConfigUtils.initConfiguration(ProxyProperties.Addon.class, Map.of(
                         "xroad.proxy.addon.op-monitor.buffer.size", "10000"
                 )).opMonitor();
 
@@ -171,15 +171,15 @@ class OpMonitoringBufferImplTest {
 
     @Test
     void bufferOverflow() throws Exception {
-        ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties =
-                ConfigUtils.initConfiguration(ProxyProperties.ProxyAddonProperties.class, Map.of(
+        ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties =
+                ConfigUtils.initConfiguration(ProxyProperties.Addon.class, Map.of(
                         "xroad.proxy.addon.op-monitor.buffer.size", "2"
                 )).opMonitor();
 
         final TestOpMonitoringBufferImpl opMonitoringBuffer = new TestOpMonitoringBufferImpl(opMonitorProperties) {
             @Override
             OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                                  ProxyProperties.ProxyAddonProperties.ProxyAddonOpMonitorProperties opMonitorProperties,
+                                                  ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
                                                   VaultClient vaultTlsCredentialsProvider,
                                                   boolean isEnabledPooledConnectionReuse) {
                 var mockedSender = mock(OpMonitoringDaemonSender.class);
@@ -214,7 +214,7 @@ class OpMonitoringBufferImplTest {
         var serverConfProvider = mock(ServerConfProvider.class);
         var vaultTlsCredentialsProvider = mock(VaultClient.class);
         new OpMonitoringBufferImpl(serverConfProvider,
-                ConfigUtils.initConfiguration(ProxyProperties.ProxyAddonProperties.class, Map.of(
+                ConfigUtils.initConfiguration(ProxyProperties.Addon.class, Map.of(
                         "xroad.proxy.addon.op-monitor.buffer.size", "0"
                 )).opMonitor(),
                 vaultTlsCredentialsProvider, false);

@@ -31,6 +31,7 @@ import {
   CertificateDetails,
   CertificationServiceFileAndSettings,
   CertificationServiceSettings,
+  CostType,
   OcspResponder,
   TimestampingService,
   OcspResponderCertificateDetails,
@@ -159,9 +160,10 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
         .then((resp) => (this.currentOcspResponders = resp.data))
         .finally(() => (this.loadingOcspResponders = false));
     },
-    async addOcspResponder(url: string, certificate: File | undefined) {
+    async addOcspResponder(url: string, costType: string, certificate: File | undefined) {
       const formData = new FormData();
       formData.append('url', url);
+      formData.append('cost_type', costType);
       if (certificate) {
         formData.append('certificate', certificate);
       }
@@ -173,10 +175,12 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
     async updateOcspResponder(
       id: number,
       url: string,
+      costType: string,
       certificate: File | undefined,
     ) {
       const formData = new FormData();
       formData.append('url', url);
+      formData.append('cost_type', costType);
       if (certificate) {
         formData.append('certificate', certificate);
       }
@@ -275,21 +279,24 @@ export const useTimestampingServices = defineStore('timestampingServices', {
         .delete(`/timestamping-services/${id}`)
         .finally(() => this.fetchTimestampingServices());
     },
-    async addTimestampingService(url: string, certificate: File) {
-      const formData = new FormData();
-      formData.append('url', url || '');
-      formData.append('certificate', certificate);
-      return axios
-        .post('/timestamping-services', formData)
-        .finally(() => this.fetchTimestampingServices());
-    },
-    async updateTimestampingService(
+    async addTimestampingService(url: string, costType: string, certificate: File) {
+        const formData = new FormData();
+        formData.append('url', url);
+      formData.append('cost_type', costType);
+        formData.append('certificate', certificate);
+        return axios
+          .post('/timestamping-services', formData)
+          .finally(() => this.fetchTimestampingServices());
+      },
+     async updateTimestampingService(
       id: number,
       url: string,
-      certificate: File | undefined,
-    ) {
-      const formData = new FormData();
-      formData.append('url', url || '');
+      costType: string,
+        certificate: File | undefined,
+      ) {
+        const formData = new FormData();
+        formData.append('url', url);
+        formData.append('cost_type', costType);
       if (certificate) {
         formData.append('certificate', certificate);
       }
@@ -299,3 +306,7 @@ export const useTimestampingServices = defineStore('timestampingServices', {
     },
   },
 });
+
+export const definedCostTypes: CostType[] = Object.values(CostType).filter(
+  (v) => v !== CostType.UNDEFINED,
+);

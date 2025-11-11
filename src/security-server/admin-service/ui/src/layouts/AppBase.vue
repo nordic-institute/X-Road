@@ -26,18 +26,16 @@
  -->
 
 <template>
-  <v-layout>
-    <AppToolbar />
-    <router-view name="navigation" />
+  <AppToolbar />
+  <router-view name="navigation" />
 
-    <v-main class="bg-surface pr-10 pb-8">
-      <AlertsContainer />
-      <div class="mb-6 pa-0 mr-auto">
-        <router-view />
-      </div>
-      <router-view name="footer" />
-    </v-main>
-  </v-layout>
+  <v-main class="bg-surface pr-10 pb-8">
+    <AlertsContainer />
+    <div class="mb-6 pa-0 mr-auto">
+      <router-view />
+    </div>
+    <router-view name="footer" />
+  </v-main>
 </template>
 
 <script lang="ts" setup>

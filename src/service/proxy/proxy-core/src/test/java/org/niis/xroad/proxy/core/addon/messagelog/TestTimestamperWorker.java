@@ -32,6 +32,7 @@ import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
+import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,8 +45,9 @@ class TestTimestamperWorker extends TimestamperWorker {
     private static final Lock TRUE = new Lock(true);
     private static volatile boolean shouldFail;
 
-    TestTimestamperWorker(GlobalConfProvider globalConfProvider, LogRecordManager logRecordManager, List<String> tspUrls) {
-        super(globalConfProvider, logRecordManager, tspUrls);
+    TestTimestamperWorker(GlobalConfProvider globalConfProvider, LogRecordManager logRecordManager,
+                          ProxyMessageLogProperties messageLogProperties, List<String> tspUrls) {
+        super(globalConfProvider, logRecordManager, messageLogProperties, tspUrls);
     }
 
     public static void failNextTimestamping(boolean failureExpected) {
@@ -58,7 +60,7 @@ class TestTimestamperWorker extends TimestamperWorker {
 
     @Override
     protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
-        return new SingleTimestampRequest(logRecordManager, globalConfProvider, logRecord) {
+        return new SingleTimestampRequest(logRecordManager, messageLogProperties, globalConfProvider, logRecord) {
             @Override
             @SneakyThrows
             protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls) {
@@ -92,7 +94,7 @@ class TestTimestamperWorker extends TimestamperWorker {
 
     @Override
     protected AbstractTimestampRequest createBatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
-        return new BatchTimestampRequest(globalConfProvider, logRecords, signatureHashes) {
+        return new BatchTimestampRequest(globalConfProvider, messageLogProperties, logRecords, signatureHashes) {
             @Override
             @SneakyThrows
             protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls) {

@@ -103,8 +103,7 @@ class MetadataClientRequestProcessorTest {
      * Init data for tests
      */
     @BeforeEach
-    public void init() {
-
+    void init() {
         globalConfProvider = new TestSuiteGlobalConf();
         serverConfProvider = mock(ServerConfProvider.class);
         clientAuthenticationService = mock(ClientAuthenticationService.class);
@@ -155,6 +154,8 @@ class MetadataClientRequestProcessorTest {
                 return expectedMembers;
             }
         };
+
+        var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);

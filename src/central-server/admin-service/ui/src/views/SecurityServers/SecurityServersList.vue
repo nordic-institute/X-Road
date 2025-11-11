@@ -28,13 +28,10 @@
   <XrdView data-test="security-servers-view" title="tab.main.securityServers">
     <template #append-header>
       <div class="ml-6">
-        <v-text-field
+        <XrdSearchField
           v-model="search"
           data-test="search-query-field"
-          class="xrd"
           width="320"
-          prepend-inner-icon="search"
-          single-line
           :label="$t('action.search')"
           @update:model-value="debouncedFindServers"
         />
