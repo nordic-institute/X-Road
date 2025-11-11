@@ -50,17 +50,17 @@ public class OcspRespondersPageObj {
     }
 
     public SelenideElement btnViewOcspResponder(String url) {
-        var xpath = "../td/button[@data-test='view-ocsp-responder-certificate']";
+        var xpath = "./td/button[@data-test='view-ocsp-responder-certificate']";
         return tableRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnEditOcspResponder(String url) {
-        var xpath = "../td/button[@data-test='edit-ocsp-responder']";
+        var xpath = "./td/button[@data-test='edit-ocsp-responder']";
         return tableRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnDeleteOcspResponder(String url) {
-        var xpath = "../td/button[@data-test='delete-ocsp-responder']";
+        var xpath = "./td/button[@data-test='delete-ocsp-responder']";
         return tableRowOf(url).find(xpath(xpath));
     }
 
