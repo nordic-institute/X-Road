@@ -33,8 +33,10 @@ import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.OcspResponderDtoConverter;
 import org.niis.xroad.cs.openapi.OcspRespondersApi;
+import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -77,7 +79,7 @@ public class OcspRespondersController implements OcspRespondersApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_APPROVED_CA')")
     @AuditEventMethod(event = RestApiAuditEvent.EDIT_OCSP_RESPONDER)
-    public ResponseEntity<OcspResponderDto> updateOcspResponder(Integer id, String url, MultipartFile certificate) {
+    public ResponseEntity<OcspResponderDto> updateOcspResponder(Integer id, String url, CostTypeDto costType, MultipartFile certificate) {
         final OcspResponderRequest updateRequest = new OcspResponderRequest()
                 .setId(id)
                 .setUrl(url);
@@ -85,6 +87,9 @@ public class OcspRespondersController implements OcspRespondersApi {
             byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
             fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
             updateRequest.setCertificate(fileBytes);
+        }
+        if (costType != null) {
+            updateRequest.setCostType(CostType.valueOf(costType.name()));
         }
         return ok(ocspResponderDtoConverter.toDto(ocspRespondersService.update(updateRequest)));
     }

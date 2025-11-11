@@ -620,107 +620,107 @@
     },
     "pin": "PIN do Token"
   },
-  "trustServices": {
-    "acmeServerAuthProfileIdExplanation": "ID do perfil usado por alguns servidores ACME para indicar o uso do certificado ao solicitar certificados de autenticação.",
-    "acmeServerDirectoryUrlExplanation": "Usado pelos Servidores Seguros para executar operações de certificado via API do Servidor ACME.",
-    "acmeServerIpAddressExplanation": "Lista de IPs de origem do servidor ACME usados para completar o desafio HTTP com o Servidor Seguro. Endereços múltiplos devem ser separados por vírgula. Essa informação aparece na interface do Servidor Seguro.",
-    "acmeServerSignProfileIdExplanation": "ID do perfil usado por alguns servidores ACME ao solicitar certificados de assinatura.",
-    "addCASettingsCheckbox": "Esta AC pode ser usada apenas para autenticação TLS (marcar se verdadeiro)",
-    "addCertificationService": "Adicionar serviço de certificação",
-    "approvedCertificationService": "Serviço de certificação aprovado",
-    "caSettings": "Configurações da AC",
-    "certImportedSuccessfully": "Certificado importado com sucesso",
-    "certProfileInput": "Informações do perfil do certificado",
-    "certProfileInputExplanation": "Nome completo da classe que implementa a interface ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider",
-    "certificationServices": "Serviços de Certificação",
-    "timestampingService": {
-      "addedSuccessfully": "Serviço de carimbo do tempo adicionado com sucesso",
-      "dialog": {
-        "add": {
-          "success": "Serviço de carimbo do tempo adicionado com sucesso",
-          "title": "Adicionar serviço de carimbo do tempo"
+  "trustServices":{
+     "acmeServerAuthProfileIdExplanation":"ID do perfil usado por alguns servidores ACME para indicar o uso do certificado ao solicitar certificados de autenticação.",
+     "acmeServerDirectoryUrlExplanation":"Usado pelos Servidores Seguros para executar operações de certificado via API do Servidor ACME.",
+     "acmeServerIpAddressExplanation":"Lista de IPs de origem do servidor ACME usados para completar o desafio HTTP com o Servidor Seguro. Endereços múltiplos devem ser separados por vírgula. Essa informação aparece na interface do Servidor Seguro.",
+     "acmeServerSignProfileIdExplanation":"ID do perfil usado por alguns servidores ACME ao solicitar certificados de assinatura.",
+     "addCASettingsCheckbox":"Esta AC pode ser usada apenas para autenticação TLS (marcar se verdadeiro)",
+     "addCertificationService":"Adicionar serviço de certificação",
+     "approvedCertificationService":"Serviço de certificação aprovado",
+     "caSettings":"Configurações da AC",
+     "certImportedSuccessfully":"Certificado importado com sucesso",
+     "certProfileInput":"Informações do perfil do certificado",
+     "certProfileInputExplanation":"Nome completo da classe que implementa a interface ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider",
+     "certificationServices":"Serviços de Certificação",
+     "timestampingService":{
+        "addedSuccessfully":"Serviço de carimbo do tempo adicionado com sucesso",
+        "dialog":{
+           "add":{
+              "success":"Serviço de carimbo do tempo adicionado com sucesso",
+              "title":"Adicionar serviço de carimbo do tempo"
+           },
+           "edit":{
+              "success":"Serviço de carimbo do tempo editado com sucesso",
+              "title":"Editar Serviço de Carimbo do Tempo",
+              "uploadCertificate":"Enviar novo certificado"
+           }
         },
-        "edit": {
-          "success": "Serviço de carimbo do tempo editado com sucesso",
-          "title": "Editar Serviço de Carimbo do Tempo",
-          "uploadCertificate": "Enviar novo certificado"
-        }
-      },
-      "url": "URL"
-    },
-    "timestampingServices": "Serviços de Carimbo do Tempo",
-    "trustService": {
-      "delete": {
-        "action": "Excluir serviço de confiança",
-        "confirmationDialog": {
-          "message": "Tem certeza de que deseja excluir o serviço de confiança \"{name}\"?",
-          "title": "Tem certeza?"
+        "url":"URL"
+     },
+     "timestampingServices":"Serviços de Carimbo do Tempo",
+     "trustService":{
+       "cost":"Custo",
+       "costType":{
+         "FREE":"Gratuito",
+         "PAID":"Pago",
+         "UNDEFINED":"Indefinido"
+       },
+        "delete":{
+           "action":"Excluir serviço de confiança",
+           "confirmationDialog":{
+              "message":"Tem certeza de que deseja excluir o serviço de confiança \"{name}\"?",
+              "title":"Tem certeza?"
+           },
+           "success":"Serviço de confiança excluído com sucesso"
         },
-        "success": "Serviço de confiança excluído com sucesso"
-      },
-      "details": {
-        "issuerDistinguishedName": "Autoridade Certificadora",
-        "subjectDistinguishedName": "Titular do Certificado (DN)"
-      },
-      "intermediateCas": {
-        "add": {
-          "dialog": {
-            "title": "Adicionar ACs Intermediárias"
-          },
-          "success": "AC Intermediária adicionada com sucesso"
+        "details":{
+           "issuerDistinguishedName":"Autoridade Certificadora",
+           "subjectDistinguishedName":"Titular do Certificado (DN)"
         },
-        "delete": {
-          "confirmationDialog": {
-            "message": "Tem certeza de que deseja excluir a AC Intermediária {name}?",
-            "title": "Tem certeza?"
-          },
-          "success": "AC Intermediária excluída com sucesso"
+        "intermediateCas":{
+           "add":{
+              "dialog":{
+                 "title":"Adicionar ACs Intermediárias"
+              },
+              "success":"AC Intermediária adicionada com sucesso"
+           },
+           "delete":{
+              "confirmationDialog":{
+                 "message":"Tem certeza de que deseja excluir a AC Intermediária {name}?",
+                 "title":"Tem certeza?"
+              },
+              "success":"AC Intermediária excluída com sucesso"
+           },
+           "intermediateCa":"AC Intermediária"
         },
-        "intermediateCa": "AC Intermediária"
-      },
-      "ocspResponders": {
-        "add": {
-          "dialog": {
-            "title": "Adicionar Validador OCSP"
-          },
-          "success": "Validador OCSP adicionado com sucesso"
+        "ocspResponders":{
+           "add":{
+              "dialog":{
+                 "title":"Adicionar Validador OCSP"
+              },
+              "success":"Validador OCSP adicionado com sucesso"
+           },
+           "delete":{
+              "confirmationDialog":{
+                 "message":"Tem certeza de que deseja excluir o Validador OCSP com a URL {url}?",
+                 "title":"Tem certeza?"
+              },
+              "success":"Validador OCSP excluído com sucesso"
+           },
+           "edit":{
+              "dialog":{
+                 "title":"Editar Validador OCSP",
+                 "uploadCertificate":"Enviar novo certificado"
+              },
+              "success":"Validador OCSP editado com sucesso"
+           },
+           "url":"URL"
         },
-        "delete": {
-          "confirmationDialog": {
-            "message": "Tem certeza de que deseja excluir o Validador OCSP com a URL {url}?",
-            "title": "Tem certeza?"
-          },
-          "success": "Validador OCSP excluído com sucesso"
+        "pagenavigation":{
+           "details":"Detalhes",
+           "intermediateCas":"ACs Intermediárias",
+           "ocspResponders":"Validador OCSP",
+           "settings":"Configurações da AC"
         },
-        "edit": {
-          "dialog": {
-            "title": "Editar Validador OCSP",
-            "uploadCertificate": "Enviar novo certificado"
-          },
-          "success": "Validador OCSP editado com sucesso"
+        "settings":{
+           "acmeCapable":"Esta AC pode ser usada com ACME",
+           "acmeNotCapable":"Esta AC não pode ser usada com ACME",
+           "certProfile":"Informações do perfil do certificado (nome completo da classe que implementa a interface ee.ria.xroad.common.CertificateProfileInfoProvider)",
+           "saveSuccess":"Configurações da AC salvas com sucesso",
+           "tlsAuth":"Esta AC pode ser usada apenas para autenticação TLS"
         },
-        "url": "URL"
-      },
-      "pagenavigation": {
-        "details": "Detalhes",
-        "intermediateCas": "ACs Intermediárias",
-        "ocspResponders": "Validador OCSP",
-        "settings": "Configurações da AC"
-      },
-      "settings": {
-        "acmeCapable": "Esta AC pode ser usada com ACME",
-        "acmeNotCapable": "Esta AC não pode ser usada com ACME",
-        "certProfile": "Informações do perfil do certificado (nome completo da classe que implementa a interface ee.ria.xroad.common.CertificateProfileInfoProvider)",
-        "saveSuccess": "Configurações da AC salvas com sucesso",
-        "tlsAuth": "Esta AC pode ser usada apenas para autenticação TLS"
-      },
-      "timestampingService": {
-        "cost": "Custo",
-        "costValues": {
-          "FREE": "Gratuito",
-          "PAID": "Pago",
-          "UNDEFINED": "Indefinido"
-        },
+        "timestampingService":{
         "delete": {
           "dialog": {
             "message": "Tem certeza de que deseja excluir o serviço de carimbo do tempo com a URL {url}?",

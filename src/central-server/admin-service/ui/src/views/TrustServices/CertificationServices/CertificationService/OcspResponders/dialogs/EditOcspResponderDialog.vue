@@ -48,6 +48,23 @@
           />
         </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
+          <v-radio-group
+            v-model="costType"
+            v-bind="costTypeAttrs"
+            inline
+            class="dlg-row-input"
+          >
+            <v-radio
+              v-for="type in definedCostTypes"
+              :key="type"
+              :data-test="`ocsp-responder-cost-type-radio-${type}`"
+              class="xrd"
+              :label="$t(`trustServices.trustService.costType.${type}`)"
+              :value="type"
+            ></v-radio>
+          </v-radio-group>
+        </XrdFormBlockRow>
+        <XrdFormBlockRow full-length>
           <template v-if="!certUploadActive">
             <XrdBtn
               v-if="ocspResponder.has_certificate"
@@ -80,7 +97,10 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useOcspResponderService } from '@/store/modules/trust-services';
+import {
+  definedCostTypes,
+  useOcspResponderService,
+} from '@/store/modules/trust-services';
 import { OcspResponder } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { useForm } from 'vee-validate';
@@ -111,15 +131,19 @@ interface Form {
 const { defineField, handleSubmit, meta } = useForm<Form>({
   validationSchema: {
     url: 'required|url',
+    costType: `required|one_of:${definedCostTypes}`,
   },
   initialValues: {
     url: props.ocspResponder.url,
+    costType: props.ocspResponder.cost_type,
   },
 });
 const [ocspUrl, ocspUrlAttrs] = defineField('url', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
-
+const [costType, costTypeAttrs] = defineField('costType', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 const { addSuccessMessage, addError, loading } = useBasicForm();
 const { updateOcspResponder } = useOcspResponderService();
 const router = useRouter();
@@ -141,7 +165,12 @@ function navigateToCertificateDetails() {
 
 const update = handleSubmit((values) => {
   loading.value = true;
-  updateOcspResponder(props.ocspResponder.id, values.url, certFile.value)
+  updateOcspResponder(
+    props.ocspResponder.id,
+    values.url,
+    values.costType,
+    certFile.value,
+  )
     .then(() => {
       addSuccessMessage(
         'trustServices.trustService.ocspResponders.edit.success',

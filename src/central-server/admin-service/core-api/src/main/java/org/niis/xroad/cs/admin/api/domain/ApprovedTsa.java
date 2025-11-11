@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.api.domain;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.globalconf.model.CostType;
 
 import java.time.Instant;
 
@@ -39,16 +40,10 @@ public class ApprovedTsa extends Auditable {
     private String name;
     private String url;
     private Integer timestampingInterval;
-    private ApprovedTsaCost cost;
+    private CostType costType;
     private CertificateDetails certificate;
     private Instant validFrom;
     private Instant validTo;
-
-    public enum ApprovedTsaCost {
-        FREE,
-        PAID,
-        UNDEFINED,
-    }
 
 }
 

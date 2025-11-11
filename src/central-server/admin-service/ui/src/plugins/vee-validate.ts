@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 import { configure, defineRule } from 'vee-validate';
-import { between, is, max, min, required, url } from '@vee-validate/rules';
+import { between, is, max, min, required, url, one_of } from '@vee-validate/rules';
 import { isIP } from 'is-ip';
 import { i18n } from '@niis/shared-ui';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
@@ -81,6 +81,8 @@ export default {
     defineRule('is', is);
 
     defineRule('url', url);
+
+    defineRule('one_of', one_of);
 
     defineRule('ipAddresses', (value: string) => {
       if (!value) {

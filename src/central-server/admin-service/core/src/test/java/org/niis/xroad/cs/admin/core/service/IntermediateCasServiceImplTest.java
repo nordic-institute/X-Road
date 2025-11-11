@@ -45,6 +45,7 @@ import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.CaInfoRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -67,6 +68,7 @@ import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_COST_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
@@ -151,6 +153,7 @@ class IntermediateCasServiceImplTest {
     void addOcspResponder() {
         final OcspResponderRequest ocspResponderRequest = new OcspResponderAddRequest()
                 .setUrl(URL)
+                .setCostType(CostType.FREE)
                 .setCertificate(TEST_CERT);
 
         final OcspInfoEntity ocspInfoEntity = ocspInfoEntity(NEW_ID);
@@ -172,6 +175,7 @@ class IntermediateCasServiceImplTest {
         verify(auditDataHelper).put(INTERMEDIATE_CA_ID, ID);
         verify(auditDataHelper).put(OCSP_ID, NEW_ID);
         verify(auditDataHelper).put(OCSP_URL, URL);
+        verify(auditDataHelper).put(OCSP_COST_TYPE, CostType.FREE.name());
         verify(auditDataHelper).put(OCSP_CERT_HASH,
                 "B9:CF:6E:A1:BC:98:24:6B:16:68:24:E3:9A:9F:CD:8E:51:B7:05:37:44:68:D4:96:50:D2:22:85:A7:FA:54:2B");
         verify(auditDataHelper).put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
@@ -206,6 +210,7 @@ class IntermediateCasServiceImplTest {
 
     private OcspInfoEntity ocspInfoEntity(Integer ocspResponderId) {
         final OcspInfoEntity entity = new OcspInfoEntity(mock(CaInfoEntity.class), URL, TEST_CERT);
+        entity.setCostType(CostType.FREE.name());
         ReflectionTestUtils.setField(entity, "id", ocspResponderId);
         return entity;
     }
@@ -213,7 +218,7 @@ class IntermediateCasServiceImplTest {
     private void verifyEntity(OcspInfoEntity value) {
         assertEquals(URL, value.getUrl());
         assertEquals(TEST_CERT, value.getCert());
-
+        assertEquals(CostType.FREE.name(), value.getCostType());
     }
 
 }

@@ -32,6 +32,7 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.cs.openapi.model.CertificationServiceSettingsDto;
+import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.niis.xroad.cs.test.api.FeignCertificationServicesApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -232,7 +233,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
 
 
         final ResponseEntity<OcspResponderDto> response = certificationServicesApi
-                .addCertificationServiceOcspResponder(id, url, certificate);
+                .addCertificationServiceOcspResponder(id, url, CostTypeDto.UNDEFINED, certificate);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(CREATED))

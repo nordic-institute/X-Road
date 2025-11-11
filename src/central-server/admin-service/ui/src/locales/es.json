@@ -639,6 +639,12 @@
     },
     "timestampingServices": "Servicios de marca de tiempo",
     "trustService": {
+      "cost": "Costo",
+      "costType": {
+        "FREE": "Gratis",
+        "PAID": "Pago",
+        "UNDEFINED": "No definido"
+      },
       "delete": {
         "action": "Eliminar el servicio de confianza",
         "confirmationDialog": {
@@ -704,12 +710,6 @@
         "tlsAuth": "Esta CA solo se puede usar para la autenticación TLS"
       },
       "timestampingService": {
-        "cost": "Costo",
-        "costValues": {
-          "FREE": "Gratis",
-          "PAID": "Pago",
-          "UNDEFINED": "No definido"
-        },
         "delete": {
           "dialog": {
             "message": "¿Estás seguro de que quieres eliminar el servicio de marca de tiempo con la URL {URL}?",

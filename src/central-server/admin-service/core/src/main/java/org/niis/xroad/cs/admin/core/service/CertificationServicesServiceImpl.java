@@ -77,6 +77,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDI
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_COST_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SIGN_CERT_PROFILE_ID;
@@ -269,6 +270,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         auditDataHelper.put(CA_ID, ocspInfo.getCaInfo().getId());
         auditDataHelper.put(OCSP_ID, ocspInfo.getId());
         auditDataHelper.put(OCSP_URL, ocspInfo.getUrl());
+        auditDataHelper.put(OCSP_COST_TYPE, ocspInfo.getCostType());
 
         if (ocspInfo.getCert() != null) {
             auditDataHelper.put(OCSP_CERT_HASH, calculateCertHexHashDelimited(ocspInfo.getCert()));
