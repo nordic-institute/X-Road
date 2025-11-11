@@ -43,7 +43,7 @@
       <v-data-table
         data-test="global-groups-table"
         item-key="id"
-        class="xrd"
+        class="xrd border"
         hide-default-footer
         :loading="groupsLoading"
         :headers="globalGroupsHeaders"

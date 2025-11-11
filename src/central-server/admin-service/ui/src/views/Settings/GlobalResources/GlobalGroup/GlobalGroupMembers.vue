@@ -37,19 +37,16 @@
     </template>
     <template #append-title>
       <div class="d-flex flex-row align-center">
-        <v-text-field
+        <XrdSearchField
           v-model="query"
           data-test="search-query-field"
-          class="xrd"
           width="360"
-          prepend-inner-icon="search"
-          single-line
           :label="$t('action.search')"
           @update:model-value="debouncedFetchItems"
         />
         <v-btn
           class="ml-4 mb-2"
-          size="small"
+          size="x-small"
           variant="outlined"
           icon="tune"
           color="primary"

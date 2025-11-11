@@ -25,15 +25,25 @@
  * THE SOFTWARE.
  */
 
-@use 'vuetify/settings' with (
-  $layers: false,
+import { useTheme } from 'vuetify';
+import { computed } from 'vue';
 
-  $table-row-height: 56px,
-$button-text-transform: none,
-  $field-outline-opacity: .4,
-  $ripple-animation-visible-opacity: .24,
-  $body-font-family: ('Open Sans', sans-serif),
-  $overlay-opacity: 0.6,
-  $overlay-scrim-background: #0B283E,
-  $field-control-padding-bottom: 12px,
-);
+export const XRD_THEME = 'theme';
+
+export function useThemeHelper() {
+  const theme = useTheme();
+
+  const isDark = computed(() => theme.current.value.dark);
+  const colorError = computed(() => theme.current.value.colors.error);
+  const colorSuccess = computed(() => theme.current.value.colors.success);
+
+  return {
+    isDark,
+    colorError,
+    colorSuccess,
+    toggle() {
+      theme.toggle();
+      localStorage.setItem(XRD_THEME, isDark.value ? 'dark' : 'light');
+    },
+  };
+}

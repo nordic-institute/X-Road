@@ -43,20 +43,23 @@
         <img :src="trail2" class="trail2" alt="X-Road 8 Trail" />
       </v-col>
       <v-col cols="12" md="7">
-        <v-row no-gutters justify="end" dense>
+        <v-row justify="end" align="center" no-gutters>
           <v-col cols="auto">
             <v-select
               :model-value="currentLanguage"
               :items="supportedLanguages"
               :item-props="langProps"
-              class="text-primary"
+              class="text-primary mb-1"
               prepend-icon="language"
               variant="plain"
+              density="compact"
               hide-details
               single-line
-              density="compact"
               @update:model-value="changeLanguage"
             />
+          </v-col>
+          <v-col cols="auto">
+            <XrdThemeSwitcher class="mr-16 ml-3 my-3" size="x-small" />
           </v-col>
         </v-row>
         <v-row v-if="notifications.hasContextErrors.value" justify="center">
@@ -122,6 +125,7 @@
                   variant="flat"
                   color="special"
                   rounded="xl"
+                  size="large"
                   block
                   :disabled="isDisabled"
                   :loading="loading"
@@ -144,18 +148,18 @@ import { computed, ref } from 'vue';
 import { useForm } from 'vee-validate';
 
 import _logoVLight from '../assets/Logo-vertical-light.svg';
+import _logoVDark from '../assets/Logo-vertical-dark.svg';
 import _logoHLight from '../assets/Logo-horizontal-dark.svg';
+import _logoHDark from '../assets/Logo-horizontal-light.svg';
 import _rocket from '../assets/Rocket-trail.png';
 import _trail1 from '../assets/Trail-1.png';
 import _trail2 from '../assets/Trail-2.png';
-import { useNotifications } from '../composables';
+import { useNotifications, useThemeHelper } from '../composables';
 import { useLanguageHelper } from '../plugins/i18n';
 
 import XrdErrorNotifications from '../components/XrdErrorNotifications.vue';
-import { useDisplay } from 'vuetify/framework';
+import { XrdThemeSwitcher } from '../components';
 
-const logoVl = _logoVLight;
-const logoHd = _logoHLight;
 const rocket = _rocket;
 const trail1 = _trail1;
 const trail2 = _trail2;
@@ -173,7 +177,7 @@ const emit = defineEmits<{
 
 defineExpose({ clearForm, addErrors });
 
-const display = useDisplay();
+const { isDark } = useThemeHelper();
 const notifications = useNotifications();
 const { currentLanguage, supportedLanguages, selectLanguage, displayNames } = useLanguageHelper();
 const { meta, resetForm, setFieldError, errors, defineField } = useForm({
@@ -183,9 +187,8 @@ const { meta, resetForm, setFieldError, errors, defineField } = useForm({
   },
 });
 
-const logoClass = computed(() => (display.smAndDown.value ? 'vertical-style' : 'horizontal-style'));
-const logoV = computed(() => logoVl);
-const logoH = computed(() => logoHd);
+const logoV = computed(() => (isDark.value ? _logoVDark : _logoVLight));
+const logoH = computed(() => (isDark.value ? _logoHDark : _logoHLight));
 
 const PASSWORD = 'password';
 const passwordType = ref(PASSWORD);

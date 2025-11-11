@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard data-test="anchor" :title="title" translated>
+  <XrdCard data-test="anchor" :translated-title="title">
     <template #title-actions>
       <slot />
     </template>

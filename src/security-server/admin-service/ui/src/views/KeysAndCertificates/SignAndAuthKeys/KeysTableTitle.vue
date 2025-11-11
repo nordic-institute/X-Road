@@ -85,7 +85,6 @@
 <script lang="ts">
 // View for a token
 import { defineComponent, PropType } from 'vue';
-import { Colors } from '@niis/shared-ui';
 import { CertificateStatus, Key, TokenCertificate } from '@/openapi-types';
 
 export default defineComponent({
@@ -109,7 +108,6 @@ export default defineComponent({
       errors: 0,
       registered: 0,
       certificateCount: 0,
-      colors: Colors,
     };
   },
   computed: {

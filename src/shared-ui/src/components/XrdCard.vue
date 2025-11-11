@@ -29,7 +29,7 @@
     <v-card-title
       v-if="title || $slots.title || $slots['append-title'] || $slots['title-actions']"
       data-test="view-title"
-      class="d-flex flex-row align-baseline pt-4 pl-4 pb-4 pr-0"
+      class="d-flex flex-row align-center pt-4 pl-4 pb-4 pr-0"
     >
       <slot v-if="title || $slots.title" name="title" :title="title">
         <div data-test="view-title-text" class="font-weight-medium title-component component-title-text">

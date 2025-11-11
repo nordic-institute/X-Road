@@ -24,8 +24,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { Colors, createXrdVuetify } from '@niis/shared-ui';
+import { Color, createXrdVuetify } from '@niis/shared-ui';
 
 import '@/assets/styles.css';
 
-export default createXrdVuetify(Colors.Blue600, Colors.Blue50);
+export default createXrdVuetify(
+  Color.B_600,
+  Color.B_50,
+  Color.B_100,
+  Color.B_800,
+);
