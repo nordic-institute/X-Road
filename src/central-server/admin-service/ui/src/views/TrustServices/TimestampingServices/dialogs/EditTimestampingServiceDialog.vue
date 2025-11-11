@@ -60,6 +60,7 @@
               v-for="type in definedCostTypes"
               :key="type"
               :data-test="`timestamping-service-cost-type-radio-${type}`"
+              class="xrd"
               :label="$t(`trustServices.trustService.costType.${type}`)"
               :value="type"
             ></v-radio>

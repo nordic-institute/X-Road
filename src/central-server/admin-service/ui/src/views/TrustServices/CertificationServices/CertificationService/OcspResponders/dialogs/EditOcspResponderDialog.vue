@@ -58,6 +58,7 @@
               v-for="type in definedCostTypes"
               :key="type"
               :data-test="`ocsp-responder-cost-type-radio-${type}`"
+              class="xrd"
               :label="$t(`trustServices.trustService.costType.${type}`)"
               :value="type"
             ></v-radio>
