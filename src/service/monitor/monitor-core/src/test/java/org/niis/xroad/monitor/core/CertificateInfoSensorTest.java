@@ -185,9 +185,9 @@ class CertificateInfoSensorTest {
         certificateInfoSensor.measure();
 
         Map<String, Metric> result = metrics.getMetrics();
-        assertEquals(2, result.entrySet().size()); // certs & jmx certs
-        SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificates =
-                (SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>>)
+        assertEquals(2, result.size()); // certs & string certs
+        SimpleSensor<StringifiedData<CertificateMonitoringInfo>> certificates =
+                (SimpleSensor<StringifiedData<CertificateMonitoringInfo>>)
                         result.get(SystemMetricNames.CERTIFICATES);
         SimpleSensor<ArrayList<String>> certificatesAsText = (SimpleSensor<ArrayList<String>>)
                 result.get(SystemMetricNames.CERTIFICATES_STRINGS);
@@ -224,9 +224,9 @@ class CertificateInfoSensorTest {
         certificateInfoSensor.measure();
 
         Map<String, Metric> result = metrics.getMetrics();
-        assertEquals(2, result.entrySet().size()); // certs & jmx certs
-        SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificates =
-                (SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>>)
+        assertEquals(2, result.size()); // certs & string certs
+        SimpleSensor<StringifiedData<CertificateMonitoringInfo>> certificates =
+                (SimpleSensor<StringifiedData<CertificateMonitoringInfo>>)
                         result.get(SystemMetricNames.CERTIFICATES);
         SimpleSensor<ArrayList<String>> certificatesAsText = (SimpleSensor<ArrayList<String>>)
                 result.get(SystemMetricNames.CERTIFICATES_STRINGS);

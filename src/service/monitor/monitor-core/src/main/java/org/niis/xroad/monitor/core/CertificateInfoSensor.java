@@ -54,7 +54,7 @@ import java.util.stream.Stream;
 @ApplicationScoped
 public class CertificateInfoSensor {
 
-    private static final String JMX_HEADER = "SHA1HASH\t\t\t\t\t\t\tCERT TYPE\t\tNOT BEFORE\t\tNOT AFTER\t\tACTIVE";
+    private static final String STRING_DATA_HEADER = "SHA1HASH\t\t\t\t\t\t\tCERT TYPE\t\tNOT BEFORE\t\tNOT AFTER\t\tACTIVE";
 
     private CertificateInfoCollector certificateInfoCollector;
 
@@ -80,7 +80,7 @@ public class CertificateInfoSensor {
     /**
      * Update existing metric with the data, or register metric as a new (with the data)
      */
-    private void updateOrRegisterData(JmxStringifiedData<CertificateMonitoringInfo> data) {
+    private void updateOrRegisterData(StringifiedData<CertificateMonitoringInfo> data) {
 
         MetricRegistryHolder registryHolder = MetricRegistryHolder.getInstance();
 
@@ -89,25 +89,25 @@ public class CertificateInfoSensor {
                 .update(data);
         registryHolder
                 .getOrCreateSimpleSensor(SystemMetricNames.CERTIFICATES_STRINGS)
-                .update(data.getJmxStringData());
+                .update(data.getStringData());
     }
 
-    private JmxStringifiedData<CertificateMonitoringInfo> list() {
+    private StringifiedData<CertificateMonitoringInfo> list() {
         log.trace("listing certificate data");
 
         // The lists need to implement Serializable
-        ArrayList<String> jmxRepresentation = new ArrayList<>();
-        jmxRepresentation.add(JMX_HEADER);
+        ArrayList<String> stringRepresentation = new ArrayList<>();
+        stringRepresentation.add(STRING_DATA_HEADER);
 
         ArrayList<CertificateMonitoringInfo> dtoRepresentation = new ArrayList<>();
 
         for (CertificateMonitoringInfo certInfo : certificateInfoCollector.extractToSet()) {
             dtoRepresentation.add(certInfo);
-            jmxRepresentation.add(getJxmRepresentationFrom(certInfo));
+            stringRepresentation.add(getStringRepresentationFrom(certInfo));
         }
 
-        JmxStringifiedData<CertificateMonitoringInfo> listedData = new JmxStringifiedData<>();
-        listedData.setJmxStringData(jmxRepresentation);
+        StringifiedData<CertificateMonitoringInfo> listedData = new StringifiedData<>();
+        listedData.setStringData(stringRepresentation);
         listedData.setDtoData(dtoRepresentation);
 
         if (log.isTraceEnabled()) {
@@ -233,7 +233,7 @@ public class CertificateInfoSensor {
     /**
      * Tab-delimited strings, as with package / process listing
      */
-    private String getJxmRepresentationFrom(CertificateMonitoringInfo info) {
+    private String getStringRepresentationFrom(CertificateMonitoringInfo info) {
         StringBuilder b = new StringBuilder();
         if (info.getSha1hash() != null) {
             addWithTab(info.getSha1hash(), b);
