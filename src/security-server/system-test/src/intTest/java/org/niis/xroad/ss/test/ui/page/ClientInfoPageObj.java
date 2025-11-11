@@ -205,9 +205,6 @@ public class ClientInfoPageObj {
                 return $x("//div[@data-test='local-group-edit-description-input']");
             }
 
-            public SelenideElement btnClose() {
-                return $x("//button[@data-test='local-group-close-button']");
-            }
         }
 
         public static class AddMember extends Dialog {
@@ -468,31 +465,31 @@ public class ClientInfoPageObj {
 
         public SelenideElement tableMemberNameOfId(int rowNo, String id) {
             return $x(format("//div[@data-test='service-clients-main-view-table']//tr[%d][td[2]/div[normalize-space(text())='%s'] ]"
-                    + "//td[1]/div[@data-test='open-access-rights']/span", rowNo, id));
+                    + "//td[1]/div/span", rowNo, id));
         }
 
         public SelenideElement tableMemberNameOfId(String id) {
             return $x(format("//div[@data-test='service-clients-main-view-table']//tr[td[2]/div[normalize-space(text())='%s'] ]"
-                    + "//td[1]/div[@data-test='open-access-rights']", id));
+                    + "//td[1]/div", id));
         }
     }
 
     public static class ServiceClientsEdit {
         public SelenideElement cellMemberName() {
-            return $x("//table[@data-test='service-clients-table']/tbody/tr/td[1]");
+            return $x("//div[@data-test='service-clients-table']//tbody/tr/td[1]");
         }
 
         public SelenideElement cellId() {
-            return $x("//table[@data-test='service-clients-table']/tbody/tr/td[2]");
+            return $x("//div[@data-test='service-clients-table']//tbody/tr/td[2]");
         }
 
         public SelenideElement tableAccessRightsOfServiceCode(String id) {
-            return $x(format("//table[@data-test='service-client-access-rights-table']/tbody/tr[td[1][normalize-space(text())='%s'] ]",
+            return $x(format("//div[@data-test='service-client-access-rights-table']//tbody/tr[td[1]/div/span[text()='%s'] ]",
                     id));
         }
 
         public SelenideElement tableAccessRightsEmptyMsg() {
-            return $x("//p[normalize-space(text())='No access rights to this client']");
+            return $x("//td[normalize-space(text())='No access rights to this client']");
         }
 
         public SelenideElement btnRemoveByServiceCode(String serviceCode) {
@@ -517,18 +514,16 @@ public class ClientInfoPageObj {
             return $x("//div[@data-test='search-service-client-service']");
         }
 
+        public SelenideElement membersTable() {
+            return $x("//div[@data-test='service-clients-table']//tbody");
+        }
+
         public ElementsCollection tableMemberRows() {
-            return $$x("//table[contains(@class,'service-clients-table')]/tbody/tr");
+            return membersTable().$$x("./tr");
         }
 
         public SelenideElement tableMemberRowRadioById(String id) {
-            return $x(format("//table[contains(@class,'service-clients-table')]"
-                    + "//tr[td[3][text()='%s']]//div[contains(@class,'checkbox-wrap')]", id));
-        }
-
-        public SelenideElement tableMemberRowRadioInputById(String id) {
-            return $x(format("//table[contains(@class,'service-clients-table')]"
-                    + "//tr[td[3][text()='%s']]//div[contains(@class,'checkbox-wrap')]//input", id));
+            return membersTable().$x(format("./tr[td[3][text()='%s']]/td[1]/div", id));
         }
 
         public ElementsCollection tableServiceRows() {

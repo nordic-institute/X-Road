@@ -1,0 +1,4 @@
+openbao:
+  nodes:
+    - "https://openbao-0.openbao-internal:8200"
+    - "https://openbao-1.openbao-internal:8200"

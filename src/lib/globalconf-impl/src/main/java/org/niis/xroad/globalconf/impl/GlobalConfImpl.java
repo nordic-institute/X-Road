@@ -99,7 +99,6 @@ public class GlobalConfImpl implements GlobalConfProvider {
     // ------------------------------------------------------------------------
     @Override
     public boolean isValid() {
-        // it is important to get handle of confDir as this variable is volatile
         try {
             return !globalConfSource.isExpired();
         } catch (Exception e) {
@@ -110,7 +109,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     /**
      * Verifies that the global configuration is valid. Throws exception
-     * with error code ErrorCodes.X_OUTDATED_GLOBALCONF if the it is too old.
+     * with error code ErrorCodes.X_OUTDATED_GLOBALCONF if it is too old.
      */
     @Override
     public void verifyValidity() {

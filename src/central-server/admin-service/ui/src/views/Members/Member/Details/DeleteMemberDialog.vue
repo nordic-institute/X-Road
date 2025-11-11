@@ -26,7 +26,7 @@
  -->
 
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     save-button-text="action.delete"
     save-button-icon="delete_forever"
     title="members.member.details.deleteMember"
@@ -57,7 +57,7 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
@@ -69,6 +69,7 @@ import { toIdentifier } from '@/util/helpers';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
 import {
+  XrdSimpleDialog,
   XrdFormBlock,
   XrdFormBlockRow,
   useNotifications,

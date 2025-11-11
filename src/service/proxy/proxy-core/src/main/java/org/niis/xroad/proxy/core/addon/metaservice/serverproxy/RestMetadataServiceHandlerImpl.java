@@ -133,8 +133,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     @Override
     public void startHandling(RequestWrapper servletRequest, ProxyMessage requestProxyMessage,
                               ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
-                              HttpClient restClient, HttpClient opMonitorClient,
-                              OpMonitoringData opMonitoringData)
+                              HttpClient restClient, OpMonitoringData opMonitoringData)
             throws IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException {
         restResponse = new RestResponse(requestProxyMessage.getRest().getClientId(),
                 requestProxyMessage.getRest().getQueryId(),

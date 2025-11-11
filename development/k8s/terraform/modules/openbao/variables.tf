@@ -29,3 +29,9 @@ variable "openbao_override_values" {
   description = "Override values for the OpenBao Helm chart"
   type        = any
 }
+
+variable "openbao_init_override_values" {
+  description = "Override values for the OpenBao Init Helm chart"
+  type        = any
+}
+

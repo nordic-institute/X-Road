@@ -26,7 +26,7 @@
  -->
 
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="securityServers.securityServer.dialog.deleteAuthCertificate.title"
     save-button-text="action.delete"
     cancel-button-text="action.cancel"
@@ -63,7 +63,7 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
@@ -74,6 +74,7 @@ import { useI18n } from 'vue-i18n';
 import { useForm } from 'vee-validate';
 
 import {
+  XrdSimpleDialog,
   useNotifications,
   XrdFormBlock,
   XrdFormBlockRow,

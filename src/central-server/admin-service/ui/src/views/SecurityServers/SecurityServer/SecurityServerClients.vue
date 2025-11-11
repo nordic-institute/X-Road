@@ -78,18 +78,14 @@
  */
 import { defineComponent } from 'vue';
 import { Client } from '@/openapi-types';
-import { mapActions, mapState, mapStores } from 'pinia';
+import { mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { toMemberId } from '@/util/helpers';
-import { DataTableHeader } from '@/ui-types';
-import {
-  XrdSubView,
-  XrdLabelWithIcon,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdSubView, XrdLabelWithIcon, useNotifications } from '@niis/shared-ui';
 import { useSecurityServer } from '@/store/modules/security-servers';
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 export default defineComponent({
   components: { XrdSubView, XrdLabelWithIcon },

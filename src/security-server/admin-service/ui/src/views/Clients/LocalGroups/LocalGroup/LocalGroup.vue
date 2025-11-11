@@ -30,6 +30,7 @@
     :loading="loadingLocalGroup"
     :translated-title="localGroup?.code"
     :breadcrumbs="breadcrumbs"
+    closeable
     @close="close"
   >
     <template #footer>
@@ -167,6 +168,7 @@ import {
   useNotifications,
   XrdContainerTitle,
   XrdLabelWithIcon,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { useLocalGroups } from '@/store/modules/local-groups';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
@@ -192,6 +194,7 @@ export default defineComponent({
     XrdDateTime,
     XrdContainerTitle,
     XrdLabelWithIcon,
+    XrdConfirmDialog,
   },
   props: {
     groupId: {

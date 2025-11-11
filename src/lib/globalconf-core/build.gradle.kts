@@ -31,7 +31,6 @@ dependencies {
   "xjc"(libs.bundles.jaxb)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(libs.junit.jupiter.params)
 }
 
 tasks.register("createDirs") {

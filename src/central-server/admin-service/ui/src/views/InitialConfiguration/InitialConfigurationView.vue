@@ -149,7 +149,6 @@ import {
   TokenInitStatus,
 } from '@/openapi-types';
 import { useSystem } from '@/store/modules/system';
-import { swallowRedirectedNavigationError } from '@/util/helpers';
 
 defineRule('confirmed', confirmed);
 
@@ -266,8 +265,7 @@ export default defineComponent({
           this.$router
             .push({
               name: RouteName.Members,
-            })
-            .catch(swallowRedirectedNavigationError);
+            });
         })
         .catch((error) => {
           const errorInfo: ErrorInfo = error.response?.data || { status: 0 };

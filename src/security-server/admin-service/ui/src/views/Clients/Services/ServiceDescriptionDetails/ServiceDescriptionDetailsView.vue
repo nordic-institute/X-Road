@@ -135,6 +135,7 @@ import {
   XrdFormBlockRow,
   useNotifications,
   helper,
+  XrdConfirmDialog
 } from '@niis/shared-ui';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
@@ -169,6 +170,7 @@ export default defineComponent({
     XrdBtn,
     XrdFormBlock,
     XrdFormBlockRow,
+    XrdConfirmDialog,
   },
   props: {
     id: {

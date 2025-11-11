@@ -62,8 +62,7 @@ jobs:
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g \
             :security-server:e2e-test:e2eTest \
             -PxroadImageRegistry=${{ inputs.image_registry }} \
-            -PxroadImageTag=${{ inputs.service_image_tag }} \
-            -Pe2eTestCSImage=${{ inputs.image_registry }}/central-server-dev:${{ inputs.service_image_tag }}
+            -PxroadImageTag=${{ inputs.service_image_tag }}
 
       - name: Log storage after tests
         if: always()

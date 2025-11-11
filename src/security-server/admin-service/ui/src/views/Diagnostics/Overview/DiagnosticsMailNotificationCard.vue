@@ -129,17 +129,13 @@
               class="recipient-wrapper"
             >
               {{ recipient }}
-              <xrd-button
+              <XrdBtn
                 v-if="mailNotificationStatus.configuration_present"
-                large
                 variant="text"
+                text="diagnostics.mailNotificationConfiguration.sentTestMail"
                 data-test="send-test-mail"
                 @click="sendTestMailNotification(recipient)"
-              >
-                {{
-                  $t('diagnostics.mailNotificationConfiguration.sentTestMail')
-                }}
-              </xrd-button>
+              />
 
               <div class="alert-container">
                 <v-alert
@@ -173,6 +169,7 @@ import {
   XrdStatusIcon,
   XrdStatusChip,
   useNotifications,
+  XrdBtn,
 } from '@niis/shared-ui';
 
 type TestMailStatuses = {
@@ -188,6 +185,7 @@ export default defineComponent({
     XrdStatusChip,
     XrdCard,
     HelpButton,
+    XrdBtn,
   },
   setup() {
     const { addError } = useNotifications();

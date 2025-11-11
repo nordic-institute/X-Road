@@ -61,7 +61,12 @@ import { PropType } from 'vue';
 import { useToken } from '@/store/modules/tokens';
 import { Token } from '@/openapi-types';
 import { useForm } from 'vee-validate';
-import { useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import {
+  useBasicForm,
+  XrdFormBlock,
+  XrdFormBlockRow,
+  XrdSimpleDialog,
+} from '@niis/shared-ui';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps({

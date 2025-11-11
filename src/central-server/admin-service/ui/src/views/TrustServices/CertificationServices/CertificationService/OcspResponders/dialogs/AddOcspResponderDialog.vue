@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="trustServices.trustService.ocspResponders.add.dialog.title"
     save-button-text="action.add"
     save-button-icon="add_circle"
@@ -73,7 +73,7 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
@@ -83,6 +83,7 @@ import {
 } from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
 import {
+  XrdSimpleDialog,
   useBasicForm,
   useFileRef,
   XrdFormBlock,

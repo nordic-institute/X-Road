@@ -40,5 +40,5 @@ const props = defineProps({
   },
 });
 
-const formatted = computed(() => helper.formatDateTime(props.value, props.withSeconds));
+const formatted = computed(() => helper.formatDate(props.value));
 </script>

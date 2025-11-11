@@ -62,11 +62,10 @@ import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { mapActions } from 'pinia';
-import { XrdBtn, useNotifications } from '@niis/shared-ui';
+import { XrdBtn, useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { XrdBtn },
+  components: { XrdBtn, XrdConfirmDialog },
   props: {
     id: {
       type: String,
@@ -117,7 +116,7 @@ export default defineComponent({
             this.$router.replace({ name: RouteName.Clients });
           } else {
             // There was some other error, but the client is already deleted so exit the view
-            this.showError(error);
+            this.addError(error);
             this.$router.replace({ name: RouteName.Clients });
           }
         },
@@ -130,11 +129,11 @@ export default defineComponent({
         .remove(`/clients/${encodePathParameter(this.id)}/orphans`)
         .then(
           () => {
-            this.showSuccess(this.$t('client.action.removeOrphans.success'));
+            this.addSuccessMessage('client.action.removeOrphans.success');
           },
           (error) => {
             // There was some other error, but the client is already deleted so exit the view
-            this.showError(error);
+            this.addError(error);
           },
         )
         .finally(() => {

@@ -27,6 +27,7 @@
 
 import * as Helpers from '@/util/helpers';
 import { Client, ClientStatus, ConnectionType } from '@/openapi-types';
+import { expect, describe, it } from 'vitest'
 
 const arr: Client[] = [
   {

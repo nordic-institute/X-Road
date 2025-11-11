@@ -176,7 +176,6 @@ import {
   XrdExpandable,
   XrdSimpleDialog,
   XrdBtn,
-  AddError,
   DialogSaveHandler,
 } from '@niis/shared-ui';
 import ClientName from '@/components/client/ClientName.vue';
@@ -262,7 +261,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useGeneral, ['fetchMemberClasses', 'fetchXroadInstances']),
     ...mapActions(useServiceClients, ['fetchCandidates']),
-    checkboxChange(subject: ServiceClient, event: boolean): void {
+    checkboxChange(subject: ServiceClient, event: unknown): void {
       if (event) {
         this.selectedIds.push(subject);
       } else {

@@ -28,7 +28,6 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.ProxyMemory;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -43,6 +42,7 @@ import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
+import org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
@@ -155,6 +155,7 @@ public class DiagnosticService {
 
     /**
      * Query proxy backup encryption status.
+     *
      * @return BackupEncryptionStatusDiagnostics
      */
     public BackupEncryptionStatusDiagnostics queryBackupEncryptionStatus() {

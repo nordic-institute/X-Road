@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
 
@@ -35,7 +34,6 @@ import jakarta.annotation.PreDestroy;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -46,20 +44,14 @@ import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringDaemonHttpClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.antidos.AntiDosConnector;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
 
-import java.security.cert.X509Certificate;
 import java.util.Optional;
-import java.util.stream.Stream;
-
-import static java.util.Arrays.stream;
 
 /**
  * Server proxy that handles requests of client proxies.
@@ -73,10 +65,6 @@ public class ServerProxy {
 
     private static final int ACCEPTOR_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors());
 
-    private static final int IDLE_MONITOR_TIMEOUT = 50;
-
-    private static final int IDLE_MONITOR_INTERVAL = 100;
-
     // SSL session timeout in seconds
     private static final int SSL_SESSION_TIMEOUT = 600;
 
@@ -85,16 +73,12 @@ public class ServerProxy {
     private final Server server = new Server();
 
     private final ProxyProperties proxyProperties;
+    private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
+    private final ServerProxyHandler serverProxyHandler;
+    private final IdleConnectionMonitorThread connMonitor;
     private final AntiDosConfiguration antiDosConfiguration;
-    private final CommonBeanProxy commonBeanProxy;
-    private final ServiceHandlerLoader serviceHandlerLoader;
-    private final VaultClient vaultClient;
-    private final VaultKeyClient vaultKeyClient;
 
-    private CloseableHttpClient client;
-    private IdleConnectionMonitorThread connMonitor;
-
-    private CloseableHttpClient opMonitorClient;
     private SslContextFactory.Server sslContextFactory;
 
     private void configureServer() throws Exception {
@@ -110,27 +94,6 @@ public class ServerProxy {
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
         final var reqLog = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT);
         server.setRequestLog(reqLog);
-    }
-
-    private void createClient() throws Exception {
-        log.trace("createClient()");
-
-        ensureInternalTlsKeyPresent();
-
-        HttpClientCreator creator = new HttpClientCreator(commonBeanProxy.getServerConfProvider(),
-                proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
-
-        connMonitor = new IdleConnectionMonitorThread(creator.getConnectionManager());
-        connMonitor.setIntervalMilliseconds(IDLE_MONITOR_INTERVAL);
-        connMonitor.setConnectionIdleTimeMilliseconds(IDLE_MONITOR_TIMEOUT);
-
-        client = creator.getHttpClient();
-    }
-
-    private void createOpMonitorClient() throws Exception {
-        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(
-                proxyProperties.addon().opMonitor().connection(), vaultClient,
-                commonBeanProxy.getServerConfProvider().getSSLKey());
     }
 
     private void createConnectors() throws Exception {
@@ -161,15 +124,11 @@ public class ServerProxy {
         log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), proxyProperties.server().listenAddress(), port);
     }
 
-    private void createHandlers() {
-        log.trace("createHandlers()");
-
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, proxyProperties.server(), client,
-                opMonitorClient, new ClientProxyVersionVerifier(proxyProperties.server().minSupportedClientVersion().orElse(null)),
-                serviceHandlerLoader);
+    private void registerHandlers() {
+        log.trace("registerHandlers()");
 
         var handler = new Handler.Sequence();
-        handler.addHandler(proxyHandler);
+        handler.addHandler(serverProxyHandler);
 
         server.setHandler(handler);
     }
@@ -180,10 +139,8 @@ public class ServerProxy {
 
         configureServer();
 
-        createClient();
-        createOpMonitorClient();
         createConnectors();
-        createHandlers();
+        registerHandlers();
 
         server.start();
         connMonitor.start();
@@ -194,8 +151,7 @@ public class ServerProxy {
         log.info("Shutting down server proxy..");
 
         connMonitor.shutdown();
-        client.close();
-        opMonitorClient.close();
+
         server.stop();
         log.info("Shutting down server proxy.. Success!");
     }
@@ -209,23 +165,8 @@ public class ServerProxy {
 
     private ServerConnector createClientProxyConnector() {
         return antiDosConfiguration.enabled()
-                ? new AntiDosConnector(antiDosConfiguration, commonBeanProxy.getGlobalConfProvider(), server, ACCEPTOR_COUNT)
+                ? new AntiDosConnector(antiDosConfiguration, globalConfProvider, server, ACCEPTOR_COUNT)
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1);
-    }
-
-    private void ensureInternalTlsKeyPresent() throws Exception {
-        try {
-
-            vaultClient.getInternalTlsCredentials();
-        } catch (Exception e) {
-            log.warn("Unable to locate internal TLS credentials, attempting to create new ones", e);
-            var vaultKeyData = vaultKeyClient.provisionNewCerts();
-            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
-                    .toArray(X509Certificate[]::new);
-            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createInternalTlsCredentials(internalTlsKey);
-            log.info("Successfully created internal TLS credentials");
-        }
     }
 
     private ServerConnector createClientProxySslConnector() throws Exception {
@@ -235,12 +176,10 @@ public class ServerProxy {
         sslContextFactory.setIncludeCipherSuites(proxyProperties.xroadTlsCiphers());
         sslContextFactory.setSessionCachingEnabled(true);
         sslContextFactory.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-        sslContextFactory.setSslContext(
-                SSLContextUtil.createXroadSSLContext(commonBeanProxy.getGlobalConfProvider(), commonBeanProxy.getKeyConfProvider()));
+        sslContextFactory.setSslContext(SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
 
         return antiDosConfiguration.enabled()
-                ? new AntiDosConnector(antiDosConfiguration, commonBeanProxy.getGlobalConfProvider(), server,
-                ACCEPTOR_COUNT, sslContextFactory)
+                ? new AntiDosConnector(antiDosConfiguration, globalConfProvider, server, ACCEPTOR_COUNT, sslContextFactory)
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1, sslContextFactory);
     }
 
@@ -248,9 +187,7 @@ public class ServerProxy {
         log.trace("reloadAuthKey()");
         if (sslContextFactory != null) {
             try {
-                sslContextFactory.setSslContext(
-                        SSLContextUtil.createXroadSSLContext(commonBeanProxy.getGlobalConfProvider(),
-                                commonBeanProxy.getKeyConfProvider()));
+                sslContextFactory.setSslContext(SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
                 sslContextFactory.reload(cf -> log.debug("Server SSL context reloaded"));
             } catch (Exception e) {
                 log.error("Failed to reload auth key", e);

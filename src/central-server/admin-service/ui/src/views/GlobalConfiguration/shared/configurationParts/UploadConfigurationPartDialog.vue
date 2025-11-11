@@ -64,7 +64,7 @@ import {
   useBasicForm,
   useFileRef,
   XrdFormBlock,
-  XrdFormBlockRow,
+  XrdSimpleDialog,
 } from '@niis/shared-ui';
 
 const props = defineProps({

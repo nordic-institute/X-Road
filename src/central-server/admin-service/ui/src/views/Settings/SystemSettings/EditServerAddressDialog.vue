@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="systemSettings.editCentralServerAddressTitle"
     data-test="system-settings-central-server-address-edit-dialog"
     save-button-text="action.save"
@@ -48,12 +48,12 @@
         :label="$t('systemSettings.centralServerAddress')"
       />
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 <script lang="ts" setup>
 import { useForm } from 'vee-validate';
 
-import { useBasicForm } from '@niis/shared-ui';
+import { XrdSimpleDialog, useBasicForm } from '@niis/shared-ui';
 
 import { useSystem } from '@/store/modules/system';
 

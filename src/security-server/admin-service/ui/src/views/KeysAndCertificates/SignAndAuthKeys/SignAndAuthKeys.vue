@@ -95,7 +95,13 @@ import {
 } from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import { XrdView, XrdSubView, useNotifications } from '@niis/shared-ui';
+import {
+  XrdView,
+  XrdSubView,
+  useNotifications,
+  XrdEmptyPlaceholder,
+  XrdConfirmDialog,
+} from '@niis/shared-ui';
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
 
 export default defineComponent({
@@ -106,6 +112,8 @@ export default defineComponent({
     TokenLoginDialog,
     XrdView,
     XrdSubView,
+    XrdEmptyPlaceholder,
+    XrdConfirmDialog,
   },
   setup() {
     const { addError, addSuccessMessage } = useNotifications();

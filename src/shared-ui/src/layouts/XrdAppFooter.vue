@@ -91,7 +91,7 @@
 </template>
 
 <script lang="ts" setup>
-import xroad8Logo from '../assets/xrd8/Logo-horizontal-light.svg';
+import xroad8Logo from '../assets/Logo-horizontal-light.svg';
 
 defineProps({
   appVersion: {

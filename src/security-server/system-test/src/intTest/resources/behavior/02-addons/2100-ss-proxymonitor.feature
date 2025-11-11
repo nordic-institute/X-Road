@@ -1,6 +1,5 @@
 @SecurityServer
 @Addon
-@Skip #TODO beta1 release preparation
 Feature: 2100 - SS: Proxymonitor
 
   Background:

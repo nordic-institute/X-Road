@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     v-if="dialog"
     title="keys.registrationRequest"
     :disable-save="!meta.valid"
@@ -33,26 +33,28 @@
     @cancel="cancel"
   >
     <template #content>
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{ $t('keys.certRegistrationInfo') }}</div>
-        <v-text-field
-          v-model="address"
-          single-line
-          variant="underlined"
-          :error-messages="errors"
-          class="dlg-row-input"
-          autofocus
-        />
-      </div>
+      <XrdFormBlock>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-model="address"
+            class="xrd"
+            autofocus
+            :label="$t('keys.certRegistrationInfo')"
+            :error-messages="errors"
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { useField } from 'vee-validate';
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdSimpleDialog, XrdFormBlockRow, XrdFormBlock },
   props: {
     dialog: {
       type: Boolean,
@@ -83,7 +85,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>

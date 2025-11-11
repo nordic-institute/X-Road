@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts" setup>
-import _logo from '../assets/xrd8/Logo-vertical-dark.svg';
+import _logo from '../assets/Logo-vertical-dark.svg';
 
 const logo = _logo;
 </script>

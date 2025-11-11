@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     :disable-save="!canUpdate"
     title="trustServices.timestampingService.dialog.edit.title"
     save-button-text="action.save"
@@ -91,7 +91,7 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
@@ -102,6 +102,7 @@ import { RouteName } from '@/global';
 import { definedCostTypes, useTimestampingServices } from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
 import {
+  XrdSimpleDialog,
   useFileRef,
   XrdFormBlock,
   XrdFormBlockRow,

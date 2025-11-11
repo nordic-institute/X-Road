@@ -60,7 +60,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/v3/api-docs" ]
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/v3/api-docs" ]
     networks:
       - xroad-network
   issoap:

@@ -164,7 +164,7 @@
       @save="orderCertificateViaAcme($event)"
     />
 
-    <xrd-confirm-dialog
+    <XrdConfirmDialog
       v-if="confirmDeleteCsr"
       title="keys.deleteCsrTitle"
       text="keys.deleteCsrText"
@@ -200,7 +200,12 @@ import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import AcmeOrderCertificateDialog from '@/views/KeysAndCertificates/SignAndAuthKeys/AcmeOrderCertificateDialog.vue';
-import { XrdBtn, XrdLabelWithIcon, useNotifications } from '@niis/shared-ui';
+import {
+  XrdBtn,
+  XrdLabelWithIcon,
+  useNotifications,
+  XrdConfirmDialog,
+} from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
@@ -211,6 +216,7 @@ export default defineComponent({
     CertificateRow,
     KeysTableThead,
     XrdLabelWithIcon,
+    XrdConfirmDialog,
   },
   props: {
     keys: {

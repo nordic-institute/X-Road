@@ -149,13 +149,13 @@ import { ServiceCandidate } from '@/ui-types';
 import { Permissions, RouteName } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { useServices } from '@/store/modules/services';
 import {
   XrdElevatedViewFixedWidth,
   XrdBtn,
   XrdDateTime,
   useNotifications,
   XrdLabelWithIcon,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import ClientName from '@/components/client/ClientName.vue';
 import { useServiceClients } from '@/store/modules/service-clients';
@@ -177,6 +177,7 @@ export default defineComponent({
     XrdDateTime,
     XrdBtn,
     XrdLabelWithIcon,
+    XrdConfirmDialog,
   },
   props: {
     id: {

@@ -57,6 +57,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     private static final String COMPOSE_SS_HSM_FILE = "build/resources/intTest/compose.ss-hsm.e2e.yaml";
 
     private static final String CS = "cs";
+    private static final String OPENBAO = "openbao";
     private static final String PROXY = "proxy";
     private static final String UI = "ui";
     private static final String SIGNER = "signer";
@@ -84,7 +85,6 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
             envAux = new ComposeContainer("aux-", new File(COMPOSE_AUX_FILE))
                     .withLocalCompose(true)
                     .withExposedService(CS, Port.UI, forListeningPort())
-                    .withEnv("CS_IMG", customProperties.getCsImage())
                     .withEnv("CA_IMG", customProperties.getCaImage())
                     .withEnv("IS_OPENAPI_IMG", customProperties.getIsopenapiImage())
                     .withEnv("IS_SOAP_IMG", customProperties.getIssoapImage())
@@ -126,14 +126,14 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
         var env = new ComposeContainer(name + "-", files)
                 .withLocalCompose(true)
-                .withEnv("CS_IMG", customProperties.getCsImage())
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
-                .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER));
+                .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER))
+                .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO));
 
         env.start();
         connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER);

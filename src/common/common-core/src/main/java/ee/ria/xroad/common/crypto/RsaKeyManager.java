@@ -48,7 +48,7 @@ public final class RsaKeyManager extends AbstractKeyManager {
     private static final KeyAlgorithm CRYPTO_ALGORITHM = KeyAlgorithm.RSA;
     private final int keyLength;
 
-    RsaKeyManager(int keyLength) {
+    public RsaKeyManager(int keyLength) {
         super(CRYPTO_ALGORITHM);
         this.keyLength = keyLength;
     }

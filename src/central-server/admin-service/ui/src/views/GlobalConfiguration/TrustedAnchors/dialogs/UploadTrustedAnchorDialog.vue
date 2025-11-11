@@ -70,13 +70,17 @@ import { defineComponent, PropType } from 'vue';
 
 import { mapStores } from 'pinia';
 
-import { useNotifications, XrdDateTime } from '@niis/shared-ui';
+import {
+  useNotifications,
+  XrdDateTime,
+  XrdSimpleDialog,
+} from '@niis/shared-ui';
 
 import { TrustedAnchor } from '@/openapi-types';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 
 export default defineComponent({
-  components: { XrdDateTime },
+  components: { XrdDateTime, XrdSimpleDialog },
   props: {
     preview: {
       type: Object as PropType<TrustedAnchor>,

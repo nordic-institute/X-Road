@@ -41,20 +41,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.model.MemberInfo;
-import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
-import org.niis.xroad.proxy.core.test.TestSuiteKeyConf;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.Arrays;
@@ -93,14 +86,10 @@ class MetadataClientRequestProcessorTest {
     private ResponseWrapper mockResponse;
     private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
 
-    private CommonBeanProxy commonBeanProxy;
     private GlobalConfProvider globalConfProvider;
-    private KeyConfProvider keyConfProvider;
     private ServerConfProvider serverConfProvider;
-    private VaultKeyProvider vaultKeyProvider;
+    private ClientAuthenticationService clientAuthenticationService;
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
-    private final CommonProperties commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
-    private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
 
     /**
      * Init class-wide test instances
@@ -117,13 +106,9 @@ class MetadataClientRequestProcessorTest {
     public void init() {
 
         globalConfProvider = new TestSuiteGlobalConf();
-        keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
-        vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+        clientAuthenticationService = mock(ClientAuthenticationService.class);
 
-        commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(),
-                proxyProperties, ocspVerifierFactory, commonProperties);
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
@@ -136,12 +121,10 @@ class MetadataClientRequestProcessorTest {
                 .thenReturn(Collections.enumeration(List.of("application/json")));
     }
 
-
     @Test
     void shouldBeAbleToProcessListClients() {
-
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(commonBeanProxy,
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
                         LIST_CLIENTS, mockRequest, mockResponse);
 
         assertTrue(processorToTest.canProcess(), "Wasn't able to process list clients");
@@ -149,16 +132,15 @@ class MetadataClientRequestProcessorTest {
 
     @Test
     void shouldNotBeAbleToProcessRandomRequest() {
-
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(commonBeanProxy, "getRandom", mockRequest, mockResponse);
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
+                        "getRandom", mockRequest, mockResponse);
 
         assertFalse(processorToTest.canProcess(), "Was able to process a random target");
     }
 
     @Test
     void shouldProcessListClients() throws Exception {
-
         final List<MemberInfo> expectedMembers = Arrays.asList(
                 createMember("producer", null),
                 createMember("producer", "subsystem"),
@@ -167,17 +149,12 @@ class MetadataClientRequestProcessorTest {
                 createMember("thirdmember", null));
 
         globalConfProvider = new TestSuiteGlobalConf() {
-
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {
                 assertThat("Wrong Xroad instance in query", instanceIdentifier, arrayContaining(EXPECTED_XR_INSTANCE));
                 return expectedMembers;
             }
-
         };
-        commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
-                ocspVerifierFactory, commonProperties);
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
@@ -185,7 +162,7 @@ class MetadataClientRequestProcessorTest {
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(commonBeanProxy,
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
                         LIST_CLIENTS, mockRequest, mockResponse);
 
         when(mockRequest.getParametersMap()).thenReturn(Map.of());
@@ -206,12 +183,10 @@ class MetadataClientRequestProcessorTest {
                 members.size(), is(expectedMembers.size()));
 
         assertThat("Wrong members", members, containsInAnyOrder(expectedMembers.toArray()));
-
     }
 
     @Test
     void shouldProcessListClientsAndReturnJson() throws Exception {
-
         final List<MemberInfo> expectedMembers = Arrays.asList(
                 createMember("producer", null),
                 createMember("producer", "subsystem"));
@@ -223,12 +198,9 @@ class MetadataClientRequestProcessorTest {
                 return expectedMembers;
             }
         };
-        commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer(), proxyProperties,
-                ocspVerifierFactory, commonProperties);
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(commonBeanProxy,
+                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
                         LIST_CLIENTS, mockJsonRequest, mockResponse);
 
         when(mockJsonRequest.getParametersMap()).thenReturn(Map.of());

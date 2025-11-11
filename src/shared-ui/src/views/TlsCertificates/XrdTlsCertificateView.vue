@@ -111,20 +111,19 @@
           </tbody>
         </v-table>
       </XrdCard>
-      <ManagementServiceGenerateKeyDialog
+      <GenerateKeyDialog
         v-if="showGenerateKeyDialog"
         :handler="handler"
         @accept="closeGenerateKeyDialog"
         @cancel="showGenerateKeyDialog = false"
       />
-      <ManagementServiceGenerateCsrDialog
+      <GenerateCsrDialog
         v-if="showGenerateCsrDialog"
         :handler="handler"
         @generate="showGenerateCsrDialog = false"
         @cancel="showGenerateCsrDialog = false"
-      >
-      </ManagementServiceGenerateCsrDialog>
-      <ManagementServiceUploadCertificateDialog
+      />
+      <UploadCertificateDialog
         v-if="showUploadCertificateDialog"
         :handler="handler"
         @upload="closeUploadCertificateDialog"
@@ -141,16 +140,16 @@ import { XrdSubView, XrdView } from '../../layouts';
 import { XrdBtn, XrdCard, XrdHashValue, XrdLabelWithIcon } from '../../components';
 import { useNotifications } from '../../composables';
 
-import ManagementServiceGenerateCsrDialog from './dialogs/ManagementServiceGenerateCsrDialog.vue';
-import ManagementServiceGenerateKeyDialog from './dialogs/ManagementServiceGenerateKeyDialog.vue';
-import ManagementServiceUploadCertificateDialog from './dialogs/ManagementServiceUploadCertificateDialog.vue';
+import GenerateCsrDialog from './dialogs/GenerateCsrDialog.vue';
+import GenerateKeyDialog from './dialogs/GenerateKeyDialog.vue';
+import UploadCertificateDialog from './dialogs/UploadCertificateDialog.vue';
 import { TlsCertificate, TlsCertificatesHandler } from '../../types';
 
 export default defineComponent({
   components: {
-    ManagementServiceUploadCertificateDialog,
-    ManagementServiceGenerateKeyDialog,
-    ManagementServiceGenerateCsrDialog,
+    UploadCertificateDialog,
+    GenerateKeyDialog,
+    GenerateCsrDialog,
     XrdHashValue,
     XrdView,
     XrdSubView,

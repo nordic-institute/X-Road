@@ -34,7 +34,7 @@
     :loading="deleting"
     @click="showConfirmation = true"
   />
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     v-if="showConfirmation"
     title="backup.deleteBackup.dialog.title"
     text="backup.deleteBackup.dialog.confirmation"
@@ -47,8 +47,6 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-
-import { mapActions } from 'pinia';
 
 import { useNotifications } from '../../composables';
 import { BackupHandler } from '../../types';
@@ -75,11 +73,14 @@ export default defineComponent({
     },
   },
   emits: ['delete'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return { showConfirmation: false, deleting: false };
   },
   methods: {
-    ...mapActions(useNotifications, ['addError', 'addSuccessMessage']),
     deleteBackup() {
       this.deleting = true;
       this.showConfirmation = false;

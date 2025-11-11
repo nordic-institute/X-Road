@@ -16,6 +16,10 @@ resource "kind_cluster" "xroad_cluster" {
       role = "worker"
     }
 
+    node {
+      role = "worker"
+    }
+
     containerd_config_patches = var.containerd_config_patches
   }
 }

@@ -122,7 +122,6 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { mapActions } from 'pinia';
 import { useOcspResponderService } from '@/store/modules/trust-services';
 import AddOcspResponderDialog from './dialogs/AddOcspResponderDialog.vue';
 import EditOcspResponderDialog from './dialogs/EditOcspResponderDialog.vue';
@@ -137,6 +136,7 @@ import {
   XrdBtn,
   XrdLabelWithIcon,
   useNotifications,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
@@ -147,6 +147,7 @@ export default defineComponent({
     XrdLabelWithIcon,
     EditOcspResponderDialog,
     AddOcspResponderDialog,
+    XrdConfirmDialog,
   },
   props: {
     ca: {

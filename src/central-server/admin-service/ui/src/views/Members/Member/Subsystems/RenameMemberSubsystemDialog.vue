@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     :disable-save="!canSave"
     :loading="loading"
     cancel-button-text="action.cancel"
@@ -49,7 +49,7 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
@@ -59,6 +59,7 @@ import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
 import {
+  XrdSimpleDialog,
   XrdFormBlock,
   XrdFormBlockRow,
   useNotifications,

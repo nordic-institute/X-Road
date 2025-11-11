@@ -33,12 +33,7 @@ import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.asic.AsicUtils;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.archive.EncryptionConfig;
-import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
-import ee.ria.xroad.common.messagelog.archive.GPGOutputStream;
-import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -48,10 +43,16 @@ import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfig;
+import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -72,7 +73,6 @@ import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 import static org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404;
 import static org.eclipse.jetty.http.HttpStatus.UNAUTHORIZED_401;
-import static org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.ASIC;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.VERIFICATIONCONF;
 
@@ -106,19 +106,25 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private static final String CONTENT_DISPOSITION_FILENAME_PREFIX = "attachment; filename=\"";
 
-    private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
 
     private final String target;
     private final EncryptionConfigProvider encryptionConfigProvider;
     private final ConfClientRpcClient confClientRpcClient;
+    private final LogRecordManager logRecordManager;
+    private final String tempFilesPath;
 
-    public AsicContainerClientRequestProcessor(CommonBeanProxy commonBeanProxy, ConfClientRpcClient confClientRpcClient,
-                                               String target, RequestWrapper request, ResponseWrapper response)
-            throws IOException {
-        super(commonBeanProxy, request, response, null);
+    public AsicContainerClientRequestProcessor(ConfClientRpcClient confClientRpcClient, EncryptionConfigProvider encryptionConfigProvider,
+                                               ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
+                                               ServerConfProvider serverConfProvider,
+                                               LogRecordManager logRecordManager, String tempFilesPath,
+                                               String target, RequestWrapper request, ResponseWrapper response,
+                                               ClientAuthenticationService clientAuthenticationService) {
+        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, null);
         this.target = target;
-        this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
+        this.encryptionConfigProvider = encryptionConfigProvider;
         this.confClientRpcClient = confClientRpcClient;
+        this.logRecordManager = logRecordManager;
+        this.tempFilesPath = tempFilesPath;
     }
 
     public boolean canProcess() {
@@ -168,7 +174,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void verifyClientAuthentication(ClientId clientId) {
         log.trace("verifyClientAuthentication({})", clientId);
         try {
-            verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest, commonBeanProxy.getProxyProperties().logClientCert()));
+            clientAuthenticationService.verifyClientAuthentication(clientId,
+                    clientAuthenticationService.getIsAuthenticationData(jRequest, proxyProperties.logClientCert()));
         } catch (CodedException ex) {
             throw new CodedExceptionWithHttpStatus(UNAUTHORIZED_401, ex);
         }
@@ -200,7 +207,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void ensureTimestamped(ClientId id, String queryId, Boolean response, boolean force) throws Exception {
-        final List<MessageRecord> records = commonBeanProxy.getLogRecordManager().getByQueryId(queryId, id, response, Function.identity());
+        final List<MessageRecord> records = logRecordManager.getByQueryId(queryId, id, response, Function.identity());
 
         if (records.isEmpty()) {
             throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,
@@ -254,18 +261,16 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         final String filename = AsicUtils.escapeString(queryId)
                 + (response == null ? "" : (response ? "-response" : "-request")) + ".zip.gpg";
 
-        final EncryptionConfig encryptionConfig =
-                encryptionConfigProvider.forGrouping(groupingStrategy.forClient(clientId));
-
-        final Path tempFile = Files.createTempFile(Paths.get(commonBeanProxy.getCommonProperties().tempFilesPath()), "asic", null);
+        final Path tempFile = Files.createTempFile(Paths.get(tempFilesPath), "asic", null);
 
         try {
+            final EncryptionConfig encryptionConfig =
+                    encryptionConfigProvider.forClientId(clientId);
             final CheckedSupplier<OutputStream> supplier = () -> {
                 jResponse.setContentType(MimeTypes.BINARY);
                 jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
-                return new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
-                        encryptionConfig.getEncryptionKeys(), commonBeanProxy.getCommonProperties().tempFilesPath());
+                return encryptionConfig.createEncryptionStream(tempFile, tempFilesPath);
             };
 
             writeContainers(clientId, queryId, nameGen, response, supplier);
@@ -283,7 +288,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void writeContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
                                  Boolean response, CheckedSupplier<OutputStream> outputSupplier) {
 
-        commonBeanProxy.getLogRecordManager().getByQueryId(queryId, clientId, response, records -> {
+        logRecordManager.getByQueryId(queryId, clientId, response, records -> {
             if (records.isEmpty()) {
                 throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,
                         DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
@@ -291,20 +296,20 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();
             try (OutputStream os = outputSupplier.get(); ZipOutputStream zos = new ZipOutputStream(os)) {
                 zos.setLevel(0);
-                for (MessageRecord record : records) {
-                    if (record.getTimestampRecord() == null) {
+                for (var messageRecord : records) {
+                    if (messageRecord.getTimestampRecord() == null) {
                         // Only happens if there are matching messages that are sent after
                         // the ensureTimestamped check was made. Ignore to emulate the previous behavior.
                         continue;
                     }
-                    messageRecordEncryption.prepareDecryption(record);
+                    messageRecordEncryption.prepareDecryption(messageRecord);
                     final ZipEntry entry = new ZipEntry(
-                            nameGen.getArchiveFilename(queryId, record.isResponse(), record.getId()));
-                    entry.setLastModifiedTime(FileTime.from(record.getTime(), TimeUnit.MILLISECONDS));
+                            nameGen.getArchiveFilename(queryId, messageRecord.isResponse(), messageRecord.getId()));
+                    entry.setLastModifiedTime(FileTime.from(messageRecord.getTime(), TimeUnit.MILLISECONDS));
                     zos.putNextEntry(entry);
 
                     try (EntryStream es = new EntryStream(zos)) {
-                        record.toAsicContainer().write(es);
+                        messageRecord.toAsicContainer().write(es);
                     }
                     zos.closeEntry();
                 }
@@ -339,13 +344,9 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeAsicContainer(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-                                    boolean response) throws IOException {
+                                    boolean response) {
 
-        final EncryptionConfig encryptionConfig =
-                encryptionConfigProvider.forGrouping(groupingStrategy.forClient(clientId));
-        final boolean encryptionEnabled = encryptionConfig.isEnabled();
-
-        commonBeanProxy.getLogRecordManager().getByQueryIdUnique(queryId, clientId, response, record -> {
+        logRecordManager.getByQueryIdUnique(queryId, clientId, response, record -> {
             try {
                 if (record == null) {
                     throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,
@@ -358,7 +359,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 final AsicContainer asicContainer = record.toAsicContainer();
 
                 String filename = nameGen.getArchiveFilename(queryId, response, record.getId());
-                if (encryptionEnabled) {
+                if (encryptionConfigProvider.isEncryptionEnabled()) {
                     filename += ".gpg";
                     jResponse.setContentType(MimeTypes.BINARY);
                 } else {
@@ -367,7 +368,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
 
-                if (encryptionEnabled) {
+                if (encryptionConfigProvider.isEncryptionEnabled()) {
+                    final var encryptionConfig = encryptionConfigProvider.forClientId(clientId);
                     encryptContainer(encryptionConfig, asicContainer);
                 } else {
                     asicContainer.write(jResponse.getOutputStream());
@@ -384,10 +386,9 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void encryptContainer(EncryptionConfig encryptionConfig, AsicContainer asicContainer) throws IOException {
         final Path tempFile = Files.createTempFile(
-                Paths.get(commonBeanProxy.getCommonProperties().tempFilesPath()), "asic", null);
+                Paths.get(tempFilesPath), "asic", null);
         try {
-            try (OutputStream os = new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
-                    encryptionConfig.getEncryptionKeys(), commonBeanProxy.getCommonProperties().tempFilesPath())) {
+            try (OutputStream os = encryptionConfig.createEncryptionStream(tempFile, tempFilesPath)) {
                 asicContainer.write(os);
             }
             try (InputStream is = Files.newInputStream(tempFile); var out = jResponse.getOutputStream()) {

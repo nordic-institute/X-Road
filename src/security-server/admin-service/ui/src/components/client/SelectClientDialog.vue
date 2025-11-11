@@ -73,11 +73,11 @@
 import { defineComponent, PropType } from 'vue';
 import { Client } from '@/openapi-types';
 import ClientName from '@/components/client/ClientName.vue';
-import { XrdFormBlock } from '@niis/shared-ui';
+import { XrdFormBlock, XrdSimpleDialog } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 export default defineComponent({
-  components: { ClientName, XrdFormBlock },
+  components: { ClientName, XrdFormBlock, XrdSimpleDialog },
   props: {
     title: {
       type: String,

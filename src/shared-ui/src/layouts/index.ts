@@ -31,7 +31,6 @@ import XrdAppToolbar from './XrdAppToolbar.vue';
 import XrdElevatedViewSimple from './XrdElevatedViewSimple.vue';
 import XrdElevatedViewFixedWidth from './XrdElevatedViewFixedWidth.vue';
 import XrdSubView from './XrdSubView.vue';
-import XrdSubViewContainer from './XrdSubViewContainer.vue';
 import XrdView from './XrdView.vue';
 import XrdViewNavigation from './XrdViewNavigation.vue';
 import XrdContainer840 from './XrdContainer840.vue';
@@ -39,7 +38,6 @@ import XrdMainNavigation from './XrdMainNavigation.vue';
 import XrdMainNavigationContainer from './XrdMainNavigationContainer.vue';
 
 export {
-  XrdSubViewContainer,
   XrdAppFooter,
   XrdApp,
   XrdView,

@@ -103,6 +103,7 @@ import {
   XrdFormBlock,
   XrdFormBlockRow,
   useNotifications,
+  XrdConfirmDialog,
 } from '@niis/shared-ui';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
 import { clientTitle } from '@/util/ClientUtil';
@@ -117,6 +118,7 @@ export default defineComponent({
     XrdFormBlockRow,
     XrdElevatedViewFixedWidth,
     XrdBtn,
+    XrdConfirmDialog,
   },
   props: {
     id: {
