@@ -25,11 +25,12 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -48,10 +49,13 @@ import static org.springframework.util.CollectionUtils.isEmpty;
  */
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class PossibleActionsRuleEngine {
 
     // duplicate definition, since we dont want add direct dependency on signer
     public static final String SOFTWARE_TOKEN_ID = "0";
+
+    private final AdminServiceProperties adminServiceProperties;
 
     /**
      * Get possible actions for a token
@@ -88,7 +92,6 @@ public class PossibleActionsRuleEngine {
     public boolean isKeyUnsupported(TokenInfo tokenInfo, KeyInfo keyInfo) {
         return (!SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()))
                 && keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION;
-
     }
 
     /**
@@ -130,8 +133,8 @@ public class PossibleActionsRuleEngine {
         return actions;
     }
 
-    private static boolean keyHasNoCertificatesOrGenerateCsrAllowedInProperties(KeyInfo keyInfo) {
-        return isEmpty(keyInfo.getCerts()) || SystemProperties.getAllowCsrForKeyWithCertificate();
+    private boolean keyHasNoCertificatesOrGenerateCsrAllowedInProperties(KeyInfo keyInfo) {
+        return isEmpty(keyInfo.getCerts()) || adminServiceProperties.isAllowCsrForKeyWithCertificate();
     }
 
     /**

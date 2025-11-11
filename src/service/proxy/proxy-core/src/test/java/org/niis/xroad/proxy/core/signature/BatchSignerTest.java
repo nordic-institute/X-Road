@@ -45,14 +45,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.test.keyconf.TestKeyConf;
 
 import java.io.ByteArrayInputStream;
@@ -69,10 +74,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static ee.ria.xroad.common.SystemProperties.getSoftTokenRsaSignMechanism;
 import static ee.ria.xroad.common.TestCertUtil.getDefaultValidCertDate;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
+import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_RSA_PKCS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,18 +88,25 @@ import static org.mockito.Mockito.when;
 class BatchSignerTest {
 
     private final GlobalConfProvider globalConf = new TestSuiteGlobalConf();
+    private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     private final TestCertUtil.PKCS12 producerP12 = TestCertUtil.getProducer();
     private final ClientId.Conf producerClientId = ClientId.Conf.create("EE", "BUSINESS", "producer");
+    private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
 
     @Mock
     private SignerRpcClient signerClient;
+    @Mock
+    private SignerSignClient signerSignClient;
+    @Mock
+    private SignerRpcChannelProperties signerRpcChannelProperties;
 
     private BatchSigner batchSigner;
 
     @BeforeEach
     void beforeEach() {
         org.apache.xml.security.Init.init();
-        batchSigner = new BatchSigner(signerClient);
+        when(signerRpcChannelProperties.deadlineAfter()).thenReturn(60_000);
+        batchSigner = new BatchSigner(signerClient, signerSignClient, signerRpcChannelProperties);
     }
 
     @AfterEach
@@ -109,12 +121,13 @@ class BatchSignerTest {
 
         when(signerClient.isTokenBatchSigningEnabled(any())).thenReturn(true);
         // Sign with producer private key
-        when(signerClient.sign(any(), any(), any())).thenAnswer(invocation -> {
+        when(signerSignClient.sign(any(), any(), any())).thenAnswer(invocation -> {
             var args = invocation.getArguments();
             var signatureAlgId = (SignAlgorithm) args[1];
             var digest = (byte[]) args[2];
             byte[] data = SignDataPreparer.of(signatureAlgId).prepare(digest);
-            SignAlgorithm signAlgorithm = KeyManagers.getForRSA().getSoftwareTokenSignAlgorithm();
+            SignAlgorithm signAlgorithm = (new KeyManagers(2048, "secp256r1"))
+                    .getForRSA().getSoftwareTokenSignAlgorithm();
             Signature signature = Signature.getInstance(signAlgorithm.name(), BOUNCY_CASTLE);
             signature.initSign(producerP12.key);
             signature.update(data);
@@ -189,7 +202,7 @@ class BatchSignerTest {
         var keyConf = new TestKeyConf(globalConf) {
             @Override
             public SigningInfo getSigningInfo(ClientId clientId) {
-                return new SigningInfo("keyid", getSoftTokenRsaSignMechanism(), subject, producerP12.certChain[0], null, null) {
+                return new SigningInfo("keyid", CKM_RSA_PKCS, subject, producerP12.certChain[0], null, null) {
                     @Override
                     public boolean verifyValidity(Date atDate) {
                         return true;
@@ -198,7 +211,7 @@ class BatchSignerTest {
             }
         };
 
-        return new SigningCtxProviderImpl(globalConf, keyConf, batchSigner);
+        return new SigningCtxProviderImpl(globalConf, keyConf, batchSigner, proxyProperties);
     }
 
     private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)
@@ -214,7 +227,7 @@ class BatchSignerTest {
 
     private void verify(final BatchSignResult batchSignResult)
             throws Exception {
-        SignatureVerifier verifier = new SignatureVerifier(globalConf, batchSignResult.signatureData());
+        SignatureVerifier verifier = new SignatureVerifier(globalConf, ocspVerifierFactory, batchSignResult.signatureData());
         verifier.addParts(batchSignResult.messageParts());
 
         HashChainReferenceResolver resolver = new HashChainReferenceResolver() {

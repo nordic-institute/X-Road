@@ -129,6 +129,8 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
 
         keyAndCertPageObj.section(tokenKey).tokenDeleteButton().shouldBe(visible).click();
         commonPageObj.dialog.btnSave().click();
+
+        keyAndCertPageObj.section(tokenKey).tokenDeleteButton().shouldNotBe(visible);
     }
 
     @Step("Token Alert about token policy being enforced is present")
@@ -309,13 +311,13 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
                 // acme2certifier ARI renewal suggestion date is calculated as follows:
                 // now() + 90% of days between issued date (here now()) and expiration date
                 // (renewaltreshold_pctg and cert_validity_days are configurable in acme_serv.cfg)
-                expectedAutomaticRenewalStatus = "NEXT PLANNED RENEWAL ON " + LocalDate.now().plusDays(27);
+                expectedAutomaticRenewalStatus = "Next planned renewal on " + LocalDate.now().plusDays(27);
             } else {
                 // Fixed renewal suggestion date is calculated as follows:
                 // value given for the '-days' certificate option when generating the certificate in sign_req.sh script
                 // -
                 // SystemProperties.PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE
-                expectedAutomaticRenewalStatus = "NEXT PLANNED RENEWAL ON " + LocalDate.now().plusDays(7300 - 14);
+                expectedAutomaticRenewalStatus = "Next planned renewal on " + LocalDate.now().plusDays(7300 - 14);
             }
         } else {
             // Generated AUTH cert is in saved not registered status and ignored by the renewal job

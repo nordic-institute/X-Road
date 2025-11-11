@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,65 +25,81 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="services.disableTitle"
     save-button-text="action.ok"
+    submittable
+    :loading="disabling"
     @save="save"
     @cancel="cancel"
   >
     <template #content>
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{ $t('services.disableNotice') }}</div>
-        <v-text-field
-          v-model="notice"
-          single-line
-          variant="underlined"
-          class="dlg-row-input"
-          data-test="disable-notice-text-field"
-        ></v-text-field>
-      </div>
+      <XrdFormBlock>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-model="notice"
+            data-test="disable-notice-text-field"
+            class="xrd"
+            single-line
+            autofocus
+            :label="$t('services.disableNotice')"
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 // Dialog to confirm service description disabling
-import { defineComponent, PropType } from 'vue';
+import { PropType, ref } from 'vue';
 import { ServiceDescription } from '@/openapi-types';
+import {
+  XrdFormBlock,
+  XrdFormBlockRow,
+  XrdSimpleDialog,
+  useNotifications,
+  DialogSaveHandler,
+} from '@niis/shared-ui';
+import { useServiceDescriptions } from '@/store/modules/service-descriptions';
 
-export default defineComponent({
-  props: {
-    subject: {
-      type: Object as PropType<ServiceDescription>,
-      required: true,
-    },
-    subjectIndex: {
-      type: Number,
-      required: true,
-    },
+const props = defineProps({
+  subject: {
+    type: Object as PropType<ServiceDescription>,
+    required: true,
   },
-  emits: ['cancel', 'save'],
-  data() {
-    return {
-      notice: '',
-    };
-  },
-  methods: {
-    cancel(): void {
-      this.$emit('cancel', this.subject, this.subjectIndex);
-      this.clear();
-    },
-    save(): void {
-      this.$emit('save', this.subject, this.subjectIndex, this.notice);
-      this.clear();
-    },
-    clear(): void {
-      this.notice = '';
-    },
+  subjectIndex: {
+    type: Number,
+    required: true,
   },
 });
+
+const emit = defineEmits(['cancel', 'save']);
+
+const { addSuccessMessage } = useNotifications();
+const { disableServiceDescription } = useServiceDescriptions();
+
+const notice = ref('');
+const disabling = ref(false);
+
+function cancel(): void {
+  emit('cancel');
+  clear();
+}
+
+function save(evt: Event, handler: DialogSaveHandler): void {
+  disabling.value = true;
+  disableServiceDescription(props.subject.id, notice.value)
+    .then(() => addSuccessMessage('services.disableSuccess'))
+    .then(() => emit('save', notice.value, props.subject))
+    .catch((error) => handler.addError(error))
+    .finally(() => (disabling.value = false))
+    .finally(() => clear());
+}
+
+function clear(): void {
+  notice.value = '';
+}
 </script>
 
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>
+<style lang="scss" scoped></style>

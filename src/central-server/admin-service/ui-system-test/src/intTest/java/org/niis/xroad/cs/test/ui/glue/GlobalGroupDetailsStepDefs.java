@@ -46,7 +46,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
                 .shouldBe(enabled, visible)
                 .click();
 
-        globalGroupDetailsPage.getAddMembersDialogObj().btnAddMembers()
+        globalGroupDetailsPage.getAddMembersDialogObj().btnSave()
                 .shouldNotBe(enabled);
     }
 
@@ -81,7 +81,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
 
     @Step("user adds selected members")
     public void addSelectedMembers() {
-        globalGroupDetailsPage.getAddMembersDialogObj().btnAddMembers()
+        globalGroupDetailsPage.getAddMembersDialogObj().btnSave()
                 .shouldBe(enabled)
                 .click();
     }
@@ -89,7 +89,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
     @Step("user closes add members dialog")
     public void closeAddMembersDialog() {
         globalGroupDetailsPage.getAddMembersDialogObj().btnClose()
-                .shouldBe(enabled)
+                .shouldNotHave(cssClass("v-icon--disabled"))
                 .click();
     }
 
@@ -124,7 +124,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
         identifiers.asList()
                 .forEach(identifier -> globalGroupDetailsPage.getAddMembersDialogObj().rowCheckbox(identifier)
                         .$("i")
-                        .shouldHave(cssClass("mdi-checkbox-marked")));
+                        .shouldHave(cssClass("check_box")));
     }
 
     @Step("user filters selectable members list with query: {string}")

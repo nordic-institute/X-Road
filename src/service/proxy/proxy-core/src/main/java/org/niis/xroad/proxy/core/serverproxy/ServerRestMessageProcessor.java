@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -46,7 +45,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
@@ -69,14 +67,21 @@ import org.apache.http.util.EntityUtils;
 import org.bouncycastle.operator.DigestCalculator;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.globalconf.impl.cert.CertHelper;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
+import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
+import org.niis.xroad.proxy.core.util.IdentifierValidator;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Client;
@@ -110,10 +115,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions")
-class ServerRestMessageProcessor extends MessageProcessorBase {
-
-    private static final String SERVERPROXY_REST_SERVICE_HANDLERS = SystemProperties.PREFIX
-            + "proxy.serverRestServiceHandlers";
+public class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private final X509Certificate[] clientSslCerts;
 
@@ -127,23 +129,36 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private SigningCtx responseSigningCtx;
 
-    private OpMonitoringData opMonitoringData;
+    private final OpMonitoringData opMonitoringData;
     private RestResponse restResponse;
     private CachingStream restResponseBody;
 
     private String xRequestId;
 
-    ServerRestMessageProcessor(CommonBeanProxy commonBeanProxy,
-                               RequestWrapper request,
-                               ResponseWrapper response,
-                               HttpClient httpClient,
-                               X509Certificate[] clientSslCerts,
-                               OpMonitoringData opMonitoringData) {
-        super(commonBeanProxy, request, response, httpClient);
+    private final String tempFilesPath;
+    private final SigningCtxProvider signingCtxProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
+    private final CertHelper certHelper;
 
-        this.clientSslCerts = clientSslCerts;
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    public ServerRestMessageProcessor(RequestWrapper request, ResponseWrapper response,
+                                      ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
+                                      ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
+                                      SigningCtxProvider signingCtxProvider, OcspVerifierFactory ocspVerifierFactory,
+                                      CertHelper certHelper, String tempFilesPath,
+                                      HttpClient httpClient, OpMonitoringData opMonitoringData,
+                                      ServiceHandlerLoader serviceHandlerLoader) {
+        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, httpClient);
+
+        this.clientSslCerts = request.getPeerCertificates().orElse(null);
         this.opMonitoringData = opMonitoringData;
-        loadServiceHandlers();
+
+        this.tempFilesPath = tempFilesPath;
+        this.signingCtxProvider = signingCtxProvider;
+        this.ocspVerifierFactory = ocspVerifierFactory;
+        this.certHelper = certHelper;
+
+        loadServiceHandlers(serviceHandlerLoader);
     }
 
     @Override
@@ -154,8 +169,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         xRequestId = jRequest.getHeaders().get(HEADER_REQUEST_ID);
 
         opMonitoringData.setXRequestId(xRequestId);
-        updateOpMonitoringClientSecurityServerAddress();
-        updateOpMonitoringServiceSecurityServerAddress();
+        opMonitoringDataHelper.updateOpMonitoringClientSecurityServerAddress(opMonitoringData, getClientAuthCert());
+        opMonitoringDataHelper.updateOpMonitoringServiceSecurityServerAddress(opMonitoringData);
 
         try {
             readMessage();
@@ -177,36 +192,13 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void updateOpMonitoringClientSecurityServerAddress() {
-        try {
-            X509Certificate authCert = getClientAuthCert();
-
-            if (authCert != null) {
-                opMonitoringData.setClientSecurityServerAddress(commonBeanProxy.globalConfProvider.getSecurityServerAddress(
-                        commonBeanProxy.globalConfProvider.getServerId(authCert)));
-            }
-        } catch (Exception e) {
-            log.error("Failed to assign operational monitoring data field {}",
-                    OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
-        }
-    }
-
-    private void updateOpMonitoringServiceSecurityServerAddress() {
-        try {
-            opMonitoringData.setServiceSecurityServerAddress(getSecurityServerAddress());
-        } catch (Exception e) {
-            log.error("Failed to assign operational monitoring data field {}",
-                    OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS, e);
-        }
-    }
-
     @Override
     public boolean verifyMessageExchangeSucceeded() {
         return restResponse != null && !restResponse.isErrorResponse();
     }
 
     @Override
-    protected void preprocess() throws Exception {
+    protected void preprocess() {
         encoder = new ProxyMessageEncoder(jResponse.getOutputStream(), Digests.DEFAULT_DIGEST_ALGORITHM);
         jResponse.setContentType(encoder.getContentType());
         jResponse.putHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId().name());
@@ -218,14 +210,11 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         opMonitoringData.setRestResponseStatusCode(restResponse.getResponseCode());
     }
 
-    private void loadServiceHandlers() {
-        String serviceHandlerNames = System.getProperty(SERVERPROXY_REST_SERVICE_HANDLERS);
-        if (!StringUtils.isBlank(serviceHandlerNames)) {
-            for (String serviceHandlerName : serviceHandlerNames.split(",")) {
-                handlers.add(RestServiceHandlerLoader.load(commonBeanProxy.serverConfProvider, serviceHandlerName));
-                log.trace("Loaded rest service handler: " + serviceHandlerName);
-            }
-        }
+    private void loadServiceHandlers(ServiceHandlerLoader serviceHandlerLoader) {
+        serviceHandlerLoader.loadRestServiceHandlers().forEach(handler -> {
+            handlers.add(handler);
+            log.trace("Loaded rest service handler: {}", handler.getClass().getName());
+        });
     }
 
     private RestServiceHandler getServiceHandler(ProxyMessage request) {
@@ -234,14 +223,11 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 return handler;
             }
         }
-        return null;
+        return new DefaultRestServiceHandlerImpl(serverConfProvider, tempFilesPath);
     }
 
     private void handleRequest() throws Exception {
         RestServiceHandler handler = getServiceHandler(requestMessage);
-        if (handler == null) {
-            handler = new DefaultRestServiceHandlerImpl(commonBeanProxy.serverConfProvider);
-        }
         log.trace("handler={}", handler);
         if (handler.shouldVerifyAccess()) {
             verifyAccess();
@@ -255,7 +241,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         try {
             preprocess();
             handler.startHandling(jRequest, requestMessage, decoder, encoder,
-                    httpClient, null, opMonitoringData);
+                    httpClient, opMonitoringData);
         } finally {
             handler.finishHandling();
             restResponse = handler.getRestResponse();
@@ -266,20 +252,22 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void readMessage() throws Exception {
         log.trace("readMessage()");
 
-        requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE)) {
+        requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
+                tempFilesPath) {
             @Override
             public void rest(RestRequest message) throws CertificateEncodingException, IOException {
                 super.rest(message);
                 requestServiceId = message.getServiceId();
                 verifyClientStatus();
-                responseSigningCtx = commonBeanProxy.signingCtxProvider.createSigningCtx(requestServiceId.getClientId());
-                if (SystemProperties.isSslEnabled()) {
+                responseSigningCtx = signingCtxProvider.createSigningCtx(requestServiceId.getClientId());
+                if (proxyProperties.sslEnabled()) {
                     verifySslClientCert();
                 }
             }
         };
 
-        decoder = new ProxyMessageDecoder(commonBeanProxy.globalConfProvider, requestMessage, jRequest.getContentType(), false,
+        decoder = new ProxyMessageDecoder(globalConfProvider, ocspVerifierFactory,
+                requestMessage, jRequest.getContentType(), false,
                 getHashAlgoId(jRequest));
         try {
             decoder.parse(jRequest.getInputStream());
@@ -294,7 +282,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     }
 
     private void updateOpMonitoringDataByRequest() {
-        updateOpMonitoringDataByRestRequest(opMonitoringData, requestMessage.getRest());
+        opMonitoringDataHelper.updateOpMonitoringDataByRestRequest(opMonitoringData, requestMessage.getRest());
         opMonitoringData.setRequestAttachmentCount(0);
         opMonitoringData.setRequestSize(requestMessage.getRest().getMessageBytes().length
                 + decoder.getAttachmentsByteCount());
@@ -309,15 +297,15 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_MISSING_SIGNATURE, "Request does not have signature");
         }
 
-        checkIdentifier(rest.getClientId());
-        checkIdentifier(rest.getServiceId());
-        checkIdentifier(rest.getTargetSecurityServer());
+        IdentifierValidator.checkIdentifier(rest.getClientId());
+        IdentifierValidator.checkIdentifier(rest.getServiceId());
+        IdentifierValidator.checkIdentifier(rest.getTargetSecurityServer());
     }
 
     private void verifyClientStatus() {
         ClientId client = requestServiceId.getClientId();
 
-        String status = commonBeanProxy.serverConfProvider.getMemberStatus(client);
+        String status = serverConfProvider.getMemberStatus(client);
 
         if (!Client.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
@@ -331,7 +319,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         String instanceIdentifier = requestMessage.getRest().getClientId().getXRoadInstance();
-        X509Certificate trustAnchor = commonBeanProxy.globalConfProvider.getCaCert(instanceIdentifier,
+        X509Certificate trustAnchor = globalConfProvider.getCaCert(instanceIdentifier,
                 clientSslCerts[clientSslCerts.length - 1]);
 
         if (trustAnchor == null) {
@@ -339,9 +327,10 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         try {
-            CertChain chain = commonBeanProxy.certChainFactory.create(instanceIdentifier, ArrayUtils.add(clientSslCerts,
+            CertChain chain = CertChainFactory.create(instanceIdentifier, ArrayUtils.add(clientSslCerts,
                     trustAnchor));
-            commonBeanProxy.certHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
+            certHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(),
+                    requestMessage.getRest().getClientId());
         } catch (Exception e) {
             throw new CodedException(X_SSL_AUTH_FAILED, e);
         }
@@ -350,18 +339,18 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void verifyAccess() {
         log.trace("verifyAccess()");
 
-        if (!commonBeanProxy.serverConfProvider.serviceExists(requestServiceId)) {
+        if (!serverConfProvider.serviceExists(requestServiceId)) {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
-        DescriptionType descriptionType = commonBeanProxy.serverConfProvider.getDescriptionType(requestServiceId);
+        DescriptionType descriptionType = serverConfProvider.getDescriptionType(requestServiceId);
         if (descriptionType != null && descriptionType != DescriptionType.REST
                 && descriptionType != DescriptionType.OPENAPI3) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a SOAP service and cannot be called using REST interface");
         }
 
-        if (!commonBeanProxy.serverConfProvider.isQueryAllowed(
+        if (!serverConfProvider.isQueryAllowed(
                 requestMessage.getRest().getClientId(),
                 requestServiceId,
                 requestMessage.getRest().getVerb().name(),
@@ -369,7 +358,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
         }
 
-        String disabledNotice = commonBeanProxy.serverConfProvider.getDisabledNotice(requestServiceId);
+        String disabledNotice = serverConfProvider.getDisabledNotice(requestServiceId);
 
         if (disabledNotice != null) {
             throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,
@@ -377,7 +366,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifySignature() throws Exception {
+    private void verifySignature() {
         log.trace("verifySignature()");
 
         decoder.verify(requestMessage.getRest().getClientId(), requestMessage.getSignature());
@@ -446,6 +435,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     @RequiredArgsConstructor
     private static final class DefaultRestServiceHandlerImpl implements RestServiceHandler {
         private final ServerConfProvider serverConfProvider;
+        private final String tempFilesPath;
 
         private RestResponse restResponse;
         private CachingStream restResponseBody;
@@ -482,8 +472,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         @ArchUnitSuppressed("NoVanillaExceptions")
         public void startHandling(RequestWrapper request, ProxyMessage requestProxyMessage,
                                   ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
-                                  HttpClient restClient, HttpClient opMonitorClient,
-                                  OpMonitoringData monitoringData) throws IOException {
+                                  HttpClient restClient, OpMonitoringData monitoringData) throws IOException {
             String address = serverConfProvider.getServiceAddress(requestProxyMessage.getRest().getServiceId());
             if (address == null || address.isEmpty()) {
                 throw new CodedException(X_SERVICE_MISSING_URL, "Service address not specified for '%s'",
@@ -556,7 +545,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             messageEncoder.restResponse(restResponse);
 
             if (response.getEntity() != null) {
-                restResponseBody = new CachingStream();
+                restResponseBody = new CachingStream(tempFilesPath);
                 TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), restResponseBody);
                 messageEncoder.restBody(tee);
                 EntityUtils.consume(response.getEntity());

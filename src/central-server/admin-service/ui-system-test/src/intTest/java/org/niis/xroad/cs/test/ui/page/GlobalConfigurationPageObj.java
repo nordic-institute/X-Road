@@ -28,6 +28,7 @@ package org.niis.xroad.cs.test.ui.page;
 
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
@@ -61,7 +62,7 @@ public class GlobalConfigurationPageObj {
     }
 
     public SelenideElement signingKeyLabel(final String tokenName, final String keyLabel) {
-        return $x(format(X_TOKEN_EXPANDABLE + "//span[@data-test='key-label-text'][contains(text(), '%s')]", tokenName, keyLabel));
+        return $x(format(X_TOKEN_EXPANDABLE + "//div[@data-test='key-label-text']/span[contains(., '%s')]", tokenName, keyLabel));
     }
 
     public SelenideElement btnActivateSigningKey(final String tokenName, final String keyLabel) {
@@ -84,41 +85,39 @@ public class GlobalConfigurationPageObj {
         return $x("//a[@data-test='trusted-anchors-tab-button']");
     }
 
-    public class TokenLoginDialog {
+    public class TokenLoginDialog extends Dialog {
+
         public SelenideElement inputPin() {
             return $x("//div[@data-test='token-pin-input']");
         }
 
         public SelenideElement btnLogin() {
-            return $x("//button[@data-test='dialog-save-button']");
+            return btnConfirm();
         }
     }
 
-    public class AddSigningKeyDialog {
+    public class AddSigningKeyDialog extends Dialog {
+
         public SelenideElement inputLabel() {
             return $x("//div[@data-test='signing-key-label-input']");
         }
-
-        public SelenideElement btnSave() {
-            return $x("//button[@data-test='dialog-save-button']");
-        }
     }
 
-    public class ActivateSigningKeyDialog {
+    public class ActivateSigningKeyDialog extends Dialog {
+
         public SelenideElement btnActivate() {
-            return $x("//button[@data-test='dialog-save-button']");
+            return btnConfirm();
         }
     }
 
-    public class DeleteSigningKeyDialog {
-        public SelenideElement btnDelete() {
-            return $x("//button[@data-test='dialog-save-button']");
-        }
+    public class DeleteSigningKeyDialog extends Dialog {
+
     }
 
-    public class TokenLogoutDialog {
+    public class TokenLogoutDialog extends Dialog {
+
         public SelenideElement btnLogout() {
-            return $x("//button[@data-test='dialog-save-button']");
+            return btnConfirm();
         }
     }
 
@@ -132,7 +131,7 @@ public class GlobalConfigurationPageObj {
         }
 
         public SelenideElement txtHash() {
-            return $x("//span[@data-test='anchor-hash']");
+            return $x("//div[@data-test='anchor-hash']/span");
         }
 
         public SelenideElement txtCreatedAt() {
@@ -140,7 +139,7 @@ public class GlobalConfigurationPageObj {
         }
     }
 
-    public class ConfigurationPartsSection {
+    public class ConfigurationPartsSection extends Dialog {
 
         public SelenideElement textContentIdentifier(String contentIdentifier) {
             return $x(format("//span[@data-test='configuration-part-%s']", contentIdentifier));
@@ -158,16 +157,8 @@ public class GlobalConfigurationPageObj {
             return $x(format("//button[@data-test='configuration-part-%s-upload']", contentIdentifier));
         }
 
-        public SelenideElement btnConfirmUpload() {
-            return $x("//button[@data-test='dialog-save-button']");
-        }
-
         public SelenideElement inputConfigurationFile() {
             return $x("//input[@type='file']");
-        }
-
-        public SelenideElement btnCancelUpload() {
-            return $x("//button[@data-test='dialog-cancel-button']");
         }
     }
 }

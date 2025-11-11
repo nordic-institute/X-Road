@@ -40,6 +40,7 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientServiceClientsStepDefs extends BaseUiStepDefs {
@@ -60,12 +61,12 @@ public class ClientServiceClientsStepDefs extends BaseUiStepDefs {
 
         serviceClients.addSubject.tableMemberRows().shouldHave(size(resultCount));
 
-        serviceClients.addSubject.tableMemberRowRadioById(id).shouldBe(visible).click();
+        vRadio(serviceClients.addSubject.tableMemberRowRadioById(id)).click();
     }
 
     @Step("Service clients subject {string} is not selectable")
     public void validateDisabledMembers(String id) {
-        serviceClients.addSubject.tableMemberRowRadioInputById(id).shouldBe(disabled);
+        vRadio(serviceClients.addSubject.tableMemberRowRadioById(id)).isDisabled();
     }
 
     @Step("Service clients wizard services step is filtered to {string} with {} results and service {string} is selected")
@@ -134,7 +135,7 @@ public class ClientServiceClientsStepDefs extends BaseUiStepDefs {
 
     @Step("Service client view shows id {string} and member name {string}")
     public void validateEditClientDesc(String id, String memberName) {
-        serviceClients.edit.cellMemberName().shouldBe(text(memberName));
+        serviceClients.edit.cellMemberName().shouldHave(text(memberName));
         serviceClients.edit.cellId().shouldBe(text(id));
     }
 

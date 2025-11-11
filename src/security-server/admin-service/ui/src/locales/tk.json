@@ -111,14 +111,14 @@
     "owner": "Eýesi",
     "status": "Status",
     "statusText": {
-      "deletionInProgress": "POZULYP DUR",
-      "disabled": "ÝATYRYLDY",
-      "disablingInProgress": "ÝATYRYLYP DUR",
-      "enablingInProgress": "IŞE GIRIZILIP DUR",
-      "globalError": "GLOBAL ÝALŇYŞLYK",
-      "registered": "HASABA ALNAN",
-      "registrationInProgress": "HASABA ALYNYP DUR",
-      "saved": "ÝATDA SAKLANYLDY"
+      "deletionInProgress": "Pozulyp dur",
+      "disabled": "Ýatyryldy",
+      "disablingInProgress": "Ýatyrylyp dur",
+      "enablingInProgress": "Işe girizilip dur",
+      "globalError": "Global ýalňyşlyk",
+      "registered": "Hasaba alnan",
+      "registrationInProgress": "Hasaba alynyp dur",
+      "saved": "Ýatda saklanyldy"
     },
     "subsystemCode": "Kiçi ulgamyň kody",
     "unknownMember": "näbelli agza"
@@ -235,25 +235,25 @@
       "title": "Wagt belligi"
     },
     "traffic": {
-      "period": "Döwür",
-      "periodInfo": "Başlangyç we soňy saýlaň",
-      "date": "Sene",
-      "time": "Wagt",
-      "party": "Tarap",
-      "partyInfo": "Gulluk, kiçi ulgam, agza",
       "client": "Müşderi",
-      "service": "Gulluk",
+      "date": "Sene",
+      "disabledMessage": "Bu Howpsuzlyk Serweri üçin operasion maglumatlary gözegçilik öçürildi. Ony işe girizmek üçin operasion maglumatlary gözegçilik goşmaçasyny (xroad-addon-opmonitoring) guruň.",
+      "disabledTitle": "Operasion maglumatlary gözegçilik öçürildi",
       "exchangeRole": "Alyş-çalyş roly",
       "exchangeRoleInfo": "Öndüriji ýa-da Sarp ediji",
+      "failedRequests": "Şowsuz talaplar",
+      "failure": "Şowsuzlyk",
+      "party": "Tarap",
+      "partyInfo": "Gulluk, kiçi ulgam, agza",
+      "period": "Döwür",
+      "periodInfo": "Başlangyç we soňy saýlaň",
       "producer": "Öndüriji",
+      "service": "Gulluk",
       "status": "Status",
       "statusInfo": "Habar alyş-çalyşynyň statusy",
       "success": "Üstünlik",
-      "failure": "Şowsuzlyk",
       "successfulRequests": "Üstünlikli talaplar",
-      "failedRequests": "Şowsuz talaplar",
-      "disabledTitle": "Operasion maglumatlary gözegçilik öçürildi",
-      "disabledMessage": "Bu Howpsuzlyk Serweri üçin operasion maglumatlary gözegçilik öçürildi. Ony işe girizmek üçin operasion maglumatlary gözegçilik goşmaçasyny (xroad-addon-opmonitoring) guruň."
+      "time": "Wagt"
     },
     "connection": {
       "ok": "Her şey yolunda",
@@ -433,7 +433,6 @@
     "wrong_servicedescription_type": "Gullugyň beýanynyň nädogry görnüşi",
     "wsdl_download_failed": "WSDL ýüklenilmedi",
     "wsdl_exists": "WSDL bar",
-    "wsdl_validator_interrupted": "WSDL walidatory bölündi",
     "wsdl_validator_not_executable": "WSDL walidatory ýerine ýetirip bolmaýar"
   },
   "fields": {
@@ -591,11 +590,11 @@
     "importCertSuccess": "Şahadatnama üstünlikli ýüklenildi",
     "incorrectPin": "Nädogry PIN. Gaýtadan synanşmagyňyzy haýyş edýäris.",
     "keyDeleted": "Key pozuldy",
-    "keyId": "Açaryň ID:",
+    "keyId": "Açaryň ID",
     "keyInfo": "Açaryň maglumaty",
     "keyLabelInput": "Açaryň belligi",
     "keySaved": "Açar ýatda saklanyldy",
-    "label": "Bellik:",
+    "label": "Bellik",
     "logIn": "Gir",
     "logOut": "Çyk",
     "logOutText": "Tokenden çykjakmy?",
@@ -613,7 +612,7 @@
       "unknown": "Näbelli"
     },
     "orderAcmeCertificate": "Şahadatnamany sargyt et",
-    "readOnly": "Diňe-oka:",
+    "readOnly": "Diňe-oka",
     "registrationRequest": "Hasaba almak üçin talap",
     "request": "Talap",
     "signDetailsTitle": "SIGN açaryň jikme-jikleri",
@@ -761,36 +760,6 @@
     "wsdlDescription": "WSDL beýany",
     "wsdlDetails": "WSDL jikme-jikleri"
   },
-  "ssTlsCertificate": {
-    "certificateImported": "Şahadatnama import edildi",
-    "exportCertificate": "Şahadatnama eksport edildi",
-    "generateCsr": "CSR döret",
-    "generateInternalCsr": {
-      "cancel": "ÝATYR",
-      "done": "ÝERINE ÝETIRILDI",
-      "step1": {
-        "description": "1) Ilki bilen, tapawutly at ber",
-        "label": "Tapawutlanan at",
-        "placeholder": "CN=mysecurityserver.example.com, O=My Organization, C=EE",
-        "tooltip": "Tapawutly at (DN) X.509 şahadatnamasyndaky bir zady ýeke-täk kesgitleýär. DN-de aşakdaky atributyň görnüşleri duş gelýär: CN = Umumy at, O = Guramanyň ady, C = Ýurduň kody."
-      },
-      "step2": {
-        "description": "2) Täze CSR döret we howpsuz ýerde sakla",
-        "generateCSR": "CSR döret"
-      },
-      "title": "TLS şahadatnamasyna gol çekmek talabyny döret"
-    },
-    "generateKey": "Açary döret",
-    "generateTlsAndCertificateDialog": {
-      "confirmation": "Täze Howpsuzlyk Serweriň TLS açaryny we şahadatnamasyny döretmelimi? ",
-      "explanation": "Ulgam, bar bolan açaryň we şahadatnamanyň ýerine täze Howpsuzlyk Serweriň TLS açaryny we öz-özüne gol çekilen şahadatnamany döreder.",
-      "success": "Täze Howpsuzlyk Serweriň TLS açary we şahadatnamasy üstünlikli döredildi",
-      "title": "Howpsuzlyk serweriň TLS açary"
-    },
-    "importCertificate": "Şahadatnama import edildi",
-    "keyCertTitle": "TLS açary we şahadatnamasy",
-    "keyText": "Içki TLS açary"
-  },
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Häzirki Howpsuzlyk Serweri baradaky maglumatlary kesgitläp bilmedi. API jogaby nädogry."
@@ -855,7 +824,7 @@
         "add": {
           "button": "Goş",
           "dialog": {
-            "info": "Wagt bellemeleriň ygtybarly gulluklary:",
+            "info": "Wagt bellemeleriň ygtybarly gulluklary",
             "success": "Wagt bellemeleriň gulluklary goşuldy",
             "title": "Wagt bellemeleriň gulluklary goş"
           }
@@ -890,6 +859,11 @@
       "serviceClients": "Müşderileriň gullugy",
       "services": "Gulluklary"
     },
+    "diagnostics": {
+      "overview": "Syn",
+      "traffic": "Trafik",
+      "connectionTesting": "Bağlantı testi"
+    },
     "keys": {
       "apiKey": "API açarlary",
       "signAndAuthKeys": "SIGN we AUTH açarlary",
@@ -908,11 +882,22 @@
     "settings": {
       "backupAndRestore": "Ätiýaçlyk nusgasy we Dikeltme",
       "systemParameters": "Ulgam parametrleri"
+    }
+  },
+  "tlsCertificates": {
+    "generateCsr": {
+      "example": "CN=mysecurityserver.example.com, O=My Organization, C=EE"
     },
-    "diagnostics": {
-      "overview": "Syn",
-      "traffic": "Trafik",
-      "connectionTesting": "Bağlantı testi"
+    "generateKey": {
+      "confirmation": "Täze Howpsuzlyk Serweriň TLS açaryny we şahadatnamasyny döretmelimi? ",
+      "explanation": "Ulgam, bar bolan açaryň we şahadatnamanyň ýerine täze Howpsuzlyk Serweriň TLS açaryny we öz-özüne gol çekilen şahadatnamany döreder.",
+      "success": "Täze Howpsuzlyk Serweriň TLS açary we şahadatnamasy üstünlikli döredildi",
+      "title": "Howpsuzlyk serweriň TLS açary"
+    },
+    "key": "TLS açary we şahadatnamasy",
+    "title": "Howpsuzlyk serweriň TLS açary",
+    "uploadCertificate": {
+      "success": "Şahadatnama import edildi"
     }
   },
   "token": {

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,160 +25,171 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card variant="flat" class="xrd-card diagnostic-card">
-    <v-card-title class="text-h5" data-test="diagnostics-mail-notification">
-      {{ $t('diagnostics.mailNotificationConfiguration.title')
-      }}<HelpButton
+  <XrdCard
+    data-test="diagnostics-mail-notification"
+    title="diagnostics.mailNotificationConfiguration.title"
+    class="overview-card"
+  >
+    <template #append-title>
+      <HelpButton
         class="help-icon"
         help-text="diagnostics.mailNotificationConfiguration.help.description"
         help-title="diagnostics.mailNotificationConfiguration.help.title"
       />
-    </v-card-title>
+    </template>
 
-    <v-card-text class="xrd-card-text">
-      <table class="xrd-table">
-        <thead>
-          <tr>
-            <th>
-              {{
-                $t('diagnostics.mailNotificationConfiguration.configuration')
-              }}
-            </th>
-            <th>
-              {{ $t('diagnostics.mailNotificationConfiguration.types') }}
-            </th>
-            <th>
-              {{
-                $t('diagnostics.mailNotificationConfiguration.recipientsEmails')
-              }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td
-              class="vertical-align-top pt-4"
-              data-test="mail-notification-configuration-status"
+    <v-table class="xrd">
+      <thead>
+        <tr>
+          <th>
+            {{ $t('diagnostics.mailNotificationConfiguration.configuration') }}
+          </th>
+          <th>
+            {{ $t('diagnostics.mailNotificationConfiguration.types') }}
+          </th>
+          <th>
+            {{
+              $t('diagnostics.mailNotificationConfiguration.recipientsEmails')
+            }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td
+            class="vertical-align-top pt-4"
+            data-test="mail-notification-configuration-status"
+          >
+            <div
+              v-if="mailNotificationStatus.configuration_present !== undefined"
+              class="d-flex font-weight-bold"
             >
-              <div
-                v-if="
-                  mailNotificationStatus.configuration_present !== undefined
-                "
-                class="d-flex font-weight-bold"
+              <XrdStatusChip
+                :type="mailNotificationStatusType"
+                :translated-text="mailNotificationStatusText"
               >
-                <xrd-status-icon
-                  v-if="mailNotificationStatus.configuration_present"
-                  status="ok"
-                />
-                <xrd-status-icon v-else status="error" />
-                {{
-                  $t(
-                    `diagnostics.mailNotificationConfiguration.confStatus.${mailNotificationStatus.configuration_present}`,
-                  )
-                }}
-              </div>
-            </td>
-            <td class="vertical-align-top">
-              <div
-                v-for="mailNotificationType in Object.keys(
-                  MailNotificationType,
-                )"
-                :key="mailNotificationType"
-              >
-                <p
-                  v-if="
-                    mailNotificationStatus.enabled_notifications !== undefined
-                  "
-                  class="my-4 d-flex"
-                >
-                  {{
-                    $t(
-                      `diagnostics.mailNotificationConfiguration.type.${mailNotificationType}`,
-                    ) + ':'
-                  }}
-                  &nbsp;
-                  <xrd-status-icon
-                    v-if="
-                      mailNotificationStatus.enabled_notifications.includes(
-                        mailNotificationType,
-                      )
-                    "
+                <template #icon>
+                  <XrdStatusIcon
+                    v-if="mailNotificationStatus.configuration_present"
+                    class="mr-1 ml-n1"
                     status="ok"
                   />
-                  <xrd-status-icon v-else status="ok-disabled" />
-                  <span
-                    class="font-weight-bold"
-                    :data-test="`enabled-${mailNotificationType}`"
-                  >
-                    {{
-                      $t(
-                        `diagnostics.mailNotificationConfiguration.enabled.${mailNotificationStatus.enabled_notifications.includes(mailNotificationType)}`,
-                      )
-                    }}
-                  </span>
-                </p>
-              </div>
-            </td>
-            <td
-              class="vertical-align-top pt-2 fixed-width"
-              data-test="mail-notification-recipients"
+                  <XrdStatusIcon v-else class="mr-1 ml-n1" status="error" />
+                </template>
+              </XrdStatusChip>
+            </div>
+          </td>
+          <td class="vertical-align-top">
+            <div
+              v-for="mailNotificationType in MailNotificationTypes"
+              :key="mailNotificationType"
             >
-              <div
-                v-for="recipient in mailNotificationStatus.recipients_emails"
-                :key="recipient"
-                class="recipient-wrapper"
+              <p
+                v-if="
+                  mailNotificationStatus.enabled_notifications !== undefined
+                "
+                class="my-4 d-flex"
               >
-                {{ recipient }}
-                <xrd-button
-                  v-if="mailNotificationStatus.configuration_present"
-                  large
-                  variant="text"
-                  data-test="send-test-mail"
-                  @click="sendTestMailNotification(recipient)"
+                {{
+                  $t(
+                    `diagnostics.mailNotificationConfiguration.type.${mailNotificationType}`,
+                  ) + ':'
+                }}
+                &nbsp;
+                <XrdStatusChip
+                  :data-test="`enabled-${mailNotificationType}`"
+                  :type="
+                    isEnabledType(mailNotificationType) ? 'success' : 'warning'
+                  "
+                  :translated-text="isEnabledTypeText(mailNotificationType)"
                 >
-                  {{ $t('diagnostics.mailNotificationConfiguration.sentTestMail') }}
-                </xrd-button>
+                  <template #icon>
+                    <XrdStatusIcon
+                      v-if="isEnabledType(mailNotificationType)"
+                      class="mr-1 ml-n1"
+                      status="ok"
+                    />
+                    <XrdStatusIcon
+                      v-else
+                      class="mr-1 ml-n1"
+                      status="ok-disabled"
+                    />
+                  </template>
+                </XrdStatusChip>
+              </p>
+            </div>
+          </td>
+          <td
+            class="vertical-align-top pt-2 fixed-width"
+            data-test="mail-notification-recipients"
+          >
+            <div
+              v-for="recipient in mailNotificationStatus.recipients_emails"
+              :key="recipient"
+              class="recipient-wrapper"
+            >
+              {{ recipient }}
+              <XrdBtn
+                v-if="mailNotificationStatus.configuration_present"
+                variant="text"
+                text="diagnostics.mailNotificationConfiguration.sentTestMail"
+                data-test="send-test-mail"
+                @click="sendTestMailNotification(recipient)"
+              />
 
-                <div class="alert-container">
-                  <v-alert
-                    v-if="testMailStatuses[recipient]"
-                    class="test-alert"
-                    border="start"
-                    :type="testMailStatuses[recipient].type"
-                    variant="outlined"
-                    density="compact"
-                    data-test="test-mail-result"
-                  >
-                    {{ testMailStatuses[recipient].text }}
-                  </v-alert>
-                </div>
+              <div class="alert-container">
+                <v-alert
+                  v-if="testMailStatuses[recipient]"
+                  class="test-alert"
+                  border="start"
+                  :type="testMailStatuses[recipient].type"
+                  variant="outlined"
+                  density="compact"
+                  data-test="test-mail-result"
+                >
+                  {{ testMailStatuses[recipient].text }}
+                </v-alert>
               </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </v-card-text>
-  </v-card>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </v-table>
+  </XrdCard>
 </template>
 
 <script lang="ts">
 import { mapActions, mapState } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import { useMail } from '@/store/modules/mail';
 import { defineComponent } from 'vue';
 import HelpButton from '@/components/ui/HelpButton.vue';
 import { MailNotificationType } from '@/openapi-types';
+import {
+  XrdCard,
+  XrdStatusIcon,
+  XrdStatusChip,
+  useNotifications,
+  XrdBtn,
+} from '@niis/shared-ui';
 
 type TestMailStatuses = {
   [key: string]: {
-    type: string;
+    type: 'success' | 'error';
     text: string;
   };
 };
 
 export default defineComponent({
   components: {
+    XrdStatusIcon,
+    XrdStatusChip,
+    XrdCard,
     HelpButton,
+    XrdBtn,
+  },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
   },
   data() {
     return {
@@ -185,19 +197,41 @@ export default defineComponent({
     };
   },
   computed: {
-    MailNotificationType() {
-      return MailNotificationType;
+    MailNotificationTypes() {
+      return Object.values(MailNotificationType);
+    },
+    mailNotificationStatusType() {
+      return this.mailNotificationStatus.configuration_present
+        ? 'success'
+        : 'error';
+    },
+    mailNotificationStatusText() {
+      return this.$t(
+        `diagnostics.mailNotificationConfiguration.confStatus.${this.mailNotificationStatus.configuration_present}`,
+      );
     },
     ...mapState(useMail, ['mailNotificationStatus']),
   },
   created() {
     this.fetchMailNotificationStatus().catch((error) => {
-      this.showError(error);
+      this.addError(error);
     });
   },
   methods: {
-    ...mapActions(useNotifications, ['showError']),
     ...mapActions(useMail, ['fetchMailNotificationStatus', 'sendTestMail']),
+    isEnabledType(mailNotificationType: MailNotificationType) {
+      if (this.mailNotificationStatus.enabled_notifications) {
+        return this.mailNotificationStatus.enabled_notifications.includes(
+          mailNotificationType,
+        );
+      }
+      return false;
+    },
+    isEnabledTypeText(mailNotificationType: MailNotificationType) {
+      return this.$t(
+        `diagnostics.mailNotificationConfiguration.enabled.${this.isEnabledType(mailNotificationType)}`,
+      );
+    },
     sendTestMailNotification(recipient: string) {
       this.sendTestMail(recipient.substring(recipient.indexOf(' ')))
         .then((resp) => {
@@ -222,53 +256,4 @@ export default defineComponent({
   },
 });
 </script>
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables';
-
-.xrd-card-text {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.diagnostic-card {
-  width: 100%;
-  margin-bottom: 30px;
-
-  &:first-of-type {
-    margin-top: 40px;
-  }
-}
-
-.vertical-align-top {
-  vertical-align: top;
-}
-
-.help-icon {
-  display: inline-block;
-}
-
-.fixed-width {
-  width: 40%;
-  max-width: 40%;
-  word-break: break-word;
-}
-
-.recipient-wrapper {
-  word-break: break-word;
-}
-
-.alert-container {
-  max-width: 100%;
-  overflow-wrap: break-word;
-  white-space: normal;
-}
-
-.test-alert {
-  margin-top: 0.5rem;
-  margin-right: 0.5rem;
-  word-break: break-word;
-  white-space: normal;
-  overflow-wrap: break-word;
-}
-</style>
+<style lang="scss" scoped></style>

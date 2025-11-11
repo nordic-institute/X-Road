@@ -1,0 +1,112 @@
+name: Central Server System Tests
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: true
+        type: string
+      sha:
+        description: 'Git SHA for the build'
+        required: true
+        type: string
+      image_registry:
+        description: 'Image registry URL'
+        required: true
+        type: string
+      service_image_tag:
+        description: 'Service image tag to use'
+        required: true
+        type: string
+
+jobs:
+  test-central-server:
+    name: Run Central Server system tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: start-measurement
+          label: 'Central Server system tests'
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build-env
+        with:
+          gradle-cache-read-only: true
+          free-disk-space: false
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Central Server test setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Set up Central Server tests'
+
+      - name: Run Central Server system tests
+        working-directory: ./src
+        run: |
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g \
+          :central-server:admin-service:ui-system-test:systemTest \
+          -PsystemTestCsImageName=${{ inputs.image_registry }}/central-server-dev:${{ inputs.service_image_tag }}
+
+      - name: Log storage after tests
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'Storage After Central Server Tests'
+
+      - name: Test Central Server measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Test Central Server'
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: Central Server system test
+          path: src/central-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+
+      - name: Fix permissions for CS logs
+        if: failure()
+        run: |
+          sudo chmod -R a+rX src/central-server/admin-service/ui-system-test/build/cs-container-logs/ || true
+
+      - name: Upload CS report
+        uses: actions/upload-artifact@v5
+        if: failure()
+        with:
+          name: CS System Test report
+          path: |
+            src/central-server/admin-service/ui-system-test/build/allure-report/
+            src/central-server/admin-service/ui-system-test/build/cs-container-logs/
+
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: display-results
+          pr-comment: true
+
+      - name: Upload GMT jsons
+        uses: actions/upload-artifact@v5
+        with:
+          name: CS System Test GMT jsons
+          path: |
+            /tmp/eco-ci/lap-data.json
+            /tmp/eco-ci/total-data.json

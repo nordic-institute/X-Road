@@ -25,73 +25,59 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
-import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
-import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.messagelog.MessageLogArchivalProperties;
+import org.niis.xroad.common.messagelog.MessageLogDatabaseEncryptionProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.addon.messagelog.LogManager;
+import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @Slf4j
-@Configuration
 public class ProxyMessageLogConfig {
-    private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
-    @Bean
-    AbstractLogManager messageLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider,
-                                         ServerConfProvider serverConfProvider) {
-        return MessageLog.init(jobManager, globalConfProvider, serverConfProvider);
-    }
+    @ApplicationScoped
+    public static class MessageLogInitializer {
 
-    @Bean("messageLogEnabledStatus")
-    Boolean messageLogEnabledStatus(AbstractLogManager logManager) {
-        return NullLogManager.class != logManager.getClass();
-    }
+        @Startup
+        @ApplicationScoped
+        AbstractLogManager messageLogManager(ProxyMessageLogProperties messageLogProperties,
+                                             GlobalConfProvider globalConfProvider,
+                                             ServerConfProvider serverConfProvider,
+                                             MessageLogDatabaseCtx messageLogDatabaseCtx,
+                                             LogRecordManager logRecordManager) {
+            AbstractLogManager logManager;
+            if (messageLogProperties.enabled()) {
+                logManager = new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx,
+                        messageLogProperties);
+            } else {
+                logManager = new NullLogManager(globalConfProvider, serverConfProvider);
+            }
 
-    @Bean
-    MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics(ServerConfProvider serverConfProvider) throws IOException {
-        return new MessageLogEncryptionStatusDiagnostics(
-                MessageLogProperties.isArchiveEncryptionEnabled(),
-                MessageLogProperties.isMessageLogEncryptionEnabled(),
-                ARCHIVE_GROUPING.name(),
-                getMessageLogArchiveEncryptionMembers(getMembers(serverConfProvider)));
-    }
+            return MessageLog.init(logManager);
+        }
 
-    private List<ClientId> getMembers(ServerConfProvider serverConfProvider) {
-        try {
-            return new ArrayList<>(serverConfProvider.getMembers());
-        } catch (Exception e) {
-            log.warn("Failed to get members from server configuration", e);
-            return Collections.emptyList();
+        public void cleanup(@Disposes AbstractLogManager logManager) {
+            if (logManager instanceof LogManager impl)
+                impl.destroy();
         }
     }
 
-    private static List<MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers(
-            List<ClientId> members) throws IOException {
-        EncryptionConfigProvider configProvider = EncryptionConfigProvider.getInstance(ARCHIVE_GROUPING);
-        if (!configProvider.isEncryptionEnabled()) {
-            return Collections.emptyList();
-        }
-        return configProvider.forDiagnostics(members).getEncryptionMembers()
-                .stream()
-                .map(member -> new MessageLogArchiveEncryptionMember(member.getMemberId(),
-                        member.getKeys(), member.isDefaultKeyUsed()))
-                .toList();
+    @ApplicationScoped
+    MessageLogArchivalProperties messageLogArchivalProperties(ProxyMessageLogProperties messageLogProperties) {
+        return messageLogProperties.archiver();
     }
 
+    @ApplicationScoped
+    MessageLogDatabaseEncryptionProperties messageLogEncryptionProperties(ProxyMessageLogProperties messageLogProperties) {
+        return messageLogProperties.databaseEncryption();
+    }
 }

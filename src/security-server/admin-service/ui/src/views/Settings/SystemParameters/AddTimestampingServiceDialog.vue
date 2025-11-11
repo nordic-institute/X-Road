@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,85 +25,59 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog
-    v-model="show"
-    max-width="550"
-    persistent
-    data-test="system-parameters-add-timestamping-service-dialog"
-  >
-    <template #activator="{ props }">
-      <xrd-button
-        data-test="system-parameters-timestamping-services-add-button"
-        outlined
-        :disabled="selectableTimestampingServices.length === 0"
-        v-bind="props"
-      >
-        <xrd-icon-base class="xrd-large-button-icon">
-          <xrd-icon-add />
-        </xrd-icon-base>
-        {{ $t('systemParameters.timestampingServices.action.add.button') }}
-      </xrd-button>
-    </template>
-    <v-card class="xrd-card">
-      <v-card-title>
-        <span data-test="dialog-title" class="text-h5">{{
-          $t('systemParameters.timestampingServices.action.add.dialog.title')
-        }}</span>
-      </v-card-title>
-      <v-card-text class="content-wrapper">
-        <v-container>
-          <v-row>
-            <v-col>
-              {{
+  <div>
+    <XrdBtn
+      data-test="system-parameters-timestamping-services-add-button"
+      variant="text"
+      text="systemParameters.timestampingServices.action.add.button"
+      prepend-icon="add_circle"
+      color="tertiary"
+      :disabled="selectableTimestampingServices.length === 0"
+      @click="openDialog"
+    />
+
+    <XrdSimpleDialog
+      v-if="show"
+      :disable-save="selectedTimestampingService === undefined"
+      :loading="loading"
+      cancel-button-text="action.cancel"
+      save-button-text="action.add"
+      title="systemParameters.timestampingServices.action.add.dialog.title"
+      data-test="system-parameters-add-timestamping-service-dialog"
+      submittable
+      @cancel="close"
+      @save="add"
+    >
+      <template #content>
+        <XrdFormBlock>
+          <XrdFormBlockRow full-length>
+            <v-radio-group
+              v-model="selectedTimestampingServiceName"
+              data-test="system-parameters-add-timestamping-service-dialog-radio-group"
+              class="xrd"
+              :label="
                 $t(
                   'systemParameters.timestampingServices.action.add.dialog.info',
                 )
-              }}
-            </v-col>
-          </v-row>
-          <v-radio-group
-            v-model="selectedTimestampingServiceName"
-            data-test="system-parameters-add-timestamping-service-dialog-radio-group"
-          >
-            <v-row
-              v-for="timestampingService in selectableTimestampingServices"
-              :key="timestampingService.name"
-              class="option-row"
+              "
             >
-              <v-col>
+              <div
+                v-for="timestampingService in selectableTimestampingServices"
+                :key="timestampingService.name"
+              >
                 <v-radio
+                  class="xrd"
                   :name="timestampingService.name"
                   :label="timestampingService.name"
                   :value="timestampingService.name"
                 />
-              </v-col>
-            </v-row>
-          </v-radio-group>
-        </v-container>
-      </v-card-text>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer></v-spacer>
-        <xrd-button
-          data-test="system-parameters-add-timestamping-service-dialog-cancel-button"
-          outlined
-          @click="close"
-        >
-          {{ $t('action.cancel') }}</xrd-button
-        >
-        <xrd-button
-          data-test="system-parameters-add-timestamping-service-dialog-add-button"
-          :loading="loading"
-          :disabled="selectedTimestampingService === undefined"
-          @click="add"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add />
-          </xrd-icon-base>
-          {{ $t('action.add') }}
-        </xrd-button>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+              </div>
+            </v-radio-group>
+          </XrdFormBlockRow>
+        </XrdFormBlock>
+      </template>
+    </XrdSimpleDialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -110,12 +85,22 @@ import { defineComponent, PropType } from 'vue';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import { TimestampingService } from '@/openapi-types';
-import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import { sortTimestampingServices } from '@/util/sorting';
+import {
+  XrdSimpleDialog,
+  XrdBtn,
+  XrdFormBlock,
+  XrdFormBlockRow,
+  useNotifications,
+} from '@niis/shared-ui';
 
 export default defineComponent({
-  name: 'AddTimestampingServiceDialog',
+  components: {
+    XrdSimpleDialog,
+    XrdBtn,
+    XrdFormBlock,
+    XrdFormBlockRow,
+  },
   props: {
     configuredTimestampingServices: {
       type: Array as PropType<TimestampingService[]>,
@@ -123,6 +108,13 @@ export default defineComponent({
     },
   },
   emits: ['added'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return {
+      addError,
+      addSuccessMessage,
+    };
+  },
   data() {
     return {
       loading: false,
@@ -153,7 +145,9 @@ export default defineComponent({
     this.fetchApprovedTimestampingServices();
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    openDialog(): void {
+      this.show = true;
+    },
     fetchApprovedTimestampingServices(): void {
       api
         .get<TimestampingService[]>('/timestamping-services')
@@ -163,23 +157,21 @@ export default defineComponent({
               resp.data,
             )),
         )
-        .catch((error) => this.showError(error));
+        .catch((error) => this.addError(error));
     },
     add(): void {
       this.loading = true;
       api
         .post('/system/timestamping-services', this.selectedTimestampingService)
         .then(() => {
-          this.$emit('added');
-          this.loading = false;
-          this.close();
-          this.showSuccess(
-            this.$t(
-              'systemParameters.timestampingServices.action.add.dialog.success',
-            ),
+          this.addSuccessMessage(
+            'systemParameters.timestampingServices.action.add.dialog.success',
           );
+          this.$emit('added');
+          this.close();
         })
-        .catch((error) => this.showError(error));
+        .catch((error) => this.addError(error))
+        .finally(() => (this.loading = false));
     },
     close(): void {
       this.show = false;
@@ -189,13 +181,4 @@ export default defineComponent({
 });
 </script>
 
-<style scoped lang="scss">
-@use '@niis/shared-ui/src/assets/colors';
-.option-row {
-  border-bottom: solid 1px colors.$WarmGrey30;
-}
-
-.content-wrapper {
-  color: colors.$Black100 !important;
-}
-</style>
+<style scoped lang="scss"></style>

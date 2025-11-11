@@ -26,33 +26,17 @@
 package ee.ria.xroad.messagelog.database;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.db.TransactionCallback;
 
-/**
- * Message log database context.
- */
-public final class MessageLogDatabaseCtx {
+import jakarta.inject.Inject;
 
-    private static final DatabaseCtx CTX = new DatabaseCtx("messagelog");
+import java.util.Map;
 
-    private MessageLogDatabaseCtx() {
+public class MessageLogDatabaseCtx extends DatabaseCtx {
+    private static final String DB_NAME = "messagelog";
+
+    @Inject
+    public MessageLogDatabaseCtx(Map<String, String> hibernateProperties) {
+        super(DB_NAME, hibernateProperties);
     }
 
-    /**
-     * @return the current context.
-     */
-    public static DatabaseCtx get() {
-        return CTX;
-    }
-
-    /**
-     * Convenience method for a transaction callback.
-     *
-     * @param <T>      the type of result.
-     * @param callback the callback.
-     * @return the result.
-     */
-    public static <T> T doInTransaction(TransactionCallback<T> callback) {
-        return CTX.doInTransaction(callback);
-    }
 }

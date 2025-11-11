@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,348 +25,311 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView
-    data-test="system-parameters-tab-view"
-    title-key="systemParameters.title"
-  >
-    <template #header-buttons>
-      <maintenance-mode-widget class="pr-1" />
+  <XrdView data-test="system-parameters-tab-view" title="tab.main.settings">
+    <template #tabs>
+      <SettingsTabs />
     </template>
-    <v-card
-      v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)"
-      flat
-      class="xrd-card"
-    >
-      <v-card-text class="card-text">
-        <v-row no-gutters class="px-4">
-          <v-col>
-            <h3>{{ $t('systemParameters.securityServer.securityServer') }}</h3>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <table class="xrd-table">
-              <thead>
-                <tr>
-                  <th>
-                    {{ $t('systemParameters.securityServer.serverAddress') }}
-                  </th>
-                  <th></th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody data-test="system-parameters-server-address-table-body">
-                <tr>
-                  <td>{{ serverAddress }}</td>
-                  <td>
-                    <div v-if="addressChangeInProgress" class="status-wrapper">
-                      <xrd-status-icon :status="'progress-register'" />
-                      <div class="status-text">
-                        {{
-                          $t(
-                            'systemParameters.securityServer.addressChangeInProgress',
-                          )
-                        }}
-                      </div>
-                    </div>
-                  </td>
-                  <td class="pr-4">
-                    <xrd-button
-                      :outlined="false"
-                      data-test="change-server-address-button"
-                      text
-                      :disabled="addressChangeInProgress"
-                      @click="showEditServerAddressDialog = true"
-                    >
-                      {{ $t('action.edit') }}
-                    </xrd-button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-    <v-card flat class="xrd-card">
-      <v-card-text class="card-text">
-        <v-row
-          v-if="hasPermission(permissions.VIEW_ANCHOR)"
-          no-gutters
-          class="px-4"
-        >
-          <v-col>
-            <h3>{{ $t('systemParameters.configurationAnchor.title') }}</h3>
-          </v-col>
-          <v-col class="text-right">
-            <div class="anchor-buttons">
-              <xrd-button
-                v-if="hasPermission(permissions.DOWNLOAD_ANCHOR)"
-                data-test="system-parameters-configuration-anchor-download-button"
-                :loading="downloadingAnchor"
-                outlined
-                @click="downloadAnchor"
-              >
-                <xrd-icon-base class="xrd-large-button-icon">
-                  <xrd-icon-download />
-                </xrd-icon-base>
-                {{ $t('systemParameters.configurationAnchor.action.download') }}
-              </xrd-button>
-
-              <upload-configuration-anchor-dialog
-                @uploaded="fetchConfigurationAnchor"
-              />
-            </div>
-          </v-col>
-        </v-row>
-        <v-row v-if="hasPermission(permissions.VIEW_ANCHOR)" no-gutters>
-          <v-col>
-            <table class="xrd-table">
-              <thead>
-                <tr>
-                  <th>
-                    {{
-                      $t(
-                        'systemParameters.configurationAnchor.table.header.distinguishedName',
-                      )
-                    }}
-                  </th>
-                  <th>
-                    {{
-                      $t(
-                        'systemParameters.configurationAnchor.table.header.generated',
-                      )
-                    }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                data-test="system-parameters-configuration-anchor-table-body"
-              >
-                <tr v-if="configurationAnchor">
-                  <td>{{ $filters.colonize(configurationAnchor.hash) }}</td>
-                  <td class="pr-4">
-                    {{
-                      $filters.formatDateTime(configurationAnchor.created_at)
-                    }}
-                  </td>
-                </tr>
-
-                <XrdEmptyPlaceholderRow
-                  :colspan="2"
-                  :loading="loadingAnchor"
-                  :data="configurationAnchor"
-                  :no-items-text="$t('noData.noTimestampingServices')"
+    <XrdSubView class="settings-subview">
+      <template #header>
+        <v-spacer />
+        <MaintenanceModeWidget class="mr-1" />
+      </template>
+      <XrdCard
+        v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)"
+        title="systemParameters.securityServer.securityServer"
+        class="settings-block"
+      >
+        <v-table class="xrd">
+          <thead>
+            <tr>
+              <th>
+                {{ $t('systemParameters.securityServer.serverAddress') }}
+              </th>
+              <th></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody data-test="system-parameters-server-address-table-body">
+            <tr>
+              <td>{{ serverAddress }}</td>
+              <td class="text-end">
+                <div v-if="addressChangeInProgress" class="status-wrapper">
+                  <XrdStatusChip
+                    :type="'info'"
+                    text="systemParameters.securityServer.addressChangeInProgress"
+                  >
+                    <template #icon>
+                      <XrdStatusIcon
+                        class="mr-1 ml-n1"
+                        status="progress-register"
+                      />
+                    </template>
+                  </XrdStatusChip>
+                </div>
+              </td>
+              <td class="text-end">
+                <XrdBtn
+                  data-test="change-server-address-button"
+                  variant="text"
+                  text="action.edit"
+                  color="tertiary"
+                  :disabled="addressChangeInProgress"
+                  @click="showEditServerAddressDialog = true"
                 />
-              </tbody>
-            </table>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-    <v-card flat class="xrd-card" :class="{ disabled: !messageLogEnabled }">
-      <v-card-text class="card-text">
-        <v-row
-          v-if="hasPermission(permissions.VIEW_TSPS)"
-          no-gutters
-          class="px-4"
-        >
-          <v-col
-            ><h3 :class="{ disabled: !messageLogEnabled }">
-              {{ $t('systemParameters.timestampingServices.title') }}
-            </h3></v-col
-          >
-          <v-col
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+      </XrdCard>
+
+      <XrdCard
+        v-if="hasPermission(permissions.VIEW_ANCHOR)"
+        title="systemParameters.configurationAnchor.title"
+        class="settings-block"
+      >
+        <template #title-actions>
+          <div class="d-flex flex-row align-center justify-end">
+            <XrdBtn
+              v-if="hasPermission(permissions.DOWNLOAD_ANCHOR)"
+              data-test="system-parameters-configuration-anchor-download-button"
+              variant="text"
+              text="systemParameters.configurationAnchor.action.download"
+              prepend-icon="download"
+              color="tertiary"
+              :loading="downloadingAnchor"
+              @click="downloadAnchor"
+            />
+
+            <UploadConfigurationAnchorDialog
+              @uploaded="fetchConfigurationAnchor"
+            />
+          </div>
+        </template>
+        <v-table class="xrd">
+          <thead>
+            <tr>
+              <th>
+                {{
+                  $t(
+                    'systemParameters.configurationAnchor.table.header.distinguishedName',
+                  )
+                }}
+              </th>
+              <th>
+                {{
+                  $t(
+                    'systemParameters.configurationAnchor.table.header.generated',
+                  )
+                }}
+              </th>
+            </tr>
+          </thead>
+          <tbody data-test="system-parameters-configuration-anchor-table-body">
+            <tr v-if="configurationAnchor">
+              <td>
+                <XrdHashValue :value="configurationAnchor.hash" />
+              </td>
+              <td class="text-left">
+                <XrdDateTime :value="configurationAnchor.created_at" />
+              </td>
+            </tr>
+
+            <XrdEmptyPlaceholderRow
+              :colspan="2"
+              :loading="loadingAnchor"
+              :data="configurationAnchor"
+              :no-items-text="$t('noData.noTimestampingServices')"
+            />
+          </tbody>
+        </v-table>
+      </XrdCard>
+
+      <XrdCard
+        v-if="hasPermission(permissions.VIEW_TSPS)"
+        title="systemParameters.timestampingServices.title"
+        class="settings-block"
+        :class="{ 'ts-disabled': !messageLogEnabled }"
+      >
+        <template #title-actions>
+          <template
             v-if="hasPermission(permissions.ADD_TSP) && messageLogEnabled"
-            class="text-right"
           >
-            <add-timestamping-service-dialog
+            <AddTimestampingServiceDialog
               :configured-timestamping-services="configuredTimestampingServices"
               @added="fetchConfiguredTimestampingServiced"
             />
-          </v-col>
-          <v-col v-if="!messageLogEnabled" class="text-right disabled">
-            {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
-          </v-col>
-        </v-row>
+          </template>
+          <template v-if="!messageLogEnabled">
+            <XrdStatusChip
+              type="inactive"
+              text="diagnostics.addOnStatus.messageLogDisabled"
+            />
+          </template>
+        </template>
+        <v-table class="xrd">
+          <thead>
+            <tr>
+              <th :class="{ 'opacity-60': !messageLogEnabled }">
+                {{
+                  $t(
+                    'systemParameters.timestampingServices.table.header.timestampingService',
+                  )
+                }}
+              </th>
+              <th :class="{ 'opacity-60': !messageLogEnabled }">
+                {{
+                  $t(
+                    'systemParameters.timestampingServices.table.header.serviceURL',
+                  )
+                }}
+              </th>
+              <th>&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody data-test="system-parameters-timestamping-services-table-body">
+            <TimestampingServiceRow
+              v-for="timestampingService in configuredTimestampingServices"
+              :key="timestampingService.url"
+              :timestamping-service="timestampingService"
+              :message-log-enabled="messageLogEnabled"
+              @deleted="fetchConfiguredTimestampingServiced"
+            />
 
-        <v-row v-if="hasPermission(permissions.VIEW_TSPS)" no-gutters>
-          <v-col>
-            <table class="xrd-table">
-              <thead>
-                <tr>
-                  <th>
-                    {{
-                      $t(
-                        'systemParameters.timestampingServices.table.header.timestampingService',
-                      )
-                    }}
-                  </th>
-                  <th>
-                    {{
-                      $t(
-                        'systemParameters.timestampingServices.table.header.serviceURL',
-                      )
-                    }}
-                  </th>
-                  <th>&nbsp;</th>
-                </tr>
-              </thead>
-              <tbody
-                data-test="system-parameters-timestamping-services-table-body"
+            <XrdEmptyPlaceholderRow
+              :colspan="3"
+              :loading="loadingTimestampingservices"
+              :data="configuredTimestampingServices"
+              :no-items-text="$t('noData.noTimestampingServices')"
+            />
+          </tbody>
+        </v-table>
+      </XrdCard>
+      <XrdCard
+        v-if="hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)"
+        title="systemParameters.approvedCertificateAuthorities.title"
+        class="settings-block"
+        :class="{ 'ts-disabled': !messageLogEnabled }"
+      >
+        <v-table class="xrd">
+          <thead>
+            <tr>
+              <th>
+                {{
+                  $t(
+                    'systemParameters.approvedCertificateAuthorities.table.header.distinguishedName',
+                  )
+                }}
+              </th>
+              <th>
+                {{
+                  $t(
+                    'systemParameters.approvedCertificateAuthorities.table.header.acmeIpAddresses',
+                  )
+                }}
+              </th>
+              <th>
+                {{
+                  $t(
+                    'systemParameters.approvedCertificateAuthorities.table.header.ocspResponse',
+                  )
+                }}
+              </th>
+              <th>
+                {{
+                  $t(
+                    'systemParameters.approvedCertificateAuthorities.table.header.expires',
+                  )
+                }}
+              </th>
+            </tr>
+          </thead>
+          <tbody data-test="system-parameters-approved-ca-table-body">
+            <tr
+              v-for="approvedCA in orderedCertificateAuthorities"
+              :key="approvedCA.path"
+            >
+              <td
+                :class="{
+                  'interm-ca': !approvedCA.top_ca,
+                  'root-ca': approvedCA.top_ca,
+                }"
               >
-                <timestamping-service-row
-                  v-for="timestampingService in configuredTimestampingServices"
-                  :key="timestampingService.url"
-                  :timestamping-service="timestampingService"
-                  :message-log-enabled="messageLogEnabled"
-                  @deleted="fetchConfiguredTimestampingServiced"
-                />
-
-                <XrdEmptyPlaceholderRow
-                  :colspan="3"
-                  :loading="loadingTimestampingservices"
-                  :data="configuredTimestampingServices"
-                  :no-items-text="$t('noData.noTimestampingServices')"
-                />
-              </tbody>
-            </table>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-    <v-card flat class="xrd-card">
-      <v-card-text class="card-text">
-        <v-row
-          v-if="
-            hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)
-          "
-          no-gutters
-          class="px-4"
-        >
-          <v-col>
-            <h3>
-              {{ $t('systemParameters.approvedCertificateAuthorities.title') }}
-            </h3>
-          </v-col>
-        </v-row>
-        <v-row
-          v-if="
-            hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)
-          "
-          no-gutters
-        >
-          <v-col>
-            <table class="xrd-table">
-              <thead>
-                <tr>
-                  <th>
-                    {{
-                      $t(
-                        'systemParameters.approvedCertificateAuthorities.table.header.distinguishedName',
-                      )
-                    }}
-                  </th>
-                  <th>
-                    {{
-                      $t(
-                        'systemParameters.approvedCertificateAuthorities.table.header.acmeIpAddresses',
-                      )
-                    }}
-                  </th>
-                  <th>
-                    {{
-                      $t(
-                        'systemParameters.approvedCertificateAuthorities.table.header.ocspResponse',
-                      )
-                    }}
-                  </th>
-                  <th>
-                    {{
-                      $t(
-                        'systemParameters.approvedCertificateAuthorities.table.header.expires',
-                      )
-                    }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody data-test="system-parameters-approved-ca-table-body">
-                <tr
-                  v-for="approvedCA in orderedCertificateAuthorities"
-                  :key="approvedCA.path"
+                {{ approvedCA.subject_distinguished_name }}
+              </td>
+              <td
+                v-if="
+                  approvedCA.acme_server_ip_addresses &&
+                  approvedCA.acme_server_ip_addresses.length > 0
+                "
+              >
+                <p
+                  v-for="ipAddress in approvedCA.acme_server_ip_addresses"
+                  :key="ipAddress"
                 >
-                  <td
-                    :class="{
-                      'interm-ca': !approvedCA.top_ca,
-                      'root-ca': approvedCA.top_ca,
-                    }"
-                  >
-                    {{ approvedCA.subject_distinguished_name }}
-                  </td>
-                  <td
-                    v-if="
-                      approvedCA.acme_server_ip_addresses &&
-                      approvedCA.acme_server_ip_addresses.length > 0
-                    "
-                  >
-                    <p
-                      v-for="ipAddress in approvedCA.acme_server_ip_addresses"
-                      :key="ipAddress"
-                    >
-                      {{ ipAddress }}
-                    </p>
-                  </td>
-                  <td v-else>
-                    {{
-                      $t(
-                        'systemParameters.approvedCertificateAuthorities.table.notAvailable',
-                      )
-                    }}
-                  </td>
-                  <td v-if="approvedCA.top_ca">
-                    {{
-                      $t(
-                        'systemParameters.approvedCertificateAuthorities.table.ocspResponse.NOT_AVAILABLE',
-                      )
-                    }}
-                  </td>
-                  <td v-if="!approvedCA.top_ca">
-                    {{
-                      $t(
-                        `systemParameters.approvedCertificateAuthorities.table.ocspResponse.${approvedCA.ocsp_response}`,
-                      )
-                    }}
-                  </td>
-                  <td class="pr-4">
-                    {{ $filters.formatDate(approvedCA.not_after) }}
-                  </td>
-                </tr>
+                  {{ ipAddress }}
+                </p>
+              </td>
+              <td v-else>
+                {{
+                  $t(
+                    'systemParameters.approvedCertificateAuthorities.table.notAvailable',
+                  )
+                }}
+              </td>
+              <td v-if="approvedCA.top_ca">
+                {{
+                  $t(
+                    'systemParameters.approvedCertificateAuthorities.table.ocspResponse.NOT_AVAILABLE',
+                  )
+                }}
+              </td>
+              <td v-if="!approvedCA.top_ca">
+                {{
+                  $t(
+                    `systemParameters.approvedCertificateAuthorities.table.ocspResponse.${approvedCA.ocsp_response}`,
+                  )
+                }}
+              </td>
+              <td class="pr-4">
+                <XrdDate :value="approvedCA.not_after" />
+              </td>
+            </tr>
 
-                <XrdEmptyPlaceholderRow
-                  :colspan="4"
-                  :loading="loadingCAs"
-                  :data="orderedCertificateAuthorities"
-                  :no-items-text="$t('noData.noCertificateAuthorities')"
-                />
-              </tbody>
-            </table>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-  </XrdTitledView>
-
-  <edit-security-server-address-dialog
-    v-if="showEditServerAddressDialog"
-    :address="serverAddress!"
-    @cancel="showEditServerAddressDialog = false"
-    @address-updated="addressChangeSubmitted"
-  />
+            <XrdEmptyPlaceholderRow
+              :colspan="4"
+              :loading="loadingCAs"
+              :data="orderedCertificateAuthorities"
+              :no-items-text="$t('noData.noCertificateAuthorities')"
+            />
+          </tbody>
+        </v-table>
+      </XrdCard>
+    </XrdSubView>
+    <EditSecurityServerAddressDialog
+      v-if="showEditServerAddressDialog"
+      :address="serverAddress!"
+      @cancel="showEditServerAddressDialog = false"
+      @address-updated="addressChangeSubmitted"
+    />
+  </XrdView>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { XrdButton, XrdIconDownload } from '@niis/shared-ui';
+import {
+  XrdBtn,
+  XrdDateTime,
+  XrdDate,
+  XrdHashValue,
+  XrdView,
+  XrdCard,
+  XrdSubView,
+  XrdStatusChip,
+  helper,
+  useNotifications,
+  XrdEmptyPlaceholderRow,
+  XrdStatusIcon,
+} from '@niis/shared-ui';
 import {
   AddOnStatus,
   Anchor,
@@ -377,24 +341,36 @@ import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
-import { saveResponseAsFile } from '@/util/helpers';
 import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddTimestampingServiceDialog.vue';
-import { mapActions, mapState } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
 import { sortTimestampingServices } from '@/util/sorting';
 import MaintenanceModeWidget from '@/views/Settings/SystemParameters/MaintenanceModeWidget.vue';
+import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
 
 export default defineComponent({
   components: {
+    XrdStatusIcon,
+    SettingsTabs,
     MaintenanceModeWidget,
     EditSecurityServerAddressDialog,
-    XrdButton,
-    XrdIconDownload,
+    XrdBtn,
     TimestampingServiceRow,
     UploadConfigurationAnchorDialog,
     AddTimestampingServiceDialog,
+    XrdDateTime,
+    XrdDate,
+    XrdHashValue,
+    XrdView,
+    XrdCard,
+    XrdSubView,
+    XrdStatusChip,
+    XrdEmptyPlaceholderRow,
+  },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
   },
   data() {
     return {
@@ -441,14 +417,12 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapActions(useNotifications, ['showError']),
-
     async fetchConfigurationAnchor() {
       this.loadingAnchor = true;
       return api
         .get<Anchor>('/system/anchor')
         .then((resp) => (this.configurationAnchor = resp.data))
-        .catch((error) => this.showError(error))
+        .catch((error) => this.addError(error))
         .finally(() => (this.loadingAnchor = false));
     },
     async fetchMessageLogEnabled() {
@@ -456,7 +430,7 @@ export default defineComponent({
       return api
         .get<AddOnStatus>('/diagnostics/addon-status')
         .then((resp) => (this.messageLogEnabled = resp.data.messagelog_enabled))
-        .catch((error) => this.showError(error))
+        .catch((error) => this.addError(error))
         .finally(() => (this.loadingMessageLogEnabled = false));
     },
     async fetchConfiguredTimestampingServiced() {
@@ -469,7 +443,7 @@ export default defineComponent({
               resp.data,
             )),
         )
-        .catch((error) => this.showError(error))
+        .catch((error) => this.addError(error))
         .finally(() => (this.loadingTimestampingservices = false));
     },
     async fetchApprovedCertificateAuthorities() {
@@ -479,17 +453,17 @@ export default defineComponent({
           '/certificate-authorities?include_intermediate_cas=true',
         )
         .then((resp) => (this.certificateAuthorities = resp.data))
-        .catch((error) => this.showError(error))
+        .catch((error) => this.addError(error))
         .finally(() => (this.loadingCAs = false));
     },
     downloadAnchor(): void {
       this.downloadingAnchor = true;
       api
         .get('/system/anchor/download', { responseType: 'blob' })
-        .then((res) => saveResponseAsFile(res, 'configuration-anchor.xml'))
-        .catch((error) => {
-          this.showError(error);
-        })
+        .then((res) =>
+          helper.saveResponseAsFile(res, 'configuration-anchor.xml'),
+        )
+        .catch((error) => this.addError(error))
         .finally(() => (this.downloadingAnchor = false));
     },
     fetchServerAddress(): boolean {
@@ -501,7 +475,7 @@ export default defineComponent({
             this.addressChangeInProgress =
               resp.data.requested_change !== undefined;
           })
-          .catch((error) => this.showError(error));
+          .catch((error) => this.addError(error));
       }
       return false;
     },
@@ -514,68 +488,18 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables';
+.ts-disabled {
+  :deep(.v-card-title),
+  :deep(.v-table__wrapper) {
+    background-color: rgba(var(--v-theme-on-surface-variant), 0.08) !important;
+  }
 
-h3 {
-  color: colors.$Black100;
-  font-size: 18px;
-  font-weight: bold;
-  letter-spacing: 0;
-  line-height: 24px;
+  :deep(.component-title-text) {
+    opacity: 0.6;
+  }
 }
 
-.card-text {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.disabled {
-  cursor: not-allowed;
-  background: colors.$Black10;
-  color: colors.$WarmGrey100;
-}
-
-tr td {
-  color: colors.$Black100;
-  font-weight: normal !important;
-}
-
-tr td:last-child {
-  width: 1%;
-  white-space: nowrap;
-}
-
-.root-ca {
-  font-weight: bold !important;
-}
-
-.interm-ca {
-  font-weight: normal !important;
-  padding-left: 2rem !important;
-}
-
-.xrd-card {
-  margin-bottom: 24px;
-}
-
-.anchor-buttons {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.status-wrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.status-text {
-  font-style: normal;
-  font-weight: bold;
-  font-size: 12px;
-  line-height: 16px;
-  color: colors.$WarmGrey100;
-  margin-left: 2px;
+.settings-block:not(:last-child) {
+  margin-bottom: 16px;
 }
 </style>

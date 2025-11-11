@@ -76,12 +76,7 @@ class RegistrationRequestApiTest {
     @RegisterExtension
     static WireMockExtension wireMockRule = WireMockExtension.newInstance()
             .options(wireMockConfig()
-                    .keystorePath("./build/resources/test/testconf/ssl/center-admin-service.p12")
-                    .keystoreType("PKCS12")
-                    .keystorePassword("center-admin-service")
-                    .keyManagerPassword("center-admin-service")
-                    .httpDisabled(true)
-                    .dynamicHttpsPort())
+                    .dynamicPort())
             .build();
 
     @Autowired
@@ -109,7 +104,7 @@ class RegistrationRequestApiTest {
     @Test
     void shouldRegisterAuthCert() throws Exception {
 
-        properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.getHttpsPort())));
+        properties.setApiBaseUrl(URI.create(String.format("http://127.0.0.1:%d/api/v1", wireMockRule.getPort())));
         var response = new AuthenticationCertificateRegistrationRequestDto();
         response.setId(42);
         response.setType(ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST);
@@ -131,7 +126,7 @@ class RegistrationRequestApiTest {
     @Test
     void shouldReturnSoapFaultOnApiError() throws Exception {
 
-        properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.getHttpsPort())));
+        properties.setApiBaseUrl(URI.create(String.format("http://127.0.0.1:%d/api/v1", wireMockRule.getPort())));
         var response = new ErrorInfoDto();
         response.setStatus(409);
         response.setError(new CodeWithDetailsDto().code("error"));

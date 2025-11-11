@@ -56,7 +56,6 @@ public interface RestServiceHandler {
                        ProxyMessageDecoder messageDecoder,
                        ProxyMessageEncoder messageEncoder,
                        HttpClient restClient,
-                       HttpClient opMonitorClient,
                        OpMonitoringData opMonitoringData)
             throws IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException;
 

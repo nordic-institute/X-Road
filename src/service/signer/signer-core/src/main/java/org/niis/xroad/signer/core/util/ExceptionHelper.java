@@ -27,6 +27,7 @@ package org.niis.xroad.signer.core.util;
 
 import ee.ria.xroad.common.CodedException;
 
+import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
@@ -63,6 +64,10 @@ public final class ExceptionHelper {
     public static CodedException tokenNotActive(String tokenId) {
         return CodedException.tr(X_TOKEN_NOT_ACTIVE,
                 "token_not_active", "Token '%s' not active", tokenId);
+    }
+
+    public static CodedException writeNotAvailable() {
+        return new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
     }
 
     /**

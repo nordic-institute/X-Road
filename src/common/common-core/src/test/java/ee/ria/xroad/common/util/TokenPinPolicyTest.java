@@ -33,7 +33,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Unit tests for {@link TokenPinPolicy}
+ * Unit tests for {@link PasswordPolicy}
  */
 public class TokenPinPolicyTest {
 
@@ -48,11 +48,11 @@ public class TokenPinPolicyTest {
      */
     @Test
     public void shouldRejectWeakPassword() {
-        assertFalse(TokenPinPolicy.validate(null));
-        assertFalse(TokenPinPolicy.validate("".toCharArray()));
+        assertFalse(PasswordPolicy.validate(null));
+        assertFalse(PasswordPolicy.validate("".toCharArray()));
 
-        assertFalse(TokenPinPolicy.validate(
-                generatedPassword(TokenPinPolicy.MIN_PASSWORD_LENGTH, LOWERCASE_LETTERS)));
+        assertFalse(PasswordPolicy.validate(
+                generatedPassword(PasswordPolicy.MIN_PASSWORD_LENGTH, LOWERCASE_LETTERS)));
     }
 
     /**
@@ -62,12 +62,12 @@ public class TokenPinPolicyTest {
     public void shouldAcceptStrongPassword() {
         for (int i = 0; i < 1000; i++) {
             final char[] pw = generatedPassword(
-                    TokenPinPolicy.MIN_PASSWORD_LENGTH + i / 10,
+                    PasswordPolicy.MIN_PASSWORD_LENGTH + i / 10,
                     UPPERCASE_LETTERS,
                     LOWERCASE_LETTERS,
                     DIGITS,
                     SPECIAL_CHARS);
-            assertTrue(TokenPinPolicy.validate(pw));
+            assertTrue(PasswordPolicy.validate(pw));
         }
     }
 
@@ -77,12 +77,12 @@ public class TokenPinPolicyTest {
     @Test
     public void shouldRejectTooShortPassword() {
         final char[] pw = generatedPassword(
-                TokenPinPolicy.MIN_PASSWORD_LENGTH - 1,
+                PasswordPolicy.MIN_PASSWORD_LENGTH - 1,
                 UPPERCASE_LETTERS,
                 LOWERCASE_LETTERS,
                 DIGITS,
                 SPECIAL_CHARS);
-        assertFalse(TokenPinPolicy.validate(pw));
+        assertFalse(PasswordPolicy.validate(pw));
     }
 
     /**
@@ -91,12 +91,12 @@ public class TokenPinPolicyTest {
     @Test
     public void shouldRejectInvalidCharacters() {
         final char[] pw = generatedPassword(
-                TokenPinPolicy.MIN_PASSWORD_LENGTH,
+                PasswordPolicy.MIN_PASSWORD_LENGTH,
                 UPPERCASE_LETTERS,
                 LOWERCASE_LETTERS,
                 DIGITS,
                 "\u0000\u0019\u007f".toCharArray());
-        assertFalse(TokenPinPolicy.validate(pw));
+        assertFalse(PasswordPolicy.validate(pw));
     }
 
     /**
@@ -106,10 +106,10 @@ public class TokenPinPolicyTest {
     public void shouldRejectPasswordThatDoesNotHaveEnoughCharacterClasses() {
         for (int i = 0; i < 1000; i++) {
             final char[] pw = generatedPassword(
-                    TokenPinPolicy.MIN_PASSWORD_LENGTH,
+                    PasswordPolicy.MIN_PASSWORD_LENGTH,
                     UPPERCASE_LETTERS,
                     DIGITS);
-            assertFalse(TokenPinPolicy.validate(pw));
+            assertFalse(PasswordPolicy.validate(pw));
         }
     }
 
@@ -120,11 +120,11 @@ public class TokenPinPolicyTest {
     public void shouldAcceptPasswordThatHasEnoughCharacterClasses() {
         for (int i = 0; i < 1000; i++) {
             final char[] pw = generatedPassword(
-                    TokenPinPolicy.MIN_PASSWORD_LENGTH,
+                    PasswordPolicy.MIN_PASSWORD_LENGTH,
                     UPPERCASE_LETTERS,
                     LOWERCASE_LETTERS,
                     DIGITS);
-            assertTrue(TokenPinPolicy.validate(pw));
+            assertTrue(PasswordPolicy.validate(pw));
         }
     }
 

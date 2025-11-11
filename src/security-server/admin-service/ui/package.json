@@ -14,12 +14,12 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "lint": "eslint . --fix",
     "generate-types": "rm -rf src/openapi-types && openapi --input ../../openapi-model/src/main/resources/META-INF/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
-    "license-check": "license-check-and-add check -f license-check-and-add-config.json",
-    "license-add": "license-check-and-add add -f license-check-and-add-config.json"
+    "license-check": "license-check-and-add check -f ../../../shared-ui/license-check-and-add-config.json",
+    "license-add": "license-check-and-add add -f ../../../shared-ui/license-check-and-add-config.json"
   },
   "dependencies": {
     "@niis/shared-ui": "workspace:*",
-    "apexcharts": "^5.3.5",
+    "apexcharts": "^5.3.6",
     "maska": "^3.2.0",
     "vue3-apexcharts": "^1.10.0"
   },

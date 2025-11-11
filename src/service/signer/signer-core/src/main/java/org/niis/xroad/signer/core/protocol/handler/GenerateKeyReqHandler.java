@@ -25,21 +25,25 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles key generations.
  */
-@Component
+@ApplicationScoped
+@RequiredArgsConstructor
 public class GenerateKeyReqHandler extends AbstractRpcHandler<GenerateKeyReq, KeyInfoProto> {
+    private final TokenWorkerProvider tokenWorkerProvider;
 
     @Override
     protected KeyInfoProto handle(GenerateKeyReq request) {
-        final KeyInfo keyInfo = getTokenWorker(request.getTokenId()).handleGenerateKey(request);
+        final KeyInfo keyInfo = tokenWorkerProvider.getTokenWorker(request.getTokenId()).handleGenerateKey(request);
         return keyInfo.asMessage();
     }
 }

@@ -46,7 +46,7 @@ public class CentralServerInitializer {
     private final FeignInitializationApi initializationApi;
 
     public void initializeWithDefaults() {
-        log.info("Initializing CentralServer with default configuration");
+        log.debug("Initializing CentralServer with default configuration");
 
         mockSignerInit();
         var authHeader = SYSTEM_ADMINISTRATOR.getHeaderToken();

@@ -1,11 +1,25 @@
+// Load local properties if they exist
+val localPropertiesFile = file("gradle-local.properties")
+if (localPropertiesFile.exists()) {
+  gradle.projectsLoaded {
+    val localProps = java.util.Properties().apply {
+      load(localPropertiesFile.inputStream())
+    }
+    // Override properties from local file
+    localProps.forEach { (key, value) ->
+      gradle.rootProject.extensions.extraProperties.set(key.toString(), value.toString())
+    }
+  }
+}
+
 rootProject.name = "x-road-core"
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenCentral()
-        mavenLocal()
-    }
+  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  repositories {
+    mavenCentral()
+    mavenLocal()
+  }
 }
 
 // Common projects
@@ -16,20 +30,31 @@ include("common:common-acme")
 include("common:common-admin-api")
 include("common:common-api-throttling")
 include("common:common-db")
+include("common:common-db-identifiers")
 include("common:common-domain")
 include("common:common-mail")
 include("common:common-management-request")
+include("common:common-management-service")
 include("common:common-messagelog")
 include("common:common-rpc")
+include("common:common-rpc-spring")
+include("common:common-rpc-quarkus")
+include("common:common-vault")
+include("common:common-vault-spring")
+include("common:common-vault-quarkus")
 include("common:common-int-test")
 include("common:common-core")
 include("common:common-jetty")
 include("common:common-message")
-include("common:common-scheduler")
+include("common:common-properties")
+include("common:common-properties-db-source-quarkus")
+include("common:common-properties-db-source-spring")
+include("common:common-pgp")
 
 // Lib projects
 include("lib")
 include("lib:asic-core")
+include("lib:bootstrap-quarkus")
 include("lib:globalconf-impl")
 include("lib:globalconf-core")
 include("lib:globalconf-spring")
@@ -42,14 +67,21 @@ include("lib:keyconf-impl")
 // Service projects
 include("service")
 
+include("service:backup-manager:backup-manager-application")
+include("service:backup-manager:backup-manager-rpc-client")
+include("service:backup-manager:backup-manager-core")
+
 include("service:configuration-client:configuration-client-application")
 include("service:configuration-client:configuration-client-core")
+include("service:configuration-client:configuration-client-model")
+include("service:configuration-client:configuration-client-rpc-client")
 
 include("service:configuration-proxy:configuration-proxy-application")
 
 include("service:monitor:monitor-application")
 include("service:monitor:monitor-api")
 include("service:monitor:monitor-core")
+include("service:monitor:monitor-rpc-client")
 
 include("service:op-monitor:op-monitor-application")
 include("service:op-monitor:op-monitor-api")
@@ -60,19 +92,21 @@ include("service:op-monitor:op-monitor-int-test")
 
 include("service:proxy:proxy-application")
 include("service:proxy:proxy-core")
+include("service:proxy:proxy-rpc-client")
 
 include("service:signer:signer-application")
 include("service:signer:signer-api")
 include("service:signer:signer-core")
+include("service:signer:signer-jpa")
 include("service:signer:signer-cli")
 include("service:signer:signer-client")
+include("service:signer:signer-client-spring")
 include("service:signer:signer-int-test")
-
-include("service:message-log-archiver:message-log-archiver-application")
 
 // Tool projects
 include("tool")
 include("tool:asic-verifier-cli")
+include("tool:migration-cli")
 
 // Main projects
 include("shared-ui")
@@ -106,7 +140,9 @@ include("security-server:admin-service")
 include("security-server:admin-service:application")
 include("security-server:admin-service:infra-jpa")
 include("security-server:admin-service:ui")
-include("security-server:admin-service:int-test")
+include("security-server:admin-service:message-log-archiver")
+include("security-server:admin-service:message-log-archiver-api")
+include("security-server:admin-service:management-rpc-client")
 include("security-server:system-test")
 include("security-server:e2e-test")
 
@@ -114,17 +150,9 @@ include("security-server:e2e-test")
 include("common:common-test")
 
 // Addons
-include("addons:hwtoken")
-include("addons:messagelog:messagelog-addon")
 include("addons:messagelog:messagelog-archive-verifier")
 include("addons:messagelog:messagelog-db")
-include("addons:metaservice")
 
 include("addons:proxymonitor-common")
 project(":addons:proxymonitor-common").projectDir = file("addons/proxymonitor/common")
 
-include("addons:proxymonitor-metaservice")
-project(":addons:proxymonitor-metaservice").projectDir = file("addons/proxymonitor/metaservice")
-
-include("addons:op-monitoring")
-include("addons:wsdlvalidator")

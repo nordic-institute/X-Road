@@ -28,7 +28,8 @@ package org.niis.xroad.serverconf.impl.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
-import org.niis.xroad.serverconf.impl.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
+import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.model.AccessRight;
 
@@ -45,8 +46,4 @@ public interface AccessRightMapper extends GenericUniDirectionalMapper<AccessRig
     AccessRight toTarget(AccessRightEntity entity);
 
     List<AccessRight> toTargets(List<AccessRightEntity> entities);
-
-    AccessRightEntity toEntity(AccessRight domain);
-
-    List<AccessRightEntity> toEntities(List<AccessRight> domains);
 }

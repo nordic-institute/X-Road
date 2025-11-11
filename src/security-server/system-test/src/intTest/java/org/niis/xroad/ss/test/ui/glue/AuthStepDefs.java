@@ -29,11 +29,14 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.ss.test.ui.container.EnvSetup;
+import org.niis.xroad.ss.test.ui.container.Port;
 import org.niis.xroad.ss.test.ui.page.LoginPageObj;
 
 import java.time.Duration;
 
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
@@ -42,7 +45,9 @@ public class AuthStepDefs extends BaseUiStepDefs {
 
     @Step("SecurityServer login page is open")
     public void openPage() {
-        Selenide.open(targetHostUrlProvider.getUrl());
+        var mapping = envSetup.getContainerMapping(EnvSetup.UI, Port.UI);
+
+        selenideManager.open("https://%s:%d".formatted(mapping.host(), mapping.port()));
     }
 
     @Step("Login form is visible")
@@ -89,6 +94,12 @@ public class AuthStepDefs extends BaseUiStepDefs {
         commonPageObj.menu.logout().click();
     }
 
+    @Step("Change password button is being clicked")
+    public void changePasswordButtonIsClicked() {
+        commonPageObj.menu.usernameButton().click();
+        commonPageObj.menu.changePassword().click();
+    }
+
     @Given("User becomes idle")
     public void userBecomesIdle() {
         Selenide.sleep(1);
@@ -97,14 +108,15 @@ public class AuthStepDefs extends BaseUiStepDefs {
 
     @Given("after {} seconds, session timeout popup appears")
     public void errorMessageAboutTimeoutAppears(int duration) {
-        commonPageObj.btnSessionExpired()
-                .shouldBe(visible, Duration.ofSeconds(duration));
+        commonPageObj.dialog.btnConfirm()
+                .shouldBe(visible, Duration.ofSeconds(duration))
+                .shouldHave(text("Ok"));
 
     }
 
     @Given("OK is clicked on timeout notification popup")
     public void okIsClickedOnTimeoutNotificationPopup() {
-        commonPageObj.btnSessionExpired()
+        commonPageObj.dialog.btnConfirm()
                 .shouldBe(visible)
                 .shouldBe(enabled)
                 .click();

@@ -37,6 +37,7 @@ import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.security.cert.CertPathBuilderException;
@@ -60,6 +61,7 @@ import static org.junit.Assert.fail;
 public class CertChainTest {
 
     private static final GlobalConfProvider GLOBAL_CONF_PROVIDER = new CertChainTestGlobalConf();
+    private static final OcspVerifierFactory OCSP_VERIFIER_FACTORY = new OcspVerifierFactory();
 
     static {
         TestSecurityUtil.initSecurity();
@@ -67,11 +69,9 @@ public class CertChainTest {
 
     /**
      * Tests verifying a simple certificate chain without intermediates.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void chainWithNoIntermediates() throws Exception {
+    public void chainWithNoIntermediates() {
         X509Certificate rootCa = TestCertUtil.getCertChainCert("root_ca.p12");
         X509Certificate userCert = TestCertUtil.getCertChainCert("user_0.p12");
 
@@ -241,11 +241,11 @@ public class CertChainTest {
 
     private static void verify(CertChain chain, List<OCSPResp> ocspResponses,
                                Date atDate) {
-        new CertChainVerifier(GLOBAL_CONF_PROVIDER, chain).verify(ocspResponses, atDate);
+        new CertChainVerifier(GLOBAL_CONF_PROVIDER, OCSP_VERIFIER_FACTORY, chain).verify(ocspResponses, atDate);
     }
 
     private static void verifyChainOnly(CertChain chain, Date atDate) {
-        new CertChainVerifier(GLOBAL_CONF_PROVIDER, chain).verifyChainOnly(atDate);
+        new CertChainVerifier(GLOBAL_CONF_PROVIDER, OCSP_VERIFIER_FACTORY, chain).verifyChainOnly(atDate);
     }
 
     private static Date makeDate(Date someDate, int plusDays) {

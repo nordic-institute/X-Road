@@ -26,38 +26,36 @@
  -->
 
 <template>
-  <xrd-app-base>
-    <template #top>
-      <router-view name="top" />
-    </template>
-    <template #subTabs>
-      <router-view name="subTabs" />
-    </template>
-    <template #alerts>
-      <router-view name="alerts" />
-    </template>
-    <router-view />
-  </xrd-app-base>
+  <AppToolbar />
+  <router-view name="navigation" />
+
+  <v-main class="bg-surface pr-10 pb-8">
+    <AlertsContainer />
+    <div class="mb-6">
+      <router-view />
+    </div>
+    <router-view name="footer" />
+  </v-main>
 </template>
 
 <script lang="ts" setup>
 import { Timeouts } from '@/global';
-import { useUser } from '@/store/modules/user';
-import { useSystem } from '@/store/modules/system';
 import { useAlerts } from '@/store/modules/alerts';
-import { XrdAppBase } from '@niis/shared-ui';
+import { useSystem } from '@/store/modules/system';
+import { useUser } from '@/store/modules/user';
+
+import AlertsContainer from '@/components/AlertsContainer.vue';
+import AppToolbar from '@/layouts/AppToolbar.vue';
 
 const userStore = useUser();
 const { checkAlerts } = useAlerts();
-const { fetchSystemStatus } = useSystem();
+const systemStore = useSystem();
 
 const sessionPollInterval = setInterval(
   () => pollSessionStatus(),
   Timeouts.POLL_SESSION_TIMEOUT,
 );
-pollSessionStatus();
-fetchSystemStatus();
-checkAlerts();
+systemStore.fetchSystemStatus();
 
 async function pollSessionStatus() {
   return userStore

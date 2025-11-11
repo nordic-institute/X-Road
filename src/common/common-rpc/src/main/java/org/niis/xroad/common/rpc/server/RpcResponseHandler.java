@@ -73,7 +73,9 @@ public class RpcResponseHandler {
         if (exception.getErrorCodeMetadata() != null && !exception.getErrorCodeMetadata().isEmpty()) {
             builder.addAllErrorMetadata(exception.getErrorCodeMetadata());
         }
-        builder.setDetails(exception.getDetails());
+        if (exception.getDetails() != null) {
+            builder.setDetails(exception.getDetails());
+        }
 
         exception.getHttpStatus().ifPresent(httpStatus -> builder.setHttpStatus(httpStatus.getCode()));
 

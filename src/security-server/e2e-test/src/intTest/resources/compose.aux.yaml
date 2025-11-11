@@ -1,0 +1,139 @@
+services:
+  cs:
+    image: ${CS_IMG}
+    environment:
+      - XROAD_HOST=cs
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 2560M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    ports:
+      - "0:4000" # Frontend
+      - "0:9994" # Signer debug
+      - "0:5432" # DB
+    networks:
+      - xroad-network
+  testca:
+    image: ${CA_IMG}
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 512M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8888/testca/certs" ]
+    networks:
+      - xroad-network
+    volumes:
+      - ca-volume:/home/ca/certs
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    volumes:
+      - ./testmail:/data
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_REQUIRE_STARTTLS: 1
+      MP_SMTP_TLS_CERT: /data/mailpit_cert.pem
+      MP_SMTP_TLS_KEY: /data/mailpit_key.pem
+      MP_SMTP_AUTH_FILE: /data/password_file
+    networks:
+      - xroad-network
+  isopenapi:
+    image: ${IS_OPENAPI_IMG}
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/v3/api-docs" ]
+    networks:
+      - xroad-network
+  issoap:
+    image: ${IS_SOAP_IMG}
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/example-adapter/Endpoint?wsdl" ]
+    networks:
+      - xroad-network
+    entrypoint: [ "java", "-Xms64m", "-Xmx256m", "-jar", "/example-adapter.war" ]
+  isrest:
+    image: wiremock/wiremock:latest
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/__admin/health" ]
+    networks:
+      - xroad-network
+    volumes:
+      - ./wiremock_mappings:/home/wiremock/mappings
+  hurl:
+    build:
+        context: ../../../../../../development/hurl
+        dockerfile: ./Dockerfile
+    command: >
+      --insecure
+      --variables-file /hurl-src/vars.env
+      --variable ss0_host=${PROXY_UI_0}
+      --variable ss1_host=${PROXY_UI_1}
+      --variable ss0_proxy=${PROXY_0}
+      --variable ss1_proxy=${PROXY_1}
+      --file-root /hurl-files
+      /hurl-src/setup.hurl
+      --very-verbose
+      --retry 12
+      --retry-interval 10000
+    deploy:
+      resources:
+        reservations:
+          memory: 24M
+        limits:
+          memory: 128M
+    networks:
+      - xroad-network
+    volumes:
+      - ca-volume:/hurl-files/ca
+    depends_on:
+      cs:
+        condition: service_healthy
+      testca:
+        condition: service_healthy
+      isopenapi:
+        condition: service_healthy
+      issoap:
+        condition: service_healthy
+      isrest:
+        condition: service_healthy
+volumes:
+  ca-volume:
+networks:
+  xroad-network:
+    name: xroad-network
+    external: true

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,103 +25,126 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="status-wrapper">
-    <xrd-status-icon :status="statusIconType" />
-    <div class="status-text">{{ getStatusText(status) }}</div>
+  <div>
+    <v-chip
+      v-if="statusStyle"
+      class="xrd"
+      density="compact"
+      variant="flat"
+      :class="[statusStyle.bgColor]"
+    >
+      <template #prepend>
+        <XrdStatusIcon class="mr-1 ml-n1" :status="statusStyle.status" />
+      </template>
+      <template #default>
+        <span class="font-weight-medium" :class="statusStyle.textColor">
+          {{ statusStyle.text }}
+        </span>
+      </template>
+    </v-chip>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { XrdStatusIcon, Status } from '@niis/shared-ui';
 
-export default defineComponent({
-  props: {
-    status: {
-      type: String,
-      default: '',
-    },
-  },
+type StatusStyle = {
+  bgColor: string;
+  text: string;
+  textColor: string;
+  status: Status;
+};
 
-  computed: {
-    statusIconType(): string {
-      if (!this.status) {
-        return '';
-      }
-      switch (this.status.toLowerCase()) {
-        case 'registered':
-          return 'ok';
-        case 'registration_in_progress':
-        case 'enabling_in_progress':
-          return 'progress-register';
-        case 'saved':
-          return 'saved';
-        case 'deletion_in_progress':
-        case 'disabling_in_progress':
-          return 'progress-delete';
-        case 'name_set':
-          return 'name-set';
-        case 'name_submitted':
-          return 'name-submitted';
-        case 'disabled':
-          return 'error-disabled';
-        case 'global_error':
-          return 'error';
-        default:
-          return 'error';
-      }
-    },
-  },
-
-  methods: {
-    getStatusText(status: string): string {
-      if (!status) {
-        return '';
-      }
-      switch (status.toLowerCase()) {
-        case 'registered':
-          return this.$t('client.statusText.registered');
-        case 'registration_in_progress':
-          return this.$t('client.statusText.registrationInProgress');
-        case 'saved':
-          return this.$t('client.statusText.saved');
-        case 'deletion_in_progress':
-          return this.$t('client.statusText.deletionInProgress');
-        case 'disabling_in_progress':
-          return this.$t('client.statusText.disablingInProgress');
-        case 'disabled':
-          return this.$t('client.statusText.disabled');
-        case 'enabling_in_progress':
-          return this.$t('client.statusText.enablingInProgress');
-        case 'name_set':
-          return this.$t('client.statusText.nameSet');
-        case 'name_submitted':
-          return this.$t('client.statusText.nameSubmitted');
-        case 'global_error':
-          return this.$t('client.statusText.globalError');
-        default:
-          return '';
-      }
-    },
+const props = defineProps({
+  status: {
+    type: String,
+    default: '',
   },
 });
+
+const { t } = useI18n();
+
+const statusStyle = computed<StatusStyle | undefined>(() => {
+  if (!props.status) {
+    return undefined;
+  }
+  switch (props.status.toLowerCase()) {
+    case 'registered':
+      return asSuccess('registered', 'ok');
+    case 'registration_in_progress':
+      return asInfo('registrationInProgress', 'progress-register');
+    case 'enabling_in_progress':
+      return asInfo('enablingInProgress', 'progress-register');
+    case 'saved':
+      return asWarning('saved', 'saved');
+    case 'deletion_in_progress':
+      return asError('deletionInProgress', 'progress-delete');
+    case 'disabling_in_progress':
+      return asError('disablingInProgress', 'progress-delete');
+    case 'name_set':
+      return asWarning('nameSet', 'name-set');
+    case 'name_submitted':
+      return asInfo('nameSubmitted', 'name-submitted');
+    case 'disabled':
+      return asError('disabled', 'error-disabled');
+    case 'global_error':
+      return asError('globalError', 'error');
+    default:
+      return asError('', 'error');
+  }
+});
+
+function asSuccess(textKey: string, status: Status) {
+  return createStatusStyle(
+    textKey,
+    'bg-success-container',
+    'on-success-container',
+    status,
+  );
+}
+
+function asInfo(textKey: string, status: Status) {
+  return createStatusStyle(
+    textKey,
+    'bg-info-container',
+    'on-info-container',
+    status,
+  );
+}
+
+function asWarning(textKey: string, status: Status) {
+  return createStatusStyle(
+    textKey,
+    'bg-warning-container',
+    'on-warning-container',
+    status,
+  );
+}
+
+function asError(textKey: string, status: Status) {
+  return createStatusStyle(
+    textKey,
+    'bg-error-container',
+    'on-error-container',
+    status,
+  );
+}
+
+function createStatusStyle(
+  textKey: string,
+  bgColor: string,
+  textColor: string,
+  status: Status,
+): StatusStyle {
+  return {
+    text: t('client.statusText.' + textKey),
+    bgColor,
+    textColor,
+    status,
+  };
+}
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-
-.status-wrapper {
-  width: fit-content;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.status-text {
-  font-style: normal;
-  font-weight: bold;
-  font-size: 12px;
-  line-height: 16px;
-  color: colors.$WarmGrey100;
-  margin-left: 2px;
-}
-</style>
+<style lang="scss" scoped></style>

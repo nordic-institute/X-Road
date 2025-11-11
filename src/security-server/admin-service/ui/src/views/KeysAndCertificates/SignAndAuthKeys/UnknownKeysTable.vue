@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,8 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <table class="xrd-table keys-table">
+  <div class="pr-4 pb-4 pl-4">
+    <v-table class="xrd keys-table">
       <KeysTableThead
         :sort-direction="sortDirection"
         :selected-sort="selectedSort"
@@ -50,19 +51,19 @@
         >
           <template #certificateAction>
             <template v-if="canImportFromToken">
-              <xrd-button
+              <XrdBtn
                 v-if="
                   cert.possible_actions?.includes(
                     PossibleAction.IMPORT_FROM_TOKEN,
                   )
                 "
                 class="table-button-fix"
-                :outlined="false"
-                text
+                variant="text"
+                color="tertiary"
+                text="keys.importCert"
                 data-test="import-from-token-button"
                 @click="importCert(cert.certificate_details.hash)"
-                >{{ $t('keys.importCert') }}</xrd-button
-              >
+              />
 
               <!-- Special case where HW cert has auth usage -->
               <div v-else-if="key.usage === 'AUTHENTICATION'">
@@ -72,7 +73,7 @@
           </template>
         </CertificateRow>
       </tbody>
-    </table>
+    </v-table>
   </div>
 </template>
 
@@ -95,12 +96,14 @@ import { KeysSortColumn } from './keyColumnSorting';
 import * as Sorting from './keyColumnSorting';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import { XrdBtn } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     KeyRow,
     CertificateRow,
     KeysTableThead,
+    XrdBtn,
   },
   props: {
     keys: {
@@ -196,15 +199,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-
-.keys-table {
-  margin-top: 20px;
-}
-
-.table-button-fix {
-  margin-left: auto;
-  margin-right: 0;
-}
-</style>
+<style lang="scss" scoped></style>

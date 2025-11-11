@@ -32,39 +32,25 @@ Creates a new Vue instance with the Vue function.
 Initialises the app root component.
 */
 import { createApp } from 'vue';
-import axios from 'axios';
-import { createFilters } from '@/filters';
-import App from './App.vue';
-import router from './router/router';
-import '@fontsource/open-sans/800.css';
-import '@fontsource/open-sans/700.css';
-import '@fontsource/open-sans';
+
 import { createPinia } from 'pinia';
+
+import axios from 'axios';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
-import validation from '@/plugins/vee-validate';
-import vuetify from '@/plugins/vuetify';
+
 import {
-  i18n,
-  XrdButton,
-  XrdCloseButton,
-  XrdConfirmDialog,
-  XrdEmptyPlaceholder,
-  XrdIconAdd,
-  XrdIconBase,
-  XrdIconChecked,
-  XrdIconChecker,
-  XrdIconClose,
-  XrdIconCopy,
-  XrdIconEdit,
-  XrdIconFolderOutline,
-  XrdSearch,
-  XrdSimpleDialog,
-  XrdSubViewContainer,
-  XrdSubViewTitle,
-  XrdTitledView,
+  setupAddErrorNavigation,
 } from '@niis/shared-ui';
+
+import { createFilters } from '@/filters';
+import { RouteName } from '@/global';
 import { createLanguageHelper } from '@/plugins/i18n';
-import provider from '@/plugins/provider';
+import validation from '@/plugins/vee-validate';
+import vuetify from '@/plugins/vuetify'; //
+
+import router from './router/router';
+
+import App from './App.vue';
 
 const pinia = createPinia();
 pinia.use(
@@ -76,32 +62,18 @@ pinia.use(
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 axios.defaults.headers.get.Accepts = 'application/json';
 
+setupAddErrorNavigation(router, {
+  404: {
+    name: RouteName.NotFound,
+  },
+});
+
 const app = createApp(App);
 app.use(pinia);
 app.use(router);
 app.use(vuetify);
 app.use(validation);
 app.use(createFilters());
-app.use(provider);
-//icons
-app.component('XrdIconFolderOutline', XrdIconFolderOutline);
-app.component('XrdIconBase', XrdIconBase);
-app.component('XrdIconChecker', XrdIconChecker);
-app.component('XrdIconClose', XrdIconClose);
-app.component('XrdIconChecked', XrdIconChecked);
-app.component('XrdIconAdd', XrdIconAdd);
-app.component('XrdIconCopy', XrdIconCopy);
-app.component('XrdIconEdit', XrdIconEdit);
-//components
-app.component('XrdButton', XrdButton);
-app.component('XrdSearch', XrdSearch);
-app.component('XrdCloseButton', XrdCloseButton);
-app.component('XrdSubViewContainer', XrdSubViewContainer);
-app.component('XrdSimpleDialog', XrdSimpleDialog);
-app.component('XrdConfirmDialog', XrdConfirmDialog);
-app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
-app.component('XrdSubViewTitle', XrdSubViewTitle);
-app.component('XrdTitledView', XrdTitledView);
 
 // translations
 createLanguageHelper()

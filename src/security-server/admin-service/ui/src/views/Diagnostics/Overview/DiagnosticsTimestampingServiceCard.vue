@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,90 +25,96 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card
-    variant="flat"
-    class="xrd-card diagnostic-card"
+  <XrdCard
+    data-test="diagnostics-mail-notification"
+    title="diagnostics.timestamping.title"
+    class="overview-card"
     :class="{ disabled: !messageLogEnabled }"
   >
-    <v-card-text class="xrd-card-text">
-      <v-row no-gutters class="px-4">
-        <v-col>
-          <h3 :class="{ disabled: !messageLogEnabled }">
-            {{ $t('diagnostics.timestamping.title') }}
-          </h3>
-        </v-col>
-        <v-col v-if="!messageLogEnabled" class="text-right disabled">
-          {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
-        </v-col>
-      </v-row>
-
-      <table class="xrd-table">
-        <thead>
-          <tr>
-            <th class="status-column">{{ $t('diagnostics.status') }}</th>
-            <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
-            <th>{{ $t('diagnostics.message') }}</th>
-            <th class="time-column">
-              {{ $t('diagnostics.previousUpdate') }}
-            </th>
-            <th class="time-column"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="timestampingService in timestampingServices"
-            :key="timestampingService.url"
+    <template v-if="!messageLogEnabled" #append-title>
+      <XrdStatusChip
+        type="inactive"
+        text="diagnostics.addOnStatus.messageLogDisabled"
+      />
+    </template>
+    <v-table class="xrd">
+      <thead>
+        <tr>
+          <th class="status-column">{{ $t('diagnostics.status') }}</th>
+          <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
+          <th>{{ $t('diagnostics.message') }}</th>
+          <th class="time-column">
+            {{ $t('diagnostics.previousUpdate') }}
+          </th>
+          <th class="time-column"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="timestampingService in timestampingServices"
+          :key="timestampingService.url"
+        >
+          <td>
+            <StatusAvatar
+              :status="statusIconTypeTSP(timestampingService.status_class)"
+            />
+          </td>
+          <td
+            class="url-column"
+            :class="{ disabled: !messageLogEnabled }"
+            data-test="service-url"
           >
-            <td>
-              <xrd-status-icon
-                :status="statusIconTypeTSP(timestampingService.status_class)"
-              />
-            </td>
-            <td
-              class="url-column"
-              :class="{ disabled: !messageLogEnabled }"
-              data-test="service-url"
-            >
-              {{ timestampingService.url }}
-            </td>
-            <td
-              :class="{ disabled: !messageLogEnabled }"
-              data-test="timestamping-message"
-            >
-              {{ getStatusMessage(timestampingService) }}
-            </td>
-            <td class="time-column" :class="{ disabled: !messageLogEnabled }">
-              {{ $filters.formatHoursMins(timestampingService.prev_update_at) }}
-            </td>
-            <td></td>
-          </tr>
-          <XrdEmptyPlaceholderRow
-            :colspan="5"
-            :loading="timestampingLoading || addonStatusLoading"
-            :data="timestampingServices"
-            :no-items-text="$t('noData.noTimestampingServices')"
-          />
-        </tbody>
-      </table>
-    </v-card-text>
-  </v-card>
+            {{ timestampingService.url }}
+          </td>
+          <td
+            :class="{ disabled: !messageLogEnabled }"
+            data-test="timestamping-message"
+          >
+            {{ getStatusMessage(timestampingService) }}
+          </td>
+          <td class="time-column" :class="{ disabled: !messageLogEnabled }">
+            {{ $filters.formatHoursMins(timestampingService.prev_update_at) }}
+          </td>
+          <td></td>
+        </tr>
+        <XrdEmptyPlaceholderRow
+          :colspan="5"
+          :loading="timestampingLoading || addonStatusLoading"
+          :data="timestampingServices"
+          :no-items-text="$t('noData.noTimestampingServices')"
+        />
+      </tbody>
+    </v-table>
+  </XrdCard>
 </template>
 <script lang="ts">
 import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
-import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
 import {
   DiagnosticStatusClass,
   TimestampingServiceDiagnostics,
 } from '@/openapi-types';
-import { i18n } from '@niis/shared-ui';
+import {
+  i18n,
+  XrdCard,
+  XrdStatusChip,
+  Status,
+  useNotifications,
+  XrdEmptyPlaceholderRow,
+} from '@niis/shared-ui';
+import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
 export default defineComponent({
+  components: { StatusAvatar, XrdCard, XrdStatusChip, XrdEmptyPlaceholderRow },
   props: {
     addonStatusLoading: {
       type: Boolean,
     },
+  },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
   },
   data: () => ({
     timestampingLoading: false,
@@ -119,28 +126,33 @@ export default defineComponent({
     this.timestampingLoading = true;
     this.fetchTimestampingServiceDiagnostics()
       .catch((error) => {
-        this.showError(error);
+        this.addError(error);
       })
       .finally(() => {
         this.timestampingLoading = false;
       });
   },
   methods: {
-    ...mapActions(useNotifications, ['showError']),
     ...mapActions(useDiagnostics, ['fetchTimestampingServiceDiagnostics']),
-    statusIconTypeTSP(status: string): string {
+    statusIconTypeTSP(status: string): Status | undefined {
       if (!status) {
-        return '';
+        return undefined;
+      }
+      const type = this.statusIconType(status);
+      if (!type) {
+        return undefined;
       }
       if (this.messageLogEnabled) {
-        return this.statusIconType(status);
+        return type;
       } else {
-        return this.statusIconType(status) + '-disabled';
+        return (type + '-disabled') as Status;
       }
     },
-    statusIconType(status: string): string {
+    statusIconType(
+      status: string,
+    ): 'ok' | 'error' | 'progress-register' | undefined {
       if (!status) {
-        return '';
+        return undefined;
       }
       switch (status) {
         case 'OK':
@@ -157,7 +169,7 @@ export default defineComponent({
       timestampingService: TimestampingServiceDiagnostics,
     ): string {
       if (timestampingService.status_class === DiagnosticStatusClass.FAIL) {
-        return i18n.global.t(
+        return this.$t(
           `error_code.${timestampingService.error?.code}`,
           timestampingService.error?.metadata,
         );
@@ -171,46 +183,16 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables';
-
-h3 {
-  color: colors.$Black100;
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 2rem;
-}
-
 .disabled {
-  cursor: not-allowed;
-  background: colors.$Black10;
-  color: colors.$WarmGrey100;
-}
-
-.xrd-card-text {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.diagnostic-card {
-  width: 100%;
-  margin-bottom: 30px;
-
-  &:first-of-type {
-    margin-top: 40px;
+  :deep(.v-card-title),
+  :deep(.v-table__wrapper) {
+    background-color: rgba(var(--v-theme-on-surface-variant), 0.08) !important;
   }
-}
 
-.status-column {
-  width: 80px;
-}
-
-.url-column {
-  width: 240px;
-}
-
-.time-column {
-  width: 160px;
+  :deep(.component-title-text),
+  th,
+  td {
+    opacity: 0.6;
+  }
 }
 </style>

@@ -43,6 +43,7 @@ import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestCertVerifier;
 import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,12 +71,14 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
 
     private T request;
 
-    protected BaseSignedRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback,
+    protected BaseSignedRequestCallback(GlobalConfProvider globalConfProvider,
+                                        OcspVerifierFactory ocspVerifierFactory,
+                                        ManagementRequestVerifier.DecoderCallback rootCallback,
                                         ManagementRequestType requestType) {
         this.globalConfProvider = globalConfProvider;
         this.rootCallback = rootCallback;
         this.requestType = requestType;
-        this.managementRequestCertVerifier = new ManagementRequestCertVerifier(globalConfProvider);
+        this.managementRequestCertVerifier = new ManagementRequestCertVerifier(globalConfProvider, ocspVerifierFactory);
     }
 
     @Override

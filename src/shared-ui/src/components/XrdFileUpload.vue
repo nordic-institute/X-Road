@@ -33,7 +33,7 @@
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import { FileUploadResult } from '../utils';
+import { FileUploadResult } from '../types';
 
 // https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types
 
@@ -100,14 +100,24 @@ function onFileDrop(event: DragEvent) {
     return;
   }
 
-  const files = [...event.dataTransfer.files].filter((item) => typesRg.value.test(item.type) || typesRg.value.test(item.name));
+  let idx = 0;
+  let matchingFile: File | undefined = undefined;
 
-  if (!files.length) {
+  while (idx < event.dataTransfer?.files.length) {
+    const file = event.dataTransfer?.files[idx];
+    if (typesRg.value.test(file.type) || typesRg.value.test(file.name)) {
+      matchingFile = file;
+      break; //only handle first one
+    }
+    idx++;
+  }
+
+  if (!matchingFile) {
     errors.value.push('not-allowed-type');
     return;
   }
 
-  _handleFile(files[0]);
+  _handleFile(matchingFile);
 }
 
 function onFileInputChange(event: Event) {

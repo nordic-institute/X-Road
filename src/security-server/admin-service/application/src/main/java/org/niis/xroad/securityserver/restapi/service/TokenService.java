@@ -58,7 +58,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.CERT_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.CSR_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.LOGIN_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCode.PIN_INCORRECT;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_FETCH_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_PIN_INCORRECT;
@@ -431,7 +430,7 @@ public class TokenService {
     }
 
     private boolean isCausedByIncorrectPin(XrdRuntimeException e) {
-        if (e.isCausedBy(PIN_INCORRECT)) {
+        if (e.isCausedBy(TOKEN_PIN_INCORRECT)) {
             return true;
         } else if (e.isCausedBy(LOGIN_FAILED)) {
             // only way to detect HSM pin incorrect is by matching to codedException
