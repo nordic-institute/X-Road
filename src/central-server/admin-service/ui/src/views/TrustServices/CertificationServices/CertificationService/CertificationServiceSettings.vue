@@ -40,6 +40,9 @@
               <th>
                 {{ $t('trustServices.certProfileInput') }}
               </th>
+              <th>
+                {{ $t('trustServices.defaultCsrFormat') }}
+              </th>
               <th v-if="allowEditSettings" class="pa-0"></th>
             </tr>
           </thead>
@@ -55,6 +58,11 @@
               <td data-test="cert-profile-card">
                 {{
                   currentCertificationService?.certificate_profile_info || ''
+                }}
+              </td>
+              <td data-test="default-csr-format-card">
+                {{
+                  currentCertificationService?.default_csr_format || ''
                 }}
               </td>
               <td v-if="allowEditSettings" class="pl-2 pr-2">

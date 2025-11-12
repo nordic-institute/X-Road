@@ -55,13 +55,10 @@
         @update:options="changeOptions"
       >
         <template #top>
-          <v-text-field
+          <XrdSearchField
             v-model="search"
-            class="xrd w-50 mb-6 ml-4"
+            class="w-50 mb-6 ml-4 mt-2"
             data-test="member-subsystem-search-field"
-            prepend-inner-icon="search"
-            single-line
-            hide-details
             autofocus
             :label="$t('systemSettings.selectSubsystem.search')"
             @update:model-value="debouncedFetchItems"

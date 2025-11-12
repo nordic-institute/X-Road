@@ -27,7 +27,6 @@
 <template>
   <v-dialog
     v-model="showDialog"
-    class="xrd-rounded-12"
     :width="width"
     :height="height"
     :persistent="canEscape"

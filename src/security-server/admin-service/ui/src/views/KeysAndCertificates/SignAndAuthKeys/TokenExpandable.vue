@@ -113,7 +113,7 @@
     </template>
 
     <template #content>
-      <div class="mt-2 mr-4 mb-4 ml-4">
+      <div class="mt-2 mr-4 ml-4">
         <!-- AUTH keys table -->
         <div class="border xrd-rounded-12 pa-0">
           <div

@@ -41,7 +41,11 @@ import org.niis.xroad.cs.openapi.model.ApprovedCertificationServiceListItemDto;
 import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.CertificationServiceSettingsDto;
+import org.niis.xroad.cs.openapi.model.CostTypeDto;
+import org.niis.xroad.cs.openapi.model.CsrFormatDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
+import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.FileVerifier;
@@ -85,17 +89,22 @@ public class CertificationServicesController implements CertificationServicesApi
     public ResponseEntity<ApprovedCertificationServiceDto> addCertificationService(MultipartFile certificate,
                                                                                    String certificateProfileInfo,
                                                                                    String tlsAuth,
+                                                                                   CsrFormatDto defaultCsrFormat,
                                                                                    String acmeServerDirectoryUrl,
                                                                                    String acmeServerIpAddress,
                                                                                    String authenticationCertificateProfileId,
                                                                                    String signingCertificateProfileId) {
         var isForTlsAuth = parseBoolean(tlsAuth);
+        CsrFormat csrFormat = defaultCsrFormat != null
+                ? CsrFormat.valueOf(defaultCsrFormat.name())
+                : CsrFormat.DER;
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
         fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
         var approvedCa = new ApprovedCertificationService(
                 fileBytes,
                 certificateProfileInfo,
                 isForTlsAuth,
+                csrFormat,
                 acmeServerDirectoryUrl,
                 acmeServerIpAddress,
                 authenticationCertificateProfileId,
@@ -119,11 +128,15 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     @AuditEventMethod(event = ADD_CERTIFICATION_SERVICE_OCSP_RESPONDER)
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
-    public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(Integer caId, String url, MultipartFile certificate) {
+    public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(Integer caId,
+                                                                                 String url,
+                                                                                 CostTypeDto costType,
+                                                                                 MultipartFile certificate) {
         final var addRequest = new OcspResponderAddRequest();
         addRequest
                 .setCaId(caId)
-                .setUrl(url);
+                .setUrl(url)
+                .setCostType(CostType.valueOf(costType.name()));
 
         if (certificate != null && !certificate.isEmpty()) {
             byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
@@ -189,6 +202,9 @@ public class CertificationServicesController implements CertificationServicesApi
                 .setAcmeServerIpAddress(settings.getAcmeServerIpAddress())
                 .setAuthenticationCertificateProfileId(settings.getAuthenticationCertificateProfileId())
                 .setSigningCertificateProfileId(settings.getSigningCertificateProfileId());
+        if (settings.getDefaultCsrFormat() != null) {
+            approvedCa.setDefaultCsrFormat(CsrFormat.valueOf(settings.getDefaultCsrFormat().name()));
+        }
 
         return ok(approvedCertificationServiceDtoConverter.convert(certificationServicesService.update(approvedCa)));
     }

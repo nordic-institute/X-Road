@@ -189,7 +189,7 @@ export default defineComponent({
     headers() {
       return [
         {
-          title: this.$t('accessRights.memberName'),
+          title: this.$t('accessRights.subsystemName'),
           align: 'start',
           key: 'name',
         },

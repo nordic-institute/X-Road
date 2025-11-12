@@ -91,7 +91,7 @@ const style = computed(() => {
       case ManagementRequestStatus.APPROVED:
         return buildStyle(
           'managementRequests.approved',
-          'success',
+          'on-success-container',
           'check_circle filled',
           'text-success',
           'bg-success-container',
@@ -99,7 +99,7 @@ const style = computed(() => {
       case ManagementRequestStatus.WAITING:
         return buildStyle(
           'managementRequests.pending',
-          'text-warning',
+          'on-warning-container',
           'warning filled',
           'text-warning',
           'bg-warning-container',
@@ -107,7 +107,7 @@ const style = computed(() => {
       case ManagementRequestStatus.SUBMITTED_FOR_APPROVAL:
         return buildStyle(
           'managementRequests.submitted',
-          'text-warning',
+          'on-warning-container',
           'warning filled',
           'text-warning',
           'bg-warning-container',

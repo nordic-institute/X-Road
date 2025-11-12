@@ -67,10 +67,10 @@
           )
         }}
       </template>
-      <template #[`item.cost`]="{ item }">
+      <template #[`item.cost_type`]="{ item }">
         {{
           $t(
-            `trustServices.trustService.timestampingService.costValues.${item.cost}`,
+            `trustServices.trustService.costType.${item.cost_type}`,
           )
         }}
       </template>
@@ -203,10 +203,10 @@ export default defineComponent({
         },
         {
           title: this.$t(
-            'trustServices.trustService.timestampingService.cost',
+            'trustServices.trustService.cost',
           ) as string,
           align: 'start',
-          key: 'cost',
+          key: 'cost_type',
         },
         {
           title: '',

@@ -37,34 +37,35 @@
     @cancel="cancel"
   >
     <template #content>
-      <XrdFormBlock>
-        <v-text-field
-          v-model="search"
-          data-test="client-search-input"
-          class="xrd w-50 mb-6"
-          hide-details
-          autofocus
-          prepend-inner-icon="search"
-          :label="$t('action.search')"
-        />
-        <v-radio-group v-model="selectedMember">
-          <v-data-table
-            class="xrd"
-            hide-default-footer
-            items-per-page="-1"
-            no-data-text="localGroup.noResults"
-            :headers="headers"
-            :items="filteredMembers"
-          >
-            <template #item.radio="{ item }">
-              <v-radio :value="item" class="xrd" />
-            </template>
-            <template #item.name="{ item }">
-              <client-name :client="item" />
-            </template>
-          </v-data-table>
-        </v-radio-group>
-      </XrdFormBlock>
+      <v-radio-group v-model="selectedMember">
+        <v-data-table
+          class="xrd border xrd-rounded-12 bg-surface-container"
+          hide-default-footer
+          items-per-page="-1"
+          no-data-text="localGroup.noResults"
+          :headers="headers"
+          :items="filteredMembers"
+        >
+          <template #top>
+            <v-text-field
+              v-model="search"
+              data-test="client-search-input"
+              class="xrd w-50 mt-2 ml-4 mb-6"
+              hide-details
+              autofocus
+              single-line
+              prepend-inner-icon="search"
+              :label="$t('action.search')"
+            />
+          </template>
+          <template #item.radio="{ item }">
+            <v-radio :value="item" class="xrd" />
+          </template>
+          <template #item.name="{ item }">
+            <client-name :client="item" />
+          </template>
+        </v-data-table>
+      </v-radio-group>
     </template>
   </XrdSimpleDialog>
 </template>

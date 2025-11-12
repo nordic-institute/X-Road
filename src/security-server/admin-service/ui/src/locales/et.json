@@ -5,7 +5,7 @@
     "addServiceClientsTitle": "Lisa ligipääs",
     "addSubjectsSuccess": "Ligipääs edukalt antud",
     "id": "ID",
-    "memberName": "Liikme nimi / Rühma kirjeldus",
+    "subsystemName": "Alamsüsteemi nimi / Rühma kirjeldus",
     "removeAllText": "Kas olete kindel, et soovite kõikidelt klientidelt pääsuõigused eemaldada?",
     "removeAllTitle": "Eemalda kõik pääsuõigused?",
     "removeSuccess": "Pääsuõigused edukalt eemaldatud",
@@ -273,7 +273,7 @@
       "ocspStatus": {
         "ERROR_CODE_OCSP_CONNECTION_ERROR": "OCSP vastajaga ei õnnestu ühendust luua",
         "ERROR_CODE_OCSP_FAILED": "OCSP vastajalt ei õnnestu vastust saada",
-        "ERROR_CODE_OCSP_RESPONSE_INVALID": "OCSP vastus vigane/kehtetu ",
+        "ERROR_CODE_OCSP_RESPONSE_INVALID": "OCSP vastus vigane/kehtetu",
         "ERROR_CODE_OCSP_RESPONSE_UNVERIFIED": "OCSP vastust ei õnnestu kontrollida",
         "ERROR_CODE_OCSP_UNINITIALIZED": "OCSP olekupäringut pole veel saadetud",
         "SUCCESS": "Kõik on korras",
@@ -464,6 +464,10 @@
     "missing_parameter": "Parameeter puudub",
     "network_error": "Võrguühenduse viga",
     "http_error": "HTTP viga",
+    "ocsp_connection_error": "OCSP vastajaga ei õnnestu ühendust luua",
+    "ocsp_failed": "OCSP vastajalt ei õnnestu vastust saada",
+    "ocsp_response_parsing_failure": "OCSP vastus vigane/kehtetu",
+    "ocsp_response_verification_failure": "OCSP vastust ei õnnestu kontrollida",
     "openapi_parsing_error": "OpenApi3 kirjelduse analüüs ebaõnnestus",
     "orphans_not_found": "Antud kliendile kuuluvaid orbvõtmeid, sertifikaate ja/või CSR-e ei leitud",
     "pin_code_exists": "PIN-kood on olemas",
@@ -797,7 +801,7 @@
     "enableSuccess": "Teenuse kirjeldus aktiveeritud",
     "idGroupCode": "ID / Grupi kood",
     "lastRefreshed": "Viimati värskendatud:",
-    "memberNameGroupDesc": "Liikme nimi / Grupi kirjeldus",
+    "subsystemNameGroupDesc": "Alamsüsteemi nimi / Grupi kirjeldus",
     "noMatches": "Sobivad kirjed puuduvad",
     "openApi3Added": "OpenApi teenus lisatud",
     "openapiDetails": "OpenAPI teenuse detailid",
@@ -919,7 +923,8 @@
         },
         "header": {
           "serviceURL": "Teenuse URL",
-          "timestampingService": "Ajatempli teenus"
+          "timestampingService": "Ajatempli teenus",
+          "costType": "Hinna tüüp"
         }
       },
       "title": "Ajatempli teenused"

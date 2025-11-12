@@ -58,18 +58,14 @@
         @update:options="changeOptions"
       >
         <template #top>
-          <v-text-field
+          <XrdSearchField
             v-model="pagingOptions.search"
             data-test="management-security-server-search-field"
-            class="xrd w-50 mb-6 ml-4"
-            prepend-inner-icon="search"
-            single-line
-            hide-details
+            class="w-50 mb-6 ml-4 mt-2"
             autofocus
             :label="$t('systemSettings.selectSecurityServer.search')"
             @update:model-value="debouncedFetchItems"
-          >
-          </v-text-field>
+          />
         </template>
         <template #bottom>
           <XrdPagination />

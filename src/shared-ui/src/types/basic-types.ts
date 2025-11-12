@@ -33,7 +33,7 @@ export type FileUploadResult = {
   file: File;
 };
 
-export type Color = 'primary' | 'secondary' | 'tertiary' | 'success' | 'warning' | 'error' | 'info' | string;
+export type PropColor = 'primary' | 'secondary' | 'tertiary' | 'success' | 'warning' | 'error' | 'info' | string;
 
 export type StatusType = 'error' | 'success' | 'warning' | 'info';
 

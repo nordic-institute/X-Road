@@ -29,6 +29,7 @@
     v-if="canDownload"
     data-test="download-anchor-button"
     variant="text"
+    color="primary"
     prepend-icon="download"
     text="action.download"
     :loading="loading"

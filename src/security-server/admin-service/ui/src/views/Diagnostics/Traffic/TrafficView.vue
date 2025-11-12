@@ -209,12 +209,16 @@
 
 <script lang="ts" setup>
 import { reactive, Reactive, Ref, ref, watch } from 'vue';
-import { useTheme } from 'vuetify';
 import { VDateInput } from 'vuetify/labs/VDateInput';
 import axios from 'axios';
 import dayjs, { Dayjs } from 'dayjs';
 import { vMaska } from 'maska/vue';
-import { useNotifications, XrdCard, XrdFormLabel } from '@niis/shared-ui';
+import {
+  useNotifications,
+  XrdCard,
+  XrdFormLabel,
+  useThemeHelper,
+} from '@niis/shared-ui';
 import { OperationalDataInterval, Service } from '@/openapi-types';
 import { useClients } from '@/store/modules/clients';
 import TrafficChart, {
@@ -226,7 +230,7 @@ import { useServiceDescriptions } from '@/store/modules/service-descriptions';
 
 const { addError } = useNotifications();
 const { t } = useI18n();
-const { current } = useTheme();
+const { colorSuccess, colorError } = useThemeHelper();
 
 const clientsStore = useClients();
 const clientsLoading = ref(true);
@@ -338,7 +342,7 @@ function toChartSeries(
   if (filter.status ?? true) {
     value.push({
       name: t('diagnostics.traffic.successfulRequests'),
-      color: current.value.colors.success,
+      color: colorSuccess.value,
       data: data.map((item) => [
         new Date(item.interval_start_time as string).getTime(),
         item.success_count ?? 0,
@@ -348,7 +352,7 @@ function toChartSeries(
   if (!(filter.status ?? false)) {
     value.push({
       name: t('diagnostics.traffic.failedRequests'),
-      color: current.value.colors.error,
+      color: colorError.value,
       data: data.map((item) => [
         new Date(item.interval_start_time as string).getTime(),
         item.failure_count ?? 0,

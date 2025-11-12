@@ -49,6 +49,7 @@ import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
 import org.niis.xroad.cs.admin.core.validation.UrlValidator;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.util.Optional;
@@ -67,6 +68,7 @@ import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.OCSP_RESPONDER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_COST_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
@@ -117,9 +119,11 @@ class OcspRespondersServiceImplTest {
     void update() throws Exception {
         final byte[] cert = TestCertUtil.getOcspSigner().certChain[0].getEncoded();
         final String newUrl = "http://new.url";
+        final CostType newCostType = CostType.PAID;
         final OcspResponderRequest request = new OcspResponderRequest()
                 .setId(ID)
                 .setUrl(newUrl)
+                .setCostType(newCostType)
                 .setCertificate(cert);
 
         final OcspInfoEntity ocspInfo = ocspInfo();
@@ -135,6 +139,7 @@ class OcspRespondersServiceImplTest {
         verify(ocspInfoRepository).save(captor.capture());
         assertEquals(newUrl, captor.getValue().getUrl());
         assertEquals(cert, captor.getValue().getCert());
+        assertEquals(newCostType.name(), captor.getValue().getCostType());
 
         assertEquals(newUrl, result.getUrl());
 
@@ -150,6 +155,7 @@ class OcspRespondersServiceImplTest {
 
         final OcspInfoEntity ocspInfo = ocspInfo();
         final byte[] cert = ocspInfo.getCert();
+        final String costType = ocspInfo.getCostType();
 
         when(ocspInfoRepository.findById(ID)).thenReturn(Optional.of(ocspInfo));
         when(ocspInfoRepository.save(isA(OcspInfoEntity.class))).thenReturn(ocspInfo);
@@ -161,6 +167,7 @@ class OcspRespondersServiceImplTest {
         verify(ocspInfoRepository).save(captor.capture());
         assertEquals(newUrl, captor.getValue().getUrl());
         assertEquals(cert, captor.getValue().getCert());
+        assertEquals(costType, captor.getValue().getCostType());
 
         assertEquals(newUrl, result.getUrl());
 
@@ -191,12 +198,15 @@ class OcspRespondersServiceImplTest {
         verify(auditDataHelper).put(OCSP_ID, ocspInfo.getId());
         verify(auditDataHelper).put(OCSP_URL, url);
         verify(auditDataHelper).put(eq(OCSP_CERT_HASH), isA(String.class));
+        verify(auditDataHelper).put(OCSP_COST_TYPE, ocspInfo.getCostType());
         verify(auditDataHelper).put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
     @SneakyThrows
     private OcspInfoEntity ocspInfo() {
-        return new OcspInfoEntity(new CaInfoEntity(), "https://flakyocsp:666", TestCertUtil.generateAuthCert());
+        OcspInfoEntity ocspInfoEntity = new OcspInfoEntity(new CaInfoEntity(), "https://flakyocsp:666", TestCertUtil.generateAuthCert());
+        ocspInfoEntity.setCostType(CostType.FREE.name());
+        return ocspInfoEntity;
     }
 
 }

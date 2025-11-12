@@ -68,6 +68,7 @@
                 data-test="subsystem-code"
                 class="opacity-60"
                 icon="folder_copy"
+                color="on-surface"
                 :label="item.subsystem_id.subsystem_code"
               />
             </td>
@@ -84,7 +85,7 @@
             <td class="status unregistered-subsystem">
               <v-chip
                 class="xrd opacity-60 font-weight-medium"
-                prepend-icon="cancel filled"
+                prepend-icon="cancel filled mr-1 ml-n1"
                 color="primary"
                 variant="outlined"
                 size="small"
@@ -117,6 +118,7 @@
                 v-if="iSub === 0"
                 data-test="subsystem-code"
                 icon="folder_copy"
+                color="on-surface"
                 :label="item.subsystem_id.subsystem_code"
               />
             </td>
@@ -152,7 +154,7 @@
                 <template #prepend>
                   <v-icon
                     class="status-icon"
-                    icon="check_circle filled"
+                    icon="check_circle filled mr-1 ml-n1"
                     color="success"
                   />
                 </template>

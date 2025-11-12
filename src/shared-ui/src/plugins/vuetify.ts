@@ -30,13 +30,14 @@ import '../assets/global-style.scss';
 import '../assets/fonts.css';
 
 import { createVuetify } from 'vuetify/framework';
-import { msrAliases, msr, createLightTheme } from '../utils';
+import { msrAliases, msr, createLightTheme, createDarkTheme, Color } from '../utils';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 import { i18n } from './i18n';
 import { useI18n } from 'vue-i18n';
 import { VTextField } from 'vuetify/components';
+import { XRD_THEME } from '../composables';
 
-export function createXrdVuetify(appSpecific: string, onAppSpecific: string) {
+export function createXrdVuetify(appSpecificLight: Color, onAppSpecificLight: Color, appSpecificDark: Color, onAppSpecificDark: Color) {
   return createVuetify({
     aliases: {
       XrdSearchField: VTextField,
@@ -107,8 +108,10 @@ export function createXrdVuetify(appSpecific: string, onAppSpecific: string) {
       adapter: createVueI18nAdapter({ i18n, useI18n }),
     },
     theme: {
+      defaultTheme: localStorage.getItem(XRD_THEME) ?? 'system',
       themes: {
-        light: createLightTheme(appSpecific, onAppSpecific),
+        light: createLightTheme(appSpecificLight, onAppSpecificLight),
+        dark: createDarkTheme(appSpecificDark, onAppSpecificDark),
       },
     },
   });

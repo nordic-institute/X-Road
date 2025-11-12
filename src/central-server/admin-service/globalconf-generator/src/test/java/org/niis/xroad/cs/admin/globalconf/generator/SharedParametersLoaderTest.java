@@ -56,6 +56,8 @@ import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 import org.niis.xroad.globalconf.model.CertHash;
+import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.globalconf.model.SharedParameters;
 
 import java.util.List;
@@ -187,6 +189,7 @@ class SharedParametersLoaderTest {
             assertThat(tsa.getName()).isEqualTo(TSA_NAME);
             assertThat(tsa.getUrl()).isEqualTo(TSA_URL);
             assertThat(tsa.getCert()).isEqualTo(TSA_CERT);
+            assertThat(tsa.getCostType()).isEqualTo(CostType.PAID);
         });
     }
 
@@ -194,11 +197,13 @@ class SharedParametersLoaderTest {
         assertThat(parameters.getApprovedCAs()).singleElement().satisfies(approvedCA -> {
             assertThat(approvedCA.getName()).isEqualTo(CA_NAME);
             assertThat(approvedCA.getCertificateProfileInfo()).isEqualTo(CA_PROFILE_INFO);
+            assertThat(approvedCA.getDefaultCsrFormat()).isEqualTo(CsrFormat.DER);
             assertThat(approvedCA.getAuthenticationOnly()).isTrue();
             assertThat(approvedCA.getTopCA()).isNotNull();
             assertThat(approvedCA.getTopCA().getCert()).isEqualTo(CA_CERT);
             assertThat(approvedCA.getTopCA().getOcsp()).singleElement().satisfies(ocsp -> {
                 assertThat(ocsp.getUrl()).isEqualTo(CA_OCSP_URL);
+                assertThat(ocsp.getCostType()).isEqualTo(CostType.FREE);
                 assertThat(ocsp.getCert()).isEqualTo(CA_OCSP_CERT);
                 assertThat(approvedCA.getAcmeServer().getDirectoryURL()).isEqualTo(CA_ACME_SERVER_URL);
                 assertThat(approvedCA.getAcmeServer().getIpAddress()).isEqualTo(CA_ACME_SERVER_IP_ADDRESS);
@@ -240,6 +245,7 @@ class SharedParametersLoaderTest {
         certificationService.setCertificate(CA_CERT);
         certificationService.setCertificateProfileInfo(CA_PROFILE_INFO);
         certificationService.setTlsAuth(true);
+        certificationService.setDefaultCsrFormat(CsrFormat.DER);
         certificationService.setOcspResponders(List.of(getOcspResponder(CA_OCSP_URL, CA_OCSP_CERT)));
         certificationService.setIntermediateCas(List.of(getCertificateAuthority()));
         certificationService.setAcmeServerDirectoryUrl(CA_ACME_SERVER_URL);
@@ -259,6 +265,7 @@ class SharedParametersLoaderTest {
     private OcspResponder getOcspResponder(String caOcspUrl, byte[] caOcspCert) {
         var ocsp = new OcspResponder();
         ocsp.setUrl(caOcspUrl);
+        ocsp.setCostType(CostType.FREE);
         ocsp.setCertificate(caOcspCert);
         return ocsp;
     }
@@ -267,6 +274,7 @@ class SharedParametersLoaderTest {
         var approvedTsa = new ApprovedTsa();
         approvedTsa.setName(TSA_NAME);
         approvedTsa.setUrl(TSA_URL);
+        approvedTsa.setCostType(CostType.PAID);
         approvedTsa.setCertificate(new CertificateDetails().setEncoded(TSA_CERT));
         return approvedTsa;
     }

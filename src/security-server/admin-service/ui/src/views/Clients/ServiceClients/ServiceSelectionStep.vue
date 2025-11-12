@@ -26,71 +26,70 @@
  -->
 <template>
   <XrdWizardStep>
-    <XrdFormBlock>
-      <v-text-field
-        v-model="search"
-        data-test="search-service-client-service"
-        class="xrd xrd-search-field"
-        density="compact"
-        prepend-inner-icon="search"
-        single-line
-        hide-details
-        autofocus
-        :label="$t('serviceClients.serviceSelectionStep')"
-      />
+    <v-table class="xrd xrd-rounded-12 border bg-surface-container">
+      <template #top>
+        <v-text-field
+          v-model="search"
+          data-test="search-service-client-service"
+          class="xrd xrd-search-field mt-2 ml-4 mb-6"
+          density="compact"
+          prepend-inner-icon="search"
+          single-line
+          hide-details
+          autofocus
+          :label="$t('serviceClients.serviceSelectionStep')"
+        />
+      </template>
+      <thead>
+        <tr>
+          <th class="selection-checkbox"></th>
+          <th>{{ $t('serviceClients.serviceCode') }}</th>
+          <th>{{ $t('serviceClients.title') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="accessRight in searchResults"
+          :key="accessRight.id"
+          class="service-row"
+          data-test="access-right-toggle"
+        >
+          <td class="xrd-checkbox-column">
+            <v-checkbox
+              v-model="selections"
+              :value="accessRight"
+              data-test="access-right-checkbox-input"
+              class="xrd"
+              hide-details
+            />
+          </td>
+          <td class="identifier-wrap">{{ accessRight.service_code }}</td>
+          <td class="identifier-wrap">{{ accessRight.service_title }}</td>
+        </tr>
+      </tbody>
+    </v-table>
 
-      <v-table class="xrd">
-        <thead>
-          <tr>
-            <th class="selection-checkbox"></th>
-            <th>{{ $t('serviceClients.serviceCode') }}</th>
-            <th>{{ $t('serviceClients.title') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="accessRight in searchResults"
-            :key="accessRight.id"
-            class="service-row"
-            data-test="access-right-toggle"
-          >
-            <td class="xrd-checkbox-column">
-              <v-checkbox
-                v-model="selections"
-                :value="accessRight"
-                data-test="access-right-checkbox-input"
-                class="xrd"
-                hide-details
-              />
-            </td>
-            <td class="identifier-wrap">{{ accessRight.service_code }}</td>
-            <td class="identifier-wrap">{{ accessRight.service_title }}</td>
-          </tr>
-        </tbody>
-      </v-table>
+    <p
+      v-if="serviceCandidates.length === 0"
+      class="mt-4 body-regular text-center"
+    >
+      {{ $t('serviceClients.noAvailableServices') }}
+    </p>
 
-      <p
-        v-if="serviceCandidates.length === 0"
-        class="mt-4 body-regular text-center"
-      >
-        {{ $t('serviceClients.noAvailableServices') }}
-      </p>
-
-      <p
-        v-if="
-          serviceCandidates.length > 0 &&
-          searchResults &&
-          searchResults.length === 0
-        "
-        class="mt-4 body-regular text-center"
-      >
-        <i18n-t scope="global" keypath="action.emptySearch">
-          <template #msg>
-            <span class="font-weight-medium">{{ search }}</span>
-          </template>
-        </i18n-t>
-      </p>
-    </XrdFormBlock>
+    <p
+      v-if="
+        serviceCandidates.length > 0 &&
+        searchResults &&
+        searchResults.length === 0
+      "
+      class="mt-4 body-regular text-center"
+    >
+      <i18n-t scope="global" keypath="action.emptySearch">
+        <template #msg>
+          <span class="font-weight-medium">{{ search }}</span>
+        </template>
+      </i18n-t>
+    </p>
     <template #footer>
       <XrdBtn
         variant="text"

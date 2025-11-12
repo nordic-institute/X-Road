@@ -5,7 +5,7 @@
     "addServiceClientsTitle": "Добавить объекты",
     "addSubjectsSuccess": "Права доступа успешно добавлены",
     "id": "ID",
-    "memberName": "Имя участника / Описание группы",
+    "subsystemName": "Название подсистемы / Описание группы",
     "removeAllText": "Вы уверены, что хотите удалить права доступа у всех клиентов?",
     "removeAllTitle": "Удалить все права доступа?",
     "removeSuccess": "Права доступа успешно удалены",
@@ -398,6 +398,10 @@
     "missing_parameter": "Отсутствует параметр",
     "network_error": "Ошибка сети",
     "http_error": "Ошибка HTTP",
+    "ocsp_connection_error": "Не удалось подключиться к OCSP-ответчику",
+    "ocsp_failed": "Не удалось получить ответ от OCSP-ответчика",
+    "ocsp_response_parsing_failure": "Не удалось разобрать ответ OCSP",
+    "ocsp_response_verification_failure": "Не удалось проверить ответ OCSP",
     "openapi_parsing_error": "Не удалось разобрать описание OpenApi3",
     "orphans_not_found": "Одинокие ключи, сертификаты и/или CSR, принадлежащие данному клиенту, не найдены",
     "pin_code_exists": "PIN-код существует",
@@ -687,7 +691,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Код участника/группы",
     "memberGroupStep": "Участник / Группа",
-    "name": "Имя участника / Описание группы",
+    "name": "Название подсистемы / Описание группы",
     "noAccessRights": "Нет прав доступа к этому клиенту",
     "noAvailableServices": "Нет доступных служб",
     "removeAll": "Удалить все",
@@ -717,7 +721,7 @@
     "enableSuccess": "Описание сервиса включено",
     "idGroupCode": "ID / Код группы",
     "lastRefreshed": "Последнее обновление: ",
-    "memberNameGroupDesc": "Имя участника / Описание группы",
+    "subsystemNameGroupDesc": "Название подсистемы / Описание группы",
     "noMatches": "Нет совпадающих записей",
     "openApi3Added": "Сервис OpenApi3 добавлен",
     "openapiDetails": "Детали OpenAPI 3",
@@ -839,7 +843,8 @@
         },
         "header": {
           "serviceURL": "URL службы",
-          "timestampingService": "Служба временных меток"
+          "timestampingService": "Служба временных меток",
+          "costType": "Тип стоимости"
         }
       },
       "title": "Службы временных меток"

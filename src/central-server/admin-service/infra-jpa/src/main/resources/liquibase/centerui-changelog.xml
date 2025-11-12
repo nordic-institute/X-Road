@@ -37,6 +37,8 @@
     <include file="centerui/202506191456-admin-users.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202506301304-drop-ui_users-table.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202507091531-identifiers-consolidation.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202510141700-tsa-ocsp-cost-type.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202511031700-ca-csr-format.xml" relativeToChangelogFile="true"/>
     <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->

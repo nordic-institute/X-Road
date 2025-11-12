@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-chip class="xrd" density="compact" :color="color">
+  <v-chip class="xrd" density="compact" :class="color">
     <template #prepend>
       <XrdStatusIcon class="mr-1 ml-n1" :status="status" />
     </template>
@@ -52,7 +52,9 @@ const props = defineProps({
 });
 
 const status = computed(() => (props.active ? 'ok' : 'error-disabled'));
-const color = computed(() => (props.active ? 'success' : 'error'));
+const color = computed(() =>
+  props.active ? 'bg-success-container' : 'bg-error-container',
+);
 const textClass = computed(() =>
   props.active ? 'on-success-container' : 'on-error-container',
 );

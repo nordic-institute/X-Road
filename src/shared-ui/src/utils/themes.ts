@@ -28,95 +28,190 @@
 // Version 8.0 colors as enum.
 import { XrdTheme } from '../types';
 
-import { Colors as XrdColors } from './colors';
-
-const border = XrdColors.Blue100;
+import { Color } from './colors';
 
 const variables = {
   'high-emphasis-opacity': 1,
   'medium-emphasis-opacity': 1,
   'disabled-opacity': 0.5,
   'border-opacity': 1,
-  'border-color': border,
 };
 
-export function createLightTheme(appSpecific: string, onAppSpecific: string): XrdTheme {
+export function createDarkTheme(appSpecific: Color, onAppSpecific: Color): XrdTheme {
+  const border = Color.B_600;
   return {
-    dark: false,
-    variables,
+    dark: true,
+    variables: {
+      ...variables,
+      'border-color': border,
+      'success-container-opacity': 0.15,
+      'info-container-opacity': 0.2,
+      'warning-container-opacity': 0.15,
+      'error-container-opacity': 0.2,
+    },
     colors: {
       /* Vuetify colors */
-      background: XrdColors.White, //TODO XRD8 is it?
-      surface: XrdColors.Blue100,
-      primary: XrdColors.Maroon400,
-      secondary: XrdColors.Maroon600,
-      success: XrdColors.Green700,
-      warning: XrdColors.Yellow700,
-      error: XrdColors.Red600,
-      info: XrdColors.Blue500,
+      background: Color.D_900, //TODO XRD8 is it?
+      surface: Color.B_700,
+      primary: Color.D_200,
+      secondary: Color.D_100,
+      success: Color.G_300,
+      warning: Color.Y_300,
+      error: Color.R_300,
+      info: Color.B_300,
 
-      'on-background': XrdColors.Maroon900, //TODO XRD8 is it?
-      'on-surface': XrdColors.Maroon900,
-      'on-primary': XrdColors.White,
-      'on-secondary': XrdColors.White,
-      'on-success': XrdColors.White,
-      'on-warning': XrdColors.White,
-      'on-error': XrdColors.White,
-      'on-info': XrdColors.White,
+      'on-background': Color.WHITE, //TODO XRD8 is it?
+      'on-surface': Color.WHITE,
+      'on-primary': Color.D_700,
+      'on-secondary': Color.D_700,
+      'on-success': Color.D_900,
+      'on-warning': Color.D_900,
+      'on-error': Color.D_900,
+      'on-info': Color.D_900,
 
       /* Custom colors */
-      'surface-variant': XrdColors.Blue100,
-      'on-surface-variant': XrdColors.Maroon400,
+      'surface-variant': Color.B_700,
+      'on-surface-variant': Color.D_200,
 
-      'surface-container': XrdColors.White,
-      'surface-container-low': XrdColors.Blue50,
-      'surface-container-lowest': XrdColors.Blue10,
-      'surface-container-high': XrdColors.Blue50,
+      'surface-container': Color.B_800,
+      'surface-container-low': Color.B_800,
+      'surface-container-lowest': Color.B_900,
+      'surface-container-high': Color.B_700,
 
-      'surface-dim': XrdColors.Blue50,
+      'surface-dim': Color.B_900,
 
-      'inverse-primary': XrdColors.Yellow200,
-      'inverse-surface': XrdColors.Blue700,
-      'on-inverse-surface': XrdColors.White,
+      'inverse-primary': Color.M_600,
+      'inverse-surface': Color.B_100,
+      'on-inverse-surface': Color.M_900,
 
-      special: XrdColors.Maroon100,
-      'special-start': XrdColors.White,
-      'on-special': XrdColors.Maroon700,
+      special: Color.D_100,
+      'special-start': Color.WHITE,
+      'on-special': Color.D_700,
 
       'app-specific': appSpecific,
       'on-app-specific': onAppSpecific,
 
-      'logo-wordmark': XrdColors.Maroon700,
+      'logo-wordmark': Color.WHITE,
       'on-logo-wordmark': onAppSpecific,
 
-      accent: XrdColors.Magenta600,
-      'on-accent': XrdColors.White,
-      'accent-container': XrdColors.White,
-      'on-accent-container': XrdColors.Magenta600,
+      accent: Color.Y_200,
+      'on-accent': Color.Y_900,
+      'accent-container': Color.B_500,
+      'on-accent-container': Color.Y_300,
 
-      tertiary: XrdColors.Magenta600,
-      'on-tertiary': XrdColors.White,
+      tertiary: Color.R_200,
+      'on-tertiary': Color.R_900,
 
       border,
-      'border-bright': XrdColors.Blue400,
-      'border-strong': XrdColors.Maroon600,
+      'border-bright': Color.B_400,
+      'border-strong': Color.D_100,
 
-      'success-container': XrdColors.Green400,
-      'on-success-container': XrdColors.Maroon700,
+      'success-container': Color.G_400,
+      'on-success-container': Color.WHITE,
 
-      'info-container': XrdColors.Blue400,
-      'on-info-container': XrdColors.Maroon700,
+      'info-container': Color.B_400,
+      'on-info-container': Color.WHITE,
 
-      'warning-container': XrdColors.Yellow400,
-      'on-warning-container': XrdColors.Maroon700,
+      'warning-container': Color.Y_400,
+      'on-warning-container': Color.WHITE,
 
-      'error-container': XrdColors.Red400,
-      'on-error-container': XrdColors.Maroon700,
+      'error-container': Color.R_400,
+      'on-error-container': Color.WHITE,
 
-      'elevation-1': XrdColors.Blue500,
+      'elevation-1': Color.BLACK,
 
-      login: XrdColors.Maroon800,
-      'login-start': XrdColors.Maroon600,
+      login: Color.D_100,
+      'login-start': Color.WHITE,
+    },
+  };
+}
+
+export function createLightTheme(appSpecific: Color, onAppSpecific: Color): XrdTheme {
+  const border = Color.B_100;
+
+  return {
+    dark: false,
+    variables: {
+      ...variables,
+      'border-color': border,
+      'success-container-opacity': 0.15,
+      'info-container-opacity': 0.15,
+      'warning-container-opacity': 0.15,
+      'error-container-opacity': 0.1,
+    },
+    colors: {
+      /* Vuetify colors */
+      background: Color.WHITE, //TODO XRD8 is it?
+      surface: Color.B_100,
+      primary: Color.D_400,
+      secondary: Color.D_600,
+      success: Color.G_700,
+      warning: Color.Y_700,
+      error: Color.R_600,
+      info: Color.B_500,
+
+      'on-background': Color.D_900, //TODO XRD8 is it?
+      'on-surface': Color.D_900,
+      'on-primary': Color.WHITE,
+      'on-secondary': Color.WHITE,
+      'on-success': Color.WHITE,
+      'on-warning': Color.WHITE,
+      'on-error': Color.WHITE,
+      'on-info': Color.WHITE,
+
+      /* Custom colors */
+      'surface-variant': Color.B_100,
+      'on-surface-variant': Color.D_400,
+
+      'surface-container': Color.WHITE,
+      'surface-container-low': Color.B_50,
+      'surface-container-lowest': Color.B_10,
+      'surface-container-high': Color.B_50,
+
+      'surface-dim': Color.B_50,
+
+      'inverse-primary': Color.Y_200,
+      'inverse-surface': Color.B_700,
+      'on-inverse-surface': Color.WHITE,
+
+      special: Color.D_100,
+      'special-start': Color.WHITE,
+      'on-special': Color.D_700,
+
+      'app-specific': appSpecific,
+      'on-app-specific': onAppSpecific,
+
+      'logo-wordmark': Color.D_700,
+      'on-logo-wordmark': onAppSpecific,
+
+      accent: Color.M_600,
+      'on-accent': Color.WHITE,
+      'accent-container': Color.WHITE,
+      'on-accent-container': Color.M_600,
+
+      tertiary: Color.M_600,
+      'on-tertiary': Color.WHITE,
+
+      border,
+      'border-bright': Color.B_400,
+      'border-strong': Color.D_600,
+
+      'success-container': Color.G_400,
+      'on-success-container': Color.D_700,
+
+      'info-container': Color.B_400,
+      'on-info-container': Color.D_700,
+
+      'warning-container': Color.Y_400,
+      'on-warning-container': Color.D_700,
+
+      'error-container': Color.R_400,
+      'on-error-container': Color.D_700,
+
+      'elevation-1': Color.B_500,
+
+      login: Color.D_800,
+      'login-start': Color.D_600,
     },
   };
 }

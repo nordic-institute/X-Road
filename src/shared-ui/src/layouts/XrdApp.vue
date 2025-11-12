@@ -26,7 +26,7 @@
  -->
 
 <template>
-  <v-app theme="light">
+  <v-app>
     <slot />
     <XrdLogoutDialog v-if="!loginView && !sessionAlive" @logout="emit('logout')" />
     <XrdSnackBar />

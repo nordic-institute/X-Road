@@ -57,6 +57,7 @@
           <XrdBtn
             variant="text"
             text="action.upload"
+            color="primary"
             prepend-icon="upload"
             :loading="uploading"
             @click="upload"

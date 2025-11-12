@@ -45,22 +45,22 @@ public class OcspRespondersPageObj {
     }
 
     public SelenideElement tableRowOf(String url) {
-        var xpath = "./tbody/tr/td/div/span[contains(., '%s')]";
+        var xpath = "./tbody/tr[td/div/span[contains(., '%s')]]";
         return table().find(xpath(String.format(xpath, url)));
     }
 
     public SelenideElement btnViewOcspResponder(String url) {
-        var xpath = "../../..//td/button[@data-test='view-ocsp-responder-certificate']";
+        var xpath = "./td/button[@data-test='view-ocsp-responder-certificate']";
         return tableRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnEditOcspResponder(String url) {
-        var xpath = "../../..//td/button[@data-test='edit-ocsp-responder']";
+        var xpath = "./td/button[@data-test='edit-ocsp-responder']";
         return tableRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnDeleteOcspResponder(String url) {
-        var xpath = "../../..//td/button[@data-test='delete-ocsp-responder']";
+        var xpath = "./td/button[@data-test='delete-ocsp-responder']";
         return tableRowOf(url).find(xpath(xpath));
     }
 
@@ -72,6 +72,10 @@ public class OcspRespondersPageObj {
     public class AddEditDialog {
         public SelenideElement inputOcspResponderUrl() {
             return $x("//div[@data-test='ocsp-responder-url-input']");
+        }
+
+        public SelenideElement inputRadioCostType(String costType) {
+            return $x("//div[@data-test='ocsp-responder-cost-type-radio-%s']".formatted(costType.toUpperCase()));
         }
 
         public SelenideElement inputCertificateFile() {

@@ -28,18 +28,10 @@
   <XrdSubView>
     <template #header>
       <div>
-        <v-text-field
+        <XrdRoundedSearchField
           v-model="filter"
           data-test="search-query-field"
-          class="xrd"
-          bg-color="surface-container"
-          variant="outlined"
-          rounded="pill"
-          density="compact"
           width="320"
-          prepend-inner-icon="search"
-          single-line
-          hide-details
           :label="$t('action.search')"
         />
       </div>
@@ -59,9 +51,8 @@
           data-test="backup-upload"
           class="ml-2"
           variant="flat"
-          color="primary"
           text="backup.uploadBackup.button"
-          prepend-icon="download"
+          prepend-icon="upload"
           :loading="uploading"
           @click="upload"
         />
@@ -69,7 +60,7 @@
     </template>
     <v-data-table
       item-key="filename"
-      class="xrd"
+      class="xrd border"
       hide-default-footer
       :loading="loading"
       :headers="headers"

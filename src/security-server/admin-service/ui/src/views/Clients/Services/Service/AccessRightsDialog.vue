@@ -248,7 +248,7 @@ export default defineComponent({
     headers() {
       return [
         { title: '', key: 'select' },
-        { title: this.$t('services.memberNameGroupDesc'), key: 'name' },
+        { title: this.$t('services.subsystemNameGroupDesc'), key: 'name' },
         { title: this.$t('general.type'), key: 'id' },
         { title: this.$t('general.type'), key: 'service_client_type' },
       ] as DataTableHeader[];

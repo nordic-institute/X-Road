@@ -113,9 +113,9 @@ public class SharedParametersV5Converter {
         Map<String, ClientId> ret = new HashMap<>();
         source.getMember().forEach(member -> {
             ret.put(member.getId(), toClientId(source.getInstanceIdentifier(), member));
-            member.getSubsystem().forEach(subsystem -> {
-                ret.put(subsystem.getId(), toClientId(source.getInstanceIdentifier(), member, subsystem));
-            });
+            member.getSubsystem().forEach(subsystem ->
+                    ret.put(subsystem.getId(), toClientId(source.getInstanceIdentifier(), member, subsystem))
+            );
         });
         return ret;
     }

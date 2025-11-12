@@ -323,7 +323,7 @@ export default defineComponent({
     },
     headers() {
       return [
-        { title: this.$t('services.memberNameGroupDesc'), key: 'name' },
+        { title: this.$t('services.subsystemNameGroupDesc'), key: 'name' },
         { title: this.$t('services.idGroupCode'), key: 'id' },
         { title: this.$t('general.type'), key: 'service_client_type' },
         { title: this.$t('accessRights.rightsGiven'), key: 'rights_given_at' },
