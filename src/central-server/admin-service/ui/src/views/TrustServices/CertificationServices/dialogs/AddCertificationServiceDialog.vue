@@ -81,11 +81,11 @@
               <v-select
                 v-model="defaultCsrFormat"
                 v-bind="defaultCsrFormatAttrs"
+                data-test="csr-format-select"
+                class="xrd mt-6"
                 variant="outlined"
                 :label="$t('trustServices.defaultCsrFormat')"
                 :items="csrFormatList"
-                class="mt-6"
-                data-test="csr-format-select"
               />
             </XrdFormBlockRow>
             <XrdFormBlockRow full-length>
