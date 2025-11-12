@@ -52,8 +52,9 @@ public class MessageLogArchiverConfiguration extends MessageLogEncryptionConfig 
 
     @Bean
     public LogArchiver logArchiver(GlobalConfProvider globalConfProvider, MessageLogDatabaseCtx databaseCtx,
-                                   PgpKeyManager keyManager, BouncyCastlePgpEncryptionService encryptionService) {
-        return new LogArchiver(keyManager, encryptionService, globalConfProvider, databaseCtx);
+                                   PgpKeyManager keyManager, BouncyCastlePgpEncryptionService encryptionService,
+                                   VaultClient vaultClient) {
+        return new LogArchiver(keyManager, encryptionService, globalConfProvider, databaseCtx, vaultClient);
     }
 
     @Bean

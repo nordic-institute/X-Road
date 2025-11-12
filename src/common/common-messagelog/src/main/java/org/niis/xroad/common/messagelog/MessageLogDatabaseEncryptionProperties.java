@@ -25,11 +25,8 @@
  */
 package org.niis.xroad.common.messagelog;
 
-import java.nio.file.Path;
-import java.util.Optional;
-
 /**
- * Message log database encryption properties
+ * Message log database encryption properties.
  */
 public interface MessageLogDatabaseEncryptionProperties {
     /**
@@ -38,18 +35,9 @@ public interface MessageLogDatabaseEncryptionProperties {
     boolean enabled();
 
     /**
-     * @return keystore path for messagelog encryption keys or empty if not defined
+     * @return message log encryption key ID. Required when encryption is enabled.
+     * This ID is used as the HKDF salt for key derivation from the Vault secret.
      */
-    Optional<Path> messagelogKeystore();
-
-    /**
-     * @return keystore password or empty if not defined
-     */
-    Optional<char[]> messagelogKeystorePassword();
-
-    /**
-     * @return message log encryption key ID or empty if not defined
-     */
-    Optional<String> messagelogKeyId();
+    String keyId();
 }
 

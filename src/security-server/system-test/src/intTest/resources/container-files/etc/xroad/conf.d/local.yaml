@@ -19,9 +19,7 @@ xroad:
     message-log:
       database-encryption:
         enabled: true
-        messagelog-keystore: /etc/xroad/messagelog/messagelog.p12
-        messagelog-keystore-password: somepassword
-        messagelog-key-id: key1
+        key-id: default
       archiver:
         encryption-enabled: true
     addon:

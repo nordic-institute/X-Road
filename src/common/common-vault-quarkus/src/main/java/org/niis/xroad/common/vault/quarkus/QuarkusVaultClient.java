@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.io.ByteArrayInputStream;
@@ -97,31 +98,47 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
-    public void createMessageLogArchivalSigningSecretKey(String armoredPrivateKey) {
+    public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         var secret = new HashMap<String, String>();
 
         secret.put(PAYLOAD_KEY, armoredPrivateKey);
-        kvSecretEngine.writeSecret(PGP_MLOG_SECRET_KEY_PATH, secret);
+        kvSecretEngine.writeSecret(MLOG_ARCHIVAL_PGP_SECRET_KEY_PATH, secret);
     }
 
     @Override
-    public Optional<String> getMessageLogArchivalSigningSecretKey() {
-        return readSecret(PGP_MLOG_SECRET_KEY_PATH)
+    public Optional<String> getMLogArchivalSigningSecretKey() {
+        return readSecret(MLOG_ARCHIVAL_PGP_SECRET_KEY_PATH)
                 .map(secret -> secret.get(PAYLOAD_KEY));
     }
 
     @Override
-    public void createMessageLogArchivalEncryptionPublicKeys(String armoredRecipientPublicKeys) {
+    public void setMLogArchivalEncryptionPublicKeys(String armoredRecipientPublicKeys) {
         var secret = new HashMap<String, String>();
 
         secret.put(PAYLOAD_KEY, armoredRecipientPublicKeys);
-        kvSecretEngine.writeSecret(PGP_MLOG_PUBLIC_KEYS_PATH, secret);
+        kvSecretEngine.writeSecret(MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH, secret);
     }
 
     @Override
-    public Optional<String> getMessageLogArchivalEncryptionPublicKeys() {
-        return readSecret(PGP_MLOG_PUBLIC_KEYS_PATH)
+    public Optional<String> getMLogArchivalEncryptionPublicKeys() {
+        return readSecret(MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH)
                 .map(secret -> secret.get(PAYLOAD_KEY));
+    }
+
+    @Override
+    public void setMLogDBEncryptionSecretKey(String keyId, String base64SecretKey) {
+        var secret = MessageLogVaultDataUtils.createEncryptionKeySecret(base64SecretKey);
+        String path = MessageLogVaultDataUtils.buildEncryptionKeyPath(keyId);
+        kvSecretEngine.writeSecret(path, secret);
+        log.info("Stored encryption key in Vault at path: {}", path);
+    }
+
+    @Override
+    public Map<String, String> getMLogDBEncryptionSecretKeys() {
+        return MessageLogVaultDataUtils.getMLogDBEncryptionSecretKeys(
+                kvSecretEngine::listSecrets,
+                this::readSecret
+        );
     }
 
     private Optional<Map<String, String>> readSecret(String path) {

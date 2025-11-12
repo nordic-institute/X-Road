@@ -272,8 +272,8 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
 
         var key = generator.generate("INSTANCE/memberClass/memberCode");
         var vaultClient = mock(VaultClient.class);
-        when(vaultClient.getMessageLogArchivalSigningSecretKey()).thenReturn(Optional.of(key.secretData()));
-        when(vaultClient.getMessageLogArchivalEncryptionPublicKeys()).thenReturn(Optional.of(key.publicData()));
+        when(vaultClient.getMLogArchivalSigningSecretKey()).thenReturn(Optional.of(key.secretData()));
+        when(vaultClient.getMLogArchivalEncryptionPublicKeys()).thenReturn(Optional.of(key.publicData()));
 
         var messageLogEncryptionConfig = new MessageLogEncryptionConfig();
         var keyProvider = messageLogEncryptionConfig.keyProvider(vaultClient);

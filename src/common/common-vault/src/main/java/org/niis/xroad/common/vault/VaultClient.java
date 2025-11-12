@@ -38,6 +38,7 @@ import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.bouncycastle.openssl.PEMParser.TYPE_CERTIFICATE;
@@ -53,8 +54,10 @@ public interface VaultClient {
     String ADMIN_SERVICE_TLS_CREDENTIALS_PATH = "tls/admin-service";
     String MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH = "tls/management-service";
 
-    String PGP_MLOG_SECRET_KEY_PATH = "pgp/message-log-archival/secret-key";
-    String PGP_MLOG_PUBLIC_KEYS_PATH = "pgp/message-log-archival/public-keys";
+    String MLOG_ARCHIVAL_PGP_SECRET_KEY_PATH = "message-log/archival/pgp/secret-key";
+    String MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH = "message-log/archival/pgp/public-keys";
+
+    String MLOG_DB_ENCRYPTION_SECRET_KEYS_BASE_PATH = "message-log/database-encryption/keys";
 
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
@@ -72,13 +75,30 @@ public interface VaultClient {
 
     void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
-    void createMessageLogArchivalSigningSecretKey(String armoredPrivateKey);
+    void setMLogArchivalSigningSecretKey(String armoredPrivateKey);
 
-    Optional<String> getMessageLogArchivalSigningSecretKey();
+    Optional<String> getMLogArchivalSigningSecretKey();
 
-    void createMessageLogArchivalEncryptionPublicKeys(String armoredRecipientPublicKeys);
+    void setMLogArchivalEncryptionPublicKeys(String armoredRecipientPublicKeys);
 
-    Optional<String> getMessageLogArchivalEncryptionPublicKeys();
+    Optional<String> getMLogArchivalEncryptionPublicKeys();
+
+    /**
+     * Stores message log database encryption secret key for a specific key ID.
+     *
+     * @param keyId The key identifier (e.g., "key1", "key2")
+     * @param base64SecretKey Base64-encoded secret key bytes
+     */
+    void setMLogDBEncryptionSecretKey(String keyId, String base64SecretKey);
+
+    /**
+     * Retrieves all message log database encryption secret keys.
+     * Returns a map where key is keyId and value is base64-encoded secret key.
+     * This supports key rotation by allowing multiple keys to be stored.
+     *
+     * @return Map of keyId to base64-encoded secret keys
+     */
+    Map<String, String> getMLogDBEncryptionSecretKeys();
 
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();

@@ -33,8 +33,6 @@ import org.niis.xroad.common.messagelog.MessageLogArchivalProperties;
 import org.niis.xroad.common.messagelog.MessageLogDatabaseEncryptionProperties;
 import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -72,24 +70,7 @@ public record LogArchiverExecutionProperties(
      */
     public record DatabaseEncryptionProperties(
             boolean enabled,
-            String messagelogKeystoreStr,
-            String messagelogKeystorePasswordStr,
-            String messagelogKeyIdStr
+            String keyId
     ) implements MessageLogDatabaseEncryptionProperties {
-
-        @Override
-        public Optional<Path> messagelogKeystore() {
-            return Optional.ofNullable(messagelogKeystoreStr).map(Paths::get);
-        }
-
-        @Override
-        public Optional<char[]> messagelogKeystorePassword() {
-            return Optional.ofNullable(messagelogKeystorePasswordStr).map(String::toCharArray);
-        }
-
-        @Override
-        public Optional<String> messagelogKeyId() {
-            return Optional.ofNullable(messagelogKeyIdStr);
-        }
     }
 }

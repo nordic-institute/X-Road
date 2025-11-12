@@ -30,30 +30,27 @@ import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.messagelog.MessageAttachment;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
+import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator;
 import org.bouncycastle.crypto.params.HKDFParameters;
 import org.bouncycastle.util.Arrays;
+import org.niis.xroad.common.vault.VaultClient;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.GeneralSecurityException;
-import java.security.Key;
 import java.security.KeyException;
-import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,61 +83,97 @@ public final class MessageRecordEncryption {
     private final String currentKeyId;
     private final boolean encryptionEnabled;
 
-    public MessageRecordEncryption(MessageLogDatabaseEncryptionProperties properties) {
+    public MessageRecordEncryption(@Nonnull MessageLogDatabaseEncryptionProperties properties, @Nonnull VaultClient vaultClient) {
         this.encryptionEnabled = properties.enabled();
-        this.currentKeyId = properties.messagelogKeyId().orElse(null);
 
         try {
             Map<String, SecretKeySpec> tmpMessageKeys = new HashMap<>();
             Map<String, SecretKeySpec> tmpAttachmentKeys = new HashMap<>();
 
-            if (properties.messagelogKeystore().isPresent()) {
-                final Path store = properties.messagelogKeystore().get();
-                if (Files.exists(store)) {
-                    final char[] password = properties.messagelogKeystorePassword().orElse(null);
-                    final KeyStore keyStore = KeyStore.getInstance("pkcs12");
-                    try (InputStream is = Files.newInputStream(store)) {
-                        keyStore.load(is, password);
-                    }
-                    final HKDFBytesGenerator generator = new HKDFBytesGenerator(new SHA512Digest());
-                    final Enumeration<String> aliases = keyStore.aliases();
-                    final byte[] buf = new byte[AES_KEY_SIZE];
+            if (encryptionEnabled) {
+                String keyId = properties.keyId();
 
-                    while (aliases.hasMoreElements()) {
-                        final String keyId = aliases.nextElement();
-                        final Key key = keyStore.getKey(keyId, password);
-                        if (!(key instanceof SecretKey && "RAW".equalsIgnoreCase(key.getFormat())
-                                && key.getEncoded() != null)) {
-                            log.warn("Keystore {} entry {} is not a secret key with raw encoding, ignoring", store, keyId);
-                            continue;
-                        }
-                        byte[] secret = key.getEncoded();
+                // Load the key from Vault
+                loadKeyFromVault(vaultClient, keyId, tmpMessageKeys, tmpAttachmentKeys);
 
-                        HKDFParameters hkdfParameters =
-                                new HKDFParameters(secret, keyId.getBytes(StandardCharsets.UTF_8), null);
-                        generator.init(hkdfParameters);
-                        Arrays.clear(secret);
-
-                        generator.generateBytes(buf, 0, AES_KEY_SIZE);
-                        tmpMessageKeys.put(keyId, new SecretKeySpec(buf, "AES"));
-                        Arrays.clear(buf);
-
-                        generator.generateBytes(buf, 0, AES_KEY_SIZE);
-                        tmpAttachmentKeys.put(keyId, new SecretKeySpec(buf, "AES"));
-                        Arrays.clear(buf);
-                    }
+                if (tmpMessageKeys.isEmpty() || tmpAttachmentKeys.isEmpty()) {
+                    throw new IllegalStateException("Message log encryption is enabled but no key found in Vault");
                 }
+
+                this.currentKeyId = keyId;
+            } else {
+                this.currentKeyId = null;
             }
+
             messageKeys = Collections.unmodifiableMap(tmpMessageKeys);
             attachmentKeys = Collections.unmodifiableMap(tmpAttachmentKeys);
         } catch (Exception e) {
             throw new IllegalStateException("Unable to initialize message log encryption", e);
         }
-
-        if (encryptionEnabled && (messageKeys.isEmpty() || attachmentKeys.isEmpty())) {
-            log.warn("Message log encryption is enabled but no keys are available.");
-        }
     }
+
+    /**
+     * Loads all encryption keys from Vault.
+     *
+     * @param vaultClient       Vault client
+     * @param keyId             Key ID from configuration (key-id) to use for encryption
+     * @param tmpMessageKeys    Map to populate with message encryption keys
+     * @param tmpAttachmentKeys Map to populate with attachment encryption keys
+     */
+    private void loadKeyFromVault(VaultClient vaultClient, String keyId,
+                                  Map<String, SecretKeySpec> tmpMessageKeys,
+                                  Map<String, SecretKeySpec> tmpAttachmentKeys) {
+        log.debug("Loading message log encryption keys from Vault (current keyId: {})", keyId);
+
+        Map<String, String> allKeys = vaultClient.getMLogDBEncryptionSecretKeys();
+        if (allKeys.isEmpty()) {
+            throw new IllegalStateException("No encryption keys found in Vault");
+        }
+
+        // Load all keys to support decryption of messages encrypted with old keys
+        for (Map.Entry<String, String> entry : allKeys.entrySet()) {
+            String keyInVaultId = entry.getKey();
+            String base64SecretKey = entry.getValue();
+
+            if (base64SecretKey == null || base64SecretKey.isBlank()) {
+                log.warn("Skipping empty key for keyId: {}", keyInVaultId);
+                continue;
+            }
+
+            // Decode base64 secret key
+            byte[] secret = Base64.getDecoder().decode(base64SecretKey);
+
+            final HKDFBytesGenerator generator = new HKDFBytesGenerator(new SHA512Digest());
+            final byte[] buf = new byte[AES_KEY_SIZE];
+
+            // Use keyId as HKDF salt to derive message and attachment keys
+            HKDFParameters hkdfParameters =
+                    new HKDFParameters(secret, keyInVaultId.getBytes(StandardCharsets.UTF_8), null);
+            generator.init(hkdfParameters);
+            Arrays.clear(secret);
+
+            // Derive message encryption key
+            generator.generateBytes(buf, 0, AES_KEY_SIZE);
+            tmpMessageKeys.put(keyInVaultId, new SecretKeySpec(buf, "AES"));
+            Arrays.clear(buf);
+
+            // Derive attachment encryption key
+            generator.generateBytes(buf, 0, AES_KEY_SIZE);
+            tmpAttachmentKeys.put(keyInVaultId, new SecretKeySpec(buf, "AES"));
+            Arrays.clear(buf);
+
+            log.debug("Loaded encryption key from Vault: {}", keyInVaultId);
+        }
+
+        // Verify that the current key ID is available
+        if (!tmpMessageKeys.containsKey(keyId)) {
+            throw new IllegalStateException("Current key ID '" + keyId
+                    + "' not found in Vault. Available keys: " + tmpMessageKeys.keySet());
+        }
+
+        log.info("Loaded {} encryption key(s) from Vault, current key: {}", tmpMessageKeys.size(), keyId);
+    }
+
 
     public boolean encryptionEnabled() {
         return encryptionEnabled;
@@ -148,10 +181,11 @@ public final class MessageRecordEncryption {
 
     /**
      * Prepares a message record for decryption.
-     *
+     * <p>
      * Just populates the transient cipher fields — decryption is (lazily) done when the record
      * is converted to an asic container. Does not change the entity state as it is managed by JPA. Also,
      * avoids reading the blob contents to memory prematurely (can be large, up to 2 GiB).
+     *
      * @param messageRecord record to decrypt
      * @return the message record prepared for decryption
      * @throws GeneralSecurityException if setting up the encryption fails.
@@ -175,10 +209,11 @@ public final class MessageRecordEncryption {
 
     /**
      * Prepares a message record for encryption.
-     *
+     * <p>
      * Assumes a new message record not yet persisted to database. The message is encrypted and the attachment stream
      * (if any) is wrapped to a CipherStream so that persisting the record will eventually encrypt the contents. In
      * order to be able to use record id sequence as IV, the setup needs to be deferred until transaction is active.
+     *
      * @param messageRecord message record to encrypt
      * @return the message record prepared for encryption
      * @throws GeneralSecurityException if setting up the encryption fails.

@@ -154,10 +154,8 @@ public class MessageLogArchiverService extends MessageLogArchiverServiceGrpc.Mes
         );
 
         var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
-                config.getMessagelogEncryptionEnabled(),
-                nullableOf(config.hasMessagelogKeystore(), config::getMessagelogKeystore),
-                nullableOf(config.hasMessagelogKeystorePassword(), config::getMessagelogKeystorePassword),
-                nullableOf(config.hasMessagelogKeyId(), config::getMessagelogKeyId)
+                config.getDatabaseEncryptionEnabled(),
+                nullableOf(config.hasDatabaseEncryptionKeyId(), config::getDatabaseEncryptionKeyId)
         );
 
         return new LogArchiverExecutionProperties(

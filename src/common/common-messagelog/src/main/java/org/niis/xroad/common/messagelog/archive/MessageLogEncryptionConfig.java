@@ -64,7 +64,8 @@ public class MessageLogEncryptionConfig {
     }
 
     @ApplicationScoped
-    public MessageRecordEncryption messageRecordEncryption(MessageLogDatabaseEncryptionProperties encryptionProperties) {
-        return new MessageRecordEncryption(encryptionProperties);
+    public MessageRecordEncryption messageRecordEncryption(MessageLogDatabaseEncryptionProperties encryptionProperties,
+                                                          VaultClient vaultClient) {
+        return new MessageRecordEncryption(encryptionProperties, vaultClient);
     }
 }
