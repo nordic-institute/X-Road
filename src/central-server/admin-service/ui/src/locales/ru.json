@@ -617,6 +617,7 @@
     "certProfileInput": "Информация о профиле сертификата",
     "certProfileInputExplanation": "Полное имя класса, реализующего интерфейс ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "certificationServices": "Сервисы сертификации",
+    "defaultCsrFormat": "Формат CSR по умолчанию",
     "timestampingService": {
       "addedSuccessfully": "Служба временных меток успешно добавлена",
       "dialog": {
@@ -701,6 +702,7 @@
         "acmeCapable": "Этот CA может использоваться для ACME",
         "acmeNotCapable": "Этот CA не может использоваться для ACME",
         "certProfile": "Информация о профиле сертификата (полное имя класса, реализующего интерфейс ee.ria.xroad.common.CertificateProfileInfoProvider)",
+        "defaultCsrFormat": "Формат CSR по умолчанию (выбирается автоматически при создании новых ключей аутентификации и подписи с этим УЦ; можно изменить вручную)",
         "saveSuccess": "Настройки CA успешно сохранены",
         "tlsAuth": "Этот CA может использоваться только для TLS-аутентификации"
       },

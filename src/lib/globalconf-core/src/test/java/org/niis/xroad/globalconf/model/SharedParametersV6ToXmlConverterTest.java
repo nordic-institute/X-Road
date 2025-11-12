@@ -174,6 +174,7 @@ class SharedParametersV6ToXmlConverterTest {
         approvedCA.setTopCA(getCaInfo());
         approvedCA.setCertificateProfileInfo("certificateProfileInfo");
         approvedCA.setIntermediateCas(List.of(getCaInfo()));
+        approvedCA.setDefaultCsrFormat(CsrFormat.PEM);
         approvedCA.setAcmeServer(new SharedParameters.AcmeServer("http://testca.com/acme", "192.99.88.7", "1", "2"));
         return approvedCA;
     }

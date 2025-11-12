@@ -622,6 +622,7 @@
     "certProfileInput": "Información del perfil de certificado",
     "certProfileInputExplanation": "Nombre de clase totalmente calificado (FQDN) que implementa la interfaz ee.ria.xroad.common.certificateprofile.certificateProfileInfoprovider",
     "certificationServices": "Servicios de certificación",
+    "defaultCsrFormat": "Formato CSR predeterminado",
     "timestampingService": {
       "addedSuccessfully": "Servicio de marca de tiempo agregado correctamente",
       "dialog": {
@@ -706,6 +707,7 @@
         "acmeCapable": "Esta CA se puede usar para Acme",
         "acmeNotCapable": "Esta CA no se puede usar para Acme",
         "certProfile": "Información del perfil de certificado (nombre de clase totalmente calificado (FQDN) que implementa la interfaz ee.ria.xroad.common.certificateProfileInfoprovider)",
+        "defaultCsrFormat": "Formato CSR predeterminado (seleccionado automáticamente al crear nuevas claves de autenticación y firma con esta AC; se puede cambiar manualmente)",
         "saveSuccess": "Configuración de CA guardada correctamente",
         "tlsAuth": "Esta CA solo se puede usar para la autenticación TLS"
       },

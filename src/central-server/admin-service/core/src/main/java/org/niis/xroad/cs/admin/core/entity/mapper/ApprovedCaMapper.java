@@ -39,6 +39,7 @@ public interface ApprovedCaMapper extends GenericUniDirectionalMapper<ApprovedCa
     @Override
     @Mapping(target = "authenticationCertificateProfileId", source = "authCertProfileId")
     @Mapping(target = "signingCertificateProfileId", source = "signCertProfileId")
+    @Mapping(target = "defaultCsrFormat", defaultValue = "DER")
     ApprovedCa toTarget(ApprovedCaEntity approvedCaEntity);
 
 }

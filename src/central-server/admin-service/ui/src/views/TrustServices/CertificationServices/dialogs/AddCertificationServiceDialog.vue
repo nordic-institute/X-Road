@@ -78,6 +78,17 @@
               />
             </XrdFormBlockRow>
             <XrdFormBlockRow full-length>
+              <v-select
+                v-model="defaultCsrFormat"
+                v-bind="defaultCsrFormatAttrs"
+                data-test="csr-format-select"
+                class="xrd mt-6"
+                variant="outlined"
+                :label="$t('trustServices.defaultCsrFormat')"
+                :items="csrFormatList"
+              />
+            </XrdFormBlockRow>
+            <XrdFormBlockRow full-length>
               <v-checkbox
                 v-model="isAcme"
                 data-test="acme-checkbox"
@@ -152,6 +163,7 @@ import {
   XrdFormBlockRow,
   XrdCertificateFileUpload,
 } from '@niis/shared-ui';
+import { CsrFormat } from '@/openapi-types';
 
 const emit = defineEmits(['save', 'cancel']);
 
@@ -170,17 +182,24 @@ const { meta, defineField, handleSubmit } = useForm({
   initialValues: {
     tlsAuthOnly: false,
     certProfile: '',
+    defaultCsrFormat: CsrFormat.DER,
     acmeServerDirectoryUrl: '',
     acmeServerIpAddress: '',
     authenticationCertificateProfileId: '',
     signingCertificateProfileId: '',
   },
 });
+const csrFormatList = Object.values(CsrFormat).map((csrFormat) => ({
+  title: csrFormat,
+  value: csrFormat,
+}));
 const [tlsAuthOnly, tlsAuthOnlyAttrs] = defineField('tlsAuthOnly');
 const [certProfile, certProfileAttrs] = defineField('certProfile', {
   props: (state) => ({ 'error-messages': state.errors }),
   validateOnModelUpdate: true,
 });
+const [defaultCsrFormat, defaultCsrFormatAttrs] =
+  defineField('defaultCsrFormat');
 const [acmeServerDirectoryUrl, acmeServerDirectoryUrlAttrs] = defineField(
   'acmeServerDirectoryUrl',
   {
@@ -223,6 +242,7 @@ const onSave = handleSubmit((values) => {
       certificate: certFile.value,
       tls_auth: values.tlsAuthOnly.toString(),
       certificate_profile_info: values.certProfile,
+      default_csr_format: values.defaultCsrFormat,
       acme_server_directory_url: values.acmeServerDirectoryUrl,
       acme_server_ip_address: values.acmeServerIpAddress,
       authentication_certificate_profile_id:
