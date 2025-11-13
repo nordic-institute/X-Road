@@ -328,4 +328,14 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
         }
         return code.toLowerCase();
     }
+
+    public static ErrorCode fromCode(String code) {
+        for (ErrorCode errorCode : values()) {
+            if (errorCode.code.equals(code)) {
+                return errorCode;
+            }
+        }
+        log.warn("Unknown error code '{}'", code);
+        return null;
+    }
 }

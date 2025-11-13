@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.TestCertUtil;
 
 import lombok.SneakyThrows;
@@ -37,6 +36,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
@@ -135,8 +135,8 @@ class ConfigurationClientTest {
             client.execute();
 
             fail("Should fail to download");
-        } catch (CodedException expected) {
-            assertEquals(ErrorCode.GLOBAL_CONF_MISSING_SIGNED_DATA_EXPIRATION_DATE.code(), expected.getFaultCode());
+        } catch (XrdRuntimeException expected) {
+            assertEquals(ErrorCode.GLOBAL_CONF_MISSING_SIGNED_DATA_EXPIRATION_DATE.code(), expected.getErrorCode());
         }
     }
 
