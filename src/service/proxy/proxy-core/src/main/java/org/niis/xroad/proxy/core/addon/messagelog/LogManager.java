@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
@@ -63,9 +62,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
-import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.niis.xroad.common.core.exception.ErrorCode.LOGGING_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMPING_FAILED;
 
@@ -242,7 +241,7 @@ public class LogManager extends AbstractLogManager {
             public InputStream getStream() {
                 if (attachment.getSize() > messageLogProperties.maxLoggableMessageBodySize()
                         && !messageLogProperties.truncatedBodyAllowed()) {
-                    throw new CodedException(X_LOGGING_FAILED_X, "Message attachment size exceeds maximum loggable size");
+                    throw XrdRuntimeException.systemException(LOGGING_FAILED, "Message attachment size exceeds maximum loggable size");
                 }
                 final BoundedInputStream body = new BoundedInputStream(attachment.getStream(),
                         messageLogProperties.maxLoggableMessageBodySize());
@@ -277,7 +276,7 @@ public class LogManager extends AbstractLogManager {
                 && manipulator.isBodyLogged(message)) {
             if (message.getBody().size() > messageLogProperties.maxLoggableMessageBodySize()
                     && !messageLogProperties.truncatedBodyAllowed()) {
-                throw new CodedException(X_LOGGING_FAILED_X, "Message size exceeds maximum loggable size");
+                throw XrdRuntimeException.systemException(LOGGING_FAILED, "Message size exceeds maximum loggable size");
             }
             final BoundedInputStream body = BoundedInputStream.builder()
                     .setInputStream(message.getBody())

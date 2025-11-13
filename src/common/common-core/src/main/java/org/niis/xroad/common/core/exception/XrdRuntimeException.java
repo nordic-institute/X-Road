@@ -161,7 +161,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
     }
 
     @Override
-    public CodedException withPrefix(String... prefixes) {
+    public XrdRuntimeException withPrefix(String... prefixes) {
         //TODO consider keeping prefix separately instead of modifying the code
         var prefix = StringUtils.join(prefixes, ".");
 
@@ -259,6 +259,25 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
                     .details(ex.getMessage())
                     .build();
         };
+    }
+
+    public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, String details) {
+        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, errorCode)
+                .details(details)
+                .build();
+    }
+
+    public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, String details, Throwable cause) {
+        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, errorCode)
+                .cause(cause)
+                .details(details)
+                .build();
+    }
+
+    public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, Throwable cause) {
+        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, errorCode)
+                .cause(cause)
+                .build();
     }
 
     public static XrdRuntimeException systemInternalError(String details) {

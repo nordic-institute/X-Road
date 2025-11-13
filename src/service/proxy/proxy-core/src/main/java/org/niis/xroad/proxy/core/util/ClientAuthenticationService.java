@@ -27,7 +27,6 @@
 
 package org.niis.xroad.proxy.core.util;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.RequestWrapper;
 
@@ -35,6 +34,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.proxy.core.clientproxy.IsAuthenticationData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -48,8 +48,7 @@ import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -90,16 +89,18 @@ public class ClientAuthenticationService {
             // The getIsAuthentication method implemented in ServerConfCommonImpl
             // checks if the client exists; if it does, returns the
             // isAuthentication value or NOSSL if no value is specified.
-            throw new CodedException(X_INTERNAL_ERROR, "Client '%s' not found", client);
+            throw XrdRuntimeException.systemInternalError("Client '%s' not found".formatted(client));
         }
 
         log.trace("IS authentication for client '{}' is: {}", client, isAuthentication);
 
         if (isAuthentication == IsAuthentication.SSLNOAUTH && auth.isPlaintextConnection()) {
-            throw new CodedException(X_SSL_AUTH_FAILED, "Client (%s) specifies HTTPS NO AUTH but client made plaintext connection", client);
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
+                    "Client (%s) specifies HTTPS NO AUTH but client made plaintext connection".formatted(client));
         } else if (isAuthentication == IsAuthentication.SSLAUTH) {
             if (auth.cert() == null) {
-                throw new CodedException(X_SSL_AUTH_FAILED, "Client (%s) specifies HTTPS but did not supply TLS certificate", client);
+                throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
+                        "Client (%s) specifies HTTPS but did not supply TLS certificate".formatted(client));
             }
 
             // Accept certificates issued by OpenBao (management requests from Proxy UI to ClientProxy within the same security server)
@@ -109,12 +110,12 @@ public class ClientAuthenticationService {
 
             List<X509Certificate> isCerts = serverConfProvider.getIsCerts(client);
             if (isCerts.isEmpty()) {
-                throw new CodedException(X_SSL_AUTH_FAILED, "Client (%s) has no IS certificates", client);
+                throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, "Client (%s) has no IS certificates".formatted(client));
             }
 
             if (!isCerts.contains(auth.cert())) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) TLS certificate does not match any IS certificates", client);
+                throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
+                        "Client (%s) TLS certificate does not match any IS certificates".formatted(client));
             }
 
             clientIsCertPeriodValidation(client, auth.cert());
@@ -144,13 +145,14 @@ public class ClientAuthenticationService {
             cert.checkValidity();
         } catch (CertificateExpiredException e) {
             if (proxyProperties.enforceClientIsCertValidityPeriodCheck()) {
-                throw new CodedException(X_SSL_AUTH_FAILED, "Client (%s) TLS certificate is expired", client);
+                throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, "Client (%s) TLS certificate is expired".formatted(client));
             } else {
                 log.warn("Client {} TLS certificate is expired", client);
             }
         } catch (CertificateNotYetValidException e) {
             if (proxyProperties.enforceClientIsCertValidityPeriodCheck()) {
-                throw new CodedException(X_SSL_AUTH_FAILED, "Client (%s) TLS certificate is not yet valid", client);
+                throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
+                        "Client (%s) TLS certificate is not yet valid".formatted(client));
             } else {
                 log.warn("Client {} TLS certificate is not yet valid", client);
             }

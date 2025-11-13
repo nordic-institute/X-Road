@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -38,6 +37,7 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.PreEncodedHttpField;
 import org.eclipse.jetty.server.Request;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -71,7 +71,7 @@ class ClientRestMessageProcessorTest {
         var opMonitoringData = new OpMonitoringData(CLIENT, 100);
         var clientRestMessageProcessor = createMockedClientRestMessageProcessor(opMonitoringData);
 
-        assertThrows(CodedException.class, clientRestMessageProcessor::process);
+        assertThrows(XrdRuntimeException.class, clientRestMessageProcessor::process);
 
         verifyOpMonitoringData(opMonitoringData.getData());
     }

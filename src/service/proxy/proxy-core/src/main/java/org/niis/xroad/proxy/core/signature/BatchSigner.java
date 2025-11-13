@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.signature;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
@@ -57,7 +56,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 
@@ -107,7 +105,7 @@ public class BatchSigner implements MessageSigner {
         try {
             return completableFuture.get(signerRpcChannelProperties.deadlineAfter(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException timeoutException) {
-            throw new CodedException(X_INTERNAL_ERROR, "Signature creation timed out");
+            throw XrdRuntimeException.systemInternalError("Signature creation timed out");
         }
     }
 

@@ -47,6 +47,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -59,7 +60,7 @@ import java.util.Map.Entry;
 
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 
 /**
  * Base class for a closeable HTTP sender.
@@ -272,7 +273,7 @@ public abstract class AbstractHttpSender implements Closeable {
 
         @Override
         public boolean streamAbort(InputStream wrapped) {
-            throw new CodedException(X_IO_ERROR, "Stream was aborted");
+            throw XrdRuntimeException.systemException(IO_ERROR, "Stream was aborted");
         }
     }
 }

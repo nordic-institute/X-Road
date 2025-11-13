@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.proxy.core.protocol;
 
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.message.RestRequest;
@@ -36,10 +34,11 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import lombok.Getter;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
@@ -49,10 +48,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_MESSAGE;
+import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 
 /**
  * Tests to verify correct proxy message decoder behavior.
@@ -74,9 +78,6 @@ public class ProxyMessageDecoderTest {
         ocspVerifierFactory = new OcspVerifierFactory();
     }
 
-    @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
-
     /**
      * Test to ensure a normal message is decoded correctly.
      *
@@ -89,7 +90,7 @@ public class ProxyMessageDecoderTest {
         ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("normal.request"));
 
-        assertNotNull(callback.getMessage());
+        assertNotNull(callback.getSoapMessage());
         assertNotNull(callback.getSignature());
     }
 
@@ -105,7 +106,7 @@ public class ProxyMessageDecoderTest {
         ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("normal-soapfault.request"));
 
-        assertNotNull(callback.getFault());
+        assertNotNull(callback.getSoapFault());
     }
 
     /**
@@ -120,7 +121,7 @@ public class ProxyMessageDecoderTest {
         ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("attachment.request"));
 
-        assertNotNull(callback.getMessage());
+        assertNotNull(callback.getSoapMessage());
         assertTrue(callback.hasAttachments());
         assertNotNull(callback.getSignature());
     }
@@ -137,55 +138,46 @@ public class ProxyMessageDecoderTest {
         ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("ocsp.request"));
 
-        assertNotNull(callback.getMessage());
+        assertNotNull(callback.getSoapMessage());
         assertNotNull(callback.getOcspResponse());
         assertNotNull(callback.getSignature());
     }
 
     /**
      * Test to ensure an invalid message is decoded correctly.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void notProxyMessage() throws Exception {
-        thrown.expectError(ErrorCodes.X_INVALID_MESSAGE);
-
+    public void notProxyMessage() {
         ProxyMessageDecoder decoder = createDecoder(MimeTypes.TEXT_XML);
-        decoder.parse(getQuery("simple.query"));
+        XrdRuntimeException xrdException = assertThrows(XrdRuntimeException.class, () -> decoder.parse(getQuery("simple.query")));
+        assertEquals(INVALID_MESSAGE.code(), xrdException.getErrorCode());
 
-        assertNull(callback.getMessage());
+        assertNull(callback.getSoapMessage());
     }
 
     /**
      * Test to ensure a message with invalid content type is encoded correctly.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void invalidContentType() throws Exception {
-        thrown.expectError(ErrorCodes.X_INVALID_CONTENT_TYPE);
-
+    public void invalidContentType() {
         String contentType = "tsdfsdfsdf";
         ProxyMessageDecoder decoder = createDecoder(contentType);
-        decoder.parse(null);
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> decoder.parse(null));
+        assertEquals(INVALID_CONTENT_TYPE.code(), ex.getErrorCode());
 
-        assertNull(callback.getMessage());
+        assertNull(callback.getSoapMessage());
     }
 
     /**
      * Test to ensure a null input is correctly handled.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void faultNotAllowed() throws Exception {
-        thrown.expectError(ErrorCodes.X_INTERNAL_ERROR);
-
+    public void faultNotAllowed() {
         ProxyMessageDecoder decoder = createDecoder(MimeTypes.TEXT_XML);
-        decoder.parse(null);
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> decoder.parse(null));
+        assertEquals(INTERNAL_ERROR.code(), ex.getErrorCode());
 
-        assertNull(callback.getMessage());
+        assertNull(callback.getSoapMessage());
     }
 
     /**
@@ -198,73 +190,58 @@ public class ProxyMessageDecoderTest {
         ProxyMessageDecoder decoder = createDecoder(MimeTypes.TEXT_XML);
         decoder.parse(getQuery("fault.query"));
 
-        assertNotNull(callback.getFault());
+        assertNotNull(callback.getSoapFault());
     }
 
     /**
      * Test to ensure an invalid attachment is decoded correctly.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void invalidContentTypeInMultipart() throws Exception {
-        thrown.expectError(ErrorCodes.X_INVALID_CONTENT_TYPE);
-
+    public void invalidContentTypeInMultipart() {
         ProxyMessageDecoder decoder = createDecoder(MimeTypes.MULTIPART_MIXED);
-        decoder.parse(getQuery("attachm-error.query"));
-
-        assertNotNull(callback.getMessage());
-        assertFalse(callback.hasAttachments());
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> decoder.parse(getQuery("attachm-error.query")));
+        assertEquals(INVALID_CONTENT_TYPE.code(), ex.getErrorCode());
     }
 
     /**
      * Test to ensure the decoder fails to parse a message with extra content.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void failsToParseWithExtraContent() throws Exception {
-        thrown.expectError(ErrorCodes.X_INVALID_MESSAGE);
-
+    public void failsToParseWithExtraContent() {
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
         ProxyMessageDecoder decoder = createDecoder(contentType);
-        decoder.parse(getMessage("extracontent.request"));
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> decoder.parse(getMessage("extracontent.request")));
+        assertEquals(INVALID_MESSAGE.code(), ex.getErrorCode());
     }
 
     /**
      * Test to ensure a message with an invalid OCSP response is decoded correctly.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void invalidOcsp() throws Exception {
-        thrown.expectError(ErrorCodes.X_IO_ERROR);
-
+    public void invalidOcsp() {
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
         ProxyMessageDecoder decoder = createDecoder(contentType);
-        decoder.parse(getMessage("invalid-ocsp.request"));
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> decoder.parse(getMessage("invalid-ocsp.request")));
+        assertEquals(IO_ERROR.code(), ex.getErrorCode());
 
-        assertNotNull(callback.getMessage());
         assertNull(callback.getOcspResponse());
     }
 
     /**
      * Test to ensure the decoder fails to parse a message with invalid SOAP content type.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void invalidSoapContentType() throws Exception {
-        thrown.expectError(ErrorCodes.X_INVALID_CONTENT_TYPE);
-
+    public void invalidSoapContentType() {
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
         ProxyMessageDecoder decoder = createDecoder(contentType);
-        decoder.parse(getMessage("invalid-soap-contenttype.request"));
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
+                () -> decoder.parse(getMessage("invalid-soap-contenttype.request")));
+        assertEquals(INVALID_CONTENT_TYPE.code(), ex.getErrorCode());
 
-        assertNull(callback.getMessage());
+        assertNull(callback.getSoapMessage());
     }
 
     /**
@@ -279,23 +256,21 @@ public class ProxyMessageDecoderTest {
         ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("fault-signature.request"));
 
-        assertNotNull(callback.getFault());
+        assertNotNull(callback.getSoapFault());
         assertNull(callback.getSignature());
     }
 
     /**
      * Test to ensure a message with an invalid signature content type is decoded correctly.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void invalidContentTypeForSignature() throws Exception {
-        thrown.expectError(ErrorCodes.X_INVALID_CONTENT_TYPE);
-
+    public void invalidContentTypeForSignature() {
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
         ProxyMessageDecoder decoder = createDecoder(contentType);
-        decoder.parse(getMessage("invalid-contenttype-signature.request"));
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
+                () -> decoder.parse(getMessage("invalid-contenttype-signature.request")));
+        assertEquals(INVALID_CONTENT_TYPE.code(), ex.getErrorCode());
 
         assertNull(callback.getSignature());
     }
@@ -317,6 +292,7 @@ public class ProxyMessageDecoderTest {
         return Digests.DEFAULT_DIGEST_ALGORITHM;
     }
 
+    @Getter
     private static final class DummyMessageConsumer implements ProxyMessageConsumer {
 
         private SoapMessageImpl soapMessage;
@@ -325,24 +301,8 @@ public class ProxyMessageDecoderTest {
         private SignatureData signature;
         private SoapFault soapFault;
 
-        public SoapMessageImpl getMessage() {
-            return soapMessage;
-        }
-
         public boolean hasAttachments() {
             return hasAttachments;
-        }
-
-        public OCSPResp getOcspResponse() {
-            return ocspResponse;
-        }
-
-        public SignatureData getSignature() {
-            return signature;
-        }
-
-        public SoapFault getFault() {
-            return soapFault;
         }
 
         @Override
@@ -353,12 +313,10 @@ public class ProxyMessageDecoderTest {
 
         @Override
         public void rest(RestRequest message) {
-
         }
 
         @Override
         public void restBody(InputStream content) {
-
         }
 
         @Override

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.signature;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
@@ -43,6 +42,7 @@ import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -53,7 +53,6 @@ import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
@@ -115,7 +114,7 @@ public class SignatureCtx {
         log.trace("getDataToBeSigned(requests = {})", requests.size());
 
         if (requests.isEmpty()) {
-            throw new CodedException(X_INTERNAL_ERROR, "No requests in signing context");
+            throw XrdRuntimeException.systemInternalError("No requests in signing context");
         }
 
         SigningRequest firstRequest = requests.getFirst();

@@ -26,10 +26,10 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
@@ -40,7 +40,7 @@ import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 /**
  * Handles client messages. This handler must be the last handler in the
@@ -85,7 +85,7 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
 
         AuthKey authKey = keyConfProvider.getAuthKey();
         if (authKey.certChain() == null) {
-            throw new CodedException(X_SSL_AUTH_FAILED,
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");
         }
     }

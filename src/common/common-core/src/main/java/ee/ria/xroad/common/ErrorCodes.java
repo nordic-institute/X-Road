@@ -45,8 +45,6 @@ public final class ErrorCodes {
     public static final String X_IO_ERROR = "io_error";
     public static final String X_NETWORK_ERROR = "network_error";
     public static final String X_INTERNAL_ERROR = "internal_error";
-    public static final String X_BAD_REQUEST = "bad_request";
-    public static final String X_NOT_FOUND = "not_found";
     public static final String X_HTTP_ERROR = "http_error";
     public static final String X_UNKNOWN_HOST = "unknown_host";
     public static final String X_DATABASE_ERROR = "database_error";
@@ -80,7 +78,6 @@ public final class ErrorCodes {
     public static final String X_INVALID_SOAP_ACTION = "invalid_soap_action";
     public static final String X_INVALID_HTTP_METHOD = "invalid_http_method";
     public static final String X_INVALID_MESSAGE = "invalid_message";
-    public static final String X_INVALID_SECURITY_SERVER = "invalid_security_server";
     public static final String X_MIME_PARSING_FAILED = "mime_parsing_failed";
     public static final String X_MISSING_HEADER = "missing_header";
     public static final String X_MISSING_HEADER_FIELD = "missing_header_field";
@@ -91,7 +88,6 @@ public final class ErrorCodes {
     public static final String X_INCONSISTENT_RESPONSE = "inconsistent_response";
     public static final String X_MISSING_SOAP = "missing_soap";
     public static final String X_INVALID_SOAP = "invalid_soap";
-    public static final String X_MISSING_REST = "missing_rest";
     public static final String X_ACCESS_DENIED = "access_denied";
     public static final String X_SERVICE_DISABLED = "service_disabled";
     public static final String X_SERVICE_FAILED_X = "service_failed";
@@ -99,8 +95,6 @@ public final class ErrorCodes {
     public static final String X_UNKNOWN_SERVICE = "unknown_service";
     public static final String X_INVALID_PROTOCOL_VERSION = "invalid_protocol_version";
     public static final String X_INVALID_CLIENT_IDENTIFIER = "invalid_client_identifier";
-    public static final String X_INVALID_SERVICE_TYPE = "service_type";
-    public static final String X_CLIENT_PROXY_VERSION_NOT_SUPPORTED = "client_proxy_version_not_supported";
 
     // ASiC container related errors
 
@@ -120,9 +114,6 @@ public final class ErrorCodes {
     public static final String X_MALFORMED_GLOBALCONF = "malformed_global_conf";
     public static final String X_MALFORMED_OPTIONAL_PARTS_CONF = "malformed_optional_parts_conf";
     public static final String X_OUTDATED_GLOBALCONF = "global_conf_outdated";
-    public static final String X_SERVICE_MISSING_URL = "service_missing_url";
-    public static final String X_SERVICE_MALFORMED_URL = "service_malformed_url";
-    public static final String X_HW_MODULE_NON_OPERATIONAL = "hsm_non_operational";
     public static final String X_MAINTENANCE_MODE = "maintenance_mode";
     public static final String X_MALFORMED_ANCHOR = "malformed_anchor";
     public static final String X_ANCHOR_FILE_NOT_FOUND = "anchor_file_not_found";
@@ -149,9 +140,6 @@ public final class ErrorCodes {
     public static final String X_CERT_IMPORT_FAILED = "cert_import_failed";
     public static final String X_TOKEN_PIN_POLICY_FAILURE = "token_pin_policy_failure";
 
-    // MessageLog errors
-    public static final String X_MLOG_TIMESTAMPER_FAILED = "timestamper_failed";
-
     /**
      * Translates technical exceptions to proxy exceptions with
      * the appropriate error code.
@@ -159,7 +147,7 @@ public final class ErrorCodes {
      * @param ex the exception
      * @return translated CodedException
      */
-    public static CodedException  translateException(Throwable ex) {
+    public static CodedException translateException(Throwable ex) {
         return XrdRuntimeException.systemException(ex);
     }
 

@@ -33,6 +33,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -85,7 +86,7 @@ public abstract class HandlerBase extends Handler.Abstract {
         response.write(true, ByteBuffer.wrap(messageBytes), callback);
     }
 
-    protected void failure(Request request, Response response, Callback callback, CodedException ex)
+    protected void failure(Request request, Response response, Callback callback, XrdRuntimeException ex)
             throws IOException {
     }
 }

@@ -37,11 +37,11 @@ import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.testsuite.UsingDummyServerProxy;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.util.JettyUtils.setContentLength;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
+import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 
 /**
  * Client sends normal message, SP aborts connection (content type: text/xml).
@@ -77,6 +77,6 @@ public class ServerProxyConnectionAborted2 extends MessageTestCase implements Us
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_SERVICE_FAILED_X, X_IO_ERROR);
+        assertErrorCode(SERVER_CLIENTPROXY_X, X_SERVICE_FAILED_X, IO_ERROR.code());
     }
 }

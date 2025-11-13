@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -37,6 +36,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -48,12 +48,11 @@ import org.niis.xroad.proxy.core.util.PerformanceLogger;
 import java.io.IOException;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HTTP_METHOD;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.PRODUCER;
 
 @Slf4j
@@ -80,8 +79,8 @@ public class ServerProxyHandler extends HandlerBase {
 
         try {
             if (!request.getMethod().equalsIgnoreCase("POST")) {
-                throw new CodedException(X_INVALID_HTTP_METHOD, "Must use POST request method instead of %s",
-                        request.getMethod());
+                throw XrdRuntimeException.systemException(INVALID_HTTP_METHOD,
+                        "Must use POST request method instead of %s".formatted(request.getMethod()));
             }
 
             globalConfProvider.verifyValidity();
@@ -91,7 +90,7 @@ public class ServerProxyHandler extends HandlerBase {
                     ResponseWrapper.of(response), opMonitoringData);
             processor.process();
         } catch (Throwable e) { // We want to catch serious errors as well
-            CodedException cex = translateWithPrefix(SERVER_SERVERPROXY_X, e);
+            XrdRuntimeException cex = XrdRuntimeException.systemException(e).withPrefix(SERVER_SERVERPROXY_X);
 
             log.error("Request processing error ({})", cex.getFaultDetail(), e);
 
@@ -121,7 +120,7 @@ public class ServerProxyHandler extends HandlerBase {
     }
 
     @Override
-    protected void failure(Request request, Response response, Callback callback, CodedException e)
+    protected void failure(Request request, Response response, Callback callback, XrdRuntimeException e)
             throws IOException {
         sendErrorResponse(request, response, callback, e);
     }

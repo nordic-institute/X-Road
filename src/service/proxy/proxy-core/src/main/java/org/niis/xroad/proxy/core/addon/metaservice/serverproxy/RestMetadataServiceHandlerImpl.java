@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.metaservice.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
@@ -50,6 +49,8 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
@@ -68,8 +69,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.ALLOWED_METHODS;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.GET_OPENAPI;
@@ -192,8 +191,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         }
 
         if (targetServiceCode == null || targetServiceCode.isEmpty()) {
-            throw new CodedException(X_INVALID_REQUEST,
-                    "Missing serviceCode in message body");
+            throw XrdRuntimeException.systemException(ErrorCode.INVALID_REQUEST, "Missing serviceCode in message body");
         }
 
         ServiceId.Conf targetServiceId = ServiceId.Conf.create(
@@ -203,12 +201,10 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
         DescriptionType descriptionType = serverConfProvider.getDescriptionType(targetServiceId);
         if (descriptionType == null) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    String.format("Service not found: %s", targetServiceId));
+            throw XrdRuntimeException.systemInternalError("Service not found: %s".formatted(targetServiceId));
         }
         if (descriptionType != DescriptionType.OPENAPI3) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    String.format("Invalid service type: %s", descriptionType));
+            throw XrdRuntimeException.systemInternalError("Invalid service type: %s".formatted(descriptionType));
         }
 
         String serviceDescriptionURL = serverConfProvider.getServiceDescriptionURL(targetServiceId);
@@ -225,9 +221,8 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         StatusLine statusLine = response.getStatusLine();
 
         if (HttpStatus.SC_OK != statusLine.getStatusCode()) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    String.format("Failed reading service description from %s. Status: %s Reason: %s",
-                            serviceDescriptionURL, statusLine.getStatusCode(), statusLine.getReasonPhrase()));
+            throw XrdRuntimeException.systemInternalError("Failed reading service description from %s. Status: %s Reason: %s".formatted(
+                    serviceDescriptionURL, statusLine.getStatusCode(), statusLine.getReasonPhrase()));
         }
 
         InputStream responseContent = response.getEntity().getContent();
@@ -241,9 +236,8 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                 anonymiser.anonymiseYaml(responseContent, restResponseBody);
             }
         } catch (IOException e) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    String.format("Failed overwriting origin URL for the openapi servers for %s",
-                            serviceDescriptionURL));
+            throw XrdRuntimeException.systemInternalError("Failed overwriting origin URL for the openapi servers for %s".formatted(
+                    serviceDescriptionURL));
         }
 
         if (response.containsHeader(MimeUtils.HEADER_CONTENT_TYPE)) {

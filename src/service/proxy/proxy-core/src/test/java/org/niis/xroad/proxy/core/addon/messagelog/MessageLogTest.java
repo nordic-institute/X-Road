@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -58,11 +56,11 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampFailed;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampSucceeded;
@@ -90,8 +88,10 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.niis.xroad.common.core.exception.ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.assertTaskQueueSize;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.cleanUpDatabase;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.createMessage;
@@ -121,9 +121,6 @@ public class MessageLogTest extends AbstractMessageLogTest {
     public boolean encrypted;
 
     static Date logRecordTime;
-
-    @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
 
     /**
      * Logs a message and timestamps it explicitly.
@@ -382,8 +379,6 @@ public class MessageLogTest extends AbstractMessageLogTest {
     public void timestampingFailedStopLogging() throws Exception {
         log.trace("timestampingFailedStopLogging()");
 
-        thrown.expectError(ErrorCode.TIMESTAMPING_FAILED.code());
-
         // Reinitialize with short acceptable timestamp failure period
         testTearDown();
         testSetUp(Map.of("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1"));
@@ -400,7 +395,8 @@ public class MessageLogTest extends AbstractMessageLogTest {
         startTimestamping();
         waitForMessageInTaskQueue();
 
-        log(createMessage(), createSignature());
+        XrdRuntimeException xrdRuntimeException = assertThrows(XrdRuntimeException.class, () -> log(createMessage(), createSignature()));
+        assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), xrdRuntimeException.getErrorCode());
     }
 
     /**
@@ -412,7 +408,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     public void failedToSaveTimestampToDatabase() throws Exception {
         log.trace("failedToSaveTimestampToDatabase()");
 
-        TestTaskQueue.throwWhenSavingTimestamp = new CodedException("expected");
+        TestTaskQueue.throwWhenSavingTimestamp = XrdRuntimeException.systemInternalError("expected");
 
         log(createMessage(), createSignature());
         log(createMessage(), createSignature());
@@ -469,19 +465,17 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Wants to time-stamp, but no TSP urls configured.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void timestampNoTspUrls() throws Exception {
+    public void timestampNoTspUrls() {
         log.trace("timestampNoTspUrls()");
 
         serverConfProvider.setServerConfProvider(new EmptyServerConf());
-        thrown.expectError(ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND.code());
 
-        log(createMessage(), createSignature());
+        XrdRuntimeException xrdRuntimeException = assertThrows(XrdRuntimeException.class, () -> log(createMessage(), createSignature()));
+
+        assertEquals(NO_TIMESTAMPING_PROVIDER_FOUND.code(), xrdRuntimeException.getErrorCode());
     }
-
 
     // ------------------------------------------------------------------------
 

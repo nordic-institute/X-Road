@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -34,6 +33,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -47,9 +47,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
 import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;
@@ -148,7 +146,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         } catch (URISyntaxException e) {
             log.error("Malformed operational monitoring daemon address '{}'", opMonitorAddress, e);
 
-            throw new CodedException(X_INTERNAL_ERROR, "Malformed operational monitoring daemon address");
+            throw XrdRuntimeException.systemInternalError("Malformed operational monitoring daemon address");
         }
 
         log.info("Sending request to {}", opMonitorUri);
@@ -160,11 +158,11 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {
-            if (ex instanceof CodedException) {
+            if (ex instanceof XrdRuntimeException) {
                 opMonitoringData.setResponseInTs(getEpochMillisecond());
             }
 
-            throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
+            throw XrdRuntimeException.systemException(ex).withPrefix(X_SERVICE_FAILED_X);
         }
     }
 

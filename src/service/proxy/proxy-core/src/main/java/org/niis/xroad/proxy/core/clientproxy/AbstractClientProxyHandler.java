@@ -48,7 +48,6 @@ import org.niis.xroad.proxy.core.util.PerformanceLogger;
 import java.io.IOException;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
@@ -101,10 +100,10 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
             handled = true;
 
             String errorMessage;
-            CodedException cex = e;
+            XrdRuntimeException cex = e;
             if (!e.originatesFrom(ErrorOrigin.CLIENT)) {
                 errorMessage = "Request processing error (" + e.getFaultDetail() + ")";
-                cex = translateWithPrefix(SERVER_CLIENTPROXY_X, e);
+                cex = XrdRuntimeException.systemException(e).withPrefix(SERVER_CLIENTPROXY_X);
             } else {
                 errorMessage = DEFAULT_ERROR_MESSAGE;
             }
@@ -145,7 +144,7 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
             handled = true;
 
             // All the other exceptions get prefix Server.ClientProxy...
-            CodedException cex = translateWithPrefix(SERVER_CLIENTPROXY_X, e);
+            XrdRuntimeException cex = XrdRuntimeException.systemException(e).withPrefix(SERVER_CLIENTPROXY_X);
 
             log.error("Request processing error ({})", cex.getFaultDetail(), e);
 

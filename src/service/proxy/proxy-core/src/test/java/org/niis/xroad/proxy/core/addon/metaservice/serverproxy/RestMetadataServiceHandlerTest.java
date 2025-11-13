@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.metaservice.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -49,6 +48,7 @@ import org.eclipse.jetty.http.HttpFields;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
@@ -340,7 +340,7 @@ public class RestMetadataServiceHandlerTest {
         assertTrue(json.contains("https://{username}.petstore.swagger.io:{port}/{basePath}"));
     }
 
-    @Test(expected = CodedException.class)
+    @Test(expected = XrdRuntimeException.class)
     public void shouldDetectUnsupportedOpenapiVersion() throws Exception {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
                 DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);

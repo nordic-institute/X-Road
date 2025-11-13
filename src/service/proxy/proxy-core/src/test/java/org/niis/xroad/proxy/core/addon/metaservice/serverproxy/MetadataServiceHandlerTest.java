@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.metaservice.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapHeader;
@@ -59,6 +58,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.addon.metaservice.common.WsdlRequestData;
@@ -92,9 +92,6 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
@@ -111,6 +108,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SERVICE_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS;
 import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.ALLOWED_METHODS_REQUEST;
@@ -421,10 +421,10 @@ public class MetadataServiceHandlerTest {
 
         // execution, should throw..
 
-        var ce = assertThrows(CodedException.class, () -> handlerToTest.startHandling(mockRequest, mockProxyMessage,
+        var ce = assertThrows(XrdRuntimeException.class, () -> handlerToTest.startHandling(mockRequest, mockProxyMessage,
                 mock(OpMonitoringData.class)));
 
-        assertEquals(X_INVALID_REQUEST, ce.getFaultCode());
+        assertEquals(INVALID_REQUEST.code(), ce.getErrorCode());
         assertTrue(ce.getMessage().contains("Missing serviceCode in message body"));
     }
 
@@ -453,10 +453,10 @@ public class MetadataServiceHandlerTest {
 
         // execution, should throw..
 
-        var ce = assertThrows(CodedException.class, () -> handlerToTest.startHandling(mockRequest, mockProxyMessage,
+        var ce = assertThrows(XrdRuntimeException.class, () -> handlerToTest.startHandling(mockRequest, mockProxyMessage,
                 mock(OpMonitoringData.class)));
 
-        assertEquals(X_UNKNOWN_SERVICE, ce.getFaultCode());
+        assertEquals(UNKNOWN_SERVICE.code(), ce.getErrorCode());
         assertTrue(ce.getMessage().contains("Could not find wsdl URL for service"));
     }
 
@@ -607,10 +607,10 @@ public class MetadataServiceHandlerTest {
         final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
         TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId, true);
 
-        var ce = assertThrows(CodedException.class, () -> handlerToTest.startHandling(mockRequest, mockProxyMessage,
+        var ce = assertThrows(XrdRuntimeException.class, () -> handlerToTest.startHandling(mockRequest, mockProxyMessage,
                 mock(OpMonitoringData.class)));
 
-        assertEquals(X_INVALID_SERVICE_TYPE, ce.getFaultCode());
+        assertEquals(INVALID_SERVICE_TYPE.code(), ce.getErrorCode());
 
     }
 

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RequestHash;
@@ -49,6 +48,7 @@ import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -80,9 +80,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -94,6 +91,9 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPONSE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SOAP;
 
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions")
@@ -130,7 +130,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
     /**
      * If the request failed, will contain SOAP fault.
      */
-    private volatile CodedException executionException;
+    private volatile XrdRuntimeException executionException;
 
     /**
      * Holds the proxy message output stream and associated info.
@@ -297,7 +297,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
                 getHashAlgoId(httpSender));
         try {
             decoder.parse(httpSender.getResponseContent());
-        } catch (CodedException ex) {
+        } catch (XrdRuntimeException ex) {
             throw ex.withPrefix(X_SERVICE_FAILED_X);
         }
 
@@ -330,11 +330,11 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         if (response.getSoap() == null) {
-            throw new CodedException(X_MISSING_SOAP, "Response does not have SOAP message");
+            throw XrdRuntimeException.systemException(MISSING_SOAP, "Response does not have SOAP message");
         }
 
         if (response.getSignature() == null) {
-            throw new CodedException(X_MISSING_SIGNATURE, "Response does not have signature");
+            throw XrdRuntimeException.systemException(MISSING_SIGNATURE, "Response does not have signature");
         }
     }
 
@@ -343,12 +343,12 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
 
         try {
             SoapUtils.checkConsistency(requestSoap, response.getSoap());
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             log.error("Inconsistent request-response", e);
 
             // The error code includes ServiceFailed because it indicates
             // faulty response from service (problem on the other side).
-            throw new CodedException(X_INCONSISTENT_RESPONSE,
+            throw XrdRuntimeException.systemException(INCONSISTENT_RESPONSE,
                     "Response from server proxy is not consistent with request").withPrefix(X_SERVICE_FAILED_X);
         }
 
@@ -367,11 +367,11 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             }
 
             if (!Arrays.areEqual(requestHash, decodeBase64(requestHashFromResponse.getHash()))) {
-                throw new CodedException(X_INCONSISTENT_RESPONSE,
+                throw XrdRuntimeException.systemException(INCONSISTENT_RESPONSE,
                         "Request message hash does not match request message");
             }
         } else {
-            throw new CodedException(X_INCONSISTENT_RESPONSE,
+            throw XrdRuntimeException.systemException(INCONSISTENT_RESPONSE,
                     "Response from server proxy is missing request message hash");
         }
     }
@@ -400,7 +400,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
 
         try {
             if (!requestHandlerGate.await(WAIT_FOR_SOAP_TIMEOUT, TimeUnit.SECONDS)) {
-                throw new CodedException(X_INTERNAL_ERROR, "Reading SOAP from request timed out");
+                throw XrdRuntimeException.systemInternalError("Reading SOAP from request timed out");
             }
         } catch (InterruptedException e) {
             log.error("waitForSoapMessage interrupted", e);
@@ -445,7 +445,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
         log.trace("setError()");
 
         if (executionException == null) {
-            executionException = translateException(ex);
+            executionException = XrdRuntimeException.systemException(ex);
         }
     }
 
