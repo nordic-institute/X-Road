@@ -151,7 +151,7 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('VIEW_TSPS')")
     public ResponseEntity<ServicePrioritizationStrategyDto> getTimestampingPrioritizationStrategy() {
         var strategy = systemService.getTimestampingPrioritizationStrategy();
-        return new ResponseEntity<>(ServicePrioritizationStrategyDto.valueOf(strategy.name()), HttpStatus.OK);
+        return ResponseEntity.ok(ServicePrioritizationStrategyDto.valueOf(strategy.name()));
     }
 
     @Override

@@ -363,16 +363,11 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public String getTspCostType(String tspUrl) {
-        return tx(session -> {
-            TimestampingService tsp = getConf(session).getTimestampingServices().stream()
+        return tx(session -> getConf(session).getTimestampingServices().stream()
                     .filter(t -> StringUtils.equals(t.getUrl(), tspUrl))
                     .findFirst()
-                    .orElse(null);
-            if (tsp != null) {
-                return tsp.getCostType();
-            }
-            return null;
-        });
+                    .map(TimestampingService::getCostType)
+                    .orElse(null));
     }
 
     @Override

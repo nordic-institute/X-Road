@@ -113,7 +113,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CERTIFICATE_AUTHORITIES')")
     public ResponseEntity<ServicePrioritizationStrategyDto> getOcspPrioritizationStrategy() {
         var strategy = certificateAuthorityService.getOcspPrioritizationStrategy();
-        return new ResponseEntity<>(ServicePrioritizationStrategyDto.valueOf(strategy.name()), HttpStatus.OK);
+        return ResponseEntity.ok(ServicePrioritizationStrategyDto.valueOf(strategy.name()));
     }
 
     @SuppressWarnings("squid:S3655") // see reason below

@@ -76,7 +76,7 @@ public class CertificateAuthorityConverter {
     private List<OcspResponderDto> convertOcspResponders(Map<String, CostType> ocspUrlsAndCostTypes) {
         return ocspUrlsAndCostTypes.entrySet().stream()
                 .map(entry -> new OcspResponderDto(entry.getKey(), convertCostType(entry.getValue())))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private static CostTypeDto convertCostType(CostType costType) {
