@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
   intTestImplementation(project(":security-server:openapi-model"))
-  intTestImplementation(project(":addons:proxymonitor-common"))
+  intTestImplementation(project(":service::proxy:proxy-monitoring-api"))
   intTestImplementation(project(":service:op-monitor:op-monitor-core"))
 
   intTestImplementation(project(":common:common-int-test"))

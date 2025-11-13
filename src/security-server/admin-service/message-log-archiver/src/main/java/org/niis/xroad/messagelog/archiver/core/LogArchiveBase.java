@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.messagelog.archiver.core;
 
-import ee.ria.xroad.common.messagelog.LogRecord;
+import org.niis.xroad.messagelog.LogRecord;
 
 /**
  * Interface for accessing message log database for archive-related purposes.

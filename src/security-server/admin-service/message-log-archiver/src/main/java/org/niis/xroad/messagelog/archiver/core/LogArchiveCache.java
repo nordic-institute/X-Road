@@ -26,7 +26,6 @@
 package org.niis.xroad.messagelog.archiver.core;
 
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
-import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import com.google.common.io.CountingOutputStream;
 import jakarta.annotation.Nonnull;
@@ -34,7 +33,8 @@ import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfig;
+import org.niis.xroad.messagelog.MessageRecord;
+import org.niis.xroad.messagelog.archive.EncryptionConfig;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 
 import javax.crypto.BadPaddingException;

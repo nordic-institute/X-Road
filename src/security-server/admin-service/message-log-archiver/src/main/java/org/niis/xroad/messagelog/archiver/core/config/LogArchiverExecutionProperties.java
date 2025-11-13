@@ -29,9 +29,9 @@ package org.niis.xroad.messagelog.archiver.core.config;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
-import org.niis.xroad.common.messagelog.MessageLogArchivalProperties;
-import org.niis.xroad.common.messagelog.MessageLogDatabaseEncryptionProperties;
-import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.messagelog.MessageLogArchivalProperties;
+import org.niis.xroad.messagelog.MessageLogDatabaseEncryptionProperties;
+import org.niis.xroad.messagelog.archive.GroupingStrategy;
 
 import java.util.Map;
 import java.util.Optional;

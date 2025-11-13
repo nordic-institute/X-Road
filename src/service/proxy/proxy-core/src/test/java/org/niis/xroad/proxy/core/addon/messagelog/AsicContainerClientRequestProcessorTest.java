@@ -40,12 +40,13 @@ import org.eclipse.jetty.http.HttpURI;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
-import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
-import org.niis.xroad.common.messagelog.archive.MessageLogEncryptionConfig;
 import org.niis.xroad.common.pgp.PgpKeyGenerator;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
+import org.niis.xroad.messagelog.MessageLogArchivalProperties;
+import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
+import org.niis.xroad.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.messagelog.archive.MessageLogEncryptionConfig;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerClientRequestProcessor;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 
@@ -279,7 +280,7 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
         var keyProvider = messageLogEncryptionConfig.keyProvider(vaultClient);
         var keyManager = messageLogEncryptionConfig.keyManager(keyProvider);
         var pgpEncryptionService = messageLogEncryptionConfig.pgpEncryption(keyManager);
-        var messageLogProperties = mock(org.niis.xroad.common.messagelog.MessageLogArchivalProperties.class);
+        var messageLogProperties = mock(MessageLogArchivalProperties.class);
         when(messageLogProperties.encryptionEnabled()).thenReturn(encrypted);
         when(messageLogProperties.defaultKeyId()).thenReturn(Optional.empty());
         when(messageLogProperties.groupingStrategy()).thenReturn(GroupingStrategy.NONE);

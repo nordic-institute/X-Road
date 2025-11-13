@@ -55,7 +55,7 @@ cp -p %{_sourcedir}/proxy/xroad-add-admin-user.sh %{buildroot}/usr/share/xroad/b
 cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
 cp -p %{_sourcedir}/proxy/xroad-*.service %{buildroot}%{_unitdir}
 cp -a %{srcdir}/../../../../src/security-server/admin-service/infra-jpa/build/resources/main/liquibase/* %{buildroot}/usr/share/xroad/db/
-cp -a %{srcdir}/../../../../src/addons/messagelog/messagelog-db/src/main/resources/liquibase/* %{buildroot}/usr/share/xroad/db/
+cp -a %{srcdir}/../../../../src/lib/messagelog-core/src/main/resources/liquibase/* %{buildroot}/usr/share/xroad/db/
 cp -p -r %{srcdir}/../../../../src/service/proxy/proxy-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/proxy
 cp -p %{srcdir}/default-configuration/rsyslog.d/* %{buildroot}/etc/rsyslog.d/
 cp -p %{srcdir}/ubuntu/generic/xroad-proxy.logrotate %{buildroot}/etc/logrotate.d/xroad-proxy

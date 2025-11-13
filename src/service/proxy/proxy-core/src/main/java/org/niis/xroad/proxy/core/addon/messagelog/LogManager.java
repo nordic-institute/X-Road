@@ -33,12 +33,6 @@ import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.message.AttachmentStream;
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.RestLogMessage;
-import ee.ria.xroad.common.messagelog.SoapLogMessage;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -49,6 +43,12 @@ import org.apache.commons.io.input.BoundedInputStream;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.AbstractLogManager;
+import org.niis.xroad.messagelog.LogMessage;
+import org.niis.xroad.messagelog.MessageRecord;
+import org.niis.xroad.messagelog.RestLogMessage;
+import org.niis.xroad.messagelog.SoapLogMessage;
+import org.niis.xroad.messagelog.TimestampRecord;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 

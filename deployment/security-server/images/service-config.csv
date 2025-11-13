@@ -9,6 +9,6 @@ configuration-client,quarkus/Dockerfile,service/configuration-client/configurati
 signer,quarkus/Dockerfile,service/signer/signer-application,ss-signer,build/quarkus-app,base-images/ss-baseline-signer-runtime,-
 backup-manager,quarkus/Dockerfile,service/backup-manager/backup-manager-application,ss-backup-manager,build/quarkus-app,base-images/ss-baseline-backup-manager-runtime,-
 admin-service,admin-service/Dockerfile,security-server/admin-service/application,ss-proxy-ui-api,build/libs,base-images/ss-baseline-runtime,-
-db-messagelog-init,init-db/Dockerfile,addons/messagelog/messagelog-db,ss-db-messagelog-init,build/resources/main/liquibase,-,CHANGELOG_FILE=messagelog-changelog.xml
+db-messagelog-init,init-db/Dockerfile,lib/messagelog-core,ss-db-messagelog-init,build/resources/main/liquibase,-,CHANGELOG_FILE=messagelog-changelog.xml
 db-opmonitor-init,init-db/Dockerfile,service/op-monitor/op-monitor-db,ss-db-opmonitor-init,build/resources/main/liquibase,-,CHANGELOG_FILE=op-monitor-changelog.xml
 db-serverconf-init,init-db/Dockerfile,security-server/admin-service/infra-jpa,ss-db-serverconf-init,build/resources/main/liquibase,-,CHANGELOG_FILE=serverconf-changelog.xml

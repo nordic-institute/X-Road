@@ -26,12 +26,12 @@
 package org.niis.xroad.proxy.core.configuration;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.messagelog.AbstractLogManager;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
