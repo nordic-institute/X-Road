@@ -286,6 +286,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
     // ===== GPG ERRORS =====
     GPG_KEY_GENERATION_FAILED("gpg_key_generation_failed"),
+    GPG_KEY_GENERATION_INTERRUPTED("gpg_key_generation_interrupted"),
 
     // ===== INTERNAL_CERT ERRORS =====
     IMPORT_INTERNAL_CERT_FAILED("import_internal_cert_failed"),

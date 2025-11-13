@@ -27,14 +27,13 @@
 
 package org.niis.xroad.backupmanager.core.repository;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.backupmanager.core.BackupItem;
 import org.niis.xroad.backupmanager.core.BackupManagerProperties;
 import org.niis.xroad.backupmanager.core.BackupValidator;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.NotFoundException;
 
 import java.io.File;
@@ -91,21 +90,21 @@ public class FileSystemBackupRepository implements BackupRepository {
     @Override
     public void deleteBackup(String name) {
         if (!backupValidator.isValidBackupFilename(name)) {
-            throw new CodedException(BACKUP_FILE_NOT_FOUND.code(), name);
+            throw XrdRuntimeException.systemException(BACKUP_FILE_NOT_FOUND, name);
         }
         var path = getAbsoluteBackupFilePath(name);
         try {
             Files.deleteIfExists(path);
         } catch (IOException ioe) {
             log.error("can't delete backup file ({})", path);
-            throw new CodedException(BACKUP_DELETION_FAILED.code(), name);
+            throw XrdRuntimeException.systemException(BACKUP_DELETION_FAILED, name);
         }
     }
 
     @Override
     public BackupItem storeBackup(String name, byte[] content) {
         if (!backupValidator.isValidBackupFilename(name)) {
-            throw new CodedException(INVALID_FILENAME.code(), name);
+            throw XrdRuntimeException.systemException(INVALID_FILENAME, name);
         }
         var backupDirectoryPath = new File(backupManagerProperties.backupLocation());
         if (backupDirectoryPath.mkdirs()) {
@@ -118,21 +117,21 @@ public class FileSystemBackupRepository implements BackupRepository {
             return new BackupItem(name, getCreatedAt(path));
         } catch (IOException ioe) {
             log.error("can't write backup file's content ({})", path);
-            throw new CodedException(INVALID_BACKUP_FILE.code(), name);
+            throw XrdRuntimeException.systemException(INVALID_BACKUP_FILE, name);
         }
     }
 
     @Override
     public byte[] readBackupFile(String filename) throws NotFoundException {
         if (!backupValidator.isValidBackupFilename(filename)) {
-            throw new CodedException(BACKUP_FILE_NOT_FOUND.code(), filename);
+            throw XrdRuntimeException.systemException(BACKUP_FILE_NOT_FOUND, filename);
         }
         var path = getAbsoluteBackupFilePath(filename);
         try {
             return Files.readAllBytes(path);
         } catch (IOException e) {
             log.error("can't read backup file's content ({})", path);
-            throw new CodedException(BACKUP_FILE_NOT_FOUND.code(), filename);
+            throw XrdRuntimeException.systemException(BACKUP_FILE_NOT_FOUND, filename);
         }
     }
 
@@ -140,7 +139,7 @@ public class FileSystemBackupRepository implements BackupRepository {
     public Path getAbsoluteBackupFilePath(String name) {
         final var resolved = Paths.get(backupManagerProperties.backupLocation()).resolve(name);
         if (!resolved.normalize().startsWith(Paths.get(backupManagerProperties.backupLocation()))) {
-            throw new CodedException(INVALID_FILENAME.code(), name);
+            throw XrdRuntimeException.systemException(INVALID_FILENAME, name);
         }
         return resolved;
     }
