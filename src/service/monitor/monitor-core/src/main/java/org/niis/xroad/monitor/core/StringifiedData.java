@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,43 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.addons.glue;
+package org.niis.xroad.monitor.core;
 
-import io.cucumber.java.en.Step;
-import org.niis.xroad.ss.test.addons.jmx.JmxClient;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.Getter;
+import lombok.Setter;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_JMX_RESPONSE;
+import java.util.ArrayList;
 
-public class JmxStepDefs extends BaseStepDefs {
-
-    @Autowired
-    private JmxClient jmxClient;
-
-
-    @Step("JMX request for object {string} attribute {string}")
-    public void executeJmxSecurityServerMetricsRequest(final String objectName, String attribte) {
-        var value = jmxClient.getValue(objectName, attribte);
-        putStepData(XROAD_JMX_RESPONSE, value);
-    }
-
-    @Step("JMX returned valid numeric value")
-    public void validNumericJmxSecurityServerMetric() {
-        Object attrValue = getStepData(XROAD_JMX_RESPONSE).orElseThrow();
-        assertThat(attrValue)
-                .isNotNull()
-                .asString()
-                .isNotEmpty()
-                .containsOnlyDigits();
-    }
-
-    @Step("JMX returned valid string value")
-    public void validStringJmxSecurityServerMetric() {
-        Object attrValue = getStepData(XROAD_JMX_RESPONSE).orElseThrow();
-        assertThat(attrValue)
-                .isNotNull()
-                .asString()
-                .isNotEmpty();
-    }
+/**
+ * Sensor data which has different representation for SOAP interface (DTO objects)
+ * and string representation
+ *
+ * @param <T> DTO data type
+ */
+@Getter
+@Setter
+public class StringifiedData<T> {
+    ArrayList<T> dtoData;
+    ArrayList<String> stringData;
 }

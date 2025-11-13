@@ -41,8 +41,6 @@ import org.niis.xroad.common.test.api.interceptor.TestCaFeignInterceptor;
 import org.niis.xroad.ss.test.addons.api.FeignHealthcheckApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
-import org.niis.xroad.ss.test.addons.jmx.JmxClient;
-import org.niis.xroad.ss.test.addons.jmx.JmxClientImpl;
 import org.niis.xroad.ss.test.ui.container.EnvSetup;
 import org.niis.xroad.ss.test.ui.container.Port;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
@@ -54,8 +52,6 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import(FeignClientsConfiguration.class)
 public class SsAddonTestConfiguration {
-
-    private static final String JMX_URL_TEMPLATE = "service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi";
 
     @Bean
     public FeignXRoadSoapRequestsApi feignManagementRequestsApi(
@@ -116,11 +112,6 @@ public class SsAddonTestConfiguration {
                                 envSetup.getContainerMapping(EnvSetup.PROXY, Port.PROXY_HEALTHCHECK).port())))
                 .contract(contract)
                 .target(FeignHealthcheckApi.class, "http://localhost");
-    }
-
-    @Bean
-    public JmxClient jmxClient() {
-        return new JmxClientImpl(() -> String.format(JMX_URL_TEMPLATE, "localhost", Port.MONITOR_JMX.get()));
     }
 
     @Bean
