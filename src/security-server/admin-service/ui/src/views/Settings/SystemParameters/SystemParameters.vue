@@ -325,10 +325,10 @@ import {
   XrdCard,
   XrdSubView,
   XrdStatusChip,
-  helper,
   useNotifications,
   XrdEmptyPlaceholderRow,
   XrdStatusIcon,
+  saveResponseAsFile,
 } from '@niis/shared-ui';
 import {
   AddOnStatus,
@@ -460,9 +460,7 @@ export default defineComponent({
       this.downloadingAnchor = true;
       api
         .get('/system/anchor/download', { responseType: 'blob' })
-        .then((res) =>
-          helper.saveResponseAsFile(res, 'configuration-anchor.xml'),
-        )
+        .then((res) => saveResponseAsFile(res, 'configuration-anchor.xml'))
         .catch((error) => this.addError(error))
         .finally(() => (this.downloadingAnchor = false));
     },

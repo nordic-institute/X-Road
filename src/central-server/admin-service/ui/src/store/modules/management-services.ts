@@ -34,7 +34,11 @@ import {
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import { helper } from '@niis/shared-ui';
+import {
+  saveResponseAsFile,
+  buildFileFormData,
+  multipartFormDataConfig,
+} from '@niis/shared-ui';
 
 interface ManagementServicesState {
   managementServicesConfiguration: ManagementServicesConfiguration;
@@ -98,17 +102,19 @@ export const useManagementServices = defineStore('managementServices', {
           responseType: 'blob',
         })
         .then((resp) => {
-          helper.saveResponseAsFile(resp, 'management-service.tar.gz');
+          saveResponseAsFile(resp, 'management-service.tar.gz');
         })
         .catch((error) => {
           throw error;
         });
     },
     uploadCertificate(certificate: File) {
-      const formData = new FormData();
-      formData.append('certificate', certificate);
       return axios
-        .post(`/management-services-configuration/upload-certificate`, formData)
+        .post(
+          `/management-services-configuration/upload-certificate`,
+          buildFileFormData('certificate', certificate),
+          multipartFormDataConfig(),
+        )
         .catch((error) => {
           throw error;
         });
@@ -128,7 +134,7 @@ export const useManagementServices = defineStore('managementServices', {
           { responseType: 'json' },
         )
         .then((res) => {
-          helper.saveResponseAsFile(res, 'request.csr');
+          saveResponseAsFile(res, 'request.csr');
         })
         .catch((error) => {
           throw error;

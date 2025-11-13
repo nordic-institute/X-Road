@@ -132,13 +132,14 @@ import { defineRule, useForm, useIsFieldValid } from 'vee-validate';
 import { confirmed } from '@vee-validate/rules';
 
 import {
-  axiosHelpers,
   useNotifications,
   XrdBtn,
   XrdElevatedViewSimple,
   XrdWizardStep,
   XrdFormBlock,
   XrdFormBlockRow,
+  isFieldValidationError,
+  getTranslatedFieldErrors,
 } from '@niis/shared-ui';
 
 import { RouteName } from '@/global';
@@ -262,26 +263,23 @@ export default defineComponent({
       this.submitting = true;
       await this.initializationRequest(formData)
         .then(() => {
-          this.$router
-            .push({
-              name: RouteName.Members,
-            });
+          this.$router.push({
+            name: RouteName.Members,
+          });
         })
         .catch((error) => {
           const errorInfo: ErrorInfo = error.response?.data || { status: 0 };
-          if (axiosHelpers.isFieldValidationError(errorInfo)) {
+          if (isFieldValidationError(errorInfo)) {
             const fieldErrors = errorInfo.error?.validation_errors;
             if (fieldErrors) {
-              const identifierErrors: string[] =
-                axiosHelpers.getTranslatedFieldErrors(
-                  'initialServerConfDto.instanceIdentifier',
-                  fieldErrors,
-                );
-              const addressErrors: string[] =
-                axiosHelpers.getTranslatedFieldErrors(
-                  'initialServerConfDto.centralServerAddress',
-                  fieldErrors,
-                );
+              const identifierErrors: string[] = getTranslatedFieldErrors(
+                'initialServerConfDto.instanceIdentifier',
+                fieldErrors,
+              );
+              const addressErrors: string[] = getTranslatedFieldErrors(
+                'initialServerConfDto.centralServerAddress',
+                fieldErrors,
+              );
               this.setFieldError('init.identifier', identifierErrors);
               this.setFieldError('init.address', addressErrors);
               this.addError(error);

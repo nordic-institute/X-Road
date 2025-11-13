@@ -55,27 +55,23 @@ import { Backup, BackupExt } from '@/openapi-types';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import {
-  helper,
   XrdView,
   useNotifications,
   BackupHandler,
   BackupItem,
   XrdBackupsDataTable,
+  multipartFormDataConfig,
+  saveResponseAsFile,
+  buildFileFormData,
 } from '@niis/shared-ui';
 import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
 
 const uploadBackup = async (backupFile: File, ignoreWarnings = false) => {
-  const formData = new FormData();
-  formData.set('file', backupFile, backupFile.name);
   return api
     .post<BackupItem>(
       `/backups/upload?ignore_warnings=${ignoreWarnings}`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      },
+      buildFileFormData('backup', backupFile),
+      multipartFormDataConfig(),
     )
     .then((resp) => resp.data);
 };
@@ -146,7 +142,7 @@ export default defineComponent({
         .get(`/backups/${encodePathParameter(fileName)}/download`, {
           responseType: 'blob',
         })
-        .then((resp) => helper.saveResponseAsFile(resp, fileName));
+        .then((resp) => saveResponseAsFile(resp, fileName));
     },
     async restoreBackup(fileName: string) {
       return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {});

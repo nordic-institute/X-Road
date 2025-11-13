@@ -43,8 +43,8 @@ public class EndpointConverter {
 
         endpointDto.setId(String.valueOf(endpoint.getId()));
         endpointDto.setServiceCode(endpoint.getServiceCode());
-            endpointDto.setClientId(clientIdConverter.convertId(
-                    endpoint.getClient().getIdentifier()));
+        endpointDto.setClientId(clientIdConverter.convertId(
+                endpoint.getClient().getIdentifier()));
         endpointDto.setMethod(EndpointDto.MethodEnum.fromValue(endpoint.getMethod()));
         endpointDto.setPath(endpoint.getPath());
         endpointDto.setGenerated(endpoint.isGenerated());

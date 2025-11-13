@@ -217,8 +217,8 @@ import {
   XrdExpandable,
   XrdBtn,
   DialogSaveHandler,
-  helper,
   XrdConfirmDialog,
+  veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 
 type PinType = 'password' | 'text';
@@ -281,19 +281,19 @@ export default defineComponent({
 
     const [friendlyName, friendlyNameAttr] = defineField(
       'token.friendlyName',
-      helper.veeDefaultFieldConfig(),
+      veeDefaultFieldConfig(),
     );
     const [oldPin, oldPinAttr] = defineField(
       'token.oldPin',
-      helper.veeDefaultFieldConfig(),
+      veeDefaultFieldConfig(),
     );
     const [newPin, newPinAttr] = defineField(
       'token.newPin',
-      helper.veeDefaultFieldConfig(),
+      veeDefaultFieldConfig(),
     );
     const [newPinConfirm, newPinConfirmAttr] = defineField(
       'token.newPinConfirm',
-      helper.veeDefaultFieldConfig(),
+      veeDefaultFieldConfig(),
     );
     return {
       isChangePinOpen,

@@ -91,7 +91,7 @@
 import { PropType, ref } from 'vue';
 
 import { ERROR_CODE_PREFIX, ErrorManager, NotificationId } from '../types';
-import { helper } from '../utils';
+import { toClipboard } from '../utils';
 
 import XrdBtn from './XrdBtn.vue';
 
@@ -150,7 +150,7 @@ function groupMetaData(metaData?: string[]) {
 
 function copyId(errorId?: string): void {
   if (errorId) {
-    helper.toClipboard(errorId);
+    toClipboard(errorId);
   }
 }
 </script>

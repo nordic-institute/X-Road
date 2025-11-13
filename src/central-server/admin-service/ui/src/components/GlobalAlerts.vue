@@ -79,7 +79,7 @@ import { computed } from 'vue';
 
 import { useRouter } from 'vue-router';
 
-import { XrdBtn, helper, XrdBanner } from '@niis/shared-ui';
+import { XrdBtn, XrdBanner, formatDateTime } from '@niis/shared-ui';
 
 import { RouteName } from '@/global';
 import { useAlerts } from '@/store/modules/alerts';
@@ -133,7 +133,7 @@ function reformatDates(metadata?: string[]): string[] {
     if (isNaN(Date.parse(item))) {
       return item;
     }
-    return helper.formatDateTime(item, true);
+    return formatDateTime(item, true);
   });
 }
 </script>

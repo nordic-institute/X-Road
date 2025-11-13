@@ -161,9 +161,8 @@ import {
   XrdBtn,
   XrdFormBlock,
   XrdFormBlockRow,
-  helper,
   XrdWizardStep,
-  XrdConfirmDialog,
+  XrdConfirmDialog, veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 import { useClients } from '@/store/modules/clients';
 import { useClient } from '@/store/modules/client';
@@ -223,12 +222,12 @@ const { meta, handleSubmit, defineField, setFieldValue } = useForm({
 
 const [subsystemCode, subsystemCodeAttrs] = defineField(
   'addSubsystemCode',
-  helper.veeDefaultFieldConfig(),
+  veeDefaultFieldConfig(),
 );
 
 const [subsystemName, subsystemNameAttrs] = defineField(
   'addSubsystemName',
-  helper.veeDefaultFieldConfig(),
+  veeDefaultFieldConfig(),
 );
 
 const showSelectClient = ref(false);

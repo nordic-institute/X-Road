@@ -304,7 +304,7 @@ export default defineComponent({
     ...mapActions(useTlsCertificate, ['downloadCertificate']),
     async onFileChange(event: FileUploadResult) {
       this.uploading = true;
-      return this.uploadTlsCertificate(this.id, event.buffer)
+      return this.uploadTlsCertificate(this.id, event.file)
         .then(() => {
           this.uploading = false;
           this.fetchTlsCerts(this.id);

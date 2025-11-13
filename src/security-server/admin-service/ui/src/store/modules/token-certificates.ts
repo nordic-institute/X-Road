@@ -32,6 +32,7 @@ import {
   TokenCertificate,
   PossibleActions as PossibleActionsList,
 } from '@/openapi-types';
+import { buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
 
 export const useTokenCertificates = defineStore('token-certificates', {
   state: () => {
@@ -77,13 +78,13 @@ export const useTokenCertificates = defineStore('token-certificates', {
         {},
       );
     },
-    async importTokenCertificate(cert: ArrayBuffer) {
+    async importTokenCertificate(cert: File) {
       return api
-        .post<TokenCertificate>('/token-certificates', cert, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
-          },
-        })
+        .post<TokenCertificate>(
+          '/token-certificates',
+          buildFileFormData('certificate', cert),
+          multipartFormDataConfig(),
+        )
         .then((resp) => resp.data);
     },
     async importTokenCertificateByHash(hash: string) {

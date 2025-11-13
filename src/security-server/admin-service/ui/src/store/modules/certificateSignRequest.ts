@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { helper } from '@niis/shared-ui';
+import { saveResponseAsFile } from '@niis/shared-ui';
 import {
   AcmeEabCredentialsStatus,
   CertificateAuthority,
@@ -251,7 +251,7 @@ export const useCsr = defineStore('csr', {
               },
             )
             .then((res) => {
-              helper.saveResponseAsFile(res);
+              saveResponseAsFile(res);
             });
         })
         .catch((error) => {
@@ -269,7 +269,7 @@ export const useCsr = defineStore('csr', {
           if (requestBody.acme_order) {
             return;
           }
-          helper.saveResponseAsFile(
+          saveResponseAsFile(
             response,
             `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
           );

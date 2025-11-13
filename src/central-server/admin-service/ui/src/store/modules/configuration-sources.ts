@@ -31,7 +31,7 @@ import {
   ConfigurationType,
   GlobalConfDownloadUrl,
 } from '@/openapi-types';
-import { helper } from '@niis/shared-ui';
+import { saveResponseAsFile } from '@niis/shared-ui';
 import axios from 'axios';
 import { defineStore } from 'pinia';
 
@@ -111,7 +111,7 @@ export const useConfigurationSource = defineStore('configurationSource', {
           { responseType: 'blob' },
         )
         .then((resp) => {
-          helper.saveResponseAsFile(resp);
+          saveResponseAsFile(resp);
         })
         .catch((error) => {
           throw error;
@@ -159,7 +159,7 @@ export const useConfigurationSource = defineStore('configurationSource', {
           },
         )
         .then((resp) => {
-          helper.saveResponseAsFile(resp);
+          saveResponseAsFile(resp);
         })
         .catch((error) => {
           throw error;

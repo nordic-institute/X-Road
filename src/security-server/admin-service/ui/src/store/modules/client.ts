@@ -29,6 +29,7 @@ import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
+import { multipartFormDataConfig, buildFileFormData } from '@niis/shared-ui';
 
 export interface ClientState {
   client: Client | undefined;
@@ -144,12 +145,12 @@ export const useClient = defineStore('client', {
       );
     },
 
-    async uploadTlsCertificate(clientId: string, buffer: ArrayBuffer) {
-      return api.post(clientBaseUrl(clientId, '/tls-certificates'), buffer, {
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-      });
+    async uploadTlsCertificate(clientId: string, file: File) {
+      return api.post(
+        clientBaseUrl(clientId, '/tls-certificates'),
+        buildFileFormData('certificate', file),
+        multipartFormDataConfig(),
+      );
     },
 
     async saveConnectionType(clientId: string, connType: string) {

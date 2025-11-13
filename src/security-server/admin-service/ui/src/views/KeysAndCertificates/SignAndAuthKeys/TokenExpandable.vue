@@ -363,7 +363,7 @@ export default defineComponent({
       }
     },
     importCert(event: FileUploadResult) {
-      this.importTokenCertificate(event.buffer)
+      this.importTokenCertificate(event.file)
         .then((certificate) => {
           if (certificate.ocsp_verify_before_activation_error) {
             this.addError(

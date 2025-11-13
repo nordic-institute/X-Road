@@ -28,8 +28,6 @@
 import { AddError } from './notifications';
 
 export type FileUploadResult = {
-  /**@deprecated*/
-  buffer: ArrayBuffer;
   file: File;
 };
 

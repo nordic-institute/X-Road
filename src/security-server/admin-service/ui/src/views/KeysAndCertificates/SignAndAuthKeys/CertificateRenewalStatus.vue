@@ -53,7 +53,12 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 
-import { helper, XrdStatusChip, XrdStatusIcon } from '@niis/shared-ui';
+import {
+  XrdStatusChip,
+  XrdStatusIcon,
+  formatDate,
+  formatDateTime,
+} from '@niis/shared-ui';
 
 import { CertificateStatus, TokenCertificate } from '@/openapi-types';
 
@@ -108,10 +113,10 @@ export default defineComponent({
         type: 'success',
         icon: 'ok',
         text: 'Next planned renewal on',
-        additionalText: helper.formatDate(
+        additionalText: formatDate(
           this.certificate.next_automatic_renewal_time,
         ),
-        tooltipText: helper.formatDateTime(
+        tooltipText: formatDateTime(
           this.certificate.next_automatic_renewal_time,
         ),
       };

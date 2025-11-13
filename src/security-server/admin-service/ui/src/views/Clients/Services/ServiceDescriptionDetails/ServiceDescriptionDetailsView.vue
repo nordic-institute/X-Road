@@ -134,8 +134,7 @@ import {
   XrdFormBlock,
   XrdFormBlockRow,
   useNotifications,
-  helper,
-  XrdConfirmDialog
+  XrdConfirmDialog, veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
@@ -203,11 +202,11 @@ export default defineComponent({
 
     const [serviceUrl, serviceUrlAttr] = defineField(
       'serviceUrl',
-      helper.veeDefaultFieldConfig(),
+      veeDefaultFieldConfig(),
     );
     const [serviceCode, serviceCodeAttr] = defineField(
       'serviceCode',
-      helper.veeDefaultFieldConfig(),
+      veeDefaultFieldConfig(),
     );
     return {
       meta,

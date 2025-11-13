@@ -125,8 +125,8 @@ import {
   XrdCardTable,
   XrdCard,
   XrdCardTableRow,
-  helper,
   XrdConfirmDialog,
+  veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 import { useKeys } from '@/store/modules/keys';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
@@ -157,7 +157,7 @@ export default defineComponent({
         required: true,
       },
       {
-        ...helper.veeDefaultFieldConfig(),
+        ...veeDefaultFieldConfig(),
         initialValue: '',
       },
     );
