@@ -30,7 +30,7 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import io.grpc.stub.StreamObserver;
 import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 import org.niis.xroad.messagelog.archiver.proto.MessageLogArchivalRequest;
 import org.niis.xroad.messagelog.archiver.proto.MessageLogArchivalResp;

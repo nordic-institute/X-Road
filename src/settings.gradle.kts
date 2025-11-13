@@ -35,7 +35,6 @@ include("common:common-domain")
 include("common:common-mail")
 include("common:common-management-request")
 include("common:common-management-service")
-include("common:common-messagelog")
 include("common:common-rpc")
 include("common:common-rpc-spring")
 include("common:common-rpc-quarkus")
@@ -63,6 +62,7 @@ include("lib:serverconf-core")
 include("lib:serverconf-spring")
 include("lib:keyconf-api")
 include("lib:keyconf-impl")
+include("lib:messagelog-core")
 
 // Service projects
 include("service")
@@ -93,6 +93,7 @@ include("service:op-monitor:op-monitor-int-test")
 include("service:proxy:proxy-application")
 include("service:proxy:proxy-core")
 include("service:proxy:proxy-rpc-client")
+include("service:proxy:proxy-monitoring-api")
 
 include("service:signer:signer-application")
 include("service:signer:signer-api")
@@ -107,6 +108,7 @@ include("service:signer:signer-int-test")
 include("tool")
 include("tool:asic-verifier-cli")
 include("tool:migration-cli")
+include("tool:messagelog-archive-verifier")
 
 // Main projects
 include("shared-ui")
@@ -148,11 +150,3 @@ include("security-server:e2e-test")
 
 // Tests
 include("common:common-test")
-
-// Addons
-include("addons:messagelog:messagelog-archive-verifier")
-include("addons:messagelog:messagelog-db")
-
-include("addons:proxymonitor-common")
-project(":addons:proxymonitor-common").projectDir = file("addons/proxymonitor/common")
-

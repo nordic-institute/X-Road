@@ -43,7 +43,6 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
@@ -52,6 +51,8 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.messagelog.MessageRecordEncryption;
+import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
@@ -167,7 +168,7 @@ public abstract class AbstractProxyIntegrationTest {
                 new NoopVaultKeyProvider(), proxyProperties);
 
         EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
-        var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
+        var messageRecordEncryption = mock(MessageRecordEncryption.class);
 
         ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(TEST_GLOBAL_CONF, clientKeyConf);
         HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
@@ -190,7 +191,7 @@ public abstract class AbstractProxyIntegrationTest {
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
 
         EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
-        var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
+        var messageRecordEncryption = mock(MessageRecordEncryption.class);
 
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
                 mock(MonitorRpcClient.class), commonProperties, proxyProperties, new NoopVaultClient());

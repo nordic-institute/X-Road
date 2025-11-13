@@ -35,7 +35,7 @@ import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
+import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.proxy.core.admin.handler.TimestampStatusHandler;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.proxy.proto.AddOnStatusResp;

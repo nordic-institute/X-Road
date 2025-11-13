@@ -122,7 +122,9 @@ if k8s_api "GET" "/api/v1/namespaces/${NAMESPACE}/secrets/${XROAD_TOKEN_SECRET_N
 else
   # Create client token
   echo "[SETUP] Creating X-Road client token..."
-  CLIENT_TOKEN=$(create_token "$BAO_ADDR" "$ROOT_TOKEN")
+  # Use custom token ID if provided via environment variable (useful for dev/test)
+  XROAD_SECRET_STORE_TOKEN_OVERRIDE="${XROAD_SECRET_STORE_TOKEN_OVERRIDE:-}"
+  CLIENT_TOKEN=$(create_token "$BAO_ADDR" "$ROOT_TOKEN" "xroad-policy" "0" "xroad-client" "$XROAD_SECRET_STORE_TOKEN_OVERRIDE")
   if [ -z "$CLIENT_TOKEN" ]; then
     echo "[SETUP] Failed to create client token"
     exit 1

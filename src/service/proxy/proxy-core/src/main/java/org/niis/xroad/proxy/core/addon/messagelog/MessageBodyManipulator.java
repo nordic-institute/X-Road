@@ -32,9 +32,6 @@ import ee.ria.xroad.common.message.SoapBuilder;
 import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.RestLogMessage;
-import ee.ria.xroad.common.messagelog.SoapLogMessage;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -43,6 +40,9 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.niis.xroad.messagelog.LogMessage;
+import org.niis.xroad.messagelog.RestLogMessage;
+import org.niis.xroad.messagelog.SoapLogMessage;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 import java.io.IOException;

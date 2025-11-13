@@ -46,7 +46,7 @@ public class SelenideProperties {
      * <br>
      * Default value: 4000 (milliseconds)
      */
-    private Long timeout = 8000L;
+    private Long timeout = 15000L;
 
     /**
      * Interval in milliseconds, when checking if a single element or collection elements are appeared

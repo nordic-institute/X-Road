@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
-import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.XmlUtils;
 
@@ -39,6 +38,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.messagelog.SoapLogMessage;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;

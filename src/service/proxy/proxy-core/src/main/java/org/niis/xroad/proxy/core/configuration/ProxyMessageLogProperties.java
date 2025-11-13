@@ -31,9 +31,9 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
-import org.niis.xroad.common.messagelog.MessageLogArchivalProperties;
-import org.niis.xroad.common.messagelog.MessageLogDatabaseEncryptionProperties;
-import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.messagelog.MessageLogArchivalProperties;
+import org.niis.xroad.messagelog.MessageLogDatabaseEncryptionProperties;
+import org.niis.xroad.messagelog.archive.GroupingStrategy;
 
 import java.util.Map;
 import java.util.Optional;

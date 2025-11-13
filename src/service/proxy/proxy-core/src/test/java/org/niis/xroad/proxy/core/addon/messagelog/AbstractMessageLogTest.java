@@ -29,22 +29,23 @@ package org.niis.xroad.proxy.core.addon.messagelog;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.RestLogMessage;
-import ee.ria.xroad.common.messagelog.SoapLogMessage;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.niis.xroad.common.messagelog.MessageLogDbProperties;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
+import org.niis.xroad.messagelog.MessageLogDbProperties;
+import org.niis.xroad.messagelog.MessageRecord;
+import org.niis.xroad.messagelog.MessageRecordEncryption;
+import org.niis.xroad.messagelog.RestLogMessage;
+import org.niis.xroad.messagelog.SoapLogMessage;
+import org.niis.xroad.messagelog.TimestampRecord;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
@@ -80,7 +81,7 @@ abstract class AbstractMessageLogTest {
     TestServerConfWrapper serverConfProvider;
     LogRecordManager logRecordManager;
     MessageLogDatabaseCtx databaseCtx;
-    org.niis.xroad.common.messagelog.MessageRecordEncryption messageRecordEncryption;
+    MessageRecordEncryption messageRecordEncryption;
     VaultClient vaultClient;
 
     LogManager logManager;
@@ -135,7 +136,7 @@ abstract class AbstractMessageLogTest {
             when(vaultClient.getMLogDBEncryptionSecretKeys()).thenReturn(java.util.Map.of(keyId, base64Key));
         }
 
-        messageRecordEncryption = new org.niis.xroad.common.messagelog.MessageRecordEncryption(
+        messageRecordEncryption = new MessageRecordEncryption(
                 messageLogProperties.databaseEncryption(),
                 vaultClient);
         logRecordManager = new LogRecordManager(databaseCtx, messageRecordEncryption);

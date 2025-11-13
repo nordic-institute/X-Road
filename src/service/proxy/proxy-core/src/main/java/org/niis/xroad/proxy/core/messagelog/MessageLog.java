@@ -30,15 +30,15 @@ import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.RestLogMessage;
-import ee.ria.xroad.common.messagelog.SoapLogMessage;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.messagelog.AbstractLogManager;
+import org.niis.xroad.messagelog.MessageRecord;
+import org.niis.xroad.messagelog.RestLogMessage;
+import org.niis.xroad.messagelog.SoapLogMessage;
+import org.niis.xroad.messagelog.TimestampRecord;
 
 import java.util.List;
 import java.util.Map;

@@ -27,9 +27,6 @@ package org.niis.xroad.messagelog.archiver.core;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.messagelog.LogRecord;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -38,10 +35,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.niis.xroad.common.messagelog.archive.DisabledEncryptionConfigProvider;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
-import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
-import org.niis.xroad.common.messagelog.archive.VaultServerEncryptionConfigProvider;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyGenerator;
 import org.niis.xroad.common.pgp.PgpKeyManager;
@@ -49,6 +42,13 @@ import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.LogRecord;
+import org.niis.xroad.messagelog.MessageRecord;
+import org.niis.xroad.messagelog.TimestampRecord;
+import org.niis.xroad.messagelog.archive.DisabledEncryptionConfigProvider;
+import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
+import org.niis.xroad.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.messagelog.archive.VaultServerEncryptionConfigProvider;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
@@ -217,12 +217,12 @@ class LogArchiveTest {
                 groupingStrategy,
                 Map.of()
         );
-        
+
         var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
                 false,
                 null
         );
-        
+
         return new LogArchiverExecutionProperties(
                 archiveEncryption,
                 databaseEncryption,

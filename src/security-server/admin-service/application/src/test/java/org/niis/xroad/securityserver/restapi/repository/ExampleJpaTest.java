@@ -26,11 +26,11 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;

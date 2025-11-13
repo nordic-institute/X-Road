@@ -44,6 +44,7 @@ import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.messagelog.MessageRecordEncryption;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
@@ -155,7 +156,7 @@ class MetadataClientRequestProcessorTest {
             }
         };
 
-        var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
+        var messageRecordEncryption = mock(MessageRecordEncryption.class);
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);

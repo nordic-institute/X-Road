@@ -25,16 +25,15 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
-
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.messagelog.MessageLogArchivalProperties;
-import org.niis.xroad.common.messagelog.MessageLogDatabaseEncryptionProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.AbstractLogManager;
+import org.niis.xroad.messagelog.MessageLogArchivalProperties;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
+import org.niis.xroad.messagelog.MessageLogDatabaseEncryptionProperties;
 import org.niis.xroad.proxy.core.addon.messagelog.LogManager;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;

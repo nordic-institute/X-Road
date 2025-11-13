@@ -28,14 +28,14 @@
 package org.niis.xroad.proxy.core.test;
 
 import org.apache.http.client.HttpClient;
-import org.niis.xroad.common.messagelog.MessageRecordEncryption;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.messagelog.MessageRecordEncryption;
+import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
@@ -98,7 +98,7 @@ public class TestContext {
                     serverConfProvider, mock(NoopVaultKeyProvider.class), proxyProperties);
 
             EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
-            MessageRecordEncryption messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
+            MessageRecordEncryption messageRecordEncryption = mock(MessageRecordEncryption.class);
 
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
