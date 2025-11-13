@@ -25,14 +25,13 @@
  */
 package org.niis.xroad.confproxy;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
@@ -77,11 +76,11 @@ class ConfProxyTest {
         ConfProxyHelper.purgeOutdatedGenerations(conf);
         VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(conf.getConfigurationDownloadPath(2));
 
-        when(signerRpcClient.getSignMechanism(any())).thenThrow(new CodedException("internal_error", "Signer is unreachable"));
+        when(signerRpcClient.getSignMechanism(any())).thenThrow(XrdRuntimeException.systemInternalError("Signer is unreachable"));
 
         try (OutputBuilder output = new OutputBuilder(signerRpcClient, signerSignClient, confDir, conf, 2)) {
-            CodedException exception = assertThrows(CodedException.class, output::buildSignedDirectory);
-            assertEquals("Signer is unreachable", exception.getFaultString());
+            XrdRuntimeException exception = assertThrows(XrdRuntimeException.class, output::buildSignedDirectory);
+            assertEquals("Signer is unreachable", exception.getDetails());
         }
         assertEquals(0, Files.list(Paths.get("build/tmp/test/PROXY1")).count());
     }
