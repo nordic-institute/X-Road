@@ -47,6 +47,7 @@ import org.niis.xroad.common.messagelog.MessageRecordEncryption;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 import org.niis.xroad.messagelog.archiver.mapper.ArchiveDigestMapper;
@@ -79,6 +80,7 @@ public class LogArchiver {
     private final BouncyCastlePgpEncryptionService encryptionService;
     private final GlobalConfProvider globalConfProvider;
     private final DatabaseCtx databaseCtx;
+    private final VaultClient vaultClient;
 
     public void execute(LogArchiverExecutionProperties executionProperties) {
         try {
@@ -104,7 +106,8 @@ public class LogArchiver {
         return databaseCtx.doInTransaction(session -> {
             final int limit = executionProperties.archiveTransactionBatchSize();
             final long start = System.currentTimeMillis();
-            final MessageRecordEncryption messageRecordEncryption = new MessageRecordEncryption(executionProperties.databaseEncryption());
+            final MessageRecordEncryption messageRecordEncryption = new MessageRecordEncryption(
+                    executionProperties.databaseEncryption(), vaultClient);
 
             int recordsArchived = 0;
             log.info("Archiving log records...");

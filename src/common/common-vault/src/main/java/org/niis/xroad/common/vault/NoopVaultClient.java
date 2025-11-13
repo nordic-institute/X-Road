@@ -29,6 +29,7 @@ package org.niis.xroad.common.vault;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import java.security.cert.X509Certificate;
+import java.util.Map;
 import java.util.Optional;
 
 public class NoopVaultClient implements VaultClient {
@@ -73,24 +74,32 @@ public class NoopVaultClient implements VaultClient {
     }
 
     @Override
-    public void createMessageLogArchivalSigningSecretKey(String armoredPrivateKey) {
+    public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         throw new UnsupportedOperationException("Not supported");
     }
 
     @Override
-    public Optional<String> getMessageLogArchivalSigningSecretKey() {
+    public Optional<String> getMLogArchivalSigningSecretKey() {
         return Optional.empty();
     }
 
     @Override
-    public void createMessageLogArchivalEncryptionPublicKeys(String armoredRecipientPublicKeys) {
+    public void setMLogArchivalEncryptionPublicKeys(String armoredRecipientPublicKeys) {
         throw new UnsupportedOperationException("Not supported");
     }
 
     @Override
-    public Optional<String> getMessageLogArchivalEncryptionPublicKeys() {
+    public Optional<String> getMLogArchivalEncryptionPublicKeys() {
         return Optional.empty();
     }
 
+    @Override
+    public void setMLogDBEncryptionSecretKey(String keyId, String base64SecretKey) {
+        throw new UnsupportedOperationException("Not supported");
+    }
 
+    @Override
+    public Map<String, String> getMLogDBEncryptionSecretKeys() {
+        return Map.of();
+    }
 }

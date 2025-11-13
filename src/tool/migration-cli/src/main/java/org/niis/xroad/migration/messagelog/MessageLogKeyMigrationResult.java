@@ -24,31 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.messagelog.archive;
+package org.niis.xroad.migration.messagelog;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.pgp.PgpKeyProvider;
-import org.niis.xroad.common.vault.VaultClient;
+/**
+ * Result of message log encryption key migration operation.
+ */
+public record MessageLogKeyMigrationResult(boolean success, boolean skipped, String message, String currentKeyId, int keyCount) {
 
-import java.util.Optional;
+    public static MessageLogKeyMigrationResult success(String currentKeyId, int keyCount) {
+        return new MessageLogKeyMigrationResult(true, false,
+                "Migration completed successfully", currentKeyId, keyCount);
+    }
 
-import static org.niis.xroad.common.core.exception.ErrorCode.PGP_ENCRYPTION_KEYS_MISSING;
+    public static MessageLogKeyMigrationResult skipped(String reason) {
+        return new MessageLogKeyMigrationResult(false, true, reason, null, 0);
+    }
 
-@RequiredArgsConstructor
-public class VaultArchivalPgpKeyProvider implements PgpKeyProvider {
-    private final VaultClient vaultClient;
-
-    @Override
-    public String getSigningSecretKey() {
-        return vaultClient.getMLogArchivalSigningSecretKey()
-                .orElseThrow(() -> XrdRuntimeException.systemException(PGP_ENCRYPTION_KEYS_MISSING)
-                        .details("PGP archival signing key is missing in Vault")
-                        .build());
+    public static MessageLogKeyMigrationResult failure(String message) {
+        return new MessageLogKeyMigrationResult(false, false, message, null, 0);
     }
 
     @Override
-    public Optional<String> getEncryptionPublicKeys() {
-        return vaultClient.getMLogArchivalEncryptionPublicKeys();
+    public String toString() {
+        if (success) {
+            return String.format("Success: CurrentKeyId=%s, KeyCount=%d", currentKeyId, keyCount);
+        } else if (skipped) {
+            return "Skipped: " + message;
+        } else {
+            return "Failed: " + message;
+        }
     }
 }
+

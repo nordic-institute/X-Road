@@ -147,15 +147,15 @@ public final class PgpKeyMigrator {
     }
 
     private void storeKeysInVault(String secretKeyArmored, String publicKeysArmored) {
-        vaultClient.createMessageLogArchivalSigningSecretKey(secretKeyArmored);
-        vaultClient.createMessageLogArchivalEncryptionPublicKeys(publicKeysArmored);
+        vaultClient.setMLogArchivalSigningSecretKey(secretKeyArmored);
+        vaultClient.setMLogArchivalEncryptionPublicKeys(publicKeysArmored);
         log.info("Stored PGP keys in Vault");
     }
 
     private boolean verifyKeysInVault() {
         try {
-            var secretKey = vaultClient.getMessageLogArchivalSigningSecretKey();
-            var publicKeys = vaultClient.getMessageLogArchivalEncryptionPublicKeys();
+            var secretKey = vaultClient.getMLogArchivalSigningSecretKey();
+            var publicKeys = vaultClient.getMLogArchivalEncryptionPublicKeys();
 
             boolean keysValid = secretKey.isPresent() && !secretKey.get().isBlank()
                     && publicKeys.isPresent() && !publicKeys.get().isBlank();

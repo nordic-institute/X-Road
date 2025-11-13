@@ -63,15 +63,12 @@ public class MessageLogConfigMapper {
                 .setDigestAlgorithm(messageLogProperties.hashAlgoIdStr())
                 .setArchiveMaxFilesize(archiverProps.maxFilesize())
                 .setTmpDir(archiverProps.archivePath())
-                .setMessagelogEncryptionEnabled(databaseEncryptionProps.enabled());
+                .setDatabaseEncryptionEnabled(databaseEncryptionProps.enabled())
+                .setDatabaseEncryptionKeyId(databaseEncryptionProps.keyId());
 
         // Add optional fields
         archiverProps.defaultKeyId().ifPresent(builder::setArchiveEncryptionDefaultKeyId);
-
         archiverProps.archiveTransferCommand().ifPresent(builder::setArchiveTransferCommand);
-        databaseEncryptionProps.messagelogKeystoreStr().ifPresent(builder::setMessagelogKeystore);
-        databaseEncryptionProps.messagelogKeystorePasswordStr().ifPresent(builder::setMessagelogKeystorePassword);
-        databaseEncryptionProps.messagelogKeyId().ifPresent(builder::setMessagelogKeyId);
 
         // Convert archive grouping map
         Map<String, StringList> archiveGrouping = archiverProps.grouping().entrySet().stream()

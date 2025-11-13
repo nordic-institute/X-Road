@@ -35,8 +35,6 @@ import org.niis.xroad.common.messagelog.MessageLogArchivalProperties;
 import org.niis.xroad.common.messagelog.MessageLogDatabaseEncryptionProperties;
 import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -83,27 +81,9 @@ public interface ProxyMessageLogProperties {
         @WithDefault("false")
         boolean enabled();
 
-        @Deprecated
-        @WithName("messagelog-keystore")
-        Optional<String> messagelogKeystoreStr();
-
-        @Deprecated
-        @WithName("messagelog-keystore-password")
-        Optional<String> messagelogKeystorePasswordStr();
-
-        @Deprecated
-        @WithName("messagelog-key-id")
-        Optional<String> messagelogKeyId();
-
-        @Override
-        default Optional<Path> messagelogKeystore() {
-            return messagelogKeystoreStr().map(Paths::get);
-        }
-
-        @Override
-        default Optional<char[]> messagelogKeystorePassword() {
-            return messagelogKeystorePasswordStr().map(String::toCharArray);
-        }
+        @WithName("key-id")
+        @WithDefault("default")
+        String keyId();
     }
 
     interface ArchiverProperties extends MessageLogArchivalProperties {

@@ -314,8 +314,6 @@ class LogArchiveCacheTest {
         
         var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
                 false,
-                null,
-                null,
                 null
         );
         
