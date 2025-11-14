@@ -30,6 +30,7 @@ import ee.ria.xroad.common.ExpectedCodedException;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.ErrorCode;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -81,7 +82,7 @@ public class SchemaValidatorTest {
         }
 
         static void validate(Source source) throws Exception {
-            validate(SCHEMA, source, ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF);
+            validate(SCHEMA, source, ErrorCode.MALFORMED_OPTIONAL_PARTS_CONF);
         }
     }
 }

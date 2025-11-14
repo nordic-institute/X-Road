@@ -207,7 +207,7 @@ public class AuthTrustVerifier {
             // Note: assuming X509-based auth
             return (X509Certificate[]) session.getPeerCertificates();
         } catch (SSLPeerUnverifiedException e) {
-            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, "Service provider did not provide TLS certificate", e);
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, e, "Service provider did not provide TLS certificate");
         }
     }
 

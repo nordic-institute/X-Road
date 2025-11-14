@@ -25,10 +25,10 @@
  */
 package org.niis.xroad.globalconf.monitoringconf;
 
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.SchemaValidator;
 
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.core.exception.ErrorCode;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -87,6 +87,6 @@ public class MonitoringParametersSchemaValidator extends SchemaValidator {
      * @throws IOException if validation fails
      */
     public static void validate(Source source) throws IOException {
-        validate(schema, source, ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF);
+        validate(schema, source, ErrorCode.MALFORMED_OPTIONAL_PARTS_CONF);
     }
 }

@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.signature;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.XmlUtils;
@@ -35,6 +33,7 @@ import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
 import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.utils.Constants;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -47,6 +46,7 @@ import java.util.Iterator;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SIGNATURE;
 
 /**
  * Local helper class for constructing Xades signatures.
@@ -271,8 +271,8 @@ public final class Helper {
                 .orElseThrow(() -> elementNotFound(tagName));
     }
 
-    public static CodedException elementNotFound(String elementTag) {
-        return new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE, "Could not find element \"%s\"", elementTag);
+    public static XrdRuntimeException elementNotFound(String elementTag) {
+        return XrdRuntimeException.systemException(MALFORMED_SIGNATURE, "Could not find element \"%s\"".formatted(elementTag));
     }
 
     private static NamespaceContext getNamespaceCtx() {

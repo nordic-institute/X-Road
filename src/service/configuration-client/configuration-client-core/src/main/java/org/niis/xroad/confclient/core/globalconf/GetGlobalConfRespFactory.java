@@ -79,7 +79,7 @@ public class GetGlobalConfRespFactory {
                 builder.addInstances(loadParameters(instanceDir));
             }
         } catch (IOException e) {
-            throw XrdRuntimeException.systemException(MALFORMED_GLOBALCONF, "Failed to read configuration directory", e);
+            throw XrdRuntimeException.systemException(MALFORMED_GLOBALCONF, e, "Failed to read configuration directory");
         }
         return builder
                 .setInstanceIdentifier(loadInstanceIdentifier())

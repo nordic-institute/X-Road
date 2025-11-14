@@ -442,7 +442,7 @@ public final class SoapUtils {
                 new URI(soapAction.substring(1, lastIndex));
                 return soapAction;
             } catch (URISyntaxException e) {
-                throw XrdRuntimeException.systemException(INVALID_SOAP_ACTION, "Malformed SOAPAction header", e);
+                throw XrdRuntimeException.systemException(INVALID_SOAP_ACTION, e, "Malformed SOAPAction header");
             }
         }
         throw XrdRuntimeException.systemException(INVALID_SOAP_ACTION, "Malformed SOAPAction header");

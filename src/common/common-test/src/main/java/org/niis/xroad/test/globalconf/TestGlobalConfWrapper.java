@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.test.globalconf;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -290,7 +289,7 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException {
+    public ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) {
         return globalConfProvider.getApprovedCA(instanceIdentifier, cert);
     }
 

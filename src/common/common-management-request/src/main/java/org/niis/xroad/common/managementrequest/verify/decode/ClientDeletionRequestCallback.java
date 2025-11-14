@@ -26,21 +26,21 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.ClientRequestType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 
 import java.util.Objects;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
 
 @Slf4j
@@ -59,7 +59,7 @@ public class ClientDeletionRequestCallback implements ManagementRequestDecoderCa
             final SecurityServerId serverId = clientRequestType.getServer();
             validateServerId(serverId);
             if (!Objects.equals(soap.getClient(), serverId.getOwner())) {
-                throw new CodedException(X_INVALID_REQUEST, "Sender does not match server owner.");
+                throw XrdRuntimeException.systemException(INVALID_REQUEST, "Sender does not match server owner.");
             }
         } catch (Exception e) {
             log.error("Failed to verify owner change request", e);

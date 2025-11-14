@@ -216,6 +216,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
      * @return a new builder instance
      * @throws IllegalArgumentException if error is null
      */
+    @Deprecated(forRemoval = true)
     public static XrdRuntimeExceptionBuilder businessException(DeviationBuilder.ErrorDeviationBuilder error) {
         if (error == null) {
             throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
@@ -230,6 +231,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
      * @return a new builder instance
      * @throws IllegalArgumentException if error is null
      */
+    @Deprecated(forRemoval = true)
     public static XrdRuntimeExceptionBuilder validationException(DeviationBuilder.ErrorDeviationBuilder error) {
         if (error == null) {
             throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
@@ -261,16 +263,17 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         };
     }
 
-    public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, String details) {
+    public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, String details, Object... params) {
         return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, errorCode)
-                .details(details)
+                .details(details.formatted(params))
                 .build();
     }
 
-    public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, String details, Throwable cause) {
+    public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, Throwable cause, String details,
+                                                      Object... params) {
         return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, errorCode)
                 .cause(cause)
-                .details(details)
+                .details(details.formatted(params))
                 .build();
     }
 

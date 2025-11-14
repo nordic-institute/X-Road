@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.HttpStatus;
 
 import lombok.Getter;
@@ -58,8 +57,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 
 /**
@@ -220,7 +219,7 @@ public abstract class AbstractHttpSender implements Closeable {
             // HTTP status code if the response envelope is a Fault.
             return;
         }
-        throw new CodedException(X_HTTP_ERROR, "Server responded with error %s: %s",
+        throw XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s: %s",
                 response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
     }
 
@@ -238,7 +237,7 @@ public abstract class AbstractHttpSender implements Closeable {
         HttpEntity entity = response.getEntity();
 
         if (entity == null) {
-            throw new CodedException(X_HTTP_ERROR, "Could not get content from response");
+            throw XrdRuntimeException.systemException(HTTP_ERROR, "Could not get content from response");
         }
 
         return entity;
@@ -252,7 +251,7 @@ public abstract class AbstractHttpSender implements Closeable {
                 return null;
             }
 
-            throw new CodedException(X_INVALID_CONTENT_TYPE, "Could not get content type from response");
+            throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE, "Could not get content type from response");
         }
 
         return contentType.getValue();

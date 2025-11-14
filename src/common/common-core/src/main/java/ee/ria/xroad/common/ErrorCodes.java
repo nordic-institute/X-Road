@@ -42,12 +42,10 @@ public final class ErrorCodes {
 
     // Generic errors.
 
-    public static final String X_IO_ERROR = "io_error";
     public static final String X_NETWORK_ERROR = "network_error";
     public static final String X_INTERNAL_ERROR = "internal_error";
     public static final String X_HTTP_ERROR = "http_error";
     public static final String X_UNKNOWN_HOST = "unknown_host";
-    public static final String X_DATABASE_ERROR = "database_error";
     public static final String X_INVALID_REQUEST = "invalid_request";
 
 
@@ -61,7 +59,6 @@ public final class ErrorCodes {
     public static final String X_INVALID_SIGNATURE_VALUE = "invalid_signature_value";
     public static final String X_MALFORMED_SIGNATURE = "malformed_signature";
     public static final String X_INVALID_XML = "invalid_xml";
-    public static final String X_INVALID_REFERENCE = "invalid_reference";
     public static final String X_INVALID_CERT_PATH_X = "invalid_cert_path";
     public static final String X_SIGNATURE_VERIFICATION_X = "signature_verification";
     public static final String X_INVALID_HASH_CHAIN_RESULT = "invalid_hash_chain";
@@ -78,7 +75,6 @@ public final class ErrorCodes {
     public static final String X_INVALID_SOAP_ACTION = "invalid_soap_action";
     public static final String X_INVALID_HTTP_METHOD = "invalid_http_method";
     public static final String X_INVALID_MESSAGE = "invalid_message";
-    public static final String X_MIME_PARSING_FAILED = "mime_parsing_failed";
     public static final String X_MISSING_HEADER = "missing_header";
     public static final String X_MISSING_HEADER_FIELD = "missing_header_field";
     public static final String X_DUPLICATE_HEADER_FIELD = "duplicate_header_field";

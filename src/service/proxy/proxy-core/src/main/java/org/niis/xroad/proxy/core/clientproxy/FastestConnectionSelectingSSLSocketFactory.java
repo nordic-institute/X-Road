@@ -252,7 +252,7 @@ public class FastestConnectionSelectingSSLSocketFactory
         try {
             sslSocket.startHandshake();
         } catch (IOException e) {
-            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, "TLS handshake failed", e);
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, e, "TLS handshake failed");
         }
 
         authTrustVerifier.verify(context, sslSocket.getSession(), selectedAddress);
@@ -289,8 +289,8 @@ public class FastestConnectionSelectingSSLSocketFactory
         if (cause instanceof XrdRuntimeException ex) {
             return ex;
         } else {
-            return XrdRuntimeException.systemException(NETWORK_ERROR,
-                    "Could not connect to any target host (%s)".formatted(Arrays.toString(addresses)), cause);
+            return XrdRuntimeException.systemException(NETWORK_ERROR, cause,
+                    "Could not connect to any target host (%s)".formatted(Arrays.toString(addresses)));
         }
     }
 

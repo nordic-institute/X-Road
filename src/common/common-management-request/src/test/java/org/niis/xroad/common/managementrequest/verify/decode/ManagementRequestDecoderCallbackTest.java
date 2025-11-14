@@ -26,9 +26,8 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -64,14 +63,14 @@ class ManagementRequestDecoderCallbackTest {
 
     @Test
     void shouldVerifyMessagePartThrowExceptionOnNull() {
-        assertThatExceptionOfType(CodedException.class)
+        assertThatExceptionOfType(XrdRuntimeException.class)
                 .isThrownBy(() -> managementRequestDecoderCallback.verifyMessagePart(null, MESSAGE))
                 .withMessageContaining(MESSAGE);
     }
 
     @Test
     void shouldVerifyMessagePartThrowExceptionOnBlank() {
-        assertThatExceptionOfType(CodedException.class)
+        assertThatExceptionOfType(XrdRuntimeException.class)
                 .isThrownBy(() -> managementRequestDecoderCallback.verifyMessagePart("", MESSAGE))
                 .withMessageContaining(MESSAGE);
     }
