@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.CryptoException;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
@@ -88,12 +87,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
-import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_PIN_POLICY_FAILURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNSUPPORTED_SIGN_ALGORITHM;
 import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotFound;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.loginFailed;
@@ -120,7 +117,6 @@ public class SoftwareTokenWorkerFactory {
             SignAlgorithm.SHA384_WITH_ECDSA,
             SignAlgorithm.SHA512_WITH_ECDSA
     );
-    private static final String UNSUPPORTED_SIGN_ALGORITHM = "unsupported_sign_algorithm";
 
     private final SignerProperties signerProperties;
     private final TokenManager tokenManager;
@@ -202,7 +198,7 @@ public class SoftwareTokenWorkerFactory {
             } catch (Exception e) {
                 log.error("Failed to generate key", e);
 
-                throw translateException(e).withPrefix(X_FAILED_TO_GENERATE_R_KEY);
+                throw XrdRuntimeException.systemException(e).withPrefix(X_FAILED_TO_GENERATE_R_KEY);
             }
 
             String keyId = result.keyId();
@@ -260,8 +256,8 @@ public class SoftwareTokenWorkerFactory {
             checkSignatureAlgorithm(signatureAlgorithmId, keyAlgorithm);
 
             if (!keyAlgorithm.equals(signatureAlgorithmId.algorithm())) {
-                throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, UNSUPPORTED_SIGN_ALGORITHM,
-                        "Unsupported signature algorithm '%s' for key algorithm '%s'", signatureAlgorithmId.name(), keyAlgorithm);
+                throw XrdRuntimeException.systemException(UNSUPPORTED_SIGN_ALGORITHM,
+                        "Unsupported signature algorithm '%s' for key algorithm '%s'".formatted(signatureAlgorithmId.name(), keyAlgorithm));
             }
 
             log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
@@ -277,13 +273,13 @@ public class SoftwareTokenWorkerFactory {
 
         private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) {
             if (!SUPPORTED_ALGORITHMS.contains(signatureAlgorithmId)) {
-                throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, UNSUPPORTED_SIGN_ALGORITHM,
-                        "Unsupported signature algorithm '%s'", signatureAlgorithmId.name());
+                throw XrdRuntimeException.systemException(UNSUPPORTED_SIGN_ALGORITHM,
+                        "Unsupported signature algorithm '%s'".formatted(signatureAlgorithmId.name()));
             }
 
             if (!algorithm.equals(signatureAlgorithmId.algorithm())) {
-                throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, UNSUPPORTED_SIGN_ALGORITHM,
-                        "Unsupported signature algorithm '%s' for key algorithm '%s'", signatureAlgorithmId.name(), algorithm);
+                throw XrdRuntimeException.systemException(UNSUPPORTED_SIGN_ALGORITHM,
+                        "Unsupported signature algorithm '%s' for key algorithm '%s'".formatted(signatureAlgorithmId.name(), algorithm));
             }
         }
 
@@ -385,7 +381,7 @@ public class SoftwareTokenWorkerFactory {
             log.info("Initializing software token with new pin...");
 
             if (signerProperties.enforceTokenPinPolicy() && !PasswordPolicy.validate(pin)) {
-                throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE, "Token PIN does not meet complexity requirements");
+                throw XrdRuntimeException.systemException(TOKEN_PIN_POLICY_FAILURE, "Token PIN does not meet complexity requirements");
             }
 
             try {
@@ -393,7 +389,7 @@ public class SoftwareTokenWorkerFactory {
                 tokenManager.enableToken(tokenDefinition);
                 tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
             } catch (Exception e) {
-                throw translateException(e);
+                throw XrdRuntimeException.systemException(e);
             }
         }
 
@@ -414,7 +410,7 @@ public class SoftwareTokenWorkerFactory {
             }
             // Verify new pin complexity
             if (signerProperties.enforceTokenPinPolicy() && !PasswordPolicy.validate(newPin)) {
-                throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE,
+                throw XrdRuntimeException.systemException(TOKEN_PIN_POLICY_FAILURE,
                         "Token PIN does not meet complexity requirements");
             }
         }
@@ -436,7 +432,7 @@ public class SoftwareTokenWorkerFactory {
                 log.info("Updating the software token pin was successful!");
             } catch (Exception e) {
                 log.info("Updating the software token pin failed!");
-                throw translateException(e);
+                throw XrdRuntimeException.systemException(e);
             } finally {
                 isTokenLoginAllowed = true; // Allow token login again
             }
@@ -495,7 +491,7 @@ public class SoftwareTokenWorkerFactory {
 
         private static void verifyPinProvided(char[] pin) {
             if (pin == null || pin.length == 0) {
-                throw new CodedException(X_INTERNAL_ERROR, "PIN not provided");
+                throw XrdRuntimeException.systemInternalError("PIN not provided");
             }
         }
 

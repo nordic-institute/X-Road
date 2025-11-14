@@ -25,12 +25,12 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.core.certmanager.OcspResponseLookup;
@@ -42,7 +42,6 @@ import org.niis.xroad.signer.proto.ActivateCertReq;
 
 import java.security.cert.X509Certificate;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.CertUtils.isSelfSigned;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithIdNotFound;
@@ -76,9 +75,9 @@ public class ActivateCertReqHandler extends AbstractRpcHandler<ActivateCertReq, 
                 } catch (Exception e) {
                     log.error("Failed to verify OCSP responses for certificate {}", certificateInfo.getCertificateDisplayName(), e);
                     certOcspManager.setOcspVerifyBeforeActivationError(certificateInfo.getId(), e.getMessage());
-                    throw new CodedException(X_INTERNAL_ERROR,
-                            "Failed to verify OCSP responses for certificate. Error: %s",
-                            e.getMessage());
+                    throw XrdRuntimeException.systemInternalError(
+                            "Failed to verify OCSP responses for certificate. Error: %s".formatted(
+                            e.getMessage()));
                 }
             }
         }

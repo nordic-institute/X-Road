@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
-
 import iaik.pkcs.pkcs11.Token;
 import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
@@ -103,8 +101,8 @@ class BlockingPKCS11SessionManagerTest {
                     .thenThrow(underlyingException); // Simulate ManagedPKCS11Session wrapping it
 
             // When & Assert
-            // Constructor wraps non-TokenExceptions in CodedException
-            CodedException thrown = assertThrows(CodedException.class, () -> {
+            // Constructor wraps non-TokenExceptions in XrdRuntimeException
+            XrdRuntimeException thrown = assertThrows(XrdRuntimeException.class, () -> {
                 new BlockingPKCS11SessionManager(token, TOKEN_ID);
             });
             assertThat(thrown.getMessage()).contains("Failed to create session");

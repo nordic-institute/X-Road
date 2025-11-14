@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.globalconf.impl.ocsp;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -61,13 +60,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.Digests.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.createCertId;
 import static ee.ria.xroad.common.util.CryptoUtils.createDefaultContentVerifier;
 import static ee.ria.xroad.common.util.TimeUtils.toOffsetDateTime;
+import static org.niis.xroad.common.core.exception.ErrorCode.CERT_VALIDATION;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_VALIDATION_INFO;
 
 /**
  * Helper class for verifying OCSP responses.
@@ -104,7 +103,7 @@ public final class OcspVerifier {
      * @param response the OCSP response
      * @param subject  the certificate to verify
      * @param issuer   the issuer of the subject certificate
-     * @throws Exception CodedException with appropriate error code
+     * @throws Exception XrdRuntimeException with appropriate error code
      *                   if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
@@ -120,7 +119,7 @@ public final class OcspVerifier {
      * @param subject  the certificate to verify
      * @param issuer   the issuer of the subject certificate
      * @param atDate   the date
-     * @throws Exception CodedException with appropriate error code
+     * @throws Exception XrdRuntimeException with appropriate error code
      *                   if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
@@ -137,7 +136,7 @@ public final class OcspVerifier {
      * @param response the OCSP response
      * @param subject  the certificate to verify
      * @param issuer   the issuer of the subject certificate
-     * @throws XrdRuntimeException CodedException with appropriate error code
+     * @throws XrdRuntimeException XrdRuntimeException with appropriate error code
      *                             if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
@@ -153,7 +152,7 @@ public final class OcspVerifier {
      * @param subject  the certificate to getOcspCertverify
      * @param issuer   the issuer of the subject certificate
      * @param atDate   the date
-     * @throws XrdRuntimeException CodedException with appropriate error code
+     * @throws XrdRuntimeException XrdRuntimeException with appropriate error code
      *                             if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
@@ -171,9 +170,9 @@ public final class OcspVerifier {
         // 5. The time at which the status being indicated is known
         // to be correct (thisUpdate) is sufficiently recent.
         if (isExpired(singleResp, atDate)) {
-            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
-                    "OCSP response is too old (thisUpdate: %s)",
-                    toOffsetDateTime(singleResp.getThisUpdate()));
+            throw XrdRuntimeException.systemException(INCORRECT_VALIDATION_INFO,
+                    "OCSP response is too old (thisUpdate: %s)".formatted(
+                            toOffsetDateTime(singleResp.getThisUpdate())));
         }
 
         if (options.isVerifyNextUpdate()) {
@@ -186,7 +185,7 @@ public final class OcspVerifier {
                         toOffsetDateTime(nextUpdate));
             }
             if (nextUpdate != null && nextUpdate.before(atDate)) {
-                throw new CodedException(X_INCORRECT_VALIDATION_INFO,
+                throw XrdRuntimeException.systemException(INCORRECT_VALIDATION_INFO,
                         String.format("OCSP nextUpdate is too old, atDate: %s nextUpdate: %s",
                                 toOffsetDateTime(atDate),
                                 toOffsetDateTime(nextUpdate)));
@@ -220,19 +219,19 @@ public final class OcspVerifier {
         // 1. The certificate identified in a received response corresponds to
         // that which was identified in the corresponding request;
         if (!singleResp.getCertID().equals(requestCertId)) {
-            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
-                    "OCSP response does not apply to certificate (sn = %s)",
-                    subject.getSerialNumber());
+            throw XrdRuntimeException.systemException(INCORRECT_VALIDATION_INFO,
+                    "OCSP response does not apply to certificate (sn = %s)".formatted(
+                            subject.getSerialNumber()));
         }
 
         X509Certificate ocspCert = getOcspCert(basicResp);
         if (ocspCert == null) {
-            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
+            throw XrdRuntimeException.systemException(INCORRECT_VALIDATION_INFO,
                     "Could not find OCSP certificate for responder ID");
         }
 
         if (!verifySignature(basicResp, ocspCert)) {
-            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
+            throw XrdRuntimeException.systemException(INCORRECT_VALIDATION_INFO,
                     "Signature on OCSP response is not valid");
         }
 
@@ -242,7 +241,7 @@ public final class OcspVerifier {
 
         // 4. The signer is currently authorized to sign the response.
         if (!isAuthorizedOcspSigner(ocspCert, issuer)) {
-            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
+            throw XrdRuntimeException.systemException(INCORRECT_VALIDATION_INFO,
                     "OCSP responder is not authorized for given CA");
         }
         return singleResp;
@@ -260,8 +259,8 @@ public final class OcspVerifier {
      * Verifies the status of the OCSP response.
      *
      * @param response the OCSP response
-     * @throws OCSPException  if ocsp response is not available
-     * @throws CodedException with error code X_CERT_VALIDATION if status is not good.
+     * @throws OCSPException       if ocsp response is not available
+     * @throws XrdRuntimeException with error code X_CERT_VALIDATION if status is not good.
      */
     public static void verifyStatus(OCSPResp response) throws OCSPException {
         BasicOCSPResp basicResp = (BasicOCSPResp) response.getResponseObject();
@@ -269,9 +268,9 @@ public final class OcspVerifier {
 
         CertificateStatus status = singleResp.getCertStatus();
         if (status != null) { // null indicates GOOD.
-            throw new CodedException(X_CERT_VALIDATION,
-                    "OCSP response indicates certificate status is %s",
-                    getStatusString(status));
+            throw XrdRuntimeException.systemException(CERT_VALIDATION,
+                    "OCSP response indicates certificate status is %s".formatted(
+                            getStatusString(status)));
         }
     }
 

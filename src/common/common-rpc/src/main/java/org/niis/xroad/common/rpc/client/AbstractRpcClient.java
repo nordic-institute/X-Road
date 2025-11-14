@@ -107,7 +107,7 @@ public abstract class AbstractRpcClient implements AutoCloseable {
                 } catch (InvalidProtocolBufferException e) {
                     throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                             .cause(e)
-                            .details("Failed to parse CodedExceptionProto from gRPC status details")
+                            .details("Failed to parse XrdRuntimeExceptionProto from gRPC status details")
                             .build();
                 }
             }

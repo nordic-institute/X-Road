@@ -27,7 +27,6 @@
 
 package org.niis.xroad.signer.core.tokenmanager;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -76,7 +75,7 @@ class CertManagerTest {
     private static final String CERT_REQ_EXTERNAL_ID = "cert-request-external-id";
 
     @Test
-    void testAddCert() throws Exception {
+    void testAddCert() {
         initRegistry(mock(RuntimeKeyImpl.class));
 
         ClientId.Conf clientId = ClientId.Conf.create("a", "b", "c");
@@ -117,7 +116,7 @@ class CertManagerTest {
     }
 
     @Test
-    void testSetCertActive() throws Exception {
+    void testSetCertActive() {
         var keyMock = mock(RuntimeKeyImpl.class);
         var certMock = mock(RuntimeCertImpl.class);
         when(certMock.id()).thenReturn(1L);
@@ -132,7 +131,7 @@ class CertManagerTest {
     }
 
     @Test
-    void testCertActiveCacheRefreshOnException() throws Exception {
+    void testCertActiveCacheRefreshOnException() {
         var keyMock = mock(RuntimeKeyImpl.class);
         var certMock = mock(RuntimeCertImpl.class);
         when(certMock.id()).thenReturn(1L);
@@ -151,7 +150,7 @@ class CertManagerTest {
     }
 
     @Test
-    void testSetCertStatus() throws Exception {
+    void testSetCertStatus() {
         var keyMock = mock(RuntimeKeyImpl.class);
         var certMock = mock(RuntimeCertImpl.class);
         when(certMock.id()).thenReturn(1L);
@@ -185,7 +184,7 @@ class CertManagerTest {
     }
 
     @Test
-    void testSetRenewedCertHash() throws Exception {
+    void testSetRenewedCertHash() {
         var keyMock = mock(RuntimeKeyImpl.class);
         var certMock = mock(RuntimeCertImpl.class);
         when(certMock.id()).thenReturn(1L);
@@ -220,7 +219,7 @@ class CertManagerTest {
     }
 
     @Test
-    void testSetRenewalError() throws Exception {
+    void testSetRenewalError() {
         var keyMock = mock(RuntimeKeyImpl.class);
         var certMock = mock(RuntimeCertImpl.class);
         when(certMock.id()).thenReturn(1L);
@@ -255,7 +254,7 @@ class CertManagerTest {
     }
 
     @Test
-    void testSetNextPlannedRenewal() throws Exception {
+    void testSetNextPlannedRenewal() {
         var keyMock = mock(RuntimeKeyImpl.class);
         var certMock = mock(RuntimeCertImpl.class);
         when(certMock.id()).thenReturn(1L);
@@ -292,7 +291,7 @@ class CertManagerTest {
     }
 
     @Test
-    void testRemoveCert() throws Exception {
+    void testRemoveCert() {
         var keyMock = mock(RuntimeKeyImpl.class);
         var certMock = mock(RuntimeCertImpl.class);
         when(certMock.id()).thenReturn(1L);
@@ -319,7 +318,7 @@ class CertManagerTest {
     }
 
     @Test
-    void testAddCertRequest() throws Exception {
+    void testAddCertRequest() {
         var keyMock = mock(RuntimeKeyImpl.class);
 
         initRegistry(keyMock);
@@ -344,11 +343,11 @@ class CertManagerTest {
 
         ClientId.Conf memberID = ClientId.Conf.create("a", "b", "c");
 
-        var exception = assertThrows(CodedException.class, () ->
+        var exception = assertThrows(XrdRuntimeException.class, () ->
                 certManager.addCertRequest(KEY_EXTERNAL_ID, memberID, "subjectName", "subjectAltName",
                         KeyUsageInfo.AUTHENTICATION, "certProfile"));
 
-        assertEquals("wrong_cert_usage", exception.getFaultCode());
+        assertEquals("wrong_cert_usage", exception.getErrorCode());
         assertEquals("Cannot add AUTHENTICATION certificate request to SIGNING key", exception.getFaultString());
 
         verifyNoInteractions(tokenKeyWriteService);
@@ -358,7 +357,7 @@ class CertManagerTest {
     }
 
     @Test
-    void testAddCertRequestCertReqAlreadyExists() throws Exception {
+    void testAddCertRequestCertReqAlreadyExists() {
         ClientId.Conf memberID = ClientId.Conf.create("a", "b", "c");
 
         var keyMock = mock(RuntimeKeyImpl.class);
@@ -380,7 +379,7 @@ class CertManagerTest {
     }
 
     @Test
-    void testRemoveCertRequest() throws Exception {
+    void testRemoveCertRequest() {
         var keyMock = mock(RuntimeKeyImpl.class);
         var certReqMock = mock(CertRequestData.class);
         when(certReqMock.externalId()).thenReturn(CERT_REQ_EXTERNAL_ID);

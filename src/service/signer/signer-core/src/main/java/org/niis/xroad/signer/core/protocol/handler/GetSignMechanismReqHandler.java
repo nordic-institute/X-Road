@@ -25,15 +25,15 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetSignMechanismReq;
 import org.niis.xroad.signer.proto.GetSignMechanismResp;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
 
 /**
  * Handles requests for signing mechanism based on key id.
@@ -48,8 +48,7 @@ public class GetSignMechanismReqHandler extends AbstractRpcHandler<GetSignMechan
         var signMechanism = tokenLookup.getKeySignMechanismInfo(request.getKeyId());
 
         if (signMechanism.isEmpty()) {
-            throw CodedException.tr(ErrorCodes.X_KEY_NOT_FOUND, "key_not_found", "Key '%s' not found",
-                    request.getKeyId());
+            throw XrdRuntimeException.systemException(KEY_NOT_FOUND, "Key '%s' not found".formatted(request.getKeyId()));
         }
 
         return GetSignMechanismResp.newBuilder()

@@ -115,29 +115,13 @@ public final class ErrorCodes {
     public static final String X_MALFORMED_OPTIONAL_PARTS_CONF = "malformed_optional_parts_conf";
     public static final String X_OUTDATED_GLOBALCONF = "global_conf_outdated";
     public static final String X_MAINTENANCE_MODE = "maintenance_mode";
-    public static final String X_MALFORMED_ANCHOR = "malformed_anchor";
-    public static final String X_ANCHOR_FILE_NOT_FOUND = "anchor_file_not_found";
-    public static final String X_GLOBAL_CONF_DOWNLOAD_URL_CONNECTION_FAILURE = "global_conf_download_url_connection_failure";
 
     // Signer Errors
 
-    public static final String X_KEY_NOT_FOUND = "key_not_found";
-    public static final String X_CERT_NOT_FOUND = "cert_not_found";
-    public static final String X_CSR_NOT_FOUND = "csr_not_found";
     public static final String X_TOKEN_NOT_FOUND = "token_not_found";
     public static final String X_TOKEN_NOT_ACTIVE = "token_not_active";
-    public static final String X_TOKEN_NOT_INITIALIZED = "token_not_initialized";
-    public static final String X_TOKEN_NOT_AVAILABLE = "token_not_available";
-    public static final String X_TOKEN_READONLY = "token_readonly";
     public static final String X_CANNOT_SIGN = "cannot_sign";
-    public static final String X_UNSUPPORTED_SIGN_ALGORITHM = "unsupported_sign_algorithm";
     public static final String X_FAILED_TO_GENERATE_R_KEY = "failed_to_generate_private_key";
-    public static final String X_CERT_EXISTS = "cert_exists";
-    public static final String X_WRONG_CERT_USAGE = "wrong_cert_usage";
-    public static final String X_LOGIN_FAILED = "login_failed";
-    public static final String X_LOGOUT_FAILED = "logout_failed";
-    public static final String X_PIN_INCORRECT = "pin_incorrect";
-    public static final String X_CERT_IMPORT_FAILED = "cert_import_failed";
     public static final String X_TOKEN_PIN_POLICY_FAILURE = "token_pin_policy_failure";
 
     /**

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.signer.core.certmanager;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.CertUtils;
@@ -38,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -293,7 +293,7 @@ public class OcspClientWorker {
             } catch (IOException e) {
                 log.error("Unable to connect to responder at {}", responderURI, e);
                 errorCode = ErrorCode.OCSP_CONNECTION_ERROR;
-            } catch (CodedException e) {
+            } catch (XrdRuntimeException e) {
                 log.warn("Received OCSP response that failed verification", e);
                 errorCode = ErrorCode.OCSP_RESPONSE_VERIFICATION_FAILURE;
             } catch (Exception e) {
