@@ -26,10 +26,7 @@
  -->
 <template>
   <div>
-    <v-icon
-      :color="color"
-      :icon="icon"
-    />
+    <v-icon :color="color" :icon="icon" />
   </div>
 </template>
 

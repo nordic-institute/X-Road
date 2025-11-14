@@ -38,34 +38,16 @@
     :loading="loading"
     :type="submit ? 'submit' : 'button'"
   >
-    <template
-      v-if="prependIcon || $slots.prepend"
-      #prepend
-    >
+    <template v-if="prependIcon || $slots.prepend" #prepend>
       <slot name="prepend">
-        <v-icon
-          v-if="prependIcon"
-          :icon="prependIcon"
-          :size="prependIconSize"
-        />
+        <v-icon v-if="prependIcon" :icon="prependIcon" :size="prependIconSize" />
       </slot>
     </template>
-    <template
-      v-if="appendIcon"
-      #append
-    >
-      <v-icon
-        v-if="appendIcon"
-        :icon="appendIcon"
-        :size="appendIconSize"
-      />
+    <template v-if="appendIcon" #append>
+      <v-icon v-if="appendIcon" :icon="appendIcon" :size="appendIconSize" />
     </template>
     <slot>
-      <span
-        v-if="text"
-        class="body-regular"
-        :class="fontWeight"
-      >
+      <span v-if="text" class="body-regular" :class="fontWeight">
         {{ translated ? text : $t(text) }}
       </span>
     </slot>

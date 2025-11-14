@@ -25,25 +25,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-stepper
-    v-model="currentStep"
-    class="wizard xrd-rounded-12"
-    alt-labels
-    flat
-  >
+  <v-stepper v-model="currentStep" class="wizard xrd-rounded-12" alt-labels flat>
     <!-- Headers -->
-    <v-stepper-header
-      v-if="$slots['header-items']"
-      class="elevation-0"
-    >
+    <v-stepper-header v-if="$slots['header-items']" class="elevation-0">
       <slot name="header-items" />
     </v-stepper-header>
 
     <v-stepper-window class="ma-0">
-      <slot
-        :next-step="nextStep"
-        :previous-step="previousStep"
-      />
+      <slot :next-step="nextStep" :previous-step="previousStep" />
     </v-stepper-window>
   </v-stepper>
 </template>

@@ -25,15 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-sheet
-    color="surface-dim"
-    class="xrd-rounded-16 bg-surface-dim pa-6"
-    tag="section"
-  >
-    <header
-      v-if="$slots['header']"
-      class="view-header d-flex flex-row align-end mb-6"
-    >
+  <v-sheet color="surface-dim" class="xrd-rounded-16 bg-surface-dim pa-6" tag="section">
+    <header v-if="$slots['header']" class="view-header d-flex flex-row align-end mb-6">
       <slot name="header" />
     </header>
     <slot />

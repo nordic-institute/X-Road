@@ -26,18 +26,8 @@
  -->
 <template>
   <div>
-    <input
-      v-show="false"
-      ref="fileInput"
-      type="file"
-      :accept="accepts"
-      @change="onFileInputChange"
-    />
-    <slot
-      :upload="upload"
-      :filedrop="onFileDrop"
-      :errors="errors"
-    />
+    <input v-show="false" ref="fileInput" type="file" :accept="accepts" @change="onFileInputChange" />
+    <slot :upload="upload" :filedrop="onFileDrop" :errors="errors" />
   </div>
 </template>
 

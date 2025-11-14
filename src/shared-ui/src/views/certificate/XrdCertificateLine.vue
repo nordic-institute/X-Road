@@ -45,10 +45,7 @@
     </td>
     <td class="value border-0 pl-4">
       <template v-if="colonize">
-        <XrdHashValue
-          wrap-friendly
-          :value="value + ''"
-        />
+        <XrdHashValue wrap-friendly :value="value + ''" />
       </template>
       <template v-else>
         {{ formattedValue }}

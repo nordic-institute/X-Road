@@ -33,26 +33,17 @@
     :go-back-on-close="goBackOnClose"
     @close="emit('close')"
   >
-    <template
-      v-if="$slots['append-header']"
-      #append-header
-    >
+    <template v-if="$slots['append-header']" #append-header>
       <slot name="append-header" />
     </template>
     <template #bellow-header>
-      <XrdBreadcrumbs
-        v-if="breadcrumbs && breadcrumbs.length > 0"
-        :breadcrumbs="breadcrumbs"
-      />
+      <XrdBreadcrumbs v-if="breadcrumbs && breadcrumbs.length > 0" :breadcrumbs="breadcrumbs" />
     </template>
     <XrdContainer840 class="pt-4 pr-6 pb-6 pl-6">
       <slot name="tabs" />
       <slot />
     </XrdContainer840>
-    <v-footer
-      v-if="$slots.footer"
-      class="pa-4 bg-surface-container-low"
-    >
+    <v-footer v-if="$slots.footer" class="pa-4 bg-surface-container-low">
       <slot name="footer" />
     </v-footer>
   </XrdElevatedViewSimple>

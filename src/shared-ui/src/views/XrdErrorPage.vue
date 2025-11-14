@@ -28,33 +28,12 @@
 <template>
   <XrdView :title="title">
     <div class="position-relative">
-      <v-img
-        class="xrd-image-trail2"
-        width="480px"
-        height="480px"
-        :src="imageTrail2Url"
-      />
-      <v-img
-        class="xrd-image-rocket-trail"
-        width="560"
-        height="480px"
-        :src="imageRocketTrailUrl"
-      />
+      <v-img class="xrd-image-trail2" width="480px" height="480px" :src="imageTrail2Url" />
+      <v-img class="xrd-image-rocket-trail" width="560" height="480px" :src="imageRocketTrailUrl" />
 
-      <v-container
-        fluid
-        class="xrd-error-view pa-0 bg-surface-bright rounded-xl border"
-      >
-        <v-img
-          class="xrd-image-trail1"
-          width="480px"
-          height="480px"
-          :src="imageTrail1Url"
-        />
-        <v-container
-          fluid
-          class="xrd-error-view-inner overflow-hidden position-relative"
-        >
+      <v-container fluid class="xrd-error-view pa-0 bg-surface-bright rounded-xl border">
+        <v-img class="xrd-image-trail1" width="480px" height="480px" :src="imageTrail1Url" />
+        <v-container fluid class="xrd-error-view-inner overflow-hidden position-relative">
           <slot />
         </v-container>
       </v-container>

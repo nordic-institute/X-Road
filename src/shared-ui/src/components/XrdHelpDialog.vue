@@ -25,14 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdSimpleDialog
-    :title="title"
-    :width="width"
-    hide-cancel
-    save-button-text="keys.gotIt"
-    @save="emit('cancel')"
-    @cancel="emit('cancel')"
-  >
+  <XrdSimpleDialog :title="title" :width="width" hide-cancel save-button-text="keys.gotIt" @save="emit('cancel')" @cancel="emit('cancel')">
     <template #content>
       <slot />
       <div :class="{ 'mt-6': $slots.default }">

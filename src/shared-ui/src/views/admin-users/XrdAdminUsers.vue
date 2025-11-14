@@ -25,14 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdView
-    :title="title"
-    data-test="admin-users-view"
-  >
-    <template
-      v-if="$slots.tabs"
-      #tabs
-    >
+  <XrdView :title="title" data-test="admin-users-view">
+    <template v-if="$slots.tabs" #tabs>
       <slot name="tabs" />
     </template>
     <XrdSubView>
@@ -62,12 +56,7 @@
       >
         <template #[`item.id`]="{ item }">
           <div class="username">
-            <XrdLabelWithIcon
-              data-test="username"
-              icon="person"
-              semi-bold
-              :label="item.username"
-            />
+            <XrdLabelWithIcon data-test="username" icon="person" semi-bold :label="item.username" />
           </div>
         </template>
 
@@ -138,10 +127,7 @@
             >
               <template #label>
                 <span>{{ $t(`adminUsers.role.${role}`) }}</span>
-                <span
-                  v-if="!adminUsersHandler.hasRole(role)"
-                  class="remove-only-role"
-                >
+                <span v-if="!adminUsersHandler.hasRole(role)" class="remove-only-role">
                   &nbsp;{{ $t('adminUsers.edit.roleRemoveOnly') }}
                 </span>
               </template>

@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-breadcrumbs
-    v-if="breadcrumbs && breadcrumbs.length > 0"
-    class="pl-6 pt-0"
-    :items="breadcrumbs"
-  >
+  <v-breadcrumbs v-if="breadcrumbs && breadcrumbs.length > 0" class="pl-6 pt-0" :items="breadcrumbs">
     <template #title="{ item, index }">
       <span
         class="font-weight-medium body-small"

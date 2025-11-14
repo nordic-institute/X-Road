@@ -25,21 +25,12 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdView
-    data-test="tls-certificates-view"
-    :title="title"
-  >
-    <template
-      v-if="$slots['append-header']"
-      #append-header
-    >
+  <XrdView data-test="tls-certificates-view" :title="title">
+    <template v-if="$slots['append-header']" #append-header>
       <slot name="append-header" />
     </template>
 
-    <template
-      v-if="$slots.tabs"
-      #tabs
-    >
+    <template v-if="$slots.tabs" #tabs>
       <slot name="tabs" />
     </template>
 
@@ -85,10 +76,7 @@
           <tbody>
             <tr>
               <td class="on-surface font-weight-medium">
-                <v-icon
-                  icon="shield_lock filled"
-                  size="24"
-                />
+                <v-icon icon="shield_lock filled" size="24" />
                 {{ $t('tlsCertificates.keyText') }}
               </td>
               <td>

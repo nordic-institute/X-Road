@@ -25,10 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div
-    data-test="xrd-paginator"
-    class="xrd-pagination pt-2 pb-2 pr-2"
-  >
+  <div data-test="xrd-paginator" class="xrd-pagination pt-2 pb-2 pr-2">
     <div class="xrd-pagination--label text-right body-small">{{ $t('dataTables.paginator.rowsPerPage') }}</div>
     <div class="xrd-pagination--options mr-6 ml-6 pb-1">
       <v-select
@@ -46,12 +43,7 @@
     </div>
     <div class="xrd-pagination--info text-center body-small">{{ $t('dataTables.paginator.info', info) }}</div>
     <div class="xrd-pagination--paginator">
-      <v-pagination
-        v-model="page"
-        :length="pageCount"
-        total-visible="0"
-        size="20"
-      />
+      <v-pagination v-model="page" :length="pageCount" total-visible="0" size="20" />
     </div>
   </div>
 </template>

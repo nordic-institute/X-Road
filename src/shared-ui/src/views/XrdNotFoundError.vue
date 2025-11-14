@@ -26,29 +26,14 @@
  -->
 
 <template>
-  <XrdErrorPage
-    data-test="404-view"
-    title="404.topTitle"
-  >
-    <v-container
-      class="mx-auto"
-      max-width="800"
-    >
-      <v-row
-        class="xrd-error-view"
-        no-gutters
-        align="center"
-      >
+  <XrdErrorPage data-test="404-view" title="404.topTitle">
+    <v-container class="mx-auto" max-width="800">
+      <v-row class="xrd-error-view" no-gutters align="center">
         <!-- Fixed width column -->
         <v-col class="xrd-error-info">
           <div class="xrd-error-info-text">
             <p class="title-page font-weight-bold mb-8">{{ $t('404.title') }}</p>
-            <v-img
-              class="xrd-404-cover-image"
-              width="336px"
-              height="124px"
-              :src="image404Url"
-            />
+            <v-img class="xrd-404-cover-image" width="336px" height="124px" :src="image404Url" />
           </div>
         </v-col>
 

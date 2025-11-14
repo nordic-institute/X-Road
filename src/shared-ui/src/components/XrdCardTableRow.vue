@@ -26,10 +26,7 @@
  -->
 <template>
   <tr>
-    <td
-      data-test="row-label"
-      class="label-column on-surface-variant font-weight-medium"
-    >
+    <td data-test="row-label" class="label-column on-surface-variant font-weight-medium">
       {{ $t(label) }}
     </td>
     <td data-test="row-value">
@@ -37,10 +34,7 @@
         {{ value }}
       </slot>
     </td>
-    <td
-      data-test="row-actions"
-      class="text-end"
-    >
+    <td data-test="row-actions" class="text-end">
       <slot />
     </td>
   </tr>

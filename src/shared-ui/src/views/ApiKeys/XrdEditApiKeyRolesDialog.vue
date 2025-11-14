@@ -61,12 +61,7 @@
         >
           <template #label>
             <span>{{ $t(`apiKey.role.${role}`) }}</span>
-            <span
-              v-if="!handler.canAssignRole(role)"
-              class="remove-only-role"
-            >
-              &nbsp; {{ $t('apiKey.edit.roleRemoveOnly') }}
-            </span>
+            <span v-if="!handler.canAssignRole(role)" class="remove-only-role"> &nbsp; {{ $t('apiKey.edit.roleRemoveOnly') }} </span>
           </template>
         </v-checkbox>
       </XrdFormBlock>

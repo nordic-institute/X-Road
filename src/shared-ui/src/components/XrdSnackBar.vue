@@ -42,13 +42,7 @@
   >
     {{ notification.message }}
     <template #actions>
-      <XrdBtn
-        data-test="close-snackbar"
-        variant="text"
-        text="action.close"
-        color="inverse-primary"
-        @click="remove(notification.id)"
-      />
+      <XrdBtn data-test="close-snackbar" variant="text" text="action.close" color="inverse-primary" @click="remove(notification.id)" />
     </template>
   </v-snackbar>
 </template>

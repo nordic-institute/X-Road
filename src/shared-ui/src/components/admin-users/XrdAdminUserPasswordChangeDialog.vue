@@ -35,19 +35,13 @@
     @cancel="emit('cancel')"
   >
     <template #title>
-      <span
-        class="text-h5"
-        :data-test="`admin-user-row-${username}-change-password-dialog-title`"
-      >
+      <span class="text-h5" :data-test="`admin-user-row-${username}-change-password-dialog-title`">
         {{ $t('adminUsers.table.action.changePassword.dialog.title', { username: username }) }}
       </span>
     </template>
     <template #content>
       <XrdFormBlock :data-test="`admin-user-row-${username}-change-password-dialog-content`">
-        <XrdFormBlockRow
-          v-if="requireOldPassword"
-          full-length
-        >
+        <XrdFormBlockRow v-if="requireOldPassword" full-length>
           <v-text-field
             v-model="oldPassword"
             v-bind="oldPasswordAttrs"

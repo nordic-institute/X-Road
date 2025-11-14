@@ -37,32 +37,18 @@
     >
       <template #default="{ isActive }">
         <v-list-item-title class="text-center mb-1">
-          <v-chip
-            :to="tab.to"
-            variant="flat"
-            :color="isActive ? 'accent-container' : ''"
-          >
-            <v-icon
-              size="x-large"
-              :icon="tab.icon"
-              :filled="isActive"
-            />
+          <v-chip :to="tab.to" variant="flat" :color="isActive ? 'accent-container' : ''">
+            <v-icon size="x-large" :icon="tab.icon" :filled="isActive" />
           </v-chip>
         </v-list-item-title>
 
-        <div
-          data-test="main-navigation-item-name"
-          :class="[isActive ? 'text-accent' : 'text-primary', 'font-weight-medium']"
-        >
+        <div data-test="main-navigation-item-name" :class="[isActive ? 'text-accent' : 'text-primary', 'font-weight-medium']">
           {{ $t(tab.name) }}
         </div>
       </template>
     </v-list-item>
 
-    <v-divider
-      color="border-strong opacity-20"
-      class="ma-2"
-    ></v-divider>
+    <v-divider color="border-strong opacity-20" class="ma-2"></v-divider>
 
     <v-list-item
       data-test="user-menu"
@@ -74,44 +60,22 @@
       @click="userOptions = !userOptions"
     >
       <v-list-item-title class="text-center mb-1">
-        <v-chip
-          variant="flat"
-          :color="userOptions ? 'accent-container' : ''"
-        >
-          <v-icon
-            size="x-large"
-            icon="account_box"
-          />
+        <v-chip variant="flat" :color="userOptions ? 'accent-container' : ''">
+          <v-icon size="x-large" icon="account_box" />
         </v-chip>
       </v-list-item-title>
-      <v-list-item-subtitle
-        class="body-small text-center font-weight-bold"
-        :class="[userOptions ? 'text-accent' : 'text-primary']"
-      >
+      <v-list-item-subtitle class="body-small text-center font-weight-bold" :class="[userOptions ? 'text-accent' : 'text-primary']">
         {{ userName }}
       </v-list-item-subtitle>
     </v-list-item>
     <template #sub-nav>
-      <v-navigation-drawer
-        v-model="userOptions"
-        class="xrd-rail-options pr-1"
-        temporary
-      >
-        <v-list-item
-          class="xrd-rail-item-username"
-          density="compact"
-        >
+      <v-navigation-drawer v-model="userOptions" class="xrd-rail-options pr-1" temporary>
+        <v-list-item class="xrd-rail-item-username" density="compact">
           <v-list-item-title class="body-small font-weight-bold text-secondary">
             {{ userName }}
           </v-list-item-title>
         </v-list-item>
-        <v-list
-          v-model:opened="expandedUserOptions"
-          :selected="[currentLanguage]"
-          density="compact"
-          slim
-          @update:selected="changeLanguage"
-        >
+        <v-list v-model:opened="expandedUserOptions" :selected="[currentLanguage]" density="compact" slim @update:selected="changeLanguage">
           <v-list-group>
             <template #activator="{ props }">
               <v-list-item
@@ -153,13 +117,7 @@
             </template>
             <v-list-item-title class="body-small font-weight-bold">{{ $t('login.changePassword') }}</v-list-item-title>
           </v-list-item>
-          <v-list-item
-            data-test="logout-button"
-            class="xrd-rail-item-logout"
-            rounded="xl"
-            base-color="primary"
-            @click="emit('logout')"
-          >
+          <v-list-item data-test="logout-button" class="xrd-rail-item-logout" rounded="xl" base-color="primary" @click="emit('logout')">
             <template #prepend>
               <v-icon icon="logout"></v-icon>
             </template>

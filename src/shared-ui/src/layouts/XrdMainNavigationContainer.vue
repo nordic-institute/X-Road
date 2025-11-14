@@ -25,22 +25,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-navigation-drawer
-    class="xrd-rail-nav"
-    width="96"
-    permanent
-  >
-    <v-list-item
-      class="xrd-rail-item-logo opacity-100"
-      density="compact"
-      variant="plain"
-      to="/"
-    >
-      <v-img
-        class="ma-auto mb-3"
-        width="48px"
-        :src="logo"
-      />
+  <v-navigation-drawer class="xrd-rail-nav" width="96" permanent>
+    <v-list-item class="xrd-rail-item-logo opacity-100" density="compact" variant="plain" to="/">
+      <v-img class="ma-auto mb-3" width="48px" :src="logo" />
     </v-list-item>
 
     <slot />

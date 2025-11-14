@@ -103,7 +103,8 @@ import {
   XrdFormBlock,
   XrdFormBlockRow,
   XrdBtn,
-  XrdCertificateFileUpload, veeDefaultFieldConfig,
+  XrdCertificateFileUpload,
+  veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 
 const props = defineProps({

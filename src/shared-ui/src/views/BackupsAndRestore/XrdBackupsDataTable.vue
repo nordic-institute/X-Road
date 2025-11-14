@@ -28,12 +28,7 @@
   <XrdSubView>
     <template #header>
       <div>
-        <XrdRoundedSearchField
-          v-model="filter"
-          data-test="search-query-field"
-          width="320"
-          :label="$t('action.search')"
-        />
+        <XrdRoundedSearchField v-model="filter" data-test="search-query-field" width="320" :label="$t('action.search')" />
       </div>
       <v-spacer />
       <XrdBtn
@@ -45,11 +40,7 @@
         :loading="creating"
         @click="createBackup"
       />
-      <XrdFileUpload
-        v-slot="{ upload }"
-        :accepts="accepts"
-        @file-changed="onFileUploaded"
-      >
+      <XrdFileUpload v-slot="{ upload }" :accepts="accepts" @file-changed="onFileUploaded">
         <XrdBtn
           v-if="canBackup"
           data-test="backup-upload"
@@ -76,16 +67,8 @@
     >
       <template #item.buttons="{ item }">
         <div class="cs-table-actions-wrap">
-          <XrdDownloadBackupButton
-            :backup-handler="backupHandler"
-            :filename="item.filename"
-            :can-backup="canBackup"
-          />
-          <XrdRestoreBackupButton
-            :backup-handler="backupHandler"
-            :filename="item.filename"
-            :can-backup="canBackup"
-          />
+          <XrdDownloadBackupButton :backup-handler="backupHandler" :filename="item.filename" :can-backup="canBackup" />
+          <XrdRestoreBackupButton :backup-handler="backupHandler" :filename="item.filename" :can-backup="canBackup" />
           <XrdDeleteBackupButton
             :backup-handler="backupHandler"
             :filename="item.filename"

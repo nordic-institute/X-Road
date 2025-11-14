@@ -39,11 +39,7 @@
     <template #content>
       <XrdFormBlock>
         <XrdFormBlockRow full-length>
-          <XrdCertificateFileUpload
-            v-model:file="certFile"
-            autofocus
-            label="tlsCertificates.uploadCertificate.label"
-          />
+          <XrdCertificateFileUpload v-model:file="certFile" autofocus label="tlsCertificates.uploadCertificate.label" />
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>

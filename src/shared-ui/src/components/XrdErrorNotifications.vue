@@ -25,18 +25,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container
-    class="pa-0"
-    fluid
-  >
-    <v-slide-y-transition
-      group
-      :hide-on-leave="hideOnLeave"
-    >
-      <template
-        v-for="notification in errors"
-        :key="notification.id"
-      >
+  <v-container class="pa-0" fluid>
+    <v-slide-y-transition group :hide-on-leave="hideOnLeave">
+      <template v-for="notification in errors" :key="notification.id">
         <v-banner
           data-test="contextual-alert"
           class="alert border border-s-xl"
@@ -50,10 +41,7 @@
             <p v-if="notification.message">
               {{ notification.message }}
             </p>
-            <p
-              v-for="meta in groupMetaData(notification.error.metaData)"
-              :key="meta.key"
-            >
+            <p v-for="meta in groupMetaData(notification.error.metaData)" :key="meta.key">
               {{ meta.translatable ? $t(meta.key, meta.args) : meta.key }}
             </p>
             <p v-if="notification.error.correlationId">
@@ -66,10 +54,7 @@
             </p>
 
             <ul v-if="notification.error.validationErrors">
-              <li
-                v-for="validationError in notification.error.validationErrors"
-                :key="validationError.field"
-              >
+              <li v-for="validationError in notification.error.validationErrors" :key="validationError.field">
                 <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
                 <span class="font-weight-medium">{{ $t(`fields.${validationError.field}`) }}: </span>
                 <template v-if="validationError.codes.length === 1">
@@ -77,10 +62,7 @@
                 </template>
                 <template v-else>
                   <ul>
-                    <li
-                      v-for="errCode in validationError.codes"
-                      :key="`${validationError.field}.${errCode}`"
-                    >
+                    <li v-for="errCode in validationError.codes" :key="`${validationError.field}.${errCode}`">
                       {{ $t(`validationError.${errCode}`) }}
                     </li>
                   </ul>
@@ -98,12 +80,7 @@
               text="action.copyId"
               @click.prevent="copyId(notification.error.correlationId)"
             />
-            <XrdBtn
-              data-test="close-alert"
-              variant="text"
-              text="action.close"
-              @click="close(notification.id)"
-            />
+            <XrdBtn data-test="close-alert" variant="text" text="action.close" @click="close(notification.id)" />
           </v-banner-actions>
         </v-banner>
       </template>

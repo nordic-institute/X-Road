@@ -25,38 +25,20 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-system-bar
-    height="32"
-    :color="ready ? 'app-specific' : 'logo-wordmark'"
-  >
-    <div
-      v-if="authenticated"
-      class="auth-container body-small"
-    >
+  <v-system-bar height="32" :color="ready ? 'app-specific' : 'logo-wordmark'">
+    <div v-if="authenticated" class="auth-container body-small">
       <div class="server-type font-weight-bold text-uppercase">
         {{ $t(appTitle) }}
       </div>
-      <div
-        v-if="ready"
-        class="server-name"
-        data-test="app-toolbar-server-instance-address"
-      >
+      <div v-if="ready" class="server-name" data-test="app-toolbar-server-instance-address">
         {{ serverName }}
       </div>
-      <div
-        v-else
-        class="initialization-phase-title"
-        data-test="app-toolbar-server-init-phase-id"
-      >
+      <div v-else class="initialization-phase-title" data-test="app-toolbar-server-init-phase-id">
         <slot name="not-ready" />
       </div>
       <slot />
 
-      <div
-        v-if="nodeName"
-        class="node-name font-weight-bold"
-        data-test="app-toolbar-node-name"
-      >
+      <div v-if="nodeName" class="node-name font-weight-bold" data-test="app-toolbar-node-name">
         {{ nodeName }}
       </div>
     </div>

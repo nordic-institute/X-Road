@@ -26,10 +26,7 @@
  -->
 
 <template>
-  <v-container
-    data-test="xrd-certificate"
-    fluid
-  >
+  <v-container data-test="xrd-certificate" fluid>
     <p class="body-regular font-weight-bold">{{ $t('cert.hashInfo') }}</p>
     <p class="body-regular">
       <XrdHashValue :value="certificate.hash" />
@@ -37,45 +34,16 @@
     <v-divider class="mt-6 mb-6" />
 
     <XrdCertificateBlock>
-      <XrdCertificateLine
-        label="cert.version"
-        :value="certificate.version"
-      />
-      <XrdCertificateLine
-        label="cert.serial"
-        :value="certificate.serial"
-      />
-      <XrdCertificateLine
-        label="cert.signatureAlgorithm"
-        :value="certificate.signature_algorithm"
-      />
-      <XrdCertificateLine
-        label="cert.issuerDistinguishedName"
-        :value="certificate.issuer_distinguished_name"
-      />
-      <XrdCertificateLine
-        label="cert.notBefore"
-        :value="certificate.not_before"
-        date
-      />
-      <XrdCertificateLine
-        label="cert.notAfter"
-        :value="certificate.not_after"
-        date
-      />
-      <XrdCertificateLine
-        label="cert.subjectDistinguishedName"
-        :value="certificate.subject_distinguished_name"
-      />
-      <XrdCertificateLine
-        label="cert.publicKeyAlgorithm"
-        :value="certificate.public_key_algorithm"
-      />
+      <XrdCertificateLine label="cert.version" :value="certificate.version" />
+      <XrdCertificateLine label="cert.serial" :value="certificate.serial" />
+      <XrdCertificateLine label="cert.signatureAlgorithm" :value="certificate.signature_algorithm" />
+      <XrdCertificateLine label="cert.issuerDistinguishedName" :value="certificate.issuer_distinguished_name" />
+      <XrdCertificateLine label="cert.notBefore" :value="certificate.not_before" date />
+      <XrdCertificateLine label="cert.notAfter" :value="certificate.not_after" date />
+      <XrdCertificateLine label="cert.subjectDistinguishedName" :value="certificate.subject_distinguished_name" />
+      <XrdCertificateLine label="cert.publicKeyAlgorithm" :value="certificate.public_key_algorithm" />
     </XrdCertificateBlock>
-    <XrdCertificateBlock
-      v-if="certificate.rsa_public_key_modulus || certificate.rsa_public_key_exponent"
-      class="mt-6"
-    >
+    <XrdCertificateBlock v-if="certificate.rsa_public_key_modulus || certificate.rsa_public_key_exponent" class="mt-6">
       <XrdCertificateLine
         v-if="certificate.rsa_public_key_modulus"
         label="cert.rsaModulus"
@@ -83,44 +51,18 @@
         colonize
         can-copy
       />
-      <XrdCertificateLine
-        v-if="certificate.rsa_public_key_exponent"
-        label="cert.rsaExp"
-        :value="certificate.rsa_public_key_exponent"
-      />
+      <XrdCertificateLine v-if="certificate.rsa_public_key_exponent" label="cert.rsaExp" :value="certificate.rsa_public_key_exponent" />
     </XrdCertificateBlock>
-    <XrdCertificateBlock
-      v-if="certificate.ec_public_key_point || certificate.ec_public_parameters"
-      class="mt-6"
-    >
-      <XrdCertificateLine
-        v-if="certificate.ec_public_key_point"
-        label="cert.ecPoint"
-        :value="certificate.ec_public_key_point"
-      />
-      <XrdCertificateLine
-        v-if="certificate.ec_public_parameters"
-        label="cert.ecParameters"
-        :value="certificate.ec_public_parameters"
-      />
+    <XrdCertificateBlock v-if="certificate.ec_public_key_point || certificate.ec_public_parameters" class="mt-6">
+      <XrdCertificateLine v-if="certificate.ec_public_key_point" label="cert.ecPoint" :value="certificate.ec_public_key_point" />
+      <XrdCertificateLine v-if="certificate.ec_public_parameters" label="cert.ecParameters" :value="certificate.ec_public_parameters" />
     </XrdCertificateBlock>
     <XrdCertificateBlock class="mt-6">
-      <XrdCertificateLine
-        label="cert.keyUsages"
-        :values="translatedKeyUsages"
-      />
-      <XrdCertificateLine
-        label="cert.subjectAlternativeNames"
-        :value="certificate.subject_alternative_names"
-      />
+      <XrdCertificateLine label="cert.keyUsages" :values="translatedKeyUsages" />
+      <XrdCertificateLine label="cert.subjectAlternativeNames" :value="certificate.subject_alternative_names" />
     </XrdCertificateBlock>
     <XrdCertificateBlock class="mt-6">
-      <XrdCertificateLine
-        label="cert.signature"
-        :value="certificate.signature"
-        colonize
-        can-copy
-      />
+      <XrdCertificateLine label="cert.signature" :value="certificate.signature" colonize can-copy />
     </XrdCertificateBlock>
   </v-container>
 </template>

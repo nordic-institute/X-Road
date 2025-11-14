@@ -25,50 +25,26 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container
-    class="pa-0"
-    fluid
-  >
-    <v-progress-linear
-      class="xrd"
-      rounded="pill"
-      :active="loading"
-      indeterminate
-      height="2"
-    />
+  <v-container class="pa-0" fluid>
+    <v-progress-linear class="xrd" rounded="pill" :active="loading" indeterminate height="2" />
     <slot name="prepend-header" />
     <header
       v-if="title || breadcrumbs.length > 0 || $slots['append-header'] || $slots.title"
       class="view-header d-flex flex-row align-center mt-6 mb-8"
     >
-      <template
-        v-for="(bc, idx) in breadcrumbs"
-        :key="idx"
-      >
+      <template v-for="(bc, idx) in breadcrumbs" :key="idx">
         <span class="title-view">{{ bc.translatedTitle ? bc.title : $t(bc.title) }}</span>
-        <v-btn
-          data-test="navigation-back"
-          variant="plain"
-          color="primary"
-          icon="arrow_back"
-          :to="bc.to"
-        />
+        <v-btn data-test="navigation-back" variant="plain" color="primary" icon="arrow_back" :to="bc.to" />
       </template>
       <slot name="title">
         <span class="title-view font-weight-bold">{{ translatedTitle ? title : $t(title) }}</span>
       </slot>
-      <span
-        v-if="titleDetails"
-        class="title-view font-weight-regular opacity-60"
-      >
+      <span v-if="titleDetails" class="title-view font-weight-regular opacity-60">
         {{ $t('common.inParenthesis', [$t(titleDetails)]) }}
       </span>
       <slot name="append-header" />
     </header>
-    <div
-      v-if="$slots.tabs"
-      :class="{ 'mb-4': manager.hasErrors(), 'mb-6': !manager.hasErrors() }"
-    >
+    <div v-if="$slots.tabs" :class="{ 'mb-4': manager.hasErrors(), 'mb-6': !manager.hasErrors() }">
       <slot name="tabs" />
     </div>
     <div :class="{ 'mb-6': manager.hasErrors() }">

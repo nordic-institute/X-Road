@@ -25,40 +25,17 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewSimple
-    data-test="add-admin-user-stepper-view"
-    title="adminUsers.addUser.title"
-    @close="close"
-  >
+  <XrdElevatedViewSimple data-test="add-admin-user-stepper-view" title="adminUsers.addUser.title" @close="close">
     <XrdWizard v-model="step">
       <template #header-items>
-        <v-stepper-item
-          :complete="step > 1"
-          :value="1"
-          >{{ $t('adminUsers.addUser.step.roles.name') }}</v-stepper-item
-        >
+        <v-stepper-item :complete="step > 1" :value="1">{{ $t('adminUsers.addUser.step.roles.name') }}</v-stepper-item>
         <v-divider />
-        <v-stepper-item
-          :complete="userAdded"
-          :value="2"
-          >{{ $t('adminUsers.addUser.step.credentials.name') }}</v-stepper-item
-        >
+        <v-stepper-item :complete="userAdded" :value="2">{{ $t('adminUsers.addUser.step.credentials.name') }}</v-stepper-item>
       </template>
-      <v-stepper-window-item
-        data-test="add-admin-user-step-1"
-        :value="1"
-        class="pa-0 centered"
-      >
-        <XrdWizardStep
-          title="adminUsers.addUser.step.roles.selectRoles"
-          sub-title="adminUsers.addUser.step.roles.description"
-        >
+      <v-stepper-window-item data-test="add-admin-user-step-1" :value="1" class="pa-0 centered">
+        <XrdWizardStep title="adminUsers.addUser.step.roles.selectRoles" sub-title="adminUsers.addUser.step.roles.description">
           <XrdFormBlock>
-            <div
-              v-for="(role, idx) in availableRoles"
-              :key="role"
-              :class="{ 'mb-5': idx < availableRoles.length - 1 }"
-            >
+            <div v-for="(role, idx) in availableRoles" :key="role" :class="{ 'mb-5': idx < availableRoles.length - 1 }">
               <v-checkbox
                 v-model="roles"
                 class="xrd"
@@ -71,12 +48,7 @@
             </div>
           </XrdFormBlock>
           <template #footer>
-            <XrdBtn
-              data-test="cancel-button"
-              variant="outlined"
-              text="action.cancel"
-              @click="close"
-            />
+            <XrdBtn data-test="cancel-button" variant="outlined" text="action.cancel" @click="close" />
             <v-spacer />
             <XrdBtn
               data-test="next-button"
@@ -88,11 +60,7 @@
           </template>
         </XrdWizardStep>
       </v-stepper-window-item>
-      <v-stepper-window-item
-        data-test="add-admin-user-step-2"
-        :value="2"
-        class="pa-0"
-      >
+      <v-stepper-window-item data-test="add-admin-user-step-2" :value="2" class="pa-0">
         <XrdWizardStep>
           <XrdFormBlock>
             <XrdFormBlockRow full-length>
@@ -128,12 +96,7 @@
           </XrdFormBlock>
 
           <template #footer>
-            <XrdBtn
-              data-test="cancel-button"
-              variant="outlined"
-              text="action.cancel"
-              @click="close"
-            />
+            <XrdBtn data-test="cancel-button" variant="outlined" text="action.cancel" @click="close" />
             <v-spacer />
             <XrdBtn
               data-test="previous-button"

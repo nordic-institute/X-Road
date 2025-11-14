@@ -25,16 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container
-    class="fill-height w-100 pa-0 overflow-hidden"
-    fluid
-  >
-    <v-row
-      class="fill-height"
-      no-gutters
-      align-content-md="stretch"
-      align-content="start"
-    >
+  <v-container class="fill-height w-100 pa-0 overflow-hidden" fluid>
+    <v-row class="fill-height" no-gutters align-content-md="stretch" align-content="start">
       <v-col
         cols="12"
         md="5"
@@ -44,41 +36,14 @@
           'vertical-style': $vuetify.display.smAndDown,
         }"
       >
-        <img
-          :src="logoV"
-          class="logo-v"
-          alt="X-Road 8 Logo"
-        />
-        <img
-          :src="logoH"
-          class="logo-h"
-          alt="X-Road 8 Logo"
-        />
-        <img
-          :src="rocket"
-          class="rocket"
-          alt="X-Road 8 Rocket"
-        />
-        <img
-          :src="trail1"
-          class="trail1"
-          alt="X-Road 8 Trail"
-        />
-        <img
-          :src="trail2"
-          class="trail2"
-          alt="X-Road 8 Trail"
-        />
+        <img :src="logoV" class="logo-v" alt="X-Road 8 Logo" />
+        <img :src="logoH" class="logo-h" alt="X-Road 8 Logo" />
+        <img :src="rocket" class="rocket" alt="X-Road 8 Rocket" />
+        <img :src="trail1" class="trail1" alt="X-Road 8 Trail" />
+        <img :src="trail2" class="trail2" alt="X-Road 8 Trail" />
       </v-col>
-      <v-col
-        cols="12"
-        md="7"
-      >
-        <v-row
-          justify="end"
-          align="center"
-          no-gutters
-        >
+      <v-col cols="12" md="7">
+        <v-row justify="end" align="center" no-gutters>
           <v-col cols="auto">
             <v-select
               :model-value="currentLanguage"
@@ -94,16 +59,10 @@
             />
           </v-col>
           <v-col cols="auto">
-            <XrdThemeSwitcher
-              class="mr-16 ml-3 my-3"
-              size="x-small"
-            />
+            <XrdThemeSwitcher class="mr-16 ml-3 my-3" size="x-small" />
           </v-col>
         </v-row>
-        <v-row
-          v-if="notifications.hasContextErrors.value"
-          justify="center"
-        >
+        <v-row v-if="notifications.hasContextErrors.value" justify="center">
           <v-col cols="11">
             <XrdErrorNotifications :manager="notifications" />
           </v-col>
@@ -117,18 +76,8 @@
             'fill-height': $vuetify.display.mdAndUp,
           }"
         >
-          <v-col
-            cols="11"
-            sm="8"
-            md="7"
-            lg="6"
-            xl="5"
-          >
-            <v-card
-              variant="text"
-              :hover="false"
-              class="login-form w-100"
-            >
+          <v-col cols="11" sm="8" md="7" lg="6" xl="5">
+            <v-card variant="text" :hover="false" class="login-form w-100">
               <v-card-title class="font-weight-bold title-page opacity-100 pt-0 pl-0">
                 {{ $t('login.logIn') }}
               </v-card-title>

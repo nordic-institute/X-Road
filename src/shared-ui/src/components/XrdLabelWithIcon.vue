@@ -34,21 +34,14 @@
     @navigate="emit('navigate')"
   >
     <template #prepend-label>
-      <v-icon
-        size="24"
-        :class="iconColorClass"
-        :icon="icon"
-      />
+      <v-icon size="24" :class="iconColorClass" :icon="icon" />
     </template>
     <template #label>
       <slot name="label">
         {{ label }}
       </slot>
     </template>
-    <template
-      v-if="$slots['append-label']"
-      #append-label
-    >
+    <template v-if="$slots['append-label']" #append-label>
       <slot name="append-label" />
     </template>
   </XrdLabel>

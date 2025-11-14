@@ -25,12 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-tabs
-    bg-color="surface-container-low"
-    class="rounded-xl"
-    grow
-    :class="{ border: bordered }"
-  >
+  <v-tabs bg-color="surface-container-low" class="rounded-xl" grow :class="{ border: bordered }">
     <v-tab
       v-for="tab in allowedTabs"
       :key="tab.key"
@@ -43,14 +38,8 @@
       :data-test="tab.key"
       :text="$t(tab.name)"
     >
-      <template
-        v-if="tab.icon"
-        #prepend
-      >
-        <v-icon
-          :icon="tab.icon"
-          size="20"
-        />
+      <template v-if="tab.icon" #prepend>
+        <v-icon :icon="tab.icon" size="20" />
       </template>
     </v-tab>
   </v-tabs>

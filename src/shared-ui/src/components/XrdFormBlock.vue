@@ -25,14 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container
-    fluid
-    class="bg-surface-container pa-6 xrd-rounded-12 border"
-  >
-    <p
-      v-if="title"
-      class="mb-4 body-large font-weight-medium"
-    >
+  <v-container fluid class="bg-surface-container pa-6 xrd-rounded-12 border">
+    <p v-if="title" class="mb-4 body-large font-weight-medium">
       {{ translatedTitle ? title : $t(title) }}
     </p>
     <slot />
