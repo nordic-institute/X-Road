@@ -26,7 +26,7 @@
 package ee.ria.xroad.common.util;
 
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,7 +44,7 @@ import static org.junit.Assert.fail;
 public class SchemaValidatorTest {
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * Tests Ok XML validation.

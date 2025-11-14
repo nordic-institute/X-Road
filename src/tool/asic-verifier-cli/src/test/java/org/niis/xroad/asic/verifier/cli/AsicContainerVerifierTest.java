@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.asic.verifier.cli;
 
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 
@@ -63,7 +63,7 @@ public class AsicContainerVerifierTest {
     private final String containerFile;
     private final String errorCode;
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * Set up configuration.

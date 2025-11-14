@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.serverconf.impl;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -38,6 +37,7 @@ import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.Session;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
@@ -53,7 +53,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 
 /**
  * Caching implementation for ServerConf
@@ -124,8 +124,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
         try {
             return internalKeyCache.get(InternalSSLKey.KEY_ALIAS, super::getSSLKey);
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof CodedException) {
-                throw (CodedException) e.getCause();
+            if (e.getCause() instanceof XrdRuntimeException) {
+                throw (XrdRuntimeException) e.getCause();
             }
             log.debug("Failed to get InternalSSLKey", e);
             return null;
@@ -161,8 +161,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
         try {
             return tspCache.get(TSP_URL, super::getTspUrl);
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof CodedException) {
-                throw (CodedException) e.getCause();
+            if (e.getCause() instanceof XrdRuntimeException) {
+                throw (XrdRuntimeException) e.getCause();
             }
             log.debug("Failed to resolve tsp url", e);
             return Collections.emptyList();
@@ -179,8 +179,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
         try {
             return serviceEndpointsCache.get(serviceId, () -> super.getServiceEndpoints(serviceId));
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof CodedException codedException) {
-                throw codedException;
+            if (e.getCause() instanceof XrdRuntimeException xrdRuntimeException) {
+                throw xrdRuntimeException;
             }
             log.debug("Failed to get list of service endpoints", e);
             return List.of();
@@ -217,10 +217,10 @@ public class CachingServerConfImpl extends ServerConfImpl {
     public boolean isSslAuthentication(ServiceId serviceId) {
         Optional<Service> serviceOptional = getService(serviceId);
         if (serviceOptional.isEmpty()) {
-            throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' not found", serviceId);
+            throw XrdRuntimeException.systemException(UNKNOWN_SERVICE, "Service '%s' not found", serviceId);
         }
         Service service = serviceOptional.get();
-        return (boolean) ObjectUtils.defaultIfNull(service.getSslAuthentication(), true);
+        return ObjectUtils.defaultIfNull(service.getSslAuthentication(), true);
     }
 
     @Override
@@ -246,8 +246,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
              */
             return aclCache.get(key, () -> tx(s -> super.getAclEndpoints(s, clientId, serviceId)));
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof CodedException) {
-                throw (CodedException) e.getCause();
+            if (e.getCause() instanceof XrdRuntimeException) {
+                throw (XrdRuntimeException) e.getCause();
             }
             log.debug("Failed get list of endpoints", e);
             return Collections.emptyList();
@@ -259,8 +259,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
             return serviceCache
                     .get(serviceId, () -> tx(session -> Optional.ofNullable(super.getService(session, serviceId))));
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof CodedException) {
-                throw (CodedException) e.getCause();
+            if (e.getCause() instanceof XrdRuntimeException) {
+                throw (XrdRuntimeException) e.getCause();
             }
             log.debug("Failed to get service", e);
             return Optional.empty();
@@ -272,8 +272,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
             return clientCache.get(clientId,
                     () -> tx(session -> Optional.ofNullable(super.getClient(session, clientId))));
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof CodedException) {
-                throw (CodedException) e.getCause();
+            if (e.getCause() instanceof XrdRuntimeException) {
+                throw (XrdRuntimeException) e.getCause();
             }
             log.debug("Failed to get client", e);
             return Optional.empty();

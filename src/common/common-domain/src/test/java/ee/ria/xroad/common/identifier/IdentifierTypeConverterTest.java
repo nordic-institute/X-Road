@@ -26,7 +26,7 @@
 package ee.ria.xroad.common.identifier;
 
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.identifier.IdentifierTypeConverter.GenericXRoadIdAdapter;
 import ee.ria.xroad.common.util.XmlUtils;
 
@@ -60,7 +60,7 @@ import static org.junit.Assert.assertTrue;
 public class IdentifierTypeConverterTest {
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * Test to ensure client ID (MEMBER) can be read from XML.

@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -69,7 +69,7 @@ import static org.junit.Assert.assertTrue;
 public class SoapMessageTest {
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * Test that reading a normal request message is successful and that header and body are correctly parsed.

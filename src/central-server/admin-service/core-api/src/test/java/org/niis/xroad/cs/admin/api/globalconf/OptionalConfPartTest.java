@@ -27,7 +27,7 @@ package org.niis.xroad.cs.admin.api.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.core.AnyOf;
@@ -56,7 +56,7 @@ public class OptionalConfPartTest {
     private static final String MESSAGE_CONVERTER_FILE = CONF_DIR + File.separator + "message-converter.ini";
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * Test to ensure test configuration part content identifier can be read.

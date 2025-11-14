@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.serverconf.impl;
 
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -84,7 +84,7 @@ import static org.niis.xroad.serverconf.impl.TestUtil.service;
 public class ServerConfTest {
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     private static ServerConfProvider serverConfProvider;
 

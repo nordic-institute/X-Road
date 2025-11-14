@@ -26,7 +26,7 @@
 package org.niis.xroad.globalconf.impl.signature;
 
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.TestSecurityUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -53,7 +53,7 @@ import static org.junit.Assert.assertNotNull;
 public class TimestampVerifierTest {
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     private static GlobalConfProvider globalConfProvider;
 

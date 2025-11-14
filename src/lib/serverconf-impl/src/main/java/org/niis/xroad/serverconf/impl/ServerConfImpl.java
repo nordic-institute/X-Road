@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.serverconf.impl;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.db.TransactionCallback;
@@ -53,6 +52,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SharedSessionContract;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
@@ -98,9 +98,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 
 /**
  * Server conf implementation.
@@ -130,7 +130,7 @@ public class ServerConfImpl implements ServerConfProvider {
             ServerConf serverConf = getConf(session);
             Client owner = serverConf.getOwner();
             if (owner == null) {
-                throw new CodedException(X_MALFORMED_SERVERCONF, "Owner is not set");
+                throw XrdRuntimeException.systemException(MALFORMED_SERVERCONF, "Owner is not set");
             }
             return SecurityServerId.Conf.create(owner.getIdentifier(), serverConf.getServerCode());
         });
@@ -269,7 +269,7 @@ public class ServerConfImpl implements ServerConfProvider {
                         service.getSslAuthentication(), true);
             }
 
-            throw new CodedException(X_UNKNOWN_SERVICE,
+            throw XrdRuntimeException.systemException(UNKNOWN_SERVICE,
                     "Service '%s' not found", serviceId);
         });
     }
@@ -477,7 +477,7 @@ public class ServerConfImpl implements ServerConfProvider {
         if (serviceOwner == null) {
             // should not normally happen, but possible if service and acl caches are in inconsistent state
             // (see CachingServerConfImpl))
-            throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' owner not found", serviceId);
+            throw XrdRuntimeException.systemException(UNKNOWN_SERVICE, "Service '%s' owner not found", serviceId);
         }
 
         final ClientIdEntity localClientId = identifierDao.findClientId(session, clientId);

@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common.asic;
 
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,7 +47,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_ASIC_SIGNATURE_NOT_FOUND;
 @RunWith(Parameterized.class)
 public class AsicContainerTest {
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * @return test input data

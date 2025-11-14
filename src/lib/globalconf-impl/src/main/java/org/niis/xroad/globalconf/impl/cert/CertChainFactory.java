@@ -25,9 +25,8 @@
  */
 package org.niis.xroad.globalconf.impl.cert;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.experimental.UtilityClass;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.cert.CertChain;
 
 import java.security.cert.X509Certificate;
@@ -37,6 +36,7 @@ import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_CERT_PATH;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static org.niis.xroad.common.core.exception.ErrorCode.CANNOT_CREATE_CERT_PATH;
 
 @UtilityClass
 public class CertChainFactory {
@@ -53,9 +53,8 @@ public class CertChainFactory {
     public static CertChain create(String instanceIdentifier,
                             X509Certificate[] chain) {
         if (chain.length < 2) {
-            throw new CodedException(X_CANNOT_CREATE_CERT_PATH,
-                    "Chain must have at least user's certificate "
-                            + "and root certificate authority");
+            throw XrdRuntimeException.systemException(CANNOT_CREATE_CERT_PATH,
+                    "Chain must have at least user's certificate and root certificate authority");
         }
 
         X509Certificate trustAnchor = chain[chain.length - 1];

@@ -52,10 +52,7 @@ public final class ErrorCodes {
     // Verification errors
 
     public static final String X_CANNOT_CREATE_SIGNATURE = "cannot_create_signature";
-    public static final String X_CERT_VALIDATION = "cert_validation";
-    public static final String X_INCORRECT_VALIDATION_INFO = "incorrect_validation_info";
     public static final String X_CANNOT_CREATE_CERT_PATH = "cannot_create_cert_path";
-    public static final String X_INCORRECT_CERTIFICATE = "incorrect_certificate";
     public static final String X_INVALID_SIGNATURE_VALUE = "invalid_signature_value";
     public static final String X_MALFORMED_SIGNATURE = "malformed_signature";
     public static final String X_INVALID_XML = "invalid_xml";

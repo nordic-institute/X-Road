@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common.hashchain;
 
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import org.junit.Rule;
@@ -55,7 +55,7 @@ public class HashChainVerifierTest {
     private static final String HASH_CHAIN = "/hashchain.xml";
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * Simple test case, input is detached.

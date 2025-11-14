@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.globalconf.impl;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
@@ -69,12 +68,12 @@ import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.certHash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.stream.Collectors.toSet;
+import static org.niis.xroad.common.core.exception.ErrorCode.GLOBAL_CONF_OUTDATED;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * Global configuration implementation
@@ -114,7 +113,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public void verifyValidity() {
         if (!isValid()) {
-            throw new CodedException(X_OUTDATED_GLOBALCONF,
+            throw XrdRuntimeException.systemException(GLOBAL_CONF_OUTDATED,
                     "Global configuration is expired");
         }
     }
@@ -297,7 +296,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                     caCert = certificate;
                 }
                 caOcspData = p.getCaCertsAndOcspData().get(caCert);
-            } catch (CodedException e) {
+            } catch (XrdRuntimeException e) {
                 log.error("Unable to determine OCSP responders", e);
             }
             if (caOcspData == null) {
@@ -364,7 +363,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElseThrow(
-                        () -> new CodedException(X_INTERNAL_ERROR,
+                        () -> XrdRuntimeException.systemInternalError(
                                 "Certificate is not issued by approved certification service provider."));
     }
 
@@ -645,7 +644,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
         try {
             return globalConfSource.findShared(xroadInstance);
         } catch (Exception e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
     }
 
@@ -656,17 +655,19 @@ public class GlobalConfImpl implements GlobalConfProvider {
         try {
             p = globalConfSource.findPrivate(getInstanceIdentifier());
         } catch (Exception e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
 
         return p.orElseThrow(() ->
-                new CodedException(X_INTERNAL_ERROR, "Private params for instance identifier %s not found", getInstanceIdentifier()));
+                XrdRuntimeException.systemInternalError("Private params for instance identifier %s not found"
+                        .formatted(getInstanceIdentifier())));
     }
 
     protected SharedParameters getSharedParameters(String instanceIdentifier) {
         return findShared(instanceIdentifier)
                 .orElseThrow(() ->
-                        new CodedException(X_INTERNAL_ERROR, "Shared params for instance identifier %s not found", instanceIdentifier));
+                        XrdRuntimeException.systemInternalError("Shared params for instance identifier %s not found"
+                                .formatted(instanceIdentifier)));
     }
 
     protected List<SharedParameters> getSharedParameters(
@@ -683,9 +684,10 @@ public class GlobalConfImpl implements GlobalConfProvider {
     private SharedParametersCache getSharedParametersCache(String instanceIdentifier) {
         try {
             return globalConfSource.findSharedParametersCache(instanceIdentifier).orElseThrow(() ->
-                    new CodedException(X_INTERNAL_ERROR, "Shared params for instance identifier %s not found", instanceIdentifier));
+                    XrdRuntimeException.systemInternalError("Shared params for instance identifier %s not found"
+                            .formatted(instanceIdentifier)));
         } catch (Exception e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
     }
 
@@ -708,7 +710,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
         String certProfileProviderClass =
                 p.getCaCertsAndCertProfiles().get(caCert);
         if (StringUtils.isBlank(certProfileProviderClass)) {
-            throw new CodedException(X_INTERNAL_ERROR,
+            throw XrdRuntimeException.systemInternalError(
                     "Could not find certificate profile info for certificate "
                             + cert.getSubjectX500Principal().getName());
         }
@@ -718,12 +720,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public ApprovedCAInfo getApprovedCA(
-            String instanceIdentifier, X509Certificate cert) throws CodedException {
+            String instanceIdentifier, X509Certificate cert) {
         SharedParametersCache p = getSharedParametersCache(instanceIdentifier);
 
         SharedParameters.ApprovedCA approvedCA = p.getCaCertsAndApprovedCAData().get(cert);
         if (approvedCA == null) {
-            throw new CodedException(X_INTERNAL_ERROR,
+            throw XrdRuntimeException.systemInternalError(
                     "Could not find approved CA info for certificate "
                             + cert.getSubjectX500Principal().getName());
         }
