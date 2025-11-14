@@ -33,12 +33,24 @@
     :class="chipStyle.chipClass"
   >
     <template #prepend>
-      <slot name="icon" :icon="chipStyle.icon" :color="chipStyle.iconColor">
-        <v-icon class="mr-1 ml-n1" :icon="chipStyle.icon" :color="chipStyle.iconColor" />
+      <slot
+        name="icon"
+        :icon="chipStyle.icon"
+        :color="chipStyle.iconColor"
+      >
+        <v-icon
+          class="mr-1 ml-n1"
+          :icon="chipStyle.icon"
+          :color="chipStyle.iconColor"
+        />
       </slot>
     </template>
     <slot name="text">
-      <span data-test="status-text" class="font-weight-medium body-small">{{ text ? $t(text) : translatedText }}</span>
+      <span
+        data-test="status-text"
+        class="font-weight-medium body-small"
+        >{{ text ? $t(text) : translatedText }}</span
+      >
     </slot>
   </v-chip>
 </template>

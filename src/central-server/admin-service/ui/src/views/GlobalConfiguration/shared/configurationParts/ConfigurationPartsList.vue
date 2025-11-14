@@ -43,11 +43,7 @@
         <XrdLabelWithIcon icon="lock_open" :label="item.file_name" />
       </template>
       <template #[`item.file_updated_at`]="{ item }">
-        <XrdDateTime
-          :data-test="`configuration-part-${item.content_identifier}-updated-at`"
-          :value="item.file_updated_at"
-          with-seconds
-        />
+        <XrdDateTime :data-test="`configuration-part-${item.content_identifier}-updated-at`" :value="item.file_updated_at" with-seconds />
       </template>
       <template #[`item.content_identifier`]="{ item }">
         <span :data-test="`configuration-part-${item.content_identifier}`">
@@ -63,15 +59,8 @@
         </template>
       </template>
       <template #[`item.actions`]="{ item }">
-        <ConfigurationPartDownloadButton
-          :configuration-type="configurationType"
-          :configuration-part="item"
-        />
-        <ConfigurationPartUploadButton
-          :configuration-type="configurationType"
-          :configuration-part="item"
-          @save="fetchConfigurationParts"
-        />
+        <ConfigurationPartDownloadButton :configuration-type="configurationType" :configuration-part="item" />
+        <ConfigurationPartUploadButton :configuration-type="configurationType" :configuration-part="item" @save="fetchConfigurationParts" />
       </template>
     </v-data-table>
   </XrdCard>
@@ -121,9 +110,7 @@ export default defineComponent({
     ...mapStores(useConfigurationSource),
     ...mapState(useUser, ['hasPermission']),
     configurationParts(): ConfigurationPart[] {
-      return this.configurationSourceStore.getConfigurationParts(
-        this.configurationType,
-      );
+      return this.configurationSourceStore.getConfigurationParts(this.configurationType);
     },
 
     headers(): DataTableHeader[] {
@@ -158,9 +145,7 @@ export default defineComponent({
   methods: {
     fetchConfigurationParts() {
       this.loading = true;
-      this.configurationSourceStore
-        .fetchConfigurationParts(this.configurationType)
-        .finally(() => (this.loading = false));
+      this.configurationSourceStore.fetchConfigurationParts(this.configurationType).finally(() => (this.loading = false));
     },
   },
 });

@@ -25,7 +25,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdFileUpload v-slot="{ upload, filedrop }" :accepts="accept" @file-changed="onFileSelected">
+  <XrdFileUpload
+    v-slot="{ upload, filedrop }"
+    :accepts="accept"
+    @file-changed="onFileSelected"
+  >
     <v-text-field
       class="xrd"
       prepend-inner-icon="attach_file"

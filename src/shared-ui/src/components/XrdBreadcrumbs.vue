@@ -25,7 +25,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-breadcrumbs v-if="breadcrumbs && breadcrumbs.length > 0" class="pl-6 pt-0" :items="breadcrumbs">
+  <v-breadcrumbs
+    v-if="breadcrumbs && breadcrumbs.length > 0"
+    class="pl-6 pt-0"
+    :items="breadcrumbs"
+  >
     <template #title="{ item, index }">
       <span
         class="font-weight-medium body-small"
@@ -35,6 +39,7 @@
       </span>
     </template>
     <template #divider>
+      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
       <span class="on-surface font-weight-medium body-small opacity-20">/</span>
     </template>
   </v-breadcrumbs>

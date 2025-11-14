@@ -27,7 +27,10 @@
 <template>
   <span>
     <template v-if="wrapFriendly">
-      <template v-for="(fragment, idx) in fragments" :key="idx">
+      <template
+        v-for="(fragment, idx) in fragments"
+        :key="idx"
+      >
         <wbr v-if="idx > 0" />
         <span>{{ idx > 0 ? COLON : '' }}{{ fragment }}</span>
       </template>

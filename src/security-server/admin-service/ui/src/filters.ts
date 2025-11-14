@@ -49,11 +49,7 @@ export class Filters {
     }
 
     const date = new Date(value);
-    return (
-      date.getHours().toString().padStart(2, '0') +
-      ':' +
-      date.getMinutes().toString().padStart(2, '0')
-    );
+    return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
   }
 
   // Return readable string from OCSP status code
@@ -83,11 +79,7 @@ export class Filters {
     return value.join(', ');
   }
 
-  bytes(
-    value?: number,
-    byteFormat: ByteFormat = ByteFormat.MB,
-    fractionDigits: number = 1,
-  ): string {
+  bytes(value?: number, byteFormat: ByteFormat = ByteFormat.MB, fractionDigits: number = 1): string {
     if (value == undefined) {
       return '-';
     }

@@ -26,11 +26,7 @@
  -->
 <template>
   <!-- Error -->
-  <v-container
-    v-if="notifications.hasContextErrors"
-    class="alerts-container px-3"
-    fluid
-  >
+  <v-container v-if="notifications.hasContextErrors" class="alerts-container px-3" fluid>
     <XrdErrorNotifications :manager="notifications" />
   </v-container>
 </template>

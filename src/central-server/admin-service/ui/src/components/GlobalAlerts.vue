@@ -94,18 +94,10 @@ const alertsStore = useAlerts();
 const userStore = useUser();
 const systemStore = useSystem();
 
-const sortedAlerts = computed(() =>
-  alertsStore.alerts.toSorted((item1, item2) =>
-    item1.errorCode.localeCompare(item2.errorCode),
-  ),
-);
+const sortedAlerts = computed(() => alertsStore.alerts.toSorted((item1, item2) => item1.errorCode.localeCompare(item2.errorCode)));
 
-const internalCfg = computed(
-  () => router.currentRoute.value.name === RouteName.InternalConfiguration,
-);
-const externalCfg = computed(
-  () => router.currentRoute.value.name === RouteName.ExternalConfiguration,
-);
+const internalCfg = computed(() => router.currentRoute.value.name === RouteName.InternalConfiguration);
+const externalCfg = computed(() => router.currentRoute.value.name === RouteName.ExternalConfiguration);
 
 function isMissingInternalKey(item: ErrorCoded) {
   return item.errorCode === 'status.signing_key.internal.missing';

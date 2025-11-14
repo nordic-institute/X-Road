@@ -45,32 +45,17 @@
 
       <!-- Step 1 -->
       <v-stepper-window-item :value="1">
-        <WizardPageKeyLabel
-          :token-type="tokenType"
-          @cancel="cancel"
-          @done="currentStep++"
-        />
+        <WizardPageKeyLabel :token-type="tokenType" @cancel="cancel" @done="currentStep++" />
       </v-stepper-window-item>
 
       <!-- Step 2 -->
       <v-stepper-window-item :value="2">
-        <WizardPageCsrDetails
-          save-button-text="action.next"
-          @cancel="cancel"
-          @previous="currentStep--"
-          @done="save"
-        />
+        <WizardPageCsrDetails save-button-text="action.next" @cancel="cancel" @previous="currentStep--" @done="save" />
       </v-stepper-window-item>
 
       <!-- Step 3 -->
       <v-stepper-window-item :value="3">
-        <WizardPageGenerateCsr
-          :key="csrGenPageKey"
-          key-and-csr
-          @cancel="cancel"
-          @previous="currentStep--"
-          @done="done"
-        />
+        <WizardPageGenerateCsr :key="csrGenPageKey" key-and-csr @cancel="cancel" @previous="currentStep--" @done="done" />
       </v-stepper-window-item>
     </XrdWizard>
   </XrdElevatedViewSimple>
@@ -84,11 +69,7 @@ import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue
 import { RouteName } from '@/global';
 import { mapActions } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import {
-  XrdElevatedViewSimple,
-  XrdWizard,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdElevatedViewSimple, XrdWizard, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
@@ -126,13 +107,7 @@ export default defineComponent({
     });
   },
   methods: {
-    ...mapActions(useCsr, [
-      'setCsrTokenId',
-      'setCsrTokenType',
-      'fetchCsrForm',
-      'resetCsrState',
-      'fetchCertificateAuthorities',
-    ]),
+    ...mapActions(useCsr, ['setCsrTokenId', 'setCsrTokenType', 'fetchCsrForm', 'resetCsrState', 'fetchCertificateAuthorities']),
 
     save(): void {
       this.fetchCsrForm().then(

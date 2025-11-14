@@ -37,10 +37,7 @@ const tabs: Tab[] = [
     to: {
       name: RouteName.GlobalGroups,
     },
-    permissions: [
-      Permissions.VIEW_GLOBAL_GROUPS,
-      Permissions.VIEW_SECURITY_SERVERS,
-    ],
+    permissions: [Permissions.VIEW_GLOBAL_GROUPS, Permissions.VIEW_SECURITY_SERVERS],
   },
   {
     key: 'systemsettings-tab-button',
@@ -67,11 +64,7 @@ const tabs: Tab[] = [
     to: {
       name: RouteName.ApiKeys,
     },
-    permissions: [
-      Permissions.VIEW_API_KEYS,
-      Permissions.CREATE_API_KEY,
-      Permissions.REVOKE_API_KEY,
-    ],
+    permissions: [Permissions.VIEW_API_KEYS, Permissions.CREATE_API_KEY, Permissions.REVOKE_API_KEY],
   },
   {
     key: 'tlscertificates-tab-button',

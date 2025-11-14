@@ -25,22 +25,53 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-sheet color="surface-container" class="xrd-expansion-panel xrd-rounded-12 border" :class="{ 'pb-4': opened, 'pb-0': !opened }">
-    <div data-test="header" class="xrd-expansion-panel-header d-flex flex-row align-center pt-2 pr-2 pb-2 pl-4" :class="headerClasses">
+  <v-sheet
+    color="surface-container"
+    class="xrd-expansion-panel xrd-rounded-12 border"
+    :class="{ 'pb-4': opened, 'pb-0': !opened }"
+  >
+    <div
+      data-test="header"
+      class="xrd-expansion-panel-header d-flex flex-row align-center pt-2 pr-2 pb-2 pl-4"
+      :class="headerClasses"
+    >
       <div>
-        <v-btn class="opacity-100" variant="plain" :icon="icon" :disabled="disabled" :ripple="false" color="primary" @click="toggle" />
+        <v-btn
+          class="opacity-100"
+          variant="plain"
+          :icon="icon"
+          :disabled="disabled"
+          :ripple="false"
+          color="primary"
+          @click="toggle"
+        />
       </div>
-      <div class="align-content-center" :class="{ 'text--disabled': disabled }">
-        <slot name="link" :toggle="toggle" :opened="opened" />
+      <div
+        class="align-content-center"
+        :class="{ 'text--disabled': disabled }"
+      >
+        <slot
+          name="link"
+          :toggle="toggle"
+          :opened="opened"
+        />
       </div>
 
       <v-spacer />
       <div class="xrd-expansion-panel-header-actions">
-        <slot name="action" :opened="opened" />
+        <slot
+          name="action"
+          :opened="opened"
+        />
       </div>
     </div>
     <v-expand-transition>
-      <div v-if="opened" data-test="content" class="xrd-expansion-panel-content" :class="{ 'v-input--disabled': disabled }">
+      <div
+        v-if="opened"
+        data-test="content"
+        class="xrd-expansion-panel-content"
+        :class="{ 'v-input--disabled': disabled }"
+      >
         <slot name="content" />
       </div>
     </v-expand-transition>

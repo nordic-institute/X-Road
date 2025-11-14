@@ -54,15 +54,9 @@
               <td>{{ serverAddress }}</td>
               <td class="text-end">
                 <div v-if="addressChangeInProgress" class="status-wrapper">
-                  <XrdStatusChip
-                    :type="'info'"
-                    text="systemParameters.securityServer.addressChangeInProgress"
-                  >
+                  <XrdStatusChip :type="'info'" text="systemParameters.securityServer.addressChangeInProgress">
                     <template #icon>
-                      <XrdStatusIcon
-                        class="mr-1 ml-n1"
-                        status="progress-register"
-                      />
+                      <XrdStatusIcon class="mr-1 ml-n1" status="progress-register" />
                     </template>
                   </XrdStatusChip>
                 </div>
@@ -82,11 +76,7 @@
         </v-table>
       </XrdCard>
 
-      <XrdCard
-        v-if="hasPermission(permissions.VIEW_ANCHOR)"
-        title="systemParameters.configurationAnchor.title"
-        class="settings-block"
-      >
+      <XrdCard v-if="hasPermission(permissions.VIEW_ANCHOR)" title="systemParameters.configurationAnchor.title" class="settings-block">
         <template #title-actions>
           <div class="d-flex flex-row align-center justify-end">
             <XrdBtn
@@ -100,27 +90,17 @@
               @click="downloadAnchor"
             />
 
-            <UploadConfigurationAnchorDialog
-              @uploaded="fetchConfigurationAnchor"
-            />
+            <UploadConfigurationAnchorDialog @uploaded="fetchConfigurationAnchor" />
           </div>
         </template>
         <v-table class="xrd">
           <thead>
             <tr>
               <th>
-                {{
-                  $t(
-                    'systemParameters.configurationAnchor.table.header.distinguishedName',
-                  )
-                }}
+                {{ $t('systemParameters.configurationAnchor.table.header.distinguishedName') }}
               </th>
               <th>
-                {{
-                  $t(
-                    'systemParameters.configurationAnchor.table.header.generated',
-                  )
-                }}
+                {{ $t('systemParameters.configurationAnchor.table.header.generated') }}
               </th>
             </tr>
           </thead>
@@ -151,37 +131,24 @@
         :class="{ 'ts-disabled': !messageLogEnabled }"
       >
         <template #title-actions>
-          <template
-            v-if="hasPermission(permissions.ADD_TSP) && messageLogEnabled"
-          >
+          <template v-if="hasPermission(permissions.ADD_TSP) && messageLogEnabled">
             <AddTimestampingServiceDialog
               :configured-timestamping-services="configuredTimestampingServices"
               @added="fetchConfiguredTimestampingServiced"
             />
           </template>
           <template v-if="!messageLogEnabled">
-            <XrdStatusChip
-              type="inactive"
-              text="diagnostics.addOnStatus.messageLogDisabled"
-            />
+            <XrdStatusChip type="inactive" text="diagnostics.addOnStatus.messageLogDisabled" />
           </template>
         </template>
         <v-table class="xrd">
           <thead>
             <tr>
               <th :class="{ 'opacity-60': !messageLogEnabled }">
-                {{
-                  $t(
-                    'systemParameters.timestampingServices.table.header.timestampingService',
-                  )
-                }}
+                {{ $t('systemParameters.timestampingServices.table.header.timestampingService') }}
               </th>
               <th :class="{ 'opacity-60': !messageLogEnabled }">
-                {{
-                  $t(
-                    'systemParameters.timestampingServices.table.header.serviceURL',
-                  )
-                }}
+                {{ $t('systemParameters.timestampingServices.table.header.serviceURL') }}
               </th>
               <th>&nbsp;</th>
             </tr>
@@ -214,40 +181,21 @@
           <thead>
             <tr>
               <th>
-                {{
-                  $t(
-                    'systemParameters.approvedCertificateAuthorities.table.header.distinguishedName',
-                  )
-                }}
+                {{ $t('systemParameters.approvedCertificateAuthorities.table.header.distinguishedName') }}
               </th>
               <th>
-                {{
-                  $t(
-                    'systemParameters.approvedCertificateAuthorities.table.header.acmeIpAddresses',
-                  )
-                }}
+                {{ $t('systemParameters.approvedCertificateAuthorities.table.header.acmeIpAddresses') }}
               </th>
               <th>
-                {{
-                  $t(
-                    'systemParameters.approvedCertificateAuthorities.table.header.ocspResponse',
-                  )
-                }}
+                {{ $t('systemParameters.approvedCertificateAuthorities.table.header.ocspResponse') }}
               </th>
               <th>
-                {{
-                  $t(
-                    'systemParameters.approvedCertificateAuthorities.table.header.expires',
-                  )
-                }}
+                {{ $t('systemParameters.approvedCertificateAuthorities.table.header.expires') }}
               </th>
             </tr>
           </thead>
           <tbody data-test="system-parameters-approved-ca-table-body">
-            <tr
-              v-for="approvedCA in orderedCertificateAuthorities"
-              :key="approvedCA.path"
-            >
+            <tr v-for="approvedCA in orderedCertificateAuthorities" :key="approvedCA.path">
               <td
                 :class="{
                   'interm-ca': !approvedCA.top_ca,
@@ -256,39 +204,19 @@
               >
                 {{ approvedCA.subject_distinguished_name }}
               </td>
-              <td
-                v-if="
-                  approvedCA.acme_server_ip_addresses &&
-                  approvedCA.acme_server_ip_addresses.length > 0
-                "
-              >
-                <p
-                  v-for="ipAddress in approvedCA.acme_server_ip_addresses"
-                  :key="ipAddress"
-                >
+              <td v-if="approvedCA.acme_server_ip_addresses && approvedCA.acme_server_ip_addresses.length > 0">
+                <p v-for="ipAddress in approvedCA.acme_server_ip_addresses" :key="ipAddress">
                   {{ ipAddress }}
                 </p>
               </td>
               <td v-else>
-                {{
-                  $t(
-                    'systemParameters.approvedCertificateAuthorities.table.notAvailable',
-                  )
-                }}
+                {{ $t('systemParameters.approvedCertificateAuthorities.table.notAvailable') }}
               </td>
               <td v-if="approvedCA.top_ca">
-                {{
-                  $t(
-                    'systemParameters.approvedCertificateAuthorities.table.ocspResponse.NOT_AVAILABLE',
-                  )
-                }}
+                {{ $t('systemParameters.approvedCertificateAuthorities.table.ocspResponse.NOT_AVAILABLE') }}
               </td>
               <td v-if="!approvedCA.top_ca">
-                {{
-                  $t(
-                    `systemParameters.approvedCertificateAuthorities.table.ocspResponse.${approvedCA.ocsp_response}`,
-                  )
-                }}
+                {{ $t(`systemParameters.approvedCertificateAuthorities.table.ocspResponse.${approvedCA.ocsp_response}`) }}
               </td>
               <td class="pr-4">
                 <XrdDate :value="approvedCA.not_after" />
@@ -330,13 +258,7 @@ import {
   XrdStatusIcon,
   saveResponseAsFile,
 } from '@niis/shared-ui';
-import {
-  AddOnStatus,
-  Anchor,
-  CertificateAuthority,
-  SecurityServerAddressStatus,
-  TimestampingService,
-} from '@/openapi-types';
+import { AddOnStatus, Anchor, CertificateAuthority, SecurityServerAddressStatus, TimestampingService } from '@/openapi-types';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
@@ -394,9 +316,7 @@ export default defineComponent({
     orderedCertificateAuthorities(): CertificateAuthority[] {
       const temp = this.certificateAuthorities;
 
-      return temp.sort((authorityA, authorityB) =>
-        authorityA.path.localeCompare(authorityB.path),
-      );
+      return temp.sort((authorityA, authorityB) => authorityA.path.localeCompare(authorityB.path));
     },
   },
   created(): void {
@@ -437,21 +357,14 @@ export default defineComponent({
       this.loadingTimestampingservices = true;
       return api
         .get<TimestampingService[]>('/system/timestamping-services')
-        .then(
-          (resp) =>
-            (this.configuredTimestampingServices = sortTimestampingServices(
-              resp.data,
-            )),
-        )
+        .then((resp) => (this.configuredTimestampingServices = sortTimestampingServices(resp.data)))
         .catch((error) => this.addError(error))
         .finally(() => (this.loadingTimestampingservices = false));
     },
     async fetchApprovedCertificateAuthorities() {
       this.loadingCAs = true;
       return api
-        .get<CertificateAuthority[]>(
-          '/certificate-authorities?include_intermediate_cas=true',
-        )
+        .get<CertificateAuthority[]>('/certificate-authorities?include_intermediate_cas=true')
         .then((resp) => (this.certificateAuthorities = resp.data))
         .catch((error) => this.addError(error))
         .finally(() => (this.loadingCAs = false));
@@ -470,8 +383,7 @@ export default defineComponent({
           .get<SecurityServerAddressStatus>('/system/server-address')
           .then((resp) => {
             this.serverAddress = resp.data.current_address?.address || '';
-            this.addressChangeInProgress =
-              resp.data.requested_change !== undefined;
+            this.addressChangeInProgress = resp.data.requested_change !== undefined;
           })
           .catch((error) => this.addError(error));
       }

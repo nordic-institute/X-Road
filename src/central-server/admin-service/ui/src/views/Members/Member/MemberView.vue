@@ -25,12 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdView
-    id="memberview"
-    translated-title
-    :title="memberStore.current?.member_name || ''"
-    :breadcrumbs
-  >
+  <XrdView id="memberview" translated-title :title="memberStore.current?.member_name || ''" :breadcrumbs>
     <template #append-header>
       <XrdBtn
         v-if="allowMemberDelete"
@@ -49,11 +44,7 @@
     <router-view />
 
     <!-- Delete member - Check member code dialog -->
-    <MemberDeleteDialog
-      v-if="showDeleteDialog && memberStore.current"
-      :member="memberStore.current"
-      @cancel="showDeleteDialog = false"
-    />
+    <MemberDeleteDialog v-if="showDeleteDialog && memberStore.current" :member="memberStore.current" @cancel="showDeleteDialog = false" />
   </XrdView>
 </template>
 
@@ -61,14 +52,7 @@
 import { computed, ref, watchEffect } from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { useMember } from '@/store/modules/members';
-import {
-  XrdView,
-  XrdBtn,
-  useNotifications,
-  useHistory,
-  XrdViewNavigation,
-  PageNavigationTab,
-} from '@niis/shared-ui';
+import { XrdView, XrdBtn, useNotifications, useHistory, XrdViewNavigation, PageNavigationTab } from '@niis/shared-ui';
 import MemberDeleteDialog from '@/views/Members/Member/Details/DeleteMemberDialog.vue';
 import { useUser } from '@/store/modules/user';
 import { useSecurityServer } from '@/store/modules/security-servers';
@@ -88,9 +72,7 @@ const historyStore = useHistory();
 const memberStore = useMember();
 const { hasPermission } = useUser();
 
-const allowMemberDelete = computed(() =>
-  hasPermission(Permissions.DELETE_MEMBER),
-);
+const allowMemberDelete = computed(() => hasPermission(Permissions.DELETE_MEMBER));
 
 const tabs = computed(() => {
   return [
@@ -128,10 +110,7 @@ const allowedTabs = computed(() => getAllowedTabs(tabs.value));
 
 const breadcrumbs = computed(() => {
   const ssStore = useSecurityServer();
-  if (
-    historyStore.cameFrom(RouteName.SecurityServerClients) &&
-    ssStore.current
-  ) {
+  if (historyStore.cameFrom(RouteName.SecurityServerClients) && ssStore.current) {
     return [
       {
         title: 'tab.main.securityServers',
@@ -162,8 +141,6 @@ const breadcrumbs = computed(() => {
 });
 
 watchEffect(() => {
-  memberStore
-    .loadById(props.memberId)
-    .catch((err) => addError(err, { navigate: true }));
+  memberStore.loadById(props.memberId).catch((err) => addError(err, { navigate: true }));
 });
 </script>

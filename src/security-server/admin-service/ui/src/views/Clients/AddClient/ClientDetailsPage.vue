@@ -27,20 +27,12 @@
 <template>
   <XrdWizardStep title="wizard.clientInfo1" sub-title="wizard.clientInfo2">
     <template #append-header>
-      <XrdBtn
-        data-test="select-client-button"
-        variant="outlined"
-        text="wizard.selectClient"
-        @click="showSelectClient = true"
-      />
+      <XrdBtn data-test="select-client-button" variant="outlined" text="wizard.selectClient" @click="showSelectClient = true" />
     </template>
 
     <XrdFormBlock>
       <v-slide-y-transition>
-        <XrdFormBlockRow
-          v-if="selectedMemberName"
-          description="wizard.client.memberNameTooltip"
-        >
+        <XrdFormBlockRow v-if="selectedMemberName" description="wizard.client.memberNameTooltip">
           <v-text-field
             data-test="selected-member-name"
             class="xrd"
@@ -52,10 +44,7 @@
           />
         </XrdFormBlockRow>
       </v-slide-y-transition>
-      <XrdFormBlockRow
-        description="wizard.client.memberClassTooltip"
-        adjust-against-content
-      >
+      <XrdFormBlockRow description="wizard.client.memberClassTooltip" adjust-against-content>
         <v-select
           v-model="memberClassMdl"
           v-bind="memberClassAttr"
@@ -66,10 +55,7 @@
           :label="$t('wizard.memberClass')"
         />
       </XrdFormBlockRow>
-      <XrdFormBlockRow
-        description="wizard.client.memberCodeTooltip"
-        adjust-against-content
-      >
+      <XrdFormBlockRow description="wizard.client.memberCodeTooltip" adjust-against-content>
         <v-text-field
           v-model="memberCodeMdl"
           v-bind="memberCodeAttr"
@@ -80,10 +66,7 @@
           :placeholder="$t('wizard.memberCode')"
         />
       </XrdFormBlockRow>
-      <XrdFormBlockRow
-        description="wizard.client.subsystemCodeTooltip"
-        adjust-against-content
-      >
+      <XrdFormBlockRow description="wizard.client.subsystemCodeTooltip" adjust-against-content>
         <v-text-field
           v-model="subsystemCodeMdl"
           v-bind="subsystemCodeAttr"
@@ -93,11 +76,7 @@
           :placeholder="$t('wizard.subsystemCode')"
         />
       </XrdFormBlockRow>
-      <XrdFormBlockRow
-        v-if="doesSupportSubsystemNames"
-        description="wizard.client.subsystemNameTooltip"
-        adjust-against-content
-      >
+      <XrdFormBlockRow v-if="doesSupportSubsystemNames" description="wizard.client.subsystemNameTooltip" adjust-against-content>
         <v-text-field
           v-model="subsystemNameMdl"
           v-bind="subsystemNameAttr"
@@ -118,20 +97,9 @@
       @save="saveSelectedClient"
     />
     <template #footer>
-      <XrdBtn
-        data-test="cancel-button"
-        variant="outlined"
-        text="action.cancel"
-        @click="cancel"
-      />
+      <XrdBtn data-test="cancel-button" variant="outlined" text="action.cancel" @click="cancel" />
       <v-spacer />
-      <XrdBtn
-        data-test="next-button"
-        text="action.next"
-        :loading="checkRunning"
-        :disabled="!meta.valid"
-        @click="done"
-      />
+      <XrdBtn data-test="next-button" text="action.next" :loading="checkRunning" :disabled="!meta.valid" @click="done" />
     </template>
   </XrdWizardStep>
 </template>
@@ -149,13 +117,7 @@ import { useGeneral } from '@/store/modules/general';
 import { useUser } from '@/store/modules/user';
 import { useI18n } from 'vue-i18n';
 import { useSystem } from '@/store/modules/system';
-import {
-  XrdWizardStep,
-  XrdBtn,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -176,53 +138,36 @@ export default defineComponent({
     const { t } = useI18n();
 
     function uniqueClient(subsystemCode: string) {
-      if (
-        containsClient(reservedClients, memberClass, memberCode, subsystemCode)
-      ) {
+      if (containsClient(reservedClients, memberClass, memberCode, subsystemCode)) {
         return t('wizard.client.clientExists');
       }
       return true;
     }
 
     defineRule('uniqueClient', uniqueClient);
-    const { meta, values, validateField, setFieldValue, defineField } = useForm(
-      {
-        validationSchema: {
-          'addClient.memberClass': 'required',
-          'addClient.memberCode': 'required|max:255|xrdIdentifier',
-          'addClient.subsystemCode':
-            'required|max:255|xrdIdentifier|uniqueClient',
-          'addClient.subsystemName': 'max:255|xrdIdentifier',
-        },
-        initialValues: {
-          addClient: {
-            memberClass: '',
-            memberCode: '',
-            subsystemCode: '',
-            subsystemName: '',
-          },
+    const { meta, values, validateField, setFieldValue, defineField } = useForm({
+      validationSchema: {
+        'addClient.memberClass': 'required',
+        'addClient.memberCode': 'required|max:255|xrdIdentifier',
+        'addClient.subsystemCode': 'required|max:255|xrdIdentifier|uniqueClient',
+        'addClient.subsystemName': 'max:255|xrdIdentifier',
+      },
+      initialValues: {
+        addClient: {
+          memberClass: '',
+          memberCode: '',
+          subsystemCode: '',
+          subsystemName: '',
         },
       },
-    );
+    });
     const componentConfig = {
       props: (state: PublicPathState) => ({ 'error-messages': state.errors }),
     };
-    const [memberClassMdl, memberClassAttr] = defineField(
-      'addClient.memberClass',
-      componentConfig,
-    );
-    const [memberCodeMdl, memberCodeAttr] = defineField(
-      'addClient.memberCode',
-      componentConfig,
-    );
-    const [subsystemCodeMdl, subsystemCodeAttr] = defineField(
-      'addClient.subsystemCode',
-      componentConfig,
-    );
-    const [subsystemNameMdl, subsystemNameAttr] = defineField(
-      'addClient.subsystemName',
-      componentConfig,
-    );
+    const [memberClassMdl, memberClassAttr] = defineField('addClient.memberClass', componentConfig);
+    const [memberCodeMdl, memberCodeAttr] = defineField('addClient.memberCode', componentConfig);
+    const [subsystemCodeMdl, subsystemCodeAttr] = defineField('addClient.subsystemCode', componentConfig);
+    const [subsystemNameMdl, subsystemNameAttr] = defineField('addClient.subsystemName', componentConfig);
     return {
       meta,
       values,
@@ -248,12 +193,7 @@ export default defineComponent({
   },
   computed: {
     ...mapState(useAddClient, ['selectableClients', 'selectedMemberName']),
-    ...mapWritableState(useAddClient, [
-      'memberClass',
-      'memberCode',
-      'subsystemCode',
-      'subsystemName',
-    ]),
+    ...mapWritableState(useAddClient, ['memberClass', 'memberCode', 'subsystemCode', 'subsystemName']),
     ...mapState(useGeneral, ['memberClassesCurrentInstance']),
     ...mapState(useUser, ['currentSecurityServer']),
     ...mapState(useSystem, ['doesSupportSubsystemNames']),
@@ -331,17 +271,9 @@ export default defineComponent({
       this.setSelectedMember(selectedMember);
       this.setFieldValue('addClient.memberClass', selectedMember.member_class);
       this.setFieldValue('addClient.memberCode', selectedMember.member_code);
-      this.setFieldValue(
-        'addClient.subsystemCode',
-        selectedMember.subsystem_code ?? '',
-      );
-      this.setFieldValue(
-        'addClient.subsystemName',
-        selectedMember.subsystem_name ?? '',
-      );
-      this.fetchReservedClients(selectedMember).catch((error) =>
-        this.addError(error),
-      );
+      this.setFieldValue('addClient.subsystemCode', selectedMember.subsystem_code ?? '');
+      this.setFieldValue('addClient.subsystemName', selectedMember.subsystem_name ?? '');
+      this.fetchReservedClients(selectedMember).catch((error) => this.addError(error));
 
       this.showSelectClient = false;
     },
@@ -354,20 +286,14 @@ export default defineComponent({
 
       // Find if the selectable clients array has a match
       const tempClient = this.selectableClients.find((client: Client) => {
-        return (
-          client.member_code === this.values.addClient.memberCode &&
-          client.member_class === this.values.addClient.memberClass
-        );
+        return client.member_code === this.values.addClient.memberCode && client.member_class === this.values.addClient.memberClass;
       });
 
       // Fill the name "field" if it's available or set it undefined
       this.setSelectedMemberName(tempClient?.member_name);
 
       // Pass the arguments so that we use the validated information instead of the state at that time
-      this.checkClientDebounce(
-        this.values.addClient.memberClass,
-        this.values.addClient.memberCode,
-      );
+      this.checkClientDebounce(this.values.addClient.memberClass, this.values.addClient.memberCode);
     },
     checkClientDebounce: debounce((memberClass: string, memberCode: string) => {
       // Debounce is used to reduce unnecessary api calls

@@ -26,7 +26,10 @@
  -->
 <template>
   <div class="d-flex flex-row align-center">
-    <div v-if="resolvedTitle" class="title-component font-weight-medium">
+    <div
+      v-if="resolvedTitle"
+      class="title-component font-weight-medium"
+    >
       {{ resolvedTitle }}
     </div>
     <slot name="append-title" />

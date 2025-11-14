@@ -36,27 +36,11 @@
       @click="showLoginDialog = true"
     />
 
-    <XrdBtn
-      v-if="showLogout"
-      data-test="token-logout-button"
-      text="keys.logOut"
-      variant="text"
-      @click="showLogoutDialog = true"
-    />
+    <XrdBtn v-if="showLogout" data-test="token-logout-button" text="keys.logOut" variant="text" @click="showLogoutDialog = true" />
 
-    <TokenLoginDialog
-      v-if="showLoginDialog"
-      :token="token"
-      @cancel="showLoginDialog = false"
-      @token-login="tokenLoggedIn"
-    />
+    <TokenLoginDialog v-if="showLoginDialog" :token="token" @cancel="showLoginDialog = false" @token-login="tokenLoggedIn" />
 
-    <TokenLogoutDialog
-      v-if="showLogoutDialog"
-      :token="token"
-      @cancel="showLogoutDialog = false"
-      @token-logout="tokenLoggedOut"
-    />
+    <TokenLogoutDialog v-if="showLogoutDialog" :token="token" @cancel="showLogoutDialog = false" @token-logout="tokenLoggedOut" />
   </div>
 </template>
 
@@ -100,20 +84,14 @@ const showLogin = computed(() => {
   if (!props.token.possible_actions) {
     return false;
   }
-  return (
-    hasPermission(Permissions.ACTIVATE_TOKEN) &&
-    props.token.possible_actions.includes(PossibleTokenAction.LOGIN)
-  );
+  return hasPermission(Permissions.ACTIVATE_TOKEN) && props.token.possible_actions.includes(PossibleTokenAction.LOGIN);
 });
 
 const showLogout = computed(() => {
   if (!props.token.possible_actions) {
     return false;
   }
-  return (
-    hasPermission(Permissions.DEACTIVATE_TOKEN) &&
-    props.token.possible_actions.includes(PossibleTokenAction.LOGOUT)
-  );
+  return hasPermission(Permissions.DEACTIVATE_TOKEN) && props.token.possible_actions.includes(PossibleTokenAction.LOGOUT);
 });
 
 function tokenLoggedIn(): void {

@@ -37,23 +37,9 @@
     <template #content>
       <XrdFormBlock title="keys.token.info">
         <XrdFormBlockRow>
-          <v-text-field
-            class="xrd"
-            variant="plain"
-            readonly
-            hide-details
-            :model-value="token.id"
-            :label="$t('keys.token.id')"
-          />
+          <v-text-field class="xrd" variant="plain" readonly hide-details :model-value="token.id" :label="$t('keys.token.id')" />
           <template #description>
-            <v-text-field
-              class="xrd"
-              variant="plain"
-              readonly
-              hide-details
-              :model-value="token.type"
-              :label="$t('keys.type')"
-            />
+            <v-text-field class="xrd" variant="plain" readonly hide-details :model-value="token.type" :label="$t('keys.type')" />
           </template>
         </XrdFormBlockRow>
         <XrdFormBlockRow>
@@ -116,11 +102,7 @@
                   :maxlength="255"
                 >
                   <template #append-inner>
-                    <v-icon
-                      class="on-surface-variant"
-                      :icon="appendOldPinIcon"
-                      @click="oldPinType = toggleType(oldPinType)"
-                    />
+                    <v-icon class="on-surface-variant" :icon="appendOldPinIcon" @click="oldPinType = toggleType(oldPinType)" />
                   </template>
                 </v-text-field>
               </v-col>
@@ -139,11 +121,7 @@
                   :maxlength="255"
                 >
                   <template #append-inner>
-                    <v-icon
-                      class="on-surface-variant"
-                      :icon="appendNewPinIcon"
-                      @click="newPinType = toggleType(newPinType)"
-                    />
+                    <v-icon class="on-surface-variant" :icon="appendNewPinIcon" @click="newPinType = toggleType(newPinType)" />
                   </template>
                 </v-text-field>
               </v-col>
@@ -162,11 +140,7 @@
                   :maxlength="255"
                 >
                   <template #append-inner>
-                    <v-icon
-                      class="on-surface-variant"
-                      :icon="appendNewPinIcon"
-                      @click="newPinType = toggleType(newPinType)"
-                    />
+                    <v-icon class="on-surface-variant" :icon="appendNewPinIcon" @click="newPinType = toggleType(newPinType)" />
                   </template>
                 </v-text-field>
               </v-col>
@@ -240,8 +214,7 @@ export default defineComponent({
   },
   emits: ['cancel', 'update', 'delete'],
   setup(props) {
-    const { addSuccessMessage, addTranslatedSuccessMessage, addError } =
-      useNotifications();
+    const { addSuccessMessage, addTranslatedSuccessMessage, addError } = useNotifications();
     const { tokens } = useTokens();
     const isChangePinOpen = ref(false);
     const token: Token = tokens.find((token) => token.id === props.id)!;
@@ -259,15 +232,7 @@ export default defineComponent({
         };
       }
     });
-    const {
-      meta,
-      values,
-      setFieldValue,
-      isFieldValid,
-      isFieldDirty,
-      resetField,
-      defineField,
-    } = useForm({
+    const { meta, values, setFieldValue, isFieldValid, isFieldDirty, resetField, defineField } = useForm({
       validationSchema,
       initialValues: {
         token: {
@@ -279,22 +244,10 @@ export default defineComponent({
       },
     });
 
-    const [friendlyName, friendlyNameAttr] = defineField(
-      'token.friendlyName',
-      veeDefaultFieldConfig(),
-    );
-    const [oldPin, oldPinAttr] = defineField(
-      'token.oldPin',
-      veeDefaultFieldConfig(),
-    );
-    const [newPin, newPinAttr] = defineField(
-      'token.newPin',
-      veeDefaultFieldConfig(),
-    );
-    const [newPinConfirm, newPinConfirmAttr] = defineField(
-      'token.newPinConfirm',
-      veeDefaultFieldConfig(),
-    );
+    const [friendlyName, friendlyNameAttr] = defineField('token.friendlyName', veeDefaultFieldConfig());
+    const [oldPin, oldPinAttr] = defineField('token.oldPin', veeDefaultFieldConfig());
+    const [newPin, newPinAttr] = defineField('token.newPin', veeDefaultFieldConfig());
+    const [newPinConfirm, newPinConfirmAttr] = defineField('token.newPinConfirm', veeDefaultFieldConfig());
     return {
       isChangePinOpen,
       token,
@@ -341,34 +294,21 @@ export default defineComponent({
       if (this.isChangePinOpen) {
         return !this.meta.dirty || !this.meta.valid;
       } else {
-        return (
-          !this.isFieldDirty('token.friendlyName') ||
-          !this.isFieldValid('token.friendlyName')
-        );
+        return !this.isFieldDirty('token.friendlyName') || !this.isFieldValid('token.friendlyName');
       }
     },
     canEditName(): boolean {
-      return (
-        this.token?.possible_actions?.includes(
-          PossibleAction.EDIT_FRIENDLY_NAME,
-        ) ?? false
-      );
+      return this.token?.possible_actions?.includes(PossibleAction.EDIT_FRIENDLY_NAME) ?? false;
     },
     canDelete(): boolean {
-      if (
-        !this.token?.possible_actions?.includes(PossibleAction.TOKEN_DELETE)
-      ) {
+      if (!this.token?.possible_actions?.includes(PossibleAction.TOKEN_DELETE)) {
         return false;
       }
 
       return this.hasDeletePermission;
     },
     tokenLoggedIn(): boolean {
-      return (
-        this.token.possible_actions?.includes(
-          PossibleAction.TOKEN_CHANGE_PIN,
-        ) ?? false
-      );
+      return this.token.possible_actions?.includes(PossibleAction.TOKEN_CHANGE_PIN) ?? false;
     },
     softwareToken(): boolean {
       return this.token.type === TokenType.SOFTWARE;
@@ -400,11 +340,7 @@ export default defineComponent({
       try {
         let successMsg = this.$t('keys.token.saved') as string;
         if (this.isChangePinOpen) {
-          await this.updatePin(
-            this.id,
-            this.values.token.oldPin,
-            this.values.token.newPin,
-          );
+          await this.updatePin(this.id, this.values.token.oldPin, this.values.token.newPin);
           successMsg = this.$t('token.pinChanged') as string;
         }
         if (this.isFieldDirty('token.friendlyName')) {

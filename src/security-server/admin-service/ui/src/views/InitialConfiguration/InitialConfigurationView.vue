@@ -25,27 +25,17 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewSimple
-    id="initial-configuration"
-    title="initialConfiguration.title"
-    class="overflow-hidden"
-  >
+  <XrdElevatedViewSimple id="initial-configuration" title="initialConfiguration.title" class="overflow-hidden">
     <XrdWizard v-model="currentStep">
       <!-- Headers -->
       <template #header-items>
         <template v-if="anchorStep">
-          <v-stepper-item
-            :complete="currentStep > anchorStep"
-            :value="anchorStep"
-          >
+          <v-stepper-item :complete="currentStep > anchorStep" :value="anchorStep">
             {{ $t('initialConfiguration.anchor.title') }}
           </v-stepper-item>
           <v-divider></v-divider>
         </template>
-        <v-stepper-item
-          :complete="currentStep > memberStep"
-          :value="memberStep"
-        >
+        <v-stepper-item :complete="currentStep > memberStep" :value="memberStep">
           {{ $t('initialConfiguration.member.title') }}
         </v-stepper-item>
         <v-divider></v-divider>
@@ -55,26 +45,14 @@
       </template>
       <template #default="{ nextStep, previousStep }">
         <v-stepper-window-item :value="anchorStep">
-          <ConfigurationAnchorStep
-            v-if="anchorStep"
-            :value="anchorStep"
-            @done="nextStep"
-          />
+          <ConfigurationAnchorStep v-if="anchorStep" :value="anchorStep" @done="nextStep" />
         </v-stepper-window-item>
 
         <v-stepper-window-item :value="memberStep">
-          <OwnerMemberStep
-            :value="memberStep"
-            @previous="previousStep"
-            @done="nextStep"
-          />
+          <OwnerMemberStep :value="memberStep" @previous="previousStep" @done="nextStep" />
         </v-stepper-window-item>
         <v-stepper-window-item :value="pinStep">
-          <TokenPinStep
-            :save-busy="pinSaveBusy"
-            @previous="previousStep"
-            @done="tokenPinReady"
-          />
+          <TokenPinStep :save-busy="pinSaveBusy" @previous="previousStep" @done="tokenPinReady" />
         </v-stepper-window-item>
       </template>
     </XrdWizard>
@@ -95,11 +73,7 @@ import { defineComponent } from 'vue';
 
 import { mapActions, mapState } from 'pinia';
 
-import {
-  useNotifications,
-  XrdElevatedViewSimple,
-  XrdWizard,
-} from '@niis/shared-ui';
+import { useNotifications, XrdElevatedViewSimple, XrdWizard } from '@niis/shared-ui';
 
 import { CodeWithDetails, InitialServerConf } from '@/openapi-types';
 import { useAlerts } from '@/store/modules/alerts';
@@ -137,16 +111,8 @@ export default defineComponent({
   },
   computed: {
     ...mapState(useMainTabs, ['firstAllowedTab']),
-    ...mapState(useUser, [
-      'isAnchorImported',
-      'isServerOwnerInitialized',
-      'isServerCodeInitialized',
-    ]),
-    ...mapState(useInitializeServer, [
-      'initServerSSCode',
-      'initServerMemberClass',
-      'initServerMemberCode',
-    ]),
+    ...mapState(useUser, ['isAnchorImported', 'isServerOwnerInitialized', 'isServerCodeInitialized']),
+    ...mapState(useInitializeServer, ['initServerSSCode', 'initServerMemberClass', 'initServerMemberCode']),
 
     anchorStep() {
       return this.isAnchorImported ? 0 : 1;
@@ -166,11 +132,7 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useAlerts, ['checkAlertStatus']),
-    ...mapActions(useUser, [
-      'setInitializationStatus',
-      'fetchInitializationStatus',
-      'fetchCurrentSecurityServer',
-    ]),
+    ...mapActions(useUser, ['setInitializationStatus', 'fetchInitializationStatus', 'fetchCurrentSecurityServer']),
     tokenPinReady(pin: string): void {
       this.pinSaveBusy = true;
 

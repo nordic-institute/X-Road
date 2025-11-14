@@ -27,20 +27,11 @@
 <template>
   <div class="pr-4 pb-4 pl-4">
     <v-table class="xrd keys-table">
-      <KeysTableThead
-        :sort-direction="sortDirection"
-        :selected-sort="selectedSort"
-        @set-sort="setSort"
-      />
+      <KeysTableThead :sort-direction="sortDirection" :selected-sort="selectedSort" @set-sort="setSort" />
 
       <tbody v-for="key in sortedKeys" :key="key.id">
         <!-- Key -->
-        <KeyRow
-          :token-logged-in="tokenLoggedIn"
-          :token-key="key"
-          @generate-csr="generateCsr(key)"
-          @key-click="keyClick(key)"
-        />
+        <KeyRow :token-logged-in="tokenLoggedIn" :token-key="key" @generate-csr="generateCsr(key)" @key-click="keyClick(key)" />
 
         <!-- Certificate -->
         <CertificateRow
@@ -52,11 +43,7 @@
           <template #certificateAction>
             <template v-if="canImportFromToken">
               <XrdBtn
-                v-if="
-                  cert.possible_actions?.includes(
-                    PossibleAction.IMPORT_FROM_TOKEN,
-                  )
-                "
+                v-if="cert.possible_actions?.includes(PossibleAction.IMPORT_FROM_TOKEN)"
                 class="table-button-fix"
                 variant="text"
                 color="tertiary"
@@ -85,12 +72,7 @@ import { defineComponent, PropType } from 'vue';
 import KeyRow from './KeyRow.vue';
 import CertificateRow from './CertificateRow.vue';
 import KeysTableThead from './KeysTableThead.vue';
-import {
-  Key,
-  PossibleAction,
-  TokenCertificate,
-  TokenCertificateSigningRequest,
-} from '@/openapi-types';
+import { Key, PossibleAction, TokenCertificate, TokenCertificateSigningRequest } from '@/openapi-types';
 import { Permissions } from '@/global';
 import { KeysSortColumn } from './keyColumnSorting';
 import * as Sorting from './keyColumnSorting';
@@ -118,12 +100,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [
-    'key-click',
-    'certificate-click',
-    'generate-csr',
-    'import-cert-by-hash',
-  ],
+  emits: ['key-click', 'certificate-click', 'generate-csr', 'import-cert-by-hash'],
   data() {
     return {
       registerDialog: false,
@@ -142,17 +119,10 @@ export default defineComponent({
       return PossibleAction;
     },
     sortedKeys(): Key[] {
-      return Sorting.keyArraySort(
-        this.keys,
-        this.selectedSort,
-        this.sortDirection,
-      );
+      return Sorting.keyArraySort(this.keys, this.selectedSort, this.sortDirection);
     },
     canCreateCsr(): boolean {
-      return (
-        this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
-        this.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ)
-      );
+      return this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) || this.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ);
     },
     canImportFromToken(): boolean {
       // Can the user import certificate from hardware token

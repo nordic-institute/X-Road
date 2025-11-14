@@ -76,85 +76,35 @@ export function toShortMemberId(client: ClientId): string {
 
 type MrIconColorText = { text: string; color: string; icon: string };
 
-function mrIconColorText(
-  textKey: string,
-  icon: string,
-  color: string,
-): MrIconColorText {
+function mrIconColorText(textKey: string, icon: string, color: string): MrIconColorText {
   const { t } = i18n.global;
   return { text: t(textKey), icon, color };
 }
 
-export function managementTypeToIconTextColor(
-  type: ManagementRequestType | undefined,
-): MrIconColorText | undefined {
+export function managementTypeToIconTextColor(type: ManagementRequestType | undefined): MrIconColorText | undefined {
   switch (type) {
     case ManagementRequestType.OWNER_CHANGE_REQUEST:
-      return mrIconColorText(
-        'managementRequests.changeOwner',
-        'folder_managed',
-        'border',
-      );
+      return mrIconColorText('managementRequests.changeOwner', 'folder_managed', 'border');
     case ManagementRequestType.AUTH_CERT_DELETION_REQUEST:
-      return mrIconColorText(
-        'managementRequests.removeCertificate',
-        'scan_delete',
-        'error',
-      );
+      return mrIconColorText('managementRequests.removeCertificate', 'scan_delete', 'error');
     case ManagementRequestType.CLIENT_DELETION_REQUEST:
-      return mrIconColorText(
-        'managementRequests.removeClient',
-        'person_cancel',
-        'error',
-      );
+      return mrIconColorText('managementRequests.removeClient', 'person_cancel', 'error');
     case ManagementRequestType.CLIENT_DISABLE_REQUEST:
-      return mrIconColorText(
-        'managementRequests.clientDisable',
-        'error',
-        'error',
-      );
+      return mrIconColorText('managementRequests.clientDisable', 'error', 'error');
     case ManagementRequestType.CLIENT_ENABLE_REQUEST:
-      return mrIconColorText(
-        'managementRequests.clientEnable',
-        'check_circle',
-        'success',
-      );
+      return mrIconColorText('managementRequests.clientEnable', 'check_circle', 'success');
     case ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST:
-      return mrIconColorText(
-        'managementRequests.addCertificate',
-        'note_add',
-        'success',
-      );
+      return mrIconColorText('managementRequests.addCertificate', 'note_add', 'success');
     case ManagementRequestType.CLIENT_REGISTRATION_REQUEST:
-      return mrIconColorText(
-        'managementRequests.addClient',
-        'person_add',
-        'success',
-      );
+      return mrIconColorText('managementRequests.addClient', 'person_add', 'success');
     case ManagementRequestType.ADDRESS_CHANGE_REQUEST:
-      return mrIconColorText(
-        'managementRequests.changeAddress',
-        'link',
-        'info',
-      );
+      return mrIconColorText('managementRequests.changeAddress', 'link', 'info');
     case ManagementRequestType.CLIENT_RENAME_REQUEST:
-      return mrIconColorText(
-        'managementRequests.renameClient',
-        'edit_square',
-        'info',
-      );
+      return mrIconColorText('managementRequests.renameClient', 'edit_square', 'info');
     case ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST:
-      return mrIconColorText(
-        'managementRequests.maintenanceModeEnable',
-        'build_circle',
-        'success',
-      );
+      return mrIconColorText('managementRequests.maintenanceModeEnable', 'build_circle', 'success');
     case ManagementRequestType.MAINTENANCE_MODE_DISABLE_REQUEST:
-      return mrIconColorText(
-        'managementRequests.maintenanceModeDisable',
-        'build_circle',
-        'error',
-      );
+      return mrIconColorText('managementRequests.maintenanceModeDisable', 'build_circle', 'error');
     default:
       return undefined;
   }
@@ -172,9 +122,7 @@ export function upperCaseWords(value: string): string {
     .join(' ');
 }
 
-export function toPagingOptions(
-  ...options: number[]
-): { title: string; value: number }[] {
+export function toPagingOptions(...options: number[]): { title: string; value: number }[] {
   const all = 'global.all';
   return options.map((value) => {
     return { title: value === -1 ? all : value.toString(), value };

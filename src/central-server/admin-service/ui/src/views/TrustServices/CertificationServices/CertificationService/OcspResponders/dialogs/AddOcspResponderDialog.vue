@@ -39,11 +39,7 @@
     <template #content>
       <XrdFormBlock>
         <XrdFormBlockRow full-length>
-          <XrdCertificateFileUpload
-            v-model:file="certFile"
-            data-test="ocsp-responder-file-input"
-            label="trustServices.uploadCertificate"
-          />
+          <XrdCertificateFileUpload v-model:file="certFile" data-test="ocsp-responder-file-input" label="trustServices.uploadCertificate" />
         </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
           <v-text-field
@@ -56,12 +52,7 @@
           />
         </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
-          <v-radio-group
-            v-model="costType"
-            v-bind="costTypeAttrs"
-            inline
-            class="dlg-row-input"
-          >
+          <v-radio-group v-model="costType" v-bind="costTypeAttrs" inline class="dlg-row-input">
             <v-radio
               v-for="type in definedCostTypes"
               :key="type"
@@ -78,19 +69,9 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  definedCostTypes,
-  useOcspResponderService,
-} from '@/store/modules/trust-services';
+import { definedCostTypes, useOcspResponderService } from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
-import {
-  XrdSimpleDialog,
-  useBasicForm,
-  useFileRef,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  XrdCertificateFileUpload,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, useBasicForm, useFileRef, XrdFormBlock, XrdFormBlockRow, XrdCertificateFileUpload } from '@niis/shared-ui';
 
 const emits = defineEmits(['save', 'cancel']);
 
@@ -117,9 +98,7 @@ const add = handleSubmit((values) => {
   loading.value = true;
   addOcspResponder(values.url, values.costType, certFile.value)
     .then(() => {
-      addSuccessMessage(
-        'trustServices.trustService.ocspResponders.add.success',
-      );
+      addSuccessMessage('trustServices.trustService.ocspResponders.add.success');
       emits('save');
     })
     .catch((error) => addError(error))

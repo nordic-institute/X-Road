@@ -53,14 +53,7 @@
 
 <script lang="ts" setup>
 import { useIntermediateCasService } from '@/store/modules/trust-services';
-import {
-  XrdSimpleDialog,
-  useBasicForm,
-  useFileRef,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  XrdCertificateFileUpload,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, useBasicForm, useFileRef, XrdFormBlock, XrdFormBlockRow, XrdCertificateFileUpload } from '@niis/shared-ui';
 
 const emits = defineEmits(['save', 'cancel']);
 
@@ -76,9 +69,7 @@ function uploadCertificate() {
   }
   addIntermediateCa(certFile.value)
     .then(() => {
-      addSuccessMessage(
-        'trustServices.trustService.intermediateCas.add.success',
-      );
+      addSuccessMessage('trustServices.trustService.intermediateCas.add.success');
       emits('save');
     })
     .catch((error) => addError(error))

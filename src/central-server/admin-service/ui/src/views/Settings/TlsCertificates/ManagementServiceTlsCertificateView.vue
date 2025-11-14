@@ -50,31 +50,15 @@ import { Permissions, RouteName } from '@/global';
 import { useManagementServices } from '@/store/modules/management-services';
 
 const { hasPermission } = useUser();
-const {
-  getCertificate,
-  uploadCertificate,
-  generateCsr,
-  downloadCertificate,
-  generateKey,
-} = useManagementServices();
+const { getCertificate, uploadCertificate, generateCsr, downloadCertificate, generateKey } = useManagementServices();
 
 const detailsViewName = RouteName.ManagementServiceCertificateDetails;
 
-const hasPermissionToDownloadCertificate = computed(() =>
-  hasPermission(Permissions.DOWNLOAD_MANAGEMENT_SERVICE_TLS_CERT),
-);
-const hasPermissionToViewCertificate = computed(() =>
-  hasPermission(Permissions.VIEW_MANAGEMENT_SERVICE_TLS_CERT),
-);
-const hasPermissionToGenerateKey = computed(() =>
-  hasPermission(Permissions.GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT),
-);
-const hasPermissionToGenerateCsr = computed(() =>
-  hasPermission(Permissions.GENERATE_MANAGEMENT_SERVICE_TLS_CSR),
-);
-const hasPermissionToUploadCertificate = computed(() =>
-  hasPermission(Permissions.UPLOAD_MANAGEMENT_SERVICE_TLS_CERT),
-);
+const hasPermissionToDownloadCertificate = computed(() => hasPermission(Permissions.DOWNLOAD_MANAGEMENT_SERVICE_TLS_CERT));
+const hasPermissionToViewCertificate = computed(() => hasPermission(Permissions.VIEW_MANAGEMENT_SERVICE_TLS_CERT));
+const hasPermissionToGenerateKey = computed(() => hasPermission(Permissions.GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT));
+const hasPermissionToGenerateCsr = computed(() => hasPermission(Permissions.GENERATE_MANAGEMENT_SERVICE_TLS_CSR));
+const hasPermissionToUploadCertificate = computed(() => hasPermission(Permissions.UPLOAD_MANAGEMENT_SERVICE_TLS_CERT));
 
 const handler = computed(
   () =>

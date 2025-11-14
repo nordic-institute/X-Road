@@ -38,9 +38,7 @@ import { createPinia } from 'pinia';
 import axios from 'axios';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 
-import {
-  setupAddErrorNavigation,
-} from '@niis/shared-ui';
+import { setupAddErrorNavigation } from '@niis/shared-ui';
 
 import { createFilters } from '@/filters';
 import { RouteName } from '@/global';

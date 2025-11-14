@@ -34,35 +34,23 @@
         <v-divider></v-divider>
 
         <template v-if="isModeFull">
-          <v-stepper-item
-            :complete="currentStep > tokenPageNumber"
-            :value="tokenPageNumber"
-          >
+          <v-stepper-item :complete="currentStep > tokenPageNumber" :value="tokenPageNumber">
             {{ $t('wizard.token.title') }}
           </v-stepper-item>
           <v-divider />
 
-          <v-stepper-item
-            :complete="currentStep > keyPageNumber"
-            :value="keyPageNumber"
-          >
+          <v-stepper-item :complete="currentStep > keyPageNumber" :value="keyPageNumber">
             {{ $t('wizard.signKey.title') }}
           </v-stepper-item>
           <v-divider />
         </template>
         <template v-if="isModeFull || isModeCsrExist">
-          <v-stepper-item
-            :complete="currentStep > csrDetailsPageNumber"
-            :value="csrDetailsPageNumber"
-          >
+          <v-stepper-item :complete="currentStep > csrDetailsPageNumber" :value="csrDetailsPageNumber">
             {{ $t('csr.csrDetails') }}
           </v-stepper-item>
           <v-divider />
 
-          <v-stepper-item
-            :complete="currentStep > csrGeneratePageNumber"
-            :value="csrGeneratePageNumber"
-          >
+          <v-stepper-item :complete="currentStep > csrGeneratePageNumber" :value="csrGeneratePageNumber">
             {{ $t('csr.generateCsr') }}
           </v-stepper-item>
           <v-divider />
@@ -79,19 +67,11 @@
       <template v-if="isModeFull">
         <!-- Step 2 -->
         <v-stepper-window-item :value="tokenPageNumber">
-          <TokenPage
-            @cancel="cancel"
-            @previous="currentStep--"
-            @done="currentStep++"
-          />
+          <TokenPage @cancel="cancel" @previous="currentStep--" @done="currentStep++" />
         </v-stepper-window-item>
         <!-- Step 3 -->
         <v-stepper-window-item :value="keyPageNumber">
-          <SignKeyPage
-            @cancel="cancel"
-            @previous="currentStep--"
-            @done="currentStep++"
-          />
+          <SignKeyPage @cancel="cancel" @previous="currentStep--" @done="currentStep++" />
         </v-stepper-window-item>
       </template>
       <template v-if="isModeFull || isModeCsrExist">
@@ -135,11 +115,7 @@ import GenerateCsrPage from '@/components/wizard/GenerateCsrPage.vue';
 import { AddMemberWizardModes, RouteName } from '@/global';
 import { useAddClient } from '@/store/modules/addClient';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import {
-  XrdElevatedViewSimple,
-  XrdWizard,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdElevatedViewSimple, XrdWizard, useNotifications } from '@niis/shared-ui';
 
 const NO_SELECTION = 999;
 
@@ -159,12 +135,8 @@ const {
 } = csrStore;
 
 const currentStep = ref(1);
-const isModeFull = computed(
-  () => addClientStore.addMemberWizardMode === AddMemberWizardModes.FULL,
-);
-const isModeCsrExist = computed(
-  () => addClientStore.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS,
-);
+const isModeFull = computed(() => addClientStore.addMemberWizardMode === AddMemberWizardModes.FULL);
+const isModeCsrExist = computed(() => addClientStore.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS);
 
 const tokenPageNumber = computed(() => (isModeFull.value ? 2 : NO_SELECTION));
 const keyPageNumber = computed(() => (isModeFull.value ? 3 : NO_SELECTION));

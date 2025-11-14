@@ -28,14 +28,7 @@
 import axios from 'axios';
 
 import * as api from '@/util/api';
-import {
-  CentralServerAddress,
-  InitializationStatus,
-  InitialServerConf,
-  SystemStatus,
-  TokenInitStatus,
-  Version,
-} from '@/openapi-types';
+import { CentralServerAddress, InitializationStatus, InitialServerConf, SystemStatus, TokenInitStatus, Version } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { useNotifications } from '@niis/shared-ui';
 import { KEY_CONTINUE_INIT } from '@/global';
@@ -68,35 +61,27 @@ export const useSystem = defineStore('system', {
       return state.systemStatus;
     },
     isServerInitialized(): boolean {
-      const initializationStatus: InitializationStatus | undefined =
-        this.systemStatus?.initialization_status;
+      const initializationStatus: InitializationStatus | undefined = this.systemStatus?.initialization_status;
 
       if (!initializationStatus) return false;
 
       return (
         0 < initializationStatus.instance_identifier.length &&
         0 < initializationStatus.central_server_address.length &&
-        TokenInitStatus.NOT_INITIALIZED !=
-          initializationStatus.software_token_init_status
+        TokenInitStatus.NOT_INITIALIZED != initializationStatus.software_token_init_status
       );
     },
   },
 
   actions: {
     async fetchServerVersion() {
-      return axios
-        .get<Version>('/system/version')
-        .then((resp) => (this.serverVersion = resp.data));
+      return axios.get<Version>('/system/version').then((resp) => (this.serverVersion = resp.data));
     },
     async fetchSystemStatus() {
-      return api
-        .get<SystemStatus>('/system/status')
-        .then((resp) => (this.systemStatus = resp.data));
+      return api.get<SystemStatus>('/system/status').then((resp) => (this.systemStatus = resp.data));
     },
     async updateCentralServerAddress(newAddress: CentralServerAddress) {
-      return api
-        .put<SystemStatus>('/system/server-address', newAddress)
-        .then((resp) => (this.systemStatus = resp.data));
+      return api.put<SystemStatus>('/system/server-address', newAddress).then((resp) => (this.systemStatus = resp.data));
     },
 
     async initializationRequest(formData: InitialServerConf) {

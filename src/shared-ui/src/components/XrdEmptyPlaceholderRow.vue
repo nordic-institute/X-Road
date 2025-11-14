@@ -28,12 +28,19 @@
   <tr v-if="show">
     <td :colspan="colspan">
       <div v-if="loading">
-        <v-progress-linear class="xrd" height="2" indeterminate />
+        <v-progress-linear
+          class="xrd"
+          height="2"
+          indeterminate
+        />
         <div class="empty-text">
           {{ $t('noData.loading') }}
         </div>
       </div>
-      <div v-else-if="showNoItems" class="empty-text">
+      <div
+        v-else-if="showNoItems"
+        class="empty-text"
+      >
         {{ noItemsText }}
       </div>
     </td>

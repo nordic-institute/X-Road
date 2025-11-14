@@ -60,12 +60,7 @@
 <script lang="ts" setup>
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useForm } from 'vee-validate';
-import {
-  XrdSimpleDialog,
-  useBasicForm,
-  XrdFormBlock,
-  XrdFormBlockRow,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 /**
  * Component for a Security server details view
@@ -90,18 +85,14 @@ const { meta, resetForm, setFieldError, defineField, handleSubmit } = useForm({
   },
   initialValues: { securityServerAddress: props.address },
 });
-const [securityServerAddress, securityServerAddressAttrs] = defineField(
-  'securityServerAddress',
-  {
-    props: (state) => ({ 'error-messages': state.errors }),
-  },
-);
+const [securityServerAddress, securityServerAddressAttrs] = defineField('securityServerAddress', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 
 const { updateAddress } = useSecurityServer();
-const { showOrTranslateErrors, addSuccessMessage, loading } = useBasicForm(
-  setFieldError,
-  { securityServerAddress: 'securityServerAddressDto.serverAddress' },
-);
+const { showOrTranslateErrors, addSuccessMessage, loading } = useBasicForm(setFieldError, {
+  securityServerAddress: 'securityServerAddressDto.serverAddress',
+});
 
 function close() {
   resetForm();

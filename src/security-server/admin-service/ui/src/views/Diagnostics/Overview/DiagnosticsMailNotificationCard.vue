@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard
-    data-test="diagnostics-mail-notification"
-    title="diagnostics.mailNotificationConfiguration.title"
-    class="overview-card"
-  >
+  <XrdCard data-test="diagnostics-mail-notification" title="diagnostics.mailNotificationConfiguration.title" class="overview-card">
     <template #append-title>
       <HelpButton
         class="help-icon"
@@ -48,86 +44,42 @@
             {{ $t('diagnostics.mailNotificationConfiguration.types') }}
           </th>
           <th>
-            {{
-              $t('diagnostics.mailNotificationConfiguration.recipientsEmails')
-            }}
+            {{ $t('diagnostics.mailNotificationConfiguration.recipientsEmails') }}
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td
-            class="vertical-align-top pt-4"
-            data-test="mail-notification-configuration-status"
-          >
-            <div
-              v-if="mailNotificationStatus.configuration_present !== undefined"
-              class="d-flex font-weight-bold"
-            >
-              <XrdStatusChip
-                :type="mailNotificationStatusType"
-                :translated-text="mailNotificationStatusText"
-              >
+          <td class="vertical-align-top pt-4" data-test="mail-notification-configuration-status">
+            <div v-if="mailNotificationStatus.configuration_present !== undefined" class="d-flex font-weight-bold">
+              <XrdStatusChip :type="mailNotificationStatusType" :translated-text="mailNotificationStatusText">
                 <template #icon>
-                  <XrdStatusIcon
-                    v-if="mailNotificationStatus.configuration_present"
-                    class="mr-1 ml-n1"
-                    status="ok"
-                  />
+                  <XrdStatusIcon v-if="mailNotificationStatus.configuration_present" class="mr-1 ml-n1" status="ok" />
                   <XrdStatusIcon v-else class="mr-1 ml-n1" status="error" />
                 </template>
               </XrdStatusChip>
             </div>
           </td>
           <td class="vertical-align-top">
-            <div
-              v-for="mailNotificationType in MailNotificationTypes"
-              :key="mailNotificationType"
-            >
-              <p
-                v-if="
-                  mailNotificationStatus.enabled_notifications !== undefined
-                "
-                class="my-4 d-flex"
-              >
-                {{
-                  $t(
-                    `diagnostics.mailNotificationConfiguration.type.${mailNotificationType}`,
-                  ) + ':'
-                }}
+            <div v-for="mailNotificationType in MailNotificationTypes" :key="mailNotificationType">
+              <p v-if="mailNotificationStatus.enabled_notifications !== undefined" class="my-4 d-flex">
+                {{ $t(`diagnostics.mailNotificationConfiguration.type.${mailNotificationType}`) + ':' }}
                 &nbsp;
                 <XrdStatusChip
                   :data-test="`enabled-${mailNotificationType}`"
-                  :type="
-                    isEnabledType(mailNotificationType) ? 'success' : 'warning'
-                  "
+                  :type="isEnabledType(mailNotificationType) ? 'success' : 'warning'"
                   :translated-text="isEnabledTypeText(mailNotificationType)"
                 >
                   <template #icon>
-                    <XrdStatusIcon
-                      v-if="isEnabledType(mailNotificationType)"
-                      class="mr-1 ml-n1"
-                      status="ok"
-                    />
-                    <XrdStatusIcon
-                      v-else
-                      class="mr-1 ml-n1"
-                      status="ok-disabled"
-                    />
+                    <XrdStatusIcon v-if="isEnabledType(mailNotificationType)" class="mr-1 ml-n1" status="ok" />
+                    <XrdStatusIcon v-else class="mr-1 ml-n1" status="ok-disabled" />
                   </template>
                 </XrdStatusChip>
               </p>
             </div>
           </td>
-          <td
-            class="vertical-align-top pt-2 fixed-width"
-            data-test="mail-notification-recipients"
-          >
-            <div
-              v-for="recipient in mailNotificationStatus.recipients_emails"
-              :key="recipient"
-              class="recipient-wrapper"
-            >
+          <td class="vertical-align-top pt-2 fixed-width" data-test="mail-notification-recipients">
+            <div v-for="recipient in mailNotificationStatus.recipients_emails" :key="recipient" class="recipient-wrapper">
               {{ recipient }}
               <XrdBtn
                 v-if="mailNotificationStatus.configuration_present"
@@ -164,13 +116,7 @@ import { useMail } from '@/store/modules/mail';
 import { defineComponent } from 'vue';
 import HelpButton from '@/components/ui/HelpButton.vue';
 import { MailNotificationType } from '@/openapi-types';
-import {
-  XrdCard,
-  XrdStatusIcon,
-  XrdStatusChip,
-  useNotifications,
-  XrdBtn,
-} from '@niis/shared-ui';
+import { XrdCard, XrdStatusIcon, XrdStatusChip, useNotifications, XrdBtn } from '@niis/shared-ui';
 
 type TestMailStatuses = {
   [key: string]: {
@@ -201,14 +147,10 @@ export default defineComponent({
       return Object.values(MailNotificationType);
     },
     mailNotificationStatusType() {
-      return this.mailNotificationStatus.configuration_present
-        ? 'success'
-        : 'error';
+      return this.mailNotificationStatus.configuration_present ? 'success' : 'error';
     },
     mailNotificationStatusText() {
-      return this.$t(
-        `diagnostics.mailNotificationConfiguration.confStatus.${this.mailNotificationStatus.configuration_present}`,
-      );
+      return this.$t(`diagnostics.mailNotificationConfiguration.confStatus.${this.mailNotificationStatus.configuration_present}`);
     },
     ...mapState(useMail, ['mailNotificationStatus']),
   },
@@ -221,16 +163,12 @@ export default defineComponent({
     ...mapActions(useMail, ['fetchMailNotificationStatus', 'sendTestMail']),
     isEnabledType(mailNotificationType: MailNotificationType) {
       if (this.mailNotificationStatus.enabled_notifications) {
-        return this.mailNotificationStatus.enabled_notifications.includes(
-          mailNotificationType,
-        );
+        return this.mailNotificationStatus.enabled_notifications.includes(mailNotificationType);
       }
       return false;
     },
     isEnabledTypeText(mailNotificationType: MailNotificationType) {
-      return this.$t(
-        `diagnostics.mailNotificationConfiguration.enabled.${this.isEnabledType(mailNotificationType)}`,
-      );
+      return this.$t(`diagnostics.mailNotificationConfiguration.enabled.${this.isEnabledType(mailNotificationType)}`);
     },
     sendTestMailNotification(recipient: string) {
       this.sendTestMail(recipient.substring(recipient.indexOf(' ')))

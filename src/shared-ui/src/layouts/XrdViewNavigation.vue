@@ -25,12 +25,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-tabs bg-color="surface-container-low" class="rounded-xl" grow :class="{ border: bordered }">
+  <v-tabs
+    bg-color="surface-container-low"
+    class="rounded-xl"
+    grow
+    :class="{ border: bordered }"
+  >
     <v-tab
       v-for="tab in allowedTabs"
       :key="tab.key"
       class="xrd-tab body-regular font-weight-medium"
-      selected-class="xrd-tab--active"
       variant="text"
       rounded="xl"
       draggable="false"
@@ -39,8 +43,14 @@
       :data-test="tab.key"
       :text="$t(tab.name)"
     >
-      <template v-if="tab.icon" #prepend>
-        <v-icon :icon="tab.icon" size="20" />
+      <template
+        v-if="tab.icon"
+        #prepend
+      >
+        <v-icon
+          :icon="tab.icon"
+          size="20"
+        />
       </template>
     </v-tab>
   </v-tabs>
@@ -62,11 +72,12 @@ defineProps({
 });
 </script>
 <style lang="scss" scoped>
+//eslint-disable-next-line vue-scoped-css/no-unused-selector
 .xrd-tab {
   background-color: rgb(var(--v-theme-surface-container-low));
   color: rgb(var(--v-theme-primary));
 
-  &.xrd-tab--active {
+  &.v-tab--selected {
     background-color: rgb(var(--v-theme-accent-container));
     color: rgb(var(--v-theme-on-accent-container));
   }

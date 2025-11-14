@@ -25,7 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn variant="outlined" :size="size" :icon="themeIcon" color="primary" @click="toggle()" />
+  <v-btn
+    variant="outlined"
+    :size="size"
+    :icon="themeIcon"
+    color="primary"
+    @click="toggle()"
+  />
 </template>
 
 <script lang="ts" setup>

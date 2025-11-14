@@ -32,21 +32,14 @@
     :loading
     :breadcrumbs="breadcrumbs"
   >
-    <XrdCertificate
-      v-if="certificateDetails"
-      :certificate="certificateDetails"
-    />
+    <XrdCertificate v-if="certificateDetails" :certificate="certificateDetails" />
   </XrdElevatedViewFixedWidth>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 
-import {
-  useRunning,
-  XrdCertificate,
-  XrdElevatedViewFixedWidth,
-} from '@niis/shared-ui';
+import { useRunning, XrdCertificate, XrdElevatedViewFixedWidth } from '@niis/shared-ui';
 
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 import { useManagementServices } from '@/store/modules/management-services';

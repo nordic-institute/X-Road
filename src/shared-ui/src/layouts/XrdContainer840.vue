@@ -26,7 +26,11 @@
  -->
 
 <template>
-  <v-container :class="{ 'pa-0': noPadding }" width="840" fluid>
+  <v-container
+    :class="{ 'pa-0': noPadding }"
+    width="840"
+    fluid
+  >
     <slot />
   </v-container>
 </template>

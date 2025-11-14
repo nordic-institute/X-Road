@@ -26,10 +26,7 @@
  -->
 <template>
   <XrdElevatedViewSimple title="wizard.addSubsystemTitle">
-    <XrdWizardStep
-      title="wizard.subsystem.info1"
-      sub-title="wizard.subsystem.info2"
-    >
+    <XrdWizardStep title="wizard.subsystem.info1" sub-title="wizard.subsystem.info2">
       <template #append-header>
         <XrdBtn
           variant="outlined"
@@ -69,10 +66,7 @@
             :label="$t('wizard.memberCode')"
           />
         </XrdFormBlockRow>
-        <XrdFormBlockRow
-          description="wizard.client.subsystemCodeTooltip"
-          adjust-against-content
-        >
+        <XrdFormBlockRow description="wizard.client.subsystemCodeTooltip" adjust-against-content>
           <v-text-field
             v-model="subsystemCode"
             v-bind="subsystemCodeAttrs"
@@ -82,11 +76,7 @@
             :label="$t('wizard.subsystemCode')"
           />
         </XrdFormBlockRow>
-        <XrdFormBlockRow
-          v-if="doesSupportSubsystemNames"
-          description="wizard.client.subsystemNameTooltip"
-          adjust-against-content
-        >
+        <XrdFormBlockRow v-if="doesSupportSubsystemNames" description="wizard.client.subsystemNameTooltip" adjust-against-content>
           <v-text-field
             v-model="subsystemName"
             v-bind="subsystemNameAttrs"
@@ -107,12 +97,7 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
       <template #footer>
-        <XrdBtn
-          data-test="cancel-button"
-          variant="text"
-          text="action.cancel"
-          @click="exitView"
-        />
+        <XrdBtn data-test="cancel-button" variant="text" text="action.cancel" @click="exitView" />
         <v-spacer />
         <XrdBtn
           data-test="submit-add-subsystem-button"
@@ -162,7 +147,8 @@ import {
   XrdFormBlock,
   XrdFormBlockRow,
   XrdWizardStep,
-  XrdConfirmDialog, veeDefaultFieldConfig,
+  XrdConfirmDialog,
+  veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 import { useClients } from '@/store/modules/clients';
 import { useClient } from '@/store/modules/client';
@@ -193,14 +179,7 @@ function uniqueClient(subsystemCode: string) {
     return true;
   }
 
-  if (
-    containsClient(
-      existingSubsystems.value,
-      props.memberClass,
-      props.memberCode,
-      subsystemCode,
-    )
-  ) {
+  if (containsClient(existingSubsystems.value, props.memberClass, props.memberCode, subsystemCode)) {
     return t('wizard.subsystem.subsystemExists');
   }
 
@@ -220,15 +199,9 @@ const { meta, handleSubmit, defineField, setFieldValue } = useForm({
   },
 });
 
-const [subsystemCode, subsystemCodeAttrs] = defineField(
-  'addSubsystemCode',
-  veeDefaultFieldConfig(),
-);
+const [subsystemCode, subsystemCodeAttrs] = defineField('addSubsystemCode', veeDefaultFieldConfig());
 
-const [subsystemName, subsystemNameAttrs] = defineField(
-  'addSubsystemName',
-  veeDefaultFieldConfig(),
-);
+const [subsystemName, subsystemNameAttrs] = defineField('addSubsystemName', veeDefaultFieldConfig());
 
 const showSelectClient = ref(false);
 const registerChecked = ref(true);
@@ -276,12 +249,7 @@ const done = handleSubmit((values) => {
 function registerSubsystem(): void {
   registerClientLoading.value = true;
 
-  const clientId = createClientId(
-    props.instanceId,
-    props.memberClass,
-    props.memberCode,
-    subsystemCode.value,
-  );
+  const clientId = createClientId(props.instanceId, props.memberClass, props.memberCode, subsystemCode.value);
   registerClient(clientId)
     .then(() => {
       addSuccessMessage('wizard.subsystem.subsystemAdded', {}, true);

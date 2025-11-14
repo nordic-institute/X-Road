@@ -38,29 +38,21 @@
       <XrdFormBlock>
         <XrdFormBlockRow full-length>
           <v-radio-group
-            v-bind="serviceTypeRef"
+            v-model="serviceTypeMdl"
+            v-bind="serviceTypeAttr"
             name="serviceType"
             class="xrd"
             inline
             :label="$t('services.serviceType')"
           >
-            <v-radio
-              data-test="rest-radio-button"
-              class="xrd"
-              value="REST"
-              :label="$t('services.restApiBasePath')"
-            />
-            <v-radio
-              data-test="openapi3-radio-button"
-              class="xrd ml-6"
-              value="OPENAPI3"
-              :label="$t('services.OpenApi3Description')"
-            />
+            <v-radio data-test="rest-radio-button" class="xrd" value="REST" :label="$t('services.restApiBasePath')" />
+            <v-radio data-test="openapi3-radio-button" class="xrd ml-6" value="OPENAPI3" :label="$t('services.OpenApi3Description')" />
           </v-radio-group>
         </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
           <v-text-field
-            v-bind="serviceUrlRef"
+            v-model="serviceUrlMdl"
+            v-bind="serviceUrlAttr"
             data-test="service-url-text-field"
             class="xrd"
             autofocus
@@ -69,7 +61,8 @@
         </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
           <v-text-field
-            v-bind="serviceCodeRef"
+            v-model="serviceCodeMdl"
+            v-bind="serviceCodeAttr"
             data-test="service-code-text-field"
             class="xrd"
             :label="$t('services.serviceCode')"
@@ -89,13 +82,14 @@
 </template>
 
 <script lang="ts" setup>
-import { PublicPathState, useForm } from 'vee-validate';
+import { useForm } from 'vee-validate';
 import {
   XrdFormBlock,
   XrdFormBlockRow,
   useNotifications,
   DialogSaveHandler,
   XrdSimpleDialog,
+  veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 import { ref } from 'vue';
 import { CodeWithDetails } from '@/openapi-types';
@@ -119,21 +113,17 @@ const saving = ref(false);
 const warningInfo = ref<CodeWithDetails[]>([]);
 const dialogHandler = ref<DialogSaveHandler | undefined>(undefined);
 
-const { meta, resetForm, values, defineComponentBinds } = useForm({
+const { meta, resetForm, values, defineField } = useForm({
   validationSchema: {
     serviceType: 'required',
     serviceUrl: 'required|max:255|restUrl',
     serviceCode: 'required|max:255|xrdIdentifier',
   },
 });
-const componentConfig = (state: PublicPathState) => ({
-  props: {
-    'error-messages': state.errors,
-  },
-});
-const serviceTypeRef = defineComponentBinds('serviceType', componentConfig);
-const serviceUrlRef = defineComponentBinds('serviceUrl', componentConfig);
-const serviceCodeRef = defineComponentBinds('serviceCode', componentConfig);
+const componentConfig = veeDefaultFieldConfig();
+const [serviceTypeMdl, serviceTypeAttr] = defineField('serviceType', componentConfig);
+const [serviceUrlMdl, serviceUrlAttr] = defineField('serviceUrl', componentConfig);
+const [serviceCodeMdl, serviceCodeAttr] = defineField('serviceCode', componentConfig);
 
 function cancel(): void {
   warningDialog.value = false;
@@ -145,19 +135,8 @@ function save(evt: Event, handler: DialogSaveHandler): void {
   dialogHandler.value = handler;
   saving.value = true;
   warningDialog.value = false;
-  saveRest(
-    props.clientId,
-    values.serviceUrl,
-    values.serviceCode,
-    values.serviceType,
-  )
-    .then(() =>
-      addSuccessMessage(
-        values.serviceType === 'OPENAPI3'
-          ? 'services.openApi3Added'
-          : 'services.restAdded',
-      ),
-    )
+  saveRest(props.clientId, values.serviceUrl, values.serviceCode, values.serviceType)
+    .then(() => addSuccessMessage(values.serviceType === 'OPENAPI3' ? 'services.openApi3Added' : 'services.restAdded'))
     .then(() => emit('save'))
     .catch((error) => {
       if (error?.response?.data?.warnings) {
@@ -173,20 +152,8 @@ function save(evt: Event, handler: DialogSaveHandler): void {
 function saveWithWarning(): void {
   saving.value = true;
   warningDialog.value = false;
-  saveRest(
-    props.clientId,
-    values.serviceUrl,
-    values.serviceCode,
-    values.serviceType,
-    true,
-  )
-    .then(() =>
-      addSuccessMessage(
-        values.serviceType === 'OPENAPI3'
-          ? 'services.openApi3Added'
-          : 'services.restAdded',
-      ),
-    )
+  saveRest(props.clientId, values.serviceUrl, values.serviceCode, values.serviceType, true)
+    .then(() => addSuccessMessage(values.serviceType === 'OPENAPI3' ? 'services.openApi3Added' : 'services.restAdded'))
     .then(() => emit('save'))
     .catch((error) => dialogHandler.value?.addError(error))
     .finally(() => (saving.value = false));

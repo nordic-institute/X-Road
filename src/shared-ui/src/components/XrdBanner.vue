@@ -25,14 +25,25 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-banner class="my-4 border border-s-xl" variant="outlined" bg-color="background" rounded :icon="icon" :color="color" :border="color">
+  <v-banner
+    class="my-4 border border-s-xl"
+    variant="outlined"
+    bg-color="background"
+    rounded
+    :icon="icon"
+    :color="color"
+    :border="color"
+  >
     <v-banner-text v-if="text || $slots.default">
       <slot>
         {{ translatedText ? text : $t(text) }}
       </slot>
     </v-banner-text>
 
-    <v-banner-actions v-if="$slots.actions" class="ma-0 ml-auto align-self-center">
+    <v-banner-actions
+      v-if="$slots.actions"
+      class="ma-0 ml-auto align-self-center"
+    >
       <slot name="actions" />
     </v-banner-actions>
   </v-banner>

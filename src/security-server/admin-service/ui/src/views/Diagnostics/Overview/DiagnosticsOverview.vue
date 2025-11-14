@@ -42,9 +42,7 @@
 
       <DiagnosticsGlobalConfigurationCard />
 
-      <DiagnosticsTimestampingServiceCard
-        :addon-status-loading="addonStatusLoading"
-      />
+      <DiagnosticsTimestampingServiceCard :addon-status-loading="addonStatusLoading" />
 
       <DiagnosticsOcspRespondersCard />
 
@@ -55,9 +53,7 @@
         :message-log-encryption-loading="messageLogEncryptionLoading"
       />
 
-      <DiagnosticsMessageLogDatabaseCard
-        :message-log-encryption-loading="messageLogEncryptionLoading"
-      />
+      <DiagnosticsMessageLogDatabaseCard :message-log-encryption-loading="messageLogEncryptionLoading" />
 
       <DiagnosticsProxyMemoryUsageCard />
     </XrdSubView>
@@ -106,19 +102,13 @@ export default defineComponent({
     messageLogEncryptionLoading: false,
   }),
   computed: {
-    ...mapState(useDiagnostics, [
-      'messageLogEnabled',
-      'messageLogEncryptionDiagnostics',
-    ]),
+    ...mapState(useDiagnostics, ['messageLogEnabled', 'messageLogEncryptionDiagnostics']),
   },
   created() {
     this.fetchData();
   },
   methods: {
-    ...mapActions(useDiagnostics, [
-      'fetchAddonStatus',
-      'fetchMessageLogEncryptionDiagnostics',
-    ]),
+    ...mapActions(useDiagnostics, ['fetchAddonStatus', 'fetchMessageLogEncryptionDiagnostics']),
     fetchData(): void {
       this.addonStatusLoading = true;
       this.messageLogEncryptionLoading = true;
@@ -141,6 +131,7 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
+// eslint-disable-next-line vue-scoped-css/no-unused-selector
 .overview-card:not(:last-child) {
   margin-bottom: 16px;
 }

@@ -34,10 +34,17 @@
     @update:model-value="modelValueUpdated"
   >
     <v-form @submit.prevent="submit">
-      <v-card class="bg-surface-container-lowest xrd-rounded-12" data-test="dialog-simple">
+      <v-card
+        class="bg-surface-container-lowest xrd-rounded-12"
+        data-test="dialog-simple"
+      >
         <template #title>
           <slot name="title">
-            <span class="dialog-title font-weight-bold" data-test="dialog-title">{{ title ? $t(title) : translatedTitle }}</span>
+            <span
+              class="dialog-title font-weight-bold"
+              data-test="dialog-title"
+              >{{ title ? $t(title) : translatedTitle }}</span
+            >
           </slot>
         </template>
         <template #append>
@@ -54,13 +61,27 @@
         <div class="alert-slot pl-6 pr-6">
           <XrdErrorNotifications :manager="errorManager" />
         </div>
-        <v-card-text v-if="$slots.text" class="mt-0 mb-6 pb-0 xrd-dialog-text" :class="{ 'no-content': !$slots.content }">
+        <v-card-text
+          v-if="$slots.text"
+          class="mt-0 mb-6 pb-0 xrd-dialog-text"
+          :class="{ 'no-content': !$slots.content }"
+        >
           <span class="body-regular">
-            <slot name="text" :dialog-handler="handler" />
+            <slot
+              name="text"
+              :dialog-handler="handler"
+            />
           </span>
         </v-card-text>
-        <v-card-text v-if="$slots.content" :style="contentStyle" class="mt-0 mb-6 pb-0 xrd-dialog-content">
-          <slot name="content" :dialog-handler="handler" />
+        <v-card-text
+          v-if="$slots.content"
+          :style="contentStyle"
+          class="mt-0 mb-6 pb-0 xrd-dialog-content"
+        >
+          <slot
+            name="content"
+            :dialog-handler="handler"
+          />
         </v-card-text>
         <v-card-actions class="pa-4 bg-surface-container-low border-t">
           <XrdBtn
@@ -73,7 +94,10 @@
             @click="cancel"
           />
           <v-spacer />
-          <slot name="prepend-save-button" :dialog-handler="handler" />
+          <slot
+            name="prepend-save-button"
+            :dialog-handler="handler"
+          />
           <XrdBtn
             v-if="!hideSaveButton"
             ref="saveButton"

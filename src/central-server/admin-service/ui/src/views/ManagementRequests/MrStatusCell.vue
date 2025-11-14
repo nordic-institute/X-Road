@@ -25,13 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-chip
-    v-if="hasStatus && style"
-    class="xrd"
-    size="small"
-    :class="style.chipCls"
-    :variant="style.variant"
-  >
+  <v-chip v-if="hasStatus && style" class="xrd" size="small" :class="style.chipCls" :variant="style.variant">
     <template #prepend>
       <v-icon class="status-icon" :class="style.iconCls" :icon="style.icon" />
     </template>
@@ -71,23 +65,9 @@ const style = computed(() => {
   if (hasStatus.value) {
     switch (props.status) {
       case ManagementRequestStatus.REVOKED:
-        return buildStyle(
-          'managementRequests.revoked',
-          'on-surface',
-          'cancel filled',
-          'on-surface',
-          'xrd-outlined',
-          'outlined',
-        );
+        return buildStyle('managementRequests.revoked', 'on-surface', 'cancel filled', 'on-surface', 'xrd-outlined', 'outlined');
       case ManagementRequestStatus.DECLINED:
-        return buildStyle(
-          'managementRequests.rejected',
-          'on-surface',
-          'cancel filled',
-          'on-surface',
-          'xrd-outlined',
-          'outlined',
-        );
+        return buildStyle('managementRequests.rejected', 'on-surface', 'cancel filled', 'on-surface', 'xrd-outlined', 'outlined');
       case ManagementRequestStatus.APPROVED:
         return buildStyle(
           'managementRequests.approved',
@@ -97,34 +77,15 @@ const style = computed(() => {
           'bg-success-container',
         );
       case ManagementRequestStatus.WAITING:
-        return buildStyle(
-          'managementRequests.pending',
-          'on-warning-container',
-          'warning filled',
-          'text-warning',
-          'bg-warning-container',
-        );
+        return buildStyle('managementRequests.pending', 'on-warning-container', 'warning filled', 'text-warning', 'bg-warning-container');
       case ManagementRequestStatus.SUBMITTED_FOR_APPROVAL:
-        return buildStyle(
-          'managementRequests.submitted',
-          'on-warning-container',
-          'warning filled',
-          'text-warning',
-          'bg-warning-container',
-        );
+        return buildStyle('managementRequests.submitted', 'on-warning-container', 'warning filled', 'text-warning', 'bg-warning-container');
     }
   }
   return undefined;
 });
 
-function buildStyle(
-  textKey: string,
-  textCls: string,
-  icon: string,
-  iconCls: string,
-  chipCls: string,
-  variant: Variant = 'flat',
-): Style {
+function buildStyle(textKey: string, textCls: string, icon: string, iconCls: string, chipCls: string, variant: Variant = 'flat'): Style {
   return { text: t(textKey), textCls, icon, iconCls, chipCls, variant };
 }
 </script>

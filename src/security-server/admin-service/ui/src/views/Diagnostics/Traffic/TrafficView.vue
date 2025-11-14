@@ -72,14 +72,8 @@
           />
         </v-col>
         <v-col cols="4">
-          <v-sheet
-            class="pa-3 rounded-lg body-regular font-weight-regular"
-            color="surface-container-high"
-          >
-            <XrdFormLabel
-              :label-text="$t('diagnostics.traffic.period')"
-              :help-text="$t('diagnostics.traffic.periodInfo')"
-            />
+          <v-sheet class="pa-3 rounded-lg body-regular font-weight-regular" color="surface-container-high">
+            <XrdFormLabel :label-text="$t('diagnostics.traffic.period')" :help-text="$t('diagnostics.traffic.periodInfo')" />
           </v-sheet>
         </v-col>
       </v-row>
@@ -98,10 +92,7 @@
             :loading="clientsLoading"
           >
             <template #item="{ props: itemProps, item }">
-              <v-list-item
-                v-bind="itemProps"
-                :subtitle="item.raw.member_name"
-              ></v-list-item>
+              <v-list-item v-bind="itemProps" :subtitle="item.raw.member_name"></v-list-item>
             </template>
           </v-select>
         </v-col>
@@ -120,22 +111,13 @@
             :loading="servicesLoading"
           >
             <template #item="{ props: itemProps, item }">
-              <v-list-item
-                v-bind="itemProps"
-                :subtitle="item.raw.title"
-              ></v-list-item>
+              <v-list-item v-bind="itemProps" :subtitle="item.raw.title"></v-list-item>
             </template>
           </v-select>
         </v-col>
         <v-col cols="4">
-          <v-sheet
-            class="pa-3 rounded-lg body-regular font-weight-regular"
-            color="surface-container-high"
-          >
-            <XrdFormLabel
-              :label-text="$t('diagnostics.traffic.party')"
-              :help-text="$t('diagnostics.traffic.partyInfo')"
-            />
+          <v-sheet class="pa-3 rounded-lg body-regular font-weight-regular" color="surface-container-high">
+            <XrdFormLabel :label-text="$t('diagnostics.traffic.party')" :help-text="$t('diagnostics.traffic.partyInfo')" />
           </v-sheet>
         </v-col>
       </v-row>
@@ -147,23 +129,14 @@
             class="xrd"
             clearable
             hide-details
-            :items="[
-              $t('diagnostics.traffic.producer'),
-              $t('diagnostics.traffic.client'),
-            ]"
+            :items="[$t('diagnostics.traffic.producer'), $t('diagnostics.traffic.client')]"
             :label="$t('diagnostics.traffic.exchangeRole')"
           >
           </v-select>
         </v-col>
         <v-col cols="4">
-          <v-sheet
-            class="pa-3 rounded-lg body-regular font-weight-regular"
-            color="surface-container-high"
-          >
-            <XrdFormLabel
-              :label-text="$t('diagnostics.traffic.exchangeRole')"
-              :help-text="$t('diagnostics.traffic.exchangeRoleInfo')"
-            />
+          <v-sheet class="pa-3 rounded-lg body-regular font-weight-regular" color="surface-container-high">
+            <XrdFormLabel :label-text="$t('diagnostics.traffic.exchangeRole')" :help-text="$t('diagnostics.traffic.exchangeRoleInfo')" />
           </v-sheet>
         </v-col>
       </v-row>
@@ -184,14 +157,8 @@
           </v-select>
         </v-col>
         <v-col cols="4">
-          <v-sheet
-            class="pa-3 rounded-lg body-regular font-weight-regular"
-            color="surface-container-high"
-          >
-            <XrdFormLabel
-              :label-text="$t('diagnostics.traffic.status')"
-              :help-text="$t('diagnostics.traffic.statusInfo')"
-            />
+          <v-sheet class="pa-3 rounded-lg body-regular font-weight-regular" color="surface-container-high">
+            <XrdFormLabel :label-text="$t('diagnostics.traffic.status')" :help-text="$t('diagnostics.traffic.statusInfo')" />
           </v-sheet>
         </v-col>
       </v-row>
@@ -199,10 +166,7 @@
   </XrdCard>
   <XrdCard>
     <v-container height="20rem" fluid>
-      <TrafficChart
-        :series="series"
-        :loading="seriesLoading && seriesLoadingDebounced"
-      />
+      <TrafficChart :series="series" :loading="seriesLoading && seriesLoadingDebounced" />
     </v-container>
   </XrdCard>
 </template>
@@ -213,17 +177,10 @@ import { VDateInput } from 'vuetify/labs/VDateInput';
 import axios from 'axios';
 import dayjs, { Dayjs } from 'dayjs';
 import { vMaska } from 'maska/vue';
-import {
-  useNotifications,
-  XrdCard,
-  XrdFormLabel,
-  useThemeHelper,
-} from '@niis/shared-ui';
+import { useNotifications, XrdCard, XrdFormLabel, useThemeHelper } from '@niis/shared-ui';
 import { OperationalDataInterval, Service } from '@/openapi-types';
 import { useClients } from '@/store/modules/clients';
-import TrafficChart, {
-  TrafficSeries,
-} from '@/views/Diagnostics/Traffic/TrafficChart.vue';
+import TrafficChart, { TrafficSeries } from '@/views/Diagnostics/Traffic/TrafficChart.vue';
 import { useI18n } from 'vue-i18n';
 import { debounce } from '@/util/helpers';
 import { useServiceDescriptions } from '@/store/modules/service-descriptions';
@@ -308,9 +265,7 @@ function fetchServices(client?: string) {
     serviceDescriptionsStore
       .fetchServiceDescriptions(client)
       .then(() => {
-        services.value = serviceDescriptionsStore.serviceDescriptions.flatMap(
-          (sd) => sd.services,
-        );
+        services.value = serviceDescriptionsStore.serviceDescriptions.flatMap((sd) => sd.services);
       })
       .catch(addError)
       .finally(() => {
@@ -319,9 +274,7 @@ function fetchServices(client?: string) {
   }
 }
 
-async function fetchTrafficData(
-  queryParams: GetOperationalDataIntervalsParams,
-): Promise<OperationalDataInterval[]> {
+async function fetchTrafficData(queryParams: GetOperationalDataIntervalsParams): Promise<OperationalDataInterval[]> {
   return axios
     .get<OperationalDataInterval[]>('/diagnostics/operational-monitoring', {
       params: queryParams,
@@ -333,30 +286,21 @@ function onStatusFilterChange(filter: TrafficFilter) {
   series.value = toChartSeries(filter, lastFetchedTrafficData.value);
 }
 
-function toChartSeries(
-  filter: TrafficFilter,
-  data: OperationalDataInterval[],
-): TrafficSeries[] {
+function toChartSeries(filter: TrafficFilter, data: OperationalDataInterval[]): TrafficSeries[] {
   const value: TrafficSeries[] = [];
 
   if (filter.status ?? true) {
     value.push({
       name: t('diagnostics.traffic.successfulRequests'),
       color: colorSuccess.value,
-      data: data.map((item) => [
-        new Date(item.interval_start_time as string).getTime(),
-        item.success_count ?? 0,
-      ]),
+      data: data.map((item) => [new Date(item.interval_start_time as string).getTime(), item.success_count ?? 0]),
     });
   }
   if (!(filter.status ?? false)) {
     value.push({
       name: t('diagnostics.traffic.failedRequests'),
       color: colorError.value,
-      data: data.map((item) => [
-        new Date(item.interval_start_time as string).getTime(),
-        item.failure_count ?? 0,
-      ]),
+      data: data.map((item) => [new Date(item.interval_start_time as string).getTime(), item.failure_count ?? 0]),
     });
   }
   return value;
@@ -371,13 +315,9 @@ function getSecurityServerType(exchangeRole?: string) {
   return undefined;
 }
 
-function toQueryParams(
-  filter: TrafficFilter,
-): GetOperationalDataIntervalsParams {
+function toQueryParams(filter: TrafficFilter): GetOperationalDataIntervalsParams {
   const start = dateWithTime(filter.startDate, filter.startTime);
-  const end = dateWithTime(filter.endDate, filter.endTime)
-    .second(59)
-    .millisecond(999);
+  const end = dateWithTime(filter.endDate, filter.endTime).second(59).millisecond(999);
   return {
     records_from: start.toISOString(),
     records_to: end.toISOString(),

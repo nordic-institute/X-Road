@@ -25,9 +25,22 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-navigation-drawer class="xrd-rail-nav" width="96" permanent>
-    <v-list-item class="xrd-rail-item-logo opacity-100" density="compact" variant="plain" to="/">
-      <v-img class="ma-auto mb-3" width="48px" :src="logo" />
+  <v-navigation-drawer
+    class="xrd-rail-nav"
+    width="96"
+    permanent
+  >
+    <v-list-item
+      class="xrd-rail-item-logo opacity-100"
+      density="compact"
+      variant="plain"
+      to="/"
+    >
+      <v-img
+        class="ma-auto mb-3"
+        width="48px"
+        :src="logo"
+      />
     </v-list-item>
 
     <slot />
@@ -56,6 +69,7 @@ const logo = computed(() => (isDark.value ? _logoDark : _logoLight));
   padding: 24px 8px;
   border-right-width: 0;
 
+  //eslint-disable-next-line vue-scoped-css/no-unused-selector
   .v-list-item {
     margin: 0 8px;
     padding: 8px 0 12px;

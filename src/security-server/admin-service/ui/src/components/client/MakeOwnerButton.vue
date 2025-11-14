@@ -26,12 +26,7 @@
  -->
 <template>
   <div>
-    <XrdBtn
-      data-test="make-owner-button"
-      variant="outlined"
-      text="client.action.makeOwner.button"
-      @click="confirmMakeOwner = true"
-    />
+    <XrdBtn data-test="make-owner-button" variant="outlined" text="client.action.makeOwner.button" @click="confirmMakeOwner = true" />
 
     <!-- Confirm dialog for make owner -->
     <XrdSimpleDialog

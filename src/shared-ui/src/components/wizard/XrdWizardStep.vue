@@ -25,15 +25,27 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="pa-0" fluid>
+  <v-container
+    class="pa-0"
+    fluid
+  >
     <XrdContainer840 class="pt-4 pr-6 pb-6 pl-6">
-      <div v-if="$slots.header || $slots['append-header'] || title || subTitle" class="header mb-6 d-flex flex-row">
+      <div
+        v-if="$slots.header || $slots['append-header'] || title || subTitle"
+        class="header mb-6 d-flex flex-row"
+      >
         <div v-if="$slots.header || title || subTitle">
           <slot name="header">
-            <p v-if="title" class="font-weight-medium body-regular">
+            <p
+              v-if="title"
+              class="font-weight-medium body-regular"
+            >
               {{ $t(title) }}
             </p>
-            <p v-if="subTitle" class="body-regular">
+            <p
+              v-if="subTitle"
+              class="body-regular"
+            >
               {{ $t(subTitle) }}
             </p>
           </slot>

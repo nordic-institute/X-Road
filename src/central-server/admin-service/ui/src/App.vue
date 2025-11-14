@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdApp
-    :login-view="loginView"
-    :session-alive="sessionAlive"
-    @logout="logout"
-  >
+  <XrdApp :login-view="loginView" :session-alive="sessionAlive" @logout="logout">
     <router-view />
   </XrdApp>
 </template>

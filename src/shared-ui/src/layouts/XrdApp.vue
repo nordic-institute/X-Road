@@ -28,7 +28,10 @@
 <template>
   <v-app>
     <slot />
-    <XrdLogoutDialog v-if="!loginView && !sessionAlive" @logout="emit('logout')" />
+    <XrdLogoutDialog
+      v-if="!loginView && !sessionAlive"
+      @logout="emit('logout')"
+    />
     <XrdSnackBar />
   </v-app>
 </template>

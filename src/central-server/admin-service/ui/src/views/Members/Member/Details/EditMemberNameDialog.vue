@@ -41,7 +41,8 @@
       <XrdFormBlock>
         <XrdFormBlockRow>
           <v-text-field
-            v-bind="memberName"
+            v-model="memberName"
+            v-bind="memberNameRef"
             data-test="edit-member-name"
             class="xrd"
             autofocus
@@ -60,12 +61,7 @@ import { Client } from '@/openapi-types';
 import { toIdentifier } from '@/util/helpers';
 import { PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
-import {
-  XrdSimpleDialog,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {
@@ -76,11 +72,11 @@ const props = defineProps({
 
 const emits = defineEmits(['save', 'cancel']);
 
-const { defineComponentBinds, errors, meta, handleSubmit } = useForm({
+const { defineField, errors, meta, handleSubmit } = useForm({
   validationSchema: { memberName: 'required' },
   initialValues: { memberName: props.member.member_name },
 });
-const memberName = defineComponentBinds('memberName');
+const [memberName, memberNameRef] = defineField('memberName');
 
 const { editMemberName } = useMember();
 const { addError, addSuccessMessage } = useNotifications();

@@ -25,10 +25,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-footer class="footer pt-6 pb-6" height="auto">
+  <v-footer
+    class="footer pt-6 pb-6"
+    height="auto"
+  >
     <v-row>
       <v-col class="pt-4 text-start">
-        <img :src="xroad8LogoUrl" height="40" width="150" alt="Logo" />
+        <img
+          :src="xroad8LogoUrl"
+          height="40"
+          width="150"
+          alt="Logo"
+        />
       </v-col>
       <v-col class="footer-col pt-5">
         <v-row>
@@ -40,7 +48,10 @@
         </v-row>
         <v-row>
           <v-col class="py-0">
-            <span data-test="app-footer-server-version" class="body-regular font-weight-regular">
+            <span
+              data-test="app-footer-server-version"
+              class="body-regular font-weight-regular"
+            >
               {{ $t('footer.software.versionPrefix') }}&nbsp;{{ appVersion }}
             </span>
           </v-col>
@@ -68,7 +79,10 @@
         </v-row>
         <v-row>
           <v-col class="py-0">
-            <span data-test="app-footer-server-version" class="body-regular font-weight-regular">
+            <span
+              data-test="app-footer-server-version"
+              class="body-regular font-weight-regular"
+            >
               {{ $t('footer.copyright.company') }}
             </span>
           </v-col>

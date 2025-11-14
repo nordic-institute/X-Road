@@ -25,9 +25,16 @@ x<!--
    THE SOFTWARE.
  -->
 <template>
-  <div class="d-flex flex-row align-center" :class="{ 'cursor-pointer': clickable }" @click="clickable && emit('navigate')">
+  <div
+    class="d-flex flex-row align-center"
+    :class="{ 'cursor-pointer': clickable }"
+    @click="clickable && emit('navigate')"
+  >
     <slot name="prepend-label" />
-    <span data-test="label" :class="textCss">
+    <span
+      data-test="label"
+      :class="textCss"
+    >
       <slot name="label">
         {{ label }}
       </slot>

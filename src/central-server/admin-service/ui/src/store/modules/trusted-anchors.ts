@@ -26,11 +26,7 @@
  */
 
 import { defineStore } from 'pinia';
-import {
-  saveResponseAsFile,
-  buildFileFormData,
-  multipartFormDataConfig,
-} from '@niis/shared-ui';
+import { saveResponseAsFile, buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
 import axios from 'axios';
 import { TrustedAnchor } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
@@ -44,25 +40,15 @@ export const useTrustedAnchor = defineStore('trustedAnchor', {
     },
     previewTrustedAnchors(file: File) {
       return axios
-        .post<TrustedAnchor>(
-          '/trusted-anchors/preview',
-          buildFileFormData('anchor', file),
-          multipartFormDataConfig(),
-        )
+        .post<TrustedAnchor>('/trusted-anchors/preview', buildFileFormData('anchor', file), multipartFormDataConfig())
         .catch((error) => {
           throw error;
         });
     },
     uploadTrustedAnchor(file: File) {
-      return axios
-        .post<TrustedAnchor>(
-          '/trusted-anchors',
-          buildFileFormData('anchor', file),
-          multipartFormDataConfig(),
-        )
-        .catch((error) => {
-          throw error;
-        });
+      return axios.post<TrustedAnchor>('/trusted-anchors', buildFileFormData('anchor', file), multipartFormDataConfig()).catch((error) => {
+        throw error;
+      });
     },
     downloadTrustedAnchor(hash: string) {
       return axios

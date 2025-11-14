@@ -26,13 +26,7 @@
  -->
 <template>
   <div>
-    <v-chip
-      v-if="statusStyle"
-      class="xrd"
-      density="compact"
-      variant="flat"
-      :class="[statusStyle.bgColor]"
-    >
+    <v-chip v-if="statusStyle" class="xrd" density="compact" variant="flat" :class="[statusStyle.bgColor]">
       <template #prepend>
         <XrdStatusIcon class="mr-1 ml-n1" :status="statusStyle.status" />
       </template>
@@ -97,47 +91,22 @@ const statusStyle = computed<StatusStyle | undefined>(() => {
 });
 
 function asSuccess(textKey: string, status: Status) {
-  return createStatusStyle(
-    textKey,
-    'bg-success-container',
-    'on-success-container',
-    status,
-  );
+  return createStatusStyle(textKey, 'bg-success-container', 'on-success-container', status);
 }
 
 function asInfo(textKey: string, status: Status) {
-  return createStatusStyle(
-    textKey,
-    'bg-info-container',
-    'on-info-container',
-    status,
-  );
+  return createStatusStyle(textKey, 'bg-info-container', 'on-info-container', status);
 }
 
 function asWarning(textKey: string, status: Status) {
-  return createStatusStyle(
-    textKey,
-    'bg-warning-container',
-    'on-warning-container',
-    status,
-  );
+  return createStatusStyle(textKey, 'bg-warning-container', 'on-warning-container', status);
 }
 
 function asError(textKey: string, status: Status) {
-  return createStatusStyle(
-    textKey,
-    'bg-error-container',
-    'on-error-container',
-    status,
-  );
+  return createStatusStyle(textKey, 'bg-error-container', 'on-error-container', status);
 }
 
-function createStatusStyle(
-  textKey: string,
-  bgColor: string,
-  textColor: string,
-  status: Status,
-): StatusStyle {
+function createStatusStyle(textKey: string, bgColor: string, textColor: string, status: Status): StatusStyle {
   return {
     text: t('client.statusText.' + textKey),
     bgColor,

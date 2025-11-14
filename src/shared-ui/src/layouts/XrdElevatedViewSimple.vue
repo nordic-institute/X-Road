@@ -25,26 +25,48 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="pa-0 mt-4 xrd-rounded-16 xrd-elevation-1 xrd-elevated-view bg-surface-container-lowest border overflow-hidden" fluid>
+  <v-container
+    class="pa-0 mt-4 xrd-rounded-16 xrd-elevation-1 xrd-elevated-view bg-surface-container-lowest border overflow-hidden"
+    fluid
+  >
     <header
       v-if="hasTitle || $slots['append-header']"
       data-test="view-header"
       class="view-header d-flex flex-row align-center pt-6 pr-6 pl-6 mb-4"
     >
-      <span v-if="hasTitle" data-test="view-header-title" class="title-view font-weight-bold">
+      <span
+        v-if="hasTitle"
+        data-test="view-header-title"
+        class="title-view font-weight-bold"
+      >
         {{ title ? $t(title) : translatedTitle }}
       </span>
 
       <slot name="append-header" />
       <template v-if="closeable || goBackOnClose">
         <v-spacer />
-        <v-btn data-test="close-x" icon="close" variant="text" size="small" color="primary" @click="close" />
+        <v-btn
+          data-test="close-x"
+          icon="close"
+          variant="text"
+          size="small"
+          color="primary"
+          @click="close"
+        />
       </template>
     </header>
-    <v-progress-linear v-if="loading" bg-color="surface-container" height="1" indeterminate />
+    <v-progress-linear
+      v-if="loading"
+      bg-color="surface-container"
+      height="1"
+      indeterminate
+    />
     <slot name="bellow-header" />
     <div :class="{ 'mb-4': notificationManager.hasErrors() }">
-      <XrdErrorNotifications class="pr-2 pl-2" :manager="notificationManager" />
+      <XrdErrorNotifications
+        class="pr-2 pl-2"
+        :manager="notificationManager"
+      />
     </div>
     <slot />
   </v-container>

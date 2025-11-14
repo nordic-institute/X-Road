@@ -54,13 +54,7 @@
 // Dialog to confirm service description disabling
 import { PropType, ref } from 'vue';
 import { ServiceDescription } from '@/openapi-types';
-import {
-  XrdFormBlock,
-  XrdFormBlockRow,
-  XrdSimpleDialog,
-  useNotifications,
-  DialogSaveHandler,
-} from '@niis/shared-ui';
+import { XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog, useNotifications, DialogSaveHandler } from '@niis/shared-ui';
 import { useServiceDescriptions } from '@/store/modules/service-descriptions';
 
 const props = defineProps({

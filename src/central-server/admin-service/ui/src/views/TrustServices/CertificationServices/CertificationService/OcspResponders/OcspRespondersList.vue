@@ -54,11 +54,7 @@
       </template>
 
       <template #[`item.cost_type`]="{ item }">
-        {{
-          $t(
-            'trustServices.trustService.costType.' + item.cost_type,
-          )
-        }}
+        {{ $t('trustServices.trustService.costType.' + item.cost_type) }}
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -91,9 +87,7 @@
 
     <!-- Add Ocsp Responder dialog -->
     <AddOcspResponderDialog
-      v-if="
-        ocspResponderServiceStore.currentCa?.id && showAddOcspResponderDialog
-      "
+      v-if="ocspResponderServiceStore.currentCa?.id && showAddOcspResponderDialog"
       @cancel="hideAddOcspResponderDialog"
       @save="hideAddOcspResponderDialog"
     />
@@ -125,19 +119,9 @@ import { defineComponent, PropType } from 'vue';
 import { useOcspResponderService } from '@/store/modules/trust-services';
 import AddOcspResponderDialog from './dialogs/AddOcspResponderDialog.vue';
 import EditOcspResponderDialog from './dialogs/EditOcspResponderDialog.vue';
-import {
-  ApprovedCertificationService,
-  CertificateAuthority,
-  OcspResponder,
-} from '@/openapi-types';
+import { ApprovedCertificationService, CertificateAuthority, OcspResponder } from '@/openapi-types';
 import { RouteName } from '@/global';
-import {
-  XrdSubView,
-  XrdBtn,
-  XrdLabelWithIcon,
-  useNotifications,
-  XrdConfirmDialog,
-} from '@niis/shared-ui';
+import { XrdSubView, XrdBtn, XrdLabelWithIcon, useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 export default defineComponent({
@@ -151,9 +135,7 @@ export default defineComponent({
   },
   props: {
     ca: {
-      type: Object as PropType<
-        ApprovedCertificationService | CertificateAuthority
-      >,
+      type: Object as PropType<ApprovedCertificationService | CertificateAuthority>,
       required: true,
     },
   },
@@ -181,16 +163,12 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          title: this.$t(
-            'trustServices.trustService.ocspResponders.url',
-          ) as string,
+          title: this.$t('trustServices.trustService.ocspResponders.url') as string,
           align: 'start',
           key: 'url',
         },
         {
-          title: this.$t(
-            'trustServices.trustService.cost',
-          ) as string,
+          title: this.$t('trustServices.trustService.cost') as string,
           align: 'center',
           key: 'cost_type',
         },
@@ -243,9 +221,7 @@ export default defineComponent({
       this.ocspResponderServiceStore
         .deleteOcspResponder(this.selectedOcspResponder.id)
         .then(() => {
-          this.addSuccessMessage(
-            'trustServices.trustService.ocspResponders.delete.success',
-          );
+          this.addSuccessMessage('trustServices.trustService.ocspResponders.delete.success');
           this.confirmDelete = false;
           this.deletingOcspResponder = false;
           this.fetchOcspResponders();

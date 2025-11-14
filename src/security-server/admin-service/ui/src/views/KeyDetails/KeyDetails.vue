@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewFixedWidth
-    :title="titleKey"
-    :breadcrumbs="breadcrumbs"
-    @close="close"
-  >
+  <XrdElevatedViewFixedWidth :title="titleKey" :breadcrumbs="breadcrumbs" @close="close">
     <XrdFormBlock>
       <XrdFormBlockRow>
         <v-text-field
@@ -50,10 +46,7 @@
         <XrdCardTableRow label="keys.keyId" :value="key.id" />
         <XrdCardTableRow label="keys.label" :value="key.label" />
         <XrdCardTableRow label="keys.keyAlgorithm" :value="key.key_algorithm" />
-        <XrdCardTableRow
-          label="keys.readOnly"
-          :value="tokenForCurrentKey.read_only"
-        />
+        <XrdCardTableRow label="keys.readOnly" :value="tokenForCurrentKey.read_only" />
       </XrdCardTable>
     </XrdCard>
     <template #footer>
@@ -101,13 +94,7 @@
  */
 import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import {
-  CodeWithDetails,
-  Key,
-  KeyUsageType,
-  PossibleAction,
-  Token,
-} from '@/openapi-types';
+import { CodeWithDetails, Key, KeyUsageType, PossibleAction, Token } from '@/openapi-types';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 
 import { PossibleActions } from '@/openapi-types/models/PossibleActions';
@@ -245,12 +232,7 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useTokens, ['fetchTokens']),
-    ...mapActions(useKeys, [
-      'fetchKey',
-      'fetchPossibleActions',
-      'updateKeyName',
-      'deleteKey',
-    ]),
+    ...mapActions(useKeys, ['fetchKey', 'fetchPossibleActions', 'updateKeyName', 'deleteKey']),
     close(): void {
       this.$router.back();
     },
@@ -281,9 +263,7 @@ export default defineComponent({
       }
 
       // Find the token that contains current key after token and key are fetched
-      this.tokenForCurrentKey = this.tokens.find((token: Token) =>
-        token.keys.find((key: Key) => key.id === this.id),
-      ) as Token;
+      this.tokenForCurrentKey = this.tokens.find((token: Token) => token.keys.find((key: Key) => key.id === this.id)) as Token;
     },
     doFetchPossibleActions(id: string): void {
       this.fetchPossibleActions(id)

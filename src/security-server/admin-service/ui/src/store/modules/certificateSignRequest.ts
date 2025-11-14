@@ -43,10 +43,7 @@ import {
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import {
-  sorCertificateAuthorities,
-  sortCsrSubjectFields,
-} from '@/util/sorting';
+import { sorCertificateAuthorities, sortCsrSubjectFields } from '@/util/sorting';
 
 export interface CsrState {
   csrKey: Key | undefined;
@@ -95,10 +92,7 @@ export const useCsr = defineStore('csr', {
     csrTokenId: (state) => state.tokenId,
 
     acmeCapable: (state) =>
-      state.certificationServiceList.find(
-        (certificateAuthority) =>
-          certificateAuthority.name == state.certificationService,
-      )?.acme_capable,
+      state.certificationServiceList.find((certificateAuthority) => certificateAuthority.name == state.certificationService)?.acme_capable,
 
     eabRequired: (state) => state.acmeEabCredentialsStatus?.acme_eab_required,
 
@@ -123,11 +117,9 @@ export const useCsr = defineStore('csr', {
     filteredServiceList(state): CertificateAuthority[] {
       // Return the list of available auth services based on the current usage type
       if (state.usage === KeyUsageType.SIGNING) {
-        const filtered = state.certificationServiceList.filter(
-          (service: CertificateAuthority) => {
-            return !service.authentication_only;
-          },
-        );
+        const filtered = state.certificationServiceList.filter((service: CertificateAuthority) => {
+          return !service.authentication_only;
+        });
         return filtered;
       }
       return state.certificationServiceList;
@@ -153,9 +145,7 @@ export const useCsr = defineStore('csr', {
         .then((res) => {
           const idSet = new Set<string>();
           res.data.forEach((client) => {
-            idSet.add(
-              `${client.instance_id}:${client.member_class}:${client.member_code}`,
-            );
+            idSet.add(`${client.instance_id}:${client.member_class}:${client.member_code}`);
           });
 
           this.memberIds = Array.from(idSet);
@@ -190,9 +180,7 @@ export const useCsr = defineStore('csr', {
 
       return api
         .get<CsrSubjectFieldDescription[]>(
-          `/certificate-authorities/${encodePathParameter(
-            this.certificationService || '',
-          )}/csr-subject-fields`,
+          `/certificate-authorities/${encodePathParameter(this.certificationService || '')}/csr-subject-fields`,
           {
             params,
           },
@@ -234,22 +222,16 @@ export const useCsr = defineStore('csr', {
       }
 
       return api
-        .post<KeyWithCertificateSigningRequestId>(
-          `/tokens/${tokenId}/keys-with-csrs`,
-          body,
-        )
+        .post<KeyWithCertificateSigningRequestId>(`/tokens/${tokenId}/keys-with-csrs`, body)
         .then((response) => {
           if (crtObject.acme_order) {
             return;
           }
           // Fetch and save the CSR file data
           api
-            .get(
-              `/keys/${response.data.key.id}/csrs/${response.data.csr_id}?csr_format=${crtObject.csr_format}`,
-              {
-                responseType: 'arraybuffer',
-              },
-            )
+            .get(`/keys/${response.data.key.id}/csrs/${response.data.csr_id}?csr_format=${crtObject.csr_format}`, {
+              responseType: 'arraybuffer',
+            })
             .then((res) => {
               saveResponseAsFile(res);
             });
@@ -269,49 +251,33 @@ export const useCsr = defineStore('csr', {
           if (requestBody.acme_order) {
             return;
           }
-          saveResponseAsFile(
-            response,
-            `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
-          );
+          saveResponseAsFile(response, `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`);
         })
         .catch((error) => {
           throw error;
         });
     },
 
-    orderAcmeCertificate(
-      csr: TokenCertificateSigningRequest,
-      caName: string,
-      usage?: KeyUsageType,
-    ) {
+    orderAcmeCertificate(csr: TokenCertificateSigningRequest, caName: string, usage?: KeyUsageType) {
       if (!usage) {
         throw new Error('Key usage is missing');
       }
       return api
-        .post(
-          `/certificate-authorities/${encodePathParameter(caName)}/acme-order`,
-          {
-            csr_id: csr.id,
-            key_usage_type: usage,
-          },
-        )
+        .post(`/certificate-authorities/${encodePathParameter(caName)}/acme-order`, {
+          csr_id: csr.id,
+          key_usage_type: usage,
+        })
         .catch((error) => {
           throw error;
         });
     },
 
-    hasAcmeEabCredentials(
-      caName?: string,
-      csrClientId?: string,
-      keyUsage?: KeyUsageType,
-    ) {
+    hasAcmeEabCredentials(caName?: string, csrClientId?: string, keyUsage?: KeyUsageType) {
       this.failedFetchAcmeMetadata = false;
 
       return api
         .get<AcmeEabCredentialsStatus>(
-          `/certificate-authorities/${encodePathParameter(
-            caName ?? this.certificationService ?? '',
-          )}/has-acme-eab-credentials`,
+          `/certificate-authorities/${encodePathParameter(caName ?? this.certificationService ?? '')}/has-acme-eab-credentials`,
           {
             params: {
               key_usage_type: keyUsage ?? this.usage,
@@ -324,9 +290,7 @@ export const useCsr = defineStore('csr', {
           return res.data;
         })
         .catch((error) => {
-          this.failedFetchAcmeMetadata =
-            error?.response?.data?.error?.code ===
-            'acme.fetching_metadata_error';
+          this.failedFetchAcmeMetadata = error?.response?.data?.error?.code === 'acme.fetching_metadata_error';
           throw error;
         });
     },

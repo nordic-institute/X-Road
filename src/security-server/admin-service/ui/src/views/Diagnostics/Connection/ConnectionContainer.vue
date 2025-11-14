@@ -31,14 +31,13 @@
     </template>
 
     <XrdSubView>
-      <ConnectionCentralServerView class="mt-0"/>
+      <ConnectionCentralServerView class="mt-0" />
     </XrdSubView>
-
   </XrdView>
 </template>
 
 <script setup lang="ts">
 import { XrdSubView, XrdView } from '@niis/shared-ui';
-import DiagnosticsTabs from "@/views/Diagnostics/DiagnosticsTabs.vue";
-import ConnectionCentralServerView from "@/views/Diagnostics/Connection/CentralServerConnectionTestingView.vue";
+import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
+import ConnectionCentralServerView from '@/views/Diagnostics/Connection/CentralServerConnectionTestingView.vue';
 </script>

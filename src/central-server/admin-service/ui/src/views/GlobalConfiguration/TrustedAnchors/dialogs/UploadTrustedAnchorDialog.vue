@@ -70,11 +70,7 @@ import { defineComponent, PropType } from 'vue';
 
 import { mapStores } from 'pinia';
 
-import {
-  useNotifications,
-  XrdDateTime,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { useNotifications, XrdDateTime, XrdSimpleDialog } from '@niis/shared-ui';
 
 import { TrustedAnchor } from '@/openapi-types';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
@@ -117,11 +113,7 @@ export default defineComponent({
       this.uploading = true;
       this.trustedAnchorStore
         .uploadTrustedAnchor(this.file)
-        .then(() =>
-          this.addSuccessMessage(
-            'globalConf.trustedAnchor.dialog.upload.success',
-          ),
-        )
+        .then(() => this.addSuccessMessage('globalConf.trustedAnchor.dialog.upload.success'))
         .then(() => (this.opened = false))
         .then(() => this.$emit('uploaded'))
         .catch((error) => this.addError(error))

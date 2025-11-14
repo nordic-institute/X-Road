@@ -25,10 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard
-    data-test="timestamping-services"
-    title="trustServices.timestampingServices"
-  >
+  <XrdCard data-test="timestamping-services" title="trustServices.timestampingServices">
     <template #title-actions>
       <XrdBtn
         v-if="showAddTsaButton"
@@ -53,26 +50,15 @@
       :items-per-page="-1"
     >
       <template #[`item.url`]="{ item }">
-        <XrdLabelWithIcon
-          icon="link"
-          label-color="on-surface"
-          :label="item.url"
-        />
+        <XrdLabelWithIcon icon="link" label-color="on-surface" :label="item.url" />
       </template>
       <template #[`item.timestamping_interval`]="{ item }">
         {{
-          $t(
-            'trustServices.trustService.timestampingService.timestampingIntervalMinutes',
-            { min: toMinutes(item.timestamping_interval) },
-          )
+          $t('trustServices.trustService.timestampingService.timestampingIntervalMinutes', { min: toMinutes(item.timestamping_interval) })
         }}
       </template>
       <template #[`item.cost_type`]="{ item }">
-        {{
-          $t(
-            `trustServices.trustService.costType.${item.cost_type}`,
-          )
-        }}
+        {{ $t(`trustServices.trustService.costType.${item.cost_type}`) }}
       </template>
       <template #[`item.button`]="{ item }">
         <XrdBtn
@@ -113,12 +99,7 @@
       @accept="deleteTimestampingService"
     />
 
-    <AddTimestampingServiceDialog
-      v-if="showAddDialog"
-      :show-dialog="showAddDialog"
-      @save="hideAddDialog"
-      @cancel="hideAddDialog"
-    />
+    <AddTimestampingServiceDialog v-if="showAddDialog" :show-dialog="showAddDialog" @save="hideAddDialog" @cancel="hideAddDialog" />
     <EditTimestampingServiceDialog
       v-if="selectedTimestampingService && showEditDialog"
       :tsa-service="selectedTimestampingService"
@@ -137,13 +118,7 @@ import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
 import { useTimestampingServices } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
-import {
-  XrdCard,
-  XrdBtn,
-  XrdLabelWithIcon,
-  useNotifications,
-  XrdConfirmDialog,
-} from '@niis/shared-ui';
+import { XrdCard, XrdBtn, XrdLabelWithIcon, useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 export default defineComponent({
@@ -188,23 +163,17 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          title: this.$t(
-            'trustServices.trustService.timestampingService.url',
-          ) as string,
+          title: this.$t('trustServices.trustService.timestampingService.url') as string,
           align: 'start',
           key: 'url',
         },
         {
-          title: this.$t(
-            'trustServices.trustService.timestampingService.timestampingInterval',
-          ) as string,
+          title: this.$t('trustServices.trustService.timestampingService.timestampingInterval') as string,
           align: 'start',
           key: 'timestamping_interval',
         },
         {
-          title: this.$t(
-            'trustServices.trustService.cost',
-          ) as string,
+          title: this.$t('trustServices.trustService.cost') as string,
           align: 'start',
           key: 'cost_type',
         },
@@ -223,9 +192,7 @@ export default defineComponent({
   methods: {
     fetchTimestampingServices(): void {
       this.loading = true;
-      this.timestampingServicesStore
-        .fetchTimestampingServices()
-        .finally(() => (this.loading = false));
+      this.timestampingServicesStore.fetchTimestampingServices().finally(() => (this.loading = false));
     },
     showDeleteDialog(item: TimestampingService): void {
       this.selectedTimestampingService = item;
@@ -247,9 +214,7 @@ export default defineComponent({
       this.timestampingServicesStore
         .delete(this.selectedTimestampingService.id)
         .then(() => {
-          this.addSuccessMessage(
-            'trustServices.trustService.timestampingService.delete.success',
-          );
+          this.addSuccessMessage('trustServices.trustService.timestampingService.delete.success');
           this.confirmDelete = false;
         })
         .catch((error) => this.addError(error))

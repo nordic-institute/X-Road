@@ -86,9 +86,7 @@
 
     <!-- Add Intermediate CA dialog -->
     <AddIntermediateCaDialog
-      v-if="
-        intermediateCasServiceStore.currentCs && showAddIntermediateCaDialog
-      "
+      v-if="intermediateCasServiceStore.currentCs && showAddIntermediateCaDialog"
       @cancel="hideAddIntermediateCaDialog"
       @save="hideAddIntermediateCaDialog"
     />
@@ -117,21 +115,11 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
-import {
-  useNotifications,
-  XrdBtn,
-  XrdDateTime,
-  XrdLabelWithIcon,
-  XrdSubView,
-  XrdConfirmDialog,
-} from '@niis/shared-ui';
+import { useNotifications, XrdBtn, XrdDateTime, XrdLabelWithIcon, XrdSubView, XrdConfirmDialog } from '@niis/shared-ui';
 
 import { Permissions, RouteName } from '@/global';
 import { CertificateAuthority } from '@/openapi-types';
-import {
-  useCertificationService,
-  useIntermediateCasService,
-} from '@/store/modules/trust-services';
+import { useCertificationService, useIntermediateCasService } from '@/store/modules/trust-services';
 import { useUser } from '@/store/modules/user';
 
 import AddIntermediateCaDialog from './IntermediateCa/AddIntermediateCaDialog.vue';
@@ -140,9 +128,7 @@ const loading = ref(false);
 const showAddIntermediateCaDialog = ref(false);
 const confirmDelete = ref(false);
 const deletingIntermediateCa = ref(false);
-const selectedIntermediateCa = ref(
-  undefined as undefined | CertificateAuthority,
-);
+const selectedIntermediateCa = ref(undefined as undefined | CertificateAuthority);
 
 const router = useRouter();
 const { t } = useI18n();
@@ -152,19 +138,13 @@ const { addError, addSuccessMessage } = useNotifications();
 const intermediateCasServiceStore = useIntermediateCasService();
 const certificationServiceStore = useCertificationService();
 
-const intermediateCas = computed(
-  () => intermediateCasServiceStore.currentIntermediateCas,
-);
-const hasPermissionToDetails = computed(() =>
-  hasPermission(Permissions.VIEW_APPROVED_CA_DETAILS),
-);
+const intermediateCas = computed(() => intermediateCasServiceStore.currentIntermediateCas);
+const hasPermissionToDetails = computed(() => hasPermission(Permissions.VIEW_APPROVED_CA_DETAILS));
 const headers = computed(
   () =>
     [
       {
-        title: t(
-          'trustServices.trustService.intermediateCas.intermediateCa',
-        ) as string,
+        title: t('trustServices.trustService.intermediateCas.intermediateCa') as string,
         align: 'start',
         key: 'ca_certificate.subject_common_name',
       },
@@ -200,9 +180,7 @@ function hideAddIntermediateCaDialog() {
   showAddIntermediateCaDialog.value = false;
 }
 
-function openDeleteConfirmationDialog(
-  intermediateCa: CertificateAuthority,
-): void {
+function openDeleteConfirmationDialog(intermediateCa: CertificateAuthority): void {
   selectedIntermediateCa.value = intermediateCa;
   confirmDelete.value = true;
 }
@@ -218,9 +196,7 @@ function deleteIntermediateCa(): void {
   intermediateCasServiceStore
     .deleteIntermediateCa(selectedIntermediateCa.value.id as number)
     .then(() => {
-      addSuccessMessage(
-        'trustServices.trustService.intermediateCas.delete.success',
-      );
+      addSuccessMessage('trustServices.trustService.intermediateCas.delete.success');
       confirmDelete.value = false;
       deletingIntermediateCa.value = false;
       fetchIntermediateCas();

@@ -25,10 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <ConfigurationView
-    :title="$t('tab.globalConf.internalConf')"
-    :configuration-type="type"
-  />
+  <ConfigurationView :title="$t('tab.globalConf.internalConf')" :configuration-type="type" />
 </template>
 
 <script lang="ts" setup>

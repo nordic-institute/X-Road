@@ -24,14 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import {
-  CertificateOcspStatus,
-  Key,
-  KeyUsageType,
-  Token,
-  TokenCertificate,
-  Client,
-} from '@/openapi-types';
+import { CertificateOcspStatus, Key, KeyUsageType, Token, TokenCertificate, Client } from '@/openapi-types';
 import { i18n } from '@niis/shared-ui';
 
 /**
@@ -42,26 +35,17 @@ import { i18n } from '@niis/shared-ui';
  * @param memberCode
  * @param tokens
  */
-export const memberHasValidSignCert = (
-  memberName: string,
-  tokens: Token[],
-): boolean => {
+export const memberHasValidSignCert = (memberName: string, tokens: Token[]): boolean => {
   const filterSignKeys = (key: Key) => key.usage === KeyUsageType.SIGNING;
   return tokens
     .flatMap((token: Token) => token.keys.filter(filterSignKeys))
     .flatMap((key: Key) => key.certificates)
     .some((certificate: TokenCertificate) => {
-      return (
-        certificate.owner_id === memberName &&
-        certificate.ocsp_status === CertificateOcspStatus.OCSP_RESPONSE_GOOD
-      );
+      return certificate.owner_id === memberName && certificate.ocsp_status === CertificateOcspStatus.OCSP_RESPONSE_GOOD;
     });
 };
 
-export function clientTitle(
-  client: Client | undefined | null,
-  loading = false,
-) {
+export function clientTitle(client: Client | undefined | null, loading = false) {
   const { t } = i18n.global;
   if (loading) {
     return t('noData.loading');

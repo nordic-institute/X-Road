@@ -26,17 +26,29 @@
  -->
 <template>
   <v-row align="center">
-    <v-col :align-self="adjustAgainstContent ? 'end' : undefined" :class="{ 'xrd-adjust-against-content': adjustAgainstContent }">
+    <v-col
+      :align-self="adjustAgainstContent ? 'end' : undefined"
+      :class="{ 'xrd-adjust-against-content': adjustAgainstContent }"
+    >
       <slot />
     </v-col>
     <v-col v-if="!fullLength">
-      <slot v-if="description || $slots.label" name="label">
-        <v-sheet class="pa-3 rounded-lg body-regular font-weight-regular" color="surface-container-high">
+      <slot
+        v-if="description || $slots.label"
+        name="label"
+      >
+        <v-sheet
+          class="pa-3 rounded-lg body-regular font-weight-regular"
+          color="surface-container-high"
+        >
           {{ $t(description) }}
         </v-sheet>
       </slot>
     </v-col>
-    <v-col v-if="$slots.append" cols="1">
+    <v-col
+      v-if="$slots.append"
+      cols="1"
+    >
       <slot name="append" />
     </v-col>
   </v-row>

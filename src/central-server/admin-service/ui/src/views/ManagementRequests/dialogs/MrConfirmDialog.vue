@@ -90,10 +90,7 @@ function approve() {
   loading.value = true;
   approveManagementRequest(props.requestId)
     .then(() => {
-      addSuccessMessage(
-        'managementRequests.dialog.approve.successMessage',
-        messageData.value,
-      );
+      addSuccessMessage('managementRequests.dialog.approve.successMessage', messageData.value);
       emits('approve');
     })
     .catch((error) => addError(error))

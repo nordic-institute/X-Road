@@ -2,5 +2,6 @@
   "trailingComma": "all",
   "singleQuote": true,
   "arrowParens": "always",
-  "tabWidth": 2
+  "tabWidth": 2,
+  "singleAttributePerLine": true
 }

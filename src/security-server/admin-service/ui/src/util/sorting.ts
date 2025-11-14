@@ -48,18 +48,14 @@ export const compareByServiceCode = (a: Service, b: Service): number => {
 /**
  * Sort services ascending by full service code
  */
-export const sortServicesAscendingByFullServiceCode = (
-  services: Service[],
-): Service[] => {
+export const sortServicesAscendingByFullServiceCode = (services: Service[]): Service[] => {
   return services.sort(compareByServiceCode);
 };
 
 /**
  * Sort services in ServiceDescription
  */
-export const sortServiceDescriptionServices = (
-  sd: ServiceDescription,
-): ServiceDescription => {
+export const sortServiceDescriptionServices = (sd: ServiceDescription): ServiceDescription => {
   sd.services = sortServicesAscendingByFullServiceCode(sd.services);
   return sd;
 };
@@ -67,35 +63,25 @@ export const sortServiceDescriptionServices = (
 /**
  * Sort access rights by service code
  */
-export const sortAccessRightsByServiceCode = (
-  acls: AccessRight[],
-): AccessRight[] => {
+export const sortAccessRightsByServiceCode = (acls: AccessRight[]): AccessRight[] => {
   return acls.sort((a: AccessRight, b: AccessRight) => {
     return a.service_code.localeCompare(b.service_code);
   });
 };
 
-export const sortCsrSubjectFields = (
-  fields: CsrSubjectFieldDescription[],
-): CsrSubjectFieldDescription[] => {
-  return fields.sort(
-    (a: CsrSubjectFieldDescription, b: CsrSubjectFieldDescription) => {
-      return a.id.localeCompare(b.id);
-    },
-  );
+export const sortCsrSubjectFields = (fields: CsrSubjectFieldDescription[]): CsrSubjectFieldDescription[] => {
+  return fields.sort((a: CsrSubjectFieldDescription, b: CsrSubjectFieldDescription) => {
+    return a.id.localeCompare(b.id);
+  });
 };
 
-export const sorCertificateAuthorities = (
-  cas: CertificateAuthority[],
-): CertificateAuthority[] => {
+export const sorCertificateAuthorities = (cas: CertificateAuthority[]): CertificateAuthority[] => {
   return cas.sort((a: CertificateAuthority, b: CertificateAuthority) => {
     return a.name.localeCompare(b.name);
   });
 };
 
-export const sortTimestampingServices = (
-  timestamp: TimestampingService[],
-): TimestampingService[] => {
+export const sortTimestampingServices = (timestamp: TimestampingService[]): TimestampingService[] => {
   return timestamp.sort((a: TimestampingService, b: TimestampingService) => {
     return a.name.localeCompare(b.name);
   });

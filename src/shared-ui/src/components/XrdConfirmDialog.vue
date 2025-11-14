@@ -32,10 +32,17 @@
     :width="maxWidth ? undefined : width"
     :max-width="maxWidth ? maxWidth : undefined"
   >
-    <v-card data-test="dialog-simple" class="xrd-rounded-12 bg-surface-container-lowest">
+    <v-card
+      data-test="dialog-simple"
+      class="xrd-rounded-12 bg-surface-container-lowest"
+    >
       <template #title>
         <slot name="title">
-          <span class="dialog-title font-weight-bold" data-test="dialog-title">{{ title ? $t(title) : translatedTitle }}</span>
+          <span
+            class="dialog-title font-weight-bold"
+            data-test="dialog-title"
+            >{{ title ? $t(title) : translatedTitle }}</span
+          >
         </slot>
       </template>
       <div class="alert-slot pl-6 pr-6">
@@ -49,7 +56,13 @@
         </slot>
       </v-card-text>
       <v-card-actions class="pa-4">
-        <XrdBtn v-if="!hideCancelButton" data-test="dialog-cancel-button" variant="text" :text="cancelButtonText" @click="emit('cancel')" />
+        <XrdBtn
+          v-if="!hideCancelButton"
+          data-test="dialog-cancel-button"
+          variant="text"
+          :text="cancelButtonText"
+          @click="emit('cancel')"
+        />
         <XrdBtn
           ref="acceptButton"
           data-test="dialog-save-button"

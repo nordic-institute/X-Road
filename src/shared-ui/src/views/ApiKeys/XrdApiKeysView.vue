@@ -25,16 +25,28 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdView data-test="api-keys-view" :title="title">
-    <template v-if="$slots.tabs" #tabs>
+  <XrdView
+    data-test="api-keys-view"
+    :title="title"
+  >
+    <template
+      v-if="$slots.tabs"
+      #tabs
+    >
       <slot name="tabs" />
     </template>
-    <template v-if="$slots['append-header']" #append-header>
+    <template
+      v-if="$slots['append-header']"
+      #append-header
+    >
       <slot name="append-header" />
     </template>
 
     <XrdSubView>
-      <template v-if="canCreate" #header>
+      <template
+        v-if="canCreate"
+        #header
+      >
         <v-spacer />
         <XrdBtn
           variant="flat"

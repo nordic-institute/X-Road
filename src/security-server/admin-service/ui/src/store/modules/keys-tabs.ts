@@ -46,12 +46,7 @@ const tabs = [
     to: {
       name: RouteName.ApiKey,
     },
-    permissions: [
-      Permissions.CREATE_API_KEY,
-      Permissions.VIEW_API_KEYS,
-      Permissions.UPDATE_API_KEY,
-      Permissions.REVOKE_API_KEY,
-    ],
+    permissions: [Permissions.CREATE_API_KEY, Permissions.VIEW_API_KEYS, Permissions.UPDATE_API_KEY, Permissions.REVOKE_API_KEY],
   },
   {
     key: 'ss-tls-certificate-tab-button',

@@ -70,12 +70,7 @@ import { computed, PropType } from 'vue';
 
 import { useForm } from 'vee-validate';
 
-import {
-  useBasicForm,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { useBasicForm, XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '@niis/shared-ui';
 
 import { MemberClass } from '@/openapi-types';
 import { useMemberClass } from '@/store/modules/member-class';
@@ -106,26 +101,16 @@ const [description, descriptionAttrs] = defineField('description', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { loading, addSuccessMessage, showOrTranslateErrors } = useBasicForm(
-  setFieldError,
-  {
-    code: 'memberClassDto.code',
-    description: 'memberClassDescriptionDto.description',
-  },
-);
+const { loading, addSuccessMessage, showOrTranslateErrors } = useBasicForm(setFieldError, {
+  code: 'memberClassDto.code',
+  description: 'memberClassDescriptionDto.description',
+});
 const { add, update } = useMemberClass();
 
 const modeAdd = computed(() => !props.memberClass?.code);
-const title = computed(() =>
-  modeAdd.value
-    ? 'systemSettings.addMemberClassTitle'
-    : 'systemSettings.editMemberClassTitle',
-);
+const title = computed(() => (modeAdd.value ? 'systemSettings.addMemberClassTitle' : 'systemSettings.editMemberClassTitle'));
 
-function _save(
-  values: { code: string; description: string },
-  classCode?: string,
-) {
+function _save(values: { code: string; description: string }, classCode?: string) {
   if (classCode) {
     return update(classCode, values.description);
   } else {

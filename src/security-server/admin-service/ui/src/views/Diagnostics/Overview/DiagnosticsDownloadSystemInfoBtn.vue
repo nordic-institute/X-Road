@@ -47,9 +47,7 @@ const { hasPermission } = useUser();
 
 const downloading = ref(false);
 
-const canDownload = computed(() =>
-  hasPermission(Permissions.DOWNLOAD_DIAGNOSTICS_REPORT),
-);
+const canDownload = computed(() => hasPermission(Permissions.DOWNLOAD_DIAGNOSTICS_REPORT));
 
 function download(): void {
   downloading.value = true;

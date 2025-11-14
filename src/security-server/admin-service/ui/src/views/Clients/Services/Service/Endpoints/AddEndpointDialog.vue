@@ -25,19 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdSimpleDialog
-    title="endpoints.addEndpoint"
-    submittable
-    :loading="adding"
-    :disable-save="!meta.valid"
-    @save="save"
-    @cancel="cancel"
-  >
+  <XrdSimpleDialog title="endpoints.addEndpoint" submittable :loading="adding" :disable-save="!meta.valid" @save="save" @cancel="cancel">
     <template #content>
       <XrdFormBlock>
         <XrdFormBlockRow full-length>
           <v-select
-            v-bind="methodRef"
+            v-model="methodMdl"
+            v-bind="methodAttr"
             data-test="endpoint-method"
             class="xrd"
             autofocus
@@ -47,7 +41,8 @@
         </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
           <v-text-field
-            v-bind="pathRef"
+            v-model="pathMdl"
+            v-bind="pathAttr"
             data-test="endpoint-path"
             name="path"
             class="xrd"
@@ -69,13 +64,14 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { PublicPathState, useForm } from 'vee-validate';
+import { useForm } from 'vee-validate';
 import {
   XrdSimpleDialog,
   XrdFormBlock,
   XrdFormBlockRow,
   DialogSaveHandler,
   useNotifications,
+  veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 import { mapActions } from 'pinia';
 import { useServices } from '@/store/modules/services';
@@ -100,7 +96,7 @@ export default defineComponent({
   emits: ['save', 'cancel'],
   setup() {
     const { addSuccessMessage } = useNotifications();
-    const { meta, resetForm, values, defineComponentBinds } = useForm({
+    const { meta, resetForm, values, defineField } = useForm({
       validationSchema: {
         method: 'required',
         path: 'required|xrdEndpoint',
@@ -110,14 +106,19 @@ export default defineComponent({
         path: '/',
       },
     });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
-      },
-    });
-    const methodRef = defineComponentBinds('method', componentConfig);
-    const pathRef = defineComponentBinds('path', componentConfig);
-    return { meta, resetForm, values, methodRef, pathRef, addSuccessMessage };
+    const componentConfig = veeDefaultFieldConfig();
+    const [methodMdl, methodAttr] = defineField('method', componentConfig);
+    const [pathMdl, pathAttr] = defineField('path', componentConfig);
+    return {
+      meta,
+      resetForm,
+      values,
+      methodMdl,
+      methodAttr,
+      pathMdl,
+      pathAttr,
+      addSuccessMessage,
+    };
   },
   data() {
     return {

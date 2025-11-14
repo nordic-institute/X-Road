@@ -50,12 +50,7 @@
           />
         </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
-          <v-radio-group
-            v-model="costType"
-            v-bind="costTypeAttrs"
-            inline
-            class="dlg-row-input"
-          >
+          <v-radio-group v-model="costType" v-bind="costTypeAttrs" inline class="dlg-row-input">
             <v-radio
               v-for="type in definedCostTypes"
               :key="type"
@@ -145,23 +140,14 @@ const router = useRouter();
 const certFile = useFileRef();
 const certUploadActive = ref(false);
 const loading = ref(false);
-const canUpdate = computed(
-  () => meta.value.valid && (meta.value.dirty || certFile.value),
-);
+const canUpdate = computed(() => meta.value.valid && (meta.value.dirty || certFile.value));
 
 const update = handleSubmit((values) => {
   loading.value = true;
 
-  updateTimestampingService(
-    props.tsaService.id,
-    values.url,
-    values.costType,
-    certFile.value,
-  )
+  updateTimestampingService(props.tsaService.id, values.url, values.costType, certFile.value)
     .then(() => {
-      addSuccessMessage(
-        'trustServices.timestampingService.dialog.edit.success',
-      );
+      addSuccessMessage('trustServices.timestampingService.dialog.edit.success');
       emits('save');
     })
     .catch((error) => addError(error))

@@ -63,12 +63,7 @@ import { encodePathParameter } from '@/util/api';
 import { useAlerts } from '@/store/modules/alerts';
 import { useTokens } from '@/store/modules/tokens';
 import { useField } from 'vee-validate';
-import {
-  XrdSimpleDialog,
-  useNotifications,
-  XrdFormBlock,
-  XrdFormBlockRow,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, useNotifications, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 export default defineComponent({
   components: { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow },
@@ -81,11 +76,7 @@ export default defineComponent({
   emits: ['cancel', 'save'],
   setup() {
     const { addSuccessMessage, addError } = useNotifications();
-    const { value, meta, errors, setErrors, resetField } = useField(
-      'tokenPin',
-      'required',
-      { initialValue: '' },
-    );
+    const { value, meta, errors, setErrors, resetField } = useField('tokenPin', 'required', { initialValue: '' });
     return {
       tokenPin: value,
       meta,
@@ -130,10 +121,7 @@ export default defineComponent({
         })
         .catch((error) => {
           this.loading = false;
-          if (
-            error.response.status === 400 &&
-            error.response.data.error.code === 'pin_incorrect'
-          ) {
+          if (error.response.status === 400 && error.response.data.error.code === 'pin_incorrect') {
             this.setErrors(this.$t('keys.incorrectPin'));
           }
           this.addError(error);

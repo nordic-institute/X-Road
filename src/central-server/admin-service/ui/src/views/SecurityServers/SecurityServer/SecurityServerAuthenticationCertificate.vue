@@ -26,12 +26,7 @@
  -->
 
 <template>
-  <XrdElevatedViewFixedWidth
-    title="cert.certificate"
-    go-back-on-close
-    :breadcrumbs="breadcrumbs"
-    :loading
-  >
+  <XrdElevatedViewFixedWidth title="cert.certificate" go-back-on-close :breadcrumbs="breadcrumbs" :loading>
     <XrdCertificate v-if="certificate" :certificate="certificate" />
   </XrdElevatedViewFixedWidth>
 </template>
@@ -43,11 +38,7 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
 
-import {
-  useNotifications,
-  XrdCertificate,
-  XrdElevatedViewFixedWidth,
-} from '@niis/shared-ui';
+import { useNotifications, XrdCertificate, XrdElevatedViewFixedWidth } from '@niis/shared-ui';
 
 import { RouteName } from '@/global';
 import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
@@ -72,9 +63,7 @@ const securityServerAuthCertStore = useSecurityServerAuthCert();
 const securityServerStore = useSecurityServer();
 
 const loading = ref(false);
-const certificate = ref<
-  SecurityServerAuthenticationCertificateDetails | undefined
->(undefined);
+const certificate = ref<SecurityServerAuthenticationCertificateDetails | undefined>(undefined);
 
 const breadcrumbs = computed(() => {
   const crumbs: BreadcrumbItem[] = [

@@ -130,9 +130,7 @@ export default defineComponent({
     },
     async createBackup() {
       this.creatingBackup = true;
-      return api
-        .post<BackupExt>('/backups/ext', null)
-        .then((resp) => resp.data);
+      return api.post<BackupExt>('/backups/ext', null).then((resp) => resp.data);
     },
     async deleteBackup(filename: string) {
       return api.remove(`/backups/${encodePathParameter(filename)}`);

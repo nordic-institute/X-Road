@@ -51,10 +51,7 @@ const userStore = useUser();
 const { checkAlerts } = useAlerts();
 const systemStore = useSystem();
 
-const sessionPollInterval = setInterval(
-  () => pollSessionStatus(),
-  Timeouts.POLL_SESSION_TIMEOUT,
-);
+const sessionPollInterval = setInterval(() => pollSessionStatus(), Timeouts.POLL_SESSION_TIMEOUT);
 systemStore.fetchSystemStatus();
 
 async function pollSessionStatus() {

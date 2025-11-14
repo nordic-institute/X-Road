@@ -39,11 +39,7 @@
     <template #content="{ dialogHandler }">
       <XrdExpandable is-open>
         <template #link="{ toggle, opened }">
-          <div
-            class="font-weight-medium cursor-pointer"
-            :class="{ 'on-surface': opened, 'on-surface-variant': !opened }"
-            @click="toggle"
-          >
+          <div class="font-weight-medium cursor-pointer" :class="{ 'on-surface': opened, 'on-surface-variant': !opened }" @click="toggle">
             {{ $t('localGroup.searchOptions') }}
           </div>
         </template>
@@ -124,12 +120,7 @@
             </v-row>
             <div class="pt-4 d-flex flex-row">
               <v-spacer />
-              <XrdBtn
-                :loading="loading"
-                data-test="search-button"
-                text="action.search"
-                @click="search(dialogHandler)"
-              />
+              <XrdBtn :loading="loading" data-test="search-button" text="action.search" @click="search(dialogHandler)" />
             </div>
           </v-container>
         </template>
@@ -145,22 +136,13 @@
         :headers="headers"
       >
         <template #item.select="{ item }">
-          <v-checkbox-btn
-            data-test="service-client-checkbox"
-            class="xrd"
-            hide-details
-            @update:model-value="checkboxChange(item, $event)"
-          />
+          <v-checkbox-btn data-test="service-client-checkbox" class="xrd" hide-details @update:model-value="checkboxChange(item, $event)" />
         </template>
         <template #item.name="{ item }">
           <client-name :service-client="item" />
         </template>
         <template #item.id="{ item }">
-          {{
-            item.service_client_type === serviceClientTypes.LOCALGROUP
-              ? item.local_group_code
-              : item.id
-          }}
+          {{ item.service_client_type === serviceClientTypes.LOCALGROUP ? item.local_group_code : item.id }}
         </template>
       </v-data-table>
     </template>
@@ -172,12 +154,7 @@ import { defineComponent, PropType } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { useGeneral } from '@/store/modules/general';
 import { ServiceClient, ServiceClientType } from '@/openapi-types';
-import {
-  XrdExpandable,
-  XrdSimpleDialog,
-  XrdBtn,
-  DialogSaveHandler,
-} from '@niis/shared-ui';
+import { XrdExpandable, XrdSimpleDialog, XrdBtn, DialogSaveHandler } from '@niis/shared-ui';
 import ClientName from '@/components/client/ClientName.vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useServiceClients } from '@/store/modules/service-clients';
@@ -294,9 +271,7 @@ export default defineComponent({
 
       const isExistingServiceClient = (sc: ServiceClient): boolean => {
         return !this.existingServiceClients.some(
-          (existing) =>
-            sc.id === existing.id &&
-            sc.service_client_type === existing.service_client_type,
+          (existing) => sc.id === existing.id && sc.service_client_type === existing.service_client_type,
         );
       };
 

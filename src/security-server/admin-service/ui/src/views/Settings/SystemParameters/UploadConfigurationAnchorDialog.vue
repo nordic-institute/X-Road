@@ -26,12 +26,7 @@
  -->
 <template>
   <div>
-    <XrdFileUpload
-      v-if="showUploadAnchor"
-      v-slot="{ upload }"
-      accepts=".xml"
-      @file-changed="onUploadFileChanged"
-    >
+    <XrdFileUpload v-if="showUploadAnchor" v-slot="{ upload }" accepts=".xml" @file-changed="onUploadFileChanged">
       <XrdBtn
         data-test="system-parameters-configuration-anchor-upload-button"
         class="ml-5 font-weight-bold"
@@ -59,20 +54,12 @@
       <template #text>
         <v-row>
           <v-col>
-            {{
-              $t(
-                'systemParameters.configurationAnchor.action.upload.dialog.info',
-              )
-            }}
+            {{ $t('systemParameters.configurationAnchor.action.upload.dialog.info') }}
           </v-col>
         </v-row>
         <v-row class="mt-5" no-gutters>
           <v-col class="font-weight-bold" cols="auto" sm="3">
-            {{
-              $t(
-                'systemParameters.configurationAnchor.action.upload.dialog.field.hash',
-              )
-            }}
+            {{ $t('systemParameters.configurationAnchor.action.upload.dialog.field.hash') }}
           </v-col>
           <v-col sm="9" style="text-wrap: pretty">
             <XrdHashValue :value="anchorPreview.hash" />
@@ -80,11 +67,7 @@
         </v-row>
         <v-row class="mt-2" no-gutters>
           <v-col class="font-weight-bold" cols="auto" sm="3">
-            {{
-              $t(
-                'systemParameters.configurationAnchor.action.upload.dialog.field.generated',
-              )
-            }}
+            {{ $t('systemParameters.configurationAnchor.action.upload.dialog.field.generated') }}
           </v-col>
           <v-col sm="9">
             <XrdDateTime :value="anchorPreview.created_at" />
@@ -92,11 +75,7 @@
         </v-row>
         <v-row class="mt-5">
           <v-col>
-            {{
-              $t(
-                'systemParameters.configurationAnchor.action.upload.dialog.confirmation',
-              )
-            }}
+            {{ $t('systemParameters.configurationAnchor.action.upload.dialog.confirmation') }}
           </v-col>
         </v-row>
       </template>
@@ -172,10 +151,7 @@ export default defineComponent({
   methods: {
     onUploadFileChanged(event: FileUploadResult): void {
       if (this.initMode) {
-        this.previewAnchor(
-          event,
-          '/system/anchor/previews?validate_instance=false',
-        );
+        this.previewAnchor(event, '/system/anchor/previews?validate_instance=false');
       } else {
         this.previewAnchor(event, '/system/anchor/previews');
       }
@@ -184,11 +160,7 @@ export default defineComponent({
     previewAnchor(event: FileUploadResult, query: string): void {
       this.previewing = true;
       api
-        .post<Anchor>(
-          query,
-          buildFileFormData('anchor', event.file),
-          multipartFormDataConfig(),
-        )
+        .post<Anchor>(query, buildFileFormData('anchor', event.file), multipartFormDataConfig())
         .then((resp) => {
           this.uploadedFile = event.file;
           this.anchorPreview = resp.data;
@@ -212,15 +184,9 @@ export default defineComponent({
 
     uploadAnchor(apiCall: PostPutPatch, anchorFile: File): void {
       this.uploading = true;
-      apiCall(
-        '/system/anchor',
-        buildFileFormData('anchor', anchorFile),
-        multipartFormDataConfig(),
-      )
+      apiCall('/system/anchor', buildFileFormData('anchor', anchorFile), multipartFormDataConfig())
         .then(() => {
-          this.addSuccessMessage(
-            'systemParameters.configurationAnchor.action.upload.dialog.success',
-          );
+          this.addSuccessMessage('systemParameters.configurationAnchor.action.upload.dialog.success');
           this.$emit('uploaded');
         })
         .catch((error) => this.addError(error))

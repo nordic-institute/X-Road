@@ -25,20 +25,41 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewSimple data-test="create-api-key-stepper-view" title="apiKey.createApiKey.title" go-back-on-close>
+  <XrdElevatedViewSimple
+    data-test="create-api-key-stepper-view"
+    title="apiKey.createApiKey.title"
+    go-back-on-close
+  >
     <template #bellow-header>
-      <XrdBreadcrumbs v-if="breadcrumbs && breadcrumbs.length > 0" :breadcrumbs="breadcrumbs" />
+      <XrdBreadcrumbs
+        v-if="breadcrumbs && breadcrumbs.length > 0"
+        :breadcrumbs="breadcrumbs"
+      />
     </template>
     <XrdWizard v-model="step">
       <template #header-items>
-        <v-stepper-item :value="1" :complete="step > 1" :title="$t('apiKey.createApiKey.step.roles.name')" />
+        <v-stepper-item
+          :value="1"
+          :complete="step > 1"
+          :title="$t('apiKey.createApiKey.step.roles.name')"
+        />
         <v-divider />
-        <v-stepper-item :value="2" :title="$t('apiKey.createApiKey.step.keyDetails.name')" />
+        <v-stepper-item
+          :value="2"
+          :title="$t('apiKey.createApiKey.step.keyDetails.name')"
+        />
       </template>
       <v-stepper-window-item :value="1">
-        <XrdWizardStep title="apiKey.createApiKey.step.roles.selectRoles" sub-title="apiKey.createApiKey.step.roles.description">
+        <XrdWizardStep
+          title="apiKey.createApiKey.step.roles.selectRoles"
+          sub-title="apiKey.createApiKey.step.roles.description"
+        >
           <XrdFormBlock>
-            <div v-for="(role, idx) in availableRoles" :key="role" :class="{ 'mb-5': idx < availableRoles.length - 1 }">
+            <div
+              v-for="(role, idx) in availableRoles"
+              :key="role"
+              :class="{ 'mb-5': idx < availableRoles.length - 1 }"
+            >
               <v-checkbox
                 v-model="selectedRoles"
                 class="xrd"
@@ -51,7 +72,12 @@
             </div>
           </XrdFormBlock>
           <template #footer>
-            <XrdBtn data-test="cancel-button" variant="text" text="action.cancel" @click="close" />
+            <XrdBtn
+              data-test="cancel-button"
+              variant="text"
+              text="action.cancel"
+              @click="close"
+            />
             <v-spacer />
             <XrdBtn
               data-test="next-button"
@@ -66,7 +92,10 @@
         </XrdWizardStep>
       </v-stepper-window-item>
       <v-stepper-window-item :value="2">
-        <XrdWizardStep title="apiKey.createApiKey.step.keyDetails.note" sub-title="apiKey.createApiKey.step.keyDetails.noteDetail">
+        <XrdWizardStep
+          title="apiKey.createApiKey.step.keyDetails.note"
+          sub-title="apiKey.createApiKey.step.keyDetails.noteDetail"
+        >
           <XrdFormBlock>
             <v-text-field
               data-test="created-apikey"
@@ -110,7 +139,13 @@
           </XrdFormBlock>
           <template #footer>
             <v-spacer />
-            <XrdBtn data-test="finish-button" variant="flat" prepend-icon="check" text="action.finish" @click="close" />
+            <XrdBtn
+              data-test="finish-button"
+              variant="flat"
+              prepend-icon="check"
+              text="action.finish"
+              @click="close"
+            />
           </template>
         </XrdWizardStep>
       </v-stepper-window-item>

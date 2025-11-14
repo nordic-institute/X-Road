@@ -27,11 +27,7 @@
 import axios from 'axios';
 import { Backup, BackupRestorationStatus } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import {
-  saveResponseAsFile,
-  buildFileFormData,
-  multipartFormDataConfig,
-} from '@niis/shared-ui';
+import { saveResponseAsFile, buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
 
 export interface State {
   backups: Backup[];
@@ -62,11 +58,9 @@ export const useBackups = defineStore('backup', {
       });
     },
     restoreFromBackup(filename: string) {
-      return axios
-        .put<BackupRestorationStatus>(`/backups/${filename}/restore`)
-        .catch((error) => {
-          throw error;
-        });
+      return axios.put<BackupRestorationStatus>(`/backups/${filename}/restore`).catch((error) => {
+        throw error;
+      });
     },
     downloadBackup(filename: string) {
       return axios
@@ -87,11 +81,7 @@ export const useBackups = defineStore('backup', {
           ignore_warnings: ignoreWarnings,
         },
       };
-      return axios.post<Backup>(
-        `/backups/upload`,
-        buildFileFormData('backup', file),
-        config,
-      );
+      return axios.post<Backup>(`/backups/upload`, buildFileFormData('backup', file), config);
     },
   },
 });

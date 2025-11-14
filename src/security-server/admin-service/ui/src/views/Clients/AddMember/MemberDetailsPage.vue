@@ -27,20 +27,11 @@
 <template>
   <XrdWizardStep title="wizard.member.info1" sub-title="wizard.member.info2">
     <template #append-header>
-      <XrdBtn
-        data-test="select-client-button"
-        variant="outlined"
-        text="wizard.member.select"
-        @click="showSelectClient = true"
-      />
+      <XrdBtn data-test="select-client-button" variant="outlined" text="wizard.member.select" @click="showSelectClient = true" />
     </template>
     <XrdFormBlock>
       <v-slide-y-transition>
-        <XrdFormBlockRow
-          v-if="selectedMemberName"
-          description="wizard.client.memberNameTooltip"
-          adjust-against-content
-        >
+        <XrdFormBlockRow v-if="selectedMemberName" description="wizard.client.memberNameTooltip" adjust-against-content>
           <v-text-field
             data-test="selected-member-name"
             class="xrd"
@@ -50,12 +41,10 @@
           />
         </XrdFormBlockRow>
       </v-slide-y-transition>
-      <XrdFormBlockRow
-        description="wizard.client.memberClassTooltip"
-        adjust-against-content
-      >
+      <XrdFormBlockRow description="wizard.client.memberClassTooltip" adjust-against-content>
         <v-select
-          v-bind="memberClassRef"
+          v-model="memberClassMdl"
+          v-bind="memberClassAttr"
           class="xrd"
           data-test="member-class-input"
           :items="memberClassItems"
@@ -63,12 +52,10 @@
         />
       </XrdFormBlockRow>
 
-      <XrdFormBlockRow
-        description="wizard.client.memberCodeTooltip"
-        adjust-against-content
-      >
+      <XrdFormBlockRow description="wizard.client.memberCodeTooltip" adjust-against-content>
         <v-text-field
-          v-bind="memberCodeRef"
+          v-model="memberCodeMdl"
+          v-bind="memberCodeAttr"
           data-test="selected-member-name"
           class="xrd"
           autofocus
@@ -98,12 +85,7 @@
       @save="saveSelectedClient"
     />
     <template #footer>
-      <XrdBtn
-        data-test="cancel-button"
-        variant="outlined"
-        text="action.cancel"
-        @click="cancel"
-      />
+      <XrdBtn data-test="cancel-button" variant="outlined" text="action.cancel" @click="cancel" />
       <v-spacer />
       <XrdBtn
         data-test="next-button"
@@ -123,18 +105,12 @@ import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { Client } from '@/openapi-types';
 import { debounce, isEmpty } from '@/util/helpers';
 import { AddMemberWizardModes } from '@/global';
-import { PublicPathState, useForm } from 'vee-validate';
+import { useForm } from 'vee-validate';
 import { mapActions, mapState, mapWritableState } from 'pinia';
 import { useAddClient } from '@/store/modules/addClient';
 import { useGeneral } from '@/store/modules/general';
 import { useUser } from '@/store/modules/user';
-import {
-  XrdWizardStep,
-  XrdBtn,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, useNotifications, veeDefaultFieldConfig } from '@niis/shared-ui';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -152,40 +128,31 @@ export default defineComponent({
   emits: ['cancel', 'done'],
   setup() {
     const { addError } = useNotifications();
-    const { meta, values, validateField, setFieldValue, defineComponentBinds } =
-      useForm({
-        validationSchema: {
-          'addClient.memberClass': 'required',
-          'addClient.memberCode': 'required|max:255|xrdIdentifier',
+    const { meta, values, validateField, setFieldValue, defineField } = useForm({
+      validationSchema: {
+        'addClient.memberClass': 'required',
+        'addClient.memberCode': 'required|max:255|xrdIdentifier',
+      },
+      initialValues: {
+        addClient: {
+          memberClass: '',
+          memberCode: '',
         },
-        initialValues: {
-          addClient: {
-            memberClass: '',
-            memberCode: '',
-          },
-        },
-      });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
       },
     });
-    const memberClassRef = defineComponentBinds(
-      'addClient.memberClass',
-      componentConfig,
-    );
-    const memberCodeRef = defineComponentBinds(
-      'addClient.memberCode',
-      componentConfig,
-    );
+    const componentConfig = veeDefaultFieldConfig();
+    const [memberClassMdl, memberClassAttr] = defineField('addClient.memberClass', componentConfig);
+    const [memberCodeMdl, memberCodeAttr] = defineField('addClient.memberCode', componentConfig);
     return {
       addError,
       meta,
       values,
       validateField,
       setFieldValue,
-      memberClassRef,
-      memberCodeRef,
+      memberClassMdl,
+      memberClassAttr,
+      memberCodeMdl,
+      memberCodeAttr,
     };
   },
   data() {
@@ -196,11 +163,7 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useAddClient, [
-      'reservedMember',
-      'selectedMemberName',
-      'selectableMembers',
-    ]),
+    ...mapState(useAddClient, ['reservedMember', 'selectedMemberName', 'selectableMembers']),
     ...mapState(useGeneral, ['memberClassesCurrentInstance']),
     ...mapState(useUser, ['currentSecurityServer']),
     ...mapWritableState(useAddClient, ['memberClass', 'memberCode']),
@@ -215,10 +178,7 @@ export default defineComponent({
     selectableMembersWithoutOwner(): Client[] {
       return this.selectableMembers.filter(
         (client: Client) =>
-          !(
-            client.member_class === this.reservedMember?.memberClass &&
-            client.member_code === this.reservedMember.memberCode
-          ),
+          !(client.member_class === this.reservedMember?.memberClass && client.member_code === this.reservedMember.memberCode),
       );
     },
 
@@ -226,10 +186,8 @@ export default defineComponent({
       return (
         !!this.values.addClient.memberClass &&
         !!this.values.addClient.memberCode &&
-        this.reservedMember?.memberClass.toLowerCase() ===
-          this.values.addClient.memberClass.toLowerCase() &&
-        this.reservedMember?.memberCode.toLowerCase() ===
-          this.values.addClient.memberCode.toLowerCase()
+        this.reservedMember?.memberClass.toLowerCase() === this.values.addClient.memberClass.toLowerCase() &&
+        this.reservedMember?.memberCode.toLowerCase() === this.values.addClient.memberCode.toLowerCase()
       );
     },
   },
@@ -308,18 +266,14 @@ export default defineComponent({
       // Find if the selectable clients array has a match
       const tempClient = this.selectableMembersWithoutOwner.find(
         (client: Client) =>
-          client.member_code === this.values.addClient.memberCode &&
-          client.member_class === this.values.addClient.memberClass,
+          client.member_code === this.values.addClient.memberCode && client.member_class === this.values.addClient.memberClass,
       );
 
       // Fill the name "field" if it's available or set it undefined
       this.setSelectedMemberName(tempClient?.member_name);
 
       // Pass the arguments so that we use the validated information instead of the state at that time
-      this.checkClientDebounce(
-        this.values.addClient.memberClass,
-        this.values.addClient.memberCode,
-      );
+      this.checkClientDebounce(this.values.addClient.memberClass, this.values.addClient.memberCode);
     },
     checkClientDebounce: debounce((memberClass: string, memberCode: string) => {
       // Debounce is used to reduce unnecessary api calls

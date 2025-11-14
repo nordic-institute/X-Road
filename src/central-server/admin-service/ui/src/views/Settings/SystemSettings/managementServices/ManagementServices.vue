@@ -90,33 +90,25 @@
           variant="text"
           text="action.copy"
           color="tertiary"
-          @click.prevent="
-            copyUrl(managementServicesConfiguration.services_address)
-          "
+          @click.prevent="copyUrl(managementServicesConfiguration.services_address)"
         />
       </XrdCardTableRow>
       <XrdCardTableRow
         data-test="management-owner-group-code-field"
         label="systemSettings.securityServerOwnerGroupCode"
-        :value="
-          managementServicesConfiguration.security_server_owners_global_group_code
-        "
+        :value="managementServicesConfiguration.security_server_owners_global_group_code"
       />
     </XrdCardTable>
     <SelectSubsystemDialog
       v-if="showSelectSubsystemDialog"
-      :current-subsystem-id="
-        managementServicesConfiguration.service_provider_id || ''
-      "
+      :current-subsystem-id="managementServicesConfiguration.service_provider_id || ''"
       @select="showSelectSubsystemDialog = false"
       @cancel="showSelectSubsystemDialog = false"
     >
     </SelectSubsystemDialog>
     <SelectSecurityServerDialog
       v-if="showSelectSecurityServerDialog"
-      :current-security-server="
-        managementServicesConfiguration.security_server_id
-      "
+      :current-security-server="managementServicesConfiguration.security_server_id"
       @select="showSelectSecurityServerDialog = false"
       @cancel="showSelectSecurityServerDialog = false"
     />
@@ -128,12 +120,7 @@ import { defineComponent } from 'vue';
 
 import { mapState, mapStores } from 'pinia';
 
-import {
-  XrdBtn,
-  XrdCard,
-  XrdCardTable,
-  XrdCardTableRow,
-} from '@niis/shared-ui';
+import { XrdBtn, XrdCard, XrdCardTable, XrdCardTableRow } from '@niis/shared-ui';
 
 import { Permissions } from '@/global';
 import { ManagementServicesConfiguration } from '@/openapi-types';
@@ -182,9 +169,7 @@ export default defineComponent({
   methods: {
     fetchManagementServicesConfiguration(): void {
       this.loading = true;
-      this.managementServicesStore
-        .fetchManagementServicesConfiguration()
-        .finally(() => (this.loading = false));
+      this.managementServicesStore.fetchManagementServicesConfiguration().finally(() => (this.loading = false));
     },
     copyUrl(url: string): void {
       if (url) {
@@ -198,16 +183,10 @@ export default defineComponent({
       this.showSelectSubsystemDialog = false;
     },
     isServiceProviderSelected(): boolean {
-      return (
-        this.managementServicesStore.managementServicesConfiguration
-          .service_provider_id !== undefined
-      );
+      return this.managementServicesStore.managementServicesConfiguration.service_provider_id !== undefined;
     },
     isServiceProviderUnRegistered(): boolean {
-      return (
-        this.managementServicesStore.managementServicesConfiguration
-          .security_server_id === ``
-      );
+      return this.managementServicesStore.managementServicesConfiguration.security_server_id === ``;
     },
     openSelectSecurityServerDialog(): void {
       this.showSelectSecurityServerDialog = true;

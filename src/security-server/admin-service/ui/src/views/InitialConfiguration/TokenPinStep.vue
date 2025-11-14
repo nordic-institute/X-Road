@@ -42,6 +42,7 @@
     <XrdFormBlock>
       <XrdFormBlockRow>
         <v-text-field
+          v-model="pinMdl"
           v-bind="pinRef"
           data-test="pin-input"
           class="xrd"
@@ -52,6 +53,7 @@
       </XrdFormBlockRow>
       <XrdFormBlockRow>
         <v-text-field
+          v-model="confirmPinMdl"
           v-bind="confirmPinRef"
           class="xrd"
           :label="$t('initialConfiguration.pin.confirmPin')"
@@ -64,35 +66,18 @@
     <template #footer>
       <v-spacer />
 
-      <XrdBtn
-        variant="outlined"
-        data-test="previous-button"
-        class="previous-button mr-4"
-        text="action.previous"
-        @click="previous"
-      />
-      <XrdBtn
-        data-test="token-pin-save-button"
-        text="action.submit"
-        :disabled="!meta.valid"
-        :loading="saveBusy"
-        @click="done"
-      />
+      <XrdBtn variant="outlined" data-test="previous-button" class="previous-button mr-4" text="action.previous" @click="previous" />
+      <XrdBtn data-test="token-pin-save-button" text="action.submit" :disabled="!meta.valid" :loading="saveBusy" @click="done" />
     </template>
   </XrdWizardStep>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { PublicPathState, useForm } from 'vee-validate';
+import { useForm } from 'vee-validate';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import {
-  XrdWizardStep,
-  XrdBtn,
-  XrdFormBlock,
-  XrdFormBlockRow,
-} from '@niis/shared-ui';
+import { XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, veeDefaultFieldConfig } from '@niis/shared-ui';
 
 export default defineComponent({
   components: { XrdWizardStep, XrdFormBlock, XrdFormBlockRow, XrdBtn },
@@ -103,20 +88,16 @@ export default defineComponent({
   },
   emits: ['done', 'previous'],
   setup() {
-    const { meta, values, defineComponentBinds } = useForm({
+    const { meta, values, defineField } = useForm({
       validationSchema: {
         pin: 'required',
         confirmPin: 'required|confirmed:@pin',
       },
     });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
-      },
-    });
-    const pinRef = defineComponentBinds('pin', componentConfig);
-    const confirmPinRef = defineComponentBinds('confirmPin', componentConfig);
-    return { meta, values, pinRef, confirmPinRef };
+    const componentConfig = veeDefaultFieldConfig();
+    const [pinMdl, pinRef] = defineField('pin', componentConfig);
+    const [confirmPinMdl, confirmPinRef] = defineField('confirmPin', componentConfig);
+    return { meta, values, pinRef, pinMdl, confirmPinRef, confirmPinMdl };
   },
   computed: {
     ...mapState(useUser, ['isEnforceTokenPolicyEnabled']),

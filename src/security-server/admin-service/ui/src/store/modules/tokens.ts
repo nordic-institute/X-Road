@@ -186,11 +186,9 @@ export const useTokens = defineStore('tokens', {
         old_pin: oldPin,
         new_pin: newPin,
       };
-      return api
-        .put(`/tokens/${encodePathParameter(tokenId)}/pin`, tokenPinUpdate)
-        .catch((error) => {
-          throw error;
-        });
+      return api.put(`/tokens/${encodePathParameter(tokenId)}/pin`, tokenPinUpdate).catch((error) => {
+        throw error;
+      });
     },
     async updateToken(token: Token) {
       return api

@@ -25,21 +25,39 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card variant="flat" class="xrd xrd-rounded-12 border" :class="classes" :loading>
+  <v-card
+    variant="flat"
+    class="xrd xrd-rounded-12 border"
+    :class="classes"
+    :loading
+  >
     <v-card-title
       v-if="title || translatedTitle || $slots.title || $slots['append-title'] || $slots['title-actions']"
       data-test="view-title"
       class="d-flex flex-row align-center pt-4 pl-4 pb-4 pr-0"
     >
-      <slot v-if="title || translatedTitle || $slots.title" name="title" :title="title">
-        <div data-test="view-title-text" class="font-weight-medium title-component component-title-text">
+      <slot
+        v-if="title || translatedTitle || $slots.title"
+        name="title"
+        :title="title"
+      >
+        <div
+          data-test="view-title-text"
+          class="font-weight-medium title-component component-title-text"
+        >
           {{ title ? $t(title) : translatedTitle }}
         </div>
       </slot>
-      <div v-if="$slots['append-title']" class="ml-6">
+      <div
+        v-if="$slots['append-title']"
+        class="ml-6"
+      >
         <slot name="append-title" />
       </div>
-      <div v-if="$slots['title-actions']" class="ml-auto pr-2">
+      <div
+        v-if="$slots['title-actions']"
+        class="ml-auto pr-2"
+      >
         <slot name="title-actions" />
       </div>
     </v-card-title>

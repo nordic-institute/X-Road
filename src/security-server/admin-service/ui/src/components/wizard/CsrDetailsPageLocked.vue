@@ -28,30 +28,16 @@
   <XrdWizardStep>
     <XrdFormBlock>
       <XrdFormBlockRow description="csr.helpUsage">
-        <v-text-field
-          :model-value="usage"
-          class="xrd"
-          variant="plain"
-          hide-details
-          :label="$t('csr.usage')"
-        />
+        <v-text-field :model-value="usage" class="xrd" variant="plain" hide-details :label="$t('csr.usage')" />
       </XrdFormBlockRow>
       <XrdFormBlockRow description="csr.helpClient">
-        <v-text-field
-          :model-value="selectedMemberId"
-          class="xrd"
-          variant="plain"
-          hide-details
-          :label="$t('csr.client')"
-        />
+        <v-text-field :model-value="selectedMemberId" class="xrd" variant="plain" hide-details :label="$t('csr.client')" />
       </XrdFormBlockRow>
 
-      <XrdFormBlockRow
-        description="csr.helpCertificationService"
-        adjust-against-content
-      >
+      <XrdFormBlockRow description="csr.helpCertificationService" adjust-against-content>
         <v-select
-          v-bind="certServiceRef"
+          v-model="certService"
+          v-bind="certServiceAttr"
           data-test="csr-certification-service-select"
           item-title="name"
           item-value="name"
@@ -63,7 +49,8 @@
 
       <XrdFormBlockRow description="csr.helpCsrFormat" adjust-against-content>
         <v-select
-          v-bind="csrFormatRef"
+          v-model="selectedCsrFormat"
+          v-bind="selectedCsrFormatAttr"
           data-test="csr-format-select"
           class="xrd"
           :items="csrFormatList"
@@ -72,12 +59,7 @@
       </XrdFormBlockRow>
     </XrdFormBlock>
     <template #footer>
-      <XrdBtn
-        data-test="cancel-button"
-        variant="outlined"
-        text="action.cancel"
-        @click="cancel"
-      />
+      <XrdBtn data-test="cancel-button" variant="outlined" text="action.cancel" @click="cancel" />
       <v-spacer />
 
       <XrdBtn
@@ -88,13 +70,7 @@
         text="action.previous"
         @click="previous"
       />
-      <XrdBtn
-        data-test="save-button"
-        :loading="loading"
-        :text="saveButtonText"
-        :disabled="!meta.valid"
-        @click="done"
-      />
+      <XrdBtn data-test="save-button" :loading="loading" :text="saveButtonText" :disabled="!meta.valid" @click="done" />
     </template>
   </XrdWizardStep>
 </template>
@@ -105,13 +81,8 @@ import { CsrFormat } from '@/openapi-types';
 import { mapState, mapWritableState } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { useAddClient } from '@/store/modules/addClient';
-import {
-  XrdWizardStep,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  XrdBtn,
-} from '@niis/shared-ui';
-import { PublicPathState, useForm } from 'vee-validate';
+import { XrdWizardStep, XrdFormBlock, XrdFormBlockRow, XrdBtn, veeDefaultFieldConfig } from '@niis/shared-ui';
+import { useForm } from 'vee-validate';
 
 export default defineComponent({
   components: {
@@ -137,7 +108,7 @@ export default defineComponent({
   emits: ['done', 'previous', 'cancel'],
   setup() {
     const { certificationService, csrFormat } = useCsr();
-    const { meta, values, setFieldValue, defineComponentBinds } = useForm({
+    const { meta, values, setFieldValue, defineField } = useForm({
       validationSchema: {
         certificationService: 'required',
         csrFormat: 'required',
@@ -147,17 +118,18 @@ export default defineComponent({
         csrFormat: csrFormat,
       },
     });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
-      },
-    });
-    const certServiceRef = defineComponentBinds(
-      'certificationService',
-      componentConfig,
-    );
-    const csrFormatRef = defineComponentBinds('csrFormat', componentConfig);
-    return { meta, values, setFieldValue, certServiceRef, csrFormatRef };
+
+    const [certService, certServiceAttr] = defineField('certificationService', veeDefaultFieldConfig());
+    const [selectedCsrFormat, selectedCsrFormatAttr] = defineField('csrFormat', veeDefaultFieldConfig());
+    return {
+      meta,
+      values,
+      certService,
+      setFieldValue,
+      certServiceAttr,
+      selectedCsrFormat,
+      selectedCsrFormatAttr,
+    };
   },
   data() {
     return {

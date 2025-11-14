@@ -28,10 +28,7 @@
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import {
-  TokenCertificate,
-  PossibleActions as PossibleActionsList,
-} from '@/openapi-types';
+import { TokenCertificate, PossibleActions as PossibleActionsList } from '@/openapi-types';
 import { buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
 
 export const useTokenCertificates = defineStore('token-certificates', {
@@ -43,17 +40,11 @@ export const useTokenCertificates = defineStore('token-certificates', {
   actions: {
     async fetchTokenCertificate(hash: string) {
       const encodedHash = encodePathParameter(hash);
-      return api
-        .get<TokenCertificate>(`/token-certificates/${encodedHash}`)
-        .then((res) => res.data);
+      return api.get<TokenCertificate>(`/token-certificates/${encodedHash}`).then((res) => res.data);
     },
     async fetchTokenCertificatePossibleActions(hash: string) {
       const encodedHash = encodePathParameter(hash);
-      return api
-        .get<PossibleActionsList>(
-          `/token-certificates/${encodedHash}/possible-actions`,
-        )
-        .then((res) => res.data);
+      return api.get<PossibleActionsList>(`/token-certificates/${encodedHash}/possible-actions`).then((res) => res.data);
     },
     async deleteTokenCertificate(hash: string) {
       const encodedHash = encodePathParameter(hash);
@@ -73,25 +64,16 @@ export const useTokenCertificates = defineStore('token-certificates', {
     },
     async markForDeletionTokenCertificate(hash: string) {
       const encodedHash = encodePathParameter(hash);
-      return api.put(
-        `/token-certificates/${encodedHash}/mark-for-deletion`,
-        {},
-      );
+      return api.put(`/token-certificates/${encodedHash}/mark-for-deletion`, {});
     },
     async importTokenCertificate(cert: File) {
       return api
-        .post<TokenCertificate>(
-          '/token-certificates',
-          buildFileFormData('certificate', cert),
-          multipartFormDataConfig(),
-        )
+        .post<TokenCertificate>('/token-certificates', buildFileFormData('certificate', cert), multipartFormDataConfig())
         .then((resp) => resp.data);
     },
     async importTokenCertificateByHash(hash: string) {
       const encoded = encodePathParameter(hash);
-      api
-        .post<TokenCertificate>(`/token-certificates/${encoded}/import`, {})
-        .then((resp) => resp.data);
+      api.post<TokenCertificate>(`/token-certificates/${encoded}/import`, {}).then((resp) => resp.data);
     },
   },
 });

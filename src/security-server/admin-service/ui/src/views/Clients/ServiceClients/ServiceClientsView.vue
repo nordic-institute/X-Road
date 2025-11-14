@@ -27,12 +27,7 @@
 <template>
   <XrdSubView>
     <template #header>
-      <XrdRoundedSearchField
-        v-model="search"
-        data-test="search-service-client"
-        autofocus
-        :label="$t('serviceClients.searchPlaceHolder')"
-      />
+      <XrdRoundedSearchField v-model="search" data-test="search-service-client" autofocus :label="$t('serviceClients.searchPlaceHolder')" />
       <v-spacer />
       <XrdBtn
         v-if="showAddSubjects"
@@ -58,11 +53,7 @@
       :loader-height="2"
     >
       <template #[`item.name`]="{ item }">
-        <XrdLabelWithIcon
-          icon="id_card"
-          clickable
-          @navigate="showAccessRights(item.id)"
-        >
+        <XrdLabelWithIcon icon="id_card" clickable @navigate="showAccessRights(item.id)">
           <template #label>
             <client-name :service-client="item" />
           </template>
@@ -85,12 +76,7 @@ import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
 import ClientName from '@/components/client/ClientName.vue';
-import {
-  XrdSubView,
-  XrdBtn,
-  useNotifications,
-  XrdLabelWithIcon,
-} from '@niis/shared-ui';
+import { XrdSubView, XrdBtn, useNotifications, XrdLabelWithIcon } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useServiceClients } from '@/store/modules/service-clients';
 
