@@ -24,5 +24,7 @@ xroad:
   quarkus:
     config:
       locations:
+        - xroad-common.yaml
+        - xroad-logging.yaml
         - /etc/xroad/conf.d/local.yaml
         - /etc/xroad/db.properties

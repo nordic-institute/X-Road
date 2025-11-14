@@ -1,3 +1,4 @@
+config_ordinal: 225
 quarkus:
   log:
     level: INFO
