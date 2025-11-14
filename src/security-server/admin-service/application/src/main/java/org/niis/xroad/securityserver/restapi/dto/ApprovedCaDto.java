@@ -27,9 +27,11 @@ package org.niis.xroad.securityserver.restapi.dto;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.niis.xroad.globalconf.model.CostType;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * DTO for approved certificate authority data
@@ -50,4 +52,5 @@ public class ApprovedCaDto {
     private final String certificateProfileInfo;
     private final boolean acmeCapable;
     private final String acmeServerIpAddress;
+    private final Map<String, CostType> ocspUrlsAndCostTypes;
 }

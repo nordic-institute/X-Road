@@ -54,6 +54,7 @@
               <th class="url-column">
                 {{ $t('diagnostics.serviceUrl') }}
               </th>
+              <th class="cost-type-column">{{ $t('diagnostics.costType') }}</th>
               <th>{{ $t('diagnostics.message') }}</th>
               <th class="time-column">
                 {{ $t('diagnostics.previousUpdate') }}
@@ -71,10 +72,11 @@
               <td class="url-column" data-test="service-url">
                 {{ ocsp.url }}
               </td>
+              <td class="cost-type-column" data-test="service-cost-type">
+                {{ $t('systemParameters.costType.' + ocsp.cost_type) }}
+              </td>
               <td data-test="ocsp-responders-message">
-                {{
-                  statusMessage(ocsp)
-                }}
+                {{ statusMessage(ocsp) }}
               </td>
               <td class="time-column">
                 {{ $filters.formatHoursMins(ocsp.prev_update_at ?? '') }}

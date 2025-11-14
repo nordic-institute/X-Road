@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.Session;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -285,14 +286,20 @@ public final class TestUtil {
             client.getLocalGroups().add(localGroup);
         }
 
+        addTimestampingServices(conf);
+
+        return conf;
+    }
+
+    private static void addTimestampingServices(ServerConfEntity conf) {
         for (int j = 0; j < NUM_TSPS; j++) {
             TimestampingServiceEntity tsp = new TimestampingServiceEntity();
             tsp.setName("tspName" + j);
             tsp.setUrl("tspUrl" + j);
+            tsp.setCostType(CostType.UNDEFINED.name());
             conf.getTimestampingServices().add(tsp);
         }
-
-        return conf;
+        conf.getTimestampingServices().get(2).setCostType(CostType.FREE.name());
     }
 
     static ServiceId.Conf createTestServiceId(String memberCode, String serviceCode) {

@@ -28,6 +28,8 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.model.TimestampingService;
@@ -64,10 +66,11 @@ public class TimestampingServiceConverterTest {
     @Test
     public void convertSingleTspType() {
         TimestampingServiceDto timestampingService = timestampingServiceConverter.convert(
-                TestUtils.createTspType(TSA_1_URL, TSA_1_NAME));
+                TestUtils.createTspType(TSA_1_URL, TSA_1_NAME, CostType.FREE.name()));
 
         assertEquals(TSA_1_URL, timestampingService.getUrl());
         assertEquals(TSA_1_NAME, timestampingService.getName());
+        assertEquals(CostTypeDto.FREE, timestampingService.getCostType());
     }
 
     @Test
@@ -82,7 +85,7 @@ public class TimestampingServiceConverterTest {
     @Test
     public void convertMultipleTspTypes() {
         List<TimestampingService> tspTypes = new ArrayList<>(Arrays.asList(TestUtils.createTspType(
-                TSA_1_URL, TSA_1_NAME), TestUtils.createTspType(TSA_2_URL, TSA_2_NAME)));
+                TSA_1_URL, TSA_1_NAME, CostType.PAID.name()), TestUtils.createTspType(TSA_2_URL, TSA_2_NAME, CostType.FREE.name())));
 
         Set<TimestampingServiceDto> timestampingServices = timestampingServiceConverter.convert(tspTypes);
 
@@ -92,9 +95,10 @@ public class TimestampingServiceConverterTest {
     @Test
     public void convertSingleTimestampingService() {
         TimestampingService timestampingService = timestampingServiceConverter.convert(TestUtils
-                .createTimestampingService(TSA_1_URL, TSA_1_NAME));
+                .createTimestampingService(TSA_1_URL, TSA_1_NAME, CostTypeDto.FREE));
 
         assertEquals(TSA_1_URL, timestampingService.getUrl());
         assertEquals(TSA_1_NAME, timestampingService.getName());
+        assertEquals(CostTypeDto.FREE.name(), timestampingService.getCostType());
     }
 }
