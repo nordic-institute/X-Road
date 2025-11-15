@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import com.google.common.collect.Streams;
+import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.stereotype.Component;
@@ -43,6 +44,7 @@ public class TimestampingServiceConverter {
     public TimestampingServiceDto convert(TimestampingService tsp) {
         TimestampingServiceDto timestampingServiceDto = new TimestampingServiceDto();
         timestampingServiceDto.setUrl(tsp.getUrl());
+        timestampingServiceDto.setCostType(CostTypeDto.valueOf(tsp.getCostType()));
         timestampingServiceDto.setName(tsp.getName());
         return timestampingServiceDto;
     }
@@ -57,6 +59,7 @@ public class TimestampingServiceConverter {
         TimestampingService timestampingService = new TimestampingService();
         timestampingService.setUrl(timestampingServiceDto.getUrl());
         timestampingService.setName(timestampingServiceDto.getName());
+        timestampingService.setCostType(timestampingServiceDto.getCostType().name());
         return timestampingService;
     }
 }

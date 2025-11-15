@@ -393,12 +393,13 @@ Timestamping service provider (TSP) that is used by the security server to time-
 
 #### 2.14.2 Attributes
 
-| Name        | Type           | Modifiers   | Description      |
-|:----------- |:--------------:|:----------- |:-----------------|
-| id [PK]     | bigint         | NOT NULL    | Primary key.     |
-| conf_id [FK] | bigint |  | Identifies the serverconf. References the id in SERVERCONF table. |
-| name  | character varying(255) |  | The name of the TSP. Used for displaying in the user interface. |
-| url  | character varying(255) | NOT NULL | The URL of the TSP. The security server will send time-stamping request using HTTP POST method.  |
+| Name         |          Type          | Modifiers | Description                                                                                                                         |
+|:-------------|:----------------------:|:----------|:------------------------------------------------------------------------------------------------------------------------------------|
+| id [PK]      |         bigint         | NOT NULL  | Primary key.                                                                                                                        |
+| conf_id [FK] |         bigint         |           | Identifies the serverconf. References the id in SERVERCONF table.                                                                   |
+| name         | character varying(255) |           | The name of the TSP. Used for displaying in the user interface.                                                                     |
+| url          | character varying(255) | NOT NULL  | The URL of the TSP. The security server will send time-stamping request using HTTP POST method.                                     |
+| cost_type    | character varying(255) | NOT NULL  | The cost  type of the TSP, either FREE, PAID or UNDEFINED. Can be used to prioritize the usage of one type of services or the other |
 
 ### 2.15 UIUSER
 

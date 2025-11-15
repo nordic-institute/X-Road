@@ -160,6 +160,12 @@ public class TestServerConfWrapper implements ServerConfProvider {
         return serverConfProvider.getTspUrl();
     }
 
+
+    @Override
+    public String getTspCostType(String tspUrl) {
+        return serverConfProvider.getTspCostType(tspUrl);
+    }
+
     @Override
     public DescriptionType getDescriptionType(ServiceId serviceId) {
         return serverConfProvider.getDescriptionType(serviceId);

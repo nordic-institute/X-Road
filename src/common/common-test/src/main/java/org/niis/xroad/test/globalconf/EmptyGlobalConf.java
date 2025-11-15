@@ -38,6 +38,7 @@ import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -46,6 +47,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
@@ -77,6 +79,16 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public Map<String, CostType> getOcspResponderAddressesAndCostTypes(String instanceIdentifier, X509Certificate caCert) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public CostType getOcspResponderCostType(String instanceIdentifier, String ocspUrl) {
+        return CostType.UNDEFINED;
     }
 
     @Override

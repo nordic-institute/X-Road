@@ -55,6 +55,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritizationStrategyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
@@ -144,6 +145,13 @@ public class SystemApiController implements SystemApi {
         timestampingServiceDtos = timestampingServiceConverter.convert(tsps);
 
         return new ResponseEntity<>(timestampingServiceDtos, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_TSPS')")
+    public ResponseEntity<ServicePrioritizationStrategyDto> getTimestampingPrioritizationStrategy() {
+        var strategy = systemService.getTimestampingPrioritizationStrategy();
+        return ResponseEntity.ok(ServicePrioritizationStrategyDto.valueOf(strategy.name()));
     }
 
     @Override

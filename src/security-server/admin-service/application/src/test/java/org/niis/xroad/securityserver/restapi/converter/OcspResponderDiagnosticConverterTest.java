@@ -33,15 +33,20 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.CaOcspDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test CertificateAuthorityDiagnosticConverter
@@ -58,7 +63,12 @@ public class OcspResponderDiagnosticConverterTest {
 
     @Before
     public void setup() {
-        ocspResponderDiagnosticConverter = new OcspResponderDiagnosticConverter();
+        GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
+        when(globalConfProvider.getOcspResponderCostType("DEV", URL_1)).thenReturn(CostType.FREE);
+        when(globalConfProvider.getOcspResponderCostType("DEV", URL_2)).thenReturn(CostType.PAID);
+
+        ocspResponderDiagnosticConverter = new OcspResponderDiagnosticConverter(globalConfProvider);
     }
 
     @Test
@@ -68,7 +78,7 @@ public class OcspResponderDiagnosticConverterTest {
         diagnosticsStatus.setDescription(URL_1);
         status.setOcspResponderStatusMap(Arrays.asList(diagnosticsStatus));
 
-        OcspResponderDiagnosticsDto caDiagnostics = ocspResponderDiagnosticConverter.convert(status);
+        CaOcspDiagnosticsDto caDiagnostics = ocspResponderDiagnosticConverter.convert(status);
 
         assertEquals(1, caDiagnostics.getOcspResponders().size());
 
@@ -77,6 +87,7 @@ public class OcspResponderDiagnosticConverterTest {
         assertEquals(PREVIOUS_UPDATE_1, caDiagnostics.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_1, caDiagnostics.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(URL_1, caDiagnostics.getOcspResponders().get(0).getUrl());
+        assertEquals(CostTypeDto.FREE, caDiagnostics.getOcspResponders().get(0).getCostType());
     }
 
     @Test
@@ -96,14 +107,14 @@ public class OcspResponderDiagnosticConverterTest {
         diagnosticsStatus3.setDescription(URL_1);
         status2.setOcspResponderStatusMap(Arrays.asList(diagnosticsStatus2, diagnosticsStatus3));
 
-        Set<OcspResponderDiagnosticsDto> diagnostics = ocspResponderDiagnosticConverter.convert(
+        Set<CaOcspDiagnosticsDto> diagnostics = ocspResponderDiagnosticConverter.convert(
                 Arrays.asList(status1, status2));
-        OcspResponderDiagnosticsDto firstDiagnostic = diagnostics
+        CaOcspDiagnosticsDto firstDiagnostic = diagnostics
                 .stream()
                 .filter(item -> item.getDistinguishedName().equals(CA_NAME_1))
                 .findFirst()
                 .orElse(null);
-        OcspResponderDiagnosticsDto secondDiagnostic = diagnostics
+        CaOcspDiagnosticsDto secondDiagnostic = diagnostics
                 .stream()
                 .filter(item -> item.getDistinguishedName().equals(CA_NAME_2))
                 .findFirst()
@@ -118,6 +129,7 @@ public class OcspResponderDiagnosticConverterTest {
         assertEquals(PREVIOUS_UPDATE_1, firstDiagnostic.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_1, firstDiagnostic.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(URL_1, firstDiagnostic.getOcspResponders().get(0).getUrl());
+        assertEquals(CostTypeDto.FREE, firstDiagnostic.getOcspResponders().get(0).getCostType());
 
         assertEquals(CA_NAME_2, secondDiagnostic.getDistinguishedName());
 
@@ -125,6 +137,7 @@ public class OcspResponderDiagnosticConverterTest {
         assertEquals(null, secondDiagnostic.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_2, secondDiagnostic.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(URL_2, secondDiagnostic.getOcspResponders().get(0).getUrl());
+        assertEquals(CostTypeDto.PAID, secondDiagnostic.getOcspResponders().get(0).getCostType());
 
         assertEquals(ErrorCode.OCSP_RESPONSE_PARSING_FAILURE.code(), secondDiagnostic.getOcspResponders()
                 .get(1).getError().getCode());
@@ -132,5 +145,6 @@ public class OcspResponderDiagnosticConverterTest {
         assertEquals(PREVIOUS_UPDATE_1, secondDiagnostic.getOcspResponders().get(1).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_1, secondDiagnostic.getOcspResponders().get(1).getNextUpdateAt());
         assertEquals(URL_1, secondDiagnostic.getOcspResponders().get(1).getUrl());
+        assertEquals(CostTypeDto.FREE, secondDiagnostic.getOcspResponders().get(1).getCostType());
     }
 }

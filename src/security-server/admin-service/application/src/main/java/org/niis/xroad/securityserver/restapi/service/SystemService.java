@@ -140,6 +140,7 @@ public class SystemService {
     private void auditLog(TimestampingService timestampingService) {
         auditDataHelper.put(RestApiAuditProperty.TSP_NAME, timestampingService.getName());
         auditDataHelper.put(RestApiAuditProperty.TSP_URL, timestampingService.getUrl());
+        auditDataHelper.put(RestApiAuditProperty.TSP_COST_TYPE, timestampingService.getCostType());
     }
 
     public void addConfiguredTimestampingService(TimestampingService timestampingServiceToAdd)
@@ -481,6 +482,10 @@ public class SystemService {
      */
     public SystemProperties.NodeType getServerNodeType() {
         return SystemProperties.getServerNodeType();
+    }
+
+    public SystemProperties.ServicePrioritizationStrategy getTimestampingPrioritizationStrategy() {
+        return SystemProperties.getTimestampingPrioritizationStrategy();
     }
 
     public boolean isManagementServiceProvider() {

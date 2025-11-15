@@ -178,6 +178,7 @@
     "addOnStatus": {
       "messageLogDisabled": "Desativado por configuração"
     },
+    "costType": "Tipo de custo",
     "downloadReport": "Baixar relatório de diagnóstico",
     "encryption": {
       "backup": {
@@ -883,6 +884,7 @@
           "acmeIpAddresses": "IP do Servidor ACME",
           "distinguishedName": "Titular do Certificado (DN)",
           "expires": "Expira em",
+          "ocspCostType": "Tipo de custo OCSP",
           "ocspResponse": "Resposta OCSP"
         },
         "notAvailable": "N/D",
@@ -921,6 +923,11 @@
       },
       "title": "Âncora de Configuração"
     },
+    "costType": {
+      "FREE": "Grátis",
+      "PAID": "Pago",
+      "UNDEFINED": "Indefinido"
+    },
     "securityServer": {
       "addressChangeInProgress": "MUDANÇA EM ANDAMENTO",
       "editDialog": {
@@ -929,6 +936,24 @@
       "securityServer": "Servidor Seguro",
       "serverAddress": "Endereço do servidor",
       "updateSubmitted": "Alteração de endereço do Servidor Seguro enviada com sucesso"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Estratégia de priorização de carimbo de tempo: ",
+        "ONLY_FREE": "usar apenas serviços de carimbo de tempo gratuitos",
+        "ONLY_PAID": "usar apenas serviços de carimbo de tempo pagos",
+        "FREE_FIRST": "usar primeiro os serviços gratuitos de carimbo de tempo, se todos falharem ou não estiverem disponíveis, usar os pagos",
+        "PAID_FIRST": "usar primeiro os serviços pagos de carimbo de tempo, se todos falharem ou não estiverem disponíveis, usar os gratuitos",
+        "NONE": "usar todos os serviços de carimbo de tempo sem priorização"
+      },
+      "ocsp": {
+        "label": "Estratégia de priorização OCSP: ",
+        "ONLY_FREE": "usar apenas serviços OCSP gratuitos",
+        "ONLY_PAID": "usar apenas serviços OCSP pagos",
+        "FREE_FIRST": "usar primeiro os serviços OCSP gratuitos, se todos falharem ou não estiverem disponíveis, usar os pagos",
+        "PAID_FIRST": "usar primeiro os serviços OCSP pagos, se todos falharem ou não estiverem disponíveis, usar os gratuitos",
+        "NONE": "usar todos os serviços OCSP sem priorização"
+      }
     },
     "timestampingServices": {
       "action": {
