@@ -36,6 +36,8 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.testsuite.UsingDummyServerProxy;
 
+import java.nio.charset.StandardCharsets;
+
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
@@ -62,7 +64,7 @@ public class ServerProxyConnectionAborted2 extends MessageTestCase implements Us
             @Override
             public boolean handle(Request request, Response response, Callback callback) throws Exception {
                 // Read all of the request.
-                IOUtils.readLines(asInputStream(request));
+                IOUtils.readLines(asInputStream(request), StandardCharsets.UTF_8);
 
                 setContentType(response, "text/xml");
                 setContentLength(response, 1000);

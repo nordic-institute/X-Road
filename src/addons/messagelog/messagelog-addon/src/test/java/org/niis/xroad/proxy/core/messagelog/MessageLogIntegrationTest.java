@@ -36,6 +36,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.createMessage;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.createSignature;
@@ -104,9 +105,9 @@ public class MessageLogIntegrationTest extends AbstractMessageLogTest {
 
     static SignatureData createTestSignature() throws Exception {
         return new SignatureData(
-                FileUtils.readFileToString(new File("signatures.xml")),
-                FileUtils.readFileToString(new File("hashchain.xml")),
-                FileUtils.readFileToString(new File("hashchainresult.xml"))
+                FileUtils.readFileToString(new File("signatures.xml"), StandardCharsets.UTF_8),
+                FileUtils.readFileToString(new File("hashchain.xml"), StandardCharsets.UTF_8),
+                FileUtils.readFileToString(new File("hashchainresult.xml"), StandardCharsets.UTF_8)
         );
     }
 }

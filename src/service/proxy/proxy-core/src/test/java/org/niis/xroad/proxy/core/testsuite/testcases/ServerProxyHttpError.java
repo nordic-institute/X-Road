@@ -36,6 +36,8 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.testsuite.UsingDummyServerProxy;
 
+import java.nio.charset.StandardCharsets;
+
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
@@ -59,7 +61,7 @@ public class ServerProxyHttpError extends MessageTestCase implements UsingDummyS
             @Override
             public boolean handle(Request request, Response response, Callback callback) {
                 // Read all of the request.
-                IOUtils.readLines(asInputStream(request));
+                IOUtils.readLines(asInputStream(request), StandardCharsets.UTF_8);
                 Response.writeError(request, response, callback, HttpStatus.BAD_GATEWAY_502);
                 return true;
             }

@@ -35,6 +35,8 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.testsuite.UsingDummyServerProxy;
 
+import java.nio.charset.StandardCharsets;
+
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
@@ -63,7 +65,7 @@ public class ServerProxyNoBoundary extends MessageTestCase implements UsingDummy
             @Override
             public boolean handle(Request request, Response response, Callback callback) {
                 // Read all of the request.
-                IOUtils.readLines(asInputStream(request));
+                IOUtils.readLines(asInputStream(request), StandardCharsets.UTF_8);
 
                 setContentType(response, "multipart/mixed");
                 response.getHeaders().put(HEADER_HASH_ALGO_ID,

@@ -53,6 +53,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -154,7 +155,7 @@ public class QueryRequestHandlerTest {
                     }
                 });
 
-        decoder.parse(IOUtils.toInputStream(out.toString()));
+        decoder.parse(IOUtils.toInputStream(out.toString(), StandardCharsets.UTF_8));
     }
 
     @SneakyThrows
@@ -188,7 +189,7 @@ public class QueryRequestHandlerTest {
         assertEquals(MimeTypes.TEXT_XML, baseContentType);
 
         SoapMessageImpl response = (SoapMessageImpl) parser.parse(
-                MimeTypes.TEXT_XML, IOUtils.toInputStream(out.toString()));
+                MimeTypes.TEXT_XML, IOUtils.toInputStream(out.toString(), StandardCharsets.UTF_8));
 
         GetSecurityServerHealthDataResponseType responseData =
                 JaxbUtils.createUnmarshaller(
