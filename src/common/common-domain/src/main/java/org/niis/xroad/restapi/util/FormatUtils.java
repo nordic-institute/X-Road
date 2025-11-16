@@ -32,6 +32,7 @@ import org.niis.xroad.common.exception.NotFoundException;
 
 import java.net.IDN;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -101,7 +102,7 @@ public final class FormatUtils {
             return false;
         }
         try {
-            URL u = new URL(url);
+            URL u = URI.create(url).toURL();
             String asciiHost = IDN.toASCII(u.getHost());
             return asciiHost.matches(URL_HOST_REGEX);
         } catch (MalformedURLException | IllegalArgumentException e) {

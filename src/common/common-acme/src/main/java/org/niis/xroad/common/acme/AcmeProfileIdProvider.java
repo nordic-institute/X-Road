@@ -31,6 +31,7 @@ import org.shredzone.acme4j.connector.NetworkSettings;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import static org.niis.xroad.common.acme.AcmeCustomSchema.XRD_ACME_PROFILE_ID;
@@ -47,8 +48,8 @@ public class AcmeProfileIdProvider extends AcmeXroadProvider {
     public URL resolve(URI serverUri) {
         String protocol = XRD_ACME_PROFILE_ID.getSchema().equals(serverUri.getScheme()) ? "http" : "https";
         try {
-            return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
-        } catch (MalformedURLException ex) {
+            return new URI(protocol, null, serverUri.getHost(), serverUri.getPort(), serverUri.getPath(), null, null).toURL();
+        } catch (MalformedURLException | URISyntaxException ex) {
             throw new IllegalArgumentException("Bad server URI", ex);
         }
     }

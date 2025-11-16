@@ -50,7 +50,7 @@ import javax.net.ssl.X509TrustManager;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.URL;
+import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -98,7 +98,7 @@ public class InternalServerTestService {
                 new TrustManager[]{new ServiceTrustManager(trustedX509Certs)},
                 new SecureRandom());
 
-        HttpsURLConnection con = (HttpsURLConnection) (new URL(url).openConnection());
+        HttpsURLConnection con = (HttpsURLConnection) (URI.create(url).toURL().openConnection());
 
         con.setSSLSocketFactory(new CustomClientTlsSSLSocketFactory(ctx.getSocketFactory()));
         con.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);

@@ -66,7 +66,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.net.URL;
+import java.net.URI;
 import java.net.URLConnection;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -307,7 +307,7 @@ public final class WsdlParser {
         @Override
         public InputSource getBaseInputSource() {
             try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-                URLConnection conn = new URL(wsdlUrl).openConnection();
+                URLConnection conn = URI.create(wsdlUrl).toURL().openConnection();
                 if (conn instanceof HttpsURLConnection) {
                     configureHttps((HttpsURLConnection) conn);
                 }
