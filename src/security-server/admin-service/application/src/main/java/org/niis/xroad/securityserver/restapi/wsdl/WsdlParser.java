@@ -29,7 +29,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
@@ -144,7 +144,7 @@ public final class WsdlParser {
 
     private static boolean identicalOperationsUnderSamePort(Exception e) {
         return (e instanceof IllegalArgumentException)
-                && StringUtils.startsWith(
+                && Strings.CS.startsWith(
                 e.getMessage(), "Duplicate operation with name=");
 
     }

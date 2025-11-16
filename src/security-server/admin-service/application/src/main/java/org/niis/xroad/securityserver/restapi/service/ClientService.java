@@ -33,6 +33,7 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hibernate.Hibernate;
 import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -87,7 +88,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CLIENT_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_NAME;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_UNREGISTERED_MEMBER;
@@ -704,8 +704,8 @@ public class ClientService {
                     .and(ct -> {
                         String memberName = globalConfProvider.getMemberName(ct.getIdentifier());
                         String subsystemName = globalConfProvider.getSubsystemName(ct.getIdentifier());
-                        return containsIgnoreCase(memberName, searchParameters.name)
-                                || containsIgnoreCase(subsystemName, searchParameters.name);
+                        return Strings.CI.contains(memberName, searchParameters.name)
+                                || Strings.CI.contains(subsystemName, searchParameters.name);
                     });
         }
         if (!StringUtils.isEmpty(searchParameters.instance)) {
@@ -714,15 +714,15 @@ public class ClientService {
         }
         if (!StringUtils.isEmpty(searchParameters.memberClass)) {
             clientTypePredicate = clientTypePredicate
-                    .and(ct -> containsIgnoreCase(ct.getIdentifier().getMemberClass(), searchParameters.memberClass));
+                    .and(ct -> Strings.CI.contains(ct.getIdentifier().getMemberClass(), searchParameters.memberClass));
         }
         if (!StringUtils.isEmpty(searchParameters.memberCode)) {
             clientTypePredicate = clientTypePredicate
-                    .and(ct -> containsIgnoreCase(ct.getIdentifier().getMemberCode(), searchParameters.memberCode));
+                    .and(ct -> Strings.CI.contains(ct.getIdentifier().getMemberCode(), searchParameters.memberCode));
         }
         if (!StringUtils.isEmpty(searchParameters.subsystemCode)) {
             clientTypePredicate = clientTypePredicate
-                    .and(ct -> containsIgnoreCase(ct.getIdentifier().getSubsystemCode(), searchParameters.subsystemCode));
+                    .and(ct -> Strings.CI.contains(ct.getIdentifier().getSubsystemCode(), searchParameters.subsystemCode));
         }
         if (searchParameters.hasValidLocalSignCert != null) {
             clientTypePredicate = clientTypePredicate
@@ -940,7 +940,7 @@ public class ClientService {
         }
 
         var currentName = globalConfProvider.getSubsystemName(client.getIdentifier());
-        if (StringUtils.equals(subsystemName, currentName)) {
+        if (Strings.CS.equals(subsystemName, currentName)) {
             throw new ConflictException("Can not change to the same name.", INVALID_CLIENT_NAME.build());
         }
 

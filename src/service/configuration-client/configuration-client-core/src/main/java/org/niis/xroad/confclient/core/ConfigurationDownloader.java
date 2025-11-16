@@ -30,7 +30,7 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.bouncycastle.operator.DigestCalculator;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -299,7 +299,7 @@ public class ConfigurationDownloader {
                         .build();
             }
             String existingHash = encodeBase64(fileHash);
-            if (StringUtils.equals(existingHash, contentHash)) {
+            if (Strings.CS.equals(existingHash, contentHash)) {
                 return false;
             } else {
                 log.trace("Downloading {} because currentConfigurationFile has changed ({} != {})",

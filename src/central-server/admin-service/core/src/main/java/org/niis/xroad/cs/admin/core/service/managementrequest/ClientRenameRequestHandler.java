@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
@@ -93,7 +94,7 @@ class ClientRenameRequestHandler implements RequestHandler<ClientRenameRequest> 
     }
 
     protected static String formatRenameComment(String oldName, String newName, String comment) {
-        if (StringUtils.isNotEmpty(newName) && StringUtils.isNotEmpty(oldName) && !StringUtils.equals(oldName, newName)) {
+        if (StringUtils.isNotEmpty(newName) && StringUtils.isNotEmpty(oldName) && !Strings.CS.equals(oldName, newName)) {
             var newComment = "Changing subsystem name from '%s' to '%s'.".formatted(oldName, newName);
             if (StringUtils.isNotBlank(comment)) {
                 newComment += " " + comment;

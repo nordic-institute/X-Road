@@ -32,7 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -51,13 +51,13 @@ public class SubsystemNameStatus {
     }
 
     public void set(ClientId clientId, String oldName, String newName) {
-        if (!StringUtils.equals(oldName, newName)) {
+        if (!Strings.CS.equals(oldName, newName)) {
             nameCache.put(clientId, new Change(oldName, newName, false));
         }
     }
 
     public void submit(ClientId clientId, String oldName, String newName) {
-        if (!StringUtils.equals(oldName, newName)) {
+        if (!Strings.CS.equals(oldName, newName)) {
             nameCache.put(clientId, new Change(oldName, newName, true));
         }
     }

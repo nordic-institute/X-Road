@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.util;
 
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.niis.xroad.common.exception.NotFoundException;
 
 import java.net.IDN;
@@ -96,7 +97,7 @@ public final class FormatUtils {
      * @return true or false depending on the validity of the provided url
      */
     public static boolean isValidUrl(String url) {
-        if (!isHttpsUrl(url) && !StringUtils.startsWith(url, HTTP_PROTOCOL)) {
+        if (!isHttpsUrl(url) && !Strings.CS.startsWith(url, HTTP_PROTOCOL)) {
             return false;
         }
         try {
@@ -109,7 +110,7 @@ public final class FormatUtils {
     }
 
     public static boolean isHttpsUrl(String url) {
-        return StringUtils.startsWith(url, HTTPS_PROTOCOL);
+        return Strings.CS.startsWith(url, HTTPS_PROTOCOL);
     }
 
 

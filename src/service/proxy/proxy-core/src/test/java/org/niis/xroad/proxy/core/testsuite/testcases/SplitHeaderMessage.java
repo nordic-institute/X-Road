@@ -89,7 +89,7 @@ public class SplitHeaderMessage extends MessageTestCase {
                 value = header.getValue();
             }
         }
-        if (!StringUtils.equals(EXPECTED_VALUE, value)) {
+        if (!Strings.CS.equals(EXPECTED_VALUE, value)) {
             String diff = StringUtils.difference(EXPECTED_VALUE, value);
             throw new Exception("Unexpected field value (difference starting at"
                     + " index : " + value.indexOf(diff) + ")");

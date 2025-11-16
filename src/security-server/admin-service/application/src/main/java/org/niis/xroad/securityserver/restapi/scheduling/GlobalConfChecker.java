@@ -34,7 +34,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -297,7 +297,7 @@ public class GlobalConfChecker {
 
             if (clientId.isSubsystem()) {
                 subsystemNameStatus.clearIf(clientId,
-                        (oldName, newName) -> !StringUtils.equals(oldName, globalConfProvider.getSubsystemName(clientId)));
+                        (oldName, newName) -> !Strings.CS.equals(oldName, globalConfProvider.getSubsystemName(clientId)));
             }
         }
     }

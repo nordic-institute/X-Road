@@ -38,6 +38,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -766,13 +767,13 @@ public class AccessRightService {
             XRoadId xRoadId = dto.getSubjectId();
             if (xRoadId instanceof ClientId) {
                 String clientMemberCode = ((ClientId) xRoadId).getMemberCode();
-                return StringUtils.containsIgnoreCase(clientMemberCode, memberGroupCode);
+                return Strings.CI.contains(clientMemberCode, memberGroupCode);
             } else if (xRoadId instanceof GlobalGroupId) {
                 String globalGroupCode = ((GlobalGroupId) xRoadId).getGroupCode();
-                return StringUtils.containsIgnoreCase(globalGroupCode, memberGroupCode);
+                return Strings.CI.contains(globalGroupCode, memberGroupCode);
             } else if (xRoadId instanceof LocalGroupId) {
                 String localGroupCode = ((LocalGroupId) xRoadId).getGroupCode();
-                return StringUtils.containsIgnoreCase(localGroupCode, memberGroupCode);
+                return Strings.CI.contains(localGroupCode, memberGroupCode);
             } else {
                 return false;
             }
@@ -784,7 +785,7 @@ public class AccessRightService {
             XRoadId xRoadId = dto.getSubjectId();
             if (xRoadId instanceof ClientId) {
                 String clientSubsystemCode = ((ClientId) xRoadId).getSubsystemCode();
-                return StringUtils.containsIgnoreCase(clientSubsystemCode, subsystemCode);
+                return Strings.CI.contains(clientSubsystemCode, subsystemCode);
             } else {
                 return false;
             }
@@ -822,10 +823,10 @@ public class AccessRightService {
             String subsystemName = dto.getSubsystemName();
             String localGroupDescription = dto.getLocalGroupDescription();
             String globalGroupDescription = dto.getGlobalGroupDescription();
-            return StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
-                    || StringUtils.containsIgnoreCase(subsystemName, memberNameOrGroupDescription)
-                    || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription)
-                    || StringUtils.containsIgnoreCase(globalGroupDescription, memberNameOrGroupDescription);
+            return Strings.CI.contains(memberName, memberNameOrGroupDescription)
+                    || Strings.CI.contains(subsystemName, memberNameOrGroupDescription)
+                    || Strings.CI.contains(localGroupDescription, memberNameOrGroupDescription)
+                    || Strings.CI.contains(globalGroupDescription, memberNameOrGroupDescription);
         };
     }
 

@@ -31,6 +31,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
 
@@ -180,7 +181,7 @@ public final class ConfigurationClientCLI {
                 return;
             }
 
-            valid.set(StringUtils.isBlank(expectedContentId) || StringUtils.equals(expectedContentId, contentId));
+            valid.set(StringUtils.isBlank(expectedContentId) || Strings.CS.equals(expectedContentId, contentId));
         }
 
         int getExitCode() {
@@ -201,7 +202,7 @@ public final class ConfigurationClientCLI {
 
         @Override
         void tryMarkValid(String contentId) {
-            if (StringUtils.equals(contentId, CONTENT_ID_PRIVATE_PARAMETERS)) {
+            if (Strings.CS.equals(contentId, CONTENT_ID_PRIVATE_PARAMETERS)) {
                 privateParametersIncluded.set(true);
             }
 

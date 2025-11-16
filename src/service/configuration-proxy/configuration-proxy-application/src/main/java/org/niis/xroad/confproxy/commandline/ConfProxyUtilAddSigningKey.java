@@ -28,7 +28,7 @@ package org.niis.xroad.confproxy.commandline;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -69,7 +69,7 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
         } else if (commandLine.hasOption("token-id")) {
             String tokenId = commandLine.getOptionValue("t");
             String alg = commandLine.getOptionValue("a", KeyAlgorithm.RSA.name());
-            KeyAlgorithm keyAlgorithm = StringUtils.equalsIgnoreCase(KeyAlgorithm.EC.name(), alg) ? KeyAlgorithm.EC : KeyAlgorithm.RSA;
+            KeyAlgorithm keyAlgorithm = Strings.CI.equals(KeyAlgorithm.EC.name(), alg) ? KeyAlgorithm.EC : KeyAlgorithm.RSA;
             KeyInfo keyInfo = signerRpcClient.generateKey(tokenId, "key-" + System.currentTimeMillis(), keyAlgorithm);
             System.out.println("Generated key with ID " + keyInfo.getId());
             addSigningKey(conf, keyInfo.getId());

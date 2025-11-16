@@ -48,6 +48,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -646,7 +647,7 @@ public class SignerCLI {
         logData.put(TOKEN_ID_PARAM, tokenId);
         logData.put(KEY_LABEL_PARAM, label);
 
-        var keyALgorithm = StringUtils.equalsIgnoreCase(KeyAlgorithm.EC.name(), algorithm) ? KeyAlgorithm.EC : KeyAlgorithm.RSA;
+        var keyALgorithm = Strings.CI.equals(KeyAlgorithm.EC.name(), algorithm) ? KeyAlgorithm.EC : KeyAlgorithm.RSA;
 
         try {
             KeyInfo response = signerRpcClient.generateKey(tokenId, label, keyALgorithm);

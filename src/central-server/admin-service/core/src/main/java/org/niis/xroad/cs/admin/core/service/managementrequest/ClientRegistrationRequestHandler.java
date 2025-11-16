@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
@@ -191,7 +192,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     }
 
     private SecurityServerClientEntity updateSubsystemNameIfNeeded(SecurityServerClientEntity subsystem, String subsystemName) {
-        if (StringUtils.isEmpty(subsystemName) || StringUtils.equals(subsystemName, subsystem.getName())) {
+        if (StringUtils.isEmpty(subsystemName) || Strings.CS.equals(subsystemName, subsystem.getName())) {
             return subsystem;
         } else {
             subsystem.setName(subsystemName);

@@ -50,6 +50,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hibernate.Session;
 import org.hibernate.SharedSessionContract;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -364,7 +365,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public String getTspCostType(String tspUrl) {
         return tx(session -> getConf(session).getTimestampingServices().stream()
-                    .filter(t -> StringUtils.equals(t.getUrl(), tspUrl))
+                    .filter(t -> Strings.CS.equals(t.getUrl(), tspUrl))
                     .findFirst()
                     .map(TimestampingService::getCostType)
                     .orElse(null));
