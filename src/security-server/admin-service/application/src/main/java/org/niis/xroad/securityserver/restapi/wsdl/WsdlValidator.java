@@ -32,10 +32,10 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
