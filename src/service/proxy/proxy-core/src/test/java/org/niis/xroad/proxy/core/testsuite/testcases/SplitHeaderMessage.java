@@ -31,6 +31,7 @@ import ee.ria.xroad.common.message.SoapParserImpl;
 
 import jakarta.xml.soap.SOAPHeaderElement;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
