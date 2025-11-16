@@ -261,7 +261,7 @@ public class ServerConfImpl implements ServerConfProvider {
         return tx(session -> {
             Service service = getService(session, serviceId);
             if (service != null) {
-                return ObjectUtils.defaultIfNull(
+                return ObjectUtils.getIfNull(
                         service.getSslAuthentication(), true);
             }
 

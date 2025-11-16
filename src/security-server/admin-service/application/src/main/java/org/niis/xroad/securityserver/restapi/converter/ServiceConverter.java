@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
 
 /**
  * Convert Service related data between openapi and service domain classes
@@ -92,7 +92,7 @@ public class ServiceConverter {
         if (service.getUrl().startsWith(FormatUtils.HTTP_PROTOCOL)) {
             serviceDto.setSslAuth(false);
         } else {
-            serviceDto.setSslAuth(defaultIfNull(service.getSslAuthentication(), true));
+            serviceDto.setSslAuth(getIfNull(service.getSslAuthentication(), true));
         }
         serviceDto.setTimeout(service.getTimeout());
         serviceDto.setUrl(service.getUrl());

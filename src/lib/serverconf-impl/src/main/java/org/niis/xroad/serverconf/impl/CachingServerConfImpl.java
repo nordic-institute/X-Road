@@ -216,7 +216,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
             throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' not found", serviceId);
         }
         Service service = serviceOptional.get();
-        return (boolean) ObjectUtils.defaultIfNull(service.getSslAuthentication(), true);
+        return (boolean) ObjectUtils.getIfNull(service.getSslAuthentication(), true);
     }
 
     @Override

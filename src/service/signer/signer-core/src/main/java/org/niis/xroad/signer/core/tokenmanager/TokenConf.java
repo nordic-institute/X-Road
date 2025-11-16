@@ -358,7 +358,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     }
 
     private static String getCertReqId(CertRequestType type) {
-        return ObjectUtils.defaultIfNull(type.getId(), SignerUtil.randomId());
+        return ObjectUtils.getIfNull(type.getId(), SignerUtil.randomId());
     }
 
     private static String getConfFileName() {
