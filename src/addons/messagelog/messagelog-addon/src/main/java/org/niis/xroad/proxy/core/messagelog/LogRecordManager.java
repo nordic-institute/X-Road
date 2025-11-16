@@ -41,6 +41,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.query.MutationQuery;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -144,7 +145,7 @@ public final class LogRecordManager {
             for (AttachmentStream attachmentStream : messageRecord.getAttachmentStreams()) {
                 attachmentNo++;
                 messageRecord.addAttachment(attachmentNo,   // attachment numbering starts from one as in asic container
-                        session.getLobHelper().createBlob(attachmentStream.getStream(), attachmentStream.getSize()));
+                        Hibernate.getLobHelper().createBlob(attachmentStream.getStream(), attachmentStream.getSize()));
             }
 
             save(session, messageRecord);
