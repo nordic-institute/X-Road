@@ -26,10 +26,9 @@
  */
 package org.niis.xroad.cs.management.api;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.cs.management.core.api.ManagementRequestService;
@@ -42,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.InputStream;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 @RestController
 @Slf4j
@@ -61,7 +60,7 @@ public class ManagementRequestController {
     private Integer process(ManagementRequestVerifier.Result result) {
         var requestId = result.getRequest()
                 .map(request -> managementRequestService.addManagementRequest(request, result.requestType()))
-                .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "Request of type: %s is missing".formatted(result.requestType())));
+                .orElseThrow(() -> XrdRuntimeException.systemException(INVALID_REQUEST, "Request of type: %s is missing".formatted(result.requestType())));
 
         log.info("Added new management request with id {}", requestId);
         return requestId;
