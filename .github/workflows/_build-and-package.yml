@@ -45,7 +45,7 @@ jobs:
           gradle-cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           setup-docker-buildx: true
           setup-packaging-tools: false
-          free-disk-space: true
+          free-disk-space: false
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
