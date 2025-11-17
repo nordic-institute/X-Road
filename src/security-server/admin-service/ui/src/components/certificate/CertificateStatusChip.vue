@@ -30,10 +30,7 @@
       <XrdStatusIcon class="mr-1 ml-n1" :status="status" />
     </template>
     <template #default>
-      <span
-        class="font-weight-medium on-success-container body-small"
-        :class="textClass"
-      >
+      <span class="font-weight-medium on-success-container body-small" :class="textClass">
         {{ $t(text) }}
       </span>
     </template>
@@ -52,12 +49,8 @@ const props = defineProps({
 });
 
 const status = computed(() => (props.active ? 'ok' : 'error-disabled'));
-const color = computed(() =>
-  props.active ? 'bg-success-container' : 'bg-error-container',
-);
-const textClass = computed(() =>
-  props.active ? 'on-success-container' : 'on-error-container',
-);
+const color = computed(() => (props.active ? 'bg-success-container' : 'bg-error-container'));
+const textClass = computed(() => (props.active ? 'on-success-container' : 'on-error-container'));
 const text = computed(() => (props.active ? 'cert.inUse' : 'cert.disabled'));
 </script>
 

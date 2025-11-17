@@ -37,11 +37,7 @@
       >
         <div class="header-title d-flex flex-row align-center">
           <div>{{ $t('general.name') }}</div>
-          <SortButton
-            :arrow-state="sortDirection"
-            :active="hoverName"
-            :selected="selectedSort === sortColumn.NAME"
-          />
+          <SortButton :arrow-state="sortDirection" :active="hoverName" :selected="selectedSort === sortColumn.NAME" />
         </div>
       </th>
       <th
@@ -54,11 +50,7 @@
       >
         <div class="header-title d-flex flex-row align-center">
           {{ $t('keys.id') }}
-          <SortButton
-            :arrow-state="sortDirection"
-            :active="hoverId"
-            :selected="selectedSort === sortColumn.ID"
-          />
+          <SortButton :arrow-state="sortDirection" :active="hoverId" :selected="selectedSort === sortColumn.ID" />
         </div>
       </th>
       <th
@@ -71,11 +63,7 @@
       >
         <div class="header-title d-flex flex-row align-center">
           {{ $t('keys.ocsp') }}
-          <SortButton
-            :arrow-state="sortDirection"
-            :active="hoverOcsp"
-            :selected="selectedSort === sortColumn.OCSP"
-          />
+          <SortButton :arrow-state="sortDirection" :active="hoverOcsp" :selected="selectedSort === sortColumn.OCSP" />
         </div>
       </th>
       <th
@@ -88,11 +76,7 @@
       >
         <div class="header-title d-flex flex-row align-center">
           {{ $t('keys.expires') }}
-          <SortButton
-            :arrow-state="sortDirection"
-            :active="hoverExp"
-            :selected="selectedSort === sortColumn.EXPIRATION"
-          />
+          <SortButton :arrow-state="sortDirection" :active="hoverExp" :selected="selectedSort === sortColumn.EXPIRATION" />
         </div>
       </th>
       <th
@@ -105,11 +89,7 @@
       >
         <div class="header-title d-flex flex-row align-center">
           {{ $t('keys.status') }}
-          <SortButton
-            :arrow-state="sortDirection"
-            :active="hoverStatus"
-            :selected="selectedSort === sortColumn.STATUS"
-          />
+          <SortButton :arrow-state="sortDirection" :active="hoverStatus" :selected="selectedSort === sortColumn.STATUS" />
         </div>
       </th>
       <th class="renewal-col">

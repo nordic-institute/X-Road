@@ -74,12 +74,10 @@ export const useManagementRequests = defineStore('managementRequests', {
 
       const axiosParams: AxiosRequestConfig = { params };
 
-      return axios
-        .get<PagedManagementRequests>('/management-requests/', axiosParams)
-        .then((resp) => {
-          this.items = resp.data.items || [];
-          this.pagingOptions = resp.data.paging_metadata;
-        });
+      return axios.get<PagedManagementRequests>('/management-requests/', axiosParams).then((resp) => {
+        this.items = resp.data.items || [];
+        this.pagingOptions = resp.data.paging_metadata;
+      });
     },
     async loadById(requestId: number) {
       this.loadingCurrent = true;
@@ -95,9 +93,7 @@ export const useManagementRequests = defineStore('managementRequests', {
         .finally(() => (this.loadingCurrent = false));
     },
     approve(id: number) {
-      return axios.post<ManagementRequest>(
-        `/management-requests/${id}/approval`,
-      );
+      return axios.post<ManagementRequest>(`/management-requests/${id}/approval`);
     },
     decline(id: number) {
       return axios.delete(`/management-requests/${id}`);

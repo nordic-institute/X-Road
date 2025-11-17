@@ -25,12 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdView
-    title-details="globalGroup.title"
-    translated-title
-    :title="title"
-    :breadcrumbs
-  >
+  <XrdView title-details="globalGroup.title" translated-title :title="title" :breadcrumbs>
     <template #append-header>
       <v-spacer />
       <XrdBtn
@@ -47,11 +42,7 @@
 
     <GlobalGroupMembers :group-code="groupCode" />
 
-    <DeleteGlobalGroupDialog
-      v-if="showDeleteGroupDialog"
-      :group-code="groupCode"
-      @cancel="showDeleteGroupDialog = false"
-    />
+    <DeleteGlobalGroupDialog v-if="showDeleteGroupDialog" :group-code="groupCode" @cancel="showDeleteGroupDialog = false" />
   </XrdView>
 </template>
 

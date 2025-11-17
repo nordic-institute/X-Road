@@ -40,21 +40,12 @@
 
       <!-- Step 1 -->
       <v-stepper-window-item :value="1">
-        <WizardPageCsrDetails
-          save-button-text="action.next"
-          :show-previous-button="false"
-          @cancel="cancel"
-          @done="save"
-        />
+        <WizardPageCsrDetails save-button-text="action.next" :show-previous-button="false" @cancel="cancel" @done="save" />
       </v-stepper-window-item>
 
       <!-- Step 2 -->
       <v-stepper-window-item :value="2">
-        <WizardPageGenerateCsr
-          @cancel="cancel"
-          @previous="currentStep--"
-          @done="cancel"
-        />
+        <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep--" @done="cancel" />
       </v-stepper-window-item>
     </XrdWizard>
   </XrdElevatedViewSimple>
@@ -67,11 +58,7 @@ import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue
 import { RouteName } from '@/global';
 import { mapActions } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import {
-  XrdElevatedViewSimple,
-  XrdWizard,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdElevatedViewSimple, XrdWizard, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {

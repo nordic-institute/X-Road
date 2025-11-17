@@ -26,13 +26,7 @@
  */
 
 import { defineStore } from 'pinia';
-import {
-  Endpoint,
-  Service,
-  ServiceClient,
-  ServiceUpdate,
-  ServiceClients,
-} from '@/openapi-types';
+import { Endpoint, Service, ServiceClient, ServiceUpdate, ServiceClients } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
@@ -66,18 +60,13 @@ export const useServices = defineStore('services', {
       if (!state.service?.endpoints) {
         return [];
       }
-      return state.service.endpoints.filter(
-        (endpoint: Endpoint) =>
-          !(endpoint.method === '*' && endpoint.path === '**'),
-      );
+      return state.service.endpoints.filter((endpoint: Endpoint) => !(endpoint.method === '*' && endpoint.path === '**'));
     },
   },
 
   actions: {
     async fetchService(serviceId: string) {
-      return api
-        .get<Service>(serviceBaseUrl(serviceId))
-        .then((res) => this.setService(res.data));
+      return api.get<Service>(serviceBaseUrl(serviceId)).then((res) => this.setService(res.data));
     },
     setService(service: Service) {
       service.endpoints = sortEndpoints(service.endpoints);
@@ -85,29 +74,16 @@ export const useServices = defineStore('services', {
       return service;
     },
     async updateService(serviceId: string, serviceUpdate: ServiceUpdate) {
-      return api
-        .patch<Service>(serviceBaseUrl(serviceId), serviceUpdate)
-        .then((res) => this.setService(res.data));
+      return api.patch<Service>(serviceBaseUrl(serviceId), serviceUpdate).then((res) => this.setService(res.data));
     },
     async fetchServiceClients(serviceId: string) {
-      return api
-        .get<ServiceClient[]>(serviceBaseUrl(serviceId, '/service-clients'))
-        .then((res) => (this.serviceClients = res.data));
+      return api.get<ServiceClient[]>(serviceBaseUrl(serviceId, '/service-clients')).then((res) => (this.serviceClients = res.data));
     },
     async addServiceClients(serviceId: string, serviceClients: ServiceClients) {
-      return api.post(
-        serviceBaseUrl(serviceId, '/service-clients'),
-        serviceClients,
-      );
+      return api.post(serviceBaseUrl(serviceId, '/service-clients'), serviceClients);
     },
-    async removeServiceClients(
-      serviceId: string,
-      serviceClients: ServiceClients,
-    ) {
-      return api.post(
-        serviceBaseUrl(serviceId, '/service-clients/delete'),
-        serviceClients,
-      );
+    async removeServiceClients(serviceId: string, serviceClients: ServiceClients) {
+      return api.post(serviceBaseUrl(serviceId, '/service-clients/delete'), serviceClients);
     },
     async addEndpoint(serviceId: string, endpoint: Endpoint) {
       return api.post(serviceBaseUrl(serviceId, '/endpoints'), endpoint);
@@ -130,49 +106,36 @@ export const useServices = defineStore('services', {
       if (!endpoint.id) {
         throw new Error('Unable to save endpoint: Endpoint id not defined!');
       }
-      return api
-        .patch<Endpoint>(endpointsBaseUrl(endpoint.id), endpoint)
-        .then((res) => {
-          if (this.service?.endpoints) {
-            const endpointIndex = this.service.endpoints.findIndex(
-              (e) => e.id === endpoint.id,
-            );
-            if (endpointIndex) {
-              const endpoints = [...this.service.endpoints];
-              endpoints[endpointIndex] = res.data;
-              this.service.endpoints = sortEndpoints(endpoints);
-            }
+      return api.patch<Endpoint>(endpointsBaseUrl(endpoint.id), endpoint).then((res) => {
+        if (this.service?.endpoints) {
+          const endpointIndex = this.service.endpoints.findIndex((e) => e.id === endpoint.id);
+          if (endpointIndex) {
+            const endpoints = [...this.service.endpoints];
+            endpoints[endpointIndex] = res.data;
+            this.service.endpoints = sortEndpoints(endpoints);
           }
-        });
+        }
+      });
     },
     async removeEndpointServiceClients(id: string, toDelete: ServiceClients) {
-      return api.post(
-        endpointsBaseUrl(id, '/service-clients/delete'),
-        toDelete,
-      );
+      return api.post(endpointsBaseUrl(id, '/service-clients/delete'), toDelete);
     },
     async addEndpointServiceClients(id: string, toAdd: ServiceClients) {
-      return api
-        .post<ServiceClient[]>(endpointsBaseUrl(id, '/service-clients'), toAdd)
-        .then((res) => res.data);
+      return api.post<ServiceClient[]>(endpointsBaseUrl(id, '/service-clients'), toAdd).then((res) => res.data);
     },
     async fetchEndpoint(id: string) {
       return api.get<Endpoint>(endpointsBaseUrl(id)).then((res) => res.data);
     },
     async fetchEndpointServiceClients(id: string) {
-      return api
-        .get<ServiceClient[]>(endpointsBaseUrl(id, '/service-clients'))
-        .then((res) => res.data);
+      return api.get<ServiceClient[]>(endpointsBaseUrl(id, '/service-clients')).then((res) => res.data);
     },
   },
 });
 
 function sortEndpoints(endpoints: Endpoint[] | undefined) {
   return endpoints?.sort((a: Endpoint, b: Endpoint) => {
-    const sortByGenerated =
-      a.generated === b.generated ? 0 : a.generated ? -1 : 1;
-    const sortByPathSlashCount =
-      a.path.split('/').length - b.path.split('/').length;
+    const sortByGenerated = a.generated === b.generated ? 0 : a.generated ? -1 : 1;
+    const sortByPathSlashCount = a.path.split('/').length - b.path.split('/').length;
     const sortByPathLength = a.path.length - b.path.length;
     return sortByGenerated || sortByPathSlashCount || sortByPathLength;
   });

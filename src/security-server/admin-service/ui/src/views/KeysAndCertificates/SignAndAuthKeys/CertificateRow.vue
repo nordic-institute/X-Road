@@ -33,11 +33,7 @@
         semi-bold
         :icon-color="certStatusColor"
         :label-color="certStatusColor"
-        :label="
-          cert.certificate_details.issuer_common_name +
-          ' ' +
-          cert.certificate_details.serial
-        "
+        :label="cert.certificate_details.issuer_common_name + ' ' + cert.certificate_details.serial"
         @navigate="certificateClick()"
       />
     </td>
@@ -50,10 +46,7 @@
       <CertificateStatusIcon :certificate="cert" />
     </td>
     <td>
-      <CertificateRenewalStatus
-        :certificate="cert"
-        :is-acme-certificate="isAcmeCertificate"
-      />
+      <CertificateRenewalStatus :certificate="cert" :is-acme-certificate="isAcmeCertificate" />
     </td>
     <td class="text-end">
       <slot name="certificateAction"></slot>
@@ -90,9 +83,7 @@ export default defineComponent({
   emits: ['certificate-click'],
   computed: {
     certStatusColor() {
-      return this.cert.status === CertificateStatus.GLOBAL_ERROR
-        ? 'error'
-        : undefined;
+      return this.cert.status === CertificateStatus.GLOBAL_ERROR ? 'error' : undefined;
     },
   },
 

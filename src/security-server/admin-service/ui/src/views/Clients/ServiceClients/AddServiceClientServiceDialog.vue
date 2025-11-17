@@ -57,21 +57,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="accessRight in searchResults()"
-            :key="accessRight.id"
-            class="service-row"
-            data-test="access-right-toggle"
-          >
+          <tr v-for="accessRight in searchResults()" :key="accessRight.id" class="service-row" data-test="access-right-toggle">
             <td class="xrd-checkbox-column">
               <div>
-                <v-checkbox
-                  v-model="selections"
-                  data-test="access-right-checkbox-input"
-                  class="xrd"
-                  hide-details
-                  :value="accessRight"
-                />
+                <v-checkbox v-model="selections" data-test="access-right-checkbox-input" class="xrd" hide-details :value="accessRight" />
               </div>
             </td>
             <td>{{ accessRight.service_code }}</td>
@@ -89,10 +78,10 @@
 import { defineComponent, PropType } from 'vue';
 import { AccessRight } from '@/openapi-types';
 import { ServiceCandidate } from '@/ui-types';
-import { XrdFormBlock, XrdSimpleDialog } from '@niis/shared-ui';
+import { XrdSimpleDialog } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { XrdFormBlock, XrdSimpleDialog },
+  components: { XrdSimpleDialog },
   props: {
     dialog: {
       type: Boolean,
@@ -135,15 +124,12 @@ export default defineComponent({
 
       return this.serviceCandidates.filter((candidate: ServiceCandidate) => {
         return (
-          candidate.service_code.toLowerCase().includes(cleanedSearch) ||
-          candidate.service_title?.toLowerCase().includes(cleanedSearch)
+          candidate.service_code.toLowerCase().includes(cleanedSearch) || candidate.service_title?.toLowerCase().includes(cleanedSearch)
         );
       });
     },
     filterSelections(): AccessRight[] {
-      return this.selections.filter((ac: AccessRight) =>
-        ac.service_code.includes(this.search),
-      );
+      return this.selections.filter((ac: AccessRight) => ac.service_code.includes(this.search));
     },
   },
 });

@@ -25,12 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewFixedWidth
-    :title="title"
-    data-test="service-description-details-dialog"
-    go-back-on-close
-    :breadcrumbs="breadcrumbs"
-  >
+  <XrdElevatedViewFixedWidth :title="title" data-test="service-description-details-dialog" go-back-on-close :breadcrumbs="breadcrumbs">
     <template #footer>
       <v-spacer />
       <XrdBtn
@@ -74,10 +69,7 @@
         />
       </XrdFormBlockRow>
       <XrdFormBlockRow
-        v-if="
-          serviceDescription?.type === serviceType.REST ||
-          serviceDescription?.type === serviceType.OPENAPI3
-        "
+        v-if="serviceDescription?.type === serviceType.REST || serviceDescription?.type === serviceType.OPENAPI3"
         full-length
       >
         <v-text-field
@@ -119,11 +111,7 @@
 import { defineComponent, ref, computed } from 'vue';
 import { Permissions, RouteName } from '@/global';
 import ServiceWarningDialog from '@/components/service/ServiceWarningDialog.vue';
-import {
-  ServiceDescription,
-  ServiceDescriptionUpdate,
-  ServiceType,
-} from '@/openapi-types';
+import { ServiceDescription, ServiceDescriptionUpdate, ServiceType } from '@/openapi-types';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { defineRule, useForm } from 'vee-validate';
@@ -134,8 +122,8 @@ import {
   XrdFormBlock,
   XrdFormBlockRow,
   useNotifications,
-  helper,
-  XrdConfirmDialog
+  XrdConfirmDialog,
+  veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
@@ -143,25 +131,14 @@ import { useClient } from '@/store/modules/client';
 import { clientTitle } from '@/util/ClientUtil';
 import { useServiceDescriptions } from '@/store/modules/service-descriptions';
 
-defineRule(
-  'requiredIfREST',
-  (
-    value: string,
-    [expectedValue]: [string],
-    ctx: FieldValidationMetaInfo,
-  ): string | boolean => {
-    if (
-      (expectedValue === ServiceType.REST ||
-        expectedValue === ServiceType.OPENAPI3) &&
-      (!value || !value.length)
-    ) {
-      return i18n.global.t('customValidation.requiredIf', {
-        fieldName: i18n.global.t(`fields.${ctx.field}`),
-      });
-    }
-    return true;
-  },
-);
+defineRule('requiredIfREST', (value: string, [expectedValue]: [string], ctx: FieldValidationMetaInfo): string | boolean => {
+  if ((expectedValue === ServiceType.REST || expectedValue === ServiceType.OPENAPI3) && (!value || !value.length)) {
+    return i18n.global.t('customValidation.requiredIf', {
+      fieldName: i18n.global.t(`fields.${ctx.field}`),
+    });
+  }
+  return true;
+});
 
 export default defineComponent({
   components: {
@@ -181,11 +158,7 @@ export default defineComponent({
   setup(props) {
     const { addError, addSuccessMessage } = useNotifications();
     const clientStore = useClient();
-    const {
-      fetchServiceDescription,
-      updateServiceDescription,
-      deleterServiceDescription,
-    } = useServiceDescriptions();
+    const { fetchServiceDescription, updateServiceDescription, deleterServiceDescription } = useServiceDescriptions();
     const serviceDescription = ref<ServiceDescription | undefined>(undefined);
     const { meta, values, defineField, resetForm } = useForm({
       validationSchema: computed(() => ({
@@ -201,14 +174,8 @@ export default defineComponent({
       },
     });
 
-    const [serviceUrl, serviceUrlAttr] = defineField(
-      'serviceUrl',
-      helper.veeDefaultFieldConfig(),
-    );
-    const [serviceCode, serviceCodeAttr] = defineField(
-      'serviceCode',
-      helper.veeDefaultFieldConfig(),
-    );
+    const [serviceUrl, serviceUrlAttr] = defineField('serviceUrl', veeDefaultFieldConfig());
+    const [serviceCode, serviceCodeAttr] = defineField('serviceCode', veeDefaultFieldConfig());
     return {
       meta,
       values,
@@ -244,9 +211,7 @@ export default defineComponent({
       return this.hasPermission(Permissions.DELETE_WSDL);
     },
     deletePopupText(): string {
-      return this.serviceDescription?.type === ServiceType.WSDL
-        ? 'services.deleteWsdlText'
-        : 'services.deleteRestText';
+      return this.serviceDescription?.type === ServiceType.WSDL ? 'services.deleteWsdlText' : 'services.deleteRestText';
     },
     title() {
       switch (this.serviceDescription?.type) {
@@ -281,10 +246,7 @@ export default defineComponent({
       if (this.clientStore.client) {
         breadcrumbs.push(
           {
-            title: clientTitle(
-              this.clientStore.client,
-              this.clientStore.clientLoading,
-            ),
+            title: clientTitle(this.clientStore.client, this.clientStore.clientLoading),
             to: {
               name: RouteName.SubsystemDetails,
               params: { id: this.clientStore.client.id },
@@ -301,11 +263,7 @@ export default defineComponent({
       }
 
       breadcrumbs.push({
-        title: this.$t(
-          this.serviceDescription?.type === ServiceType.WSDL
-            ? 'services.editWsdl'
-            : 'services.editRest',
-        ),
+        title: this.$t(this.serviceDescription?.type === ServiceType.WSDL ? 'services.editWsdl' : 'services.editRest'),
       });
       return breadcrumbs;
     },
@@ -316,9 +274,7 @@ export default defineComponent({
       handler() {
         this.fetchServiceDescription(this.id)
           .then((serviceDescription) => this.updateForm(serviceDescription))
-          .then((serviceDescription) =>
-            this.clientStore.fetchClient(serviceDescription.client_id),
-          )
+          .then((serviceDescription) => this.clientStore.fetchClient(serviceDescription.client_id))
           .catch((error) => this.addError(error, { navigate: true }));
       },
     },
@@ -354,12 +310,10 @@ export default defineComponent({
         this.serviceDescriptionUpdate.type === this.serviceType.REST ||
         this.serviceDescriptionUpdate.type === this.serviceType.OPENAPI3
       ) {
-        this.serviceDescriptionUpdate.rest_service_code =
-          this.serviceDescription.services[0].service_code;
+        this.serviceDescriptionUpdate.rest_service_code = this.serviceDescription.services[0].service_code;
 
         this.serviceDescriptionUpdate.new_rest_service_code =
-          this.serviceDescriptionUpdate.rest_service_code !==
-          this.values.serviceCode
+          this.serviceDescriptionUpdate.rest_service_code !== this.values.serviceCode
             ? this.values.serviceCode
             : this.serviceDescriptionUpdate.rest_service_code;
       }

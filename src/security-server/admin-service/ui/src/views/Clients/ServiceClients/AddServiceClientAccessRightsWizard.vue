@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewSimple
-    data-test="add-subject-view"
-    title="serviceClients.addServiceClientTitle"
-    go-back-on-close
-  >
+  <XrdElevatedViewSimple data-test="add-subject-view" title="serviceClients.addServiceClientTitle" go-back-on-close>
     <!-- eslint-disable-next-line vuetify/no-deprecated-components -->
     <XrdWizard v-model="step">
       <template #header-items>
@@ -43,11 +39,7 @@
       </template>
 
       <v-stepper-window-item :value="1">
-        <MemberOrGroupSelectionStep
-          :id="id"
-          :service-clients="serviceClients"
-          @set-step="nextStep"
-        />
+        <MemberOrGroupSelectionStep :id="id" :service-clients="serviceClients" @set-step="nextStep" />
       </v-stepper-window-item>
       <v-stepper-window-item :value="2">
         <ServiceSelectionStep
@@ -69,11 +61,7 @@ import ServiceSelectionStep from '@/views/Clients/ServiceClients/ServiceSelectio
 import { AccessRight, Service, ServiceClient } from '@/openapi-types';
 import { ServiceCandidate } from '@/ui-types';
 import { compareByServiceCode } from '@/util/sorting';
-import {
-  XrdElevatedViewSimple,
-  useNotifications,
-  XrdWizard,
-} from '@niis/shared-ui';
+import { XrdElevatedViewSimple, useNotifications, XrdWizard } from '@niis/shared-ui';
 import { mapActions } from 'pinia';
 import { useServiceClients } from '@/store/modules/service-clients';
 import { useServices } from '@/store/modules/services';

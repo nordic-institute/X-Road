@@ -50,21 +50,15 @@ const props = defineProps({
   },
 });
 
-const withValue = [props.name, props.serviceClient, props.client].filter(
-  (prop) => prop,
-).length;
+const withValue = [props.name, props.serviceClient, props.client].filter((prop) => prop).length;
 
 if (withValue > 1) {
-  throw new Error(
-    'Multiple sources for client name are provided. Only one of them should be provided.',
-  );
+  throw new Error('Multiple sources for client name are provided. Only one of them should be provided.');
 }
 
 const isSubsystem = computed(() => {
   if (props.serviceClient) {
-    return (
-      props.serviceClient.service_client_type === ServiceClientType.SUBSYSTEM
-    );
+    return props.serviceClient.service_client_type === ServiceClientType.SUBSYSTEM;
   }
   if (props.client) {
     return props.client.subsystem_code;
@@ -77,9 +71,7 @@ const displayName = computed(() => {
     return props.serviceClient.name;
   }
   if (props.client) {
-    return isSubsystem.value
-      ? (props.client.subsystem_name ?? props.client.subsystem_code)
-      : props.client.member_name;
+    return isSubsystem.value ? (props.client.subsystem_name ?? props.client.subsystem_code) : props.client.member_name;
   }
   return props.name;
 });

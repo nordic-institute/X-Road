@@ -38,8 +38,6 @@ import { XrdAppLogin, useNotifications } from '@niis/shared-ui';
 
 import { useSystem } from '@/store/modules/system';
 import { useUser } from '@/store/modules/user';
-
-import AlertsContainer from '@/components/AlertsContainer.vue';
 import { useMainTabs } from '@/store/modules/main-tabs';
 
 interface Form {
@@ -51,7 +49,6 @@ interface Form {
 export default defineComponent({
   components: {
     XrdAppLogin,
-    AlertsContainer,
   },
   setup() {
     const { addError, addErrorMessage, clear } = useNotifications();
@@ -110,21 +107,10 @@ export default defineComponent({
       return this.fetchUserData();
     },
     async routeToMembersPage() {
-      this.$router
-        .replace(this.firstAllowedTab.to);
+      this.$router.replace(this.firstAllowedTab.to);
       this.loading = false;
     },
   },
 });
 </script>
-<style lang="scss" scoped>
-.alerts {
-  top: 40px;
-  left: 0;
-  right: 0;
-  margin-left: auto;
-  margin-right: auto;
-  z-index: 100;
-  position: absolute;
-}
-</style>
+<style lang="scss" scoped></style>

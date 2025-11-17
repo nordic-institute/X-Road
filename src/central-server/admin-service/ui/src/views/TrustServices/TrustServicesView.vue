@@ -41,8 +41,6 @@ import TimestampingServicesList from './TimestampingServices/TimestampingService
 import CertificationServicesList from '@/views/TrustServices/CertificationServices/CertificationServicesList.vue';
 
 const { hasPermission } = useUser();
-const showTsaList = computed(() =>
-  hasPermission(Permissions.VIEW_APPROVED_TSAS),
-);
+const showTsaList = computed(() => hasPermission(Permissions.VIEW_APPROVED_TSAS));
 </script>
 <style lang="scss" scoped></style>

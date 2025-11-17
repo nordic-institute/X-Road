@@ -3341,7 +3341,7 @@ components:
     BackupArchive:
       description: central server backup archive file # potential-common-api
       properties:
-        file:
+        backup:
           format: binary
           type: string
       type: object

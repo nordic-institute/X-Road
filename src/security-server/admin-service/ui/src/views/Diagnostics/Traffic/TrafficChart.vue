@@ -26,13 +26,7 @@
  -->
 <template>
   <v-progress-linear v-if="loading" height="2" indeterminate />
-  <VueApexChart
-    v-else
-    type="line"
-    :options="options"
-    :series="series"
-    height="100%"
-  ></VueApexChart>
+  <VueApexChart v-else type="line" :options="options" :series="series" height="100%"></VueApexChart>
 </template>
 
 <script lang="ts" setup>

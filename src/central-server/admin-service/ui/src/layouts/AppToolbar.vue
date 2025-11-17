@@ -47,9 +47,7 @@ import { useSystem } from '@/store/modules/system';
 
 const systemStore = useSystem();
 
-const initializationParameters = computed(
-  () => systemStore.getSystemStatus?.initialization_status,
-);
+const initializationParameters = computed(() => systemStore.getSystemStatus?.initialization_status);
 const serverName = computed(() =>
   initializationParameters.value
     ? `${initializationParameters.value.instance_identifier} : ${initializationParameters.value.central_server_address}`

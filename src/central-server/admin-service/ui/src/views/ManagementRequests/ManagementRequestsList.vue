@@ -25,18 +25,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdView
-    data-test="security-servers-view"
-    title="tab.main.managementRequests"
-  >
+  <XrdView data-test="security-servers-view" title="tab.main.managementRequests">
     <template #append-header>
       <div class="ml-6">
-        <XrdSearchField
-          v-model="filterQuery"
-          data-test="search-query-field"
-          width="320"
-          :label="$t('action.search')"
-        />
+        <XrdSearchField v-model="filterQuery" data-test="search-query-field" width="320" :label="$t('action.search')" />
       </div>
       <v-spacer />
       <div class="only-pending">
@@ -146,21 +138,10 @@ import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
-import {
-  useNotifications,
-  XrdBtn,
-  XrdLabelWithIcon,
-  XrdPagination,
-  XrdView,
-  XrdDateTime,
-} from '@niis/shared-ui';
+import { useNotifications, XrdBtn, XrdLabelWithIcon, XrdPagination, XrdView, XrdDateTime } from '@niis/shared-ui';
 
 import { Permissions, RouteName } from '@/global';
-import {
-  ManagementRequestListView,
-  ManagementRequestStatus,
-  ManagementRequestType,
-} from '@/openapi-types';
+import { ManagementRequestListView, ManagementRequestStatus, ManagementRequestType } from '@/openapi-types';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { useUser } from '@/store/modules/user';
 import { DataQuery, PagingOptions } from '@/ui-types';
@@ -187,15 +168,10 @@ const { hasPermission } = useUser();
 
 const showOnlyPending = computed({
   get(): boolean {
-    return (
-      managementRequests.currentFilter.status ===
-      ManagementRequestStatus.WAITING
-    );
+    return managementRequests.currentFilter.status === ManagementRequestStatus.WAITING;
   },
   set(value: boolean) {
-    managementRequests.currentFilter.status = value
-      ? ManagementRequestStatus.WAITING
-      : undefined;
+    managementRequests.currentFilter.status = value ? ManagementRequestStatus.WAITING : undefined;
   },
 });
 
@@ -209,16 +185,10 @@ const filterQuery = computed({
 });
 
 const newClientOwner = computed(
-  () =>
-    toApprove.value?.type ===
-      ManagementRequestType.CLIENT_REGISTRATION_REQUEST &&
-    !toApprove.value?.client_owner_name,
+  () => toApprove.value?.type === ManagementRequestType.CLIENT_REGISTRATION_REQUEST && !toApprove.value?.client_owner_name,
 );
 const newServerOwner = computed(
-  () =>
-    toApprove.value?.type ===
-      ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST &&
-    !toApprove.value?.security_server_owner,
+  () => toApprove.value?.type === ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST && !toApprove.value?.security_server_owner,
 );
 const newMember = computed(() => newClientOwner.value || newServerOwner.value);
 
@@ -263,15 +233,9 @@ const headers = computed(
     ] as DataTableHeader[],
 );
 
-const canSeeDetails = computed(() =>
-  hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS),
-);
-const canApprove = computed(() =>
-  hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS),
-);
-const canDecline = computed(() =>
-  hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS),
-);
+const canSeeDetails = computed(() => hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS));
+const canApprove = computed(() => hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS));
+const canDecline = computed(() => hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS));
 
 watch(
   filterQuery,
@@ -293,12 +257,7 @@ async function changeOptions({ itemsPerPage, page, sortBy }: PagingOptions) {
   dataQuery.page = page;
   dataQuery.sortBy = sortBy[0]?.key;
   const order = sortBy[0]?.order;
-  dataQuery.sortOrder =
-    order === undefined
-      ? undefined
-      : order === true || order === 'asc'
-        ? 'asc'
-        : 'desc';
+  dataQuery.sortOrder = order === undefined ? undefined : order === true || order === 'asc' ? 'asc' : 'desc';
   await fetchItems();
 }
 

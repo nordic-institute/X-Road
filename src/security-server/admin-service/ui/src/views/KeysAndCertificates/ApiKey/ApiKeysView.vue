@@ -35,12 +35,7 @@
     :create-api-key-route-name="createViewName"
   >
     <template #append-header>
-      <HelpButton
-        class="ml-2"
-        :help-image="helpImage"
-        help-title="keys.helpTitleApi"
-        help-text="keys.helpTextApi"
-      />
+      <HelpButton class="ml-2" :help-image="helpImage" help-title="keys.helpTitleApi" help-text="keys.helpTextApi" />
     </template>
     <template #tabs>
       <KeysAndCertificatesTabs />

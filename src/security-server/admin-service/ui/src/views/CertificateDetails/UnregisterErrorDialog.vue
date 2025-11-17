@@ -36,10 +36,7 @@
   >
     <template #content>
       <div data-test="dialog-content-text">
-        <template v-if="errorResponse">{{
-            $t('keys.unregisterError')
-          }}
-        </template>
+        <template v-if="errorResponse">{{ $t('keys.unregisterError') }} </template>
       </div>
     </template>
   </XrdSimpleDialog>

@@ -98,10 +98,7 @@ export default defineComponent({
       },
     });
     const [code, codeAttrs] = defineField('code', componentConfig);
-    const [description, descriptionAttrs] = defineField(
-      'description',
-      componentConfig,
-    );
+    const [description, descriptionAttrs] = defineField('description', componentConfig);
     return {
       meta,
       code,

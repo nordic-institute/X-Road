@@ -66,11 +66,7 @@
     </v-data-table>
 
     <delete-authentication-certificate-dialog
-      v-if="
-        securityServerId &&
-        authCertIdForDeletion &&
-        showDeleteConfirmationDialog
-      "
+      v-if="securityServerId && authCertIdForDeletion && showDeleteConfirmationDialog"
       :authentication-certificate-id="authCertIdForDeletion.toString()"
       :security-server-id="securityServerId"
       @cancel="cancelDeletion"
@@ -85,18 +81,10 @@ import { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { mapState, mapStores } from 'pinia';
 
-import {
-  XrdBtn,
-  XrdDateTime,
-  XrdLabelWithIcon,
-  XrdSubView,
-} from '@niis/shared-ui';
+import { XrdBtn, XrdDateTime, XrdLabelWithIcon, XrdSubView } from '@niis/shared-ui';
 
 import { Permissions, RouteName } from '@/global';
-import {
-  SecurityServerAuthenticationCertificateDetails,
-  SecurityServerId,
-} from '@/openapi-types';
+import { SecurityServerAuthenticationCertificateDetails, SecurityServerId } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { useUser } from '@/store/modules/user';
@@ -134,16 +122,12 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          title: this.$t(
-            'securityServers.securityServer.certificationAuthority',
-          ) as string,
+          title: this.$t('securityServers.securityServer.certificationAuthority') as string,
           align: 'start',
           key: 'issuer_common_name',
         },
         {
-          title: this.$t(
-            'securityServers.securityServer.serialNumber',
-          ) as string,
+          title: this.$t('securityServers.securityServer.serialNumber') as string,
           align: 'start',
           key: 'serial',
         },
@@ -179,9 +163,7 @@ export default defineComponent({
   methods: {
     fetchSecurityServerAuthenticationCertificates(serverId: string): void {
       this.loading = true;
-      this.securityServerAuthCertStore
-        .fetch(serverId)
-        .finally(() => (this.loading = false));
+      this.securityServerAuthCertStore.fetch(serverId).finally(() => (this.loading = false));
     },
     hasDeletePermission(): boolean {
       return this.hasPermission(Permissions.DELETE_SECURITY_SERVER_AUTH_CERT);

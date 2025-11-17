@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container
-    v-if="authenticated && !needsInitialization && hasAlerts"
-    class="pa-0"
-    fluid
-  >
+  <v-container v-if="authenticated && !needsInitialization && hasAlerts" class="pa-0" fluid>
     <XrdBanner
       v-if="showGlobalConfAlert"
       data-test="global-alert-global-configuration"
@@ -45,21 +41,11 @@
       text="globalAlert.softTokenPinNotEntered"
     >
       <template v-if="showKeysPageLink" #actions>
-        <XrdBtn
-          data-test="global-alert-soft-token-pin"
-          variant="text"
-          text="keys.logIn"
-          @click="navigateToKeysPage()"
-        />
+        <XrdBtn data-test="global-alert-soft-token-pin" variant="text" text="keys.logIn" @click="navigateToKeysPage()" />
       </template>
     </XrdBanner>
 
-    <XrdBanner
-      v-if="showRestoreInProgress"
-      data-test="global-alert-restore"
-      icon="error"
-      color="error"
-    >
+    <XrdBanner v-if="showRestoreInProgress" data-test="global-alert-restore" icon="error" color="error">
       <i18n-t scope="global" keypath="globalAlert.backupRestoreInProgress">
         <template #startTime>
           <XrdDateTime :value="restoreStartTime" />
@@ -67,40 +53,21 @@
       </i18n-t>
     </XrdBanner>
 
-    <XrdBanner
-      v-if="isSecondaryNode"
-      data-test="global-alert-secondary-node"
-      icon="error"
-      color="error"
-      text="globalAlert.secondaryNode"
-    />
+    <XrdBanner v-if="isSecondaryNode" data-test="global-alert-secondary-node" icon="error" color="error" text="globalAlert.secondaryNode" />
 
-    <XrdBanner
-      v-if="showCertificateRenewalJobFailureAlert"
-      data-test="global-alert-certificate-renewal-failure"
-      icon="error"
-      color="error"
-    >
+    <XrdBanner v-if="showCertificateRenewalJobFailureAlert" data-test="global-alert-certificate-renewal-failure" icon="error" color="error">
       <span class="alert-text">
         {{ $t('globalAlert.certificateRenewalJobFailure') }}
       </span>
 
       <p v-if="authCertificateIdsWithErrors.length > 0">
-        {{
-          `${$t('globalAlert.certificateRenewalJobFailureAuth')} ${failedAuthCertIds}`
-        }}
+        {{ `${$t('globalAlert.certificateRenewalJobFailureAuth')} ${failedAuthCertIds}` }}
       </p>
       <p v-if="signCertificateIdsWithErrors.length > 0">
-        {{
-          `${$t('globalAlert.certificateRenewalJobFailureSign')} ${failedSignCertIds}`
-        }}
+        {{ `${$t('globalAlert.certificateRenewalJobFailureSign')} ${failedSignCertIds}` }}
       </p>
       <template v-if="showKeysPageLink" #actions>
-        <XrdBtn
-          variant="text"
-          text="globalAlert.navigateToKeysPage"
-          @click="navigateToKeysPage()"
-        />
+        <XrdBtn variant="text" text="globalAlert.navigateToKeysPage" @click="navigateToKeysPage()" />
       </template>
     </XrdBanner>
   </v-container>
@@ -131,12 +98,7 @@ export default defineComponent({
       'signCertificateIdsWithErrors',
     ]),
     ...mapState(useSystem, ['isSecondaryNode']),
-    ...mapState(useUser, [
-      'username',
-      'authenticated',
-      'needsInitialization',
-      'hasPermission',
-    ]),
+    ...mapState(useUser, ['username', 'authenticated', 'needsInitialization', 'hasPermission']),
     hasAlerts(): boolean {
       return (
         this.showGlobalConfAlert ||

@@ -29,7 +29,7 @@ import { AxiosError } from 'axios';
 import { i18n } from '../plugins/i18n';
 import { ErrorInfo } from '@/openapi-types';
 
-function getErrorInfo(axiosError: AxiosError): ErrorInfo {
+export function getErrorInfo(axiosError: AxiosError): ErrorInfo {
   return (axiosError?.response?.data as ErrorInfo) || { status: 0 };
 }
 
@@ -38,12 +38,12 @@ function getErrorInfo(axiosError: AxiosError): ErrorInfo {
  * @params:
  *    errorInfo:  ErrorInfo  returned from Spring backend
  */
-function isFieldValidationError(errorInfo: ErrorInfo): boolean {
+export function isFieldValidationError(errorInfo: ErrorInfo): boolean {
   const errorStatus = errorInfo?.status;
   return 400 === errorStatus && 'validation_failure' === errorInfo?.error?.code;
 }
 
-function getTranslatedFieldErrors(fieldName: string, fieldError: Record<string, string[]>): string[] {
+export function getTranslatedFieldErrors(fieldName: string, fieldError: Record<string, string[]>): string[] {
   const errors: string[] = fieldError[fieldName];
   if (errors) {
     return errors.map((errorKey: string) => {
@@ -54,8 +54,19 @@ function getTranslatedFieldErrors(fieldName: string, fieldError: Record<string, 
   }
 }
 
-export const axiosHelpers = {
-  isFieldValidationError,
-  getErrorInfo,
-  getTranslatedFieldErrors,
-};
+export function multipartFormDataConfig() {
+  return {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  };
+}
+
+type FormFieldName = 'backup' | 'certificate' | 'anchor';
+
+export function buildFileFormData(name: FormFieldName, file: File): FormData {
+  const formData = new FormData();
+  formData.set(name, file, file.name);
+
+  return formData;
+}

@@ -41,77 +41,44 @@ export const useServiceClients = defineStore('service-clients', {
   actions: {
     async fetchServiceClients(clientId: string) {
       const encodedId = encodePathParameter(clientId);
-      return api
-        .get<ServiceClient[]>(`/clients/${encodedId}/service-clients`)
-        .then((response) => response.data);
+      return api.get<ServiceClient[]>(`/clients/${encodedId}/service-clients`).then((response) => response.data);
     },
 
     async fetchServiceClient(clientId: string, serviceClientId: string) {
       const encodedId = encodePathParameter(clientId);
       const encodedServiceClientId = encodePathParameter(serviceClientId);
-      return api
-        .get<ServiceClient>(
-          `/clients/${encodedId}/service-clients/${encodedServiceClientId}`,
-        )
-        .then((response) => response.data);
+      return api.get<ServiceClient>(`/clients/${encodedId}/service-clients/${encodedServiceClientId}`).then((response) => response.data);
     },
 
-    async fetchCandidates(
-      clientId: string,
-      params: Record<string, string> | undefined = undefined,
-    ): Promise<ServiceClient[]> {
+    async fetchCandidates(clientId: string, params: Record<string, string> | undefined = undefined): Promise<ServiceClient[]> {
       const encodedId = encodePathParameter(clientId);
       const config = {} as AxiosRequestConfig;
       if (params) {
         config.params = params;
       }
-      return api
-        .get<
-          ServiceClient[]
-        >(`/clients/${encodedId}/service-client-candidates`, config)
-        .then((response) => response.data);
+      return api.get<ServiceClient[]>(`/clients/${encodedId}/service-client-candidates`, config).then((response) => response.data);
     },
 
-    async saveAccessRights(
-      clientId: string,
-      selectedCandidateId: string,
-      accessRights: AccessRights,
-    ) {
+    async saveAccessRights(clientId: string, selectedCandidateId: string, accessRights: AccessRights) {
       const encodedId = encodePathParameter(clientId);
       const candidateId = encodePathParameter(selectedCandidateId);
-      return api.post(
-        `/clients/${encodedId}/service-clients/${candidateId}/access-rights`,
-        accessRights,
-      );
+      return api.post(`/clients/${encodedId}/service-clients/${candidateId}/access-rights`, accessRights);
     },
 
-    async fetchAccessRights(
-      clientId: string,
-      serviceClientId: string,
-      sort = true,
-    ) {
+    async fetchAccessRights(clientId: string, serviceClientId: string, sort = true) {
       const encodedId = encodePathParameter(clientId);
       const encodedServiceClientId = encodePathParameter(serviceClientId);
       return api
-        .get<
-          AccessRight[]
-        >(`/clients/${encodedId}/service-clients/${encodedServiceClientId}/access-rights`)
-        .then((response) =>
-          sort ? sortAccessRightsByServiceCode(response.data) : response.data,
-        );
+        .get<AccessRight[]>(`/clients/${encodedId}/service-clients/${encodedServiceClientId}/access-rights`)
+        .then((response) => (sort ? sortAccessRightsByServiceCode(response.data) : response.data));
     },
 
-    async removeAccessRights(
-      clientId: string,
-      serviceClientId: string,
-      serviceCodes: string[],
-    ) {
+    async removeAccessRights(clientId: string, serviceClientId: string, serviceCodes: string[]) {
       const encodedId = encodePathParameter(clientId);
       const encodedServiceClientId = encodePathParameter(serviceClientId);
-      return api.post(
-        `/clients/${encodedId}/service-clients/${encodedServiceClientId}/access-rights/delete`,
-        { items: serviceCodes.map((code) => ({ service_code: code })) },
-      );
+      return api.post(`/clients/${encodedId}/service-clients/${encodedServiceClientId}/access-rights/delete`, {
+        items: serviceCodes.map((code) => ({ service_code: code })),
+      });
     },
   },
 });

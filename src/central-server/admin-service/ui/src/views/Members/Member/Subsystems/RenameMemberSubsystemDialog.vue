@@ -58,12 +58,7 @@ import { ClientId } from '@/openapi-types';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
-import {
-  XrdSimpleDialog,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {
@@ -96,12 +91,7 @@ const [name, nameAttrs] = defineField('subsystemName', {
 
 const loading = ref(false);
 
-const canSave = computed(
-  () =>
-    meta.value.valid &&
-    meta.value.dirty &&
-    (name.value ? true : props.subsystemName),
-);
+const canSave = computed(() => meta.value.valid && meta.value.dirty && (name.value ? true : props.subsystemName));
 
 function cancel() {
   emits('cancel');
@@ -112,19 +102,13 @@ const { t } = useI18n();
 
 const rename = handleSubmit((values) => {
   loading.value = true;
-  renameSubsystem(
-    props.member.client_id.encoded_id + ':' + props.subsystemCode,
-    {
-      subsystem_name: values.subsystemName,
-    },
-  )
+  renameSubsystem(props.member.client_id.encoded_id + ':' + props.subsystemCode, {
+    subsystem_name: values.subsystemName,
+  })
     .then(() => {
-      addSuccessMessage(
-        'members.member.subsystems.subsystemSuccessfullyRenamed',
-        {
-          subsystemCode: values.subsystemCode,
-        },
-      );
+      addSuccessMessage('members.member.subsystems.subsystemSuccessfullyRenamed', {
+        subsystemCode: values.subsystemCode,
+      });
       emits('save');
       resetForm();
     })

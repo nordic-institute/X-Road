@@ -56,6 +56,7 @@ const logo = computed(() => (isDark.value ? _logoDark : _logoLight));
   padding: 24px 8px;
   border-right-width: 0;
 
+  //eslint-disable-next-line vue-scoped-css/no-unused-selector
   .v-list-item {
     margin: 0 8px;
     padding: 8px 0 12px;

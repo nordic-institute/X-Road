@@ -51,12 +51,7 @@ import { defineComponent } from 'vue';
 
 import { mapState, mapStores } from 'pinia';
 
-import {
-  BackupHandler,
-  useNotifications,
-  XrdBackupsDataTable,
-  XrdView,
-} from '@niis/shared-ui';
+import { BackupHandler, useNotifications, XrdBackupsDataTable, XrdView } from '@niis/shared-ui';
 
 import { Permissions } from '@/global';
 import { Backup } from '@/openapi-types';
@@ -123,9 +118,7 @@ export default defineComponent({
       return this.backupStore.downloadBackup(filename);
     },
     uploadBackup(backupFile: File, ignoreWarnings = false) {
-      return this.backupStore
-        .uploadBackup(backupFile, ignoreWarnings)
-        .then((resp) => resp.data);
+      return this.backupStore.uploadBackup(backupFile, ignoreWarnings).then((resp) => resp.data);
     },
   },
 });

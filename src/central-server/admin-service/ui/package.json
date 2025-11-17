@@ -14,15 +14,13 @@
     "format": "prettier --write src/",
     "license-check": "license-check-and-add check -f ../../../shared-ui/license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f ../../../shared-ui/license-check-and-add-config.json",
-    "bundle-openapi": "rm -rf src/openapi-types && swagger-cli bundle -t yaml -o ./build/openapi/openapi-definition-bundled.yaml ../../openapi-model/src/main/resources/openapi-definition.yaml",
-    "generate-types": "pnpm run bundle-openapi && openapi --input ./build/openapi/openapi-definition-bundled.yaml --output ./src/openapi-types --exportCore false --exportServices false"
+    "generate-types": "rm -rf src/openapi-types && openapi --input ../../openapi-model/src/main/resources/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false"
   },
   "dependencies": {
     "@niis/shared-ui": "workspace:*",
     "is-ip": "^5.0.1"
   },
   "devDependencies": {
-    "@apidevtools/swagger-cli": "~4.0.4",
     "openapi-types": "^12.1.3"
   },
   "engines": {

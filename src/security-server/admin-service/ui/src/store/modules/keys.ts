@@ -28,11 +28,7 @@
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import {
-  Key,
-  PossibleActions as PossibleActionsList,
-  KeyName,
-} from '@/openapi-types';
+import { Key, PossibleActions as PossibleActionsList, KeyName } from '@/openapi-types';
 
 export const useKeys = defineStore('keys', {
   state: () => ({}),
@@ -45,9 +41,7 @@ export const useKeys = defineStore('keys', {
     },
     async fetchPossibleActions(id: string) {
       const encodedId = encodePathParameter(id);
-      return api
-        .get<PossibleActionsList>(`/keys/${encodedId}/possible-actions`)
-        .then((res) => res.data);
+      return api.get<PossibleActionsList>(`/keys/${encodedId}/possible-actions`).then((res) => res.data);
     },
     async updateKeyName(id: string, keyName: KeyName) {
       const encodedId = encodePathParameter(id);

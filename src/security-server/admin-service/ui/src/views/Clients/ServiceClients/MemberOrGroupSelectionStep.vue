@@ -26,10 +26,7 @@
  -->
 <template>
   <XrdWizardStep>
-    <v-table
-      data-test="service-clients-table"
-      class="xrd xrd-rounded-12 border bg-surface-container"
-    >
+    <v-table data-test="service-clients-table" class="xrd xrd-rounded-12 border bg-surface-container">
       <template #top>
         <v-text-field
           v-model="search"
@@ -70,19 +67,9 @@
       </tbody>
     </v-table>
     <template #footer>
-      <XrdBtn
-        data-test="cancel-button"
-        variant="text"
-        text="action.cancel"
-        @click="cancel"
-      />
+      <XrdBtn data-test="cancel-button" variant="text" text="action.cancel" @click="cancel" />
       <v-spacer />
-      <XrdBtn
-        data-test="next-button"
-        text="action.next"
-        :disabled="!selection"
-        @click="$emit('set-step', selection)"
-      />
+      <XrdBtn data-test="next-button" text="action.next" :disabled="!selection" @click="$emit('set-step', selection)" />
     </template>
   </XrdWizardStep>
 </template>
@@ -90,18 +77,13 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { ServiceClient } from '@/openapi-types';
-import {
-  XrdWizardStep,
-  useNotifications,
-  XrdFormBlock,
-  XrdBtn,
-} from '@niis/shared-ui';
+import { XrdWizardStep, useNotifications, XrdBtn } from '@niis/shared-ui';
 import { mapActions } from 'pinia';
 import ClientName from '@/components/client/ClientName.vue';
 import { useServiceClients } from '@/store/modules/service-clients';
 
 export default defineComponent({
-  components: { ClientName, XrdWizardStep, XrdFormBlock, XrdBtn },
+  components: { ClientName, XrdWizardStep, XrdBtn },
   props: {
     id: {
       type: String,
@@ -126,21 +108,13 @@ export default defineComponent({
   },
   computed: {
     filteredCandidates(): ServiceClient[] {
-      return this.serviceClientCandidates.filter(
-        (candidate: ServiceClient): boolean => {
-          const searchWordLowerCase = this.search.toLowerCase();
+      return this.serviceClientCandidates.filter((candidate: ServiceClient): boolean => {
+        const searchWordLowerCase = this.search.toLowerCase();
 
-          // local group id is number. Convert it to string so it's easier to search it
-          const id =
-            candidate.service_client_type === 'LOCALGROUP'
-              ? candidate.id.toString()
-              : candidate.id.toLowerCase();
-          return (
-            candidate.name?.toLowerCase().includes(searchWordLowerCase) ||
-            id.includes(searchWordLowerCase)
-          );
-        },
-      );
+        // local group id is number. Convert it to string so it's easier to search it
+        const id = candidate.service_client_type === 'LOCALGROUP' ? candidate.id.toString() : candidate.id.toLowerCase();
+        return candidate.name?.toLowerCase().includes(searchWordLowerCase) || id.includes(searchWordLowerCase);
+      });
     },
   },
   created(): void {
@@ -160,9 +134,7 @@ export default defineComponent({
       this.$router.back();
     },
     isDisabled(scCandidate: ServiceClient): boolean {
-      return this.serviceClients.some(
-        (sc: ServiceClient): boolean => sc.id === scCandidate.id,
-      );
+      return this.serviceClients.some((sc: ServiceClient): boolean => sc.id === scCandidate.id);
     },
   },
 });

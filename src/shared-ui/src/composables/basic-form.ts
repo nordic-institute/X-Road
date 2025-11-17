@@ -29,7 +29,7 @@ import { Ref, ref } from 'vue';
 
 import { AxiosError } from 'axios';
 
-import { axiosHelpers } from '../utils';
+import { getErrorInfo, isFieldValidationError, getTranslatedFieldErrors } from '../utils';
 
 import { useNotifications } from './notifications-manager';
 
@@ -45,12 +45,12 @@ export function useBasicForm<T extends string>(
   const loading = ref(false);
 
   function showOrTranslateErrors(error: AxiosError) {
-    const errorInfo = axiosHelpers.getErrorInfo(error as AxiosError);
-    if (axiosHelpers.isFieldValidationError(errorInfo)) {
+    const errorInfo = getErrorInfo(error as AxiosError);
+    if (isFieldValidationError(errorInfo)) {
       const fieldErrors = errorInfo.error?.validation_errors;
       if (fieldErrors) {
         for (const field in errorMap) {
-          setFieldError(field, axiosHelpers.getTranslatedFieldErrors(errorMap[field], fieldErrors));
+          setFieldError(field, getTranslatedFieldErrors(errorMap[field], fieldErrors));
         }
       }
     } else {

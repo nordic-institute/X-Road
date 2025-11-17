@@ -27,12 +27,7 @@
 <template>
   <XrdWizardStep sub-title="wizard.token.info">
     <v-radio-group v-model="tokenGroup">
-      <v-data-table
-        class="xrd border xrd-rounded-12 bg-surface-container"
-        hide-default-footer
-        :headers="headers"
-        :items="filteredTokens"
-      >
+      <v-data-table class="xrd border xrd-rounded-12 bg-surface-container" hide-default-footer :headers="headers" :items="filteredTokens">
         <template #top>
           <v-text-field
             v-model="search"
@@ -47,24 +42,13 @@
           />
         </template>
         <template #item.radio="{ item }">
-          <v-radio
-            data-test="token-radio-button"
-            class="xrd"
-            :value="item"
-            :disabled="!item.logged_in"
-          />
+          <v-radio data-test="token-radio-button" class="xrd" :value="item" :disabled="!item.logged_in" />
         </template>
         <template #item.name="{ value: name }">
           {{ `Token ${name}` }}
         </template>
         <template #item.actions="{ item }">
-          <XrdBtn
-            v-if="item.logged_in"
-            data-test="token-logout-button"
-            variant="text"
-            text="wizard.token.loggedIn"
-            disabled
-          />
+          <XrdBtn v-if="item.logged_in" data-test="token-logout-button" variant="text" text="wizard.token.loggedIn" disabled />
           <XrdBtn
             v-else
             data-test="token-login-button"
@@ -76,36 +60,15 @@
         </template>
       </v-data-table>
     </v-radio-group>
-    <TokenLoginDialog
-      :dialog="loginDialog"
-      @cancel="loginDialog = false"
-      @save="tokenLogin"
-    />
+    <TokenLoginDialog :dialog="loginDialog" @cancel="loginDialog = false" @save="tokenLogin" />
 
     <template #footer>
-      <XrdBtn
-        data-test="cancel-button"
-        variant="outlined"
-        text="action.cancel"
-        :disabled="!disableDone"
-        @click="cancel"
-      />
+      <XrdBtn data-test="cancel-button" variant="outlined" text="action.cancel" :disabled="!disableDone" @click="cancel" />
       <v-spacer />
 
-      <XrdBtn
-        data-test="previous-button"
-        variant="outlined"
-        class="mr-2"
-        text="action.previous"
-        @click="previous"
-      />
+      <XrdBtn data-test="previous-button" variant="outlined" class="mr-2" text="action.previous" @click="previous" />
 
-      <XrdBtn
-        data-test="next-button"
-        text="action.next"
-        :disabled="disableNext"
-        @click="done"
-      />
+      <XrdBtn data-test="next-button" text="action.next" :disabled="disableNext" @click="done" />
     </template>
   </XrdWizardStep>
 </template>
@@ -118,19 +81,13 @@ import { mapActions, mapState } from 'pinia';
 
 import { useTokens } from '@/store/modules/tokens';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import {
-  XrdWizardStep,
-  XrdFormBlock,
-  XrdBtn,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdWizardStep, XrdBtn, useNotifications } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 export default defineComponent({
   components: {
     TokenLoginDialog,
     XrdWizardStep,
-    XrdFormBlock,
     XrdBtn,
   },
   emits: ['cancel', 'previous', 'done'],
@@ -197,10 +154,7 @@ export default defineComponent({
       this.fetchTokens()
         .then(() => {
           // Preselect the token if there is only one
-          if (
-            this.filteredTokens.length === 1 &&
-            this.filteredTokens[0].logged_in
-          ) {
+          if (this.filteredTokens.length === 1 && this.filteredTokens[0].logged_in) {
             this.tokenGroup = this.filteredTokens[0];
           }
         })

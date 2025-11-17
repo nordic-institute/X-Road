@@ -50,12 +50,7 @@
           />
         </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
-          <v-radio-group
-            v-model="costType"
-            v-bind="costTypeAttrs"
-            inline
-            class="dlg-row-input"
-          >
+          <v-radio-group v-model="costType" v-bind="costTypeAttrs" inline class="dlg-row-input">
             <v-radio
               v-for="type in definedCostTypes"
               :key="type"
@@ -82,14 +77,7 @@
 import { computed } from 'vue';
 import { definedCostTypes, useTimestampingServices } from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
-import {
-  useBasicForm,
-  useFileRef,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  XrdCertificateFileUpload,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { useBasicForm, useFileRef, XrdFormBlock, XrdFormBlockRow, XrdCertificateFileUpload, XrdSimpleDialog } from '@niis/shared-ui';
 
 const emits = defineEmits(['save', 'cancel']);
 

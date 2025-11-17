@@ -55,7 +55,6 @@ import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -153,7 +152,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importSignCertificate() {
-        Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
+        var body = CertificateTestUtils.getMultipartFile("certificate", CertificateTestUtils.getMockCertificateBytes(), "cert.pem");
         ResponseEntity<TokenCertificateDto> response = tokenCertificatesApiController.importCertificate(body);
         TokenCertificateDto addedCert = response.getBody();
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -165,7 +164,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = "IMPORT_AUTH_CERT")
     public void importSignCertificateWithWrongPermission() {
-        Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
+        var body = CertificateTestUtils.getMultipartFile("certificate", CertificateTestUtils.getMockCertificateBytes(), "cert.pem");
         tokenCertificatesApiController.importCertificate(body);
     }
 
@@ -178,7 +177,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 .certificateStatus(CertificateInfo.STATUS_SAVED)
                 .build();
         doAnswer(answer -> certificateInfo).when(signerRpcClient).getCertForHash(any());
-        Resource body = CertificateTestUtils.getResource(mockAuthCert.getEncoded());
+        var body = CertificateTestUtils.getMultipartFile("certificate", mockAuthCert.getEncoded(), "cert.pem");
         ResponseEntity<TokenCertificateDto> response = tokenCertificatesApiController.importCertificate(body);
         TokenCertificateDto addedCert = response.getBody();
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -191,7 +190,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importAuthCertificateWithWrongPermission() throws Exception {
         X509Certificate mockAuthCert = getMockAuthCertificate();
-        Resource body = CertificateTestUtils.getResource(mockAuthCert.getEncoded());
+        var body = CertificateTestUtils.getMultipartFile("certificate", mockAuthCert.getEncoded(), "cert.pem");
         tokenCertificatesApiController.importCertificate(body);
     }
 
@@ -202,11 +201,11 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 TestUtils.MEMBER_CODE_M2, TestUtils.SUBSYSTEM3);
         doAnswer(answer -> notFoundId).when(globalConfProvider).getSubjectName(any(), any());
         X509Certificate mockCert = getMockCertificate();
-        Resource body = CertificateTestUtils.getResource(mockCert.getEncoded());
+        var body = CertificateTestUtils.getMultipartFile("certificate", mockCert.getEncoded(), "cert.pem");
         var e = assertThrows(BadRequestException.class, () -> tokenCertificatesApiController.importCertificate(body));
         ErrorDeviation error = e.getErrorDeviation();
         assertEquals(CLIENT_NOT_FOUND.code(), error.code());
-        assertEquals(notFoundId.asEncodedId(), error.metadata().get(0));
+        assertEquals(notFoundId.asEncodedId(), error.metadata().getFirst());
     }
 
     @Test
@@ -215,7 +214,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
 
         doThrow(XrdRuntimeException.systemException(CERT_EXISTS).build())
                 .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
-        Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
+        var body = CertificateTestUtils.getMultipartFile("certificate", CertificateTestUtils.getMockCertificateBytes(), "cert.pem");
         var e = assertThrows(ConflictException.class, () -> tokenCertificatesApiController.importCertificate(body));
         ErrorDeviation error = e.getErrorDeviation();
         assertEquals(ErrorCode.CERTIFICATE_ALREADY_EXISTS.code(), error.code());
@@ -226,7 +225,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importIncorrectSignCertificate() {
         doThrow(XrdRuntimeException.systemException(INCORRECT_CERTIFICATE).build())
                 .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
-        Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
+        var body = CertificateTestUtils.getMultipartFile("certificate", CertificateTestUtils.getMockCertificateBytes(), "cert.pem");
         var e = assertThrows(BadRequestException.class, () -> tokenCertificatesApiController.importCertificate(body));
         ErrorDeviation error = e.getErrorDeviation();
         assertEquals(INVALID_CERTIFICATE.code(), error.code());
@@ -238,7 +237,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importWrongUsageSignCertificate() {
         doThrow(XrdRuntimeException.systemException(WRONG_CERT_USAGE).build())
                 .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
-        Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
+        var body = CertificateTestUtils.getMultipartFile("certificate", CertificateTestUtils.getMockCertificateBytes(), "cert.pem");
         var e = assertThrows(BadRequestException.class, () -> tokenCertificatesApiController.importCertificate(body));
         ErrorDeviation error = e.getErrorDeviation();
         assertEquals(DeviationCodes.ERROR_CERTIFICATE_WRONG_USAGE, error.code());
@@ -249,7 +248,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importSignCertificateCsrMissing() {
         doThrow(XrdRuntimeException.systemException(CSR_NOT_FOUND).build())
                 .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
-        Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
+        var body = CertificateTestUtils.getMultipartFile("certificate", CertificateTestUtils.getMockCertificateBytes(), "cert.pem");
         var e = assertThrows(ConflictException.class, () -> tokenCertificatesApiController.importCertificate(body));
         ErrorDeviation error = e.getErrorDeviation();
         assertEquals(DeviationCodes.ERROR_CSR_NOT_FOUND, error.code());
@@ -261,7 +260,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importSignCertificateKeyNotFound() {
         doThrow(XrdRuntimeException.systemException(KEY_NOT_FOUND).build())
                 .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
-        Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
+        var body = CertificateTestUtils.getMultipartFile("certificate", CertificateTestUtils.getMockCertificateBytes(), "cert.pem");
         var e = assertThrows(BadRequestException.class, () -> tokenCertificatesApiController.importCertificate(body));
         ErrorDeviation error = e.getErrorDeviation();
         assertEquals(ErrorCode.KEY_NOT_FOUND.code(), error.code());
@@ -271,7 +270,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importInvalidSignCertificate() {
-        Resource body = CertificateTestUtils.getResource(new byte[]{0, 0, 0, 0});
+        var body = CertificateTestUtils.getMultipartFile("certificate", new byte[]{0, 0, 0, 0}, "cert.pem");
         var e = assertThrows(BadRequestException.class, () -> tokenCertificatesApiController.importCertificate(body));
         ErrorDeviation error = e.getErrorDeviation();
         assertEquals(INVALID_CERTIFICATE.code(), error.code());

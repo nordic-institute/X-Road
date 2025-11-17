@@ -111,12 +111,8 @@ const clients = ref({} as PagedClients);
 const search = ref('');
 const selectedClients = ref([]);
 
-const anyClientsSelected = computed(
-  () => !selectedClients.value || selectedClients.value.length === 0,
-);
-const totalItems = computed(
-  () => clients.value.paging_metadata?.total_items || 0,
-);
+const anyClientsSelected = computed(() => !selectedClients.value || selectedClients.value.length === 0);
+const totalItems = computed(() => clients.value.paging_metadata?.total_items || 0);
 const selectableClients = computed(() => clients.value.clients || []);
 const headers = computed<DataTableHeader[]>(() => [
   {

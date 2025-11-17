@@ -48,12 +48,7 @@
           />
         </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
-          <v-radio-group
-            v-model="costType"
-            v-bind="costTypeAttrs"
-            inline
-            class="dlg-row-input"
-          >
+          <v-radio-group v-model="costType" v-bind="costTypeAttrs" inline class="dlg-row-input">
             <v-radio
               v-for="type in definedCostTypes"
               :key="type"
@@ -97,10 +92,7 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import {
-  definedCostTypes,
-  useOcspResponderService,
-} from '@/store/modules/trust-services';
+import { definedCostTypes, useOcspResponderService } from '@/store/modules/trust-services';
 import { OcspResponder } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { useForm } from 'vee-validate';
@@ -112,6 +104,7 @@ import {
   XrdFormBlockRow,
   XrdBtn,
   XrdCertificateFileUpload,
+  veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 
 const props = defineProps({
@@ -125,6 +118,7 @@ const emits = defineEmits(['save', 'cancel']);
 
 interface Form {
   url: string;
+  costType: string;
   certFile: File[];
 }
 
@@ -138,21 +132,15 @@ const { defineField, handleSubmit, meta } = useForm<Form>({
     costType: props.ocspResponder.cost_type,
   },
 });
-const [ocspUrl, ocspUrlAttrs] = defineField('url', {
-  props: (state) => ({ 'error-messages': state.errors }),
-});
-const [costType, costTypeAttrs] = defineField('costType', {
-  props: (state) => ({ 'error-messages': state.errors }),
-});
+const [ocspUrl, ocspUrlAttrs] = defineField('url', veeDefaultFieldConfig());
+const [costType, costTypeAttrs] = defineField('costType', veeDefaultFieldConfig());
 const { addSuccessMessage, addError, loading } = useBasicForm();
 const { updateOcspResponder } = useOcspResponderService();
 const router = useRouter();
 
 const certUploadActive = ref(false);
 const certFile = useFileRef();
-const canUpdate = computed(
-  () => meta.value.valid && (meta.value.dirty || certFile.value),
-);
+const canUpdate = computed(() => meta.value.valid && (meta.value.dirty || certFile.value));
 
 function navigateToCertificateDetails() {
   router.push({
@@ -165,16 +153,9 @@ function navigateToCertificateDetails() {
 
 const update = handleSubmit((values) => {
   loading.value = true;
-  updateOcspResponder(
-    props.ocspResponder.id,
-    values.url,
-    values.costType,
-    certFile.value,
-  )
+  updateOcspResponder(props.ocspResponder.id, values.url, values.costType, certFile.value)
     .then(() => {
-      addSuccessMessage(
-        'trustServices.trustService.ocspResponders.edit.success',
-      );
+      addSuccessMessage('trustServices.trustService.ocspResponders.edit.success');
       emits('save');
     })
     .catch((error) => addError(error))

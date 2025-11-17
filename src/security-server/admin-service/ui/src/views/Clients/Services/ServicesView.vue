@@ -27,12 +27,7 @@
 <template>
   <XrdSubView>
     <template #header>
-      <XrdRoundedSearchField
-        v-model="search"
-        data-test="search-service"
-        autofocus
-        :label="$t('services.service')"
-      />
+      <XrdRoundedSearchField v-model="search" data-test="search-service" autofocus :label="$t('services.service')" />
       <v-spacer />
       <XrdBtn
         v-if="showAddRestButton"
@@ -93,7 +88,9 @@
               @click="toggle"
             >
               {{ serviceDesc.type }}
-              <span class="font-weight-regular"> ({{ serviceDesc.url }}) </span>
+              <span class="font-weight-regular">
+                {{ $t('common.inParenthesis', [serviceDesc.url]) }}
+              </span>
             </span>
             <v-icon
               v-if="canEditServiceDesc(serviceDesc)"
@@ -135,13 +132,7 @@
               :items-per-page="-1"
             >
               <template #item.full_service_code="{ value, item }">
-                <XrdLabelWithIcon
-                  icon="settings_system_daydream"
-                  clickable
-                  semi-bold
-                  :label="value"
-                  @navigate="serviceClick(item)"
-                />
+                <XrdLabelWithIcon icon="settings_system_daydream" clickable semi-bold :label="value" @navigate="serviceClick(item)" />
               </template>
               <template #item.url="{ value, item }">
                 <ServiceIcon :service="item" />
@@ -152,18 +143,8 @@
         </XrdExpandable>
       </template>
 
-      <AddWsdlDialog
-        v-if="addWsdlDialog"
-        :client-id="id"
-        @save="wsdlSave"
-        @cancel="cancelAddWsdl"
-      />
-      <AddRestDialog
-        v-if="addRestDialog"
-        :client-id="id"
-        @save="restSave"
-        @cancel="cancelAddRest"
-      />
+      <AddWsdlDialog v-if="addWsdlDialog" :client-id="id" @save="wsdlSave" @cancel="cancelAddWsdl" />
+      <AddRestDialog v-if="addRestDialog" :client-id="id" @save="restSave" @cancel="cancelAddRest" />
       <DisableServiceDescDialog
         v-if="disableDescDialog"
         :subject="selectedServiceDesc"
@@ -195,25 +176,12 @@ import ServiceWarningDialog from '@/components/service/ServiceWarningDialog.vue'
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 import ServiceStatusChip from './ServiceStatusChip.vue';
 
-import {
-  CodeWithDetails,
-  Service,
-  ServiceDescription,
-  ServiceType,
-} from '@/openapi-types';
+import { CodeWithDetails, Service, ServiceDescription, ServiceType } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { deepClone } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import {
-  XrdDateTime,
-  XrdSubView,
-  XrdBtn,
-  XrdLabelWithIcon,
-  useNotifications,
-  XrdExpandable,
-  XrdEmptyPlaceholder,
-} from '@niis/shared-ui';
+import { XrdDateTime, XrdSubView, XrdBtn, XrdLabelWithIcon, useNotifications, XrdExpandable, XrdEmptyPlaceholder } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useServiceDescriptions } from '@/store/modules/service-descriptions';
 import { useGoTo } from 'vuetify';
@@ -270,10 +238,7 @@ export default defineComponent({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useServiceDescriptions, [
-      'descExpanded',
-      'serviceDescriptions',
-    ]),
+    ...mapState(useServiceDescriptions, ['descExpanded', 'serviceDescriptions']),
 
     headers() {
       return [

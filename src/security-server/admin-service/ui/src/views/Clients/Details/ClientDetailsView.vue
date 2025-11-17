@@ -28,27 +28,11 @@
   <XrdSubView>
     <XrdCard class="mb-4" :loading="clientLoading">
       <XrdCardTable v-if="client">
-        <XrdCardTableRow
-          label="client.memberName"
-          :value="client.member_name"
-        />
-        <XrdCardTableRow
-          label="client.memberClass"
-          :value="client.member_class"
-        />
-        <XrdCardTableRow
-          label="client.memberCode"
-          :value="client.member_code"
-        />
-        <XrdCardTableRow
-          v-if="client.subsystem_code"
-          label="client.subsystemCode"
-          :value="client.subsystem_code"
-        />
-        <XrdCardTableRow
-          v-if="client.subsystem_code && doesSupportSubsystemNames"
-          label="client.subsystemName"
-        >
+        <XrdCardTableRow label="client.memberName" :value="client.member_name" />
+        <XrdCardTableRow label="client.memberClass" :value="client.member_class" />
+        <XrdCardTableRow label="client.memberCode" :value="client.member_code" />
+        <XrdCardTableRow v-if="client.subsystem_code" label="client.subsystemCode" :value="client.subsystem_code" />
+        <XrdCardTableRow v-if="client.subsystem_code && doesSupportSubsystemNames" label="client.subsystemName">
           <template #value>
             <subsystem-name :name="client.subsystem_name" />
           </template>
@@ -73,17 +57,8 @@
         </tr>
       </thead>
       <tbody>
-        <template
-          v-if="
-            signCertificates &&
-            signCertificates.length > 0 &&
-            !certificatesLoading
-          "
-        >
-          <tr
-            v-for="certificate in signCertificates"
-            :key="certificate.certificate_details.hash"
-          >
+        <template v-if="signCertificates && signCertificates.length > 0 && !certificatesLoading">
+          <tr v-for="certificate in signCertificates" :key="certificate.certificate_details.hash">
             <td>
               <XrdLabelWithIcon
                 data-test="cert-name"

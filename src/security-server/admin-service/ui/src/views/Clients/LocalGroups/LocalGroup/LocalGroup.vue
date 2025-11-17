@@ -89,23 +89,17 @@
       :headers="headers"
       :items="localGroup?.members"
     >
-      <template #item.member_name="{ value }">
-        <XrdLabelWithIcon icon="id_card" :label="value" />
+      <template #item.member_name="{ value: cellValue }">
+        <XrdLabelWithIcon icon="id_card" :label="cellValue" />
       </template>
       <template #item.subsystem_name="{ item }">
         <subsystem-name :name="getSubsystemDisplayName(item)" />
       </template>
-      <template #item.created_at="{ value }">
-        <XrdDateTime :value="value" />
+      <template #item.created_at="{ value: cellValue }">
+        <XrdDateTime :value="cellValue" />
       </template>
       <template #item.actions="{ item }">
-        <XrdBtn
-          v-if="canEditMembers"
-          variant="text"
-          color="tertiary"
-          text="action.remove"
-          @click="memberToDelete = item"
-        />
+        <XrdBtn v-if="canEditMembers" variant="text" color="tertiary" text="action.remove" @click="memberToDelete = item" />
       </template>
     </v-data-table>
 
@@ -177,10 +171,7 @@ import { clientTitle } from '@/util/ClientUtil';
 import { useClient } from '@/store/modules/client';
 
 function getSubsystemDisplayName(groupMember: GroupMember): string {
-  return (
-    groupMember.subsystem_name ??
-    groupMember.id.substring(groupMember.id.lastIndexOf(':') + 1)
-  );
+  return groupMember.subsystem_name ?? groupMember.id.substring(groupMember.id.lastIndexOf(':') + 1);
 }
 
 export default defineComponent({
@@ -204,10 +195,7 @@ export default defineComponent({
   },
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    const { meta, setValue, value, errors } = useField<string>(
-      'description',
-      'required|max:255',
-    );
+    const { meta, setValue, value, errors } = useField<string>('description', 'required|max:255');
     return { meta, setValue, value, errors, addError, addSuccessMessage };
   },
   data() {
@@ -239,11 +227,7 @@ export default defineComponent({
       return this.hasPermission(Permissions.EDIT_LOCAL_GROUP_MEMBERS);
     },
     hasMembers(): boolean {
-      return !!(
-        this.localGroup &&
-        this.localGroup.members &&
-        this.localGroup.members.length > 0
-      );
+      return !!(this.localGroup && this.localGroup.members && this.localGroup.members.length > 0);
     },
 
     headers() {
@@ -253,9 +237,7 @@ export default defineComponent({
           title: this.$t('localGroup.subsystemName'),
           key: 'subsystem_name',
           sortRaw(member1, member2) {
-            return getSubsystemDisplayName(member1).localeCompare(
-              getSubsystemDisplayName(member2),
-            );
+            return getSubsystemDisplayName(member1).localeCompare(getSubsystemDisplayName(member2));
           },
         },
         { title: this.$t('localGroup.id'), key: 'id' },
@@ -298,12 +280,7 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useClient, ['fetchClient']),
-    ...mapActions(useLocalGroups, [
-      'updateDescription',
-      'fetchLocalGroup',
-      'deleteLocalGroup',
-      'deleteLocalGroupMembers',
-    ]),
+    ...mapActions(useLocalGroups, ['updateDescription', 'fetchLocalGroup', 'deleteLocalGroup', 'deleteLocalGroupMembers']),
     close(): void {
       this.$router.push({
         name: RouteName.SubsystemLocalGroups,

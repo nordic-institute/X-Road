@@ -27,32 +27,19 @@
 <template>
   <XrdCard title="managementRequestDetails.requestInformation" :loading>
     <XrdCardTable>
-      <XrdCardTableRow
-        label="managementRequestDetails.requestId"
-        :value="managementRequest?.id"
-      />
+      <XrdCardTableRow label="managementRequestDetails.requestId" :value="managementRequest?.id" />
       <XrdCardTableRow label="managementRequestDetails.received">
         <template #value>
-          <XrdDateTime
-            v-if="managementRequest?.created_at"
-            :value="managementRequest.created_at"
-            with-seconds
-          />
+          <XrdDateTime v-if="managementRequest?.created_at" :value="managementRequest.created_at" with-seconds />
         </template>
       </XrdCardTableRow>
-      <XrdCardTableRow
-        label="managementRequestDetails.source"
-        :value="managementRequest?.origin"
-      />
+      <XrdCardTableRow label="managementRequestDetails.source" :value="managementRequest?.origin" />
       <XrdCardTableRow label="managementRequestDetails.status">
         <template #value>
           <MrStatusCell :status="managementRequest?.status" />
         </template>
       </XrdCardTableRow>
-      <XrdCardTableRow
-        label="managementRequestDetails.comments"
-        :value="managementRequest?.comments"
-      />
+      <XrdCardTableRow label="managementRequestDetails.comments" :value="managementRequest?.comments" />
     </XrdCardTable>
   </XrdCard>
 </template>
@@ -60,12 +47,7 @@
 <script lang="ts" setup>
 import { PropType } from 'vue';
 
-import {
-  XrdCard,
-  XrdCardTable,
-  XrdCardTableRow,
-  XrdDateTime,
-} from '@niis/shared-ui';
+import { XrdCard, XrdCardTable, XrdCardTableRow, XrdDateTime } from '@niis/shared-ui';
 
 import { ManagementRequestDetailedView } from '@/openapi-types';
 
