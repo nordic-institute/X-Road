@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.dto.ConnectionStatus;
@@ -48,7 +46,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 import static org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 @Slf4j
@@ -117,7 +115,6 @@ public class DiagnosticConnectionService {
         }
     }
 
-
     public ConnectionStatus getAuthCertReqStatus() {
         CertValidation certValidation = validateAuthCert();
         try {
@@ -125,27 +122,23 @@ public class DiagnosticConnectionService {
             managementRequestSenderService.sendAuthCertRegisterRequest(null, new byte[0], true);
             throw new IllegalStateException("should not get here");
         } catch (XrdRuntimeException e) {
-            return ConnectionStatus.fromErrorAndValidation(
-                    e.getErrorCode(),
-                    listOrEmpty(e.getDetails()),
-                    certValidation.errorCode, certValidation.metadata);
-        } catch (CodedException e) {
             // when certificate or address validation error, the error is expected,
             // and we return only certificate validation exceptions (if any)
+
             if (isExpectedInvalidRequest(e)) {
                 return certValidation.isOk() ? ConnectionStatus.ok()
                         : ConnectionStatus.error(certValidation.errorCode, certValidation.metadata);
             }
-            return certValidation.isOk() ? ConnectionStatus.error(e.getFaultString(), listOrEmpty(e.getFaultString()))
+            return certValidation.isOk() ? ConnectionStatus.error(e.getErrorCode(), listOrEmpty(e.getFaultString()))
                     : ConnectionStatus.fromErrorAndValidation(
-                    e.getFaultCode(),
-                    listOrEmpty(e.getFaultString()),
+                    e.getErrorCode(),
+                    listOrEmpty(e.getDetails()),
                     certValidation.errorCode, certValidation.metadata);
         }
     }
 
-    private boolean isExpectedInvalidRequest(CodedException e) {
-        return X_INVALID_REQUEST.equals(e.getFaultCode()) || "InvalidRequest".equals(e.getFaultCode());
+    private boolean isExpectedInvalidRequest(XrdRuntimeException e) {
+        return INVALID_REQUEST.code().equals(e.getErrorCode());
     }
 
     private CertValidation validateAuthCert() {

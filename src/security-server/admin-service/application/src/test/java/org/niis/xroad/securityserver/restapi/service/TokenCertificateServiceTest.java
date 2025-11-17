@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.impl.DnFieldDescriptionImpl;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -39,7 +38,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.niis.xroad.common.acme.AcmeService;
-import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
@@ -84,7 +82,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
@@ -101,6 +98,7 @@ import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.CERT_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.CSR_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_AVAILABLE;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_READONLY;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.createCertificateInfo;
@@ -501,7 +499,7 @@ public class TokenCertificateServiceTest {
     @Test
     @WithMockUser(authorities = {"GENERATE_SIGN_CERT_REQ", "GENERATE_AUTH_CERT_REQ"})
     public void regenerateCertRequestSuccess() {
-        SignerRpcClient.GeneratedCertRequestInfo csrInfo = tokenCertificateService
+        tokenCertificateService
                 .regenerateCertRequest(AUTH_KEY_ID, GOOD_AUTH_CSR_ID, CertificateRequestFormat.PEM);
         verify(signerRpcClient, times(1))
                 .regenerateCertRequest(GOOD_AUTH_CSR_ID, CertificateRequestFormat.PEM);
@@ -510,21 +508,15 @@ public class TokenCertificateServiceTest {
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = {"GENERATE_SIGN_CERT_REQ"})
     public void regenerateAuthCsrPermission() {
-        SignerRpcClient.GeneratedCertRequestInfo csrInfo = tokenCertificateService
+        tokenCertificateService
                 .regenerateCertRequest(AUTH_KEY_ID, GOOD_AUTH_CSR_ID, CertificateRequestFormat.PEM);
     }
 
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = {"GENERATE_AUTH_CERT_REQ"})
     public void regenerateSignCsrPermission() {
-        SignerRpcClient.GeneratedCertRequestInfo csrInfo = tokenCertificateService
+        tokenCertificateService
                 .regenerateCertRequest(SIGN_KEY_ID, GOOD_SIGN_CSR_ID, CertificateRequestFormat.PEM);
-    }
-
-    private XrdRuntimeException signerException(ErrorCode code) {
-        return XrdRuntimeException.systemException(code)
-                .details("mock-message")
-                .build();
     }
 
     @Test
@@ -559,19 +551,19 @@ public class TokenCertificateServiceTest {
         assertEquals(SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, errorDeviation.metadata().getFirst());
     }
 
-    @Test(expected = CodedException.class)
+    @Test(expected = XrdRuntimeException.class)
     @WithMockUser(authorities = {"DELETE_SIGN_CERT", "DELETE_AUTH_CERT"})
     public void deleteCertificateSignerInternalError() {
         tokenCertificateService.deleteCertificate(SIGNER_EX_INTERNAL_ERROR_HASH);
     }
 
-    @Test(expected = CodedException.class)
+    @Test(expected = XrdRuntimeException.class)
     @WithMockUser(authorities = {"DELETE_SIGN_CERT", "DELETE_AUTH_CERT"})
     public void deleteCertificateSignerTokenNotAvailable() {
         tokenCertificateService.deleteCertificate(SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH);
     }
 
-    @Test(expected = CodedException.class)
+    @Test(expected = XrdRuntimeException.class)
     @WithMockUser(authorities = {"DELETE_SIGN_CERT", "DELETE_AUTH_CERT"})
     public void deleteCertificateSignerTokenReadonly() {
         tokenCertificateService.deleteCertificate(SIGNER_EX_TOKEN_READONLY_HASH);
@@ -737,11 +729,11 @@ public class TokenCertificateServiceTest {
         }
     }
 
-    @Test(expected = CodedException.class)
+    @Test(expected = XrdRuntimeException.class)
     public void registerAuthCertificateFail() {
         doAnswer(answer -> authCert).when(signerRpcClient).getCertForHash(any());
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), anyBoolean()))
-                .thenThrow(new CodedException("FAILED"));
+                .thenThrow(XrdRuntimeException.systemInternalError("FAILED"));
         tokenCertificateService.registerAuthCert(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH, BAD_ADDRESS);
     }
 
@@ -768,7 +760,7 @@ public class TokenCertificateServiceTest {
         doAnswer(answer -> authCert).when(signerRpcClient).getCertForHash(any());
         when(managementRequestSenderService.sendAuthCertDeletionRequest(any()))
                 .thenThrow(new ManagementRequestSendingFailedException(
-                        new CodedException(X_SSL_AUTH_FAILED, SSL_AUTH_ERROR_MESSAGE)
+                        XrdRuntimeException.systemException(SSL_AUTH_FAILED, SSL_AUTH_ERROR_MESSAGE)
                                 .withPrefix(SERVER_CLIENTPROXY_X)));
 
         var err = assertThrows(ManagementRequestSendingFailedException.class,

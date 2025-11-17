@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +44,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * Operations related to internal tls certificates
@@ -71,11 +71,11 @@ public class InternalTlsCertificateService {
     public X509Certificate getInternalTlsCertificate() {
         try {
             return proxyRpcClient.getInternalTlsCertificate();
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             log.error("Failed to obtain TLS certificate", e);
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
     }
 
@@ -134,11 +134,11 @@ public class InternalTlsCertificateService {
         try {
             X509Certificate generatedCert = proxyRpcClient.generateInternalTlsKeyAndCertificate();
             auditDataHelper.putCertificateHash(generatedCert);
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             log.error("Failed to generate TLS key & certificate", e);
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
     }
 
@@ -154,11 +154,11 @@ public class InternalTlsCertificateService {
             var certificate = proxyRpcClient.importInternalTlsCertificate(certificateBytes);
             auditDataHelper.putCertificateHash(certificate);
             return certificate;
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             log.error("Failed to import TLS certificate", e);
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
     }
 
@@ -175,11 +175,11 @@ public class InternalTlsCertificateService {
         try {
             auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, distinguishedName);
             return proxyRpcClient.generateInternalCsr(distinguishedName);
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             log.error("Failed to generate TLS CSR", e);
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
     }
 }

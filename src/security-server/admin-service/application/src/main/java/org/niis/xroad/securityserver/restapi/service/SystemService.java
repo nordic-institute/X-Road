@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.Digests;
 
 import lombok.RequiredArgsConstructor;
@@ -59,8 +58,8 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_ANCHOR;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_GLOBALCONF;
 import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.DISABLED;
 import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.DISABLING;
 import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.ENABLED;
@@ -318,7 +317,7 @@ public class SystemService {
         ConfigurationAnchor anchor = null;
         try {
             anchor = new ConfigurationAnchor(anchorBytes);
-        } catch (CodedException ce) {
+        } catch (XrdRuntimeException ce) {
             if (isCausedByMalformedAnchorContent(ce)) {
                 throw new MalformedAnchorException("Anchor is invalid");
             } else {
@@ -383,8 +382,8 @@ public class SystemService {
         }
     }
 
-    static boolean isCausedByMalformedAnchorContent(CodedException e) {
-        return (X_MALFORMED_GLOBALCONF).equals(e.getFaultCode());
+    static boolean isCausedByMalformedAnchorContent(XrdRuntimeException e) {
+        return (MALFORMED_GLOBALCONF.code()).equals(e.getErrorCode());
     }
 
     /**

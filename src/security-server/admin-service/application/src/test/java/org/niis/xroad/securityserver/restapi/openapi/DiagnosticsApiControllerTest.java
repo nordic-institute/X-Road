@@ -28,7 +28,6 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -36,6 +35,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import com.google.protobuf.Timestamp;
 import org.junit.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
@@ -79,7 +79,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -90,6 +89,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"spring.main.lazy-initialization=true"})
@@ -498,7 +498,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         when(tokenInfo.getKeyInfo()).thenReturn(Collections.emptyList());
         when(tokenService.getToken(any())).thenReturn(tokenInfo);
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
-                .thenThrow(new CodedException(X_INVALID_REQUEST, "Request is invalid"));
+                .thenThrow(XrdRuntimeException.systemException(INVALID_REQUEST, "Request is invalid"));
 
         ResponseEntity<ConnectionStatusDto> response = diagnosticsApiController.getAuthCertReqStatus();
 

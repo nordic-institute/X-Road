@@ -37,7 +37,6 @@ public final class ErrorCodes {
     public static final String SERVER_SERVERPROXY_X = "server.serverproxy";
     public static final String CLIENT_X = "client";
     public static final String SERVER_CLIENTPROXY_X = "server.clientproxy";
-    public static final String SIGNER_X = "signer";
     public static final String SERVER_SERVER_PROXY_OPMONITOR_X = SERVER_SERVERPROXY_X + ".opmonitor";
 
     // Generic errors.
@@ -94,25 +93,16 @@ public final class ErrorCodes {
     public static final String X_ASIC_MIME_TYPE_NOT_FOUND = "asic_mime_type_not_found";
     public static final String X_ASIC_SIGNATURE_NOT_FOUND = "asic_signature_not_found";
     public static final String X_ASIC_MESSAGE_NOT_FOUND = "asic_message_not_found";
-    public static final String X_ASIC_INVALID_MIME_TYPE = "asic_invalid_mime_type";
-    public static final String X_ASIC_HASH_CHAIN_RESULT_NOT_FOUND = "asic_hash_chain_result_not_found";
-    public static final String X_ASIC_HASH_CHAIN_NOT_FOUND = "asic_hash_chain_not_found";
-    public static final String X_ASIC_TIMESTAMP_NOT_FOUND = "asic_timestamp_not_found";
-    public static final String X_ASIC_MANIFEST_NOT_FOUND = "asic_manifest_not_found";
 
     // Configuration errors
 
     public static final String X_UNKNOWN_MEMBER = "unknown_member";
-    public static final String X_MALFORMED_SERVERCONF = "malformed_server_conf";
     public static final String X_MALFORMED_GLOBALCONF = "malformed_global_conf";
     public static final String X_MALFORMED_OPTIONAL_PARTS_CONF = "malformed_optional_parts_conf";
-    public static final String X_OUTDATED_GLOBALCONF = "global_conf_outdated";
     public static final String X_MAINTENANCE_MODE = "maintenance_mode";
 
     // Signer Errors
 
-    public static final String X_TOKEN_NOT_FOUND = "token_not_found";
-    public static final String X_TOKEN_NOT_ACTIVE = "token_not_active";
     public static final String X_CANNOT_SIGN = "cannot_sign";
     public static final String X_FAILED_TO_GENERATE_R_KEY = "failed_to_generate_private_key";
     public static final String X_TOKEN_PIN_POLICY_FAILURE = "token_pin_policy_failure";
