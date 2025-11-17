@@ -23,6 +23,7 @@ test-automation:
       tags: "not @Skip"
   containers:
     testable-container:
+      internal-network-alias: admin-service-int-test
       reuse-between-runs: ${reuse-between-runs}
       spring-boot:
         base-image: eclipse-temurin:21-noble
