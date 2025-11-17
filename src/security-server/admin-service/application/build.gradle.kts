@@ -132,5 +132,4 @@ tasks.assemble {
 tasks.test {
   useJUnitPlatform()
   maxHeapSize = "1g"
-  maxParallelForks = 1 //TODO improve test cases to enable parallel execution
 }
