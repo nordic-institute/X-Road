@@ -142,9 +142,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build jacocoAggregatedReport -Pfrontend-npm-audit --parallel -Dorg.gradle.workers.max=6
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -Pfrontend-npm-audit --parallel -Dorg.gradle.workers.max=6
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road \
-          -PsonarqubeOrganization=nordic-institute sonar
+          -PsonarqubeOrganization=nordic-institute jacocoAggregatedReport sonar
       - name: Build Security Server images
         working-directory: ./deployment/security-server/images
         env:
@@ -169,8 +169,8 @@ jobs:
           name: Unit and integration tests
           path: src/**/build/test-results/**/TEST-*.xml
           reporter: java-junit
-          list-suites: 'none'
-          list-tests: 'none'
+          list-suites: 'failed'
+          list-tests: 'failed'
 
       - name: Upload intTest reports
         uses: actions/upload-artifact@v5
