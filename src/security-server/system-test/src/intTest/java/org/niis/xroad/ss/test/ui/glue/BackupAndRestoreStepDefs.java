@@ -26,25 +26,31 @@
 package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.ss.test.ui.container.EnvSetup;
 import org.niis.xroad.ss.test.ui.page.BackupAndRestorePageObj;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.ss.test.ui.container.EnvSetup.DB_SERVERCONF_INIT;
 
+@SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
 public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
     private final BackupAndRestorePageObj backupAndRestorePageObj = new BackupAndRestorePageObj();
 
     private File downloadedBackup;
     private String createdBackupName;
+
+    @Autowired
+    private EnvSetup envSetup;
 
     @Step("Configuration backup is created")
     public void configurationBackupIsCreated() {
@@ -58,6 +64,7 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
     }
 
     @Step("Configuration can be successfully restored from backup")
+    @SuppressWarnings("checkstyle:MagicNumber")
     public void configurationIsSuccessfullyRestoredFromBackup() {
         backupAndRestorePageObj.btnRestoreConfigurationFromBackup().click();
         commonPageObj.dialog.btnCancel().shouldBe(enabled);
@@ -65,10 +72,15 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         commonPageObj.snackBar.btnClose().click();
+
+        //rerun serverconf-inidb container
+        envSetup.start(DB_SERVERCONF_INIT, false);
+
+        Selenide.sleep(4000); // wait for the global conf reload (every 3s)
     }
 
     @Step("Configuration backup is downloaded")
-    public void downloadConfigurationBackup() throws FileNotFoundException {
+    public void downloadConfigurationBackup() {
         downloadedBackup = backupAndRestorePageObj.btnDownloadConfigurationBackup().download();
         assertThat(downloadedBackup)
                 .exists()
@@ -117,7 +129,6 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
 
     @Step("Configuration backup filter is set to last created backup")
     public void configurationBackupCountIsEqualTo() {
-        backupAndRestorePageObj.inputSearch().click();
-        vTextField(backupAndRestorePageObj.inputSearch()).shouldBe(focused).setValue(createdBackupName);
+        vTextField(backupAndRestorePageObj.inputSearch()).shouldBe(enabled).setValue(createdBackupName);
     }
 }

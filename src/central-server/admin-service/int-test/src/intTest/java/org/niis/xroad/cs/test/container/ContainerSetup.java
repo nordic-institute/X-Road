@@ -75,7 +75,7 @@ public class ContainerSetup {
                         "-Xmx600m",
                         "-XX:MaxMetaspaceSize=200m",
                         "-Dlogging.config=/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
-                        "-Dxroad.signer.enforce-token-pin-policy=true");
+                        "-Dxroad.common-rpc.use-tls=false");
             }
 
             @NotNull
@@ -88,6 +88,10 @@ public class ContainerSetup {
                 envConfig.put("signerProxyMockUri", mockServerContainer.getEndpoint());
                 envConfig.put("script.generate-backup.path", "/usr/share/xroad/scripts/backup_xroad_center_configuration.sh");
                 envConfig.put("script.restore-configuration.path", "/usr/share/xroad/scripts/restore_xroad_center_configuration.sh");
+                envConfig.put("spring.cloud.vault.enabled", "true");
+                envConfig.put("spring.cloud.vault.host", mockServerContainer.getHost());
+                envConfig.put("spring.cloud.vault.port", mockServerContainer.getPort());
+                envConfig.put("spring.cloud.vault.scheme", mockServerContainer.getScheme());
                 return envConfig;
             }
 

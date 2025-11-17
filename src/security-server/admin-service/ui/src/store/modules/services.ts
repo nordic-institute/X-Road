@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,43 +30,40 @@ import {
   Endpoint,
   Service,
   ServiceClient,
-  ServiceDescription,
+  ServiceUpdate,
+  ServiceClients,
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { sortServiceDescriptionServices } from '@/util/sorting';
 
 export interface ServicesState {
-  expandedServiceDescriptions: string[];
-  service: Service;
+  service?: Service;
   serviceClients: ServiceClient[];
-  serviceDescriptions: ServiceDescription[];
+}
+
+function serviceBaseUrl(serviceId: string, appendPath = '') {
+  const encodedId = encodePathParameter(serviceId);
+  return `/services/${encodedId}` + appendPath;
+}
+
+function endpointsBaseUrl(endpointId: string, appendPath = '') {
+  const encodedId = encodePathParameter(endpointId);
+  return `/endpoints/${encodedId}` + appendPath;
 }
 
 export const useServices = defineStore('services', {
   state: (): ServicesState => {
     return {
-      expandedServiceDescriptions: [],
-      service: {
-        id: '',
-        service_code: '',
-        timeout: 0,
-        ssl_auth: undefined,
-        url: '',
-      },
+      service: undefined,
       serviceClients: [],
-      serviceDescriptions: [],
     };
   },
   persist: {
     pick: ['service', 'serviceClients', 'serviceDescriptions'],
   },
   getters: {
-    descExpanded: (state) => (id: string) => {
-      return state.expandedServiceDescriptions.includes(id);
-    },
     endpoints: (state) => {
-      if (!state.service.endpoints) {
+      if (!state.service?.endpoints) {
         return [];
       }
       return state.service.endpoints.filter(
@@ -76,49 +74,51 @@ export const useServices = defineStore('services', {
   },
 
   actions: {
-    expandDesc(id: string) {
-      this.expandedServiceDescriptions.push(id);
-      this.expandedServiceDescriptions = [
-        ...new Set(this.expandedServiceDescriptions),
-      ];
+    async fetchService(serviceId: string) {
+      return api
+        .get<Service>(serviceBaseUrl(serviceId))
+        .then((res) => this.setService(res.data));
     },
-
-    hideDesc(id: string) {
-      this.expandedServiceDescriptions =
-        this.expandedServiceDescriptions.filter((item) => item !== id);
-    },
-
     setService(service: Service) {
       service.endpoints = sortEndpoints(service.endpoints);
       this.service = service;
+      return service;
     },
-
-    setServiceClients(serviceClients: ServiceClient[]) {
-      this.serviceClients = serviceClients;
-    },
-
-    fetchServiceDescriptions(clientId: string, sort = true) {
+    async updateService(serviceId: string, serviceUpdate: ServiceUpdate) {
       return api
-        .get<ServiceDescription[]>(
-          `/clients/${encodePathParameter(clientId)}/service-descriptions`,
-        )
-        .then((res) => {
-          const serviceDescriptions: ServiceDescription[] = res.data;
-          this.serviceDescriptions = sort
-            ? serviceDescriptions.map(sortServiceDescriptionServices)
-            : serviceDescriptions;
-        })
-        .catch((error) => {
-          throw error;
-        });
+        .patch<Service>(serviceBaseUrl(serviceId), serviceUpdate)
+        .then((res) => this.setService(res.data));
     },
-    deleteEndpoint(id: string) {
+    async fetchServiceClients(serviceId: string) {
       return api
-        .remove(`/endpoints/${encodePathParameter(id)}`)
-        .then((res) => {
-          this.service.endpoints?.forEach((item, index) => {
+        .get<ServiceClient[]>(serviceBaseUrl(serviceId, '/service-clients'))
+        .then((res) => (this.serviceClients = res.data));
+    },
+    async addServiceClients(serviceId: string, serviceClients: ServiceClients) {
+      return api.post(
+        serviceBaseUrl(serviceId, '/service-clients'),
+        serviceClients,
+      );
+    },
+    async removeServiceClients(
+      serviceId: string,
+      serviceClients: ServiceClients,
+    ) {
+      return api.post(
+        serviceBaseUrl(serviceId, '/service-clients/delete'),
+        serviceClients,
+      );
+    },
+    async addEndpoint(serviceId: string, endpoint: Endpoint) {
+      return api.post(serviceBaseUrl(serviceId, '/endpoints'), endpoint);
+    },
+    async deleteEndpoint(id: string) {
+      return api
+        .remove(endpointsBaseUrl(id))
+        .then(() => {
+          this.service?.endpoints?.forEach((item, index) => {
             if (item.id === id) {
-              this.service.endpoints?.splice(index, 1);
+              this.service?.endpoints?.splice(index, 1);
             }
           });
         })
@@ -126,17 +126,14 @@ export const useServices = defineStore('services', {
           throw error;
         });
     },
-    updateEndpoint(endpoint: Endpoint) {
+    async updateEndpoint(endpoint: Endpoint) {
       if (!endpoint.id) {
         throw new Error('Unable to save endpoint: Endpoint id not defined!');
       }
       return api
-        .patch<Endpoint>(
-          `/endpoints/${encodePathParameter(endpoint.id)}`,
-          endpoint,
-        )
+        .patch<Endpoint>(endpointsBaseUrl(endpoint.id), endpoint)
         .then((res) => {
-          if (this.service.endpoints) {
+          if (this.service?.endpoints) {
             const endpointIndex = this.service.endpoints.findIndex(
               (e) => e.id === endpoint.id,
             );
@@ -146,10 +143,26 @@ export const useServices = defineStore('services', {
               this.service.endpoints = sortEndpoints(endpoints);
             }
           }
-        })
-        .catch((error) => {
-          throw error;
         });
+    },
+    async removeEndpointServiceClients(id: string, toDelete: ServiceClients) {
+      return api.post(
+        endpointsBaseUrl(id, '/service-clients/delete'),
+        toDelete,
+      );
+    },
+    async addEndpointServiceClients(id: string, toAdd: ServiceClients) {
+      return api
+        .post<ServiceClient[]>(endpointsBaseUrl(id, '/service-clients'), toAdd)
+        .then((res) => res.data);
+    },
+    async fetchEndpoint(id: string) {
+      return api.get<Endpoint>(endpointsBaseUrl(id)).then((res) => res.data);
+    },
+    async fetchEndpointServiceClients(id: string) {
+      return api
+        .get<ServiceClient[]>(endpointsBaseUrl(id, '/service-clients'))
+        .then((res) => res.data);
     },
   },
 });

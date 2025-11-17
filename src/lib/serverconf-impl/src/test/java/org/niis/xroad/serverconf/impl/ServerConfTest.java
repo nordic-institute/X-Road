@@ -27,24 +27,24 @@
 package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
-import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -76,6 +76,7 @@ import static org.niis.xroad.serverconf.impl.TestUtil.client;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestClientId;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceId;
 import static org.niis.xroad.serverconf.impl.TestUtil.prepareDB;
+import static org.niis.xroad.serverconf.impl.TestUtil.serverConfDbProperties;
 import static org.niis.xroad.serverconf.impl.TestUtil.service;
 
 /**
@@ -88,6 +89,8 @@ public class ServerConfTest {
 
     private static ServerConfProvider serverConfProvider;
 
+    private static final DatabaseCtx DATABASE_CTX = new DatabaseCtx("serverconf", serverConfDbProperties.hibernate());
+
     /**
      * Creates test database.
      *
@@ -95,10 +98,15 @@ public class ServerConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        prepareDB();
+        var globalConfProvider = TestGlobalConfFactory.create("dummy-path-will-not-be-initialized");
+        serverConfProvider = new ServerConfImpl(DATABASE_CTX, globalConfProvider, null);
 
-        GlobalConfProvider globalConfProvider = new TestGlobalConfImpl();
-        serverConfProvider = new ServerConfImpl(globalConfProvider);
+        prepareDB(DATABASE_CTX);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        DATABASE_CTX.destroy();
     }
 
     /**
@@ -106,7 +114,7 @@ public class ServerConfTest {
      */
     @Before
     public void beforeTest() {
-        ServerConfDatabaseCtx.get().beginTransaction();
+        DATABASE_CTX.beginTransaction();
     }
 
     /**
@@ -114,7 +122,7 @@ public class ServerConfTest {
      */
     @After
     public void afterTest() {
-        ServerConfDatabaseCtx.get().commitTransaction();
+        DATABASE_CTX.commitTransaction();
     }
 
     /**
@@ -252,20 +260,6 @@ public class ServerConfTest {
     }
 
     /**
-     * Tests getting conntector host.
-     */
-    @Test
-    public void getConnectorHost() {
-        String defaultHost = SystemProperties.getConnectorHost();
-        assertEquals("0.0.0.0", defaultHost);
-
-        String alteredHost = "127.0.0.1";
-        System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, alteredHost);
-        String newHost = SystemProperties.getConnectorHost();
-        assertEquals(alteredHost, newHost);
-    }
-
-    /**
      * Tests getting IS authentication.
      */
     @Test
@@ -280,11 +274,9 @@ public class ServerConfTest {
 
     /**
      * Tests getting IS certificates,
-     *
-     * @throws Exception if an error coccurs
      */
     @Test
-    public void getIsCerts() throws Exception {
+    public void getIsCerts() {
         List<X509Certificate> isCerts =
                 serverConfProvider.getIsCerts(createTestClientId(client(1)));
         assertEquals(1, isCerts.size());
@@ -311,11 +303,9 @@ public class ServerConfTest {
 
     /**
      * Tests getting members.
-     *
-     * @throws Exception if an error coccurs
      */
     @Test
-    public void getMembers() throws Exception {
+    public void getMembers() {
         List<ClientId.Conf> members = serverConfProvider.getMembers();
         assertNotNull(members);
         assertEquals(NUM_CLIENTS, members.size());
@@ -323,11 +313,9 @@ public class ServerConfTest {
 
     /**
      * Tests getting TSPs.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getTsps() throws Exception {
+    public void getTsps() {
         List<String> tspUrls = serverConfProvider.getTspUrl();
         assertEquals(NUM_TSPS, tspUrls.size());
         for (int i = 0; i < NUM_TSPS; i++) {
@@ -345,11 +333,9 @@ public class ServerConfTest {
 
     /**
      * Tests getting services.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getServices() throws Exception {
+    public void getServices() {
         ClientId serviceProvider = createTestClientId(client(1), null);
 
         List<ServiceId.Conf> allServices = getServices(serviceProvider);
@@ -369,7 +355,7 @@ public class ServerConfTest {
 
     private static List<ServiceId.Conf> getServices(ClientId serviceProviderId) {
         return XRoadIdMapper.get().toServices(new ServiceDAOImpl().getServices(
-                ServerConfDatabaseCtx.get().getSession(), serviceProviderId)
+                DATABASE_CTX.getSession(), serviceProviderId)
         );
     }
 }

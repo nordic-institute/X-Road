@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,20 +25,20 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="d-inline-block">
-    <xrd-button
+  <div>
+    <XrdBtn
       data-test="enable-client-button"
-      outlined
+      variant="outlined"
+      text="action.enable"
       @click="confirmEnableClient = true"
-      >{{ $t('action.enable') }}
-    </xrd-button>
+    />
 
     <!-- Confirm dialog for enable client -->
-    <xrd-confirm-dialog
+    <XrdConfirmDialog
       v-if="confirmEnableClient"
-      :loading="isLoading"
       title="client.action.enable.confirmTitle"
       text="client.action.enable.confirmText"
+      :loading="isLoading"
       @cancel="confirmEnableClient = false"
       @accept="enableClient()"
     />
@@ -48,12 +49,10 @@
 import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
-import { XrdButton } from '@niis/shared-ui';
+import { XrdBtn, useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { XrdButton },
+  components: { XrdBtn, XrdConfirmDialog },
   props: {
     id: {
       type: String,
@@ -61,6 +60,10 @@ export default defineComponent({
     },
   },
   emits: ['done'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return {
       confirmEnableClient: false as boolean,
@@ -68,18 +71,15 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     enableClient(): void {
       this.isLoading = true;
       api
         .put(`/clients/${encodePathParameter(this.id)}/enable`, {})
         .then(
           () => {
-            this.showSuccess(this.$t('client.action.enable.success'));
+            this.addSuccessMessage('client.action.enable.success');
           },
-          (error) => {
-            this.showError(error);
-          },
+          (error) => this.addError(error),
         )
         .finally(() => {
           this.$emit('done', this.id);

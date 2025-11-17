@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -39,7 +40,9 @@ import { useDate } from 'vuetify';
 import { ref } from 'vue';
 import VueApexChart from 'vue3-apexcharts';
 
-const props = defineProps<{
+type XaType = 'datetime';
+
+defineProps<{
   series: TrafficSeries[];
   loading?: boolean;
 }>();
@@ -48,7 +51,7 @@ const dateAdapter = useDate();
 
 const options = ref({
   xaxis: {
-    type: 'datetime',
+    type: 'datetime' as XaType,
     labels: {
       datetimeUTC: false,
     },

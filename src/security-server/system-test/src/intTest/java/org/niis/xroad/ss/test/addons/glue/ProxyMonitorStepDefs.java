@@ -106,7 +106,6 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
                 .containsOnlyDigits();
     }
 
-
     @SneakyThrows
     private SoapMessageImpl buildMetricsRequest(final String queryId, final String metricName) {
         SoapHeader header = new SoapHeader();

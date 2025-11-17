@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,23 +25,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     v-if="dialog"
     title="warning"
     cancel-button-text="action.cancel"
     save-button-text="action.yes"
-    :show-close="false"
+    hide-close
     @save="accept"
     @cancel="cancel"
   >
     <template #content>
       <div data-test="dialog-content-text">
         <template v-if="errorResponse">{{
-          $t('keys.unregisterError')
-        }}</template>
+            $t('keys.unregisterError')
+          }}
+        </template>
       </div>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
@@ -49,8 +51,10 @@
  */
 
 import { defineComponent } from 'vue';
+import { XrdSimpleDialog } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdSimpleDialog },
   props: {
     dialog: {
       type: Boolean,

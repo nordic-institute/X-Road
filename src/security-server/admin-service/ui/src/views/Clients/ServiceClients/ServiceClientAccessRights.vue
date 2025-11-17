@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,97 +25,88 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common xrd-main-wrap">
-    <xrd-sub-view-title :title="serviceClientId" class="pa-4" @close="close" />
-    <v-card flat>
-      <table
-        class="xrd-table service-client-margin"
-        data-test="service-clients-table"
-      >
-        <thead>
-          <tr>
-            <th>{{ $t('serviceClients.name') }}</th>
-            <th>{{ $t('serviceClients.id') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="identifier-wrap">
-              <client-name :service-client="serviceClient" />
-            </td>
-            <td class="identifier-wrap">{{ serviceClient.id }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </v-card>
-
-    <div class="group-members-row px-4">
-      <div class="row-title">{{ $t('serviceClients.accessRights') }}</div>
-      <div class="row-buttons">
-        <xrd-button
-          v-if="canEdit && serviceClientAccessRights.length > 0"
-          outlined
-          data-test="remove-all-access-rights"
-          @click="showConfirmDeleteAll = true"
-          >{{ $t('serviceClients.removeAll') }}
-        </xrd-button>
-        <xrd-button
-          v-if="canEdit"
-          outlined
-          data-test="add-subjects-dialog"
-          @click="showAddServiceDialog()"
-          >{{ $t('serviceClients.addService') }}
-        </xrd-button>
-      </div>
-    </div>
-
-    <table
-      v-if="serviceClientAccessRights.length > 0"
-      class="xrd-table service-client-margin"
-      data-test="service-client-access-rights-table"
+  <XrdElevatedViewFixedWidth
+    closeable
+    :translated-title="serviceClientId"
+    :breadcrumbs="breadcrumbs"
+    @close="close"
+  >
+    <v-table
+      data-test="service-clients-table"
+      class="xrd border xrd-rounded-12 mb-6"
     >
       <thead>
         <tr>
-          <th>{{ $t('serviceClients.serviceCode') }}</th>
-          <th>{{ $t('serviceClients.title') }}</th>
-          <th>{{ $t('serviceClients.accessRightsGiven') }}</th>
-          <th></th>
+          <th>{{ $t('serviceClients.name') }}</th>
+          <th>{{ $t('serviceClients.id') }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="accessRight in keyedServiceClientAccessRights()"
-          :key="accessRight.uiKey"
-        >
-          <td class="identifier-wrap">{{ accessRight.service_code }}</td>
-          <td class="identifier-wrap">{{ accessRight.service_title }}</td>
-          <td>{{ accessRight.rights_given_at }}</td>
-          <td>
-            <div class="button-wrap">
-              <xrd-button
-                v-if="canEdit"
-                text
-                :outlined="false"
-                class="mr-4"
-                data-test="access-right-remove"
-                @click="remove(accessRight)"
-                >{{ $t('action.remove') }}
-              </xrd-button>
-            </div>
+        <tr>
+          <td class="identifier-wrap">
+            <XrdLabelWithIcon icon="settings_system_daydream" semi-bold>
+              <template #label>
+                <ClientName :service-client="serviceClient" />
+              </template>
+            </XrdLabelWithIcon>
           </td>
+          <td class="identifier-wrap">{{ serviceClient.id }}</td>
         </tr>
       </tbody>
-    </table>
+    </v-table>
 
-    <p v-else class="pa-6">
-      {{ $t('serviceClients.noAccessRights') }}
-    </p>
-
-    <div class="xrd-footer-buttons-wrap">
-      <xrd-button data-test="close" @click="close()"
-        >{{ $t('action.close') }}
-      </xrd-button>
+    <div class="d-flex flex-row align-center mt-4 mb-4">
+      <div class="title-component font-weight-medium">
+        {{ $t('serviceClients.accessRights') }}
+      </div>
+      <v-spacer />
+      <XrdBtn
+        v-if="canEdit && serviceClientAccessRights.length > 0"
+        data-test="remove-all-access-rights"
+        variant="outlined"
+        text="serviceClients.removeAll"
+        @click="showConfirmDeleteAll = true"
+      />
+      <XrdBtn
+        v-if="canEdit"
+        data-test="add-subjects-dialog"
+        class="ml-2"
+        text="serviceClients.addService"
+        @click="showAddServiceDialog()"
+      />
     </div>
+
+    <v-data-table
+      class="xrd border xrd-rounded-12 mb-6"
+      data-test="service-client-access-rights-table"
+      no-data-text="serviceClients.noAccessRights"
+      items-per-page="-1"
+      hide-default-footer
+      :items="keyedServiceClientAccessRights()"
+      :headers="headers"
+      item-key="uiKey"
+    >
+      <template #item.service_code="{ value }">
+        <XrdLabelWithIcon
+          icon="settings_system_daydream"
+          semi-bold
+          :label="value"
+        />
+      </template>
+      <template #item.rights_given_at="{ item }">
+        <XrdDateTime :value="item.rights_given_at" with-seconds />
+      </template>
+      <template #item.actions="{ item }">
+        <XrdBtn
+          v-if="canEdit"
+          data-test="access-right-remove"
+          variant="text"
+          color="tertiary"
+          text="action.remove"
+          @click="remove(item)"
+        />
+      </template>
+    </v-data-table>
 
     <AddServiceClientServiceDialog
       v-if="isAddServiceDialogVisible"
@@ -122,54 +114,70 @@
       :service-candidates="serviceCandidates()"
       @save="addService"
       @cancel="hideAddService"
-    >
-    </AddServiceClientServiceDialog>
+    />
 
     <!-- Confirm dialog delete group -->
-    <xrd-confirm-dialog
+    <XrdConfirmDialog
       v-if="showConfirmDeleteAll"
       :dialog="showConfirmDeleteAll"
       title="serviceClients.removeAllTitle"
       text="serviceClients.removeAllText"
+      focus-on-accept
       @cancel="showConfirmDeleteAll = false"
       @accept="removeAll()"
     />
 
-    <xrd-confirm-dialog
+    <XrdConfirmDialog
       v-if="showConfirmDeleteOne"
       :dialog="showConfirmDeleteOne"
       title="serviceClients.removeOneTitle"
       text="serviceClients.removeOneText"
+      focus-on-accept
       @cancel="resetDeletionSettings()"
       @accept="doRemoveAccessRight()"
     />
-  </div>
+  </XrdElevatedViewFixedWidth>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import * as api from '@/util/api';
 import { AccessRight, AccessRights, ServiceClient } from '@/openapi-types';
 import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
 import { serviceCandidatesForServiceClient } from '@/util/serviceClientUtils';
 
 import { ServiceCandidate } from '@/ui-types';
-import { sortAccessRightsByServiceCode } from '@/util/sorting';
-import { Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import { mapActions, mapState } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import { useServices } from '@/store/modules/services';
+import {
+  XrdElevatedViewFixedWidth,
+  XrdBtn,
+  XrdDateTime,
+  useNotifications,
+  XrdLabelWithIcon,
+  XrdConfirmDialog,
+} from '@niis/shared-ui';
 import ClientName from '@/components/client/ClientName.vue';
+import { useServiceClients } from '@/store/modules/service-clients';
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
+import { useServiceDescriptions } from '@/store/modules/service-descriptions';
+import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
+import { clientTitle } from '@/util/ClientUtil';
+import { useClient } from '@/store/modules/client';
 
 interface UiAccessRight extends AccessRight {
-  uiKey: number;
+  id: number;
 }
 
 export default defineComponent({
   components: {
     ClientName,
     AddServiceClientServiceDialog,
+    XrdElevatedViewFixedWidth,
+    XrdDateTime,
+    XrdBtn,
+    XrdLabelWithIcon,
+    XrdConfirmDialog,
   },
   props: {
     id: {
@@ -180,6 +188,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
+  },
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
   },
   data() {
     return {
@@ -193,40 +205,92 @@ export default defineComponent({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useServices, ['serviceDescriptions']),
+    ...mapState(useClient, ['client', 'clientLoading']),
+    ...mapState(useServiceDescriptions, ['serviceDescriptions']),
     canEdit(): boolean {
       return this.hasPermission(Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES);
+    },
+    headers() {
+      return [
+        {
+          title: this.$t('serviceClients.serviceCode'),
+          align: 'start',
+          key: 'service_code',
+        },
+        {
+          title: this.$t('serviceClients.title'),
+          align: 'start',
+          key: 'service_title',
+        },
+        {
+          title: this.$t('serviceClients.accessRightsGiven'),
+          align: 'start',
+          key: 'rights_given_at',
+        },
+        { title: '', align: 'end', key: 'actions' },
+      ] as DataTableHeader[];
+    },
+    breadcrumbs() {
+      const breadcrumbs = [
+        {
+          title: this.$t('tab.main.clients'),
+          to: { name: RouteName.Clients },
+        },
+      ] as BreadcrumbItem[];
+
+      if (this.client) {
+        breadcrumbs.push(
+          {
+            title: clientTitle(this.client, this.clientLoading),
+            to: {
+              name: RouteName.SubsystemDetails,
+              params: { id: this.client.id },
+            },
+          },
+          {
+            title: this.$t('tab.client.serviceClients'),
+            to: {
+              name: RouteName.SubsystemServiceClients,
+              params: { id: this.client.id },
+            },
+          },
+        );
+      }
+      breadcrumbs.push({
+        title: this.serviceClient?.name || '',
+      });
+
+      return breadcrumbs;
     },
   },
   created(): void {
     this.fetchData();
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useServices, ['fetchServiceDescriptions']),
+    ...mapActions(useClient, ['fetchClient']),
+    ...mapActions(useServiceDescriptions, ['fetchServiceDescriptions']),
+    ...mapActions(useServiceClients, [
+      'fetchServiceClient',
+      'fetchAccessRights',
+      'removeAccessRights',
+      'saveAccessRights',
+    ]),
     fetchData(): void {
-      this.fetchAccessRights();
-      this.fetchServiceDescriptions(this.id, false).catch((error) =>
-        this.showError(error),
+      this.doFetchAccessRights();
+      this.fetchClient(this.id).catch((error) =>
+        this.addError(error, { navigate: true }),
       );
-      api
-        .get<ServiceClient>(
-          `/clients/${this.id}/service-clients/${this.serviceClientId}`,
-        )
-        .then((response) => (this.serviceClient = response.data))
-        .catch((error) => this.showError(error));
+      this.fetchServiceDescriptions(this.id, false).catch((error) =>
+        this.addError(error),
+      );
+      this.fetchServiceClient(this.id, this.serviceClientId)
+        .then((data) => (this.serviceClient = data))
+        .catch((error) => this.addError(error, { navigate: true }));
     },
-    fetchAccessRights(): void {
-      api
-        .get<AccessRight[]>(
-          `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`,
-        )
-        .then((response) => {
-          this.serviceClientAccessRights = sortAccessRightsByServiceCode(
-            response.data,
-          );
-        })
-        .catch((error) => this.showError(error));
+    doFetchAccessRights() {
+      this.fetchAccessRights(this.id, this.serviceClientId)
+        .then((data) => (this.serviceClientAccessRights = data))
+        .catch((error) => this.addError(error));
     },
     close(): void {
       this.$router.back();
@@ -240,20 +304,21 @@ export default defineComponent({
       this.accessRightToDelete = accessRight;
     },
     doRemoveAccessRight(): void {
-      api
-        .post(
-          `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
-          { items: [{ service_code: this.accessRightToDelete?.service_code }] },
-        )
+      if (!this.accessRightToDelete) {
+        return;
+      }
+      this.removeAccessRights(this.id, this.serviceClientId, [
+        this.accessRightToDelete?.service_code,
+      ])
         .then(() => {
-          this.showSuccess(this.$t('accessRights.removeSuccess'));
+          this.addSuccessMessage('accessRights.removeSuccess');
           if (this.serviceClientAccessRights.length === 1) {
             this.serviceClientAccessRights = [];
           } else {
-            this.fetchAccessRights();
+            this.doFetchAccessRights();
           }
         })
-        .catch((error) => this.showError(error))
+        .catch((error) => this.addError(error))
         .finally(() => {
           this.showConfirmDeleteOne = false;
           this.accessRightToDelete = null;
@@ -262,18 +327,14 @@ export default defineComponent({
     addService(accessRights: AccessRight[]): void {
       this.hideAddService();
       const accessRightsObject: AccessRights = { items: accessRights };
-      api
-        .post(
-          `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`,
-          accessRightsObject,
-        )
+      this.saveAccessRights(this.id, this.serviceClientId, accessRightsObject)
         .then(() => {
-          this.showSuccess(
-            this.$t('serviceClients.addServiceClientAccessRightSuccess'),
+          this.addSuccessMessage(
+            'serviceClients.addServiceClientAccessRightSuccess',
           );
-          this.fetchAccessRights();
+          this.doFetchAccessRights();
         })
-        .catch((error) => this.showError(error));
+        .catch((error) => this.addError(error));
     },
     hideAddService(): void {
       this.isAddServiceDialogVisible = false;
@@ -284,20 +345,16 @@ export default defineComponent({
     removeAll(): void {
       this.showConfirmDeleteAll = false;
 
-      api
-        .post(
-          `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
-          {
-            items: this.serviceClientAccessRights.map((item: AccessRight) => ({
-              service_code: item.service_code,
-            })),
-          },
-        )
+      this.removeAccessRights(
+        this.id,
+        this.serviceClientId,
+        this.serviceClientAccessRights.map((item) => item.service_code),
+      )
         .then(() => {
-          this.showSuccess(this.$t('accessRights.removeSuccess'));
+          this.addSuccessMessage('accessRights.removeSuccess');
           this.serviceClientAccessRights = [];
         })
-        .catch((error) => this.showError(error));
+        .catch((error) => this.addError(error));
     },
     serviceCandidates(): ServiceCandidate[] {
       return serviceCandidatesForServiceClient(
@@ -309,7 +366,7 @@ export default defineComponent({
     keyedServiceClientAccessRights(): UiAccessRight[] {
       return this.serviceClientAccessRights.map(
         (sca: AccessRight, index: number) => {
-          return { ...sca, uiKey: index };
+          return { ...sca, id: index };
         },
       ) as UiAccessRight[];
     },
@@ -317,41 +374,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-@use '@niis/shared-ui/src/assets/colors';
-
-.group-members-row {
-  width: 100%;
-  display: flex;
-  margin-top: 70px;
-  align-items: baseline;
-
-  .row-buttons {
-    display: flex;
-
-    * {
-      margin-left: 20px;
-    }
-  }
-
-  .row-title {
-    width: 100%;
-    justify-content: space-between;
-    color: colors.$Black100;
-    font-size: 20px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-  }
-}
-
-.button-wrap {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.service-client-margin {
-  margin-top: 40px;
-}
-</style>
+<style lang="scss" scoped></style>

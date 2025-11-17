@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -111,7 +112,7 @@ export const useAddClient = defineStore('addClient', {
       const user = useUser();
 
       // If for some reason the currentSecurityServer doesn't exist
-      if (!user.currentSecurityServer.instance_id) return undefined;
+      if (!user.currentSecurityServer?.instance_id) return undefined;
 
       // Instance id is always the same with current server and members
       return createClientId(

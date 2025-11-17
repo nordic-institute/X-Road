@@ -27,6 +27,7 @@
 package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$x;
 
@@ -35,21 +36,17 @@ public class InitializationPageObj {
     public final WizardOwnerMember wizardOwnerMember = new WizardOwnerMember();
     public final WizardTokenPin wizardTokenPin = new WizardTokenPin();
     public final WizardAnchor wizardAnchor = new WizardAnchor();
+    public final ConfirmAnchorDialog confirmAnchorDialog = new ConfirmAnchorDialog();
 
     public SelenideElement alertSoftTokenPin() {
-        return $x("//div[@data-test='global-alert-soft-token-pin']");
+        return $x("//button[@data-test='global-alert-soft-token-pin']");
     }
 
     public SelenideElement initializationView() {
-        return $x("//div[@data-test='wizard-title']")
-                .$x(".//span[contains(text(), 'Initial configuration')]");
+        return $x("//span[@data-test='view-header-title' and contains(text(), 'Initial configuration')]");
     }
 
     public static class WizardAnchor {
-
-        public SelenideElement btnConfirmAnchorDetails() {
-            return $x("//button[@data-test='system-parameters-upload-configuration-anchor-dialog-confirm-button']");
-        }
 
         public SelenideElement inputFile() {
             return $x("//input[@type='file']");
@@ -58,6 +55,10 @@ public class InitializationPageObj {
         public SelenideElement btnContinue() {
             return $x("//button[@data-test='configuration-anchor-save-button']");
         }
+    }
+
+    public static class ConfirmAnchorDialog extends Dialog {
+
     }
 
     public static class WizardOwnerMember {

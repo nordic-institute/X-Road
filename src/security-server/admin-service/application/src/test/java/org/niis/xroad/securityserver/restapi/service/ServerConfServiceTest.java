@@ -30,9 +30,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Test;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -58,7 +58,7 @@ public class ServerConfServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void getSecurityServerOwnerId() {
-        ClientId expected = ClientIdEntity.createMember("FI", "GOV", "M1");
+        ClientId expected = MemberIdEntity.create("FI", "GOV", "M1");
         assertEquals(expected, serverConfService.getSecurityServerOwnerIdEntity());
     }
 

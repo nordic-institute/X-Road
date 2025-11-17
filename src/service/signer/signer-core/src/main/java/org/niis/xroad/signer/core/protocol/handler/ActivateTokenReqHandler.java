@@ -25,22 +25,24 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles token activations and deactivations.
  */
-@Component
-public class ActivateTokenReqHandler
-        extends AbstractRpcHandler<ActivateTokenReq, Empty> {
+@ApplicationScoped
+@RequiredArgsConstructor
+public class ActivateTokenReqHandler extends AbstractRpcHandler<ActivateTokenReq, Empty> {
+    private final TokenWorkerProvider tokenWorkerProvider;
 
     @Override
     protected Empty handle(ActivateTokenReq request) {
-        getTokenWorker(request.getTokenId())
-                .handleActivateToken(request);
+        tokenWorkerProvider.getTokenWorker(request.getTokenId()).handleActivateToken(request);
 
         return Empty.getDefaultInstance();
     }

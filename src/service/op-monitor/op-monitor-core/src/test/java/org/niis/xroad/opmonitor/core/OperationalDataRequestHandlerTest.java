@@ -31,16 +31,18 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResponseType;
 
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.util.Collections;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for verifying query request handler behavior.
@@ -66,8 +68,10 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
             throws Exception {
         ClientId client = ClientId.Conf.create(
                 "XTEE-CI-XM", "00000001", "GOV", "System1");
+        OpMonitorProperties opMonitorProperties = mock(OpMonitorProperties.class);
+        when(opMonitorProperties.recordsAvailableTimestampOffsetSeconds()).thenReturn(60);
         OperationalDataRequestHandler handler =
-                new OperationalDataRequestHandler(mock(GlobalConfProvider.class));
+                new OperationalDataRequestHandler(mock(GlobalConfProvider.class), operationalDataRecordManager, opMonitorProperties);
         long recordsAvailableBefore = TimeUtils.getEpochSecond();
 
         GetSecurityServerOperationalDataResponseType response = handler

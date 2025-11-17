@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
@@ -42,6 +43,7 @@ import org.bouncycastle.cert.ocsp.SingleResp;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -56,9 +58,11 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * Certificate-related helper functions.
  */
 @Slf4j
+@Singleton
 @RequiredArgsConstructor
-public final class CertHelper {
+public class CertHelper {
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
 
     /**
      * Verifies that the certificate <code>cert</code> can be used for
@@ -69,7 +73,6 @@ public final class CertHelper {
      * @param chain         the certificate chain
      * @param ocspResponses OCSP responses used in the cert chain
      * @param member        the member
-     * @throws Exception if verification fails.
      */
     public void verifyAuthCert(CertChain chain, List<OCSPResp> ocspResponses, ClientId member)
             throws CertificateEncodingException, IOException, OperatorCreationException, CertificateParsingException {
@@ -85,7 +88,7 @@ public final class CertHelper {
 
         // Verify certificate against CAs.
         try {
-            new CertChainVerifier(globalConfProvider, chain).verify(ocspResponses, Date.from(TimeUtils.now()));
+            new CertChainVerifier(globalConfProvider, ocspVerifierFactory, chain).verify(ocspResponses, Date.from(TimeUtils.now()));
         } catch (CodedException e) {
             // meaningful errors get SSL auth verification prefix
             throw e.withPrefix(X_SSL_AUTH_FAILED);
@@ -117,7 +120,6 @@ public final class CertHelper {
      * @param issuer        the issuer of the certificate
      * @param ocspResponses list of OCSP responses
      * @return the OCSP response or null if not found
-     * @throws Exception if an error occurs
      */
     public static OCSPResp getOcspResponseForCert(X509Certificate cert,
                                                   X509Certificate issuer, List<OCSPResp> ocspResponses)

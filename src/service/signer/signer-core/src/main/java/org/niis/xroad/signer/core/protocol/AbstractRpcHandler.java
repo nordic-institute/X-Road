@@ -30,33 +30,19 @@ import com.google.protobuf.AbstractMessage;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
-import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
-import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotFound;
 
 /**
  * @param <ReqT>
  * @param <RespT>
  */
 @Slf4j
-@SuppressWarnings("squid:S119")
 public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT extends AbstractMessage> {
     private final RpcResponseHandler rpcResponseHandler = new RpcResponseHandler();
-
-    @Autowired
-    protected TokenWorkerProvider tokenWorkerProvider;
 
     protected abstract RespT handle(ReqT request);
 
     public void processSingle(ReqT request, StreamObserver<RespT> responseObserver) {
         rpcResponseHandler.handleRequest(responseObserver, () -> handle(request));
-    }
-
-    protected TokenWorker getTokenWorker(String tokenId) {
-        return tokenWorkerProvider.getTokenWorker(tokenId)
-                .orElseThrow(() -> tokenNotFound(tokenId));
     }
 
 }

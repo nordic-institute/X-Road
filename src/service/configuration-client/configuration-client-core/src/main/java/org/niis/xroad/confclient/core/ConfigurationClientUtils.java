@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_ANCHOR_FILE_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_GLOBAL_CONF_DOWNLOAD_URL_CONNECTION_FAILURE;
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_ANCHOR;
@@ -67,7 +68,7 @@ public final class ConfigurationClientUtils {
 
     private static int getErrorCode(CodedException ce) {
         return switch (ce.getFaultCode()) {
-            case X_HTTP_ERROR, X_NETWORK_ERROR -> ERROR_CODE_CANNOT_DOWNLOAD_CONF;
+            case X_HTTP_ERROR, X_NETWORK_ERROR, X_GLOBAL_CONF_DOWNLOAD_URL_CONNECTION_FAILURE -> ERROR_CODE_CANNOT_DOWNLOAD_CONF;
             case X_OUTDATED_GLOBALCONF -> ERROR_CODE_EXPIRED_CONF;
             case X_INVALID_SIGNATURE_VALUE -> ERROR_CODE_INVALID_SIGNATURE_VALUE;
             case X_MALFORMED_ANCHOR -> ERROR_CODE_MALFORMED_ANCHOR;

@@ -28,11 +28,8 @@
   <router-view />
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 /**
  * View for 'management requests' tab
  */
-import { defineComponent } from 'vue';
-
-export default defineComponent({});
 </script>

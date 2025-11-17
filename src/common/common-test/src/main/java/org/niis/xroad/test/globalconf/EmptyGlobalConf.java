@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.test.globalconf;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -61,15 +60,24 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     private static final int DEFAULT_TIMESTAMPING_INTERVAL = 60;
     private static final int DEFAULT_OCSP_FRESHNESS = 3600;
+    private final GlobalConfExtensions globalConfExtensions;
 
-    //Dummy source, not initialized.
-    private final FileSystemGlobalConfSource source = new FileSystemGlobalConfSource(SystemProperties.getConfigurationPath()) {
-        @Override
-        public String getInstanceIdentifier() {
-            return "EE";
-        }
-    };
-    private final GlobalConfExtensions globalConfExtensions = new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl());
+    public EmptyGlobalConf(String configurationPath) {
+        FileSystemGlobalConfSource source = new FileSystemGlobalConfSource(configurationPath) {
+            @Override
+            public String getInstanceIdentifier() {
+                return "EE";
+            }
+        };
+        globalConfExtensions = new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl());
+    }
+
+    /**
+     * not for initialization!
+     */
+    public EmptyGlobalConf() {
+        this(null);
+    }
 
     @Override
     public List<String> getOcspResponderAddresses(X509Certificate org) {

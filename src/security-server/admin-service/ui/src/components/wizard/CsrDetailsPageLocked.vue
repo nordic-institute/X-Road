@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,74 +25,78 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="wizard-step-form-content">
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('csr.usage')"
-          :help-text="$t('csr.helpUsage')"
+  <XrdWizardStep>
+    <XrdFormBlock>
+      <XrdFormBlockRow description="csr.helpUsage">
+        <v-text-field
+          :model-value="usage"
+          class="xrd"
+          variant="plain"
+          hide-details
+          :label="$t('csr.usage')"
         />
-
-        <div class="readonly-info-field">{{ usage }}</div>
-      </div>
-
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('csr.client')"
-          :help-text="$t('csr.helpClient')"
+      </XrdFormBlockRow>
+      <XrdFormBlockRow description="csr.helpClient">
+        <v-text-field
+          :model-value="selectedMemberId"
+          class="xrd"
+          variant="plain"
+          hide-details
+          :label="$t('csr.client')"
         />
+      </XrdFormBlockRow>
 
-        <div class="readonly-info-field">{{ selectedMemberId }}</div>
-      </div>
-
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('csr.certificationService')"
-          :help-text="$t('csr.helpCertificationService')"
-        />
+      <XrdFormBlockRow
+        description="csr.helpCertificationService"
+        adjust-against-content
+      >
         <v-select
           v-bind="certServiceRef"
-          :items="filteredServiceList"
+          data-test="csr-certification-service-select"
           item-title="name"
           item-value="name"
-          class="wizard-form-input"
-          data-test="csr-certification-service-select"
-          variant="outlined"
-        ></v-select>
-      </div>
-
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('csr.csrFormat')"
-          :help-text="$t('csr.helpCsrFormat')"
+          class="xrd"
+          :items="filteredServiceList"
+          :label="$t('csr.certificationService')"
         />
+      </XrdFormBlockRow>
+
+      <XrdFormBlockRow description="csr.helpCsrFormat" adjust-against-content>
         <v-select
           v-bind="csrFormatRef"
-          :items="csrFormatList"
-          class="wizard-form-input"
           data-test="csr-format-select"
-          variant="outlined"
-        ></v-select>
-      </div>
-    </div>
-    <div class="button-footer">
-      <xrd-button outlined data-test="cancel-button" @click="cancel"
-        >{{ $t('action.cancel') }}
-      </xrd-button>
+          class="xrd"
+          :items="csrFormatList"
+          :label="$t('csr.csrFormat')"
+        />
+      </XrdFormBlockRow>
+    </XrdFormBlock>
+    <template #footer>
+      <XrdBtn
+        data-test="cancel-button"
+        variant="outlined"
+        text="action.cancel"
+        @click="cancel"
+      />
+      <v-spacer />
 
-      <xrd-button
+      <XrdBtn
         v-if="showPreviousButton"
-        outlined
-        class="previous-button"
         data-test="previous-button"
+        variant="outlined"
+        class="mr-2"
+        text="action.previous"
         @click="previous"
-        >{{ $t('action.previous') }}
-      </xrd-button>
-      <xrd-button :disabled="!meta.valid" data-test="save-button" @click="done">
-        {{ $t(saveButtonText) }}
-      </xrd-button>
-    </div>
-  </div>
+      />
+      <XrdBtn
+        data-test="save-button"
+        :loading="loading"
+        :text="saveButtonText"
+        :disabled="!meta.valid"
+        @click="done"
+      />
+    </template>
+  </XrdWizardStep>
 </template>
 
 <script lang="ts">
@@ -100,10 +105,26 @@ import { CsrFormat } from '@/openapi-types';
 import { mapState, mapWritableState } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { useAddClient } from '@/store/modules/addClient';
+import {
+  XrdWizardStep,
+  XrdFormBlock,
+  XrdFormBlockRow,
+  XrdBtn,
+} from '@niis/shared-ui';
 import { PublicPathState, useForm } from 'vee-validate';
 
 export default defineComponent({
+  components: {
+    XrdWizardStep,
+    XrdFormBlock,
+    XrdFormBlockRow,
+    XrdBtn,
+  },
   props: {
+    loading: {
+      type: Boolean,
+      default: false,
+    },
     saveButtonText: {
       type: String,
       default: 'action.continue',
@@ -176,12 +197,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/wizards';
-
-.readonly-info-field {
-  max-width: 300px;
-  height: 60px;
-  padding-top: 12px;
-}
-</style>
+<style lang="scss" scoped></style>

@@ -36,7 +36,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +47,6 @@ import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
-import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
@@ -77,7 +75,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.certHash;
-import static ee.ria.xroad.common.util.CryptoUtils.certSha1Hash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.stream.Collectors.toSet;
 
@@ -85,18 +82,16 @@ import static java.util.stream.Collectors.toSet;
  * Global configuration implementation
  */
 @Slf4j
-@Singleton
 public class GlobalConfImpl implements GlobalConfProvider {
 
     private final GlobalConfSource globalConfSource;
-    private final CertChainFactory certChainFactory;
     private final GlobalConfExtensions globalConfExtensions;
 
-    public GlobalConfImpl(GlobalConfSource globalConfSource) {
+    public GlobalConfImpl(GlobalConfSource globalConfSource, GlobalConfExtensions globalConfExtensions) {
         this.globalConfSource = globalConfSource;
-        this.certChainFactory = new CertChainFactory(this);
-        this.globalConfExtensions = new GlobalConfExtensions(globalConfSource, new GlobalConfExtensionFactoryImpl());
+        this.globalConfExtensions = globalConfExtensions;
     }
+
 
     @Override
     public void reload() {
@@ -106,7 +101,6 @@ public class GlobalConfImpl implements GlobalConfProvider {
     // ------------------------------------------------------------------------
     @Override
     public boolean isValid() {
-        // it is important to get handle of confDir as this variable is volatile
         try {
             return !globalConfSource.isExpired();
         } catch (Exception e) {
@@ -117,7 +111,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     /**
      * Verifies that the global configuration is valid. Throws exception
-     * with error code ErrorCodes.X_OUTDATED_GLOBALCONF if the it is too old.
+     * with error code ErrorCodes.X_OUTDATED_GLOBALCONF if it is too old.
      */
     @Override
     public void verifyValidity() {
@@ -435,7 +429,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
             return null;
         }
 
-        return certChainFactory.create(instanceIdentifier, chain.toArray(new X509Certificate[0]));
+        return CertChainFactory.create(instanceIdentifier, chain.toArray(new X509Certificate[0]));
     }
 
     X509Certificate getCaCertForSubject(X509Certificate subject, SharedParametersCache sharedParameters)
@@ -474,7 +468,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public SecurityServerId.Conf getServerId(X509Certificate cert)
             throws CertificateEncodingException, IOException, OperatorCreationException {
         for (SharedParametersCache p : getSharedParametersCaches()) {
-            String b64 = encodeBase64(calculateCertHash(cert));
+            String b64 = encodeBase64(certHash(cert.getEncoded()));
             SharedParameters.SecurityServer server = p.getServerByAuthCert().get(b64);
             if (server != null) {
                 return SecurityServerId.Conf.create(
@@ -485,16 +479,6 @@ public class GlobalConfImpl implements GlobalConfProvider {
         }
 
         return null;
-    }
-
-    private byte[] calculateCertHash(X509Certificate cert)
-            throws CertificateEncodingException, IOException, OperatorCreationException {
-        Integer version = globalConfSource.getVersion();
-        if (version != null && version > 2) {
-            return certHash(cert.getEncoded());
-        } else {
-            return certSha1Hash(cert.getEncoded());
-        }
     }
 
     @Override
@@ -512,7 +496,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
             throws CertificateEncodingException, IOException, OperatorCreationException {
         for (SharedParametersCache p : getSharedParametersCaches()) {
-            byte[] inputCertHash = calculateCertHash(cert);
+            byte[] inputCertHash = certHash(cert.getEncoded());
             boolean match = Optional.ofNullable(p.getMemberAuthCerts().get(memberId)).stream()
                     .flatMap(Collection::stream)
                     .anyMatch(h -> Arrays.equals(inputCertHash, h));

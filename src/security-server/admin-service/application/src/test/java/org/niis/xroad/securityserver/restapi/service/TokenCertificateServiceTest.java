@@ -42,15 +42,19 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
-import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -65,6 +69,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -109,6 +114,7 @@ import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.cr
 @Slf4j
 @Transactional
 @WithMockUser
+@ActiveProfiles("test")
 public class TokenCertificateServiceTest {
     public static final String GOOD_ADDRESS = "0.0.0.0";
     public static final String BAD_ADDRESS = "1.1.1.1";
@@ -183,7 +189,19 @@ public class TokenCertificateServiceTest {
     private AcmeService acmeService;
 
     @MockitoBean
-    MonitorClient monitorClient;
+    MonitorRpcClient monitorClient;
+
+    @MockitoBean
+    ProxyRpcClient proxyRpcClient;
+
+    @MockitoBean
+    ConfClientRpcClient confClientRpcClient;
+
+    @MockitoBean
+    ServerConfDatabaseCtx databaseCtx;
+
+    @MockitoBean
+    MessageLogDatabaseCtx messageLogDatabaseCtx;
 
     private final ClientId.Conf client = ClientId.Conf.create(TestUtils.INSTANCE_FI,
             TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1);
@@ -348,9 +366,9 @@ public class TokenCertificateServiceTest {
             return switch (certHash) {
                 case NOT_FOUND_CERT_HASH -> throw XrdRuntimeException.systemException(CERT_NOT_FOUND).build();
                 case EXISTING_CERT_HASH, EXISTING_CERT_IN_AUTH_KEY_HASH, EXISTING_CERT_IN_SIGN_KEY_HASH,
-                        SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, SIGNER_EX_INTERNAL_ERROR_HASH, SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH,
-                        SIGNER_EX_TOKEN_READONLY_HASH, HASH_FOR_ACME_IMPORT ->
-                        // cert will have same id as hash
+                     SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, SIGNER_EX_INTERNAL_ERROR_HASH, SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH,
+                     SIGNER_EX_TOKEN_READONLY_HASH, HASH_FOR_ACME_IMPORT ->
+                    // cert will have same id as hash
                         new CertificateTestUtils.CertificateInfoBuilder().id(certHash).build();
                 case MISSING_CERTIFICATE_HASH -> createCertificateInfo(null, false, false, "status", "certID",
                         CertificateTestUtils.getMockAuthCertificateBytes(), null, null);
@@ -409,7 +427,7 @@ public class TokenCertificateServiceTest {
                         new TokenInfoAndKeyId(tokenInfo, authKey.getId());
                 case EXISTING_CERT_IN_SIGN_KEY_HASH -> new TokenInfoAndKeyId(tokenInfo, signKey.getId());
                 case NOT_FOUND_CERT_HASH, EXISTING_CERT_HASH, SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, SIGNER_EX_INTERNAL_ERROR_HASH,
-                        SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH, SIGNER_EX_TOKEN_READONLY_HASH, CertificateTestUtils.MOCK_CERTIFICATE_HASH ->
+                     SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH, SIGNER_EX_TOKEN_READONLY_HASH, CertificateTestUtils.MOCK_CERTIFICATE_HASH ->
                         new TokenInfoAndKeyId(tokenInfo, goodKey.getId());
                 default -> throw new CertificateNotFoundException("unknown cert: " + hash);
             };
@@ -538,7 +556,7 @@ public class TokenCertificateServiceTest {
         ErrorDeviation errorDeviation = exception.getErrorDeviation();
         Assert.assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID, errorDeviation.code());
         assertEquals(1, errorDeviation.metadata().size());
-        assertEquals(SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, errorDeviation.metadata().iterator().next());
+        assertEquals(SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, errorDeviation.metadata().getFirst());
     }
 
     @Test(expected = CodedException.class)
@@ -755,7 +773,7 @@ public class TokenCertificateServiceTest {
 
         var err = assertThrows(ManagementRequestSendingFailedException.class,
                 () -> tokenCertificateService.unregisterAuthCert(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH));
-        assertTrue(err.getErrorDeviation().metadata().get(0).contains(SSL_AUTH_ERROR_MESSAGE));
+        assertTrue(err.getErrorDeviation().metadata().getFirst().contains(SSL_AUTH_ERROR_MESSAGE));
     }
 
     @Test

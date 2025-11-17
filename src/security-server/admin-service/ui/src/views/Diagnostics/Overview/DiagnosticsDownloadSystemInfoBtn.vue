@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,29 +25,25 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button
+  <XrdBtn
     v-if="canDownload"
     :loading="downloading"
     data-test="download-diagnostics-report-button"
-    outlined
+    variant="outlined"
+    prepend-icon="download"
+    text="diagnostics.downloadReport"
     @click="download"
-  >
-    <xrd-icon-base class="xrd-large-button-icon">
-      <xrd-icon-download />
-    </xrd-icon-base>
-    {{ $t('diagnostics.downloadReport') }}
-  </xrd-button>
+  />
 </template>
 <script lang="ts" setup>
 import { Permissions } from '@/global';
 import { computed, ref } from 'vue';
-import { XrdButton, XrdIconDownload } from '@niis/shared-ui';
+import { XrdBtn, useNotifications } from '@niis/shared-ui';
 import * as api from '@/util/api';
-import { saveResponseAsFile } from '@/util/helpers';
-import { useNotifications } from '@/store/modules/notifications';
+import { helper } from '@niis/shared-ui';
 import { useUser } from '@/store/modules/user';
 
-const { showError } = useNotifications();
+const { addError } = useNotifications();
 const { hasPermission } = useUser();
 
 const downloading = ref(false);
@@ -59,10 +56,8 @@ function download(): void {
   downloading.value = true;
   api
     .get('/diagnostics/info/download', { responseType: 'blob' })
-    .then((res) => saveResponseAsFile(res, 'diagnostic-report.json'))
-    .catch((error) => {
-      showError(error);
-    })
+    .then((res) => helper.saveResponseAsFile(res, 'diagnostic-report.json'))
+    .catch((error) => addError(error))
     .finally(() => (downloading.value = false));
 }
 </script>

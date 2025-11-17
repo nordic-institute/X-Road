@@ -1,0 +1,345 @@
+services:
+  openbao:
+    image: ${OPENBAO_DEV_IMG}
+    pull_policy: always
+    environment:
+      - BAO_ADDR=http://0.0.0.0:8200
+      - BAO_TOKEN=${XROAD_SECRET_STORE_ROOT_TOKEN}
+      - XROAD_SECRET_STORE_TOKEN_OVERRIDE=${XROAD_SECRET_STORE_TOKEN:-}
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "sh", "-c", "bao secrets list -format=json | jq 'has(\"xrd-pki/\")' | grep -q true" ]
+    networks:
+      - xrd-ss-network
+  db-serverconf:
+    image: postgres:16
+    environment:
+      - POSTGRES_PASSWORD=admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=serverconf
+    networks:
+      - xrd-ss-network
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+    command: >
+      bash -c "
+        docker-entrypoint.sh postgres &
+        until pg_isready -U postgres -h localhost; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done;
+      
+        psql -U postgres -d serverconf -c \"
+          DO \\\$\$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT FROM pg_catalog.pg_roles WHERE rolname = 'serverconf'
+            ) THEN
+              CREATE ROLE serverconf LOGIN PASSWORD 'secret';
+            END IF;
+          END
+          \\\$\$;
+        \"
+        wait
+      "
+  db-messagelog:
+    image: postgres:16
+    environment:
+      - POSTGRES_PASSWORD=admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=messagelog
+    networks:
+      - xrd-ss-network
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "sh", "-c", "pg_isready -U postgres -h localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+    command: >
+      bash -c "
+        docker-entrypoint.sh postgres &
+        until pg_isready -U postgres -h localhost; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done;
+      
+        psql -U postgres -d messagelog -c \"
+          DO \\\$\$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT FROM pg_catalog.pg_roles WHERE rolname = 'messagelog'
+            ) THEN
+              CREATE ROLE messagelog LOGIN PASSWORD 'secret';
+            END IF;
+          END
+          \\\$\$;
+        \"
+        wait
+      "
+  db-serverconf-init:
+    image: ${SERVERCONF_INIT_IMG}
+    pull_policy: always
+    environment:
+      - LIQUIBASE_COMMAND_USERNAME=postgres
+      - LIQUIBASE_COMMAND_PASSWORD=admin_secret
+      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - db_user=serverconf
+      - db_schema=public
+      - proxy_ui_superuser=xrd
+      - proxy_ui_superuser_password=$$argon2id$$v=19$$m=16384,t=2,p=1$$YXF3YXN6eHh6c2F3cQ$$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0 # argon2 hash of "secret" (a $ is escaped with another $)
+    depends_on:
+      db-serverconf:
+        condition: service_healthy
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+  db-messagelog-init:
+    image: ${MESSAGELOG_INIT_IMG}
+    pull_policy: always
+    environment:
+      - LIQUIBASE_COMMAND_USERNAME=postgres
+      - LIQUIBASE_COMMAND_PASSWORD=admin_secret
+      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-messagelog:5432/messagelog
+      - db_user=messagelog
+      - db_schema=public
+    depends_on:
+      db-messagelog:
+        condition: service_healthy
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+
+  configuration-client:
+    image: ${CONFIGURATION_CLIENT_IMG}
+    pull_policy: always
+    environment:
+      - DEBUG=true
+      - XROAD_HOST=configuration-client
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 320M
+    depends_on:
+      openbao:
+        condition: service_healthy
+      db-serverconf-init:
+        condition: service_completed_successfully
+  monitor:
+    image: ${MONITOR_IMG}
+    pull_policy: always
+    environment:
+      - DEBUG=true
+      - XROAD_HOST=monitor
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
+      - XROAD_COMMON_RPC_CHANNEL_PROXY_HOST=proxy
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+      configuration-client:
+        condition: service_healthy
+      proxy:
+        condition: service_healthy
+  signer:
+    image: ${SIGNER_IMG}
+    pull_policy: always
+    environment:
+      - DEBUG=true
+      - XROAD_HOST=signer
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+    ports:
+      - "0:9999" # debug port
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+      configuration-client:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 448M
+  proxy:
+    image: ${PROXY_IMG}
+    pull_policy: always
+    environment:
+      - DEBUG=true
+      - XROAD_HOST=proxy
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
+      - XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST=monitor
+      - XROAD_COMMON_RPC_CHANNEL_MANAGEMENT_HOST=ui
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-messagelog:5432/messagelog
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME=messagelog
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD=secret
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+      signer:
+        condition: service_healthy
+    ports:
+      - "0:9999" # debug port
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+  ui:
+    image: ${PROXY_UI_IMG}
+    pull_policy: always
+    environment:
+      - DEBUG=false
+      - XROAD_HOST=ui
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
+      - XROAD_COMMON_RPC_CHANNEL_PROXY_HOST=proxy
+      - XROAD_COMMON_RPC_CHANNEL_BACKUP_MANAGER_HOST=backup-manager
+      - XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST=monitor
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-messagelog:5432/messagelog
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME=messagelog
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD=secret
+      - XROAD_PROXY_UI_API_MANAGEMENT_PROXY_SERVER_URL=https://proxy:8443
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
+    ports:
+      - "0:4000" # Frontend
+      - "0:9999" # debug port
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k",  "https://localhost:4000/actuator/health" ] #TODO verify that endpoint returns 200
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+      signer:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 768M
+  backup-manager:
+    image: ${BACKUP_MANAGER_IMG}
+    pull_policy: always
+    environment:
+      - DEBUG=true
+      - XROAD_HOST=backup-manager
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_SERVERCONF_DB_PASSWORD=secret
+      - XROAD_SERVERCONF_DB_ADMIN_PASSWORD=admin_secret
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xrd-ss-network
+    depends_on:
+      openbao:
+        condition: service_healthy
+networks:
+  xrd-ss-network:
+    driver: bridge

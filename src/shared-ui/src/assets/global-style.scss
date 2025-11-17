@@ -25,197 +25,60 @@
  * THE SOFTWARE.
  */
 
-@use 'colors';
-body,
-.v-application {
-  font-family: 'Open Sans', sans-serif;
-  letter-spacing: normal;
+@use "material-symbols-rounded";
+@use "text-styles";
+@use "vuetify-overrides";
+
+body {
+  color: rgb(var(--v-theme-on-surface));
 }
 
-// Use this to set up font etc. common things for normal views
-.xrd-view-common {
-  font-size: colors.$DefaultFontSize;
+%special-bh-gradient {
+  background: radial-gradient(rgb(var(--v-theme-special-start)) 12%, rgb(var(--v-theme-special)) 100%);
 }
 
-.xrd-table-button {
-  margin-top: auto;
-  margin-bottom: auto;
-}
-
-.xrd-tab-max-width {
-  max-width: 850px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.xrd-tabs {
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 80px;
-  background-color: colors.$WarmGrey10;
-  width: 100%;
-}
-
-// Set validation provider to full width
-.validation-provider {
-  width: 100%;
-}
-
-.xrd-sub-view-wrapper {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-// LAYOUT
-
-// Wrap subelements right
-.wrap-right {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-}
-
-.wrap-right * {
-  margin-left: auto;
-}
-
-// Break long identifiers
-.identifier-wrap {
-  word-break: break-word;
-}
-
-// X-Road 7
-.xrd-view-title {
-  font-style: normal;
-  font-weight: bold;
-  font-size: 24px;
-  color: colors.$WarmGrey100;
-}
-
-.xrd-card {
-  .xrd-card-actions {
-    background-color: colors.$WarmGrey10;
-    height: 72px;
-    padding-right: 24px;
+.bg-special {
+  @extend %special-bh-gradient;
+  //TODO XRD8 special hover/focus/pressed layers are a bit weird
+  &.v-btn--disabled .v-btn__overlay {
+    @extend %special-bh-gradient;
   }
 }
 
-.xrd-title-search {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-end;
+.xrd-rounded-16 {
+  border-radius: 16px !important;
+}
 
-  .xrd-view-title {
-    margin-right: 20px;
+.xrd-rounded-12 {
+  border-radius: 12px !important;
+}
+
+.xrd-elevation-1 {
+  box-shadow: 0 16px 40px -24px rgb(var(--v-theme-elevation-1));
+}
+
+.xrd {
+  &.bg-success-container {
+    background-color: rgba(var(--v-theme-success-container), var(--v-success-container-opacity)) !important;
+  }
+
+  &.bg-info-container {
+    background-color: rgba(var(--v-theme-info-container), var(--v-info-container-opacity)) !important;
+  }
+
+  &.bg-warning-container {
+    background-color: rgba(var(--v-theme-warning-container), var(--v-warning-container-opacity)) !important;
+  }
+
+  &.bg-error-container {
+    background-color: rgba(var(--v-theme-error-container), var(--v-error-container-opacity)) !important;
   }
 }
 
-.header-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-bottom: 24px;
+.xrd-checkbox-column {
+  width: 50px;
 }
 
-// Helper for elements that need the "clickable" look
-.xrd-clickable {
-  color: colors.$Link;
-  cursor: pointer;
-}
-
-// Default shadow for "modals" and "card" components
-.xrd-default-shadow {
-  box-shadow: colors.$DefaultShadow;
-}
-
-// For adjusting the position of an icon when used inside a button component
-.xrd-large-button-icon {
-  margin-right: 5px;
-  margin-left: -4px;
-  margin-bottom: -2px;
-  min-width: 20px; // needs a width or the buttons with short text "collapse"
-}
-
-// Draws small red circle
-.dot {
-  position: relative;
-  height: 5px;
-  width: 5px;
-  background-color: red;
-  border-radius: 50%;
-}
-
-.pointer {
-  cursor: pointer;
-}
-
-// Styling used for Vuetify data table header
-.xrd-table-header {
-  border-bottom: 1px solid colors.$WarmGrey30 !important;
-}
-
-// Vuetify overrides
-
-// Override Vuetify default table cell height
-.v-data-table > .v-table__wrapper > table > tbody > tr > td,
-.v-data-table > .v-table__wrapper > table > thead > tr > td,
-.v-data-table > .v-table__wrapper > table > tfoot > tr > td {
-  color: colors.$Black100;
-}
-
-// Override Vuetify table row hover color
-.v-data-table > .v-table__wrapper > table > tbody:hover td[rowspan],
-.v-data-table > .v-table__wrapper > table > tbody > tr:hover td {
-  background: colors.$Purple10 !important;
-}
-
-.v-data-table > .v-table__wrapper > table > thead .v-data-table__th {
-  font-weight: 700;
-  font-size: 12px;
-  &.v-data-table__th--sorted {
-    color: colors.$Black100;
-  }
-}
-
-.v-data-table > .v-data-table-footer {
-  font-size: 12px;
-
-  .v-field {
-    font-size: 12px !important;
-  }
-}
-
-// Override for Vuetify tab style
-.v-tab {
-  letter-spacing: normal !important;
-}
-
-// Override for Vuetify text input style
-.v-text-field, .v-file-input {
-  font-weight: 600 !important;
-
-  .v-input__details {
-    font-weight: 600 !important;
-  }
-}
-
-// Override for Vuetify checkbox input style
-.v-checkbox {
-
-  .v-input__details {
-    font-weight: 600 !important;
-  }
-}
-
-.no-break {
-  white-space: nowrap;
-}
-
-.space-out-bottom {
-  padding-bottom: 8px;
+.xrd-search-field {
+  max-width: 320px;
 }

@@ -110,4 +110,12 @@ public interface KeyConfProvider {
         //NOP
     }
 
+    default void addChangeListener(KeyConfChangeListener listener) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    interface KeyConfChangeListener {
+        void keyConfChanged();
+    }
+
 }

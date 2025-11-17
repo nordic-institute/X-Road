@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,48 +26,14 @@
  -->
 <template>
   <div>
-    <div>
-      <XrdSubTabs :tabs />
-    </div>
+    <XrdViewNavigation :allowed-tabs="tabs" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { Permissions, RouteName } from '@/global';
-import { useUser } from '@/store/modules/user';
-import { Tab, XrdSubTabs } from '@niis/shared-ui';
+import { XrdViewNavigation } from '@niis/shared-ui';
+import { computed } from 'vue';
+import { useDiagnosticsTabs } from '@/store/modules/diagnostics-tabs';
 
-const userStore = useUser();
-
-const tabs = getAllowedTabs();
-
-function getAllowedTabs(): Tab[] {
-  const allTabs: Tab[] = [
-    {
-      key: 'diagnostics-overview-tab-button',
-      name: 'tab.diagnostics.overview',
-      to: {
-        name: RouteName.Diagnostics,
-      },
-      permissions: [Permissions.DIAGNOSTICS],
-    },
-    {
-      key: 'diagnostics-traffic-tab-button',
-      name: 'tab.diagnostics.traffic',
-      to: {
-        name: RouteName.DiagnosticsTraffic,
-      },
-      permissions: [Permissions.DIAGNOSTICS],
-    },
-    {
-      key: 'diagnostics-connection-tab-button',
-      name: 'tab.diagnostics.connectionTesting',
-      to: {
-        name: RouteName.DiagnosticsConnection,
-      },
-      permissions: [Permissions.DIAGNOSTICS],
-    },
-  ];
-  return userStore.getAllowedTabs(allTabs);
-}
+const tabs = computed(() => useDiagnosticsTabs().availableTabs);
 </script>

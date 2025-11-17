@@ -67,7 +67,7 @@ public class MemberSubsystemsStepDefs extends BaseUiStepDefs {
 
     @Step("Subsystem with code: {string} and status: {string} is listed")
     public void subsystemIsShown(String subsystemCode, String subsystemStatus) {
-        memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode, subsystemStatus).shouldBe(Condition.visible);
+        memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode, null, subsystemStatus).shouldBe(Condition.visible);
     }
 
     @Step("Subsystem with code: {string}, name: {string} and status: {string} is listed")
@@ -104,6 +104,6 @@ public class MemberSubsystemsStepDefs extends BaseUiStepDefs {
 
     @Step("Subsystem with code: {string} not listed any more")
     public void subsystemIsNotShown(String subsystemCode) {
-        memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode).shouldNotBe(Condition.visible);
+        memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode, null, null).shouldNotBe(Condition.visible);
     }
 }

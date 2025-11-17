@@ -85,7 +85,6 @@ import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx.doInTransaction;
 
 /**
  * Small util class for metaservice unit- and integration tests
@@ -313,17 +312,6 @@ public final class MetaserviceTestUtil {
         protected void describeMismatchSafely(CodedException ex, Description mismatchDescription) {
             mismatchDescription.appendText("was ").appendValue(ex.getFaultCode());
         }
-    }
-
-    /**
-     * Clean the database (You are using this from a test, right?)
-     */
-    public static void cleanDB() throws Exception {
-        doInTransaction(session -> {
-            var q = session.createNativeMutationQuery("TRUNCATE SCHEMA public AND COMMIT");
-            q.executeUpdate();
-            return null;
-        });
     }
 
     /**

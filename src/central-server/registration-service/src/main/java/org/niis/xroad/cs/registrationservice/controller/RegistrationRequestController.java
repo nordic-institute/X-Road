@@ -59,7 +59,7 @@ public class RegistrationRequestController {
     private final ManagementRequestSoapExecutor managementRequestSoapExecutor;
     private final AdminApiService adminApiService;
 
-    @PostMapping(path = "/managementservice",
+    @PostMapping(path = {"/managementservice", "/managementservice/"},
             produces = {MediaType.TEXT_XML_VALUE},
             consumes = {MediaType.MULTIPART_RELATED_VALUE})
     public ResponseEntity<String> register(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {

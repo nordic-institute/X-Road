@@ -1,0 +1,102 @@
+name: End-to-End Tests
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: true
+        type: string
+      sha:
+        description: 'Git SHA for the build'
+        required: true
+        type: string
+      image_registry:
+        description: 'Image registry URL'
+        required: true
+        type: string
+      service_image_tag:
+        description: 'Service image tag to use'
+        required: true
+        type: string
+
+jobs:
+  test-e2e:
+    name: Run E2E tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: start-measurement
+          label: 'E2E tests'
+
+      # Setup
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build-env
+        with:
+          gradle-cache-read-only: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: E2E test setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'Set up E2E tests'
+
+      # Execute and report
+      - name: Run E2E tests
+        working-directory: ./src
+        run: |
+          docker network create xroad-network
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g \
+            :security-server:e2e-test:e2eTest \
+            -PxroadImageRegistry=${{ inputs.image_registry }} \
+            -PxroadImageTag=${{ inputs.service_image_tag }}
+
+      - name: Log storage after tests
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'Storage After E2E Tests'
+          show-docker-images: 'true'
+
+      - name: E2E test measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'E2E tests'
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: E2E tests
+          path: src/security-server/e2e-test/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+
+      - name: Upload E2E report
+        uses: actions/upload-artifact@v5
+        if: failure()
+        with:
+          name: E2E report
+          path: |
+            src/security-server/e2e-test/build/allure-report/
+
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: display-results
+          pr-comment: true

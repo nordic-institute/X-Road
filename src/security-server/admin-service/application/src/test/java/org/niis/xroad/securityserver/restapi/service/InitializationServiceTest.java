@@ -26,19 +26,19 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
@@ -46,20 +46,19 @@ import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
-import java.util.ArrayList;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.GPG_KEY_GENERATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.securityserver.restapi.util.DeviationTestUtils.assertWarningWithoutMetadata;
 
@@ -73,7 +72,7 @@ public class InitializationServiceTest {
     private static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
     private static final String SOFTWARE_TOKEN_INVALID_PIN = "‘œ‘–ßçıı–ç˛®ç†é®ß";
     private static final String SOFTWARE_TOKEN_VALID_PIN = "TopSecretP1n.";
-    private static final ClientIdEntity CLIENT = ClientIdEntity.createMember(INSTANCE, OWNER_MEMBER_CLASS,
+    private static final ClientIdEntity CLIENT = MemberIdEntity.create(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE);
     private static final SecurityServerId SERVER = SecurityServerId.Conf.create(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE, SECURITY_SERVER_CODE);
@@ -95,7 +94,9 @@ public class InitializationServiceTest {
     @Mock
     private TokenPinValidator tokenPinValidator;
     @Mock
-    private ExternalProcessRunner externalProcessRunner;
+    private SecurityServerBackupService securityServerBackupService;
+    @Mock
+    private EncryptionInitializationService encryptionInitializationService;
 
     private InitializationService initializationService;
 
@@ -109,11 +110,10 @@ public class InitializationServiceTest {
         when(serverConfService.getOrCreateServerConfEntity()).thenReturn(new ServerConfEntity());
         when(serverConfService.getSecurityServerOwnerIdEntity()).thenReturn(CLIENT);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
-        when(externalProcessRunner.executeAndThrowOnFailure(any(), any(String[].class))).thenReturn(
-                new ExternalProcessRunner.ProcessResult("mockCmd", 0, new ArrayList<>()));
+        when(signerRpcClient.isEnforcedTokenPinPolicy()).thenReturn(Boolean.TRUE);
         initializationService = new InitializationService(systemService, serverConfService,
                 tokenService, globalConfProvider, clientService, signerRpcClient, auditDataHelper, tokenPinValidator,
-                externalProcessRunner);
+                securityServerBackupService, encryptionInitializationService);
     }
 
     @Test
@@ -123,6 +123,7 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
         assertEquals(TokenInitStatusInfo.INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
+        assertTrue(initStatus.getTokenPinPolicyEnforced());
     }
 
     @Test
@@ -177,6 +178,14 @@ public class InitializationServiceTest {
     }
 
     @Test
+    public void isSecurityServerInitializedEnforcedTokenPinPolicyFails() {
+        when(signerRpcClient.isEnforcedTokenPinPolicy()).thenThrow(XrdRuntimeException.systemInternalError("fail"));
+
+        var response = initializationService.getSecurityServerInitializationStatus();
+        assertNull(response.getTokenPinPolicyEnforced());
+    }
+
+    @Test
     public void initializeSuccess() {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
@@ -194,7 +203,6 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        tokenPinValidator.setTokenPinEnforced(true);
         try {
             initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                     SOFTWARE_TOKEN_VALID_PIN, true);
@@ -243,7 +251,7 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializeWarnSoftwareTokenAlreadyInitialized() throws Exception {
+    public void initializeWarnSoftwareTokenAlreadyInitialized() {
         when(globalConfProvider.getMemberName(any())).thenReturn("Some awesome name");
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
@@ -286,11 +294,24 @@ public class InitializationServiceTest {
     }
 
     @Test
+    public void initializeGpgKeysGenerationFail() {
+        when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
+        when(serverConfService.isServerCodeInitialized()).thenReturn(false);
+        when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
+        doThrow(new CodedException(GPG_KEY_GENERATION_FAILED.code())).when(securityServerBackupService).generateGpgKey(any());
+
+        assertThrows(
+                CodedException.class, () ->
+                        initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                                SOFTWARE_TOKEN_PIN, true));
+    }
+
+    @Test
     public void initializeFailTokenInvalidPin() {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        Mockito.doThrow(InvalidCharactersException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
+        doThrow(InvalidCharactersException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
         assertThrows(InvalidCharactersException.class, () ->
                 initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                         SOFTWARE_TOKEN_INVALID_PIN, true));
@@ -301,7 +322,7 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        Mockito.doThrow(WeakPinException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
+        doThrow(WeakPinException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
         assertThrows(WeakPinException.class, () ->
                 initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                         SOFTWARE_TOKEN_WEAK_PIN, true));
@@ -388,7 +409,7 @@ public class InitializationServiceTest {
                 () -> initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                         SOFTWARE_TOKEN_PIN, true));
 
-        Assert.assertEquals(DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED,
+        assertEquals(DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED,
                 exception.getErrorDeviation().code());
     }
 }

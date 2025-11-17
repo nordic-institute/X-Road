@@ -30,7 +30,6 @@ import axios from 'axios';
 import { defineStore } from 'pinia';
 import { Tab } from '@niis/shared-ui';
 import { User } from '@/openapi-types';
-import { mainTabs } from '@/global';
 import { get } from '@/util/api';
 
 export const useUser = defineStore('user', {
@@ -87,10 +86,6 @@ export const useUser = defineStore('user', {
           )
         );
       });
-    },
-
-    getFirstAllowedTab(): Tab {
-      return this.getAllowedTabs(mainTabs)[0];
     },
   },
 
