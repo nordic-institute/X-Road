@@ -51,35 +51,19 @@
     <v-container fluid class="management-request-additional-details pa-0 mt-6">
       <v-row justify="start">
         <v-col class="pa-2">
-          <MrSecurityServerInformation
-            class="fill-height"
-            :management-request="managementRequest"
-            :loading
-          />
+          <MrSecurityServerInformation class="fill-height" :management-request="managementRequest" :loading />
         </v-col>
         <v-col v-if="hasClientInfo" class="pa-2">
-          <MrClientInformation
-            class="fill-height"
-            :management-request="managementRequest"
-            :loading
-          />
+          <MrClientInformation class="fill-height" :management-request="managementRequest" :loading />
         </v-col>
         <v-col v-if="hasCertificateInfo" class="pa-2">
-          <MrCertificateInformation
-            class="fill-height"
-            :management-request="managementRequest"
-            :loading
-          />
+          <MrCertificateInformation class="fill-height" :management-request="managementRequest" :loading />
         </v-col>
         <v-spacer v-if="onlyServerInfo" />
       </v-row>
     </v-container>
     <MrConfirmDialog
-      v-if="
-        showApproveDialog &&
-        managementRequest?.id &&
-        managementRequest.security_server_id.encoded_id
-      "
+      v-if="showApproveDialog && managementRequest?.id && managementRequest.security_server_id.encoded_id"
       :request-id="managementRequest.id"
       :security-server-id="managementRequest.security_server_id.encoded_id"
       :new-member="newMember"
@@ -87,11 +71,7 @@
       @cancel="showApproveDialog = false"
     />
     <MrDeclineDialog
-      v-if="
-        showDeclineDialog &&
-        managementRequest?.id &&
-        managementRequest.security_server_id.encoded_id
-      "
+      v-if="showDeclineDialog && managementRequest?.id && managementRequest.security_server_id.encoded_id"
       :request-id="managementRequest.id"
       :security-server-id="managementRequest.security_server_id.encoded_id"
       @decline="decline"
@@ -132,10 +112,7 @@ const { addError } = useNotifications();
 const managementRequest = computed(() => managementRequests.current);
 const loading = computed(() => managementRequests.loadingCurrent);
 
-const title = computed(
-  () =>
-    managementTypeToIconTextColor(managementRequest.value?.type)?.text || '',
-);
+const title = computed(() => managementTypeToIconTextColor(managementRequest.value?.type)?.text || '');
 const breadcrumbs = computed(() => [
   {
     title: 'tab.main.managementRequests',
@@ -150,10 +127,9 @@ const hasCertificateInfo = computed(() => {
     return false;
   }
 
-  return [
-    ManagementRequestType.AUTH_CERT_DELETION_REQUEST,
-    ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST,
-  ].includes(managementRequest.value.type);
+  return [ManagementRequestType.AUTH_CERT_DELETION_REQUEST, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST].includes(
+    managementRequest.value.type,
+  );
 });
 
 const hasClientInfo = computed(() => {
@@ -173,26 +149,16 @@ const hasClientInfo = computed(() => {
 
 const newClientOwner = computed(() => {
   const req = managementRequest.value;
-  return (
-    !!req &&
-    req.type === ManagementRequestType.CLIENT_REGISTRATION_REQUEST &&
-    !req.client_owner_name
-  );
+  return !!req && req.type === ManagementRequestType.CLIENT_REGISTRATION_REQUEST && !req.client_owner_name;
 });
 
 const newServerOwner = computed(() => {
   const req = managementRequest.value;
-  return (
-    !!req &&
-    req.type === ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST &&
-    !req.security_server_owner
-  );
+  return !!req && req.type === ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST && !req.security_server_owner;
 });
 
 const newMember = computed(() => newClientOwner.value || newServerOwner.value);
-const onlyServerInfo = computed(
-  () => !hasCertificateInfo.value && !hasClientInfo.value,
-);
+const onlyServerInfo = computed(() => !hasCertificateInfo.value && !hasClientInfo.value);
 
 function approve() {
   showApproveDialog.value = false;
@@ -205,9 +171,7 @@ function decline() {
 }
 
 function fetchData() {
-  managementRequests
-    .loadById(props.requestId)
-    .catch((err) => addError(err, { navigate: true }));
+  managementRequests.loadById(props.requestId).catch((err) => addError(err, { navigate: true }));
 }
 
 watchEffect(() => {

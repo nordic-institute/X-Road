@@ -27,14 +27,10 @@
 <template>
   <XrdWizardStep>
     <XrdFormBlock>
-      <XrdFormBlockRow
-        v-for="item in csrForm"
-        :key="item.id"
-        :description="`certificateProfile.${item.label_key}`"
-        adjust-against-content
-      >
+      <XrdFormBlockRow v-for="item in csrForm" :key="item.id" :description="`certificateProfile.${item.label_key}`" adjust-against-content>
         <v-text-field
-          v-bind="componentRef(item.id)"
+          v-model="componentModel(item.id).value"
+          v-bind="componentAttr(item.id).value"
           class="xrd"
           :name="item.id"
           type="text"
@@ -45,9 +41,7 @@
         />
       </XrdFormBlockRow>
     </XrdFormBlock>
-    <div
-      class="generate-row d-flex flex-row align-center justify-space-between mt-6"
-    >
+    <div class="generate-row d-flex flex-row align-center justify-space-between mt-6">
       <div class="body-regular font-weight-medium">
         {{ $t('csr.saveInfo') }}
       </div>
@@ -61,10 +55,7 @@
       />
     </div>
     <template v-if="acmeCapable">
-      <div
-        v-if="acmeCapable"
-        class="generate-row d-flex flex-row align-center justify-space-between mt-6"
-      >
+      <div v-if="acmeCapable" class="generate-row d-flex flex-row align-center justify-space-between mt-6">
         <div class="body-regular font-weight-medium">
           {{ $t('csr.orderAcmeCertificate') }}
         </div>
@@ -88,13 +79,7 @@
       </v-alert>
     </template>
     <template #footer>
-      <XrdBtn
-        data-test="cancel-button"
-        variant="text"
-        text="action.cancel"
-        :disabled="!disableDone"
-        @click="cancel"
-      />
+      <XrdBtn data-test="cancel-button" variant="text" text="action.cancel" :disabled="!disableDone" @click="cancel" />
       <v-spacer />
       <XrdBtn
         data-test="previous-button"
@@ -105,13 +90,7 @@
         :disabled="!disableDone"
         @click="previous"
       />
-      <XrdBtn
-        data-test="save-button"
-        :text="saveButtonText"
-        prepend-icon="check"
-        :disabled="disableDone"
-        @click="done"
-      />
+      <XrdBtn data-test="save-button" :text="saveButtonText" prepend-icon="check" :disabled="disableDone" @click="done" />
     </template>
   </XrdWizardStep>
 </template>
@@ -121,15 +100,9 @@ import { defineComponent, Ref } from 'vue';
 import { mapActions, mapState, mapWritableState } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { AxiosError } from 'axios';
-import { PublicPathState, useForm } from 'vee-validate';
+import { useForm } from 'vee-validate';
 import { CsrSubjectFieldDescription } from '@/openapi-types';
-import {
-  XrdWizardStep,
-  XrdBtn,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, useNotifications, veeDefaultFieldConfig } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
@@ -153,34 +126,27 @@ export default defineComponent({
   setup() {
     const { addSuccessMessage, addError } = useNotifications();
     const { csrForm }: { csrForm: CsrSubjectFieldDescription[] } = useCsr();
-    const validationSchema: Record<string, string> = csrForm.reduce(
-      (acc, cur) => ({ ...acc, [cur.id]: cur.required && 'required' }),
-      {},
-    );
-    const initialValues: Record<string, string> = csrForm.reduce(
-      (acc, cur) => ({ ...acc, [cur.id]: cur.default_value }),
-      {},
-    );
-    const { meta, values, defineComponentBinds } = useForm({
+    const validationSchema: Record<string, string> = csrForm.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.required && 'required' }), {});
+    const initialValues: Record<string, string> = csrForm.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.default_value }), {});
+    const { meta, values, defineField } = useForm({
       validationSchema,
       initialValues,
     });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
-      },
+
+    const formModels = {} as Record<string, Ref>;
+    const formAttrs = {} as Record<string, Ref>;
+
+    csrForm.forEach((formField) => {
+      const [field, fieldAttr] = defineField(formField.id, veeDefaultFieldConfig());
+      formModels[formField.id] = field;
+      formAttrs[formField.id] = fieldAttr;
     });
-    const componentBinds: Record<string, Ref> = csrForm.reduce(
-      (acc, cur) => ({
-        ...acc,
-        [cur.id]: defineComponentBinds(cur.id, componentConfig),
-      }),
-      {},
-    );
+
     return {
       meta,
       values,
-      ...componentBinds,
+      formModels,
+      formAttrs,
       csrForm,
       addSuccessMessage,
       addError,
@@ -193,36 +159,19 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useCsr, [
-      'csrTokenId',
-      'acmeCapable',
-      'eabRequired',
-      'acmeEabCredentialsStatus',
-    ]),
+    ...mapState(useCsr, ['csrTokenId', 'acmeCapable', 'eabRequired', 'acmeEabCredentialsStatus']),
     ...mapWritableState(useCsr, ['acmeOrder']),
     externalAccountBindingRequiredButMissing(): boolean {
-      return (
-        !!this.eabRequired &&
-        !this.acmeEabCredentialsStatus?.has_acme_external_account_credentials
-      );
+      return !!this.eabRequired && !this.acmeEabCredentialsStatus?.has_acme_external_account_credentials;
     },
     externalAccountBindingRequiredButMissingHint(): string | undefined {
-      return this.externalAccountBindingRequiredButMissing
-        ? this.$t('csr.eabCredRequired')
-        : undefined;
+      return this.externalAccountBindingRequiredButMissing ? this.$t('csr.eabCredRequired') : undefined;
     },
     orderCertificateDisabled(): boolean {
-      return (
-        !this.meta.valid ||
-        !this.disableDone ||
-        this.externalAccountBindingRequiredButMissing ||
-        this.generateCsrLoading
-      );
+      return !this.meta.valid || !this.disableDone || this.externalAccountBindingRequiredButMissing || this.generateCsrLoading;
     },
     generateCsrDisabled(): boolean {
-      return (
-        !this.meta.valid || !this.disableDone || this.orderCertificateLoading
-      );
+      return !this.meta.valid || !this.disableDone || this.orderCertificateLoading;
     },
     orderCertificateLoading(): boolean {
       return this.genCsrLoading && this.acmeOrder;
@@ -241,13 +190,12 @@ export default defineComponent({
     this.acmeOrder = false;
   },
   methods: {
-    ...mapActions(useCsr, [
-      'setCsrForm',
-      'requestGenerateCsr',
-      'generateKeyAndCsr',
-    ]),
-    componentRef(id: string): Ref {
-      return (this as never)[id];
+    ...mapActions(useCsr, ['setCsrForm', 'requestGenerateCsr', 'generateKeyAndCsr']),
+    componentModel(id: string): Ref<string> {
+      return this.formModels[id];
+    },
+    componentAttr(id: string): Ref {
+      return this.formAttrs[id];
     },
     cancel(): void {
       this.$emit('cancel');

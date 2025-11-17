@@ -79,11 +79,7 @@ import { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { mapStores } from 'pinia';
 
-import {
-  useNotifications,
-  XrdPagination,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { useNotifications, XrdPagination, XrdSimpleDialog } from '@niis/shared-ui';
 
 import { Client, PagedClients } from '@/openapi-types';
 import { useClient } from '@/store/modules/clients';
@@ -120,9 +116,7 @@ export default defineComponent({
       } as DataQuery,
       clients: {} as PagedClients,
       search: '',
-      selectedSubsystems: (this.currentSubsystemId
-        ? [this.currentSubsystemId.replace('SUBSYSTEM:', '')]
-        : []) as string[],
+      selectedSubsystems: (this.currentSubsystemId ? [this.currentSubsystemId.replace('SUBSYSTEM:', '')] : []) as string[],
     };
   },
   computed: {
@@ -134,10 +128,7 @@ export default defineComponent({
       return this.clients.clients || [];
     },
     changed(): boolean {
-      return (
-        this.currentSubsystemId?.replace('SUBSYSTEM:', '') !==
-        this.selectedSubsystems[0]
-      );
+      return this.currentSubsystemId?.replace('SUBSYSTEM:', '') !== this.selectedSubsystems[0];
     },
     selected(): boolean {
       return this.selectedSubsystems?.length === 1;
@@ -155,23 +146,17 @@ export default defineComponent({
           key: 'client_id.member_code',
         },
         {
-          title: this.$t(
-            'systemSettings.selectSubsystem.memberClass',
-          ) as string,
+          title: this.$t('systemSettings.selectSubsystem.memberClass') as string,
           align: 'start',
           key: 'client_id.member_class',
         },
         {
-          title: this.$t(
-            'systemSettings.selectSubsystem.subsystemCode',
-          ) as string,
+          title: this.$t('systemSettings.selectSubsystem.subsystemCode') as string,
           align: 'start',
           key: 'client_id.subsystem_code',
         },
         {
-          title: this.$t(
-            'systemSettings.selectSubsystem.xroadInstance',
-          ) as string,
+          title: this.$t('systemSettings.selectSubsystem.xroadInstance') as string,
           align: 'start',
           key: 'client_id.instance_id',
         },
@@ -201,21 +186,12 @@ export default defineComponent({
         .catch((error) => this.addError(error))
         .finally(() => (this.loading = false));
     },
-    changeOptions: async function ({
-      itemsPerPage,
-      page,
-      sortBy,
-    }: PagingOptions) {
+    changeOptions: async function ({ itemsPerPage, page, sortBy }: PagingOptions) {
       this.pagingOptions.itemsPerPage = itemsPerPage;
       this.pagingOptions.page = page;
       this.pagingOptions.sortBy = sortBy[0]?.key;
       const order = sortBy[0]?.order;
-      this.pagingOptions.sortOrder =
-        order === undefined
-          ? undefined
-          : order === true || order === 'asc'
-            ? 'asc'
-            : 'desc';
+      this.pagingOptions.sortOrder = order === undefined ? undefined : order === true || order === 'asc' ? 'asc' : 'desc';
       this.fetchClients();
     },
     cancel(): void {
@@ -228,9 +204,7 @@ export default defineComponent({
           service_provider_id: this.selectedSubsystems[0],
         })
         .then(() => {
-          this.addSuccessMessage(
-            'systemSettings.serviceProvider.changedSuccess',
-          );
+          this.addSuccessMessage('systemSettings.serviceProvider.changedSuccess');
           this.$emit('select', this.selectedSubsystems);
         })
         .catch((error) => this.addError(error))

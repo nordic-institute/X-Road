@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard
-    data-test="diagnostics-global-configuration"
-    title="diagnostics.globalConfiguration.title"
-    class="overview-card"
-  >
+  <XrdCard data-test="diagnostics-global-configuration" title="diagnostics.globalConfiguration.title" class="overview-card">
     <v-table class="xrd">
       <thead>
         <tr>
@@ -65,12 +61,7 @@
             {{ $filters.formatHoursMins(globalConf.next_update_at) }}
           </td>
         </tr>
-        <XrdEmptyPlaceholderRow
-          :colspan="4"
-          :loading="globalConfLoading"
-          :data="globalConf"
-          :no-items-text="$t('noData.noData')"
-        />
+        <XrdEmptyPlaceholderRow :colspan="4" :loading="globalConfLoading" :data="globalConf" :no-items-text="$t('noData.noData')" />
       </tbody>
     </v-table>
   </XrdCard>
@@ -80,11 +71,7 @@ import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { defineComponent } from 'vue';
 import { DiagnosticStatusClass } from '@/openapi-types';
-import {
-  XrdCard,
-  useNotifications,
-  XrdEmptyPlaceholderRow,
-} from '@niis/shared-ui';
+import { XrdCard, useNotifications, XrdEmptyPlaceholderRow } from '@niis/shared-ui';
 import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
 export default defineComponent({
@@ -103,14 +90,9 @@ export default defineComponent({
         return '';
       }
       if (this.globalConf.status_class === DiagnosticStatusClass.FAIL) {
-        return this.$t(
-          `error_code.${this.globalConf.error?.code}`,
-          this.globalConf.error?.metadata,
-        );
+        return this.$t(`error_code.${this.globalConf.error?.code}`, this.globalConf.error?.metadata);
       } else {
-        return this.$t(
-          `diagnostics.globalConfiguration.configurationStatus.${this.globalConf.status_class}`,
-        );
+        return this.$t(`diagnostics.globalConfiguration.configurationStatus.${this.globalConf.status_class}`);
       }
     },
     statusIconType() {

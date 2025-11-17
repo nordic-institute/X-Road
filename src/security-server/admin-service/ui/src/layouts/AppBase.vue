@@ -49,10 +49,7 @@ const userStore = useUser();
 const { checkAlertStatus } = useAlerts();
 
 // Set interval to poll backend for session
-const sessionPollInterval = window.setInterval(
-  () => pollSessionStatus(),
-  30000,
-);
+const sessionPollInterval = window.setInterval(() => pollSessionStatus(), 30000);
 pollSessionStatus();
 
 async function pollSessionStatus() {

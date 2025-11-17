@@ -25,16 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewFixedWidth
-    closeable
-    :translated-title="serviceClientId"
-    :breadcrumbs="breadcrumbs"
-    @close="close"
-  >
-    <v-table
-      data-test="service-clients-table"
-      class="xrd border xrd-rounded-12 mb-6"
-    >
+  <XrdElevatedViewFixedWidth closeable :translated-title="serviceClientId" :breadcrumbs="breadcrumbs" @close="close">
+    <v-table data-test="service-clients-table" class="xrd border xrd-rounded-12 mb-6">
       <thead>
         <tr>
           <th>{{ $t('serviceClients.name') }}</th>
@@ -87,24 +79,13 @@
       item-key="uiKey"
     >
       <template #item.service_code="{ value }">
-        <XrdLabelWithIcon
-          icon="settings_system_daydream"
-          semi-bold
-          :label="value"
-        />
+        <XrdLabelWithIcon icon="settings_system_daydream" semi-bold :label="value" />
       </template>
       <template #item.rights_given_at="{ item }">
         <XrdDateTime :value="item.rights_given_at" with-seconds />
       </template>
       <template #item.actions="{ item }">
-        <XrdBtn
-          v-if="canEdit"
-          data-test="access-right-remove"
-          variant="text"
-          color="tertiary"
-          text="action.remove"
-          @click="remove(item)"
-        />
+        <XrdBtn v-if="canEdit" data-test="access-right-remove" variant="text" color="tertiary" text="action.remove" @click="remove(item)" />
       </template>
     </v-data-table>
 
@@ -149,14 +130,7 @@ import { ServiceCandidate } from '@/ui-types';
 import { Permissions, RouteName } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import {
-  XrdElevatedViewFixedWidth,
-  XrdBtn,
-  XrdDateTime,
-  useNotifications,
-  XrdLabelWithIcon,
-  XrdConfirmDialog,
-} from '@niis/shared-ui';
+import { XrdElevatedViewFixedWidth, XrdBtn, XrdDateTime, useNotifications, XrdLabelWithIcon, XrdConfirmDialog } from '@niis/shared-ui';
 import ClientName from '@/components/client/ClientName.vue';
 import { useServiceClients } from '@/store/modules/service-clients';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
@@ -269,20 +243,11 @@ export default defineComponent({
   methods: {
     ...mapActions(useClient, ['fetchClient']),
     ...mapActions(useServiceDescriptions, ['fetchServiceDescriptions']),
-    ...mapActions(useServiceClients, [
-      'fetchServiceClient',
-      'fetchAccessRights',
-      'removeAccessRights',
-      'saveAccessRights',
-    ]),
+    ...mapActions(useServiceClients, ['fetchServiceClient', 'fetchAccessRights', 'removeAccessRights', 'saveAccessRights']),
     fetchData(): void {
       this.doFetchAccessRights();
-      this.fetchClient(this.id).catch((error) =>
-        this.addError(error, { navigate: true }),
-      );
-      this.fetchServiceDescriptions(this.id, false).catch((error) =>
-        this.addError(error),
-      );
+      this.fetchClient(this.id).catch((error) => this.addError(error, { navigate: true }));
+      this.fetchServiceDescriptions(this.id, false).catch((error) => this.addError(error));
       this.fetchServiceClient(this.id, this.serviceClientId)
         .then((data) => (this.serviceClient = data))
         .catch((error) => this.addError(error, { navigate: true }));
@@ -307,9 +272,7 @@ export default defineComponent({
       if (!this.accessRightToDelete) {
         return;
       }
-      this.removeAccessRights(this.id, this.serviceClientId, [
-        this.accessRightToDelete?.service_code,
-      ])
+      this.removeAccessRights(this.id, this.serviceClientId, [this.accessRightToDelete?.service_code])
         .then(() => {
           this.addSuccessMessage('accessRights.removeSuccess');
           if (this.serviceClientAccessRights.length === 1) {
@@ -329,9 +292,7 @@ export default defineComponent({
       const accessRightsObject: AccessRights = { items: accessRights };
       this.saveAccessRights(this.id, this.serviceClientId, accessRightsObject)
         .then(() => {
-          this.addSuccessMessage(
-            'serviceClients.addServiceClientAccessRightSuccess',
-          );
+          this.addSuccessMessage('serviceClients.addServiceClientAccessRightSuccess');
           this.doFetchAccessRights();
         })
         .catch((error) => this.addError(error));
@@ -357,18 +318,13 @@ export default defineComponent({
         .catch((error) => this.addError(error));
     },
     serviceCandidates(): ServiceCandidate[] {
-      return serviceCandidatesForServiceClient(
-        this.serviceDescriptions,
-        this.serviceClientAccessRights,
-      );
+      return serviceCandidatesForServiceClient(this.serviceDescriptions, this.serviceClientAccessRights);
     },
 
     keyedServiceClientAccessRights(): UiAccessRight[] {
-      return this.serviceClientAccessRights.map(
-        (sca: AccessRight, index: number) => {
-          return { ...sca, id: index };
-        },
-      ) as UiAccessRight[];
+      return this.serviceClientAccessRights.map((sca: AccessRight, index: number) => {
+        return { ...sca, id: index };
+      }) as UiAccessRight[];
     },
   },
 });

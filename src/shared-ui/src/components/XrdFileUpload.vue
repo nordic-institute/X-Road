@@ -77,17 +77,9 @@ function upload() {
 }
 
 function _handleFile(file: File) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    if (!e?.target?.result) {
-      return;
-    }
-    emit('file-changed', {
-      buffer: e.target.result as ArrayBuffer,
-      file,
-    });
-  };
-  reader.readAsArrayBuffer(file);
+  emit('file-changed', {
+    file,
+  });
   if (fileInput.value) {
     (fileInput.value as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
   }

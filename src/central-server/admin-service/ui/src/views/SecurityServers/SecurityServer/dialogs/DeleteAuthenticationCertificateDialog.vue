@@ -37,11 +37,7 @@
     @save="deleteCert"
   >
     <template #text>
-      {{
-        $t(
-          'securityServers.securityServer.dialog.deleteAuthCertificate.content',
-        )
-      }}
+      {{ $t('securityServers.securityServer.dialog.deleteAuthCertificate.content') }}
     </template>
     <template #content>
       <XrdFormBlock>
@@ -52,11 +48,7 @@
             data-test="verify-server-code"
             class="xrd"
             autofocus
-            :placeholder="
-              $t(
-                'securityServers.securityServer.dialog.deleteAuthCertificate.securityServerCode',
-              )
-            "
+            :placeholder="$t('securityServers.securityServer.dialog.deleteAuthCertificate.securityServerCode')"
             :label="$t('fields.securityServerCode')"
           >
           </v-text-field>
@@ -73,12 +65,7 @@ import { useI18n } from 'vue-i18n';
 
 import { useForm } from 'vee-validate';
 
-import {
-  XrdSimpleDialog,
-  useNotifications,
-  XrdFormBlock,
-  XrdFormBlockRow,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, useNotifications, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 import { SecurityServerId } from '@/openapi-types';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
@@ -104,12 +91,9 @@ const { meta, defineField, handleSubmit } = useForm({
     },
   },
 });
-const [securityServerCode, securityServerCodeAttrs] = defineField(
-  'securityServerCode',
-  {
-    props: (state) => ({ 'error-messages': state.errors }),
-  },
-);
+const [securityServerCode, securityServerCodeAttrs] = defineField('securityServerCode', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 
 const { deleteAuthenticationCertificate } = useSecurityServerAuthCert();
 const { addSuccessMessage, addError } = useNotifications();
@@ -122,14 +106,9 @@ const loading = ref(false);
 const { t } = useI18n();
 const deleteCert = handleSubmit(() => {
   loading.value = true;
-  deleteAuthenticationCertificate(
-    props.securityServerId.encoded_id as string,
-    props.authenticationCertificateId,
-  )
+  deleteAuthenticationCertificate(props.securityServerId.encoded_id as string, props.authenticationCertificateId)
     .then(() => {
-      addSuccessMessage(
-        'securityServers.securityServer.dialog.deleteAuthCertificate.success',
-      );
+      addSuccessMessage('securityServers.securityServer.dialog.deleteAuthCertificate.success');
       emits('delete');
     })
     .catch((error) => {

@@ -28,12 +28,7 @@
   <XrdSubView>
     <template #header>
       <div>
-        <XrdRoundedSearchField
-          v-model="filter"
-          data-test="search-query-field"
-          width="320"
-          :label="$t('action.search')"
-        />
+        <XrdRoundedSearchField v-model="filter" data-test="search-query-field" width="320" :label="$t('action.search')" />
       </div>
       <v-spacer />
       <XrdBtn

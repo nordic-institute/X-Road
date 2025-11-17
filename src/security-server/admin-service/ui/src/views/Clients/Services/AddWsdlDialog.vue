@@ -50,23 +50,12 @@
     </template>
   </XrdSimpleDialog>
   <!-- Accept "save WSDL" warnings -->
-  <ServiceWarningDialog
-    v-if="warningDialog"
-    :warnings="warningInfo"
-    @cancel="warningDialog = false"
-    @accept="saveWithWarning"
-  />
+  <ServiceWarningDialog v-if="warningDialog" :warnings="warningInfo" @cancel="warningDialog = false" @accept="saveWithWarning" />
 </template>
 
 <script lang="ts" setup>
 import { useField } from 'vee-validate';
-import {
-  useNotifications,
-  DialogSaveHandler,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { useNotifications, DialogSaveHandler, XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '@niis/shared-ui';
 import { ref } from 'vue';
 import { CodeWithDetails } from '@/openapi-types';
 import ServiceWarningDialog from '@/components/service/ServiceWarningDialog.vue';

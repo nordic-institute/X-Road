@@ -5,13 +5,13 @@
     "addServiceClientsTitle": "Adicionar clientes",
     "addSubjectsSuccess": "Direitos de acesso adicionados com sucesso",
     "id": "ID",
-    "subsystemName": "Nome do subsistema / Descrição do grupo",
     "removeAllText": "Tem certeza de que deseja remover os direitos de acesso de todos os clientes?",
     "removeAllTitle": "Remover todos os direitos de acesso?",
     "removeSuccess": "Direitos de acesso removidos com sucesso",
     "removeText": "Tem certeza de que deseja remover os direitos de acesso deste cliente?",
     "removeTitle": "Remover direitos de acesso?",
     "rightsGiven": "Direitos de Acesso Concedidos",
+    "subsystemName": "Nome do subsistema / Descrição do grupo",
     "title": "Direitos de Acesso"
   },
   "action": {
@@ -119,9 +119,11 @@
     "member": "Membro",
     "memberClass": "Classe do Membro",
     "memberCode": "Código do Membro",
+    "memberInParenthesis": "(@:client.member)",
     "memberName": "Nome do Membro",
     "name": "Nome",
     "owner": "Proprietário",
+    "ownerInParenthesis": "(@:client.owner)",
     "status": "Status",
     "statusText": {
       "deletionInProgress": "Exclusão em andamento",
@@ -177,6 +179,17 @@
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Desativado por configuração"
+    },
+    "connection": {
+      "centralServer": {
+        "authCertRequest": "Serviço de registro de certificado de autenticação",
+        "globalConf": "Download da configuração global",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Servidor Central"
+      },
+      "ok": "Tudo certo",
+      "test": "Teste"
     },
     "downloadReport": "Baixar relatório de diagnóstico",
     "encryption": {
@@ -306,36 +319,25 @@
       "title": "Carimbo de tempo"
     },
     "traffic": {
-      "period": "Período",
-      "periodInfo": "Selecione início e fim",
-      "date": "Data",
-      "time": "Hora",
-      "party": "Parte",
-      "partyInfo": "Serviço, subsistema, membro",
       "client": "Cliente",
-      "service": "Serviço",
+      "date": "Data",
+      "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, instale o complemento de monitoramento de dados operacionais (xroad-addon-opmonitoring).",
+      "disabledTitle": "Monitoramento de dados operacionais desativado",
       "exchangeRole": "Função de troca",
       "exchangeRoleInfo": "Produtor ou Consumidor",
+      "failedRequests": "Solicitações falhas",
+      "failure": "Falha",
+      "party": "Parte",
+      "partyInfo": "Serviço, subsistema, membro",
+      "period": "Período",
+      "periodInfo": "Selecione início e fim",
       "producer": "Produtor",
+      "service": "Serviço",
       "status": "Status",
       "statusInfo": "Status da troca de mensagens",
       "success": "Sucesso",
-      "failure": "Falha",
       "successfulRequests": "Solicitações exitosas",
-      "failedRequests": "Solicitações falhas",
-      "disabledTitle": "Monitoramento de dados operacionais desativado",
-      "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, instale o complemento de monitoramento de dados operacionais (xroad-addon-opmonitoring)."
-    },
-    "connection": {
-      "ok": "Tudo certo",
-      "test": "Teste",
-      "centralServer": {
-        "title": "Servidor Central",
-        "globalConf": "Download da configuração global",
-        "globalConfHttp": "http",
-        "globalConfHttps": "https",
-        "authCertRequest": "Serviço de registro de certificado de autenticação"
-      }
+      "time": "Hora"
     }
   },
   "endpoints": {
@@ -429,6 +431,7 @@
     "global_conf_outdated": "Configuração global está desatualizada",
     "gpg_key_generation_failed": "Falha ao gerar chave GPG",
     "gpg_key_generation_interrupted": "Geração de chave GPG interrompida",
+    "http_error": "Erro HTTP",
     "identifier_not_found": "Identificador não encontrado",
     "illegal_generated_endpoint_remove": "Não é permitido remover endpoint gerado automaticamente",
     "illegal_generated_endpoint_update": "Não é permitido editar endpoint gerado automaticamente",
@@ -463,7 +466,6 @@
     "member_code_not_provided": "Código de membro não informado",
     "missing_parameter": "Parâmetro ausente",
     "network_error": "Erro de rede",
-    "http_error": "Erro HTTP",
     "ocsp_connection_error": "Não foi possível conectar ao respondedor OCSP",
     "ocsp_failed": "Não foi possível obter resposta do respondedor OCSP",
     "ocsp_response_parsing_failure": "Não foi possível interpretar a resposta OCSP",
@@ -801,7 +803,6 @@
     "enableSuccess": "Descrição do serviço ativada",
     "idGroupCode": "ID / Código do grupo",
     "lastRefreshed": "Última atualização: ",
-    "subsystemNameGroupDesc": "Nome do subsistema / Descrição do grupo",
     "noMatches": "Nenhum registro correspondente",
     "openApi3Added": "Serviço OpenAPI 3 adicionado",
     "openapiDetails": "Detalhes OpenAPI 3",
@@ -819,6 +820,7 @@
       "internal_server_ssl_error": "Falha ao verificar os certificados do servidor interno. A URL está correta e acessível pelo Servidor Seguro?",
       "internal_server_ssl_handshake_error": "Falha no handshake TLS com o servidor upstream. O certificado do servidor está ausente da configuração:"
     },
+    "subsystemNameGroupDesc": "Nome do subsistema / Descrição do grupo",
     "timeout": "Timeout",
     "timeoutSec": "Tempo limite (s)",
     "timeoutTooltip": "Duração máxima de uma requisição ao serviço, em segundos",
@@ -922,9 +924,9 @@
           }
         },
         "header": {
+          "costType": "Tipo de Custo",
           "serviceURL": "URL do Serviço",
-          "timestampingService": "Serviço de Carimbo do Tempo",
-          "costType": "Tipo de Custo"
+          "timestampingService": "Serviço de Carimbo do Tempo"
         }
       },
       "title": "Serviços de Carimbo do Tempo"
@@ -938,6 +940,11 @@
       "localGroups": "Grupos locais",
       "serviceClients": "Clientes de serviço",
       "services": "Serviços"
+    },
+    "diagnostics": {
+      "connectionTesting": "Teste de Conexão",
+      "overview": "Visão Geral",
+      "traffic": "Tráfego"
     },
     "keys": {
       "apiKey": "Chaves de API",
@@ -957,11 +964,6 @@
     "settings": {
       "backupAndRestore": "Backup e Restauração",
       "systemParameters": "Parâmetros do Sistema"
-    },
-    "diagnostics": {
-      "overview": "Visão Geral",
-      "traffic": "Tráfego",
-      "connectionTesting": "Teste de Conexão"
     }
   },
   "tlsCertificates": {

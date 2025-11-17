@@ -42,20 +42,14 @@ export const tabs: Tab[] = [
     key: 'keys',
     name: 'tab.main.securityServers',
     icon: 'dns',
-    permissions: [
-      Permissions.VIEW_SECURITY_SERVERS,
-      Permissions.VIEW_SECURITY_SERVER_DETAILS,
-    ],
+    permissions: [Permissions.VIEW_SECURITY_SERVERS, Permissions.VIEW_SECURITY_SERVER_DETAILS],
   },
   {
     to: { name: RouteName.ManagementRequests },
     key: 'managementRequests',
     name: 'tab.main.managementRequests',
     icon: 'rule_settings',
-    permissions: [
-      Permissions.VIEW_MANAGEMENT_REQUESTS,
-      Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS,
-    ],
+    permissions: [Permissions.VIEW_MANAGEMENT_REQUESTS, Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS],
   },
   {
     to: { name: RouteName.TrustServices },

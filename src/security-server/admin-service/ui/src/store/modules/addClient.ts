@@ -33,35 +33,22 @@ import * as api from '@/util/api';
 import { createClientId } from '@/util/helpers';
 import { useUser } from './user';
 import { encodePathParameter } from '@/util/api';
-import {
-  Client,
-  Key,
-  KeyUsageType,
-  Token,
-  TokenCertificateSigningRequest,
-} from '@/openapi-types';
+import { Client, Key, KeyUsageType, Token, TokenCertificateSigningRequest } from '@/openapi-types';
 import { AddMemberWizardModes } from '@/global';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 
 // Compares two Clients on member level and returns true if the
 // member ids of the clients match. Otherwise returns false.
 const memberEquals = (client: Client, other: Client): boolean =>
-  client.member_class === other.member_class &&
-  client.member_code === other.member_code &&
-  client.instance_id === other.instance_id;
+  client.member_class === other.member_class && client.member_code === other.member_code && client.instance_id === other.instance_id;
 
 // Filters out clients that have local relatives.
 // If the member owning the client or another subsystem
 // of the same member is already present locally,
 // the client is excluded.
-const excludeClientsWithLocalRelatives = (
-  clients: Client[],
-  localClients: Client[],
-): Client[] => {
+const excludeClientsWithLocalRelatives = (clients: Client[], localClients: Client[]): Client[] => {
   return clients.filter((client: Client) => {
-    return !localClients.some((localClient: Client) =>
-      memberEquals(localClient, client),
-    );
+    return !localClients.some((localClient: Client) => memberEquals(localClient, client));
   });
 };
 
@@ -183,9 +170,7 @@ export const useAddClient = defineStore('addClient', {
 
     fetchSelectableClients(instanceId: string) {
       const globalClientsPromise = api.get<Client[]>(
-        `/clients?exclude_local=true&internal_search=false&show_members=false&instance=${encodePathParameter(
-          instanceId,
-        )}`,
+        `/clients?exclude_local=true&internal_search=false&show_members=false&instance=${encodePathParameter(instanceId)}`,
       );
       const localClientsPromise = api.get<Client[]>('/clients');
       // Fetch list of local clients and filter out global clients
@@ -194,10 +179,7 @@ export const useAddClient = defineStore('addClient', {
         .then((response) => {
           const globalClients = response[0];
           const localClients = response[1];
-          this.selectableClients = excludeClientsWithLocalRelatives(
-            globalClients.data,
-            localClients.data,
-          );
+          this.selectableClients = excludeClientsWithLocalRelatives(globalClients.data, localClients.data);
         })
         .catch((error) => {
           throw error;
@@ -207,11 +189,7 @@ export const useAddClient = defineStore('addClient', {
     fetchSelectableMembers(instanceId: string) {
       // Fetch clients from backend that can be selected
       return api
-        .get<Client[]>(
-          `/clients?internal_search=false&show_members=true&instance=${encodePathParameter(
-            instanceId,
-          )}`,
-        )
+        .get<Client[]>(`/clients?internal_search=false&show_members=true&instance=${encodePathParameter(instanceId)}`)
         .then((res) => {
           // Filter out subsystems
           const filtered = res.data.filter((client: Client) => {
@@ -228,11 +206,7 @@ export const useAddClient = defineStore('addClient', {
     // set AddMemberWizardModes.CERTIFICATE_EXISTS and/or AddMemberWizardModes.CSR_EXISTS to correct values
     // to adjust how add client wizard works
     // both values are possible even if this member is not yet a local client in this SS
-    async updateAddMemberWizardModeIfNeeded(params: {
-      instanceId: string;
-      memberClass: string;
-      memberCode: string;
-    }) {
+    async updateAddMemberWizardModeIfNeeded(params: { instanceId: string; memberClass: string; memberCode: string }) {
       const clientsResponse = await api.get<Client[]>('/clients', {
         params: {
           instance: params.instanceId,
@@ -243,16 +217,11 @@ export const useAddClient = defineStore('addClient', {
         },
       });
 
-      const matchingClient: boolean = clientsResponse.data.some(
-        (client: Client) => {
-          if (
-            client.member_code === params.memberCode &&
-            client.member_class === params.memberClass
-          ) {
-            return true;
-          }
-        },
-      );
+      const matchingClient: boolean = clientsResponse.data.some((client: Client) => {
+        if (client.member_code === params.memberCode && client.member_class === params.memberClass) {
+          return true;
+        }
+      });
 
       if (matchingClient) {
         // There is a valid sign certificate for given member (which may or may not have local clients)
@@ -265,30 +234,24 @@ export const useAddClient = defineStore('addClient', {
       // Fetch tokens from backend
       const tokenResponse = await api.get<Token[]>('/tokens');
       // Create a client id
-      const ownerId = createClientId(
-        params.instanceId,
-        params.memberClass,
-        params.memberCode,
-      );
+      const ownerId = createClientId(params.instanceId, params.memberClass, params.memberCode);
 
       // Find if a token has a sign key with a certificate that has matching client data
       tokenResponse.data.some((token: Token) => {
         return token.keys.some((key: Key) => {
           if (key.usage === KeyUsageType.SIGNING) {
             // Go through the keys CSR:s
-            key.certificate_signing_requests.some(
-              (csr: TokenCertificateSigningRequest) => {
-                if (ownerId === csr.owner_id) {
-                  const csrStore = useCsr();
-                  csrStore.setCsrTokenId(token.id);
-                  csrStore.setKeyId(key.id);
+            key.certificate_signing_requests.some((csr: TokenCertificateSigningRequest) => {
+              if (ownerId === csr.owner_id) {
+                const csrStore = useCsr();
+                csrStore.setCsrTokenId(token.id);
+                csrStore.setKeyId(key.id);
 
-                  this.memberWizardMode = AddMemberWizardModes.CSR_EXISTS;
+                this.memberWizardMode = AddMemberWizardModes.CSR_EXISTS;
 
-                  return true;
-                }
-              },
-            );
+                return true;
+              }
+            });
           }
         });
       });

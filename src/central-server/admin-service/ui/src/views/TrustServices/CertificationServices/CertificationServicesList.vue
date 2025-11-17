@@ -25,10 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard
-    data-test="certification-services"
-    title="trustServices.certificationServices"
-  >
+  <XrdCard data-test="certification-services" title="trustServices.certificationServices">
     <template #title-actions>
       <XrdBtn
         v-if="showAddCSButton"
@@ -52,13 +49,7 @@
       :items-per-page="-1"
     >
       <template #[`item.name`]="{ item }">
-        <XrdLabelWithIcon
-          icon="shield_lock"
-          semi-bold
-          :label="item.name"
-          :clickable="hasPermissionToDetails"
-          @navigate="toDetails(item)"
-        />
+        <XrdLabelWithIcon icon="shield_lock" semi-bold :label="item.name" :clickable="hasPermissionToDetails" @navigate="toDetails(item)" />
       </template>
       <template #[`item.not_before`]="{ item }">
         <div>
@@ -72,11 +63,7 @@
       </template>
     </v-data-table>
     <!-- Dialogs -->
-    <AddCertificationServiceDialog
-      v-if="showAddCSDialog"
-      @save="hideAddCSDialog"
-      @cancel="hideAddCSDialog"
-    />
+    <AddCertificationServiceDialog v-if="showAddCSDialog" @save="hideAddCSDialog" @cancel="hideAddCSDialog" />
   </XrdCard>
 </template>
 
@@ -87,12 +74,7 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
-import {
-  XrdBtn,
-  XrdCard,
-  XrdDateTime,
-  XrdLabelWithIcon,
-} from '@niis/shared-ui';
+import { XrdBtn, XrdCard, XrdDateTime, XrdLabelWithIcon } from '@niis/shared-ui';
 
 import { Permissions, RouteName } from '@/global';
 import { ApprovedCertificationServiceListItem } from '@/openapi-types';
@@ -110,12 +92,8 @@ const showAddCSDialog = ref(false);
 const loading = ref(false);
 const search = ref('');
 
-const showAddCSButton = computed(() =>
-  hasPermission(Permissions.ADD_APPROVED_CA),
-);
-const hasPermissionToDetails = computed(() =>
-  hasPermission(Permissions.VIEW_APPROVED_CA_DETAILS),
-);
+const showAddCSButton = computed(() => hasPermission(Permissions.ADD_APPROVED_CA));
+const hasPermissionToDetails = computed(() => hasPermission(Permissions.VIEW_APPROVED_CA_DETAILS));
 const headers = computed(
   () =>
     [
@@ -142,9 +120,7 @@ function fetchCertificationServices(): void {
   certificationServiceStore.fetchAll().finally(() => (loading.value = false));
 }
 
-function toDetails(
-  certificationService: ApprovedCertificationServiceListItem,
-): void {
+function toDetails(certificationService: ApprovedCertificationServiceListItem): void {
   router.push({
     name: RouteName.CertificationServiceDetails,
     params: { certificationServiceId: String(certificationService.id) },

@@ -29,6 +29,7 @@ import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
+import { multipartFormDataConfig, buildFileFormData } from '@niis/shared-ui';
 
 export interface ClientState {
   client: Client | undefined;
@@ -129,27 +130,17 @@ export const useClient = defineStore('client', {
 
     async fetchTlsCertificate(clientId: string, hash: string) {
       const encodedHash = encodePathParameter(hash);
-      return api
-        .get<CertificateDetails>(
-          clientBaseUrl(clientId, `/tls-certificates/${encodedHash}`),
-        )
-        .then((response) => response.data);
+      return api.get<CertificateDetails>(clientBaseUrl(clientId, `/tls-certificates/${encodedHash}`)).then((response) => response.data);
     },
 
     async deleteTlsCertificate(clientId: string, hash: string) {
       const encodedHash = encodePathParameter(hash);
 
-      return api.remove(
-        clientBaseUrl(clientId, `/tls-certificates/${encodedHash}`),
-      );
+      return api.remove(clientBaseUrl(clientId, `/tls-certificates/${encodedHash}`));
     },
 
-    async uploadTlsCertificate(clientId: string, buffer: ArrayBuffer) {
-      return api.post(clientBaseUrl(clientId, '/tls-certificates'), buffer, {
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-      });
+    async uploadTlsCertificate(clientId: string, file: File) {
+      return api.post(clientBaseUrl(clientId, '/tls-certificates'), buildFileFormData('certificate', file), multipartFormDataConfig());
     },
 
     async saveConnectionType(clientId: string, connType: string) {

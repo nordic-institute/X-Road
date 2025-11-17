@@ -25,17 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewFixedWidth
-    title="cert.certificate"
-    go-back-on-close
-    :loading="loading"
-    :breadcrumbs="breadcrumbs"
-  >
-    <XrdCertificate
-      v-if="certificate"
-      data-test="certificate-details-dialog"
-      :certificate="certificate"
-    />
+  <XrdElevatedViewFixedWidth title="cert.certificate" go-back-on-close :loading="loading" :breadcrumbs="breadcrumbs">
+    <XrdCertificate v-if="certificate" data-test="certificate-details-dialog" :certificate="certificate" />
 
     <!-- Confirm dialog for delete -->
     <XrdConfirmDialog
@@ -67,13 +58,7 @@ import { Permissions, RouteName } from '@/global';
 import { CertificateDetails } from '@/openapi-types';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
-import {
-  XrdCertificate,
-  XrdElevatedViewFixedWidth,
-  XrdBtn,
-  useNotifications,
-  XrdConfirmDialog,
-} from '@niis/shared-ui';
+import { XrdCertificate, XrdElevatedViewFixedWidth, XrdBtn, useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 import { useRouter } from 'vue-router';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
 import { useI18n } from 'vue-i18n';
@@ -102,9 +87,7 @@ const loading = ref(false);
 const deleting = ref(false);
 const certificate = ref<CertificateDetails | null>(null);
 
-const showDeleteButton = computed(() =>
-  hasPermission(Permissions.DELETE_CLIENT_INTERNAL_CERT),
-);
+const showDeleteButton = computed(() => hasPermission(Permissions.DELETE_CLIENT_INTERNAL_CERT));
 
 const breadcrumbs = computed(() => {
   const crumbs: BreadcrumbItem[] = [

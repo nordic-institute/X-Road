@@ -48,20 +48,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="accessRight in searchResults"
-          :key="accessRight.id"
-          class="service-row"
-          data-test="access-right-toggle"
-        >
+        <tr v-for="accessRight in searchResults" :key="accessRight.id" class="service-row" data-test="access-right-toggle">
           <td class="xrd-checkbox-column">
-            <v-checkbox
-              v-model="selections"
-              :value="accessRight"
-              data-test="access-right-checkbox-input"
-              class="xrd"
-              hide-details
-            />
+            <v-checkbox v-model="selections" :value="accessRight" data-test="access-right-checkbox-input" class="xrd" hide-details />
           </td>
           <td class="identifier-wrap">{{ accessRight.service_code }}</td>
           <td class="identifier-wrap">{{ accessRight.service_title }}</td>
@@ -69,21 +58,11 @@
       </tbody>
     </v-table>
 
-    <p
-      v-if="serviceCandidates.length === 0"
-      class="mt-4 body-regular text-center"
-    >
+    <p v-if="serviceCandidates.length === 0" class="mt-4 body-regular text-center">
       {{ $t('serviceClients.noAvailableServices') }}
     </p>
 
-    <p
-      v-if="
-        serviceCandidates.length > 0 &&
-        searchResults &&
-        searchResults.length === 0
-      "
-      class="mt-4 body-regular text-center"
-    >
+    <p v-if="serviceCandidates.length > 0 && searchResults && searchResults.length === 0" class="mt-4 body-regular text-center">
       <i18n-t scope="global" keypath="action.emptySearch">
         <template #msg>
           <span class="font-weight-medium">{{ search }}</span>
@@ -91,20 +70,9 @@
       </i18n-t>
     </p>
     <template #footer>
-      <XrdBtn
-        variant="text"
-        text="action.cancel"
-        data-test="cancel-button"
-        @click="cancel"
-      />
+      <XrdBtn variant="text" text="action.cancel" data-test="cancel-button" @click="cancel" />
       <v-spacer />
-      <XrdBtn
-        data-test="previous-button"
-        variant="outlined"
-        text="action.previous"
-        class="mr-2"
-        @click="$emit('set-step')"
-      />
+      <XrdBtn data-test="previous-button" variant="outlined" text="action.previous" class="mr-2" @click="$emit('set-step')" />
 
       <XrdBtn
         data-test="finish-button"
@@ -120,18 +88,13 @@
 import { defineComponent, PropType } from 'vue';
 import { ServiceCandidate } from '@/ui-types';
 import { AccessRight, AccessRights, ServiceClient } from '@/openapi-types';
-import {
-  XrdWizardStep,
-  useNotifications,
-  XrdFormBlock,
-  XrdBtn,
-} from '@niis/shared-ui';
+import { XrdWizardStep, useNotifications, XrdBtn } from '@niis/shared-ui';
 import { mapActions } from 'pinia';
 import { useServiceClients } from '@/store/modules/service-clients';
 import { RouteName } from '@/global';
 
 export default defineComponent({
-  components: { XrdWizardStep, XrdFormBlock, XrdBtn },
+  components: { XrdWizardStep, XrdBtn },
   props: {
     id: {
       type: String as PropType<string>,
@@ -162,8 +125,7 @@ export default defineComponent({
       const cleanedSearch = this.search.toLowerCase();
       return this.serviceCandidates.filter((candidate: ServiceCandidate) => {
         return (
-          candidate.service_code.toLowerCase().includes(cleanedSearch) ||
-          candidate.service_title?.toLowerCase().includes(cleanedSearch)
+          candidate.service_code.toLowerCase().includes(cleanedSearch) || candidate.service_title?.toLowerCase().includes(cleanedSearch)
         );
       });
     },
@@ -181,17 +143,9 @@ export default defineComponent({
 
       const accessRightsObject: AccessRights = { items };
 
-      this.saveAccessRights(
-        this.id,
-        this.serviceClientCandidateSelection.id,
-        accessRightsObject,
-      )
+      this.saveAccessRights(this.id, this.serviceClientCandidateSelection.id, accessRightsObject)
         .then(() => {
-          this.addSuccessMessage(
-            'serviceClients.addServiceClientAccessRightSuccess',
-            {},
-            true,
-          );
+          this.addSuccessMessage('serviceClients.addServiceClientAccessRightSuccess', {}, true);
           this.$router.push({
             name: RouteName.SubsystemServiceClients,
             params: {

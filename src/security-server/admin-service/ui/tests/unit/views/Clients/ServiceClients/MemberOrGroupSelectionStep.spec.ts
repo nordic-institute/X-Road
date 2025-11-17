@@ -51,8 +51,6 @@ const vuetify = createVuetify({
   directives,
 });
 
-global.ResizeObserver = require('resize-observer-polyfill');
-
 const pinia = createTestingPinia();
 setActivePinia(pinia);
 

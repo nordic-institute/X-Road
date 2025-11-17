@@ -137,11 +137,7 @@ export const useClients = defineStore('clients', {
           }
 
           // Create "virtual member" id
-          clone.id = createClientId(
-            element.instance_id,
-            element.member_class,
-            element.member_code,
-          );
+          clone.id = createClientId(element.instance_id, element.member_class, element.member_code);
 
           clone.subsystem_code = undefined;
 
@@ -156,8 +152,7 @@ export const useClients = defineStore('clients', {
         // Push subsystems to an array
         if (element.subsystem_code) {
           const clone = deepClone(element) as ExtendedClient;
-          clone.visibleName =
-            clone.subsystem_name || clone.subsystem_code || '';
+          clone.visibleName = clone.subsystem_name || clone.subsystem_code || '';
           clone.type = ClientTypes.SUBSYSTEM;
 
           subsystems.push(clone);

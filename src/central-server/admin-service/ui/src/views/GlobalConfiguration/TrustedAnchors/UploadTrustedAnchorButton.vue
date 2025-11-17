@@ -26,11 +26,7 @@
  -->
 <template>
   <div>
-    <XrdFileUpload
-      v-slot="{ upload }"
-      accepts=".xml"
-      @file-changed="onFileUploaded"
-    >
+    <XrdFileUpload v-slot="{ upload }" accepts=".xml" @file-changed="onFileUploaded">
       <XrdBtn
         v-if="canUpload"
         data-test="upload-anchor-button"
@@ -41,14 +37,7 @@
         @click="upload"
       />
     </XrdFileUpload>
-    <UploadTrustedAnchorDialog
-      v-if="file && preview"
-      ref="dialog"
-      :file="file"
-      :preview="preview"
-      @close="clear"
-      @uploaded="clear(true)"
-    />
+    <UploadTrustedAnchorDialog v-if="file && preview" ref="dialog" :file="file" :preview="preview" @close="clear" @uploaded="clear(true)" />
   </div>
 </template>
 <script lang="ts">
@@ -56,12 +45,7 @@ import { defineComponent } from 'vue';
 import { mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
-import {
-  FileUploadResult,
-  XrdFileUpload,
-  useNotifications,
-  XrdBtn,
-} from '@niis/shared-ui';
+import { FileUploadResult, XrdFileUpload, useNotifications, XrdBtn } from '@niis/shared-ui';
 import UploadTrustedAnchorDialog from './dialogs/UploadTrustedAnchorDialog.vue';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { TrustedAnchor } from '@/openapi-types';

@@ -36,12 +36,7 @@
     :cert-details-view-name="certDetailsView"
   >
     <template #append-header>
-      <HelpButton
-        class="ml-2"
-        :help-image="helpImage"
-        help-title="keys.helpTitleSS"
-        help-text="keys.helpTextSS"
-      />
+      <HelpButton class="ml-2" :help-image="helpImage" help-title="keys.helpTitleSS" help-text="keys.helpTextSS" />
     </template>
     <template #tabs>
       <KeysAndCertificatesTabs />
@@ -52,11 +47,7 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import {
-  XrdTlsCertificateView,
-  TlsCertificatesHandler,
-  TlsCertificate,
-} from '@niis/shared-ui';
+import { XrdTlsCertificateView, TlsCertificatesHandler, TlsCertificate } from '@niis/shared-ui';
 import { useUser } from '@/store/modules/user';
 import helpImg from '@/assets/tls_certificate.png';
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
@@ -64,29 +55,15 @@ import { useTlsCertificate } from '@/store/modules/tls-certificate';
 import HelpButton from '@/components/ui/HelpButton.vue';
 
 const { hasPermission } = useUser();
-const {
-  fetchTlsCertificate,
-  downloadCertificate,
-  uploadCertificate,
-  generateCsr,
-  generateKey,
-} = useTlsCertificate();
+const { fetchTlsCertificate, downloadCertificate, uploadCertificate, generateCsr, generateKey } = useTlsCertificate();
 
 const helpImage = ref(helpImg);
 const certDetailsView = RouteName.InternalTlsCertificate;
 
-const generateKeyVisible = computed(() =>
-  hasPermission(Permissions.GENERATE_INTERNAL_TLS_KEY_CERT),
-);
-const importCertificateVisible = computed(() =>
-  hasPermission(Permissions.IMPORT_INTERNAL_TLS_CERT),
-);
-const exportCertificateVisible = computed(() =>
-  hasPermission(Permissions.EXPORT_INTERNAL_TLS_CERT),
-);
-const generateCsrVisible = computed(() =>
-  hasPermission(Permissions.GENERATE_INTERNAL_TLS_CSR),
-);
+const generateKeyVisible = computed(() => hasPermission(Permissions.GENERATE_INTERNAL_TLS_KEY_CERT));
+const importCertificateVisible = computed(() => hasPermission(Permissions.IMPORT_INTERNAL_TLS_CERT));
+const exportCertificateVisible = computed(() => hasPermission(Permissions.EXPORT_INTERNAL_TLS_CERT));
+const generateCsrVisible = computed(() => hasPermission(Permissions.GENERATE_INTERNAL_TLS_CSR));
 const handler = computed<TlsCertificatesHandler>(() => ({
   downloadCertificate(): Promise<unknown> {
     return downloadCertificate();

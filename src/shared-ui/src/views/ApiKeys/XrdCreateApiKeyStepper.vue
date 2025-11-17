@@ -125,7 +125,7 @@ import { XrdBtn, XrdFormBlock, XrdBreadcrumbs } from '../../components';
 import { XrdWizard, XrdWizardStep } from '../../components/wizard';
 import { XrdElevatedViewSimple } from '../../layouts';
 import { useNotifications } from '../../composables';
-import { helper } from '../../utils';
+import { toClipboard } from '../../utils';
 
 import { ApiKeysHandler, ApiKey } from '../../types';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
@@ -195,7 +195,7 @@ export default defineComponent({
     copyKey(): void {
       const key = this.apiKey.key;
       if (key) {
-        helper.toClipboard(key);
+        toClipboard(key);
       }
     },
   },

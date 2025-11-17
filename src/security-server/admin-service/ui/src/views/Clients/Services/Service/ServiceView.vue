@@ -25,12 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewFixedWidth
-    closeable
-    :translated-title="service?.full_service_code"
-    :breadcrumbs="breadcrumbs"
-    @close="close"
-  >
+  <XrdElevatedViewFixedWidth closeable :translated-title="service?.full_service_code" :breadcrumbs="breadcrumbs" @close="close">
     <template v-if="nonWsdl" #tabs>
       <XrdViewNavigation class="mb-6" bordered :allowed-tabs="tabs" />
     </template>
@@ -42,12 +37,7 @@
 import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import { ServiceTypeEnum } from '@/domain';
-import {
-  Tab,
-  XrdElevatedViewFixedWidth,
-  XrdViewNavigation,
-  useNotifications,
-} from '@niis/shared-ui';
+import { Tab, XrdElevatedViewFixedWidth, XrdViewNavigation, useNotifications } from '@niis/shared-ui';
 import { mapActions, mapState } from 'pinia';
 import { useServices } from '@/store/modules/services';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
@@ -107,10 +97,7 @@ export default defineComponent({
       return this.serviceDescription?.type;
     },
     nonWsdl() {
-      return (
-        this.serviceType &&
-        [ServiceType.REST, ServiceType.OPENAPI3].includes(this.serviceType)
-      );
+      return this.serviceType && [ServiceType.REST, ServiceType.OPENAPI3].includes(this.serviceType);
     },
     breadcrumbs() {
       const breadcrumbs = [
@@ -170,9 +157,7 @@ export default defineComponent({
     ...mapActions(useServiceDescriptions, ['fetchServiceDescription']),
     fetchData(serviceId: string): void {
       this.fetchService(serviceId)
-        .then((service) =>
-          this.fetchServiceDescription(service.service_description_id),
-        )
+        .then((service) => this.fetchServiceDescription(service.service_description_id))
         .then((description) => this.fetchClient(description.client_id))
         .catch((error) => this.addError(error, { navigate: true }));
     },

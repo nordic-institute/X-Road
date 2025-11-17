@@ -79,7 +79,7 @@ import { computed } from 'vue';
 
 import { useRouter } from 'vue-router';
 
-import { XrdBtn, helper, XrdBanner } from '@niis/shared-ui';
+import { XrdBtn, XrdBanner, formatDateTime } from '@niis/shared-ui';
 
 import { RouteName } from '@/global';
 import { useAlerts } from '@/store/modules/alerts';
@@ -94,18 +94,10 @@ const alertsStore = useAlerts();
 const userStore = useUser();
 const systemStore = useSystem();
 
-const sortedAlerts = computed(() =>
-  alertsStore.alerts.toSorted((item1, item2) =>
-    item1.errorCode.localeCompare(item2.errorCode),
-  ),
-);
+const sortedAlerts = computed(() => alertsStore.alerts.toSorted((item1, item2) => item1.errorCode.localeCompare(item2.errorCode)));
 
-const internalCfg = computed(
-  () => router.currentRoute.value.name === RouteName.InternalConfiguration,
-);
-const externalCfg = computed(
-  () => router.currentRoute.value.name === RouteName.ExternalConfiguration,
-);
+const internalCfg = computed(() => router.currentRoute.value.name === RouteName.InternalConfiguration);
+const externalCfg = computed(() => router.currentRoute.value.name === RouteName.ExternalConfiguration);
 
 function isMissingInternalKey(item: ErrorCoded) {
   return item.errorCode === 'status.signing_key.internal.missing';
@@ -133,7 +125,7 @@ function reformatDates(metadata?: string[]): string[] {
     if (isNaN(Date.parse(item))) {
       return item;
     }
-    return helper.formatDateTime(item, true);
+    return formatDateTime(item, true);
   });
 }
 </script>

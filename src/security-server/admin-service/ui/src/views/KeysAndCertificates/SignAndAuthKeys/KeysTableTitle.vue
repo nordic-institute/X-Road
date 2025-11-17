@@ -25,33 +25,15 @@
    THE SOFTWARE.
  -->
 <template>
-  <div
-    class="table-title cursor-pointer d-flex flex-row align-center pt-2 pb-2 pl-4 pr-4"
-    :class="{ 'table-closed': !arrowState }"
-  >
-    <div
-      class="title-text font-weight-medium"
-      data-test="key-title-sort"
-      @click="arrowClick"
-    >
-      <v-btn
-        class="opacity-100"
-        variant="plain"
-        color="primary"
-        :icon="icon"
-        :ripple="false"
-      />
+  <div class="table-title cursor-pointer d-flex flex-row align-center pt-2 pb-2 pl-4 pr-4" :class="{ 'table-closed': !arrowState }">
+    <div class="title-text font-weight-medium" data-test="key-title-sort" @click="arrowClick">
+      <v-btn class="opacity-100" variant="plain" color="primary" :icon="icon" :ripple="false" />
 
       {{ title }}
     </div>
     <v-spacer />
     <div v-if="errors > 0" class="errors">
-      <v-chip
-        class="xrd"
-        density="compact"
-        color="error-container"
-        variant="flat"
-      >
+      <v-chip class="xrd" density="compact" color="error-container" variant="flat">
         <template #prepend>
           <v-icon class="mr-1 ml-n1" icon="error" color="error" />
         </template>
@@ -61,18 +43,9 @@
       </v-chip>
     </div>
     <div v-else-if="registered === certificateCount" class="registered">
-      <v-chip
-        class="xrd"
-        density="compact"
-        color="success-container"
-        variant="flat"
-      >
+      <v-chip class="xrd" density="compact" color="success-container" variant="flat">
         <template #prepend>
-          <v-icon
-            class="mr-1 ml-n1"
-            icon="check_circle filled"
-            color="success"
-          />
+          <v-icon class="mr-1 ml-n1" icon="check_circle filled" color="success" />
         </template>
         <span class="font-weight-medium body-small">
           {{ $t('keys.noIssues') }}

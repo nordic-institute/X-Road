@@ -80,12 +80,7 @@ import { ref, PropType } from 'vue';
 import { useForm } from 'vee-validate';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService, CsrFormat } from '@/openapi-types';
-import {
-  XrdSimpleDialog,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   certificationService: {
@@ -119,8 +114,7 @@ const csrFormatList = Object.values(CsrFormat).map((csrFormat) => ({
   title: csrFormat,
   value: csrFormat,
 }));
-const [defaultCsrFormat, defaultCsrFormatAttrs] =
-  defineField('defaultCsrFormat');
+const [defaultCsrFormat, defaultCsrFormatAttrs] = defineField('defaultCsrFormat');
 
 const { addSuccessMessage, addError } = useNotifications();
 

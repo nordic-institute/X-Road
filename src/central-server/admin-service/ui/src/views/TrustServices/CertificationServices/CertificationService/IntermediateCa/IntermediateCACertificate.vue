@@ -25,17 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewFixedWidth
-    id="intermediate-ca-certificate-details"
-    title="cert.certificate"
-    go-back-on-close
-    :breadcrumbs
-    :loading
-  >
-    <XrdCertificate
-      v-if="certificateDetails"
-      :certificate="certificateDetails"
-    />
+  <XrdElevatedViewFixedWidth id="intermediate-ca-certificate-details" title="cert.certificate" go-back-on-close :breadcrumbs :loading>
+    <XrdCertificate v-if="certificateDetails" :certificate="certificateDetails" />
   </XrdElevatedViewFixedWidth>
 </template>
 
@@ -97,8 +88,7 @@ const breadcrumbs = computed(() => {
 
   if (intermediateCasServiceStore.current) {
     crumbs.push({
-      title:
-      intermediateCasServiceStore.current?.ca_certificate.subject_common_name,
+      title: intermediateCasServiceStore.current?.ca_certificate.subject_common_name,
       to: {
         name: RouteName.IntermediateCaDetails,
         params: {
@@ -125,9 +115,7 @@ watchEffect(() => {
       if (resp.data) {
         certificateDetails.value = resp.data.ca_certificate;
         if (resp.data.certification_service_id) {
-          return certificationServiceStore.loadById(
-            resp.data.certification_service_id,
-          );
+          return certificationServiceStore.loadById(resp.data.certification_service_id);
         }
       }
       return Promise.resolve();

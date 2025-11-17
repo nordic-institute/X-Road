@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard
-    data-test="diagnostics-proxy-memory"
-    title="diagnostics.proxyMemoryUsage.title"
-    class="overview-card"
-  >
+  <XrdCard data-test="diagnostics-proxy-memory" title="diagnostics.proxyMemoryUsage.title" class="overview-card">
     <v-table class="xrd">
       <thead>
         <tr>
@@ -49,18 +45,9 @@
       <tbody>
         <tr>
           <td data-test="status-icon">
-            <StatusAvatar
-              :status="
-                proxyMemoryUsageStatus?.is_used_over_threshold
-                  ? 'pending'
-                  : 'ok'
-              "
-            />
+            <StatusAvatar :status="proxyMemoryUsageStatus?.is_used_over_threshold ? 'pending' : 'ok'" />
           </td>
-          <td
-            v-if="proxyMemoryUsageStatus?.is_used_over_threshold"
-            data-test="proxy-memory-usage-status-message"
-          >
+          <td v-if="proxyMemoryUsageStatus?.is_used_over_threshold" data-test="proxy-memory-usage-status-message">
             {{ $t('diagnostics.proxyMemoryUsage.alertOverThreshold') }}
           </td>
           <td v-else data-test="proxy-memory-usage-status-message">
@@ -113,9 +100,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useDiagnostics, ['fetchProxyMemoryDiagnostics']),
     threshold(): string {
-      return this.proxyMemoryUsageStatus?.threshold
-        ? `${this.proxyMemoryUsageStatus.threshold}%`
-        : 'Not set.';
+      return this.proxyMemoryUsageStatus?.threshold ? `${this.proxyMemoryUsageStatus.threshold}%` : 'Not set.';
     },
   },
 });

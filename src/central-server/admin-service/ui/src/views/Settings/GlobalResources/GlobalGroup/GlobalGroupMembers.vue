@@ -44,14 +44,7 @@
           :label="$t('action.search')"
           @update:model-value="debouncedFetchItems"
         />
-        <v-btn
-          class="ml-4 mb-2"
-          size="x-small"
-          variant="outlined"
-          icon="tune"
-          color="primary"
-          @click="showFilterDialog = true"
-        />
+        <v-btn class="ml-4 mb-2" size="x-small" variant="outlined" icon="tune" color="primary" @click="showFilterDialog = true" />
       </div>
     </template>
     <template #title-actions>
@@ -129,12 +122,7 @@
       @cancel="cancelFilter"
       @apply="applyFilter"
     />
-    <AddGroupMembersDialog
-      v-if="showAddMemberDialog"
-      :group-code="groupCode"
-      @save="refreshList"
-      @cancel="showAddMemberDialog = false"
-    />
+    <AddGroupMembersDialog v-if="showAddMemberDialog" :group-code="groupCode" @save="refreshList" @cancel="showAddMemberDialog = false" />
     <DeleteGroupMemberDialog
       v-if="groupMemberToDelete"
       ref="deleteDialog"
@@ -153,14 +141,7 @@ import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 import { mapActions, mapState, mapStores } from 'pinia';
 
-import {
-  useNotifications,
-  XrdBtn,
-  XrdCard,
-  XrdLabelWithIcon,
-  XrdPagination,
-  XrdDateTime,
-} from '@niis/shared-ui';
+import { useNotifications, XrdBtn, XrdCard, XrdLabelWithIcon, XrdPagination, XrdDateTime } from '@niis/shared-ui';
 
 import { Permissions } from '@/global';
 import { GroupMemberListView, GroupMembersFilter } from '@/openapi-types';
@@ -218,9 +199,7 @@ export default defineComponent({
       return this.hasPermission(Permissions.ADD_AND_REMOVE_GROUP_MEMBERS);
     },
     memberCount(): number {
-      return this.globalGroupStore.pagingOptions === undefined
-        ? 0
-        : this.globalGroupStore.pagingOptions.total_items;
+      return this.globalGroupStore.pagingOptions === undefined ? 0 : this.globalGroupStore.pagingOptions.total_items;
     },
     membersHeaders(): DataTableHeader[] {
       return [
@@ -289,11 +268,7 @@ export default defineComponent({
     fetchItems: async function () {
       this.loading = true;
       try {
-        await this.globalGroupStore.findMembers(
-          this.groupCode,
-          this.paging,
-          this.filter,
-        );
+        await this.globalGroupStore.findMembers(this.groupCode, this.paging, this.filter);
       } catch (error: unknown) {
         this.addError(error);
       } finally {

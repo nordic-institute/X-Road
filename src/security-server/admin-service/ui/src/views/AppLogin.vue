@@ -53,8 +53,7 @@ export default defineComponent({
     XrdAppLogin,
   },
   setup() {
-    const { addError, addSuccessMessage, clear, addErrorMessage } =
-      useNotifications();
+    const { addError, addSuccessMessage, clear, addErrorMessage } = useNotifications();
     return { addError, addSuccessMessage, clear, addErrorMessage };
   },
   data() {
@@ -64,11 +63,7 @@ export default defineComponent({
   },
   computed: {
     ...mapState(useMainTabs, ['firstAllowedTab']),
-    ...mapState(useUser, [
-      'hasPermission',
-      'hasInitState',
-      'needsInitialization',
-    ]),
+    ...mapState(useUser, ['hasPermission', 'hasInitState', 'needsInitialization']),
   },
   methods: {
     ...mapActions(useUser, [
@@ -154,9 +149,7 @@ export default defineComponent({
         // Check if the user has permission to initialize the server
         if (!this.hasPermission(Permissions.INIT_CONFIG)) {
           await redirectToLogin();
-          throw new Error(
-            this.$t('initialConfiguration.noPermission') as string,
-          );
+          throw new Error(this.$t('initialConfiguration.noPermission') as string);
         }
         await this.$router.replace({ name: RouteName.InitialConfiguration });
       } else {

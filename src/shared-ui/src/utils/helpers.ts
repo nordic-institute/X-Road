@@ -30,12 +30,12 @@ import dayjs from 'dayjs';
 import { PublicPathState } from 'vee-validate';
 import { AxiosResponse } from 'axios';
 
-async function toClipboard(val: string): Promise<void> {
+export async function toClipboard(val: string): Promise<void> {
   return navigator.clipboard.writeText(val);
 }
 
 // Add colon for every two characters.  xxxxxx -> xx:xx:xx
-function colonize(value: string): string {
+export function colonize(value: string): string {
   if (!value) {
     return '';
   }
@@ -53,7 +53,7 @@ const DATE_FORMAT = 'YYYY-MM-DD';
 const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm';
 const DATE_TIME_FORMAT_WITH_SECONDS = DATE_TIME_FORMAT + ':ss';
 
-function formatDateTime(valueAsText: string | undefined, withSeconds = false): string {
+export function formatDateTime(valueAsText: string | undefined, withSeconds = false): string {
   if (!valueAsText) {
     return '-';
   }
@@ -61,7 +61,7 @@ function formatDateTime(valueAsText: string | undefined, withSeconds = false): s
   return time.isValid() ? time.format(withSeconds ? DATE_TIME_FORMAT_WITH_SECONDS : DATE_TIME_FORMAT) : '-';
 }
 
-function formatDate(valueAsText: string | undefined, withSeconds = false): string {
+export function formatDate(valueAsText: string | undefined, withSeconds = false): string {
   if (!valueAsText) {
     return '-';
   }
@@ -69,20 +69,20 @@ function formatDate(valueAsText: string | undefined, withSeconds = false): strin
   return date.isValid() ? date.format(DATE_FORMAT) : '-';
 }
 
-function veePropMapper(state: PublicPathState<never>) {
+export function veePropMapper(state: PublicPathState<never>) {
   return {
     'error-messages': state.errors,
   };
 }
 
-function veeDefaultFieldConfig() {
+export function veeDefaultFieldConfig() {
   return {
     props: veePropMapper,
   };
 }
 
 // Save response data as a file
-function saveResponseAsFile(response: AxiosResponse, defaultFileName = 'certs.tar.gz'): void {
+export function saveResponseAsFile(response: AxiosResponse, defaultFileName = 'certs.tar.gz'): void {
   let suggestedFileName;
   const disposition = response.headers['content-disposition'];
 
@@ -110,13 +110,3 @@ function saveResponseAsFile(response: AxiosResponse, defaultFileName = 'certs.ta
   document.body.removeChild(link);
   URL.revokeObjectURL(link.href);
 }
-
-export const helper = {
-  toClipboard,
-  colonize,
-  formatDate,
-  formatDateTime,
-  veePropMapper,
-  veeDefaultFieldConfig,
-  saveResponseAsFile,
-};

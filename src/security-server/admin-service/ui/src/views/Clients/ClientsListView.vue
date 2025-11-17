@@ -28,12 +28,7 @@
   <XrdView title="tab.main.clients">
     <template #append-header>
       <div class="ml-6">
-        <XrdSearchField
-          v-model="search"
-          data-test="search-query-field"
-          width="320"
-          :label="$t('action.search')"
-        />
+        <XrdSearchField v-model="search" data-test="search-query-field" width="320" :label="$t('action.search')" />
       </div>
       <div class="ml-auto">
         <XrdBtn
@@ -84,12 +79,7 @@
             @navigate="openClient(item)"
           >
             <template #append-label>
-              <v-chip
-                class="xrd text-info font-weight-medium ml-3"
-                variant="flat"
-                density="compact"
-                color="info-container"
-              >
+              <v-chip class="xrd text-info font-weight-medium ml-3" variant="flat" density="compact" color="info-container">
                 {{ $t('client.owner') }}
               </v-chip>
             </template>
@@ -107,27 +97,12 @@
           />
         </template>
         <!-- Name - virtual member -->
-        <template
-          v-else-if="
-            item.type === clientTypes.VIRTUAL_MEMBER ||
-            item.type === clientTypes.MEMBER
-          "
-        >
-          <XrdLabelWithIcon
-            icon="folder_open"
-            semi-bold
-            :label="item.visibleName"
-          />
+        <template v-else-if="item.type === clientTypes.VIRTUAL_MEMBER || item.type === clientTypes.MEMBER">
+          <XrdLabelWithIcon icon="folder_open" semi-bold :label="item.visibleName" />
         </template>
         <!-- Name - Subsystem -->
         <template v-else>
-          <XrdLabel
-            data-test="btn-client-details"
-            class="ml-6"
-            semi-bold
-            :clickable="canOpenClient"
-            @navigate="openSubsystem(item)"
-          >
+          <XrdLabel data-test="btn-client-details" class="ml-6" semi-bold :clickable="canOpenClient" @navigate="openSubsystem(item)">
             <template #label>
               <SubsystemName class="client-name" :name="item.visibleName" />
             </template>
@@ -146,9 +121,7 @@
       <template #[`item.button`]="{ item }">
         <XrdBtn
           v-if="
-            (item.type === clientTypes.OWNER_MEMBER ||
-              item.type === clientTypes.MEMBER ||
-              item.type === clientTypes.VIRTUAL_MEMBER) &&
+            (item.type === clientTypes.OWNER_MEMBER || item.type === clientTypes.MEMBER || item.type === clientTypes.VIRTUAL_MEMBER) &&
             item.member_name &&
             showAddClient
           "
@@ -160,10 +133,7 @@
 
         <XrdBtn
           v-if="
-            item.type !== clientTypes.OWNER_MEMBER &&
-            item.type !== clientTypes.VIRTUAL_MEMBER &&
-            item.status === 'SAVED' &&
-            showRegister
+            item.type !== clientTypes.OWNER_MEMBER && item.type !== clientTypes.VIRTUAL_MEMBER && item.status === 'SAVED' && showRegister
           "
           variant="text"
           color="tertiary"
@@ -210,14 +180,7 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useClients } from '@/store/modules/clients';
-import {
-  XrdView,
-  XrdLabelWithIcon,
-  XrdBtn,
-  XrdLabel,
-  useNotifications,
-  XrdConfirmDialog,
-} from '@niis/shared-ui';
+import { XrdView, XrdLabelWithIcon, XrdBtn, XrdLabel, useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 import { AxiosError } from 'axios';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
@@ -254,12 +217,7 @@ export default defineComponent({
     },
   }),
   computed: {
-    ...mapState(useClients, [
-      'getClients',
-      'clientsLoading',
-      'ownerMember',
-      'realMembers',
-    ]),
+    ...mapState(useClients, ['getClients', 'clientsLoading', 'ownerMember', 'realMembers']),
     ...mapState(useUser, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
@@ -294,10 +252,7 @@ export default defineComponent({
       return this.hasPermission(Permissions.ADD_CLIENT);
     },
     showAddMember(): boolean {
-      return (
-        this.hasPermission(Permissions.ADD_CLIENT) &&
-        this.realMembers?.length < 2
-      );
+      return this.hasPermission(Permissions.ADD_CLIENT) && this.realMembers?.length < 2;
     },
     showRegister(): boolean {
       return this.hasPermission(Permissions.SEND_CLIENT_REG_REQ);
@@ -309,14 +264,8 @@ export default defineComponent({
 
   watch: {
     search(newValue: string) {
-      const filteredClients = this.getClients.filter((client) =>
-        this.customFilter('', newValue, client),
-      );
-      this.filteredClients = this.customSort(
-        filteredClients,
-        this.sortBy[0].key,
-        this.sortBy[0].order === 'desc',
-      );
+      const filteredClients = this.getClients.filter((client) => this.customFilter('', newValue, client));
+      this.filteredClients = this.customSort(filteredClients, this.sortBy[0].key, this.sortBy[0].order === 'desc');
     },
   },
 
@@ -402,12 +351,7 @@ export default defineComponent({
         throw new Error('Missing instance id');
       }
 
-      const clientId = createClientId(
-        item?.instance_id,
-        item?.member_class,
-        item?.member_code,
-        item?.subsystem_code,
-      );
+      const clientId = createClientId(item?.instance_id, item?.member_class, item?.member_code, item?.subsystem_code);
 
       api
         .put(`/clients/${encodePathParameter(clientId)}/register`, {})
@@ -435,10 +379,7 @@ export default defineComponent({
 
       search = search.toString().toLowerCase();
 
-      const isFiltered =
-        item.visibleName.toLowerCase().includes(search) ||
-        item.id.toLowerCase().includes(search) ||
-        false;
+      const isFiltered = item.visibleName.toLowerCase().includes(search) || item.id.toLowerCase().includes(search) || false;
 
       if (item.type !== ClientTypes.SUBSYSTEM) {
         item.isFiltered = !isFiltered;
@@ -449,26 +390,16 @@ export default defineComponent({
     },
 
     sort(event: { key: string; order: string }[]) {
-      this.filteredClients = this.customSort(
-        this.filteredClients,
-        event[0].key,
-        event[0].order === 'desc',
-      );
+      this.filteredClients = this.customSort(this.filteredClients, event[0].key, event[0].order === 'desc');
       this.sortBy = [{ key: event[0].key, order: event[0].order }];
     },
 
-    customSort(
-      items: ExtendedClient[],
-      sortBy: string,
-      sortDesc: boolean,
-    ): ExtendedClient[] {
+    customSort(items: ExtendedClient[], sortBy: string, sortDesc: boolean): ExtendedClient[] {
       const index = sortBy as keyof ExtendedClient;
       const sortDirection = !sortDesc ? 1 : -1;
 
       // Filter out all subsystems for later use
-      const subsystems = items.filter(
-        (client) => client.type === ClientTypes.SUBSYSTEM,
-      );
+      const subsystems = items.filter((client) => client.type === ClientTypes.SUBSYSTEM);
 
       function orUndefinedStr(name?: string): string {
         return name || 'undefined';
@@ -477,25 +408,15 @@ export default defineComponent({
       // First we order and filter the groups (filtering is based on the isFiltered attribute as well as if subsystems are visible)
       const groups = items
         .filter((client) => client.type !== ClientTypes.SUBSYSTEM)
-        .filter(
-          (client) =>
-            !this.search ||
-            !client.isFiltered ||
-            subsystems.some((item) => item.id.startsWith(`${client.id}:`)),
-        )
+        .filter((client) => !this.search || !client.isFiltered || subsystems.some((item) => item.id.startsWith(`${client.id}:`)))
         .sort((clientA, clientB) => {
           if (clientA.owner || clientB.owner) {
             return clientA.owner ? -1 : 1;
           }
 
-          const groupSortDirection =
-            index !== 'visibleName' ? 1 : sortDirection;
+          const groupSortDirection = index !== 'visibleName' ? 1 : sortDirection;
 
-          return (
-            orUndefinedStr(clientA.visibleName).localeCompare(
-              orUndefinedStr(clientB.visibleName),
-            ) * groupSortDirection
-          );
+          return orUndefinedStr(clientA.visibleName).localeCompare(orUndefinedStr(clientB.visibleName)) * groupSortDirection;
         });
 
       // Do local sorting inside the groups
@@ -508,19 +429,11 @@ export default defineComponent({
               .sort((clientA, clientB) => {
                 switch (index) {
                   case 'visibleName':
-                    return (
-                      orUndefinedStr(clientA.visibleName).localeCompare(
-                        orUndefinedStr(clientB.visibleName),
-                      ) * sortDirection
-                    );
+                    return orUndefinedStr(clientA.visibleName).localeCompare(orUndefinedStr(clientB.visibleName)) * sortDirection;
                   case 'id':
                     return clientA.id.localeCompare(clientB.id) * sortDirection;
                   case 'status':
-                    return (
-                      (clientA.status || '').localeCompare(
-                        clientB.status || '',
-                      ) * sortDirection
-                    );
+                    return (clientA.status || '').localeCompare(clientB.status || '') * sortDirection;
                   default:
                     // Just don't sort if the sorting field is unknown
                     return 0;
@@ -528,10 +441,7 @@ export default defineComponent({
               }),
           ];
         })
-        .reduce(
-          (previousValue, currentValue) => [...previousValue, ...currentValue],
-          [],
-        );
+        .reduce((previousValue, currentValue) => [...previousValue, ...currentValue], []);
     },
 
     fetchData() {
