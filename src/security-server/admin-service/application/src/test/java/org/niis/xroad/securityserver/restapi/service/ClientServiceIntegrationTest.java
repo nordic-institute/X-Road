@@ -667,7 +667,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void addLocalClientWithInvalidMemberClass(){
+    public void addLocalClientWithInvalidMemberClass() {
         // try member, FI:INVALID:M1
         ClientId member = getClientId("FI:INVALID:M1");
         assertThrows(ClientService.InvalidMemberClassException.class,

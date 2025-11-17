@@ -60,7 +60,8 @@ public class ManagementRequestController {
     private Integer process(ManagementRequestVerifier.Result result) {
         var requestId = result.getRequest()
                 .map(request -> managementRequestService.addManagementRequest(request, result.requestType()))
-                .orElseThrow(() -> XrdRuntimeException.systemException(INVALID_REQUEST, "Request of type: %s is missing".formatted(result.requestType())));
+                .orElseThrow(() -> XrdRuntimeException.systemException(INVALID_REQUEST,
+                        "Request of type: %s is missing".formatted(result.requestType())));
 
         log.info("Added new management request with id {}", requestId);
         return requestId;

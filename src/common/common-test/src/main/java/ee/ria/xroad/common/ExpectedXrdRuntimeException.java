@@ -37,7 +37,7 @@ import static org.junit.Assert.fail;
 
 /**
  * JUnit rule that verifies that given block of code throws
- * CodedException with given error code.
+ * XrdRuntimeException with given error code.
  *
  */
 public final class ExpectedXrdRuntimeException implements TestRule {
@@ -60,7 +60,7 @@ public final class ExpectedXrdRuntimeException implements TestRule {
     }
 
     /**
-     * Expects code to throw CodedException with the exact error code.
+     * Expects code to throw XrdRuntimeException with the exact error code.
      * If given error code is null, expects nothing.
      * @param parts of the coded exception error code
      */
@@ -70,7 +70,7 @@ public final class ExpectedXrdRuntimeException implements TestRule {
     }
 
     /**
-     * Expects code to throw CodedException whose error code ends with given
+     * Expects code to throw XrdRuntimeException whose error code ends with given
      * suffix. If given error code is null, expects nothing.
      * @param parts of the coded exception error code
      */
@@ -121,7 +121,7 @@ public final class ExpectedXrdRuntimeException implements TestRule {
             }
         }
 
-        private void handleException(CodedException exception, String code, String suffixAssertMessage, String assertMessage) {
+        private void handleException(XrdRuntimeException exception, String code, String suffixAssertMessage, String assertMessage) {
             if (expected == null) {
                 throw exception;
             }

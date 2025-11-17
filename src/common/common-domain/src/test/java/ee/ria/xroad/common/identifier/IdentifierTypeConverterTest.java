@@ -25,13 +25,13 @@
  */
 package ee.ria.xroad.common.identifier;
 
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.identifier.IdentifierTypeConverter.GenericXRoadIdAdapter;
 import ee.ria.xroad.common.util.XmlUtils;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -86,7 +86,7 @@ public class IdentifierTypeConverterTest {
      */
     @Test
     public void readInvalidClientIdentifierAsMember() throws Exception {
-        thrown.expectError(ErrorCodes.X_INVALID_CLIENT_IDENTIFIER);
+        thrown.expectError(ErrorCode.INVALID_CLIENT_IDENTIFIER.code());
 
         ClientId id = parseClientId(
                 fileToType("invalid-clientid-member.xml", MEMBER,
@@ -117,7 +117,7 @@ public class IdentifierTypeConverterTest {
      */
     @Test
     public void readInvalidClientIdentifierAsSubsystem() throws Exception {
-        thrown.expectError(ErrorCodes.X_INVALID_CLIENT_IDENTIFIER);
+        thrown.expectError(ErrorCode.INVALID_CLIENT_IDENTIFIER.code());
 
         ClientId id = parseClientId(fileToType("invalid-clientid-subsystem.xml",
                 SUBSYSTEM, XRoadClientIdentifierType.class));

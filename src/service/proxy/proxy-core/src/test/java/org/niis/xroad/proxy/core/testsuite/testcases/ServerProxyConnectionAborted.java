@@ -38,7 +38,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 /**
  * Client sends normal message, SP aborts connection.
@@ -74,7 +74,7 @@ public class ServerProxyConnectionAborted extends MessageTestCase implements Usi
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
+        assertErrorCode(SERVER_CLIENTPROXY_X, NETWORK_ERROR.code());
     }
 
     private static final class AbortingServer implements Runnable {

@@ -36,7 +36,7 @@ import org.niis.xroad.proxy.core.testsuite.SslMessageTestCase;
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 /**
  * Proxy authentication certificate org does not match member.
@@ -66,6 +66,6 @@ public class SslAuthCertNotMatchesOrg extends SslMessageTestCase {
     @Override
     protected void validateFaultResponse(Message receivedResponse)
             throws Exception {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_SSL_AUTH_FAILED);
+        assertErrorCode(SERVER_CLIENTPROXY_X, SSL_AUTH_FAILED.code());
     }
 }

@@ -28,6 +28,7 @@ package org.niis.xroad.test.globalconf;
 import ee.ria.xroad.common.TestCertUtil;
 
 import lombok.experimental.UtilityClass;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
@@ -38,8 +39,7 @@ import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_GLOBALCONF;
 
 /**
  * Test globalconf implementation.
@@ -63,7 +63,7 @@ public class TestGlobalConfFactory {
         try {
             return new FileSystemGlobalConfSource(configurationPath);
         } catch (Exception e) {
-            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
+            throw XrdRuntimeException.systemException(e).withPrefix(MALFORMED_GLOBALCONF.code());
         }
     }
 

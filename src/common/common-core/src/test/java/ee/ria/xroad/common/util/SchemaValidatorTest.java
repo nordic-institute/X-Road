@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 
 import org.junit.Rule;
@@ -64,7 +63,7 @@ public class SchemaValidatorTest {
      */
     @Test
     public void testXxeFailsValidation() throws Exception {
-        thrown.expectError(ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF);
+        thrown.expectError(ErrorCode.MALFORMED_OPTIONAL_PARTS_CONF.code());
 
         StreamSource source = new StreamSource(ResourceUtils.getClasspathResourceStream("test-part-with-xxe.xml"));
 

@@ -43,14 +43,6 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_DUPLICATE_HEADER_FIELD;
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_HEADERS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_PROTOCOL_VERSION;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_BODY;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.QUERY_DIR;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.build;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.createRequest;
@@ -62,6 +54,14 @@ import static ee.ria.xroad.common.message.SoapUtils.getChildElements;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.niis.xroad.common.core.exception.ErrorCode.DUPLICATE_HEADER_FIELD;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_HEADERS;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_BODY;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_PROTOCOL_VERSION;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_BODY;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_HEADER;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_HEADER_FIELD;
 
 /**
  * This class tests the basic functionality (parsing the soap message etc.) of the SoapMessage class.
@@ -152,7 +152,7 @@ public class SoapMessageTest {
      */
     @Test
     public void missingHeader() throws Exception {
-        thrown.expectError(X_MISSING_HEADER);
+        thrown.expectError(MISSING_HEADER.code());
         createSoapMessage("no-header.query");
     }
 
@@ -163,7 +163,7 @@ public class SoapMessageTest {
      */
     @Test
     public void missingBody() throws Exception {
-        thrown.expectError(X_MISSING_BODY);
+        thrown.expectError(MISSING_BODY.code());
         createSoapMessage("missing-body.query");
     }
 
@@ -174,7 +174,7 @@ public class SoapMessageTest {
      */
     @Test
     public void missingRequiredHeaderField() throws Exception {
-        thrown.expectError(X_MISSING_HEADER_FIELD);
+        thrown.expectError(MISSING_HEADER_FIELD.code());
         createSoapMessage("faulty-header.query");
     }
 
@@ -196,7 +196,7 @@ public class SoapMessageTest {
      */
     @Test
     public void duplicateHeaderField() throws Exception {
-        thrown.expectError(X_DUPLICATE_HEADER_FIELD);
+        thrown.expectError(DUPLICATE_HEADER_FIELD.code());
         createSoapMessage("faulty-header2.query");
     }
 
@@ -207,7 +207,7 @@ public class SoapMessageTest {
      */
     @Test
     public void malformedBody() throws Exception {
-        thrown.expectError(X_INVALID_BODY);
+        thrown.expectError(INVALID_BODY.code());
         createSoapMessage("malformed-body1.query");
     }
 
@@ -218,7 +218,7 @@ public class SoapMessageTest {
      */
     @Test
     public void inconsistentHeaders() throws Exception {
-        thrown.expectError(X_INCONSISTENT_HEADERS);
+        thrown.expectError(INCONSISTENT_HEADERS.code());
         createSoapMessage("inconsistent-headers.query");
     }
 
@@ -229,7 +229,7 @@ public class SoapMessageTest {
      */
     @Test
     public void invalidContentType() throws Exception {
-        thrown.expectError(X_INVALID_CONTENT_TYPE);
+        thrown.expectError(INVALID_CONTENT_TYPE.code());
 
         try (FileInputStream in = new FileInputStream(QUERY_DIR + "simple.query")) {
             new SaxSoapParserImpl().parse(MimeTypes.TEXT_HTML_UTF8, in);
@@ -242,7 +242,7 @@ public class SoapMessageTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void faultMessage() throws Exception {
+    public void faultMessage() {
         String soapFaultXml = SoapFault.createFaultXml("foo.bar", "baz", "xxx", "yyy");
         Soap message = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8,
                 new ByteArrayInputStream(soapFaultXml.getBytes()));
@@ -279,7 +279,7 @@ public class SoapMessageTest {
         SoapUtils.checkConsistency(m1, m1);
 
         SoapMessageImpl m2 = createResponse("getstate.answer");
-        thrown.expectError(X_INCONSISTENT_HEADERS);
+        thrown.expectError(INCONSISTENT_HEADERS.code());
         SoapUtils.checkConsistency(m1, m2);
     }
 
@@ -393,7 +393,7 @@ public class SoapMessageTest {
      */
     @Test
     public void shouldNotBuildWithoutMissingHeaderFields() throws Exception {
-        thrown.expectError(X_MISSING_HEADER_FIELD);
+        thrown.expectError(MISSING_HEADER_FIELD.code());
 
         ClientId client = null;
         ServiceId service = ServiceId.Conf.create("EE", "BUSINESS", "consumer", null, "test");
@@ -423,7 +423,7 @@ public class SoapMessageTest {
      */
     @Test
     public void wrongProtocolVersion() throws Exception {
-        thrown.expectError(X_INVALID_PROTOCOL_VERSION);
+        thrown.expectError(INVALID_PROTOCOL_VERSION.code());
         createRequest("wrong-version.query");
     }
 }
