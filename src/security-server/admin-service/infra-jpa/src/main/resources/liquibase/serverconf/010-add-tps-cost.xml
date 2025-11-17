@@ -5,7 +5,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
-    <changeSet author="niis" id="004-add-tps-cost.xml">
+    <changeSet author="niis" id="010-add-tps-cost.xml">
         <addColumn tableName="tsp">
             <column name="cost_type" type="VARCHAR(255)" defaultValue="UNDEFINED">
                 <constraints nullable="false"/>

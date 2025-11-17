@@ -36,6 +36,8 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
+import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.CostType;
 
 import java.io.File;
@@ -66,7 +68,9 @@ public class GlobalConfVer6Test {
 
         createConfigurationFiles();
 
-        globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(getConfigurationPath()));
+        FileSystemGlobalConfSource globalConfSource = new FileSystemGlobalConfSource(getConfigurationPath());
+        globalConfProvider =
+                new GlobalConfImpl(globalConfSource, new GlobalConfExtensions(globalConfSource, new GlobalConfExtensionFactoryImpl()));
 
     }
 

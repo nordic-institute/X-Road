@@ -44,6 +44,7 @@ import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.SharedParameters;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
@@ -95,6 +96,8 @@ public class SystemServiceTest {
     @Mock
     private ConfClientRpcClient confClientRpcClient;
     @Mock
+    private ProxyRpcClient proxyRpcClient;
+    @Mock
     private AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus = new SecurityServerAddressChangeStatus();
     private final MaintenanceModeStatus maintenanceModeStatus = new MaintenanceModeStatus();
@@ -116,7 +119,7 @@ public class SystemServiceTest {
 
         systemService = new SystemService(globalConfService, serverConfService,
                 currentSecurityServerId, managementRequestSenderService, auditDataHelper,
-                addressChangeStatus, confClientRpcClient, maintenanceModeStatus, globalConfProvider);
+                addressChangeStatus, confClientRpcClient, maintenanceModeStatus, globalConfProvider, proxyRpcClient);
     }
 
     @Test

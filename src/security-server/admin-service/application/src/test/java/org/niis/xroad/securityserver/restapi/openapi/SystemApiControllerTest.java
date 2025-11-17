@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.apache.commons.io.FileUtils;
@@ -206,7 +207,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"VIEW_TSPS"})
     public void getTimestampingPrioritizationStrategy() {
         when(systemService.getTimestampingPrioritizationStrategy())
-                .thenReturn(SystemProperties.ServicePrioritizationStrategy.FREE_FIRST);
+                .thenReturn(ServicePrioritizationStrategy.FREE_FIRST);
 
         ResponseEntity<ServicePrioritizationStrategyDto> response = systemApiController.getTimestampingPrioritizationStrategy();
         assertEquals(HttpStatus.OK, response.getStatusCode());

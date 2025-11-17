@@ -31,6 +31,7 @@ package org.niis.xroad.proxy.proto;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.ProxyMemory;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.google.protobuf.ByteString;
@@ -186,5 +187,24 @@ public class ProxyRpcClient extends AbstractRpcClient {
                 .build();
         var response = exec(() -> internalTlsServiceBlockingStub.importInternalTlsCertificate(request));
         return CryptoUtils.readCertificate(response.getInternalTlsCertificate().toByteArray());
+    }
+
+    public ServicePrioritizationStrategy getTimestampingPrioritizationStrategy() {
+        var response = exec(() -> adminServiceBlockingStub
+                .getTimestampingPrioritizationStrategy(Empty.getDefaultInstance()));
+        return getServicePrioritizationStrategy(response.getStrategy());
+    }
+
+    public ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
+        var response = exec(() -> adminServiceBlockingStub
+                .getOcspPrioritizationStrategy(Empty.getDefaultInstance()));
+        return getServicePrioritizationStrategy(response.getStrategy());
+    }
+
+    private static ServicePrioritizationStrategy getServicePrioritizationStrategy(
+            org.niis.xroad.proxy.proto.ServicePrioritizationStrategy strategy) {
+        return org.niis.xroad.proxy.proto.ServicePrioritizationStrategy.SERVICE_PRIORITIZATION_STRATEGY_NONE.equals(strategy)
+                ? ServicePrioritizationStrategy.NONE
+                : ServicePrioritizationStrategy.valueOf(strategy.name());
     }
 }

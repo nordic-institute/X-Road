@@ -120,24 +120,24 @@ public class TestTokenService {
     private String getPublicKey(String keyId) {
         // These values should be moved to a configuration file
         var publicKeys = Map.of(
-                "E67CCA8E9B3DA52DB740CDCDC0926F356F431063",
+                "DF9242D3CBDE6DAC8058D2878340C3B527041FD0",
                 """
-                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8jWpRCjP+NCTTHdpab5DjCzt4Yi5KQi48vz6yjLAR4A5WhoN4PDi9sienylWQrXAT\
-                T5ajjTlHaDEPcW8q0elUfD8f1wWqv/uGswfd4PHbydMNntRqyu1CobGFQrAwxr6a4Ikhv785q5aLxI/F3Ub161diubYC7/EEeTJJEmVpiv21M\
-                60z27PcGI14g0hbUKQEGyukWQCvpcXDxZCSLJORhwMVScQ/JF81uDOHCYp9lw5X1nbddCryPRrGzYr45tOU+3mUwU/Og4UTQSOua1z19brS7Y\
-                pgvGBhMOp5F9sJYYgQGZXXWy5HGeiJu5oVeWPhxUFQaxTVguhkEZY5OVCzQIDAQAB""",
-                "056A952E76B40A46C07628C7B13E5934E39A9C78",
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApp1Ls34vBfJkD2bHtmnvb1HxhMBoBPP8rvwtcjGfVCTA7i+DlF3gTLV49k81FMi5gRHQNWLde1\
+                NmLTKTzFSoPUerCT7ohvTCTAm4h5W/328xoMo6m2h/nGyuIoAIIUJi/CKf+Ih+zZCklsZqWaOd1f1QIPJOtjQkoMl+2olj2tw1o4/Biim8B03aVTYXfkGh\
+                DRC2D6nZJm4Gi9EBZ+USMEAO6CCFobGLLThomWkHDUxjliSGsT4EJA3iR4h9gSuOfMpqHZv5/lY4X4axsR90c8oFEYMfuk9oZSL/dE0oqYpODW1mW7hEm/\
+                8afUfTR/8ZtGsvYZFT70VcGcYNNdfoxwIDAQAB""",
+                "1342B84B4829BB79226AB268B4D8E70B01068613",
                 """
-                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoR0Yz6qnGBLjGYjZR9D1gShOg0oC0OdBpoxYDBZ40N+/DY3JNUzzcLNeH7X3/E+QQQlKJl3cu\
-                LuKxkHkkjymOTNdtTTAv4w35Ginbb4theZ/1ma3QGaPSdESKfw26/RZsHf4qIZMSmNM6+6DUf57AhyODemXyNolPPuHTp8Tq/LwcPFE+TwRR/BiCorj0y\
-                afykSkg7hfHr+EAuilxk+kNFqThb08buYsHYeVfF8JoQAM5NL56wTxFMp6eSOO7EsirGMj+y0+TEMZ8a4ofiVEnPN69qJzIJnx9akUFxV2b5+YpWi1GuN\
-                w3PqBxTx/8aNFeU9hoUpQ7W5h1soWWyrxqQIDAQAB""",
-                "A1B0BEB1E088E3A291AEEC57FB04400BF17D3E0D",
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArSTwszL4sROAQbi6WSuPoQ3+K/dPQoPTdLK/dZvCMkiWW5UmwZRx0PHCjNwUX+FtCYZZ6GF0V\
+                /9yrCwMvud+WAuKct/5n9bJLq+FXijupEvhXeyC0I/r6NaOUWK2jyXdMMdQOoBXojQTkNHECj/v7C3NZgHG0QDaXcLvLEJeL8tpec+9qctF0wyKiMvnN9\
+                hXiPYG3s9cOEouOn3QL+VYI02Hz/y3zxwDHFiGJ4FAHv2nxnYnhZgeCn5FVeH6aa1IUuS9YEAaqmYSCG6hOsaV5PiPiy51ZmsI8j8KpYTti79ejjN9TuG\
+                iEfk1gTPod2iv43sQiszZpcm89kwF3ZHCIwIDAQAB""",
+                "FA73509F9E9DFB7A3D92B3D34DA6BD20374A24B0",
                 """
-                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzNqJJoIa1hcPGnY2768V8b/xLcgjdQQ9Dk7KQmAtKj/7EwqfFGbVyaltXZwCWE82yVtHlPTo\
-                z1Mr73qXz+twZ/+j6SxWNBmJLlHpP0E7RV9OI6e7YuJWh4GgaCe5VT7Rywwrfp3vrtSM4C1Lg2dml32W1gX58Xd3fMHVGqh7GgtKQOVWpB4+8aq1NJEJ\
-                p1F5+dSn+5039oV7iWyOSyJvWam4kXq/fgl93IiH0yfEuv/a+qUJEO5lG5v5tCHXPSmCMd83sfTqRL7O69AozagH5gEkCVg9m570SuL+OmSxh8PuZ3Fy\
-                FW3Y2ibPruw9CnYMIJJPjcsEIpVXI3bftsx3LQIDAQAB"""
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwvzMECjq7ImY9NHu6pGJsAQ1JliHd7KSASVf40WTBEbeIOlPTLKHQeZwxzTWZ2kzuUlmKmPY9\
+                S9jVhyJUrimB0vvqp1vu3UfTX9grJ4JyDXojn/gJfKeNmUTILWm+BU+VVv26UhOSMQKxZnX7ow+4NTy1tQWLRscTKjiMf3JtcI2HM7DpedBTHqGziCQzX\
+                9jQSSpfag95LEnUv2UwKwtSK2q/CS/TYSWbUCjLv/LAlV26qh9fSWAzgM9UqxxIUWsV1OPUoSUpDBC/SsuP365Bz8n9qRdt17mDE3bVjWiKOSAeiHMmcM\
+                EDrRLG0ajasfHZnQeYMQqrBc+rsZLk3cn4QIDAQAB"""
         );
         return publicKeys.get(keyId);
     }

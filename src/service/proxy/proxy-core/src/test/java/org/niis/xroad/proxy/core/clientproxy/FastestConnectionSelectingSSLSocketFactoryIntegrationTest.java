@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -128,6 +129,11 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                     @Override
                     public String jettyConfigurationFile() {
                         return "src/test/ocsp-responder.xml";
+                    }
+
+                    @Override
+                    public ServicePrioritizationStrategy ocspPrioritizationStrategy() {
+                        return ServicePrioritizationStrategy.NONE;
                     }
                 });
         authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, globalConfProvider, keyConfProvider,

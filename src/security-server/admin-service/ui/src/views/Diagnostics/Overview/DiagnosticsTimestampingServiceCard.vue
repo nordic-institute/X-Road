@@ -43,7 +43,7 @@
           <th class="status-column">{{ $t('diagnostics.status') }}</th>
           <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
           <th class="cost-type-column">{{ $t('diagnostics.costType') }}</th>
-            <th>{{ $t('diagnostics.message') }}</th>
+          <th>{{ $t('diagnostics.message') }}</th>
           <th class="time-column">
             {{ $t('diagnostics.previousUpdate') }}
           </th>
@@ -66,13 +66,15 @@
             data-test="service-url"
           >
             {{ timestampingService.url }}
-            </td>
-            <td
-              class="cost-type-column"
-              :class="{ disabled: !messageLogEnabled }"
-              data-test="service-cost-type"
-            >
-              {{ $t('systemParameters.costType.' + timestampingService.cost_type) }}
+          </td>
+          <td
+            class="cost-type-column"
+            :class="{ disabled: !messageLogEnabled }"
+            data-test="service-cost-type"
+          >
+            {{
+              $t('systemParameters.costType.' + timestampingService.cost_type)
+            }}
           </td>
           <td
             :class="{ disabled: !messageLogEnabled }"

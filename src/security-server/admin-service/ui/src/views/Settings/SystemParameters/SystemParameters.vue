@@ -166,7 +166,7 @@
             />
           </template>
         </template>
-        <span class="pl-4">
+        <span class="pl-4" :class="{ 'opacity-60': !messageLogEnabled }">
           {{
             $t(
               'systemParameters.servicePrioritizationStrategy.timestamping.label',
@@ -199,7 +199,7 @@
                   )
                 }}
               </th>
-              <th>
+              <th :class="{ 'opacity-60': !messageLogEnabled }">
                 {{
                   $t(
                     'systemParameters.timestampingServices.table.header.costType',
@@ -326,7 +326,7 @@
                   )
                 }}
               </td>
-              <td class="vertical-align-top pt-2">
+              <td>
                 <div
                   class="py-2"
                   v-for="ocspResponder in approvedCA.ocsp_responders"
@@ -337,7 +337,7 @@
                   </p>
                 </div>
               </td>
-              <td class="vertical-align-top pt-2">
+              <td>
                 <div
                   class="py-2"
                   v-for="ocspResponder in approvedCA.ocsp_responders"

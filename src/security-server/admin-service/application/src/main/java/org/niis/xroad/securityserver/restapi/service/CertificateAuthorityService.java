@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
@@ -42,6 +42,8 @@ import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
@@ -85,6 +87,7 @@ public class CertificateAuthorityService {
     private final CurrentSecurityServerId currentSecurityServerId;
     private final AcmeService acmeService;
     private final AcmeProperties acmeProperties;
+    private final ProxyRpcClient proxyRpcClient;
 
     /**
      * {@link CertificateAuthorityService#getCertificateAuthorities(KeyUsageInfo, boolean)}
@@ -210,7 +213,11 @@ public class CertificateAuthorityService {
         builder.subjectDnPath(subjectDnPath);
         builder.topCa(subjectDnPath.size() <= 1 && subjectName.equals(subjectDnPath.getFirst()));
 
-        builder.ocspUrlsAndCostTypes(globalConfService.getOcspResponderAddressesAndCostTypes(certificate));
+        Map<String, CostType> ocspResponderAddressesAndCostTypes = globalConfService.getOcspResponderAddressesAndCostTypes(certificate);
+        ocspResponderAddressesAndCostTypes.put("http://ocsp.int-xroad.net", CostType.FREE); // default OCSP responder
+        ocspResponderAddressesAndCostTypes.put("http://ocsp.int-xroad.net/ocsp2", CostType.PAID); // default OCSP responder
+        ocspResponderAddressesAndCostTypes.put("http://ocsp.int-xroad.net/ocsp3", CostType.UNDEFINED); // default OCSP responder
+        builder.ocspUrlsAndCostTypes(ocspResponderAddressesAndCostTypes);
 
         return builder.build();
     }
@@ -232,8 +239,8 @@ public class CertificateAuthorityService {
         return pathElements;
     }
 
-    public SystemProperties.ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
-        return SystemProperties.getOcspPrioritizationStrategy();
+    public ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
+        return proxyRpcClient.getOcspPrioritizationStrategy();
     }
 
     public boolean isAcmeExternalAccountBindingRequired(String caName) throws CertificateAuthorityNotFoundException {
