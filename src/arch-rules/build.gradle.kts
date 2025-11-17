@@ -1,5 +1,5 @@
 plugins {
-  id("xroad.java-conventions")
+  id("xroad.java-config-conventions")
 }
 
 dependencies {
@@ -10,8 +10,4 @@ dependencies {
   implementation(libs.jakarta.cdiApi)
   implementation("org.springframework:spring-context")
   implementation(libs.archUnit.plugin.core)
-}
-
-archUnit {
-  isSkip = true // do not self-test
 }
