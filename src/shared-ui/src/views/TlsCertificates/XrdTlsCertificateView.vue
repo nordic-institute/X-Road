@@ -76,7 +76,7 @@
           <tbody>
             <tr>
               <td class="on-surface font-weight-medium">
-                <v-icon icon="shield_lock filled" size="24" />
+                <v-icon icon="shield_lock" size="24" filled />
                 {{ $t('tlsCertificates.keyText') }}
               </td>
               <td>

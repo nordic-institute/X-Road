@@ -146,7 +146,7 @@
                 :text="$t('securityServers.pending')"
               >
                 <template #prepend>
-                  <v-icon class="status-icon" icon="warning filled" color="warning" />
+                  <v-icon class="status-icon" icon="warning" color="warning" filled />
                 </template>
               </v-chip>
               <v-chip
@@ -158,7 +158,7 @@
                 :text="$t('securityServers.disabled')"
               >
                 <template #prepend>
-                  <v-icon class="status-icon" icon="cancel filled" color="warning" />
+                  <v-icon class="status-icon" icon="cancel" color="warning" filled/>
                 </template>
               </v-chip>
               <v-chip
@@ -170,7 +170,7 @@
                 :text="$t('securityServers.unregistered')"
               >
                 <template #prepend>
-                  <v-icon class="status-icon" icon="error filled" color="error" />
+                  <v-icon class="status-icon" icon="error" color="error" filled />
                 </template>
               </v-chip>
             </td>

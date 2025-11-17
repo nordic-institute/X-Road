@@ -47,13 +47,13 @@ const msrAliases: IconAliases = {
   close: 'close',
   delete: 'delete_forever',
   clear: 'close_small',
-  success: 'check_circle filled',
-  info: 'info filled',
-  warning: 'warning filled',
+  success: 'check_circle__filled',
+  info: 'info__filled',
+  warning: 'warning__filled',
   error: 'error',
   prev: 'chevron_left',
   next: 'chevron_right',
-  checkboxOn: 'check_box filled',
+  checkboxOn: 'check_box__filled',
   checkboxOff: 'check_box_outline_blank',
   checkboxIndeterminate: 'indeterminate_check_box',
   delimiter: '...',
@@ -89,14 +89,19 @@ interface ExtendedIconProps extends IconProps {
   filled?: boolean | '';
 }
 
+const FILLED_ICON_PREFIX = '__filled';
+
 const msr: IconSet = {
   component: (props: ExtendedIconProps) => {
     const classes = ['msr'];
-    if (props.filled === '' || props.filled) {
+
+    const icon = typeof props.icon === 'string' ? props.icon : '';
+
+    if (props.filled === '' || props.filled || icon.endsWith(FILLED_ICON_PREFIX)) {
       classes.push('filled');
     }
 
-    return h(VClassIcon, { ...props, class: classes });
+    return h(VClassIcon, { ...props, class: classes, innerHTML: icon.replace(FILLED_ICON_PREFIX, '') });
   },
 };
 

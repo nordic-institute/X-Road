@@ -73,25 +73,25 @@ const chipStyle = computed<Chip>(() => {
       return {
         iconColor: 'error',
         bgColor: 'error-container',
-        icon: 'error filled',
+        icon: 'error__filled',
       };
     case 'success':
       return {
         iconColor: 'success',
         bgColor: 'success-container',
-        icon: 'check_circle filled',
+        icon: 'check_circle__filled',
       };
     case 'warning':
       return {
         iconColor: 'warning',
         bgColor: 'warning-container',
-        icon: 'warning filled',
+        icon: 'warning__filled',
       };
     case 'info':
       return {
         iconColor: 'info',
         bgColor: 'info-container',
-        icon: 'error filled',
+        icon: 'error__filled',
       };
     default:
       return {

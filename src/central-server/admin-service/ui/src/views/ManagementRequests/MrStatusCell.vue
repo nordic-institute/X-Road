@@ -65,21 +65,21 @@ const style = computed(() => {
   if (hasStatus.value) {
     switch (props.status) {
       case ManagementRequestStatus.REVOKED:
-        return buildStyle('managementRequests.revoked', 'on-surface', 'cancel filled', 'on-surface', 'xrd-outlined', 'outlined');
+        return buildStyle('managementRequests.revoked', 'on-surface', 'cancel__filled', 'on-surface', 'xrd-outlined', 'outlined');
       case ManagementRequestStatus.DECLINED:
-        return buildStyle('managementRequests.rejected', 'on-surface', 'cancel filled', 'on-surface', 'xrd-outlined', 'outlined');
+        return buildStyle('managementRequests.rejected', 'on-surface', 'cancel__filled', 'on-surface', 'xrd-outlined', 'outlined');
       case ManagementRequestStatus.APPROVED:
         return buildStyle(
           'managementRequests.approved',
           'on-success-container',
-          'check_circle filled',
+          'check_circle__filled',
           'text-success',
           'bg-success-container',
         );
       case ManagementRequestStatus.WAITING:
-        return buildStyle('managementRequests.pending', 'on-warning-container', 'warning filled', 'text-warning', 'bg-warning-container');
+        return buildStyle('managementRequests.pending', 'on-warning-container', 'warning__filled', 'text-warning', 'bg-warning-container');
       case ManagementRequestStatus.SUBMITTED_FOR_APPROVAL:
-        return buildStyle('managementRequests.submitted', 'on-warning-container', 'warning filled', 'text-warning', 'bg-warning-container');
+        return buildStyle('managementRequests.submitted', 'on-warning-container', 'warning__filled', 'text-warning', 'bg-warning-container');
     }
   }
   return undefined;

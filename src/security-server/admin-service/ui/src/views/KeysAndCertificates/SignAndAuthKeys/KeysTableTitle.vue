@@ -45,7 +45,7 @@
     <div v-else-if="registered === certificateCount" class="registered">
       <v-chip class="xrd" density="compact" color="success-container" variant="flat">
         <template #prepend>
-          <v-icon class="mr-1 ml-n1" icon="check_circle filled" color="success" />
+          <v-icon class="mr-1 ml-n1" icon="check_circle" color="success" filled />
         </template>
         <span class="font-weight-medium body-small">
           {{ $t('keys.noIssues') }}

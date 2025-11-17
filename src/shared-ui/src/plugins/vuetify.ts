@@ -26,8 +26,9 @@
  */
 
 import 'vuetify/styles';
+import '@fontsource-variable/material-symbols-rounded/fill.css';
+import '@fontsource-variable/open-sans';
 import '../assets/global-style.scss';
-import '../assets/fonts.css';
 
 import { createVuetify } from 'vuetify/framework';
 import { msrAliases, msr, createLightTheme, createDarkTheme, Color } from '../utils';
