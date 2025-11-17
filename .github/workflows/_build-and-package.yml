@@ -144,7 +144,7 @@ jobs:
         run: |
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g \
           -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute \
-          build sonar test jacocoTestReport -Pfrontend-npm-audit
+          build sonar test jacocoTestReport -Pfrontend-npm-audit --parallel
 
       - name: Build Security Server images
         working-directory: ./deployment/security-server/images
