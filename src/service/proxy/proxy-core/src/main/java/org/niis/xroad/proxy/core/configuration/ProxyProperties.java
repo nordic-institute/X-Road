@@ -95,6 +95,10 @@ public interface ProxyProperties {
     @WithDefault(DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING)
     String[] xroadTlsCiphers();
 
+    @WithName("batch-signing-enabled")
+    @WithDefault("false")
+    boolean batchSigningEnabled();
+
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {
         @WithName("connector-host")

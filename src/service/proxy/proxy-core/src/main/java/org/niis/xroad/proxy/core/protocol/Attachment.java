@@ -23,16 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.signature;
+package org.niis.xroad.proxy.core.protocol;
 
-import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.signature.SigningRequest;
+import ee.ria.xroad.common.message.AttachmentStream;
+import ee.ria.xroad.common.util.CachingStream;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import java.io.InputStream;
+import java.util.Map;
 
-@ArchUnitSuppressed("NoVanillaExceptions")
-public interface MessageSigner {
-    SignatureData sign(String keyId, SignAlgorithm signatureAlgorithm, SigningRequest request) throws Exception;
+public record Attachment(String contentType, CachingStream content, Map<String, String> additionalHeaders) {
+    public AttachmentStream getAttachmentStream() {
+        return new AttachmentStream() {
+            @Override
+            public InputStream getStream() {
+                return content.getCachedContents();
+            }
 
+            @Override
+            public long getSize() {
+                return content.size();
+            }
+        };
+    }
 }

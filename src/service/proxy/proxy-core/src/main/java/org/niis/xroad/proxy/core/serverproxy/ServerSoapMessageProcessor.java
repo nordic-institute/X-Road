@@ -31,6 +31,7 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapHeader;
@@ -38,6 +39,7 @@ import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -47,6 +49,7 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
@@ -61,6 +64,7 @@ import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
+import org.niis.xroad.proxy.core.protocol.Attachment;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
@@ -139,6 +143,8 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
     private final OcspVerifierFactory ocspVerifierFactory;
     private final SigningCtxProvider signingCtxProvider;
     private final String tempFilesPath;
+
+    private final List<Attachment> attachmentCache = new ArrayList<>();
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     public ServerSoapMessageProcessor(RequestWrapper request, ResponseWrapper response,
@@ -415,8 +421,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
     private void logResponseMessage() {
         if (responseSoap != null && encoder != null) {
             log.trace("logResponseMessage()");
-            // Attachments are not logged here, because response from X-Road 7 server is always batch signed
-            MessageLog.log(responseSoap, encoder.getSignature(), List.of(), false, xRequestId);
+            MessageLog.log(responseSoap, encoder.getSignature(), getAttachments(), false, xRequestId);
         }
     }
 
@@ -620,7 +625,11 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         @Override
         public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
                 throws IOException {
-            encoder.attachment(contentType, content, additionalHeaders);
+            CachingStream attachmentCacheStream = new CachingStream(tempFilesPath);
+            try (TeeInputStream tis = new TeeInputStream(content, attachmentCacheStream)) {
+                encoder.attachment(contentType, tis, additionalHeaders);
+                attachmentCache.add(new Attachment(contentType, attachmentCacheStream, additionalHeaders));
+            }
         }
 
         @Override
@@ -767,5 +776,9 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
             bufferedLength = length;
             bufferFlushed = false;
         }
+    }
+
+    private List<AttachmentStream> getAttachments() {
+        return attachmentCache.stream().map(Attachment::getAttachmentStream).toList();
     }
 }

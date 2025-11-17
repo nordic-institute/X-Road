@@ -137,12 +137,8 @@ public final class Helper {
     private Helper() {
     }
 
-    public static String getSignatureRefereceIdForMessage() {
-        return SIGNATURE_REFERENCE_ID + "0";
-    }
-
-    public static String getSignatureReferenceIdForSignedProperties() {
-        return SIGNATURE_REFERENCE_ID + "1";
+    public static String getSignatureRefereceId(int index) {
+        return SIGNATURE_REFERENCE_ID + index;
     }
 
     public static Document createDocument() throws ParserConfigurationException {

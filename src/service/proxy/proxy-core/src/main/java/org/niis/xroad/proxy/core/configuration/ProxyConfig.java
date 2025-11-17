@@ -41,10 +41,16 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
+import org.niis.xroad.proxy.core.signature.BatchSigner;
+import org.niis.xroad.proxy.core.signature.MessageSigner;
+import org.niis.xroad.proxy.core.signature.SimpleSigner;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
+import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -131,4 +137,19 @@ class ProxyConfig {
         return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
     }
 
+    @ApplicationScoped
+    MessageSigner messageSigner(ProxyProperties properties, SignerSignClient signerSignClient,
+                                SignerRpcClient signerRpcClient, SignerRpcChannelProperties signerRpcChannelProperties) {
+        if (properties.batchSigningEnabled()) {
+            return new BatchSigner(signerRpcClient, signerSignClient, signerRpcChannelProperties);
+        } else {
+            return new SimpleSigner(signerSignClient);
+        }
+    }
+
+    public void dispose(@Disposes MessageSigner messageSigner) {
+        if (messageSigner instanceof BatchSigner batchSigner) {
+            batchSigner.destroy();
+        }
+    }
 }

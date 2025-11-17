@@ -145,8 +145,8 @@ public class ProxyMessage implements ProxyMessageConsumer {
             MultipartSoapMessageEncoder multipartEncoder = new MultipartSoapMessageEncoder(out, originalMimeBoundary);
             // Write the SOAP before attachments
             multipartEncoder.soap(soapMessage, soapPartHeaders);
-            for (Attachment attachment : attachmentCache) {
-                multipartEncoder.attachment(attachment.contentType, attachment.content.getCachedContents(), attachment.additionalHeaders);
+            for (Attachment attach : attachmentCache) {
+                multipartEncoder.attachment(attach.contentType(), attach.content().getCachedContents(), attach.additionalHeaders());
             }
             // Finish writing to the attachment cache.
             multipartEncoder.close();
@@ -164,7 +164,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
         }
 
         for (var attachment : attachmentCache) {
-            attachment.content.consume();
+            attachment.content().consume();
         }
     }
 
@@ -256,19 +256,4 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
 
-    private record Attachment(String contentType, CachingStream content, Map<String, String> additionalHeaders) {
-        AttachmentStream getAttachmentStream() {
-            return new AttachmentStream() {
-                @Override
-                public InputStream getStream() {
-                    return content.getCachedContents();
-                }
-
-                @Override
-                public long getSize() {
-                    return content.size();
-                }
-            };
-        }
-    }
 }

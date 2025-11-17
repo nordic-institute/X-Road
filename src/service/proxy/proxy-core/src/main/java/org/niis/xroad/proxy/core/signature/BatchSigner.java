@@ -27,23 +27,28 @@ package org.niis.xroad.proxy.core.signature;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.hashchain.HashChainBuilder;
+import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.signature.SignatureResourceResolver;
 import ee.ria.xroad.common.signature.SigningRequest;
 
-import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.xml.bind.JAXBException;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -59,7 +64,10 @@ import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.signature.MessagePart.hashChainMessagePart;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
+import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN;
 
 /**
  * This class handles batch signing. Batch signatures are created always, if
@@ -72,7 +80,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
  */
 @Slf4j
 @RequiredArgsConstructor
-@ApplicationScoped
 public class BatchSigner implements MessageSigner {
 
     private final SignerRpcClient signerClient;
@@ -81,7 +88,6 @@ public class BatchSigner implements MessageSigner {
 
     private final Map<String, WorkerImpl> workers = new ConcurrentHashMap<>();
 
-    @PreDestroy
     public void destroy() {
         workers.values().forEach(WorkerImpl::stop);
     }
@@ -261,6 +267,9 @@ public class BatchSigner implements MessageSigner {
         @Getter
         private final String keyId;
 
+        private String hashChainResult;
+        private String[] hashChains;
+
         BatchSignatureCtx(String keyId, SignAlgorithm signatureAlgorithmId) {
             super(signatureAlgorithmId);
 
@@ -270,6 +279,59 @@ public class BatchSigner implements MessageSigner {
         void add(CompletableFuture<SignatureData> client, SigningRequest request) {
             clients.add(client);
             add(request);
+        }
+
+        @Override
+        public synchronized byte[] getDataToBeSigned()
+                throws CertificateEncodingException, ParserConfigurationException, IOException, XMLSecurityException, JAXBException {
+            log.trace("getDataToBeSigned(requests = {})", requests.size());
+
+            if (requests.isEmpty()) {
+                throw new CodedException(X_INTERNAL_ERROR, "No requests in signing context");
+            }
+
+            SigningRequest firstRequest = requests.getFirst();
+
+            builder = new SignatureXmlBuilder(firstRequest, signatureAlgorithmId);
+
+            // If only one single hash (message), then no hash chain
+            if (requests.size() == 1 && firstRequest.isSingleMessage()) {
+                return builder.addAndCalculateDataToBeSigned(new SignatureResourceResolver(firstRequest.getParts(), null));
+            }
+
+            buildHashChain();
+
+            return builder.addAndCalculateDataToBeSigned(
+                    new SignatureResourceResolver(List.of(hashChainMessagePart()), hashChainResult));
+        }
+
+        /**
+         * Returns the signature data for a given signer -- either normal signature
+         * or batch signature with corresponding hash chain and hash chain result.
+         */
+        public synchronized SignatureData createSignatureData(String signature, int signerIndex) {
+            return new SignatureData(signature, hashChainResult, hashChains != null ? hashChains[signerIndex] : null);
+        }
+
+        private void buildHashChain() throws IOException, JAXBException {
+            log.trace("buildHashChain()");
+
+            HashChainBuilder hashChainBuilder = new HashChainBuilder(signatureAlgorithmId.digest());
+
+            for (SigningRequest request : requests) {
+                hashChainBuilder.addInputHash(getHashChainInputs(request));
+            }
+
+            hashChainBuilder.finishBuilding();
+
+            hashChainResult = hashChainBuilder.getHashChainResult(SIG_HASH_CHAIN);
+            hashChains = hashChainBuilder.getHashChains(MESSAGE);
+        }
+
+        private static byte[][] getHashChainInputs(SigningRequest request) {
+            return request.getParts().stream()
+                    .map(MessagePart::getData)
+                    .toArray(byte[][]::new);
         }
     }
 
