@@ -23,8 +23,7 @@ on:
 jobs:
   test-security-server:
     name: Run Security Server system tests
-    runs-on:
-      labels: xrd-runner-8c
+    runs-on: ubuntu-24.04
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
