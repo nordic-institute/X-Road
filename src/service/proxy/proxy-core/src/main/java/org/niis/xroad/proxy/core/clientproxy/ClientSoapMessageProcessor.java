@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RequestHash;
@@ -48,6 +49,7 @@ import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
@@ -80,9 +82,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -458,7 +458,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
                 originalSoapAction = SoapUtils.validateSoapActionHeader(jRequest.getHeaders().get("SOAPAction"));
                 soapMessageDecoder.parse(jRequest.getInputStream());
             } catch (Exception ex) {
-                throw new ClientException(translateException(ex));
+                throw XrdRuntimeException.systemException(ex, ErrorOrigin.CLIENT).withPrefix(ErrorCodes.CLIENT_X);
             }
         } catch (Throwable ex) {
             setError(ex);
@@ -517,7 +517,10 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             log.trace("onCompleted()");
 
             if (requestSoap == null) {
-                setError(new ClientException(X_MISSING_SOAP, "Request does not contain SOAP message"));
+                setError(XrdRuntimeException.systemException(MISSING_SOAP)
+                        .details("Request does not contain SOAP message")
+                        .origin(ErrorOrigin.CLIENT)
+                        .build().withPrefix(ErrorCodes.CLIENT_X));
 
                 return;
             }

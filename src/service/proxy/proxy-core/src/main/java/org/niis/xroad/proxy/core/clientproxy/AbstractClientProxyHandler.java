@@ -100,29 +100,26 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
             handled = true;
 
             String errorMessage;
-            XrdRuntimeException cex = e;
+            XrdRuntimeException exception = e;
             if (!e.originatesFrom(ErrorOrigin.CLIENT)) {
                 errorMessage = "Request processing error (" + e.getFaultDetail() + ")";
-                cex = XrdRuntimeException.systemException(e).withPrefix(SERVER_CLIENTPROXY_X);
+                exception = e.withPrefix(SERVER_CLIENTPROXY_X);
             } else {
-                errorMessage = DEFAULT_ERROR_MESSAGE;
+                errorMessage = "Request processing error (" + e.getDetails() + ")";
             }
 
-            log.error(errorMessage, cex);
+            log.error(errorMessage, exception);
 
-            updateOpMonitoringSoapFault(opMonitoringData, cex);
+            updateOpMonitoringSoapFault(opMonitoringData, exception);
 
             // Exceptions caused by incoming message and exceptions derived from faults sent by serverproxy already
             // contain full error code. Thus, we must not attach additional error code prefixes to them.
 
-            failure(request, response, callback, cex, opMonitoringData);
-        } catch (CodedException.Fault | ClientException e) {
+            failure(request, response, callback, exception, opMonitoringData);
+        } catch (CodedException.Fault e) {
             handled = true;
 
-            String errorMessage = e instanceof ClientException
-                    ? "Request processing error (" + e.getFaultDetail() + ")" : DEFAULT_ERROR_MESSAGE;
-
-            log.error(errorMessage, e);
+            log.error(DEFAULT_ERROR_MESSAGE, e);
 
             updateOpMonitoringSoapFault(opMonitoringData, e);
 

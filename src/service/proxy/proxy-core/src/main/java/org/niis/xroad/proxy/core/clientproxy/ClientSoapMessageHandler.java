@@ -26,9 +26,11 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -39,7 +41,7 @@ import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HTTP_METHOD;
 import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 /**
@@ -72,9 +74,10 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
 
     private void verifyCanProcess(RequestWrapper request) {
         if (!isPostRequest(request)) {
-            throw new ClientException(X_INVALID_HTTP_METHOD,
-                    "Must use POST request method instead of %s",
-                    request.getMethod());
+            throw XrdRuntimeException.systemException(INVALID_HTTP_METHOD)
+                    .details("Must use POST request method instead of %s".formatted(request.getMethod()))
+                    .origin(ErrorOrigin.CLIENT)
+                    .build().withPrefix(ErrorCodes.CLIENT_X);
         }
 
         globalConfProvider.verifyValidity();
