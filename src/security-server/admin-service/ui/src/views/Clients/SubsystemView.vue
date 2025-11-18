@@ -30,9 +30,7 @@
       <div class="title-view font-weight-bold">
         <subsystem-name :name="title" />
         <template v-if="!clientLoading">
-          <span class="opacity-60 font-weight-regular">{{
-            $t('client.subsystemTitleSuffix')
-          }}</span>
+          <span class="opacity-60 font-weight-regular">{{ $t('client.subsystemTitleSuffix') }}</span>
         </template>
       </div>
     </template>
@@ -46,19 +44,9 @@
         :disabled="client?.is_management_services_provider"
         @done="fetchData"
       />
-      <EnableClientButton
-        v-if="showEnable"
-        :id="id"
-        class="ml-2"
-        @done="fetchData"
-      />
+      <EnableClientButton v-if="showEnable" :id="id" class="ml-2" @done="fetchData" />
       <DeleteClientButton v-if="showDelete" :id="id" class="ml-2" />
-      <UnregisterClientButton
-        v-if="showUnregister"
-        :id="id"
-        class="ml-2"
-        @done="fetchData"
-      />
+      <UnregisterClientButton v-if="showUnregister" :id="id" class="ml-2" @done="fetchData" />
       <RenameClientButton
         v-if="showRename"
         :id="id"
@@ -146,11 +134,7 @@ export default defineComponent({
       if (!this.client?.status) return false;
       return (
         this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
-        [
-          ClientStatus.REGISTERED,
-          ClientStatus.REGISTRATION_IN_PROGRESS,
-          ClientStatus.DISABLED,
-        ].includes(this.client.status)
+        [ClientStatus.REGISTERED, ClientStatus.REGISTRATION_IN_PROGRESS, ClientStatus.DISABLED].includes(this.client.status)
       );
     },
     showRename(): boolean {
@@ -159,9 +143,7 @@ export default defineComponent({
         this.doesSupportSubsystemNames &&
         this.hasPermission(Permissions.RENAME_SUBSYSTEM) &&
         RenameStatus.NAME_SUBMITTED !== this.client.rename_status &&
-        [ClientStatus.SAVED, ClientStatus.REGISTERED].includes(
-          this.client.status,
-        )
+        [ClientStatus.SAVED, ClientStatus.REGISTERED].includes(this.client.status)
       );
     },
 
@@ -184,19 +166,11 @@ export default defineComponent({
     },
 
     showDisable(): boolean {
-      return (
-        !!this.client &&
-        this.client.status === ClientStatus.REGISTERED &&
-        this.hasPermission(Permissions.DISABLE_CLIENT)
-      );
+      return !!this.client && this.client.status === ClientStatus.REGISTERED && this.hasPermission(Permissions.DISABLE_CLIENT);
     },
 
     showEnable(): boolean {
-      return (
-        !!this.client &&
-        this.client.status === ClientStatus.DISABLED &&
-        this.hasPermission(Permissions.ENABLE_CLIENT)
-      );
+      return !!this.client && this.client.status === ClientStatus.DISABLED && this.hasPermission(Permissions.ENABLE_CLIENT);
     },
     breadcrumbs() {
       return [
@@ -220,9 +194,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useClient, ['fetchClient']),
     fetchData(id: string): void {
-      this.fetchClient(id).catch((error) =>
-        this.addError(error, { navigate: true }),
-      );
+      this.fetchClient(id).catch((error) => this.addError(error, { navigate: true }));
     },
   },
 });

@@ -40,11 +40,7 @@
     <template #content="{ dialogHandler }">
       <XrdExpandable :is-open="true" class="border">
         <template #link="{ toggle, opened }">
-          <div
-            class="font-weight-medium cursor-pointer"
-            :class="{ 'on-surface': opened, 'on-surface-variant': !opened }"
-            @click="toggle"
-          >
+          <div class="font-weight-medium cursor-pointer" :class="{ 'on-surface': opened, 'on-surface-variant': !opened }" @click="toggle">
             {{ $t('localGroup.searchOptions') }}
           </div>
         </template>
@@ -52,14 +48,7 @@
           <v-container class="px-4">
             <v-row>
               <v-col>
-                <v-text-field
-                  v-model="name"
-                  class="xrd"
-                  autofocus
-                  clearable
-                  hide-details
-                  :label="$t('general.name')"
-                />
+                <v-text-field v-model="name" class="xrd" autofocus clearable hide-details :label="$t('general.name')" />
               </v-col>
               <v-col>
                 <v-select
@@ -86,24 +75,12 @@
                 />
               </v-col>
               <v-col>
-                <v-text-field
-                  v-model="memberCode"
-                  class="xrd"
-                  clearable
-                  hide-details
-                  :label="$t('general.memberCode')"
-                />
+                <v-text-field v-model="memberCode" class="xrd" clearable hide-details :label="$t('general.memberCode')" />
               </v-col>
             </v-row>
             <v-row>
               <v-col>
-                <v-text-field
-                  v-model="subsystemCode"
-                  class="xrd"
-                  clearable
-                  hide-details
-                  :label="$t('general.subsystemCode')"
-                />
+                <v-text-field v-model="subsystemCode" class="xrd" clearable hide-details :label="$t('general.subsystemCode')" />
               </v-col>
               <v-col />
             </v-row>
@@ -151,13 +128,7 @@ import { defineComponent, PropType } from 'vue';
 import { Client, GroupMember } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useGeneral } from '@/store/modules/general';
-import {
-  XrdExpandable,
-  XrdSimpleDialog,
-  useNotifications,
-  DialogSaveHandler,
-  XrdBtn,
-} from '@niis/shared-ui';
+import { XrdExpandable, XrdSimpleDialog, useNotifications, DialogSaveHandler, XrdBtn } from '@niis/shared-ui';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useClients } from '@/store/modules/clients';

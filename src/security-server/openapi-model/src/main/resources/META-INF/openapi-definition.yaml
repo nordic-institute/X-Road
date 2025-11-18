@@ -354,11 +354,9 @@ paths:
       requestBody:
         description: certificate to import
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: certificate file
+              $ref: '#/components/schemas/CertificateFile'
       responses:
         '201':
           description: certificate created
@@ -1573,11 +1571,9 @@ paths:
       requestBody:
         description: certificate to add
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: certificate file
+              $ref: '#/components/schemas/CertificateFile'
       responses:
         '201':
           description: certificate added
@@ -4437,11 +4433,9 @@ paths:
       requestBody:
         description: configuration anchor
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: configuration anchor file
+              $ref: '#/components/schemas/AnchorFile'
       responses:
         '201':
           description: configuration anchor uploaded
@@ -4473,11 +4467,9 @@ paths:
       requestBody:
         description: configuration anchor
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: configuration anchor file
+              $ref: '#/components/schemas/AnchorFile'
       responses:
         '201':
           description: configuration anchor uploaded
@@ -4517,11 +4509,9 @@ paths:
       requestBody:
         description: configuration anchor
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: configuration anchor file
+              $ref: '#/components/schemas/AnchorFile'
       responses:
         '201':
           description: configuration anchor uploaded
@@ -4699,11 +4689,9 @@ paths:
       requestBody:
         description: certificate to add
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: certificate file
+              $ref: '#/components/schemas/CertificateFile'
       responses:
         '200':
           description: tls certificate imported
@@ -6269,10 +6257,30 @@ components:
       type: object
       description: security server backup archive file
       properties:
-        file:
+        backup:
           type: string
           format: binary
           description: backup archive file
+    CertificateFile:
+      type: object
+      description: certificate file
+      properties:
+        certificate:
+          description: the certificate file
+          format: binary
+          type: string
+      required:
+        - certificate
+    AnchorFile:
+      type: object
+      description: Anchor File
+      properties:
+        anchor:
+          description: the anchor file
+          format: binary
+          type: string
+      required:
+        - anchor
     TokenCertificateSigningRequest:
       type: object
       description: CSR for certificate that is stored in a Token. Also includes the possible actions that can be

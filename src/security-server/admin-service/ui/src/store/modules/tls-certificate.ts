@@ -28,7 +28,7 @@
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { CertificateDetails } from '@/openapi-types';
-import { helper } from '@niis/shared-ui';
+import { saveResponseAsFile, buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
 
 export const useTlsCertificate = defineStore('tls-certificate', {
   state: () => ({}),
@@ -36,44 +36,21 @@ export const useTlsCertificate = defineStore('tls-certificate', {
 
   actions: {
     async fetchTlsCertificate() {
-      return api
-        .get<CertificateDetails>('/system/certificate')
-        .then((res) => res.data);
+      return api.get<CertificateDetails>('/system/certificate').then((res) => res.data);
     },
     async generateCsr(distinguishedName: string) {
-      return api
-        .post(
-          '/system/certificate/csr',
-          { name: distinguishedName },
-          { responseType: 'json' },
-        )
-        .then((res) => {
-          helper.saveResponseAsFile(res, 'request.csr');
-        });
+      return api.post('/system/certificate/csr', { name: distinguishedName }, { responseType: 'json' }).then((res) => {
+        saveResponseAsFile(res, 'request.csr');
+      });
     },
     async generateKey() {
       return api.post('/system/certificate', {});
     },
     async uploadCertificate(file: File) {
-      return file.arrayBuffer().then((buffer) =>
-        api.post('/system/certificate/import', buffer, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
-          },
-        }),
-      );
+      return api.post('/system/certificate/import', buildFileFormData('certificate', file), multipartFormDataConfig());
     },
     async downloadCertificate() {
-      return api
-        .get('/system/certificate/export', { responseType: 'blob' })
-        .then((res) => helper.saveResponseAsFile(res, 'certs.tar.gz'));
-    },
-    async exportSSCertificate() {
-      return api
-        .get('/system/certificate/export', { responseType: 'arraybuffer' })
-        .then((response) => {
-          helper.saveResponseAsFile(response);
-        });
+      return api.get('/system/certificate/export', { responseType: 'blob' }).then((res) => saveResponseAsFile(res, 'certs.tar.gz'));
     },
   },
 });

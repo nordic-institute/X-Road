@@ -29,7 +29,8 @@
     <XrdFormBlock>
       <XrdFormBlockRow description="csr.helpUsage" adjust-against-content>
         <v-select
-          v-bind="usageRef"
+          v-model="selectedUsage"
+          v-bind="selectedUsageAttr"
           :items="usageList"
           class="xrd"
           :disabled="isUsageReadOnly || !permissionForUsage"
@@ -39,15 +40,11 @@
       </XrdFormBlockRow>
 
       <v-slide-y-transition>
-        <XrdFormBlockRow
-          v-if="showClient"
-          key="csr-client-field"
-          description="csr.helpClient"
-          adjust-against-content
-        >
+        <XrdFormBlockRow v-if="showClient" key="csr-client-field" description="csr.helpClient" adjust-against-content>
           <v-combobox
+            v-model="selectedCsrClient"
+            v-bind="selectedCsrClientAttr"
             variant="underlined"
-            v-bind="csrClientRef"
             :items="memberIdItems"
             :return-object="false"
             auto-select-first
@@ -57,12 +54,10 @@
           />
         </XrdFormBlockRow>
       </v-slide-y-transition>
-      <XrdFormBlockRow
-        description="csr.helpCertificationService"
-        adjust-against-content
-      >
+      <XrdFormBlockRow description="csr.helpCertificationService" adjust-against-content>
         <v-select
-          v-bind="certServiceRef"
+          v-model="selectedCertService"
+          v-bind="selectedCertServiceAttr"
           :items="filteredServiceList"
           item-title="name"
           item-value="name"
@@ -74,7 +69,8 @@
 
       <XrdFormBlockRow description="csr.helpCsrFormat" adjust-against-content>
         <v-select
-          v-bind="csrFormatRef"
+          v-model="selectedCsrFormat"
+          v-bind="selectedCsrFormatAttr"
           :items="csrFormatList"
           class="xrd"
           data-test="csr-format-select"
@@ -83,12 +79,7 @@
       </XrdFormBlockRow>
     </XrdFormBlock>
     <template #footer>
-      <XrdBtn
-        data-test="cancel-button"
-        variant="text"
-        text="action.cancel"
-        @click="cancel"
-      />
+      <XrdBtn data-test="cancel-button" variant="text" text="action.cancel" @click="cancel" />
       <v-spacer />
       <XrdBtn
         v-if="showPreviousButton"
@@ -99,13 +90,7 @@
         class="mr-2"
         @click="previous"
       />
-      <XrdBtn
-        data-test="save-button"
-        :text="saveButtonText"
-        append-icon="arrow_forward"
-        :disabled="!meta.valid"
-        @click="done"
-      />
+      <XrdBtn data-test="save-button" :text="saveButtonText" append-icon="arrow_forward" :disabled="!meta.valid" @click="done" />
     </template>
   </XrdWizardStep>
 </template>
@@ -118,29 +103,19 @@ import { CsrFormat, KeyUsageType } from '@/openapi-types';
 import { mapActions, mapState, mapWritableState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import { defineRule, PublicPathState, useForm } from 'vee-validate';
+import { defineRule, useForm } from 'vee-validate';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
-import {
-  i18n,
-  XrdWizardStep,
-  XrdBtn,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { i18n, XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, useNotifications, veeDefaultFieldConfig } from '@niis/shared-ui';
 
-defineRule(
-  'requiredIfSigning',
-  (value: string, _, ctx: FieldValidationMetaInfo): string | boolean => {
-    const usage = (ctx.form.csr as Record<string, never>).usage;
-    if (usage === KeyUsageType.SIGNING && (!value || !value.length)) {
-      return i18n.global.t('customValidation.requiredIf', {
-        fieldName: i18n.global.t(`fields.${ctx.field}`),
-      });
-    }
-    return true;
-  },
-);
+defineRule('requiredIfSigning', (value: string, _, ctx: FieldValidationMetaInfo): string | boolean => {
+  const usage = (ctx.form.csr as Record<string, never>).usage;
+  if (usage === KeyUsageType.SIGNING && (!value || !value.length)) {
+    return i18n.global.t('customValidation.requiredIf', {
+      fieldName: i18n.global.t(`fields.${ctx.field}`),
+    });
+  }
+  return true;
+});
 
 export default defineComponent({
   components: {
@@ -163,7 +138,7 @@ export default defineComponent({
   setup() {
     const { addError } = useNotifications();
     const { usage, csrClient, certificationService, csrFormat } = useCsr();
-    const { meta, values, setFieldValue, defineComponentBinds } = useForm({
+    const { meta, values, setFieldValue, defineField } = useForm({
       validationSchema: {
         'csr.usage': 'required',
         'csr.client': 'requiredIfSigning',
@@ -179,26 +154,23 @@ export default defineComponent({
         },
       },
     });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
-      },
-    });
-    const usageRef = defineComponentBinds('csr.usage', componentConfig);
-    const csrClientRef = defineComponentBinds('csr.client', componentConfig);
-    const certServiceRef = defineComponentBinds(
-      'csr.certificationService',
-      componentConfig,
-    );
-    const csrFormatRef = defineComponentBinds('csr.csrFormat', componentConfig);
+    const componentConfig = veeDefaultFieldConfig();
+    const [selectedUsage, selectedUsageAttr] = defineField('csr.usage', componentConfig);
+    const [selectedCsrClient, selectedCsrClientAttr] = defineField('csr.client', componentConfig);
+    const [selectedCertService, selectedCertServiceAttr] = defineField('csr.certificationService', componentConfig);
+    const [selectedCsrFormat, selectedCsrFormatAttr] = defineField('csr.csrFormat', componentConfig);
     return {
       meta,
       values,
       setFieldValue,
-      usageRef,
-      csrClientRef,
-      certServiceRef,
-      csrFormatRef,
+      selectedUsage,
+      selectedUsageAttr,
+      selectedCsrClient,
+      selectedCsrClientAttr,
+      selectedCertService,
+      selectedCertServiceAttr,
+      selectedCsrFormat,
+      selectedCsrFormatAttr,
       addError,
     };
   },
@@ -217,17 +189,8 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useCsr, [
-      'memberIds',
-      'filteredServiceList',
-      'isUsageReadOnly',
-    ]),
-    ...mapWritableState(useCsr, [
-      'usage',
-      'csrClient',
-      'csrFormat',
-      'certificationService',
-    ]),
+    ...mapState(useCsr, ['memberIds', 'filteredServiceList', 'isUsageReadOnly']),
+    ...mapWritableState(useCsr, ['usage', 'csrClient', 'csrFormat', 'certificationService']),
     ...mapState(useUser, ['hasPermission']),
     memberIdItems() {
       return this.memberIds.map((id) => ({ title: id, value: id }));
@@ -260,12 +223,8 @@ export default defineComponent({
     this.fetchAllMemberIds();
 
     // Check if the user has permission for only one type of CSR
-    const signPermission = this.hasPermission(
-      Permissions.GENERATE_SIGN_CERT_REQ,
-    );
-    const authPermission = this.hasPermission(
-      Permissions.GENERATE_AUTH_CERT_REQ,
-    );
+    const signPermission = this.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ);
+    const authPermission = this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ);
 
     if (signPermission && !authPermission) {
       // lock usage type to sign

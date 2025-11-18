@@ -29,11 +29,7 @@ import { AxiosResponse } from 'axios';
 import dayjs from 'dayjs';
 
 // Filters an array of objects excluding specified object key
-export function selectedFilter<T extends object, K extends keyof T>(
-  arr: T[],
-  search: string,
-  excluded?: K,
-): T[] {
+export function selectedFilter<T extends object, K extends keyof T>(arr: T[], search: string, excluded?: K): T[] {
   // Clean the search string
   const mySearch = search.toString().toLowerCase();
   if (mySearch.trim() === '') {
@@ -70,12 +66,7 @@ export function isValidRestURL(str: string): boolean {
 }
 
 // Finds if an array of clients has a client with given member class, member code and subsystem code.
-export function containsClient(
-  clients: Client[],
-  memberClass: string,
-  memberCode: string,
-  subsystemCode: string | undefined,
-): boolean {
+export function containsClient(clients: Client[], memberClass: string, memberCode: string, subsystemCode: string | undefined): boolean {
   if (!memberClass || !memberCode || !subsystemCode) {
     return false;
   }
@@ -103,12 +94,7 @@ export function containsClient(
 }
 
 // Create a client ID
-export function createClientId(
-  instanceId: string,
-  memberClass: string,
-  memberCode: string,
-  subsystemCode?: string,
-): string {
+export function createClientId(instanceId: string, memberClass: string, memberCode: string, subsystemCode?: string): string {
   if (subsystemCode) {
     return `${instanceId}:${memberClass}:${memberCode}:${subsystemCode}`;
   }
@@ -117,10 +103,7 @@ export function createClientId(
 }
 
 // Create a client ID
-export function createFullServiceId(
-  clientId: string,
-  serviceCode: string,
-): string {
+export function createFullServiceId(clientId: string, serviceCode: string): string {
   return `${clientId}:${serviceCode}`;
 }
 

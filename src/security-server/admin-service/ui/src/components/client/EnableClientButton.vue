@@ -26,12 +26,7 @@
  -->
 <template>
   <div>
-    <XrdBtn
-      data-test="enable-client-button"
-      variant="outlined"
-      text="action.enable"
-      @click="confirmEnableClient = true"
-    />
+    <XrdBtn data-test="enable-client-button" variant="outlined" text="action.enable" @click="confirmEnableClient = true" />
 
     <!-- Confirm dialog for enable client -->
     <XrdConfirmDialog

@@ -28,11 +28,7 @@
   <XrdSubView>
     <XrdCard data-test="security-server-details-view" :loading="loading">
       <XrdCardTable>
-        <XrdCardTableRow
-          data-test="security-server-owner-name"
-          label="securityServers.ownerName"
-          :value="securityServer?.owner_name"
-        />
+        <XrdCardTableRow data-test="security-server-owner-name" label="securityServers.ownerName" :value="securityServer?.owner_name" />
 
         <XrdCardTableRow
           data-test="security-server-owner-class"
@@ -52,34 +48,18 @@
           :value="securityServer?.server_id.server_code"
         />
 
-        <XrdCardTableRow
-          data-test="security-server-address"
-          label="securityServers.address"
-          :value="securityServer?.server_address"
-        >
-          <XrdBtn
-            v-if="canEditAddress"
-            variant="text"
-            color="tertiary"
-            text="action.edit"
-            @click="showEditAddressDialog = true"
-          />
+        <XrdCardTableRow data-test="security-server-address" label="securityServers.address" :value="securityServer?.server_address">
+          <XrdBtn v-if="canEditAddress" variant="text" color="tertiary" text="action.edit" @click="showEditAddressDialog = true" />
         </XrdCardTableRow>
 
-        <XrdCardTableRow
-          data-test="security-server-maintenance-mode"
-          label="securityServers.maintenanceMode"
-        >
+        <XrdCardTableRow data-test="security-server-maintenance-mode" label="securityServers.maintenanceMode">
           <template v-if="securityServer?.in_maintenance_mode" #value>
             <v-icon class="mr-2" icon="check_circle filled" color="success" />
             {{ securityServer.maintenance_mode_message }}
           </template>
         </XrdCardTableRow>
 
-        <XrdCardTableRow
-          data-test="security-server-registered"
-          label="securityServers.registered"
-        >
+        <XrdCardTableRow data-test="security-server-registered" label="securityServers.registered">
           <template #value>
             <XrdDateTime :value="securityServer?.created_at" with-seconds />
           </template>
@@ -101,14 +81,7 @@ import { defineComponent } from 'vue';
 
 import { mapState, mapStores } from 'pinia';
 
-import {
-  XrdBtn,
-  XrdCard,
-  XrdCardTable,
-  XrdCardTableRow,
-  XrdDateTime,
-  XrdSubView,
-} from '@niis/shared-ui';
+import { XrdBtn, XrdCard, XrdCardTable, XrdCardTableRow, XrdDateTime, XrdSubView } from '@niis/shared-ui';
 
 import { Permissions } from '@/global';
 import { SecurityServer } from '@/openapi-types';

@@ -25,23 +25,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdSimpleDialog
-    v-if="dialog"
-    title="keys.registrationRequest"
-    :disable-save="!meta.valid"
-    @save="save"
-    @cancel="cancel"
-  >
+  <XrdSimpleDialog v-if="dialog" title="keys.registrationRequest" :disable-save="!meta.valid" @save="save" @cancel="cancel">
     <template #content>
       <XrdFormBlock>
         <XrdFormBlockRow full-length>
-          <v-text-field
-            v-model="address"
-            class="xrd"
-            autofocus
-            :label="$t('keys.certRegistrationInfo')"
-            :error-messages="errors"
-          />
+          <v-text-field v-model="address" class="xrd" autofocus :label="$t('keys.certRegistrationInfo')" :error-messages="errors" />
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
@@ -63,11 +51,7 @@ export default defineComponent({
   },
   emits: ['cancel', 'save'],
   setup() {
-    const { meta, errors, value, resetField } = useField(
-      'dns',
-      'required|address',
-      { initialValue: '' },
-    );
+    const { meta, errors, value, resetField } = useField('dns', 'required|address', { initialValue: '' });
     return { meta, errors, address: value, resetField };
   },
   methods: {

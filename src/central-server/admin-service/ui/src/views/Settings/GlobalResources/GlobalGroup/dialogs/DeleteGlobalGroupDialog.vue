@@ -79,11 +79,7 @@ export default defineComponent({
       this.globalGroupStore
         .deleteByCode(this.groupCode)
         .then(() => {
-          this.addSuccessMessage(
-            'globalGroup.groupDeletedSuccessfully',
-            {},
-            true,
-          );
+          this.addSuccessMessage('globalGroup.groupDeletedSuccessfully', {}, true);
           this.$router.replace({ name: RouteName.GlobalGroups });
         })
         .catch((error) => this.addError(error))

@@ -65,12 +65,7 @@ import { PropType, ref } from 'vue';
 import { ClientId } from '@/openapi-types';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
-import {
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { XrdFormBlock, XrdFormBlockRow, useNotifications, XrdSimpleDialog } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {
@@ -119,12 +114,9 @@ const add = handleSubmit((values) => {
     },
   })
     .then(() => {
-      addSuccessMessage(
-        'members.member.subsystems.subsystemSuccessfullyAdded',
-        {
-          subsystemCode: values.subsystemCode,
-        },
-      );
+      addSuccessMessage('members.member.subsystems.subsystemSuccessfullyAdded', {
+        subsystemCode: values.subsystemCode,
+      });
       emits('save');
       resetForm();
     })

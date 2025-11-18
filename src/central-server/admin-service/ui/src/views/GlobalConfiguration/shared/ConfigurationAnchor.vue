@@ -88,12 +88,8 @@ export default defineComponent({
     ...mapState(useUser, ['hasPermission']),
     anchor(): Anchor | null {
       const title = this.$t('globalConf.anchor.title').toString();
-      const anchor = this.configurationSourceStore.getAnchor(
-        this.configurationType,
-      );
-      return anchor.hash
-        ? { hash: anchor.hash, createdAt: anchor.created_at, title }
-        : null;
+      const anchor = this.configurationSourceStore.getAnchor(this.configurationType);
+      return anchor.hash ? { hash: anchor.hash, createdAt: anchor.created_at, title } : null;
     },
     headers(): DataTableHeader[] {
       return [
@@ -110,19 +106,13 @@ export default defineComponent({
       ];
     },
     showDownloadAnchorButton(): boolean {
-      return (
-        this.hasPermission(Permissions.DOWNLOAD_SOURCE_ANCHOR) &&
-        this.configurationSourceStore.hasAnchor(this.configurationType)
-      );
+      return this.hasPermission(Permissions.DOWNLOAD_SOURCE_ANCHOR) && this.configurationSourceStore.hasAnchor(this.configurationType);
     },
     showRecreateAnchorButton(): boolean {
       return this.hasPermission(Permissions.GENERATE_SOURCE_ANCHOR);
     },
     formattedConfigurationType(): string {
-      return (
-        this.configurationType.charAt(0).toUpperCase() +
-        this.configurationType.slice(1).toLowerCase()
-      );
+      return this.configurationType.charAt(0).toUpperCase() + this.configurationType.slice(1).toLowerCase();
     },
   },
   created() {

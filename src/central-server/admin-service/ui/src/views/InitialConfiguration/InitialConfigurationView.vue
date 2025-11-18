@@ -25,19 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewSimple
-    id="initial-configuration"
-    data-test="central-server-initialization-page"
-    title="init.initialConfiguration"
-  >
+  <XrdElevatedViewSimple id="initial-configuration" data-test="central-server-initialization-page" title="init.initialConfiguration">
     <XrdWizardStep>
       <XrdFormBlock class="mb-4" title="init.csIdentification">
-        <XrdFormBlockRow
-          description="init.instanceIdentifier.info"
-          adjust-against-content
-        >
+        <XrdFormBlockRow description="init.instanceIdentifier.info" adjust-against-content>
           <v-text-field
-            v-bind="instanceIdentifier"
+            v-model="instanceIdentifier"
+            v-bind="instanceIdentifierRef"
             data-test="instance-identifier--input"
             class="xrd"
             autofocus
@@ -48,7 +42,8 @@
         </XrdFormBlockRow>
         <XrdFormBlockRow description="init.address.info" adjust-against-content>
           <v-text-field
-            v-bind="address"
+            v-model="address"
+            v-bind="addressRef"
             data-test="address--input"
             class="xrd"
             :label="$t('fields.init.address')"
@@ -60,7 +55,8 @@
       <XrdFormBlock title="init.softwareToken">
         <XrdFormBlockRow description="init.pin.info" adjust-against-content>
           <v-text-field
-            v-bind="pin"
+            v-model="pin"
+            v-bind="pinRef"
             data-test="pin--input"
             class="xrd"
             autocomplete="pin-code"
@@ -71,17 +67,14 @@
             :disabled="disabledFields.pin"
           >
             <template #append-inner>
-              <v-icon
-                color="primary"
-                :icon="passwordIcon"
-                @click.stop="togglePasswordType"
-              />
+              <v-icon color="primary" :icon="passwordIcon" @click.stop="togglePasswordType" />
             </template>
           </v-text-field>
         </XrdFormBlockRow>
         <XrdFormBlockRow>
           <v-text-field
-            v-bind="pinConfirm"
+            v-model="pinConfirm"
+            v-bind="pinConfirmRef"
             data-test="confirm-pin--input"
             class="xrd"
             :type="passwordType"
@@ -99,11 +92,7 @@
                 icon="check_circle filled"
                 data-test="confirm-pin-append-input-icon"
               />
-              <v-icon
-                color="primary"
-                :icon="passwordIcon"
-                @click.stop="togglePasswordType"
-              />
+              <v-icon color="primary" :icon="passwordIcon" @click.stop="togglePasswordType" />
             </template>
           </v-text-field>
         </XrdFormBlockRow>
@@ -132,22 +121,18 @@ import { defineRule, useForm, useIsFieldValid } from 'vee-validate';
 import { confirmed } from '@vee-validate/rules';
 
 import {
-  axiosHelpers,
   useNotifications,
   XrdBtn,
   XrdElevatedViewSimple,
   XrdWizardStep,
   XrdFormBlock,
   XrdFormBlockRow,
+  isFieldValidationError,
+  getTranslatedFieldErrors,
 } from '@niis/shared-ui';
 
 import { RouteName } from '@/global';
-import {
-  ErrorInfo,
-  InitializationStatus,
-  InitialServerConf,
-  TokenInitStatus,
-} from '@/openapi-types';
+import { ErrorInfo, InitializationStatus, InitialServerConf, TokenInitStatus } from '@/openapi-types';
 import { useSystem } from '@/store/modules/system';
 
 defineRule('confirmed', confirmed);
@@ -162,20 +147,9 @@ export default defineComponent({
   },
   props: {},
   setup() {
-    const {
-      addError,
-      addSuccessMessage,
-      clear: clearNotifications,
-    } = useNotifications();
+    const { addError, addSuccessMessage, clear: clearNotifications } = useNotifications();
 
-    const {
-      defineComponentBinds,
-      errors,
-      meta,
-      values,
-      setFieldValue,
-      setFieldError,
-    } = useForm({
+    const { defineField, errors, meta, values, setFieldValue, setFieldError } = useForm({
       validationSchema: {
         'init.identifier': 'required',
         'init.address': 'required|address',
@@ -183,19 +157,23 @@ export default defineComponent({
         'init.confirmPin': 'required|confirmed:@init.pin',
       },
     });
-    const instanceIdentifier = defineComponentBinds('init.identifier');
-    const address = defineComponentBinds('init.address');
-    const pin = defineComponentBinds('init.pin');
-    const pinConfirm = defineComponentBinds('init.confirmPin');
+    const [instanceIdentifier, instanceIdentifierRef] = defineField('init.identifier');
+    const [address, addressRef] = defineField('init.address');
+    const [pin, pinRef] = defineField('init.pin');
+    const [pinConfirm, pinConfirmRef] = defineField('init.confirmPin');
     const pinConfirmValid = useIsFieldValid('init.confirmPin');
     return {
       addError,
       addSuccessMessage,
       clearNotifications,
       instanceIdentifier,
+      instanceIdentifierRef,
       address,
+      addressRef,
       pin,
+      pinRef,
       pinConfirm,
+      pinConfirmRef,
       errors,
       meta,
       values,
@@ -227,12 +205,9 @@ export default defineComponent({
       return;
     }
 
-    const statusAtFirst: InitializationStatus = this.getSystemStatus
-      ?.initialization_status as InitializationStatus;
+    const statusAtFirst: InitializationStatus = this.getSystemStatus?.initialization_status as InitializationStatus;
 
-    if (
-      TokenInitStatus.INITIALIZED == statusAtFirst?.software_token_init_status
-    ) {
+    if (TokenInitStatus.INITIALIZED == statusAtFirst?.software_token_init_status) {
       this.disabledFields.pin = true;
       this.setFieldValue('init.pin', '****');
       this.setFieldValue('init.confirmPin', '****');
@@ -249,8 +224,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useSystem, ['fetchSystemStatus', 'initializationRequest']),
     togglePasswordType() {
-      this.passwordType =
-        this.passwordType === 'password' ? 'text' : 'password';
+      this.passwordType = this.passwordType === 'password' ? 'text' : 'password';
     },
     async submit() {
       // validate inputs
@@ -262,36 +236,24 @@ export default defineComponent({
       this.submitting = true;
       await this.initializationRequest(formData)
         .then(() => {
-          this.$router
-            .push({
-              name: RouteName.Members,
-            });
+          this.$router.push({
+            name: RouteName.Members,
+          });
         })
         .catch((error) => {
           const errorInfo: ErrorInfo = error.response?.data || { status: 0 };
-          if (axiosHelpers.isFieldValidationError(errorInfo)) {
+          if (isFieldValidationError(errorInfo)) {
             const fieldErrors = errorInfo.error?.validation_errors;
             if (fieldErrors) {
-              const identifierErrors: string[] =
-                axiosHelpers.getTranslatedFieldErrors(
-                  'initialServerConfDto.instanceIdentifier',
-                  fieldErrors,
-                );
-              const addressErrors: string[] =
-                axiosHelpers.getTranslatedFieldErrors(
-                  'initialServerConfDto.centralServerAddress',
-                  fieldErrors,
-                );
+              const identifierErrors: string[] = getTranslatedFieldErrors('initialServerConfDto.instanceIdentifier', fieldErrors);
+              const addressErrors: string[] = getTranslatedFieldErrors('initialServerConfDto.centralServerAddress', fieldErrors);
               this.setFieldError('init.identifier', identifierErrors);
               this.setFieldError('init.address', addressErrors);
               this.addError(error);
             }
             return;
           } else if (isPinFieldError(errorInfo)) {
-            this.setFieldError(
-              'init.pin',
-              this.$t('error_code.token_weak_pin'),
-            );
+            this.setFieldError('init.pin', this.$t('error_code.token_weak_pin'));
           }
 
           this.addError(error);

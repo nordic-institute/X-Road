@@ -41,11 +41,7 @@ export interface RoutePermission {
 export const routePermissions: RoutePermission[] = [
   {
     name: RouteName.Keys,
-    permissions: [
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_API_KEYS,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-    ],
+    permissions: [Permissions.VIEW_KEYS, Permissions.VIEW_API_KEYS, Permissions.VIEW_INTERNAL_TLS_CERT],
   },
   {
     name: RouteName.SignAndAuthKeys,
@@ -53,12 +49,7 @@ export const routePermissions: RoutePermission[] = [
   },
   {
     name: RouteName.ApiKey,
-    permissions: [
-      Permissions.VIEW_API_KEYS,
-      Permissions.CREATE_API_KEY,
-      Permissions.UPDATE_API_KEY,
-      Permissions.REVOKE_API_KEY,
-    ],
+    permissions: [Permissions.VIEW_API_KEYS, Permissions.CREATE_API_KEY, Permissions.UPDATE_API_KEY, Permissions.REVOKE_API_KEY],
   },
   {
     name: RouteName.SSTlsCertificate,
@@ -78,11 +69,7 @@ export const routePermissions: RoutePermission[] = [
   },
   {
     name: RouteName.Settings,
-    permissions: [
-      Permissions.VIEW_SYS_PARAMS,
-      Permissions.BACKUP_CONFIGURATION,
-      Permissions.VIEW_ADMIN_USERS,
-    ],
+    permissions: [Permissions.VIEW_SYS_PARAMS, Permissions.BACKUP_CONFIGURATION, Permissions.VIEW_ADMIN_USERS],
   },
   {
     name: RouteName.SystemParameters,
@@ -153,11 +140,6 @@ export const routePermissions: RoutePermission[] = [
   },
   {
     name: RouteName.AdminUsers,
-    permissions: [
-      Permissions.VIEW_ADMIN_USERS,
-      Permissions.ADD_ADMIN_USER,
-      Permissions.UPDATE_ADMIN_USER,
-      Permissions.DELETE_ADMIN_USER,
-    ],
+    permissions: [Permissions.VIEW_ADMIN_USERS, Permissions.ADD_ADMIN_USER, Permissions.UPDATE_ADMIN_USER, Permissions.DELETE_ADMIN_USER],
   },
 ];

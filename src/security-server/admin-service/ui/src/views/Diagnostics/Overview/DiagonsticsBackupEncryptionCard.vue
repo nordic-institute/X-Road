@@ -25,45 +25,23 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard
-    data-test="diagnostics-backup-encryption"
-    title="diagnostics.encryption.backup.title"
-    class="overview-card"
-  >
+  <XrdCard data-test="diagnostics-backup-encryption" title="diagnostics.encryption.backup.title" class="overview-card">
     <div v-if="backupEncryptionDiagnostics">
-      <div
-        class="ml-4 mb-4 d-flex flex-row align-center"
-        data-test="backup-encryption-status"
-      >
+      <div class="ml-4 mb-4 d-flex flex-row align-center" data-test="backup-encryption-status">
         <span class="mr-2">
           {{ $t('diagnostics.encryption.statusTitle') }}
         </span>
         <XrdStatusChip
-          :type="
-            encryptionStatusType(
-              backupEncryptionDiagnostics.backup_encryption_status,
-            )
-          "
+          :type="encryptionStatusType(backupEncryptionDiagnostics.backup_encryption_status)"
           :text="`diagnostics.encryption.status.${backupEncryptionDiagnostics.backup_encryption_status}`"
         >
           <template #icon>
-            <XrdStatusIcon
-              class="mr-1 ml-n1"
-              :status="
-                encryptionStatusIcon(
-                  backupEncryptionDiagnostics.backup_encryption_status,
-                )
-              "
-            />
+            <XrdStatusIcon class="mr-1 ml-n1" :status="encryptionStatusIcon(backupEncryptionDiagnostics.backup_encryption_status)" />
           </template>
         </XrdStatusChip>
       </div>
 
-      <v-table
-        v-if="backupEncryptionDiagnostics.backup_encryption_status"
-        class="xrd"
-        data-test="backup-encryption-keys"
-      >
+      <v-table v-if="backupEncryptionDiagnostics.backup_encryption_status" class="xrd" data-test="backup-encryption-keys">
         <thead>
           <tr>
             <th>
@@ -72,10 +50,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="confKeys in backupEncryptionDiagnostics.backup_encryption_keys"
-            :key="confKeys"
-          >
+          <tr v-for="confKeys in backupEncryptionDiagnostics.backup_encryption_keys" :key="confKeys">
             <td>
               {{ confKeys }}
             </td>

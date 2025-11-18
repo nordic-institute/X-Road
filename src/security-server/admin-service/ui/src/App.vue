@@ -26,11 +26,7 @@
  -->
 <!-- This is the root component of the Vue app -->
 <template>
-  <XrdApp
-    :login-view="loginView"
-    :session-alive="sessionAlive"
-    @logout="logout"
-  >
+  <XrdApp :login-view="loginView" :session-alive="sessionAlive" @logout="logout">
     <router-view />
   </XrdApp>
 </template>

@@ -33,14 +33,8 @@
     @accept="deleteSubsystem"
   >
     <template #text>
-      <span
-        data-test="delete-subsystem"
-        class="font-weight-regular body-regular"
-      >
-        <i18n-t
-          scope="global"
-          keypath="members.member.subsystems.areYouSureDelete"
-        >
+      <span data-test="delete-subsystem" class="font-weight-regular body-regular">
+        <i18n-t scope="global" keypath="members.member.subsystems.areYouSureDelete">
           <template #subsystemCode>
             <span class="font-weight-bold">{{ subsystemCode }}</span>
           </template>
@@ -100,16 +94,11 @@ export default defineComponent({
     deleteSubsystem(): void {
       this.loading = true;
       this.subsystemStore
-        .deleteById(
-          toIdentifier(this.member.client_id) + ':' + this.subsystemCode,
-        )
+        .deleteById(toIdentifier(this.member.client_id) + ':' + this.subsystemCode)
         .then(() => {
-          this.addSuccessMessage(
-            'members.member.subsystems.subsystemSuccessfullyDeleted',
-            {
-              subsystemCode: this.subsystemCode,
-            },
-          );
+          this.addSuccessMessage('members.member.subsystems.subsystemSuccessfullyDeleted', {
+            subsystemCode: this.subsystemCode,
+          });
           this.$emit('delete');
         })
         .catch((error) => {

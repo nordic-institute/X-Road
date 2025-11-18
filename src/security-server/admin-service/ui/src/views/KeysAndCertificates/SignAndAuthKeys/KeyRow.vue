@@ -87,21 +87,14 @@ export default defineComponent({
       }
 
       // If key doesn't have a usage type it is in the "unknown" category. Then any permission is fine.
-      return (
-        this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
-        this.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ)
-      );
+      return this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) || this.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ);
     },
 
     disableGenerateCsr(): boolean {
       // Check if the generate csr action should be disabled
       if (
-        this.tokenKey.possible_actions?.includes(
-          PossibleAction.GENERATE_AUTH_CSR,
-        ) ||
-        this.tokenKey.possible_actions?.includes(
-          PossibleAction.GENERATE_SIGN_CSR,
-        )
+        this.tokenKey.possible_actions?.includes(PossibleAction.GENERATE_AUTH_CSR) ||
+        this.tokenKey.possible_actions?.includes(PossibleAction.GENERATE_SIGN_CSR)
       ) {
         return false;
       }

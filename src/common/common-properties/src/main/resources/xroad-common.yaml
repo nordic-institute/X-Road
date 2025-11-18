@@ -1,4 +1,5 @@
 # Common properties that are injected to all services
+config_ordinal: 220
 quarkus:
   application:
     version: 1.0.0

@@ -40,7 +40,8 @@
       <XrdFormBlock>
         <XrdFormBlockRow full-length>
           <v-text-field
-            v-bind="securityServerAddress"
+            v-model="securityServerAddressMdl"
+            v-bind="securityServerAddressRef"
             data-test="security-server-address-edit-field"
             class="xrd"
             autofocus
@@ -56,12 +57,7 @@
 import { defineComponent } from 'vue';
 import { useForm } from 'vee-validate';
 import { mapActions } from 'pinia';
-import {
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { XrdFormBlock, XrdFormBlockRow, useNotifications, XrdSimpleDialog } from '@niis/shared-ui';
 import { useSystem } from '@/store/modules/system';
 
 export default defineComponent({
@@ -79,27 +75,21 @@ export default defineComponent({
   emits: ['cancel', 'addressUpdated'],
   setup(props) {
     const { addError, addSuccessMessage } = useNotifications();
-    const {
-      values,
-      errors,
-      meta,
-      resetForm,
-      setFieldError,
-      defineComponentBinds,
-    } = useForm({
+    const { values, errors, meta, resetForm, setFieldError, defineField } = useForm({
       validationSchema: {
         securityServerAddress: 'required|address|max:255',
       },
       initialValues: { securityServerAddress: props.address },
     });
-    const securityServerAddress = defineComponentBinds('securityServerAddress');
+    const [securityServerAddressMdl, securityServerAddressRef] = defineField('securityServerAddress');
     return {
       values,
       meta,
       errors,
       resetForm,
       setFieldError,
-      securityServerAddress,
+      securityServerAddressMdl,
+      securityServerAddressRef,
       addError,
       addSuccessMessage,
     };
@@ -119,9 +109,7 @@ export default defineComponent({
       this.loading = true;
       return this.changeSecurityServerAddress(this.values.securityServerAddress)
         .then(() => {
-          this.addSuccessMessage(
-            'systemParameters.securityServer.updateSubmitted',
-          );
+          this.addSuccessMessage('systemParameters.securityServer.updateSubmitted');
           this.$emit('addressUpdated');
         })
         .catch((error) => {

@@ -27,12 +27,7 @@
 <template>
   <XrdCard :title="titleKey" class="bg-surface-container" variant="flat">
     <template #append-title>
-      <XrdSearchField
-        v-model="search"
-        data-test="search-query-field"
-        width="360"
-        :label="$t('action.search')"
-      />
+      <XrdSearchField v-model="search" data-test="search-query-field" width="360" :label="$t('action.search')" />
     </template>
     <v-data-table
       data-test="servers-table"
@@ -48,11 +43,7 @@
       :loader-height="2"
     >
       <template #[`item.server_id.server_code`]="{ item }">
-        <div
-          class="server-code cursor-pointer"
-          :data-test="`server-${item.server_id.server_code}`"
-          @click="toSecurityServerDetails(item)"
-        >
+        <div class="server-code cursor-pointer" :data-test="`server-${item.server_id.server_code}`" @click="toSecurityServerDetails(item)">
           {{ item.server_id.server_code }}
         </div>
       </template>

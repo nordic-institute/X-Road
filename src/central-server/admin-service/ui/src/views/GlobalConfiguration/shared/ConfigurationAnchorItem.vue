@@ -40,21 +40,10 @@
       item-key="hash"
     >
       <template #[`item.hash`]="{ item }">
-        <XrdLabelWithIcon
-          data-test="anchor-hash"
-          icon="tag"
-          icon-color="tertiary"
-          label-color="primary"
-          semi-bold
-          :label="item.hash"
-        />
+        <XrdLabelWithIcon data-test="anchor-hash" icon="tag" icon-color="tertiary" label-color="primary" semi-bold :label="item.hash" />
       </template>
       <template #[`item.createdAt`]="{ item }">
-        <XrdDateTime
-          data-test="anchor-created-at"
-          :value="item.createdAt"
-          with-seconds
-        />
+        <XrdDateTime data-test="anchor-created-at" :value="item.createdAt" with-seconds />
       </template>
     </v-data-table>
   </XrdCard>

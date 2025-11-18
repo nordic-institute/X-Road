@@ -143,6 +143,7 @@ export function addError(
     if (response?.status !== 401) {
       if (routingContext) {
         if (!routingContext.router || !routingContext.navigationRules) {
+          //eslint-disable-next-line no-console
           console.error('Router and navigation rules are not set, run setupAddErrorNavigation() in main.ts');
         } else if (response?.status && routingContext.navigationRules[response.status]) {
           return routingContext.router.replace(routingContext.navigationRules[response.status]);

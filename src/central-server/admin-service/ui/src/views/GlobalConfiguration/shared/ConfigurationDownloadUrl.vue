@@ -37,12 +37,7 @@
       :loading="loading"
     >
       <template #[`item.url`]="{ item }">
-        <XrdLabelWithIcon
-          icon="link"
-          :label="item.url"
-          clickable
-          @navigate="openInNewTab(item.url)"
-        />
+        <XrdLabelWithIcon icon="link" :label="item.url" clickable @navigate="openInNewTab(item.url)" />
       </template>
     </v-data-table>
   </XrdCard>
@@ -75,9 +70,7 @@ export default defineComponent({
   computed: {
     ...mapStores(useConfigurationSource),
     urls(): GlobalConfDownloadUrl[] {
-      return [
-        this.configurationSourceStore.getDownloadUrl(this.configurationType),
-      ];
+      return [this.configurationSourceStore.getDownloadUrl(this.configurationType)];
     },
     headers(): DataTableHeader[] {
       return [
@@ -95,9 +88,7 @@ export default defineComponent({
   methods: {
     fetchDownloadUrl() {
       this.loading = true;
-      this.configurationSourceStore
-        .fetchDownloadUrl(this.configurationType)
-        .finally(() => (this.loading = false));
+      this.configurationSourceStore.fetchDownloadUrl(this.configurationType).finally(() => (this.loading = false));
     },
     openInNewTab(url: string) {
       window.open(url, '_blank', 'noreferrer');

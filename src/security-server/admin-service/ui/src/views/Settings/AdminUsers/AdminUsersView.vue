@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdAdminUsers
-    title="tab.main.settings"
-    :admin-users-handler="handler"
-    :username="userStore.username || ''"
-  >
+  <XrdAdminUsers title="tab.main.settings" :admin-users-handler="handler" :username="userStore.username || ''">
     <template #tabs>
       <SettingsTabs />
     </template>

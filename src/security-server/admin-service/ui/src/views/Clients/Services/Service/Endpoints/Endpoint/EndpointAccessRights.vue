@@ -25,24 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewFixedWidth
-    closeable
-    :translated-title="title"
-    :breadcrumbs="breadcrumbs"
-    @close="close"
-  >
+  <XrdElevatedViewFixedWidth closeable :translated-title="title" :breadcrumbs="breadcrumbs" @close="close">
     <div class="d-flex flex-row align-center mt-4 mb-4">
       <div class="title-component font-weight-medium">
         {{ $t('accessRights.title') }}
       </div>
       <v-spacer />
-      <XrdBtn
-        v-if="canEdit"
-        data-test="remove-all-access-rights"
-        variant="outlined"
-        text="action.removeAll"
-        @click="removeAll()"
-      />
+      <XrdBtn v-if="canEdit" data-test="remove-all-access-rights" variant="outlined" text="action.removeAll" @click="removeAll()" />
       <XrdBtn
         v-if="canEdit"
         data-test="add-subjects-dialog"
@@ -73,14 +62,7 @@
         <XrdDateTime :value="item.rights_given_at" with-seconds />
       </template>
       <template #item.actions="{ item }">
-        <XrdBtn
-          v-if="canEdit"
-          data-test="remove-access-right"
-          variant="text"
-          color="tertiary"
-          text="action.remove"
-          @click="remove(item)"
-        />
+        <XrdBtn v-if="canEdit" data-test="remove-access-right" variant="text" color="tertiary" text="action.remove" @click="remove(item)" />
       </template>
     </v-data-table>
     <!-- Confirm dialog remove all Access Right subjects -->
@@ -125,14 +107,7 @@ import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
 import ClientName from '@/components/client/ClientName.vue';
-import {
-  XrdDateTime,
-  XrdElevatedViewFixedWidth,
-  XrdBtn,
-  XrdLabelWithIcon,
-  useNotifications,
-  XrdConfirmDialog,
-} from '@niis/shared-ui';
+import { XrdDateTime, XrdElevatedViewFixedWidth, XrdBtn, XrdLabelWithIcon, useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useServices } from '@/store/modules/services';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
@@ -312,17 +287,8 @@ export default defineComponent({
       if (everything) {
         this.fetchEndpoint(this.id)
           .then((endpoint) => (this.endpoint = endpoint))
-          .then((endpoint) =>
-            this.fetchService(
-              createFullServiceId(
-                endpoint.client_id || '',
-                endpoint.service_code,
-              ),
-            ),
-          )
-          .then((service) =>
-            this.fetchServiceDescription(service.service_description_id),
-          )
+          .then((endpoint) => this.fetchService(createFullServiceId(endpoint.client_id || '', endpoint.service_code)))
+          .then((service) => this.fetchServiceDescription(service.service_description_id))
           .then((description) => this.fetchClient(description.client_id))
           .catch((error) => this.addError(error, { navigate: true }));
       }

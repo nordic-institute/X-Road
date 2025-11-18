@@ -26,12 +26,7 @@
  -->
 <template>
   <XrdSubView>
-    <XrdCard
-      v-if="showConnectionType"
-      class="pa-6 mb-4"
-      bg-color="surface-container"
-      :loading="connectionTypeUpdating"
-    >
+    <XrdCard v-if="showConnectionType" class="pa-6 mb-4" bg-color="surface-container" :loading="connectionTypeUpdating">
       <v-select
         :key="revertHack"
         v-model="connectionTypeModel"
@@ -48,20 +43,8 @@
 
     <XrdCard title="internalServers.tlsTitle" class="mb-4">
       <template #title-actions>
-        <XrdFileUpload
-          v-if="canAddTlsCert"
-          v-slot="{ upload }"
-          accepts=".pem, .cer, .der"
-          @file-changed="onFileChange"
-        >
-          <XrdBtn
-            variant="text"
-            text="action.upload"
-            color="primary"
-            prepend-icon="upload"
-            :loading="uploading"
-            @click="upload"
-          />
+        <XrdFileUpload v-if="canAddTlsCert" v-slot="{ upload }" accepts=".pem, .cer, .der" @file-changed="onFileChange">
+          <XrdBtn variant="text" text="action.upload" color="primary" prepend-icon="upload" :loading="uploading" @click="upload" />
         </XrdFileUpload>
       </template>
 
@@ -92,17 +75,11 @@
         </template>
 
         <template #[`item.not_before`]="{ item }">
-          <XrdDate
-            data-test="tls-certificate-not-before"
-            :value="item.not_before"
-          />
+          <XrdDate data-test="tls-certificate-not-before" :value="item.not_before" />
         </template>
 
         <template #[`item.not_after`]="{ item }">
-          <XrdDate
-            data-test="tls-certificate-not-after"
-            :value="item.not_after"
-          />
+          <XrdDate data-test="tls-certificate-not-after" :value="item.not_after" />
         </template>
       </v-data-table>
     </XrdCard>
@@ -118,11 +95,7 @@
         <tbody>
           <tr v-if="ssCertificate && !ssCertLoading">
             <td>
-              <XrdLabelWithIcon
-                label-color="on-surface"
-                icon-color="on-surface"
-                icon="editor_choice"
-              >
+              <XrdLabelWithIcon label-color="on-surface" icon-color="on-surface" icon="editor_choice">
                 <template #label>
                   <XrdHashValue :value="ssCertificate.hash" wrap-friendly />
                 </template>
@@ -141,12 +114,7 @@
               />
             </td>
           </tr>
-          <XrdEmptyPlaceholderRow
-            :colspan="3"
-            :loading="ssCertLoading"
-            :data="ssCertificate"
-            :no-items-text="$t('noData.noCertificate')"
-          />
+          <XrdEmptyPlaceholderRow :colspan="3" :loading="ssCertLoading" :data="ssCertificate" :no-items-text="$t('noData.noCertificate')" />
         </tbody>
       </v-table>
     </XrdCard>
@@ -216,11 +184,7 @@ export default defineComponent({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useClient, [
-      'tlsCertificates',
-      'ssCertificate',
-      'connectionType',
-    ]),
+    ...mapState(useClient, ['tlsCertificates', 'ssCertificate', 'connectionType']),
     headers(): DataTableHeader[] {
       return [
         {
@@ -268,14 +232,10 @@ export default defineComponent({
     },
 
     showConnectionType(): boolean {
-      return this.hasPermission(
-        Permissions.VIEW_CLIENT_INTERNAL_CONNECTION_TYPE,
-      );
+      return this.hasPermission(Permissions.VIEW_CLIENT_INTERNAL_CONNECTION_TYPE);
     },
     canEditConnectionType(): boolean {
-      return this.hasPermission(
-        Permissions.EDIT_CLIENT_INTERNAL_CONNECTION_TYPE,
-      );
+      return this.hasPermission(Permissions.EDIT_CLIENT_INTERNAL_CONNECTION_TYPE);
     },
     canViewTlsCertDetails(): boolean {
       return this.hasPermission(Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS);
@@ -295,16 +255,11 @@ export default defineComponent({
     this.fetchTlsCerts(this.id);
   },
   methods: {
-    ...mapActions(useClient, [
-      'saveConnectionType',
-      'fetchTlsCertificates',
-      'fetchSSCertificate',
-      'uploadTlsCertificate',
-    ]),
+    ...mapActions(useClient, ['saveConnectionType', 'fetchTlsCertificates', 'fetchSSCertificate', 'uploadTlsCertificate']),
     ...mapActions(useTlsCertificate, ['downloadCertificate']),
     async onFileChange(event: FileUploadResult) {
       this.uploading = true;
-      return this.uploadTlsCertificate(this.id, event.buffer)
+      return this.uploadTlsCertificate(this.id, event.file)
         .then(() => {
           this.uploading = false;
           this.fetchTlsCerts(this.id);

@@ -5,13 +5,13 @@
     "addServiceClientsTitle": "Добавить объекты",
     "addSubjectsSuccess": "Права доступа успешно добавлены",
     "id": "ID",
-    "subsystemName": "Название подсистемы / Описание группы",
     "removeAllText": "Вы уверены, что хотите удалить права доступа у всех клиентов?",
     "removeAllTitle": "Удалить все права доступа?",
     "removeSuccess": "Права доступа успешно удалены",
     "removeText": "Вы уверены, что хотите удалить права доступа у этого клиента?",
     "removeTitle": "Удалить права доступа?",
     "rightsGiven": "Предоставлены права доступа",
+    "subsystemName": "Название подсистемы / Описание группы",
     "title": "Права доступа"
   },
   "action": {
@@ -106,9 +106,11 @@
     "member": "Участник",
     "memberClass": "Класс участника",
     "memberCode": "Код участника",
+    "memberInParenthesis": "(@:client.member)",
     "memberName": "Имя участника",
     "name": "Имя",
     "owner": "Владелец",
+    "ownerInParenthesis": "(@:client.owner)",
     "status": "Статус",
     "statusText": {
       "deletionInProgress": "Удаление в процессе",
@@ -160,6 +162,17 @@
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Отключено конфигурацией"
+    },
+    "connection": {
+      "centralServer": {
+        "authCertRequest": "Сервис регистрации сертификатов аутентификации",
+        "globalConf": "Загрузка глобальной конфигурации",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Центральный сервер"
+      },
+      "ok": "Все в порядке",
+      "test": "Тест"
     },
     "costType": "Тип стоимости",
     "encryption": {
@@ -255,17 +268,6 @@
       "success": "Успех",
       "successfulRequests": "Успешные запросы",
       "time": "Время"
-    },
-    "connection": {
-      "ok": "Все в порядке",
-      "test": "Тест",
-      "centralServer": {
-        "title": "Центральный сервер",
-        "globalConf": "Загрузка глобальной конфигурации",
-        "globalConfHttp": "http",
-        "globalConfHttps": "https",
-        "authCertRequest": "Сервис регистрации сертификатов аутентификации"
-      }
     }
   },
   "endpoints": {
@@ -365,6 +367,7 @@
     "global_conf_outdated": "Глобальная конфигурация устарела",
     "gpg_key_generation_failed": "Не удалось создать пару ключей GPG",
     "gpg_key_generation_interrupted": "Создание пары ключей GPG прервано",
+    "http_error": "Ошибка HTTP",
     "identifier_not_found": "Идентификатор не найден",
     "illegal_generated_endpoint_remove": "Удаление сгенерированной конечной точки не разрешено",
     "illegal_generated_endpoint_update": "Обновление сгенерированной конечной точки не разрешено",
@@ -398,7 +401,6 @@
     "member_code_not_provided": "Код участника не указан",
     "missing_parameter": "Отсутствует параметр",
     "network_error": "Ошибка сети",
-    "http_error": "Ошибка HTTP",
     "ocsp_connection_error": "Не удалось подключиться к OCSP-ответчику",
     "ocsp_failed": "Не удалось получить ответ от OCSP-ответчика",
     "ocsp_response_parsing_failure": "Не удалось разобрать ответ OCSP",
@@ -722,7 +724,6 @@
     "enableSuccess": "Описание сервиса включено",
     "idGroupCode": "ID / Код группы",
     "lastRefreshed": "Последнее обновление: ",
-    "subsystemNameGroupDesc": "Название подсистемы / Описание группы",
     "noMatches": "Нет совпадающих записей",
     "openApi3Added": "Сервис OpenApi3 добавлен",
     "openapiDetails": "Детали OpenAPI 3",
@@ -740,6 +741,7 @@
       "internal_server_ssl_error": "Проверка сертификатов внутреннего сервера не удалась. Корректен ли URL внешнего сервера и доступен ли он серверу безопасности?",
       "internal_server_ssl_handshake_error": "TLS рукопожатие с внешним сервером не удалось, сертификат сервера отсутствует в конфигурации:"
     },
+    "subsystemNameGroupDesc": "Название подсистемы / Описание группы",
     "timeout": "Тайм-аут",
     "timeoutSec": "Тайм-аут (s)",
     "timeoutTooltip": "Максимальная продолжительность запроса к службе в секундах",
@@ -867,9 +869,9 @@
           }
         },
         "header": {
+          "costType": "Тип стоимости",
           "serviceURL": "URL службы",
-          "timestampingService": "Служба временных меток",
-          "costType": "Тип стоимости"
+          "timestampingService": "Служба временных меток"
         }
       },
       "title": "Службы временных меток"
@@ -885,9 +887,9 @@
       "services": "Службы"
     },
     "diagnostics": {
+      "connectionTesting": "Проверка соединения",
       "overview": "Обзор",
-      "traffic": "Трафик",
-      "connectionTesting": "Проверка соединения"
+      "traffic": "Трафик"
     },
     "keys": {
       "apiKey": "API-ключи",

@@ -55,10 +55,10 @@ import org.niis.xroad.securityserver.restapi.service.AnchorFileNotFoundException
 import org.niis.xroad.securityserver.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TimestampingServiceNotFoundException;
+import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -347,8 +347,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"UPLOAD_ANCHOR"})
     public void replaceAnchor() throws IOException {
-        Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
-        ResponseEntity<Void> response = systemApiController.replaceAnchor(anchorResource);
+        var body = CertificateTestUtils.getMultipartFile("anchor", FileUtils.readFileToByteArray(ANCHOR_FILE), "anchor.xml");
+        ResponseEntity<Void> response = systemApiController.replaceAnchor(body);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("/api/system/anchor", response.getHeaders().getLocation().getPath());
     }
@@ -356,8 +356,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"UPLOAD_ANCHOR"})
     public void previewAnchor() throws IOException {
-        Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
-        ResponseEntity<AnchorDto> response = systemApiController.previewAnchor(true, anchorResource);
+        var body = CertificateTestUtils.getMultipartFile("anchor", FileUtils.readFileToByteArray(ANCHOR_FILE), "anchor.xml");
+        ResponseEntity<AnchorDto> response = systemApiController.previewAnchor(body, true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         AnchorDto anchor = response.getBody();
         assertEquals(ANCHOR_HASH, anchor.getHash());

@@ -34,6 +34,7 @@
     </div>
     <XrdFormBlockRow description="services.urlTooltip" adjust-against-content>
       <v-text-field
+        v-model="serviceUrlMdl"
         v-bind="serviceUrlRef"
         data-test="service-url-text-field"
         class="xrd"
@@ -42,21 +43,13 @@
         @update:model-value="changeUrl()"
       />
       <template v-if="showApplyToAll" #append>
-        <v-checkbox
-          v-model="url_all"
-          data-test="url-all"
-          class="xrd"
-          hide-details
-          @update:model-value="setTouched()"
-        />
+        <v-checkbox v-model="url_all" data-test="url-all" class="xrd" hide-details @update:model-value="setTouched()" />
       </template>
     </XrdFormBlockRow>
 
-    <XrdFormBlockRow
-      description="services.timeoutTooltip"
-      adjust-against-content
-    >
+    <XrdFormBlockRow description="services.timeoutTooltip" adjust-against-content>
       <v-text-field
+        v-model="serviceTimeoutMdl"
         v-bind="serviceTimeoutRef"
         data-test="service-timeout-text-field"
         name="serviceTimeout"
@@ -67,13 +60,7 @@
         @update:model-value="setTouched()"
       />
       <template v-if="showApplyToAll" #append>
-        <v-checkbox
-          v-model="timeout_all"
-          data-test="timeout-all"
-          class="xrd"
-          hide-details
-          @update:model-value="setTouched()"
-        />
+        <v-checkbox v-model="timeout_all" data-test="timeout-all" class="xrd" hide-details @update:model-value="setTouched()" />
       </template>
     </XrdFormBlockRow>
 
@@ -87,13 +74,7 @@
         @update:model-value="setTouched()"
       />
       <template v-if="showApplyToAll" #append>
-        <v-checkbox
-          v-model="ssl_auth_all"
-          data-test="ssl-auth-all"
-          class="xrd"
-          hide-details
-          @update:model-value="setTouched()"
-        />
+        <v-checkbox v-model="ssl_auth_all" data-test="ssl-auth-all" class="xrd" hide-details @update:model-value="setTouched()" />
       </template>
     </XrdFormBlockRow>
     <div v-if="canEdit" class="d-flex flex-row mt-6">
@@ -208,20 +189,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, watch } from 'vue';
+import { defineComponent } from 'vue';
 import AccessRightsDialog from '../AccessRightsDialog.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { Permissions } from '@/global';
-import {
-  CodeWithDetails,
-  ServiceClient,
-  ServiceUpdate,
-  ServiceType,
-} from '@/openapi-types';
+import { CodeWithDetails, ServiceClient, ServiceUpdate, ServiceType } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useServices } from '@/store/modules/services';
-import { PublicPathState, useForm } from 'vee-validate';
+import { useForm } from 'vee-validate';
 import ClientName from '@/components/client/ClientName.vue';
 import {
   XrdDateTime,
@@ -231,6 +207,7 @@ import {
   XrdLabelWithIcon,
   useNotifications,
   XrdConfirmDialog,
+  veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useServiceDescriptions } from '@/store/modules/service-descriptions';
@@ -252,30 +229,24 @@ export default defineComponent({
   emits: ['update-service'],
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    const { meta, values, setValues, defineComponentBinds, resetForm } =
-      useForm({
-        validationSchema: {
-          serviceUrl: 'required|max:255|wsdlUrl',
-          serviceTimeout: 'required|between:0,1000',
-        },
-      });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
+    const { meta, values, setValues, defineField, resetForm } = useForm({
+      validationSchema: {
+        serviceUrl: 'required|max:255|wsdlUrl',
+        serviceTimeout: 'required|between:0,1000',
       },
     });
-    const serviceUrlRef = defineComponentBinds('serviceUrl', componentConfig);
-    const serviceTimeoutRef = defineComponentBinds(
-      'serviceTimeout',
-      componentConfig,
-    );
+    const componentConfig = veeDefaultFieldConfig();
+    const [serviceUrlMdl, serviceUrlRef] = defineField('serviceUrl', componentConfig);
+    const [serviceTimeoutMdl, serviceTimeoutRef] = defineField('serviceTimeout', componentConfig);
     return {
       meta,
       values,
       setValues,
       resetForm,
       serviceUrlRef,
+      serviceUrlMdl,
       serviceTimeoutRef,
+      serviceTimeoutMdl,
       addError,
       addSuccessMessage,
     };
@@ -313,10 +284,7 @@ export default defineComponent({
       return !this.service || !this.touched;
     },
     showApplyToAll(): boolean {
-      return (
-        this.serviceDescription?.type === ServiceType.WSDL &&
-        this.hasPermission(Permissions.EDIT_SERVICE_PARAMS)
-      );
+      return this.serviceDescription?.type === ServiceType.WSDL && this.hasPermission(Permissions.EDIT_SERVICE_PARAMS);
     },
     canEdit(): boolean {
       return this.hasPermission(Permissions.EDIT_SERVICE_PARAMS);
@@ -345,12 +313,7 @@ export default defineComponent({
     },
   },
   methods: {
-    ...mapActions(useServices, [
-      'updateService',
-      'fetchServiceClients',
-      'addServiceClients',
-      'removeServiceClients',
-    ]),
+    ...mapActions(useServices, ['updateService', 'fetchServiceClients', 'addServiceClients', 'removeServiceClients']),
     cancelSubmit(): void {
       this.warningDialog = false;
     },
@@ -365,11 +328,7 @@ export default defineComponent({
        * must be a boolean even if the service is using http. Backend will handle saving correct data.
        */
 
-      if (
-        !this.service ||
-        !this.values.serviceUrl ||
-        this.values.serviceTimeout === undefined
-      ) {
+      if (!this.service || !this.values.serviceUrl || this.values.serviceTimeout === undefined) {
         return;
       }
 
@@ -446,9 +405,7 @@ export default defineComponent({
         service_client_type: sc.service_client_type,
       }));
 
-      this.doRemoveServiceClients(items).finally(
-        () => (this.confirmAllServiceClients = false),
-      );
+      this.doRemoveServiceClients(items).finally(() => (this.confirmAllServiceClients = false));
     },
     removeServiceClient(member: NullableServiceClient): void {
       this.confirmMember = true;

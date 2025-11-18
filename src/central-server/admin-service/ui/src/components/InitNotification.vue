@@ -41,13 +41,7 @@
         {{ $t('init.notification') }}
       </v-banner-text>
       <v-banner-actions class="ma-0 ml-auto">
-        <XrdBtn
-          data-test="notification-button"
-          color="primary"
-          variant="text"
-          text="action.continue"
-          @click="cancelContinueInit"
-        />
+        <XrdBtn data-test="notification-button" color="primary" variant="text" text="action.continue" @click="cancelContinueInit" />
       </v-banner-actions>
     </v-banner>
   </v-slide-y-transition>

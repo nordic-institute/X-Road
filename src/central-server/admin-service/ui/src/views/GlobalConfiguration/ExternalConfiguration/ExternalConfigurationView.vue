@@ -26,10 +26,7 @@
  -->
 <template>
   <div>
-    <configuration-view
-      :title="$t('tab.globalConf.externalConf')"
-      :configuration-type="type"
-    />
+    <configuration-view :title="$t('tab.globalConf.externalConf')" :configuration-type="type" />
   </div>
 </template>
 

@@ -27,26 +27,11 @@
 <template>
   <XrdCard title="managementRequestDetails.securityServerInformation" :loading>
     <XrdCardTable>
-      <XrdCardTableRow
-        label="managementRequestDetails.ownerName"
-        :value="managementRequest?.security_server_owner"
-      />
-      <XrdCardTableRow
-        label="managementRequestDetails.ownerClass"
-        :value="managementRequest?.security_server_id.member_class"
-      />
-      <XrdCardTableRow
-        label="managementRequestDetails.ownerCode"
-        :value="managementRequest?.security_server_id.member_code"
-      />
-      <XrdCardTableRow
-        label="managementRequestDetails.serverCode"
-        :value="managementRequest?.security_server_id.server_code"
-      />
-      <XrdCardTableRow
-        label="managementRequestDetails.address"
-        :value="managementRequest?.address"
-      />
+      <XrdCardTableRow label="managementRequestDetails.ownerName" :value="managementRequest?.security_server_owner" />
+      <XrdCardTableRow label="managementRequestDetails.ownerClass" :value="managementRequest?.security_server_id.member_class" />
+      <XrdCardTableRow label="managementRequestDetails.ownerCode" :value="managementRequest?.security_server_id.member_code" />
+      <XrdCardTableRow label="managementRequestDetails.serverCode" :value="managementRequest?.security_server_id.server_code" />
+      <XrdCardTableRow label="managementRequestDetails.address" :value="managementRequest?.address" />
     </XrdCardTable>
   </XrdCard>
 </template>

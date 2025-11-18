@@ -75,11 +75,7 @@
 
         <!-- SIGN keys table -->
         <div v-if="token.configuration_signing_keys">
-          <KeysTable
-            :keys="signingKeys"
-            :loading-keys="loadingKeys"
-            @update-keys="$emit('update-keys', $event)"
-          />
+          <KeysTable :keys="signingKeys" :loading-keys="loadingKeys" @update-keys="$emit('update-keys', $event)" />
         </div>
       </div>
       <SigningKeyAddDialog
@@ -140,15 +136,9 @@ const tokenLoginButton = useTemplateRef<LoginButtonType>('tokenLoginButton');
 const showAddKeyDialog = ref(false);
 
 const { hasPermission } = useUser();
-const {
-  tokenExpanded: isExpanded,
-  setTokenHidden,
-  setTokenExpanded,
-} = useToken();
+const { tokenExpanded: isExpanded, setTokenHidden, setTokenExpanded } = useToken();
 
-const showAddKey = computed(() =>
-  hasPermission(Permissions.GENERATE_SIGNING_KEY),
-);
+const showAddKey = computed(() => hasPermission(Permissions.GENERATE_SIGNING_KEY));
 const canAddKey = computed(
   () =>
     props.token.possible_actions?.includes(
@@ -158,19 +148,10 @@ const canAddKey = computed(
     ) || false,
 );
 
-const tokenStatusClass = computed(() =>
-  props.token.logged_in
-    ? ['logged-out', 'on-surface-variant']
-    : ['logged-in', 'on-surface'],
-);
-const tokenStatusColor = computed(() =>
-  props.token.logged_in ? 'logged-out' : 'logged-in',
-);
+const tokenStatusClass = computed(() => (props.token.logged_in ? ['logged-out', 'on-surface-variant'] : ['logged-in', 'on-surface']));
+const tokenStatusColor = computed(() => (props.token.logged_in ? 'logged-out' : 'logged-in'));
 const signingKeys = computed(
-  () =>
-    props.token.configuration_signing_keys?.filter(
-      (key) => key.source_type === props.configurationType,
-    ) || [],
+  () => props.token.configuration_signing_keys?.filter((key) => key.source_type === props.configurationType) || [],
 );
 
 function addKey(): void {

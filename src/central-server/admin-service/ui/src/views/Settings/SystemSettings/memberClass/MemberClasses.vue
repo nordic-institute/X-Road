@@ -148,9 +148,7 @@ export default defineComponent({
     this.memberClassStore.fetchAll();
   },
   methods: {
-    openEditMemberClassDialog(
-      memberClass: MemberClass | undefined = undefined,
-    ) {
+    openEditMemberClassDialog(memberClass: MemberClass | undefined = undefined) {
       this.selectedMemberClass = memberClass;
       this.showAddEditMemberClassDialog = true;
     },

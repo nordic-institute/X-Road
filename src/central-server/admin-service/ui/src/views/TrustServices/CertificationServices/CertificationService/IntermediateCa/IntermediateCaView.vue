@@ -27,10 +27,7 @@
 <template>
   <XrdView
     id="intermediate-ca-view"
-    :title="
-      intermediateCasServiceStore.current?.ca_certificate.subject_common_name ||
-      ''
-    "
+    :title="intermediateCasServiceStore.current?.ca_certificate.subject_common_name || ''"
     translated-title
     :breadcrumbs="breadcrumbs"
   >
@@ -56,18 +53,10 @@ import { computed, watchEffect } from 'vue';
 
 import { useRouter } from 'vue-router';
 
-import {
-  useNotifications,
-  XrdBtn,
-  XrdView,
-  XrdViewNavigation,
-} from '@niis/shared-ui';
+import { useNotifications, XrdBtn, XrdView, XrdViewNavigation } from '@niis/shared-ui';
 
 import { Permissions, RouteName } from '@/global';
-import {
-  useCertificationService,
-  useIntermediateCasService,
-} from '@/store/modules/trust-services';
+import { useCertificationService, useIntermediateCasService } from '@/store/modules/trust-services';
 import { useUser } from '@/store/modules/user';
 
 /**
@@ -143,11 +132,7 @@ watchEffect(() => {
   const inCaId = Number(props.intermediateCaId);
   intermediateCasServiceStore
     .loadById(inCaId)
-    .then((resp) =>
-      resp.certification_service_id
-        ? certificationServiceStore.loadById(resp.certification_service_id)
-        : Promise.resolve(),
-    )
+    .then((resp) => (resp.certification_service_id ? certificationServiceStore.loadById(resp.certification_service_id) : Promise.resolve()))
     .catch((err) => addError(err, { navigate: true }));
 });
 </script>

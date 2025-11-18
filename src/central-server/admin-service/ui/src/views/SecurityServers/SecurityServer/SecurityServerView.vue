@@ -25,12 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdView
-    data-test="security-server-view"
-    translated-title
-    :title="securityServerCode"
-    :breadcrumbs
-  >
+  <XrdView data-test="security-server-view" translated-title :title="securityServerCode" :breadcrumbs>
     <template #append-header>
       <XrdBtn
         v-if="canDeleteServer && securityServerCode"
@@ -63,13 +58,7 @@
 import { computed, ref, watchEffect } from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { useSecurityServer } from '@/store/modules/security-servers';
-import {
-  XrdView,
-  XrdBtn,
-  useNotifications,
-  useHistory,
-  XrdViewNavigation,
-} from '@niis/shared-ui';
+import { XrdView, XrdBtn, useNotifications, useHistory, XrdViewNavigation } from '@niis/shared-ui';
 import DeleteSecurityServerDialog from './dialogs/DeleteSecurityServerDialog.vue';
 import { useUser } from '@/store/modules/user';
 import { useMember } from '@/store/modules/members';
@@ -90,12 +79,8 @@ const { addError } = useNotifications();
 const securityServerStore = useSecurityServer();
 const { hasPermission, getAllowedTabs } = useUser();
 
-const securityServerCode = computed(
-  () => securityServerStore?.current?.server_id.server_code || '',
-);
-const canDeleteServer = computed(() =>
-  hasPermission(Permissions.DELETE_SECURITY_SERVER),
-);
+const securityServerCode = computed(() => securityServerStore?.current?.server_id.server_code || '');
+const canDeleteServer = computed(() => hasPermission(Permissions.DELETE_SECURITY_SERVER));
 const tabs = computed(() => {
   return [
     {
@@ -170,8 +155,6 @@ const breadcrumbs = computed(() => {
 const showDeleteServerDialog = ref(false);
 
 watchEffect(() => {
-  securityServerStore
-    .loadById(props.serverId)
-    .catch((err) => addError(err, { navigate: true }));
+  securityServerStore.loadById(props.serverId).catch((err) => addError(err, { navigate: true }));
 });
 </script>

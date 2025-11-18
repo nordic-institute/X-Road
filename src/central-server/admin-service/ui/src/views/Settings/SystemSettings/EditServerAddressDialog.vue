@@ -75,10 +75,9 @@ const { meta, setFieldError, defineField, handleSubmit } = useForm({
 const [address, addressAttrs] = defineField('serviceAddress', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
-const { showOrTranslateErrors, addSuccessMessage, loading } = useBasicForm(
-  setFieldError,
-  { serviceAddress: 'centralServerAddressDto.centralServerAddress' },
-);
+const { showOrTranslateErrors, addSuccessMessage, loading } = useBasicForm(setFieldError, {
+  serviceAddress: 'centralServerAddressDto.centralServerAddress',
+});
 
 const onServerAddressSave = handleSubmit((values) => {
   loading.value = true;

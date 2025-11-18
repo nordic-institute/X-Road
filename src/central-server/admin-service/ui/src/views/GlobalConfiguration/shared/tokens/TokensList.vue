@@ -72,10 +72,8 @@ const emit = defineEmits(['update-keys']);
 const currentRoute = useRoute();
 const refOfTokens = useTemplateRef<TokenExpandableType[]>('ref-tokens');
 
-const { tokensLoading, startTokensLoading, stopTokensLoading } =
-    useRunning('tokensLoading'),
-  { loadingKeys, startLoadingKeys, stopLoadingKeys } =
-    useRunning('loadingKeys');
+const { tokensLoading, startTokensLoading, stopTokensLoading } = useRunning('tokensLoading'),
+  { loadingKeys, startLoadingKeys, stopLoadingKeys } = useRunning('loadingKeys');
 
 const tokenStore = useToken();
 
