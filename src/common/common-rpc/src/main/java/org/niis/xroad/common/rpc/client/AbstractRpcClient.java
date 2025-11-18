@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.common.rpc.client;
 
-import ee.ria.xroad.common.HttpStatus;
-
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.Status;
@@ -97,8 +95,7 @@ public abstract class AbstractRpcClient implements AutoCloseable {
                     var exceptionBuilder = XrdRuntimeException.systemException(errorDeviation)
                             .origin(getRpcOrigin())
                             .identifier(ce.getIdentifier())
-                            .details(ce.getDetails())
-                            .httpStatus(ce.getHttpStatus() > 0 ? HttpStatus.fromCode(ce.getHttpStatus()) : null);
+                            .details(ce.getDetails());
 
                     if (!ce.getErrorMetadataList().isEmpty()) {
                         exceptionBuilder.metadataItems(ce.getErrorMetadataList());

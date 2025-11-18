@@ -77,8 +77,6 @@ public class RpcResponseHandler {
             builder.setDetails(exception.getDetails());
         }
 
-        exception.getHttpStatus().ifPresent(httpStatus -> builder.setHttpStatus(httpStatus.getCode()));
-
         return builder.build();
     }
 

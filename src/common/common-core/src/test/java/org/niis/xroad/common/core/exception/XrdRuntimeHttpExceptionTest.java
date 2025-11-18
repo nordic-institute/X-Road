@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,42 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
 
-import lombok.Getter;
+package org.niis.xroad.common.core.exception;
 
-/**
- * Exception thrown by proxy business logic. This exception forces to respond
- * with specified HTTP status code and plain text error message instead of
- * SOAP fault message.
- */
-public class CodedExceptionWithHttpStatus extends CodedException {
+import ee.ria.xroad.common.HttpStatus;
 
-    @Getter
-    private int status;
+import org.junit.jupiter.api.Test;
 
-    /**
-     * Creates new exception with HTTP status code, fault code and fault message.
-     * @param status the HTTP status code
-     * @param faultCode the fault code
-     * @param faultMessage the message
-     */
-    public CodedExceptionWithHttpStatus(
-            int status, String faultCode, String faultMessage) {
-        super(faultCode, faultMessage);
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-        this.status = status;
+public class XrdRuntimeHttpExceptionTest {
+
+    @Test
+    void shouldCreateExceptionWithHttpStatus() {
+        String identifier = "http-test";
+        ExceptionCategory category = ExceptionCategory.SYSTEM;
+        var errorDeviation = ErrorCode.NOT_FOUND;
+        String details = "Resource not found";
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+
+        XrdRuntimeHttpException exception = XrdRuntimeHttpException.builder(errorDeviation)
+                .identifier(identifier)
+                .details(details)
+                .httpStatus(httpStatus)
+                .build();
+
+        assertEquals(identifier, exception.getIdentifier());
+        assertEquals(category, exception.getCategory());
+        assertEquals(errorDeviation.code(), exception.getCode());
+        assertEquals(details, exception.getDetails());
+        assertEquals(httpStatus, exception.getHttpStatus().orElse(null));
+
+        String expectedMessage = "[http-test] [SYSTEM] not_found: Resource not found";
+        assertEquals(expectedMessage, exception.toString());
     }
 
-    /**
-     * Creates new exception with HTTP status code and coded exception.
-     * @param status the HTTP status code
-     * @param e the coded exception
-     */
-    public CodedExceptionWithHttpStatus(int status, CodedException e) {
-        super(e.getFaultCode(), e.getFaultString());
-
-        this.faultDetail = e.getFaultDetail();
-        this.status = status;
-    }
 }

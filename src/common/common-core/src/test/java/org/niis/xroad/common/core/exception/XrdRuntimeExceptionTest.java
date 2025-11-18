@@ -26,7 +26,6 @@
 package org.niis.xroad.common.core.exception;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.HttpStatus;
 
 import org.junit.jupiter.api.Test;
 
@@ -110,29 +109,7 @@ class XrdRuntimeExceptionTest {
         assertEquals(expectedMessage, exception.toString());
     }
 
-    @Test
-    void shouldCreateExceptionWithHttpStatus() {
-        String identifier = "http-test";
-        ExceptionCategory category = ExceptionCategory.SYSTEM;
-        var errorDeviation = ErrorCode.NOT_FOUND;
-        String details = "Resource not found";
-        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
 
-        XrdRuntimeException exception = XrdRuntimeException.systemException(errorDeviation)
-                .identifier(identifier)
-                .details(details)
-                .httpStatus(httpStatus)
-                .build();
-
-        assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
-        assertEquals(errorDeviation.code(), exception.getCode());
-        assertEquals(details, exception.getDetails());
-        assertEquals(httpStatus, exception.getHttpStatus().orElse(null));
-
-        String expectedMessage = "[http-test] [SYSTEM] not_found: Resource not found";
-        assertEquals(expectedMessage, exception.toString());
-    }
 
     @Test
     void shouldCreateExceptionWithCause() {
@@ -253,11 +230,11 @@ class XrdRuntimeExceptionTest {
                 .details(details)
                 .build();
 
+        assertFalse(exception instanceof XrdRuntimeHttpException);
         assertEquals(identifier, exception.getIdentifier());
         assertEquals(category, exception.getCategory());
         assertEquals(errorDeviation.code(), exception.getCode());
         assertEquals(details, exception.getDetails());
-        assertTrue(exception.getHttpStatus().isEmpty());
 
         String expectedMessage = "[null-http-test] [SYSTEM] internal_error: No HTTP status";
         assertEquals(expectedMessage, exception.toString());

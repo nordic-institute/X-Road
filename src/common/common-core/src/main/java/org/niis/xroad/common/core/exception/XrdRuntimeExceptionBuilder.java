@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.common.core.exception;
 
-import ee.ria.xroad.common.HttpStatus;
-
 import java.util.UUID;
 
 /**
@@ -34,17 +32,16 @@ import java.util.UUID;
  * Provides a fluent API for setting exception properties.
  */
 @SuppressWarnings({"checkstyle:HiddenField", "javaarchitecture:S7027"})
-public class XrdRuntimeExceptionBuilder {
-    private Throwable cause;
-    private String identifier;
-    private final ExceptionCategory category;
+public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>> {
+    protected Throwable cause;
+    protected String identifier;
+    protected final ExceptionCategory category;
 
-    private final DeviationBuilder.ErrorDeviationBuilder errorDeviation;
-    private Object[] metadataItems;
+    protected final DeviationBuilder.ErrorDeviationBuilder errorDeviation;
+    protected Object[] metadataItems;
 
-    private String details;
-    private HttpStatus httpStatus;
-    private ErrorOrigin origin;
+    protected String details;
+    protected ErrorOrigin origin;
 
     public XrdRuntimeExceptionBuilder(ExceptionCategory category, DeviationBuilder.ErrorDeviationBuilder errorDeviation) {
         if (category == null) {
@@ -64,9 +61,9 @@ public class XrdRuntimeExceptionBuilder {
      * @param cause the underlying cause
      * @return this builder instance
      */
-    public XrdRuntimeExceptionBuilder cause(Throwable cause) {
+    public T cause(Throwable cause) {
         this.cause = cause;
-        return this;
+        return (T) this;
     }
 
     /**
@@ -76,9 +73,9 @@ public class XrdRuntimeExceptionBuilder {
      * @return this builder instance
      * @throws IllegalArgumentException if identifier is null or blank
      */
-    public XrdRuntimeExceptionBuilder identifier(String identifier) {
+    public T identifier(String identifier) {
         this.identifier = identifier;
-        return this;
+        return (T) this;
     }
 
     /**
@@ -87,9 +84,9 @@ public class XrdRuntimeExceptionBuilder {
      * @param metadataItems variable arguments for metadata
      * @return this builder instance
      */
-    public XrdRuntimeExceptionBuilder metadataItems(Object... metadataItems) {
+    public T metadataItems(Object... metadataItems) {
         this.metadataItems = metadataItems;
-        return this;
+        return (T) this;
     }
 
     /**
@@ -98,24 +95,10 @@ public class XrdRuntimeExceptionBuilder {
      * @param details the detailed description
      * @return this builder instance
      */
-    public XrdRuntimeExceptionBuilder details(String details) {
+    public T details(String details) {
         this.details = details;
-        return this;
+        return (T) this;
     }
-
-    /**
-     * Set the HTTP status for this exception.
-     * This is optional and can be used to indicate the HTTP status code
-     * that should be returned in a web context.
-     *
-     * @param httpStatus the HTTP status to set
-     * @return this builder instance
-     */
-    public XrdRuntimeExceptionBuilder httpStatus(HttpStatus httpStatus) {
-        this.httpStatus = httpStatus;
-        return this;
-    }
-
 
     /**
      * Sets the origin of the error.
@@ -123,9 +106,9 @@ public class XrdRuntimeExceptionBuilder {
      * @param origin the error origin
      * @return this builder instance
      */
-    public XrdRuntimeExceptionBuilder origin(ErrorOrigin origin) {
+    public T origin(ErrorOrigin origin) {
         this.origin = origin;
-        return this;
+        return (T) this;
     }
 
     /**
@@ -149,8 +132,7 @@ public class XrdRuntimeExceptionBuilder {
                     resolveErrorCode(),
                     deviation.metadata(),
                     origin,
-                    details,
-                    httpStatus);
+                    details);
         }
         return new XrdRuntimeException(
                 identifier,
@@ -158,11 +140,10 @@ public class XrdRuntimeExceptionBuilder {
                 resolveErrorCode(),
                 deviation.metadata(),
                 origin,
-                details,
-                httpStatus);
+                details);
     }
 
-    private String resolveErrorCode() {
+    protected String resolveErrorCode() {
         if (origin != null) {
             return origin.toPrefix() + errorDeviation.code();
         }

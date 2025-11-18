@@ -26,7 +26,6 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -39,6 +38,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
@@ -96,6 +96,16 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
                     log.info("Request successfully handled");
                 }
             }
+        } catch (XrdRuntimeHttpException e) {
+            handled = true;
+
+            // No need to log faultDetail hence not sent to client.
+            log.error(DEFAULT_ERROR_MESSAGE, e);
+
+            // Respond with HTTP status code and plain text error message instead of SOAP fault message.
+            // No need to update operational monitoring fields here either.
+
+            failure(response, callback, e, opMonitoringData);
         } catch (XrdRuntimeException e) {
             handled = true;
 
@@ -127,16 +137,6 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
             // contain full error code. Thus, we must not attach additional error code prefixes to them.
 
             failure(request, response, callback, e, opMonitoringData);
-        } catch (CodedExceptionWithHttpStatus e) {
-            handled = true;
-
-            // No need to log faultDetail hence not sent to client.
-            log.error(DEFAULT_ERROR_MESSAGE, e);
-
-            // Respond with HTTP status code and plain text error message instead of SOAP fault message.
-            // No need to update operational monitoring fields here either.
-
-            failure(response, callback, e, opMonitoringData);
         } catch (Throwable e) { // We want to catch serious errors as well
             handled = true;
 
@@ -174,12 +174,12 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
         sendErrorResponse(request, response, callback, e);
     }
 
-    protected void failure(Response response, Callback callback, CodedExceptionWithHttpStatus e,
+    protected void failure(Response response, Callback callback, XrdRuntimeHttpException e,
                            OpMonitoringData opMonitoringData) {
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 
-        sendPlainTextErrorResponse(response, callback, e.getStatus(), e.getFaultString());
+        sendPlainTextErrorResponse(response, callback, e.getHttpStatus().get().getCode(), e.getFaultString());
     }
 
     protected boolean isGetRequest(RequestWrapper request) {

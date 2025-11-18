@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.HttpStatus;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
@@ -43,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
 import org.niis.xroad.common.messagelog.MessageRecordEncryption;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfig;
 import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
@@ -69,8 +68,6 @@ import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
-import static org.eclipse.jetty.http.HttpStatus.UNAUTHORIZED_401;
 import static org.niis.xroad.common.core.exception.ErrorCode.BAD_REQUEST;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
@@ -147,14 +144,16 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 default -> {
                 }
             }
-        } catch (CodedExceptionWithHttpStatus ex) {
+        } catch (XrdRuntimeHttpException ex) {
             throw ex;
-        } catch (CodedException ex) {
+        } catch (XrdRuntimeException ex) {
             log.error("ERROR:", ex);
-            throw new CodedExceptionWithHttpStatus(INTERNAL_SERVER_ERROR_500, ex);
+            throw XrdRuntimeHttpException.from(ex)
+                    .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
         } catch (Exception ex) {
             log.error("ERROR:", ex);
-            throw XrdRuntimeException.systemException(INTERNAL_ERROR)
+            throw XrdRuntimeHttpException.builder(INTERNAL_ERROR)
                     .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
                     .details(ex.getMessage())
                     .build();
@@ -182,8 +181,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         try {
             clientAuthenticationService.verifyClientAuthentication(clientId,
                     clientAuthenticationService.getIsAuthenticationData(jRequest, proxyProperties.logClientCert()));
-        } catch (CodedException ex) {
-            throw new CodedExceptionWithHttpStatus(UNAUTHORIZED_401, ex);
+        } catch (XrdRuntimeException ex) {
+            throw XrdRuntimeHttpException.from(ex)
+                    .httpStatus(HttpStatus.UNAUTHORIZED)
+                    .build();
         }
     }
 
@@ -193,7 +194,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         boolean requestOnly = hasParameter(PARAM_REQUEST_ONLY);
         boolean responseOnly = hasParameter(PARAM_RESPONSE_ONLY);
         if (requestOnly && responseOnly) {
-            throw XrdRuntimeException.systemException(BAD_REQUEST)
+            throw XrdRuntimeHttpException.builder(BAD_REQUEST)
                     .httpStatus(HttpStatus.BAD_REQUEST)
                     .details(INVALID_PARAM_COMBINATION_FAULT_MESSAGE)
                     .build();
@@ -209,7 +210,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         } else if (!unique) {
             writeContainers(clientId, queryId, nameGen, response);
         } else {
-            throw XrdRuntimeException.systemException(BAD_REQUEST)
+            throw XrdRuntimeHttpException.builder(BAD_REQUEST)
                     .httpStatus(HttpStatus.BAD_REQUEST)
                     .details(MISSING_CONSTRAINT_FAULT_MESSAGE)
                     .build();
@@ -220,7 +221,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         final List<MessageRecord> records = logRecordManager.getByQueryId(queryId, id, response, Function.identity());
 
         if (records.isEmpty()) {
-            throw XrdRuntimeException.systemException(NOT_FOUND)
+            throw XrdRuntimeHttpException.builder(NOT_FOUND)
                     .httpStatus(HttpStatus.NOT_FOUND)
                     .details(DOCUMENTS_NOT_FOUND_FAULT_MESSAGE)
                     .build();
@@ -302,7 +303,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         logRecordManager.getByQueryId(queryId, clientId, response, records -> {
             if (records.isEmpty()) {
-                throw XrdRuntimeException.systemException(NOT_FOUND)
+                throw XrdRuntimeHttpException.builder(NOT_FOUND)
                         .httpStatus(HttpStatus.NOT_FOUND)
                         .details(DOCUMENTS_NOT_FOUND_FAULT_MESSAGE)
                         .build();
@@ -326,7 +327,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                     }
                     zos.closeEntry();
                 }
-            } catch (CodedException ce) {
+            } catch (XrdRuntimeException ce) {
                 throw ce;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
@@ -362,7 +363,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         logRecordManager.getByQueryIdUnique(queryId, clientId, response, record -> {
             try {
                 if (record == null) {
-                    throw XrdRuntimeException.systemException(NOT_FOUND)
+                    throw XrdRuntimeHttpException.builder(NOT_FOUND)
                             .httpStatus(HttpStatus.NOT_FOUND)
                             .details(DOCUMENTS_NOT_FOUND_FAULT_MESSAGE)
                             .build();
@@ -390,7 +391,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                     asicContainer.write(jResponse.getOutputStream());
                 }
 
-            } catch (CodedException ce) {
+            } catch (XrdRuntimeException ce) {
                 throw ce;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
@@ -428,7 +429,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         String paramValue = jRequest.getParameter(param);
 
         if (paramValue == null && !optional) {
-            throw XrdRuntimeException.systemException(BAD_REQUEST)
+            throw XrdRuntimeHttpException.builder(BAD_REQUEST)
                     .httpStatus(HttpStatus.BAD_REQUEST)
                     .details(String.format(MISSING_PARAMETER_FAULT_MESSAGE, param))
                     .build();

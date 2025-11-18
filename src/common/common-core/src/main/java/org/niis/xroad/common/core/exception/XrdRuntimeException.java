@@ -26,7 +26,6 @@
 package org.niis.xroad.common.core.exception;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.HttpStatus;
 
 import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.soap.SOAPException;
@@ -46,7 +45,6 @@ import java.nio.channels.UnresolvedAddressException;
 import java.security.cert.CertificateException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
@@ -58,7 +56,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
  */
 @Getter
 @Slf4j
-public final class XrdRuntimeException extends CodedException implements HttpStatusAware {
+public sealed class XrdRuntimeException extends CodedException
+        permits XrdRuntimeHttpException {
 
     private final String identifier;
     private final ExceptionCategory category;
@@ -67,7 +66,6 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
     private final List<String> errorCodeMetadata;
 
     private final String details;
-    private final HttpStatus httpStatus;
     private final ErrorOrigin origin;
 
     XrdRuntimeException(@NonNull String identifier,
@@ -75,8 +73,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
                         @NonNull String errorCode,
                         @NonNull List<String> errorCodeMetadata,
                         ErrorOrigin origin,
-                        String details,
-                        HttpStatus httpStatus) {
+                        String details) {
         super(errorCode, details);
         this.identifier = identifier;
         this.translationCode = errorCode;
@@ -85,7 +82,6 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         this.errorCodeMetadata = errorCodeMetadata;
         this.origin = origin;
         this.details = details;
-        this.httpStatus = httpStatus;
     }
 
     XrdRuntimeException(@NonNull Throwable cause,
@@ -94,8 +90,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
                         @NonNull String errorCode,
                         @NonNull List<String> errorCodeMetadata,
                         ErrorOrigin origin,
-                        String details,
-                        HttpStatus httpStatus) {
+                        String details) {
         super(errorCode, cause, details);
         this.identifier = identifier;
         this.translationCode = errorCode;
@@ -104,7 +99,6 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         this.errorCodeMetadata = errorCodeMetadata;
         this.origin = origin;
         this.details = details;
-        this.httpStatus = httpStatus;
     }
 
     @Override
@@ -174,8 +168,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
                         prefix + "." + getCode(),
                         errorCodeMetadata,
                         getOrigin(),
-                        getDetails(),
-                        getHttpStatus().orElse(null));
+                        getDetails());
             } else {
                 return new XrdRuntimeException(
                         getIdentifier(),
@@ -183,17 +176,11 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
                         prefix + "." + getCode(),
                         errorCodeMetadata,
                         getOrigin(),
-                        getDetails(),
-                        getHttpStatus().orElse(null));
+                        getDetails());
             }
         }
         return this;
     }
-
-    public Optional<HttpStatus> getHttpStatus() {
-        return Optional.ofNullable(httpStatus);
-    }
-
 
     /**
      * Creates a system exception builder for system-level errors.
