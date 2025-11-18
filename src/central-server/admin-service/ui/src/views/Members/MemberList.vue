@@ -73,11 +73,7 @@
         <XrdPagination />
       </template>
     </v-data-table-server>
-    <add-member-dialog
-      v-if="showAddMemberDialog"
-      @cancel="hideAddMemberDialog"
-      @save="hideAddMemberDialogAndRefetch"
-    />
+    <add-member-dialog v-if="showAddMemberDialog" @cancel="hideAddMemberDialog" @save="hideAddMemberDialogAndRefetch" />
   </XrdView>
 </template>
 
@@ -88,13 +84,7 @@ import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 import { mapState, mapStores } from 'pinia';
 
-import {
-  useNotifications,
-  XrdBtn,
-  XrdLabelWithIcon,
-  XrdPagination,
-  XrdView,
-} from '@niis/shared-ui';
+import { useNotifications, XrdBtn, XrdLabelWithIcon, XrdPagination, XrdView } from '@niis/shared-ui';
 
 import { Permissions, RouteName } from '@/global';
 import { Client } from '@/openapi-types';
@@ -139,9 +129,7 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          title: `${this.$t('global.memberName')} (${
-            this.clientStore.clients?.length
-          })`,
+          title: `${this.$t('global.memberName')} (${this.clientStore.clients?.length})`,
           align: 'start',
           key: 'member_name',
         },
@@ -188,21 +176,12 @@ export default defineComponent({
         },
       });
     },
-    changeOptions: async function ({
-      itemsPerPage,
-      page,
-      sortBy,
-    }: PagingOptions) {
+    changeOptions: async function ({ itemsPerPage, page, sortBy }: PagingOptions) {
       this.dataQuery.itemsPerPage = itemsPerPage;
       this.dataQuery.page = page;
       this.dataQuery.sortBy = sortBy[0]?.key;
       const order = sortBy[0]?.order;
-      this.dataQuery.sortOrder =
-        order === undefined
-          ? undefined
-          : order === true || order === 'asc'
-            ? 'asc'
-            : 'desc';
+      this.dataQuery.sortOrder = order === undefined ? undefined : order === true || order === 'asc' ? 'asc' : 'desc';
       this.fetchClients();
     },
     fetchClients: async function () {

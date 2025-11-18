@@ -28,13 +28,7 @@
 import { useRouter } from 'vue-router';
 import { useUser } from '@/store/modules/user';
 import * as api from '@/util/api';
-import {
-  AdminUser,
-  AdminUserPasswordChangeRequest,
-  AdminUsersHandler,
-  i18n,
-  useNotifications,
-} from '@niis/shared-ui';
+import { AdminUser, AdminUserPasswordChangeRequest, AdminUsersHandler, i18n, useNotifications } from '@niis/shared-ui';
 
 import { Permissions, Roles, RouteName } from '@/global';
 
@@ -76,11 +70,7 @@ export function useAdminUsersHandler() {
       .catch((err) => addError(err));
   };
 
-  const changePassword = (
-    username: string,
-    oldPassword: string,
-    newPassword: string,
-  ) => {
+  const changePassword = (username: string, oldPassword: string, newPassword: string) => {
     return api
       .put(`/users/${api.encodePathParameter(username)}/password`, {
         old_password: oldPassword,
@@ -107,8 +97,7 @@ export function useAdminUsersHandler() {
 
   const canAdd = () => hasPermission(Permissions.ADD_ADMIN_USER);
   const canEdit = () => hasPermission(Permissions.UPDATE_ADMIN_USER);
-  const canDelete = (user: AdminUser) =>
-    hasPermission(Permissions.DELETE_ADMIN_USER) && username !== user.username;
+  const canDelete = (user: AdminUser) => hasPermission(Permissions.DELETE_ADMIN_USER) && username !== user.username;
   const availableRoles = () => Roles.filter((role) => canAssignRole(role));
   const navigateToAddUser = () => router.push({ name: RouteName.AddAdminUser });
 

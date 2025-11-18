@@ -38,12 +38,7 @@
     <template #content>
       <XrdFormBlock>
         <XrdFormBlockRow full-length>
-          <XrdCertificateFileUpload
-            v-model:file="certFile"
-            label="trustServices.uploadCertificate"
-            autofocus
-            :readonly="certUploaded"
-          />
+          <XrdCertificateFileUpload v-model:file="certFile" label="trustServices.uploadCertificate" autofocus :readonly="certUploaded" />
         </XrdFormBlockRow>
         <v-expand-transition group>
           <XrdFormBlockRow v-if="!certUploaded" full-length>
@@ -173,9 +168,7 @@ const acmeValidation = {
   acmeServerIpAddress: 'ipAddresses',
 };
 const isAcme = ref(false);
-const validationSchema = computed(() =>
-  isAcme.value ? { ...commonValidation, ...acmeValidation } : commonValidation,
-);
+const validationSchema = computed(() => (isAcme.value ? { ...commonValidation, ...acmeValidation } : commonValidation));
 
 const { meta, defineField, handleSubmit } = useForm({
   validationSchema,
@@ -198,32 +191,21 @@ const [certProfile, certProfileAttrs] = defineField('certProfile', {
   props: (state) => ({ 'error-messages': state.errors }),
   validateOnModelUpdate: true,
 });
-const [defaultCsrFormat, defaultCsrFormatAttrs] =
-  defineField('defaultCsrFormat');
-const [acmeServerDirectoryUrl, acmeServerDirectoryUrlAttrs] = defineField(
-  'acmeServerDirectoryUrl',
-  {
-    props: (state) => ({ 'error-messages': state.errors }),
-    validateOnModelUpdate: true,
-  },
-);
-const [acmeServerIpAddress, acmeServerIpAddressAttrs] = defineField(
-  'acmeServerIpAddress',
-  {
-    props: (state) => ({ 'error-messages': state.errors }),
-    validateOnModelUpdate: true,
-  },
-);
-const [
-  authenticationCertificateProfileId,
-  authenticationCertificateProfileIdAttrs,
-] = defineField('authenticationCertificateProfileId', {
+const [defaultCsrFormat, defaultCsrFormatAttrs] = defineField('defaultCsrFormat');
+const [acmeServerDirectoryUrl, acmeServerDirectoryUrlAttrs] = defineField('acmeServerDirectoryUrl', {
+  props: (state) => ({ 'error-messages': state.errors }),
+  validateOnModelUpdate: true,
+});
+const [acmeServerIpAddress, acmeServerIpAddressAttrs] = defineField('acmeServerIpAddress', {
+  props: (state) => ({ 'error-messages': state.errors }),
+  validateOnModelUpdate: true,
+});
+const [authenticationCertificateProfileId, authenticationCertificateProfileIdAttrs] = defineField('authenticationCertificateProfileId', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
-const [signingCertificateProfileId, signingCertificateProfileIdAttrs] =
-  defineField('signingCertificateProfileId', {
-    props: (state) => ({ 'error-messages': state.errors }),
-  });
+const [signingCertificateProfileId, signingCertificateProfileIdAttrs] = defineField('signingCertificateProfileId', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 
 const { loading, addSuccessMessage, addError } = useBasicForm();
 const { add } = useCertificationService();
@@ -245,8 +227,7 @@ const onSave = handleSubmit((values) => {
       default_csr_format: values.defaultCsrFormat,
       acme_server_directory_url: values.acmeServerDirectoryUrl,
       acme_server_ip_address: values.acmeServerIpAddress,
-      authentication_certificate_profile_id:
-        values.authenticationCertificateProfileId,
+      authentication_certificate_profile_id: values.authenticationCertificateProfileId,
       signing_certificate_profile_id: values.signingCertificateProfileId,
     };
     add(certService)

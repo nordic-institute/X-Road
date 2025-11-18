@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewSimple
-    title="wizard.addMemberTitle"
-    closeable
-    @close="cancel"
-  >
+  <XrdElevatedViewSimple title="wizard.addMemberTitle" closeable @close="cancel">
     <XrdWizard v-model="currentStep">
       <template #header-items>
         <v-stepper-item :complete="currentStep > 1" :value="1">
@@ -38,35 +34,23 @@
         <v-divider />
 
         <template v-if="isModeFull">
-          <v-stepper-item
-            :complete="currentStep > tokenPageNumber"
-            :value="tokenPageNumber"
-          >
+          <v-stepper-item :complete="currentStep > tokenPageNumber" :value="tokenPageNumber">
             {{ $t('wizard.token.title') }}
           </v-stepper-item>
           <v-divider />
 
-          <v-stepper-item
-            :complete="currentStep > keyPageNumber"
-            :value="keyPageNumber"
-          >
+          <v-stepper-item :complete="currentStep > keyPageNumber" :value="keyPageNumber">
             {{ $t('wizard.signKey.title') }}
           </v-stepper-item>
           <v-divider />
         </template>
         <template v-if="isModeFull || isModeCsrExists">
-          <v-stepper-item
-            :complete="currentStep > csrDetailsPageNumber"
-            :value="csrDetailsPageNumber"
-          >
+          <v-stepper-item :complete="currentStep > csrDetailsPageNumber" :value="csrDetailsPageNumber">
             {{ $t('csr.csrDetails') }}
           </v-stepper-item>
           <v-divider />
 
-          <v-stepper-item
-            :complete="currentStep > csrGeneratePageNumber"
-            :value="csrGeneratePageNumber"
-          >
+          <v-stepper-item :complete="currentStep > csrGeneratePageNumber" :value="csrGeneratePageNumber">
             {{ $t('csr.generateCsr') }}
           </v-stepper-item>
           <v-divider />
@@ -84,19 +68,11 @@
       <template v-if="isModeFull">
         <!-- Step 2 -->
         <v-stepper-window-item :value="tokenPageNumber">
-          <TokenPage
-            @cancel="cancel"
-            @previous="currentStep--"
-            @done="currentStep++"
-          />
+          <TokenPage @cancel="cancel" @previous="currentStep--" @done="currentStep++" />
         </v-stepper-window-item>
         <!-- Step 3 -->
         <v-stepper-window-item :value="keyPageNumber">
-          <SignKeyPage
-            @cancel="cancel"
-            @previous="currentStep--"
-            @done="currentStep++"
-          />
+          <SignKeyPage @cancel="cancel" @previous="currentStep--" @done="currentStep++" />
         </v-stepper-window-item>
       </template>
       <template v-if="isModeFull || isModeCsrExists">
@@ -142,11 +118,7 @@ import { AddMemberWizardModes, RouteName } from '@/global';
 import { useAddClient } from '@/store/modules/addClient';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { useGeneral } from '@/store/modules/general';
-import {
-  XrdElevatedViewSimple,
-  XrdWizard,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdElevatedViewSimple, XrdWizard, useNotifications } from '@niis/shared-ui';
 
 const NO_SELECTION = 999;
 
@@ -170,24 +142,13 @@ const { addError } = useNotifications();
 const addClientStore = useAddClient();
 const { fetchMemberClassesForCurrentInstance } = useGeneral();
 const csrStore = useCsr();
-const {
-  storeCsrClient,
-  storeCsrIsNewMember,
-  resetCsrState,
-  fetchCsrForm,
-  setCsrForm,
-  fetchCertificateAuthorities,
-  setupSignKey,
-} = csrStore;
+const { storeCsrClient, storeCsrIsNewMember, resetCsrState, fetchCsrForm, setCsrForm, fetchCertificateAuthorities, setupSignKey } =
+  csrStore;
 
 const currentStep = ref(1);
-const isModeFull = computed(
-  () => addClientStore.addMemberWizardMode === AddMemberWizardModes.FULL,
-);
+const isModeFull = computed(() => addClientStore.addMemberWizardMode === AddMemberWizardModes.FULL);
 
-const isModeCsrExists = computed(
-  () => addClientStore.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS,
-);
+const isModeCsrExists = computed(() => addClientStore.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS);
 
 const tokenPageNumber = computed(() => (isModeFull.value ? 2 : NO_SELECTION));
 

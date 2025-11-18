@@ -233,6 +233,7 @@
   },
   "common": {
     "false": "False",
+    "inParenthesis": "({0})",
     "no": "No",
     "true": "True",
     "yes": "Yes"

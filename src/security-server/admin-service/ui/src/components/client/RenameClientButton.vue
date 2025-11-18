@@ -26,13 +26,7 @@
  -->
 <template>
   <div>
-    <XrdBtn
-      data-test="rename-client-button"
-      variant="outlined"
-      text="action.edit"
-      prepend-icon="edit_square"
-      @click="openDialog"
-    />
+    <XrdBtn data-test="rename-client-button" variant="outlined" text="action.edit" prepend-icon="edit_square" @click="openDialog" />
 
     <XrdSimpleDialog
       v-if="showDialog"
@@ -68,13 +62,7 @@ import { computed, PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
 import { ClientStatus } from '@/openapi-types';
 import { useClient } from '@/store/modules/client';
-import {
-  XrdBtn,
-  useNotifications,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { XrdBtn, useNotifications, XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '@niis/shared-ui';
 
 const props = defineProps({
   id: {
@@ -109,12 +97,7 @@ resetForm();
 const loading = ref(false);
 const showDialog = ref(false);
 
-const canSave = computed(
-  () =>
-    meta.value.valid &&
-    meta.value.dirty &&
-    (name.value ? true : props.subsystemName),
-);
+const canSave = computed(() => meta.value.valid && meta.value.dirty && (name.value ? true : props.subsystemName));
 
 const client = useClient();
 

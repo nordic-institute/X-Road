@@ -57,13 +57,7 @@
       @accept="acceptWarnings()"
     />
     <template #footer>
-      <XrdBtn
-        data-test="cancel-button"
-        variant="outlined"
-        text="action.cancel"
-        :disabled="disableCancel"
-        @click="cancel"
-      />
+      <XrdBtn data-test="cancel-button" variant="outlined" text="action.cancel" :disabled="disableCancel" @click="cancel" />
       <v-spacer />
       <XrdBtn
         data-test="previous-button"
@@ -74,12 +68,7 @@
         @click="previous"
       />
 
-      <XrdBtn
-        data-test="submit-button"
-        text="action.submit"
-        :loading="submitLoading"
-        @click="done"
-      />
+      <XrdBtn data-test="submit-button" text="action.submit" :loading="submitLoading" @click="done" />
     </template>
   </XrdWizardStep>
 </template>
@@ -118,19 +107,12 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useAddClient, [
-      'addMemberWizardMode',
-      'memberClass',
-      'memberCode',
-      'reservedMember',
-    ]),
+    ...mapState(useAddClient, ['addMemberWizardMode', 'memberClass', 'memberCode', 'reservedMember']),
 
     ...mapState(useCsr, ['csrTokenId']),
 
     showRegisterOption() {
-      if (
-        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
-      ) {
+      if (this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS) {
         return true;
       }
       return false;
@@ -156,21 +138,13 @@ export default defineComponent({
 
       this.createMember(ignoreWarnings).then(
         () => {
-          if (
-            this.addMemberWizardMode ===
-              AddMemberWizardModes.CERTIFICATE_EXISTS &&
-            this.registerChecked
-          ) {
+          if (this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS && this.registerChecked) {
             this.doRegisterClient();
-          } else if (
-            this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
-          ) {
+          } else if (this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS) {
             this.disableCancel = false;
             this.submitLoading = false;
             this.$emit('done');
-          } else if (
-            this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS
-          ) {
+          } else if (this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS) {
             this.generateCsr();
           } else {
             this.cmpGenerateKeyAndCsr();
@@ -241,11 +215,7 @@ export default defineComponent({
         throw new Error('Reserved member does not exist');
       }
 
-      const clientId = createClientId(
-        this.reservedMember.instanceId,
-        this.memberClass,
-        this.memberCode,
-      );
+      const clientId = createClientId(this.reservedMember.instanceId, this.memberClass, this.memberCode);
 
       this.registerClient(clientId)
         .then(

@@ -34,41 +34,21 @@
         <XrdCardTableRow
           data-test="subject-distinguished-name-card"
           label="trustServices.trustService.details.subjectDistinguishedName"
-          :value="
-            intermediateCasServiceStore.current?.ca_certificate
-              .subject_distinguished_name || ''
-          "
+          :value="intermediateCasServiceStore.current?.ca_certificate.subject_distinguished_name || ''"
         />
         <XrdCardTableRow
           data-test="issuer-distinguished-name-card"
           label="trustServices.trustService.details.issuerDistinguishedName"
-          :value="
-            intermediateCasServiceStore.current?.ca_certificate
-              .issuer_distinguished_name || ''
-          "
+          :value="intermediateCasServiceStore.current?.ca_certificate.issuer_distinguished_name || ''"
         />
-        <XrdCardTableRow
-          data-test="valid-from-card"
-          label="trustServices.validFrom"
-        >
+        <XrdCardTableRow data-test="valid-from-card" label="trustServices.validFrom">
           <template #value>
-            <XrdDateTime
-              :value="
-                intermediateCasServiceStore.current?.ca_certificate.not_before
-              "
-            />
+            <XrdDateTime :value="intermediateCasServiceStore.current?.ca_certificate.not_before" />
           </template>
         </XrdCardTableRow>
-        <XrdCardTableRow
-          data-test="valid-to-card"
-          label="trustServices.validTo"
-        >
+        <XrdCardTableRow data-test="valid-to-card" label="trustServices.validTo">
           <template #value>
-            <XrdDateTime
-              :value="
-                intermediateCasServiceStore.current?.ca_certificate.not_after
-              "
-            />
+            <XrdDateTime :value="intermediateCasServiceStore.current?.ca_certificate.not_after" />
           </template>
         </XrdCardTableRow>
       </XrdCardTable>
@@ -77,13 +57,7 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  XrdCard,
-  XrdCardTable,
-  XrdCardTableRow,
-  XrdDateTime,
-  XrdSubView,
-} from '@niis/shared-ui';
+import { XrdCard, XrdCardTable, XrdCardTableRow, XrdDateTime, XrdSubView } from '@niis/shared-ui';
 
 import { useIntermediateCasService } from '@/store/modules/trust-services';
 

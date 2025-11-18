@@ -30,12 +30,7 @@ import { defineStore } from 'pinia';
 
 import { i18n, Tab } from '@niis/shared-ui';
 
-import {
-  InitializationStatus,
-  SecurityServer,
-  TokenInitStatus,
-  User,
-} from '@/openapi-types';
+import { InitializationStatus, SecurityServer, TokenInitStatus, User } from '@/openapi-types';
 import { routePermissions } from '@/routePermissions';
 import { SessionStatus } from '@/ui-types';
 import * as api from '@/util/api';
@@ -121,19 +116,15 @@ export const useUser = defineStore('user', {
         state.initializationStatus?.is_anchor_imported &&
         state.initializationStatus.is_server_code_initialized &&
         state.initializationStatus.is_server_owner_initialized &&
-        (state.initializationStatus.software_token_init_status ===
-          TokenInitStatus.INITIALIZED ||
-          state.initializationStatus.software_token_init_status ===
-            TokenInitStatus.UNKNOWN)
+        (state.initializationStatus.software_token_init_status === TokenInitStatus.INITIALIZED ||
+          state.initializationStatus.software_token_init_status === TokenInitStatus.UNKNOWN)
       );
     },
   },
 
   actions: {
     async loginUser(authData: { username: string; password: string }) {
-      const data = `username=${encodeURIComponent(
-        authData.username,
-      )}&password=${encodeURIComponent(authData.password)}`;
+      const data = `username=${encodeURIComponent(authData.username)}&password=${encodeURIComponent(authData.password)}`;
 
       return axiosAuth({
         url: '/login',
@@ -189,11 +180,7 @@ export const useUser = defineStore('user', {
         // Check that the route has name and permissions
         if (route.name && route?.permissions) {
           // Find out routes that the user doesn't have permissions to access
-          if (
-            !route.permissions.some((permission: string) =>
-              permissions.includes(permission),
-            )
-          ) {
+          if (!route.permissions.some((permission: string) => permissions.includes(permission))) {
             // Add a banned route to the array
             tempBannedRoutes.push(route.name);
           }
@@ -204,20 +191,14 @@ export const useUser = defineStore('user', {
     },
 
     setRoles(roles: string[]) {
-      this.roles = roles.map((role) =>
-        role.startsWith('ROLE_') ? role.slice(5) : role,
-      );
+      this.roles = roles.map((role) => (role.startsWith('ROLE_') ? role.slice(5) : role));
     },
     async fetchCurrentSecurityServer() {
       return api
         .get<SecurityServer[]>('/security-servers?current_server=true')
         .then((resp) => {
           if (resp.data?.length !== 1) {
-            throw new Error(
-              i18n.global.t(
-                'stores.user.currentSecurityServerNotFound',
-              ) as string,
-            );
+            throw new Error(i18n.global.t('stores.user.currentSecurityServerNotFound') as string);
           }
           this.currentSecurityServer = resp.data[0];
         })

@@ -34,10 +34,7 @@
   >
     <template #content>
       <XrdFormBlock>
-        <XrdFormBlockRow
-          description="csr.helpCertificationService"
-          adjust-against-content
-        >
+        <XrdFormBlockRow description="csr.helpCertificationService" adjust-against-content>
           <v-select
             v-model="certificateService"
             :items="acmeCertificateServices"
@@ -59,12 +56,7 @@ import { useField } from 'vee-validate';
 import { mapActions, mapState } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { KeyUsageType, TokenCertificateSigningRequest } from '@/openapi-types';
-import {
-  XrdSimpleDialog,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
@@ -85,11 +77,7 @@ export default defineComponent({
   emits: ['cancel', 'save'],
   setup() {
     const { addError } = useNotifications();
-    const { meta, errors, setErrors, value, resetField } = useField(
-      'certificationService',
-      'required',
-      { initialValue: '' },
-    );
+    const { meta, errors, setErrors, value, resetField } = useField('certificationService', 'required', { initialValue: '' });
     return {
       meta,
       errors,
@@ -109,25 +97,19 @@ export default defineComponent({
     acmeCertificateServices() {
       return this.certificationServiceList.filter(
         (certificationService) =>
-          certificationService.certificate_profile_info ==
-            this.csr.certificate_profile &&
+          certificationService.certificate_profile_info == this.csr.certificate_profile &&
           certificationService.acme_capable &&
-          (this.keyUsage == KeyUsageType.AUTHENTICATION ||
-            !certificationService.authentication_only),
+          (this.keyUsage == KeyUsageType.AUTHENTICATION || !certificationService.authentication_only),
       );
     },
   },
   watch: {
     certificateService(newValue: string) {
-      const newCA = this.acmeCertificateServices.find(
-        (ca) => ca.name == newValue,
-      );
+      const newCA = this.acmeCertificateServices.find((ca) => ca.name == newValue);
       if (newCA?.acme_capable) {
         this.hasAcmeEabCredentials(newCA.name, this.csr.owner_id, this.keyUsage)
           .then((res) => {
-            this.hasAcmeEabRequiredButNoCredentials =
-              res.acme_eab_required &&
-              !res.has_acme_external_account_credentials;
+            this.hasAcmeEabRequiredButNoCredentials = res.acme_eab_required && !res.has_acme_external_account_credentials;
             if (this.hasAcmeEabRequiredButNoCredentials) {
               this.setErrors(this.$t('csr.eabCredRequired'));
             }

@@ -34,10 +34,7 @@
   >
     <template #text>
       <span class="font-weight-regular body-regular">
-        <i18n-t
-          scope="global"
-          keypath="members.member.subsystems.areYouSureUnregister"
-        >
+        <i18n-t scope="global" keypath="members.member.subsystems.areYouSureUnregister">
           <template #subsystemCode>
             <span class="font-weight-bold">{{ subsystemCode }}</span>
           </template>
@@ -103,18 +100,12 @@ export default defineComponent({
     unregisterSubsystem(): void {
       this.loading = true;
       this.subsystemStore
-        .unregisterById(
-          toIdentifier(this.member.client_id) + ':' + this.subsystemCode,
-          this.serverId,
-        )
+        .unregisterById(toIdentifier(this.member.client_id) + ':' + this.subsystemCode, this.serverId)
         .then(() => {
-          this.addSuccessMessage(
-            'members.member.subsystems.subsystemSuccessfullyUnregistered',
-            {
-              subsystemCode: this.subsystemCode,
-              serverCode: this.serverCode,
-            },
-          );
+          this.addSuccessMessage('members.member.subsystems.subsystemSuccessfullyUnregistered', {
+            subsystemCode: this.subsystemCode,
+            serverCode: this.serverCode,
+          });
           this.$emit('unregistered-subsystem');
         })
         .catch((error) => {

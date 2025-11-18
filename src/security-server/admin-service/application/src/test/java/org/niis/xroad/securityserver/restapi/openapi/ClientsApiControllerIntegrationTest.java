@@ -99,7 +99,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.WIDGITS_CERTIFICATE_HASH;
-import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getResource;
+import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getMultipartFile;
 import static org.niis.xroad.securityserver.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
 import static org.niis.xroad.securityserver.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
 import static org.niis.xroad.securityserver.restapi.util.DeviationTestUtils.assertWarning;
@@ -334,7 +334,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(0, certs.getBody().size());
         ResponseEntity<CertificateDetailsDto> response =
                 clientsApiController.addClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
-                        getResource(CertificateTestUtils.getWidgitsCertificateBytes()));
+                        getMultipartFile("certificate", CertificateTestUtils.getWidgitsCertificateBytes(), "cert.pem"));
         CertificateDetailsDto certificateDetails = response.getBody();
         assertEquals(CertificateTestUtils.getWidgitsCertificateHash(), certificateDetails.getHash());
         assertEquals("O=Internet Widgits Pty Ltd, ST=Some-State, C=AU",
@@ -346,11 +346,11 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(1, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         // cert already exists
         assertThrows(ConflictException.class, () -> clientsApiController.addClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
-                getResource(CertificateTestUtils.getWidgitsCertificateBytes())));
+                getMultipartFile("certificate", CertificateTestUtils.getWidgitsCertificateBytes(), "cert.pem")));
         assertEquals(1, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         // cert is invalid
         assertThrows(BadRequestException.class, () -> clientsApiController.addClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
-                getResource(CertificateTestUtils.getInvalidCertBytes())));
+                getMultipartFile("certificate", CertificateTestUtils.getInvalidCertBytes(), "cert.pem")));
         assertEquals(1, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
     }
 
@@ -360,7 +360,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     public void deleteTlsCert() {
         ResponseEntity<CertificateDetailsDto> response =
                 clientsApiController.addClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
-                        getResource(CertificateTestUtils.getWidgitsCertificateBytes()));
+                        getMultipartFile("certificate", CertificateTestUtils.getWidgitsCertificateBytes(), "cert.pem"));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         ResponseEntity<Void> deleteResponse =
@@ -380,7 +380,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     public void findTlsCert() {
         ResponseEntity<CertificateDetailsDto> response =
                 clientsApiController.addClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
-                        getResource(CertificateTestUtils.getWidgitsCertificateBytes()));
+                        getMultipartFile("certificate", CertificateTestUtils.getWidgitsCertificateBytes(), "cert.pem"));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         ResponseEntity<CertificateDetailsDto> findResponse =

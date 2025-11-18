@@ -36,13 +36,7 @@
         @click="isAddEndpointDialogVisible = true"
       />
     </div>
-    <v-data-table
-      class="xrd border xrd-rounded-12"
-      items-per-page="-1"
-      hide-default-footer
-      :items="endpoints"
-      :headers="headers"
-    >
+    <v-data-table class="xrd border xrd-rounded-12" items-per-page="-1" hide-default-footer :items="endpoints" :headers="headers">
       <template #item.method="{ value }">
         <span v-if="value === '*'">{{ $t('endpoints.all') }}</span>
         <span v-else>{{ value }}</span>

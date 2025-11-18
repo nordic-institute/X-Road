@@ -5,13 +5,13 @@
     "addServiceClientsTitle": "Lisa ligipääs",
     "addSubjectsSuccess": "Ligipääs edukalt antud",
     "id": "ID",
-    "subsystemName": "Alamsüsteemi nimi / Rühma kirjeldus",
     "removeAllText": "Kas olete kindel, et soovite kõikidelt klientidelt pääsuõigused eemaldada?",
     "removeAllTitle": "Eemalda kõik pääsuõigused?",
     "removeSuccess": "Pääsuõigused edukalt eemaldatud",
     "removeText": "Kas olete kindel, et soovite sellelt kliendilt pääsuõigused eemaldada?",
     "removeTitle": "Eemalda pääsuõigused?",
     "rightsGiven": "Pääsuõigused antud",
+    "subsystemName": "Alamsüsteemi nimi / Rühma kirjeldus",
     "title": "Pääsuõigused"
   },
   "action": {
@@ -119,9 +119,11 @@
     "member": "Liige",
     "memberClass": "Liikmeklass",
     "memberCode": "Liikmekood",
+    "memberInParenthesis": "(@:client.member)",
     "memberName": "Liikme nimi",
     "name": "Nimi",
     "owner": "Omanik",
+    "ownerInParenthesis": "(@:client.owner)",
     "status": "Olek",
     "statusText": {
       "deletionInProgress": "Toimub kustutamine",
@@ -177,6 +179,17 @@
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Konfiguratsiooniga blokeeritud"
+    },
+    "connection": {
+      "centralServer": {
+        "authCertRequest": "Autentimise sertifikaadid registreerimise teenus",
+        "globalConf": "Globaalse konfiguratsiooni allalaadimine",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Keskserver"
+      },
+      "ok": "Kõik on korras",
+      "test": "Test"
     },
     "downloadReport": "Salvesta Diagnostika Raport",
     "encryption": {
@@ -325,17 +338,6 @@
       "success": "Edukas",
       "successfulRequests": "Edukad päringud",
       "time": "Kell"
-    },
-    "connection": {
-      "ok": "Kõik on korras",
-      "test": "Test",
-      "centralServer": {
-        "title": "Keskserver",
-        "globalConf": "Globaalse konfiguratsiooni allalaadimine",
-        "globalConfHttp": "http",
-        "globalConfHttps": "https",
-        "authCertRequest": "Autentimise sertifikaadid registreerimise teenus"
-      }
     }
   },
   "endpoints": {
@@ -429,6 +431,7 @@
     "global_conf_outdated": "Globaalne konfiguratsioon on aegunud",
     "gpg_key_generation_failed": "GPG võtmepaari loomine ebaõnnestus",
     "gpg_key_generation_interrupted": "GPG võtmepaari loomine katkestatud",
+    "http_error": "HTTP viga",
     "identifier_not_found": "Identifikaatorit ei leitud",
     "illegal_generated_endpoint_remove": "Loodud otspunkti eemaldamine pole lubatud",
     "illegal_generated_endpoint_update": "Loodud otspunkti värskendamine pole lubatud",
@@ -463,7 +466,6 @@
     "member_code_not_provided": "Liikmekood puudub",
     "missing_parameter": "Parameeter puudub",
     "network_error": "Võrguühenduse viga",
-    "http_error": "HTTP viga",
     "ocsp_connection_error": "OCSP vastajaga ei õnnestu ühendust luua",
     "ocsp_failed": "OCSP vastajalt ei õnnestu vastust saada",
     "ocsp_response_parsing_failure": "OCSP vastus vigane/kehtetu",
@@ -801,7 +803,6 @@
     "enableSuccess": "Teenuse kirjeldus aktiveeritud",
     "idGroupCode": "ID / Grupi kood",
     "lastRefreshed": "Viimati värskendatud:",
-    "subsystemNameGroupDesc": "Alamsüsteemi nimi / Grupi kirjeldus",
     "noMatches": "Sobivad kirjed puuduvad",
     "openApi3Added": "OpenApi teenus lisatud",
     "openapiDetails": "OpenAPI teenuse detailid",
@@ -819,6 +820,7 @@
       "internal_server_ssl_error": "Serveri sertifikaatide kontroll ebaõnnestus. Kas serveri URL on õige ja turvaserverile ligipääsetav?",
       "internal_server_ssl_handshake_error": "TLS-i kätlus serveriga ebaõnnestus, serveri sertifikaat puudub konfiguratsioonist:"
     },
+    "subsystemNameGroupDesc": "Alamsüsteemi nimi / Grupi kirjeldus",
     "timeout": "Ajalõpp",
     "timeoutSec": "Ajalõpp (s)",
     "timeoutTooltip": "Teenuse päringu maksimaalne kestus sekundites",
@@ -922,9 +924,9 @@
           }
         },
         "header": {
+          "costType": "Hinna tüüp",
           "serviceURL": "Teenuse URL",
-          "timestampingService": "Ajatempli teenus",
-          "costType": "Hinna tüüp"
+          "timestampingService": "Ajatempli teenus"
         }
       },
       "title": "Ajatempli teenused"
@@ -940,9 +942,9 @@
       "services": "Teenused"
     },
     "diagnostics": {
+      "connectionTesting": "Ühenduse testimine",
       "overview": "Ülevaade",
-      "traffic": "Päringute statistika",
-      "connectionTesting": "Ühenduse testimine"
+      "traffic": "Päringute statistika"
     },
     "keys": {
       "apiKey": "API võtmed",

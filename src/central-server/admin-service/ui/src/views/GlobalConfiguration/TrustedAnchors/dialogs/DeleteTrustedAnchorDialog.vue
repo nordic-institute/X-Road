@@ -71,11 +71,7 @@ export default defineComponent({
       this.trustedAnchorStore
         .deleteTrustedAnchor(this.hash)
         .then(() => this.$emit('deleted'))
-        .then(() =>
-          this.addSuccessMessage(
-            'globalConf.trustedAnchor.dialog.delete.success',
-          ),
-        )
+        .then(() => this.addSuccessMessage('globalConf.trustedAnchor.dialog.delete.success'))
         .catch((error) => this.addError(error))
         .finally(() => (this.deleting = false));
     },

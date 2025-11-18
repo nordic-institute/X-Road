@@ -73,7 +73,7 @@ import SettingsView from '@/views/Settings/SettingsView.vue';
 import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
 import DiagnosticsOverview from '@/views/Diagnostics/Overview/DiagnosticsOverview.vue';
 import TrafficContainer from '@/views/Diagnostics/Traffic/TrafficContainer.vue';
-import ConnectionContainer from "@/views/Diagnostics/Connection/ConnectionContainer.vue";
+import ConnectionContainer from '@/views/Diagnostics/Connection/ConnectionContainer.vue';
 import AdminUsersView from '@/views/Settings/AdminUsers/AdminUsersView.vue';
 import AddAdminUserView from '@/views/Settings/AdminUsers/AddAdminUserView.vue';
 import { XrdMainNavigationContainer } from '@niis/shared-ui';
@@ -130,12 +130,7 @@ const routes: RouteRecordRaw[] = [
             component: ApiKey,
             props: true,
             meta: {
-              permissions: [
-                Permissions.VIEW_API_KEYS,
-                Permissions.CREATE_API_KEY,
-                Permissions.UPDATE_API_KEY,
-                Permissions.REVOKE_API_KEY,
-              ],
+              permissions: [Permissions.VIEW_API_KEYS, Permissions.CREATE_API_KEY, Permissions.UPDATE_API_KEY, Permissions.REVOKE_API_KEY],
             },
           },
           {
@@ -196,11 +191,7 @@ const routes: RouteRecordRaw[] = [
         name: RouteName.Settings,
         path: '/settings',
         meta: {
-          permissions: [
-            Permissions.VIEW_SYS_PARAMS,
-            Permissions.BACKUP_CONFIGURATION,
-            Permissions.VIEW_ADMIN_USERS,
-          ],
+          permissions: [Permissions.VIEW_SYS_PARAMS, Permissions.BACKUP_CONFIGURATION, Permissions.VIEW_ADMIN_USERS],
         },
         components: {
           ...baseViewParts,

@@ -30,10 +30,7 @@
       <v-row align="center" no-gutters>
         <v-col cols="auto">{{ $t('initialConfiguration.anchor.info') }}</v-col>
         <v-col>
-          <UploadConfigurationAnchorDialog
-            init-mode
-            @uploaded="fetchConfigurationAnchor"
-          />
+          <UploadConfigurationAnchorDialog init-mode @uploaded="fetchConfigurationAnchor" />
         </v-col>
       </v-row>
     </XrdFormBlock>
@@ -75,14 +72,7 @@ import { defineComponent } from 'vue';
 
 import { mapActions } from 'pinia';
 
-import {
-  useNotifications,
-  XrdBtn,
-  XrdDateTime,
-  XrdHashValue,
-  XrdWizardStep,
-  XrdFormBlock,
-} from '@niis/shared-ui';
+import { useNotifications, XrdBtn, XrdDateTime, XrdHashValue, XrdWizardStep, XrdFormBlock } from '@niis/shared-ui';
 
 import { Anchor } from '@/openapi-types';
 import { useGeneral } from '@/store/modules/general';

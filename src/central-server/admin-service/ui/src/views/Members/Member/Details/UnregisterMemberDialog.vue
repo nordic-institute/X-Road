@@ -34,19 +34,12 @@
   >
     <template #text>
       <span class="font-weight-regular body-regular">
-        <i18n-t
-          scope="global"
-          keypath="members.member.details.areYouSureUnregister"
-        >
+        <i18n-t scope="global" keypath="members.member.details.areYouSureUnregister">
           <template #memberCode>
-            <span class="font-weight-bold">{{
-              member.client_id.member_code
-            }}</span>
+            <span class="font-weight-bold">{{ member.client_id.member_code }}</span>
           </template>
           <template #serverCode>
-            <span class="font-weight-bold">{{
-              server.server_id.server_code
-            }}</span>
+            <span class="font-weight-bold">{{ server.server_id.server_code }}</span>
           </template>
         </i18n-t>
       </span>
@@ -80,27 +73,18 @@ const loading = ref(false);
 const emit = defineEmits(['cancel', 'unregister']);
 
 function unregister() {
-  if (
-    !props.member.client_id.encoded_id ||
-    !props.server.server_id.encoded_id
-  ) {
+  if (!props.member.client_id.encoded_id || !props.server.server_id.encoded_id) {
     throw "Either client ID or server ID doesn't have ecodeded_id";
   }
 
   loading.value = true;
   memberStore
-    .unregister(
-      props.member.client_id.encoded_id,
-      props.server.server_id.encoded_id,
-    )
+    .unregister(props.member.client_id.encoded_id, props.server.server_id.encoded_id)
     .then(() => {
-      addSuccessMessage(
-        'members.member.details.memberSuccessfullyUnregistered',
-        {
-          memberCode: props.member.client_id.member_code,
-          serverCode: props.server.server_id.server_code,
-        },
-      );
+      addSuccessMessage('members.member.details.memberSuccessfullyUnregistered', {
+        memberCode: props.member.client_id.member_code,
+        serverCode: props.server.server_id.server_code,
+      });
       emit('unregister');
     })
     .catch((error) => addError(error))

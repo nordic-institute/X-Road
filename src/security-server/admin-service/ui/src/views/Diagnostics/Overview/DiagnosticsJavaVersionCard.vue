@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard
-    data-test="diagnostics-java-version"
-    title="diagnostics.javaVersion.title"
-    class="overview-card"
-  >
+  <XrdCard data-test="diagnostics-java-version" title="diagnostics.javaVersion.title" class="overview-card">
     <v-table class="xrd">
       <thead>
         <tr>
@@ -52,18 +48,9 @@
       <tbody>
         <tr>
           <td data-test="java-icon">
-            <StatusAvatar
-              :status="
-                securityServerVersion.using_supported_java_version
-                  ? 'ok'
-                  : 'error'
-              "
-            />
+            <StatusAvatar :status="securityServerVersion.using_supported_java_version ? 'ok' : 'error'" />
           </td>
-          <td
-            v-if="securityServerVersion.using_supported_java_version"
-            data-test="java-message"
-          >
+          <td v-if="securityServerVersion.using_supported_java_version" data-test="java-message">
             {{ $t('diagnostics.javaVersion.ok') }}
           </td>
           <td v-else data-test="java-message">

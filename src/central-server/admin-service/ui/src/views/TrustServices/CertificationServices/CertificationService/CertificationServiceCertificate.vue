@@ -25,13 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewFixedWidth
-    id="certification-service-certificate-details"
-    title="cert.certificate"
-    go-back-on-close
-    :breadcrumbs
-    :loading
-  >
+  <XrdElevatedViewFixedWidth id="certification-service-certificate-details" title="cert.certificate" go-back-on-close :breadcrumbs :loading>
     <XrdCertificate v-if="certificate" :certificate="certificate" />
   </XrdElevatedViewFixedWidth>
 </template>
@@ -39,11 +33,7 @@
 <script lang="ts" setup>
 import { ref, computed, watchEffect } from 'vue';
 import { useCertificationService } from '@/store/modules/trust-services';
-import {
-  XrdCertificate,
-  XrdElevatedViewFixedWidth,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdCertificate, XrdElevatedViewFixedWidth, useNotifications } from '@niis/shared-ui';
 import { CertificateDetails } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { useI18n } from 'vue-i18n';

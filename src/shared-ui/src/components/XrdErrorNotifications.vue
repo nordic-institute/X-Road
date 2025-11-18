@@ -55,6 +55,7 @@
 
             <ul v-if="notification.error.validationErrors">
               <li v-for="validationError in notification.error.validationErrors" :key="validationError.field">
+                <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
                 <span class="font-weight-medium">{{ $t(`fields.${validationError.field}`) }}: </span>
                 <template v-if="validationError.codes.length === 1">
                   {{ $t(`validationError.${validationError.codes[0]}`) }}
@@ -91,7 +92,7 @@
 import { PropType, ref } from 'vue';
 
 import { ERROR_CODE_PREFIX, ErrorManager, NotificationId } from '../types';
-import { helper } from '../utils';
+import { toClipboard } from '../utils';
 
 import XrdBtn from './XrdBtn.vue';
 
@@ -150,7 +151,7 @@ function groupMetaData(metaData?: string[]) {
 
 function copyId(errorId?: string): void {
   if (errorId) {
-    helper.toClipboard(errorId);
+    toClipboard(errorId);
   }
 }
 </script>

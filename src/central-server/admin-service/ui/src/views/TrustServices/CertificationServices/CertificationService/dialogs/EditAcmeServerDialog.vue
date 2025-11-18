@@ -106,12 +106,7 @@ import { computed, PropType } from 'vue';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
 import { useForm, useField } from 'vee-validate';
-import {
-  XrdSimpleDialog,
-  useBasicForm,
-  XrdFormBlock,
-  XrdFormBlockRow,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 const props = defineProps({
   certificationService: {
@@ -122,11 +117,7 @@ const props = defineProps({
 
 const emit = defineEmits(['cancel', 'tls-auth-changed']);
 const { loading, addSuccessMessage, addError } = useBasicForm();
-const {
-  value: isAcme,
-  meta: isAcmeMeta,
-  resetField,
-} = useField<boolean>('isAcme');
+const { value: isAcme, meta: isAcmeMeta, resetField } = useField<boolean>('isAcme');
 resetField({ value: !!props.certificationService.acme_server_directory_url });
 const validationSchema = computed(() => {
   return isAcme.value
@@ -140,54 +131,35 @@ const validationSchema = computed(() => {
 const { meta, defineField, handleSubmit } = useForm({
   validationSchema,
   initialValues: {
-    acmeServerDirectoryUrl:
-      props.certificationService.acme_server_directory_url,
+    acmeServerDirectoryUrl: props.certificationService.acme_server_directory_url,
     acmeServerIpAddress: props.certificationService.acme_server_ip_address,
-    authenticationCertificateProfileId:
-      props.certificationService.authentication_certificate_profile_id,
-    signingCertificateProfileId:
-      props.certificationService.signing_certificate_profile_id,
+    authenticationCertificateProfileId: props.certificationService.authentication_certificate_profile_id,
+    signingCertificateProfileId: props.certificationService.signing_certificate_profile_id,
   },
 });
 
-const [acmeServerDirectoryUrl, acmeServerDirectoryUrlAttrs] = defineField(
-  'acmeServerDirectoryUrl',
-  {
-    props: (state) => ({ 'error-messages': state.errors }),
-  },
-);
-const [acmeServerIpAddress, acmeServerIpAddressAttrs] = defineField(
-  'acmeServerIpAddress',
-  {
-    props: (state) => ({ 'error-messages': state.errors }),
-  },
-);
-const [
-  authenticationCertificateProfileId,
-  authenticationCertificateProfileIdAttrs,
-] = defineField('authenticationCertificateProfileId', {
+const [acmeServerDirectoryUrl, acmeServerDirectoryUrlAttrs] = defineField('acmeServerDirectoryUrl', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
-const [signingCertificateProfileId, signingCertificateProfileIdAttrs] =
-  defineField('signingCertificateProfileId', {
-    props: (state) => ({ 'error-messages': state.errors }),
-  });
+const [acmeServerIpAddress, acmeServerIpAddressAttrs] = defineField('acmeServerIpAddress', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+const [authenticationCertificateProfileId, authenticationCertificateProfileIdAttrs] = defineField('authenticationCertificateProfileId', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+const [signingCertificateProfileId, signingCertificateProfileIdAttrs] = defineField('signingCertificateProfileId', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 
 const { update } = useCertificationService();
 
 const updateCertificationServiceSettings = handleSubmit((values) => {
   loading.value = true;
   update(props.certificationService.id, {
-    acme_server_directory_url: isAcme.value
-      ? values.acmeServerDirectoryUrl
-      : '',
+    acme_server_directory_url: isAcme.value ? values.acmeServerDirectoryUrl : '',
     acme_server_ip_address: isAcme.value ? values.acmeServerIpAddress : '',
-    authentication_certificate_profile_id: isAcme.value
-      ? values.authenticationCertificateProfileId
-      : '',
-    signing_certificate_profile_id: isAcme.value
-      ? values.signingCertificateProfileId
-      : '',
+    authentication_certificate_profile_id: isAcme.value ? values.authenticationCertificateProfileId : '',
+    signing_certificate_profile_id: isAcme.value ? values.signingCertificateProfileId : '',
   })
     .then(() => {
       addSuccessMessage('trustServices.trustService.settings.saveSuccess');

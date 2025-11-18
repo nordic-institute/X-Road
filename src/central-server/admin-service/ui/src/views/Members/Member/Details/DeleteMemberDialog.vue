@@ -68,12 +68,7 @@ import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
-import {
-  XrdSimpleDialog,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   member: {

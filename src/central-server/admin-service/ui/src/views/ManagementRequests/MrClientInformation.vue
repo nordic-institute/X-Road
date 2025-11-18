@@ -27,18 +27,9 @@
 <template>
   <XrdCard :title="clientInfoTitle" :loading>
     <XrdCardTable>
-      <XrdCardTableRow
-        label="managementRequestDetails.ownerName"
-        :value="managementRequest?.client_owner_name"
-      />
-      <XrdCardTableRow
-        label="managementRequestDetails.ownerClass"
-        :value="managementRequest?.client_id?.member_class"
-      />
-      <XrdCardTableRow
-        label="managementRequestDetails.ownerCode"
-        :value="managementRequest?.client_id?.member_code"
-      />
+      <XrdCardTableRow label="managementRequestDetails.ownerName" :value="managementRequest?.client_owner_name" />
+      <XrdCardTableRow label="managementRequestDetails.ownerClass" :value="managementRequest?.client_id?.member_class" />
+      <XrdCardTableRow label="managementRequestDetails.ownerCode" :value="managementRequest?.client_id?.member_code" />
       <XrdCardTableRow
         v-if="!isOwnerChange"
         label="managementRequestDetails.subsystemCode"
@@ -55,10 +46,7 @@
 
 <script lang="ts" setup>
 import { PropType, computed } from 'vue';
-import {
-  ManagementRequestDetailedView,
-  ManagementRequestType,
-} from '@/openapi-types';
+import { ManagementRequestDetailedView, ManagementRequestType } from '@/openapi-types';
 import { XrdCard, XrdCardTable, XrdCardTableRow } from '@niis/shared-ui';
 
 const props = defineProps({
@@ -72,29 +60,16 @@ const props = defineProps({
   },
 });
 
-const isOwnerChange = computed(
-  () =>
-    props.managementRequest?.type ===
-    ManagementRequestType.OWNER_CHANGE_REQUEST,
-);
+const isOwnerChange = computed(() => props.managementRequest?.type === ManagementRequestType.OWNER_CHANGE_REQUEST);
 
 const clientInfoTitle = computed(() => {
   if (isOwnerChange.value) {
     return 'managementRequestDetails.ownerChangeInformation';
-  } else if (
-    props.managementRequest?.type ===
-    ManagementRequestType.CLIENT_DISABLE_REQUEST
-  ) {
+  } else if (props.managementRequest?.type === ManagementRequestType.CLIENT_DISABLE_REQUEST) {
     return 'managementRequestDetails.clientDisableInformation';
-  } else if (
-    props.managementRequest?.type ===
-    ManagementRequestType.CLIENT_ENABLE_REQUEST
-  ) {
+  } else if (props.managementRequest?.type === ManagementRequestType.CLIENT_ENABLE_REQUEST) {
     return 'managementRequestDetails.clientEnableInformation';
-  } else if (
-    props.managementRequest?.type ===
-    ManagementRequestType.CLIENT_RENAME_REQUEST
-  ) {
+  } else if (props.managementRequest?.type === ManagementRequestType.CLIENT_RENAME_REQUEST) {
     return 'managementRequestDetails.clientRenameInformation';
   }
   return 'managementRequestDetails.clientInformation';

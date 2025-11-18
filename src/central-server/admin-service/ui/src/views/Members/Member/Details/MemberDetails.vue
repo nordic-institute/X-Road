@@ -32,11 +32,7 @@
     <!-- Member Details -->
     <XrdCard data-test="member-details" :loading="memberStore.loadingCurrent">
       <XrdCardTable>
-        <XrdCardTableRow
-          data-test="member-name"
-          label="global.memberName"
-          :value="memberStore.current?.member_name"
-        >
+        <XrdCardTableRow data-test="member-name" label="global.memberName" :value="memberStore.current?.member_name">
           <XrdBtn
             v-if="allowMemberRename"
             data-test="info-card-edit-button"
@@ -46,16 +42,8 @@
             @click="showEditNameDialog = true"
           />
         </XrdCardTableRow>
-        <XrdCardTableRow
-          data-test="member-class"
-          label="global.memberClass"
-          :value="memberStore.current?.client_id.member_class"
-        />
-        <XrdCardTableRow
-          data-test="member-code"
-          label="global.memberCode"
-          :value="memberStore.current?.client_id.member_code"
-        />
+        <XrdCardTableRow data-test="member-class" label="global.memberClass" :value="memberStore.current?.client_id.member_class" />
+        <XrdCardTableRow data-test="member-code" label="global.memberCode" :value="memberStore.current?.client_id.member_code" />
       </XrdCardTable>
     </XrdCard>
 
@@ -90,9 +78,7 @@
       </ServersList>
 
       <UnregisterMemberDialog
-        v-if="
-          allowUnregisterMember && unregisterFromServer && memberStore.current
-        "
+        v-if="allowUnregisterMember && unregisterFromServer && memberStore.current"
         :member="memberStore.current"
         :server="unregisterFromServer"
         data-test="unregister-member"
@@ -108,12 +94,7 @@
     <div id="global-groups" class="mt-4">
       <XrdCard title="members.member.details.globalGroups">
         <template #append-title>
-          <XrdSearchField
-            v-model="searchGroups"
-            data-test="search-query-field"
-            width="360"
-            :label="$t('action.search')"
-          />
+          <XrdSearchField v-model="searchGroups" data-test="search-query-field" width="360" :label="$t('action.search')" />
         </template>
         <v-data-table
           data-test="global-groups-table"
@@ -130,9 +111,7 @@
           <template #[`item.group_code`]="{ item }">
             <div class="d-flex flex-row align-center">
               <v-icon icon="group" color="tertiary" size="24" />
-              <span class="text-primary font-weight-medium ml-3">{{
-                item.group_code
-              }}</span>
+              <span class="text-primary font-weight-medium ml-3">{{ item.group_code }}</span>
             </div>
           </template>
           <template #[`item.added_to_group`]="{ item }">
@@ -158,15 +137,7 @@ import { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { mapState, mapStores } from 'pinia';
 
-import {
-  useNotifications,
-  XrdBtn,
-  XrdCard,
-  XrdCardTable,
-  XrdCardTableRow,
-  XrdDateTime,
-  XrdSubView,
-} from '@niis/shared-ui';
+import { useNotifications, XrdBtn, XrdCard, XrdCardTable, XrdCardTableRow, XrdDateTime, XrdSubView } from '@niis/shared-ui';
 
 import { Permissions } from '@/global';
 import { MemberGlobalGroup, SecurityServer } from '@/openapi-types';

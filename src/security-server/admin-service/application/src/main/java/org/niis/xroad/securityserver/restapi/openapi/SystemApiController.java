@@ -71,6 +71,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -228,13 +229,13 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('IMPORT_INTERNAL_TLS_CERT')")
     @AuditEventMethod(event = RestApiAuditEvent.IMPORT_INTERNAL_TLS_CERT)
-    public ResponseEntity<CertificateDetailsDto> importSystemCertificate(Resource certificateResource) {
+    public ResponseEntity<CertificateDetailsDto> importSystemCertificate(MultipartFile file) {
         // there's no filename since we only get a binary application/octet-stream.
         // Have audit log anyway (null behaves as no-op) in case different content type is added later
-        String filename = certificateResource.getFilename();
+        String filename = file.getOriginalFilename();
         auditDataHelper.put(RestApiAuditProperty.CERT_FILE_NAME, filename);
 
-        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificateResource);
+        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(file);
         X509Certificate x509Certificate = null;
         try {
             x509Certificate = internalTlsCertificateService.importInternalTlsCertificate(certificateBytes);
@@ -263,8 +264,8 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
     @AuditEventMethod(event = RestApiAuditEvent.UPLOAD_ANCHOR)
-    public ResponseEntity<Void> replaceAnchor(Resource anchorResource) {
-        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
+    public ResponseEntity<Void> replaceAnchor(MultipartFile file) {
+        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(file);
 
         systemService.replaceAnchor(anchorBytes);
 
@@ -273,24 +274,24 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
-    public ResponseEntity<AnchorDto> previewAnchor(Boolean verifyInstance, Resource anchorResource) {
-        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
+    public ResponseEntity<AnchorDto> previewAnchor(MultipartFile file, Boolean verifyInstance) {
+        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(file);
         AnchorFile anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, verifyInstance);
 
         return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
     }
 
     /**
-     * For uploading an initial configuration anchor. The difference between this and {@link #replaceAnchor(Resource)}}
+     * For uploading an initial configuration anchor. The difference between this and {@link #replaceAnchor(MultipartFile)}}
      * is that the anchor's instance does not get verified
-     * @param anchorResource
+     * @param file
      * @return
      */
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     @AuditEventMethod(event = RestApiAuditEvent.INIT_ANCHOR)
-    public ResponseEntity<Void> uploadInitialAnchor(Resource anchorResource) {
-        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
+    public ResponseEntity<Void> uploadInitialAnchor(MultipartFile file) {
+        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(file);
 
         systemService.uploadInitialAnchor(anchorBytes);
 

@@ -34,23 +34,10 @@
       <UploadTrustedAnchorButton @uploaded="fetchTrustedAnchors" />
     </template>
 
-    <XrdEmptyPlaceholder
-      :data="trustedAnchors"
-      :loading="loading"
-      :no-items-text="$t('noData.noData')"
-      skeleton-type="table-heading"
-    />
-    <ConfigurationAnchorItem
-      v-for="anchor in trustedAnchors"
-      :key="anchor.title"
-      :anchor="anchor"
-    >
+    <XrdEmptyPlaceholder :data="trustedAnchors" :loading="loading" :no-items-text="$t('noData.noData')" skeleton-type="table-heading" />
+    <ConfigurationAnchorItem v-for="anchor in trustedAnchors" :key="anchor.title" :anchor="anchor">
       <DownloadTrustedAnchorButton :hash="anchor.hash" class="mr-4" />
-      <DeleteTrustedAnchorButton
-        :hash="anchor.hash"
-        :identifier="anchor.title"
-        @deleted="fetchTrustedAnchors"
-      />
+      <DeleteTrustedAnchorButton :hash="anchor.hash" :identifier="anchor.title" @deleted="fetchTrustedAnchors" />
     </ConfigurationAnchorItem>
   </XrdSubView>
 </template>
@@ -60,9 +47,7 @@
  * View for 'backup and restore' tab
  */
 import { defineComponent } from 'vue';
-import ConfigurationAnchorItem, {
-  Anchor,
-} from '../shared/ConfigurationAnchorItem.vue';
+import ConfigurationAnchorItem, { Anchor } from '../shared/ConfigurationAnchorItem.vue';
 import { TrustedAnchor } from '@/openapi-types';
 import { mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
@@ -70,11 +55,7 @@ import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import UploadTrustedAnchorButton from './UploadTrustedAnchorButton.vue';
 import DownloadTrustedAnchorButton from './DownloadTrustedAnchorButton.vue';
 import DeleteTrustedAnchorButton from './DeleteTrustedAnchorButton.vue';
-import {
-  XrdSubView,
-  useNotifications,
-  XrdEmptyPlaceholder,
-} from '@niis/shared-ui';
+import { XrdSubView, useNotifications, XrdEmptyPlaceholder } from '@niis/shared-ui';
 
 function convert(source: TrustedAnchor): Anchor {
   return {

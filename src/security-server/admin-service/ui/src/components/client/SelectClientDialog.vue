@@ -74,11 +74,11 @@
 import { defineComponent, PropType } from 'vue';
 import { Client } from '@/openapi-types';
 import ClientName from '@/components/client/ClientName.vue';
-import { XrdFormBlock, XrdSimpleDialog } from '@niis/shared-ui';
+import { XrdSimpleDialog } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 export default defineComponent({
-  components: { ClientName, XrdFormBlock, XrdSimpleDialog },
+  components: { ClientName, XrdSimpleDialog },
   props: {
     title: {
       type: String,
@@ -115,16 +115,8 @@ export default defineComponent({
           align: 'start',
           key: 'name',
           sortRaw(itemA, itemB) {
-            const aName =
-              itemA.subsystem_name ||
-              itemA.subsystem_code ||
-              itemA.member_name ||
-              '';
-            const bName =
-              itemB.subsystem_name ||
-              itemB.subsystem_code ||
-              itemB.member_name ||
-              '';
+            const aName = itemA.subsystem_name || itemA.subsystem_code || itemA.member_name || '';
+            const bName = itemB.subsystem_name || itemB.subsystem_code || itemB.member_name || '';
             return aName.localeCompare(bName);
           },
         },

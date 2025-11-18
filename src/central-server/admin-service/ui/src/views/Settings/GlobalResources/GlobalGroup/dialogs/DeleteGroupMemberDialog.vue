@@ -36,10 +36,7 @@
     @save="deleteMember"
   >
     <template #text>
-      <i18n-t
-        scope="global"
-        keypath="globalGroup.dialog.deleteMember.confirmation"
-      >
+      <i18n-t scope="global" keypath="globalGroup.dialog.deleteMember.confirmation">
         <template #identifier>
           <b class="no-break">{{ identifier }}</b>
         </template>
@@ -68,12 +65,7 @@ import { computed, PropType } from 'vue';
 
 import { useForm } from 'vee-validate';
 
-import {
-  useBasicForm,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { useBasicForm, XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '@niis/shared-ui';
 
 import { GroupMemberListView } from '@/openapi-types';
 import { useGlobalGroups } from '@/store/modules/global-groups';
@@ -107,10 +99,7 @@ const identifier = computed(() => toIdentifier(props.groupMember.client_id));
 
 const deleteMember = handleSubmit(() => {
   loading.value = true;
-  deleteGroupMember(
-    props.groupCode,
-    props.groupMember.client_id.encoded_id || '',
-  )
+  deleteGroupMember(props.groupCode, props.groupMember.client_id.encoded_id || '')
     .then(() => emit('delete'))
     .then(() =>
       addSuccessMessage('globalGroup.dialog.deleteMember.success', {

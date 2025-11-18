@@ -26,7 +26,7 @@
  */
 
 import { defineStore } from 'pinia';
-import { helper } from '@niis/shared-ui';
+import { saveResponseAsFile, buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
 import axios from 'axios';
 import { TrustedAnchor } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
@@ -39,32 +39,16 @@ export const useTrustedAnchor = defineStore('trustedAnchor', {
       });
     },
     previewTrustedAnchors(file: File) {
-      const formData = new FormData();
-      formData.append('anchor', file, file.name);
-      const config = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      };
       return axios
-        .post<TrustedAnchor>('/trusted-anchors/preview', formData, config)
+        .post<TrustedAnchor>('/trusted-anchors/preview', buildFileFormData('anchor', file), multipartFormDataConfig())
         .catch((error) => {
           throw error;
         });
     },
     uploadTrustedAnchor(file: File) {
-      const formData = new FormData();
-      formData.append('anchor', file, file.name);
-      const config = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      };
-      return axios
-        .post<TrustedAnchor>('/trusted-anchors', formData, config)
-        .catch((error) => {
-          throw error;
-        });
+      return axios.post<TrustedAnchor>('/trusted-anchors', buildFileFormData('anchor', file), multipartFormDataConfig()).catch((error) => {
+        throw error;
+      });
     },
     downloadTrustedAnchor(hash: string) {
       return axios
@@ -72,7 +56,7 @@ export const useTrustedAnchor = defineStore('trustedAnchor', {
           responseType: 'blob',
         })
         .then((resp) => {
-          helper.saveResponseAsFile(resp, 'trusted-anchor.xml');
+          saveResponseAsFile(resp, 'trusted-anchor.xml');
         })
         .catch((error) => {
           throw error;

@@ -25,13 +25,7 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import {
-  Client,
-  MemberAdd,
-  MemberGlobalGroup,
-  MemberName,
-  SecurityServer,
-} from '@/openapi-types';
+import { Client, MemberAdd, MemberGlobalGroup, MemberName, SecurityServer } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { WithCurrentItem } from '@niis/shared-ui';
 

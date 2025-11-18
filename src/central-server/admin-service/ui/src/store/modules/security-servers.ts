@@ -83,10 +83,7 @@ export const useSecurityServer = defineStore('securityServer', {
       };
       this.loadingCurrent = true;
       return axios
-        .patch<SecurityServer>(
-          `/security-servers/${securityServerId}`,
-          securityServerAddress,
-        )
+        .patch<SecurityServer>(`/security-servers/${securityServerId}`, securityServerAddress)
         .then((resp) => {
           this.current = resp.data;
         })

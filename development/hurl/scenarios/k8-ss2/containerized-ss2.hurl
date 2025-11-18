@@ -11,11 +11,10 @@ cs_xsrf_token: cookie "XSRF-TOKEN"
 # Download global configuration anchor from Central Server
 GET https://{{cs_host}}:{{cs_port}}/api/v1/configuration-sources/INTERNAL/anchor/download
 X-XSRF-TOKEN: {{cs_xsrf_token}}
+[Options]
+output: gconf_anchor.xml
 
 HTTP 200
-
-[Captures]
-gconf_anchor: body
 
 # Initialize Security Server 2 (ss2)
 
@@ -36,10 +35,8 @@ ss2_xsrf_token: cookie "XSRF-TOKEN"
 # Add configuration anchor
 POST https://{{ss2_host}}:4000/api/v1/system/anchor
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{gconf_anchor}}
-```
+[MultipartFormData]
+anchor: file,gconf_anchor.xml;
 
 HTTP 201
 
@@ -116,6 +113,8 @@ ss2_auth_key_csr: body
 # [FormMultiPart] as we do with the other requests)
 POST http://{{ca_host}}:{{ca_port}}/testca/sign
 Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss2_auth_key_cert.pem
 ```
 --certboundary
 Content-Disposition: form-data; name="type"
@@ -129,16 +128,12 @@ Content-Disposition: form-data; name="certreq"; filename="auth.csr.pem"
 ```
 
 HTTP 200
-[Captures]
-ss2_auth_key_cert: body
 
 # Import auth certificate
 POST https://{{ss2_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{ss2_auth_key_cert}}
-```
+[MultipartFormData]
+certificate: file,ss2_auth_key_cert.pem;
 
 HTTP 201
 
@@ -186,6 +181,8 @@ ss2_sign_key_csr: body
 # [FormMultiPart] as we do with the other requests)
 POST http://{{ca_host}}:{{ca_port}}/testca/sign
 Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss2_sign_key_cert.pem
 ```
 --certboundary
 Content-Disposition: form-data; name="type"
@@ -199,16 +196,12 @@ Content-Disposition: form-data; name="certreq"; filename="sign.csr.pem"
 ```
 
 HTTP 200
-[Captures]
-ss2_sign_key_cert: body
 
 # Import auth certificate
 POST https://{{ss2_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{ss2_sign_key_cert}}
-```
+[MultipartFormData]
+certificate: file,ss2_sign_key_cert.pem;
 
 HTTP 201
 

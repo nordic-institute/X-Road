@@ -30,12 +30,7 @@ import { useUser } from '@/store/modules/user';
 import * as api from '@/util/api';
 
 import { Permissions, Roles, RouteName } from '@/global';
-import {
-  AdminUser,
-  AdminUserPasswordChangeRequest,
-  AdminUsersHandler,
-  useNotifications,
-} from '@niis/shared-ui';
+import { AdminUser, AdminUserPasswordChangeRequest, AdminUsersHandler, useNotifications } from '@niis/shared-ui';
 
 export function useAdminUsersHandler() {
   const { addSuccessMessage, addError } = useNotifications();
@@ -73,11 +68,7 @@ export function useAdminUsersHandler() {
       .catch((err) => addError(err));
   };
 
-  const changePassword = (
-    username: string,
-    oldPassword: string,
-    newPassword: string,
-  ) => {
+  const changePassword = (username: string, oldPassword: string, newPassword: string) => {
     return api
       .put(`/users/${api.encodePathParameter(username)}/password`, {
         old_password: oldPassword,
@@ -109,8 +100,7 @@ export function useAdminUsersHandler() {
 
   const canAdd = () => hasPermission(Permissions.ADD_ADMIN_USER);
   const canEdit = () => hasPermission(Permissions.UPDATE_ADMIN_USER);
-  const canDelete = (user: AdminUser) =>
-    hasPermission(Permissions.DELETE_ADMIN_USER) && username !== user.username;
+  const canDelete = (user: AdminUser) => hasPermission(Permissions.DELETE_ADMIN_USER) && username !== user.username;
   const availableRoles = () => Roles.filter((role) => hasRole(role));
   const navigateToAddUser = () => router.push({ name: RouteName.AddAdminUser });
 

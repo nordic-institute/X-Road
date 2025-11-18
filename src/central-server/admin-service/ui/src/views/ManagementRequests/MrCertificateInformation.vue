@@ -27,26 +27,15 @@
 <template>
   <XrdCard title="managementRequestDetails.certificateformation" :loading>
     <XrdCardTable>
-      <XrdCardTableRow
-        label="managementRequestDetails.ca"
-        :value="managementRequest?.certificate_details?.subject_common_name"
-      />
-      <XrdCardTableRow
-        label="managementRequestDetails.serialNumber"
-        :value="managementRequest?.certificate_details?.serial"
-      />
+      <XrdCardTableRow label="managementRequestDetails.ca" :value="managementRequest?.certificate_details?.subject_common_name" />
+      <XrdCardTableRow label="managementRequestDetails.serialNumber" :value="managementRequest?.certificate_details?.serial" />
       <XrdCardTableRow
         label="managementRequestDetails.subject"
-        :value="
-          managementRequest?.certificate_details?.subject_distinguished_name
-        "
+        :value="managementRequest?.certificate_details?.subject_distinguished_name"
       />
       <XrdCardTableRow label="managementRequestDetails.expires">
         <template #value>
-          <XrdDateTime
-            :value="managementRequest?.certificate_details?.not_after"
-            with-seconds
-          />
+          <XrdDateTime :value="managementRequest?.certificate_details?.not_after" with-seconds />
         </template>
       </XrdCardTableRow>
     </XrdCardTable>
@@ -56,12 +45,7 @@
 <script lang="ts" setup>
 import { PropType } from 'vue';
 
-import {
-  XrdCard,
-  XrdCardTable,
-  XrdCardTableRow,
-  XrdDateTime,
-} from '@niis/shared-ui';
+import { XrdCard, XrdCardTable, XrdCardTableRow, XrdDateTime } from '@niis/shared-ui';
 
 import { ManagementRequestDetailedView } from '@/openapi-types';
 

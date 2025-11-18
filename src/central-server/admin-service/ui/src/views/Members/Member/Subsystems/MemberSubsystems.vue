@@ -36,19 +36,11 @@
         @click="showAddSubsystemDialog = true"
       />
     </template>
-    <v-table
-      :loading="loading"
-      class="xrd bg-surface-container xrd-rounded-12 border subsystems-table"
-      data-test="subsystems-table"
-    >
+    <v-table :loading="loading" class="xrd bg-surface-container xrd-rounded-12 border subsystems-table" data-test="subsystems-table">
       <thead>
         <tr>
           <th>
-            {{
-              `${$t('members.member.subsystems.subsystemcode')} (${
-                subsystems.length
-              })`
-            }}
+            {{ `${$t('members.member.subsystems.subsystemcode')} (${subsystems.length})` }}
           </th>
           <th>{{ $t('members.member.subsystems.subsystemname') }}</th>
           <th>{{ $t('members.member.subsystems.servercode') }}</th>
@@ -59,10 +51,7 @@
       </thead>
       <tbody>
         <template v-for="(item, index) in subsystems" :key="index">
-          <tr
-            v-if="item.used_security_servers.length === 0"
-            class="bg-unregistered"
-          >
+          <tr v-if="item.used_security_servers.length === 0" class="bg-unregistered">
             <td class="unregistered-subsystem">
               <XrdLabelWithIcon
                 data-test="subsystem-code"
@@ -74,11 +63,7 @@
             </td>
             <td class="unregistered-subsystem">
               {{ item.subsystem_name }}
-              <rename-subsystem-btn
-                v-if="allowMemberSubsystemRename"
-                :subsystem-name="item.subsystem_name"
-                @click="renameClicked(item)"
-              />
+              <rename-subsystem-btn v-if="allowMemberSubsystemRename" :subsystem-name="item.subsystem_name" @click="renameClicked(item)" />
             </td>
             <td class="unregistered-subsystem" />
             <td class="unregistered-subsystem" />
@@ -105,10 +90,7 @@
               </div>
             </td>
           </tr>
-          <tr
-            v-for="(subitem, iSub) in item.used_security_servers"
-            :key="`${item.subsystem_id.subsystem_code}:${subitem.server_code}`"
-          >
+          <tr v-for="(subitem, iSub) in item.used_security_servers" :key="`${item.subsystem_id.subsystem_code}:${subitem.server_code}`">
             <td
               :class="{
                 'border-0': item.used_security_servers.length - 1 > iSub,
@@ -152,18 +134,11 @@
                 :text="$t('securityServers.registered')"
               >
                 <template #prepend>
-                  <v-icon
-                    class="status-icon"
-                    icon="check_circle filled mr-1 ml-n1"
-                    color="success"
-                  />
+                  <v-icon class="status-icon" icon="check_circle filled mr-1 ml-n1" color="success" />
                 </template>
               </v-chip>
               <v-chip
-                v-if="
-                  subitem.status === 'WAITING' ||
-                  subitem.status === 'SUBMITTED FOR APPROVAL'
-                "
+                v-if="subitem.status === 'WAITING' || subitem.status === 'SUBMITTED FOR APPROVAL'"
                 class="xrd font-weight-medium"
                 color="warning-container"
                 variant="flat"
@@ -171,11 +146,7 @@
                 :text="$t('securityServers.pending')"
               >
                 <template #prepend>
-                  <v-icon
-                    class="status-icon"
-                    icon="warning filled"
-                    color="warning"
-                  />
+                  <v-icon class="status-icon" icon="warning filled" color="warning" />
                 </template>
               </v-chip>
               <v-chip
@@ -187,11 +158,7 @@
                 :text="$t('securityServers.disabled')"
               >
                 <template #prepend>
-                  <v-icon
-                    class="status-icon"
-                    icon="cancel filled"
-                    color="warning"
-                  />
+                  <v-icon class="status-icon" icon="cancel filled" color="warning" />
                 </template>
               </v-chip>
               <v-chip
@@ -203,41 +170,23 @@
                 :text="$t('securityServers.unregistered')"
               >
                 <template #prepend>
-                  <v-icon
-                    class="status-icon"
-                    icon="error filled"
-                    color="error"
-                  />
+                  <v-icon class="status-icon" icon="error filled" color="error" />
                 </template>
               </v-chip>
             </td>
             <td class="subsystem-actions">
               <div>
                 <XrdBtn
-                  v-if="
-                    (subitem.status === 'APPROVED' ||
-                      subitem.status === 'DISABLED') &&
-                    allowToUnregisterMemberSubsystem
-                  "
+                  v-if="(subitem.status === 'APPROVED' || subitem.status === 'DISABLED') && allowToUnregisterMemberSubsystem"
                   variant="text"
                   color="tertiary"
                   text="action.unregister"
                   @click="unregisterClicked(item, subitem)"
                 />
 
-                <XrdBtn
-                  v-if="subitem.status === 'WAITING'"
-                  variant="text"
-                  color="tertiary"
-                  text="action.approve"
-                />
+                <XrdBtn v-if="subitem.status === 'WAITING'" variant="text" color="tertiary" text="action.approve" />
 
-                <XrdBtn
-                  v-if="subitem.status === 'WAITING'"
-                  variant="text"
-                  color="tertiary"
-                  text="action.decline"
-                />
+                <XrdBtn v-if="subitem.status === 'WAITING'" variant="text" color="tertiary" text="action.decline" />
               </div>
             </td>
           </tr>
@@ -272,12 +221,7 @@
     />
 
     <unregister-member-subsystem-dialog
-      v-if="
-        memberStore.current &&
-        clickedSubsystemCode &&
-        clickedServer &&
-        showUnregisterDialog
-      "
+      v-if="memberStore.current && clickedSubsystemCode && clickedServer && showUnregisterDialog"
       :member="memberStore.current"
       :server-id="clickedServer.encoded_id!"
       :subsystem-code="clickedSubsystemCode"
@@ -294,12 +238,7 @@ import { defineComponent } from 'vue';
 
 import { mapActions, mapState, mapStores } from 'pinia';
 
-import {
-  useNotifications,
-  XrdBtn,
-  XrdLabelWithIcon,
-  XrdSubView,
-} from '@niis/shared-ui';
+import { useNotifications, XrdBtn, XrdLabelWithIcon, XrdSubView } from '@niis/shared-ui';
 
 import { Permissions } from '@/global';
 import { Subsystem, UsedSecurityServers } from '@/openapi-types';
@@ -392,19 +331,16 @@ export default defineComponent({
   },
   methods: {
     deleteClicked(subsystem: Subsystem) {
-      this.clickedSubsystemCode = subsystem.subsystem_id
-        ?.subsystem_code as string;
+      this.clickedSubsystemCode = subsystem.subsystem_id?.subsystem_code as string;
       this.showDeleteDialog = true;
     },
     renameClicked(subsystem: Subsystem) {
-      this.clickedSubsystemCode = subsystem.subsystem_id
-        ?.subsystem_code as string;
+      this.clickedSubsystemCode = subsystem.subsystem_id?.subsystem_code as string;
       this.clickedSubsystemName = subsystem.subsystem_name as string;
       this.showRenameDialog = true;
     },
     unregisterClicked(subsystem: Subsystem, subitem: UsedSecurityServers) {
-      this.clickedSubsystemCode = subsystem.subsystem_id
-        ?.subsystem_code as string;
+      this.clickedSubsystemCode = subsystem.subsystem_id?.subsystem_code as string;
       this.clickedServer = subitem;
       this.showUnregisterDialog = true;
     },

@@ -55,12 +55,7 @@
 <script lang="ts" setup>
 import { useForm } from 'vee-validate';
 
-import {
-  XrdSimpleDialog,
-  useBasicForm,
-  XrdFormBlock,
-  XrdFormBlockRow,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 import { useGlobalGroups } from '@/store/modules/global-groups';
 

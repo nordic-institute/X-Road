@@ -83,64 +83,44 @@ export const useDiagnostics = defineStore('diagnostics', {
       });
     },
     async fetchTimestampingServiceDiagnostics() {
-      return api
-        .get<
-          TimestampingServiceDiagnostics[]
-        >(`/diagnostics/timestamping-services`)
-        .then((res) => {
-          this.timestampingServices = res.data;
-        });
+      return api.get<TimestampingServiceDiagnostics[]>(`/diagnostics/timestamping-services`).then((res) => {
+        this.timestampingServices = res.data;
+      });
     },
     async fetchGlobalConfDiagnostics() {
-      return api
-        .get<GlobalConfDiagnostics>('/diagnostics/globalconf')
-        .then((res) => {
-          this.globalConf = res.data;
-        });
+      return api.get<GlobalConfDiagnostics>('/diagnostics/globalconf').then((res) => {
+        this.globalConf = res.data;
+      });
     },
     async fetchOcspResponderDiagnostics() {
-      return api
-        .get<OcspResponderDiagnostics[]>('/diagnostics/ocsp-responders')
-        .then((res) => {
-          this.ocspResponderDiagnostics = res.data;
-        });
+      return api.get<OcspResponderDiagnostics[]>('/diagnostics/ocsp-responders').then((res) => {
+        this.ocspResponderDiagnostics = res.data;
+      });
     },
     async fetchBackupEncryptionDiagnostics() {
-      return api
-        .get<BackupEncryptionStatus>('/diagnostics/backup-encryption-status')
-        .then((res) => {
-          this.backupEncryptionDiagnostics = res.data;
-        });
+      return api.get<BackupEncryptionStatus>('/diagnostics/backup-encryption-status').then((res) => {
+        this.backupEncryptionDiagnostics = res.data;
+      });
     },
     async fetchMessageLogEncryptionDiagnostics() {
-      return api
-        .get<MessageLogEncryptionStatus>(
-          '/diagnostics/message-log-encryption-status',
-        )
-        .then((res) => {
-          this.messageLogEncryptionDiagnostics = res.data;
-        });
+      return api.get<MessageLogEncryptionStatus>('/diagnostics/message-log-encryption-status').then((res) => {
+        this.messageLogEncryptionDiagnostics = res.data;
+      });
     },
     async fetchProxyMemoryDiagnostics() {
-      return api
-        .get<ProxyMemoryUsageStatus>('/diagnostics/proxy-memory-usage-status')
-        .then((res) => {
-          this.proxyMemoryUsageStatus = res.data;
-        });
+      return api.get<ProxyMemoryUsageStatus>('/diagnostics/proxy-memory-usage-status').then((res) => {
+        this.proxyMemoryUsageStatus = res.data;
+      });
     },
     async fetchAuthCertReqStatus() {
-      return api
-        .get<ConnectionStatus>('/diagnostics/auth-cert-req-status')
-        .then((res) => {
-          this.authCertReqStatus = res.data;
-        });
+      return api.get<ConnectionStatus>('/diagnostics/auth-cert-req-status').then((res) => {
+        this.authCertReqStatus = res.data;
+      });
     },
     async fetchGlobalConfStatuses() {
-      return api
-        .get<GlobalConfConnectionStatus[]>('/diagnostics/global-conf-status')
-        .then((res) => {
-          this.globalConfStatuses = res.data;
-        });
+      return api.get<GlobalConfConnectionStatus[]>('/diagnostics/global-conf-status').then((res) => {
+        this.globalConfStatuses = res.data;
+      });
     },
   },
 });

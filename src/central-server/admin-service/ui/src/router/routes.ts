@@ -69,25 +69,17 @@ import SettingsView from '@/views/Settings/SettingsView.vue';
 import SystemSettingsView from '@/views/Settings/SystemSettings/SystemSettingsView.vue';
 import ManagementServiceCertificate from '@/views/Settings/TlsCertificates/ManagementServiceCertificate.vue';
 import ManagementServiceTlsCertificateView from '@/views/Settings/TlsCertificates/ManagementServiceTlsCertificateView.vue';
-import CertificationServiceCertificate
-  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceCertificate.vue';
+import CertificationServiceCertificate from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceCertificate.vue';
 import CertificationServiceDetails from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceDetails.vue';
-import CertificationServiceIntermediateCas
-  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceIntermediateCas.vue';
-import CertificationServiceOcspResponders
-  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceOcspResponders.vue';
-import CertificationServiceSettings
-  from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceSettings.vue';
+import CertificationServiceIntermediateCas from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceIntermediateCas.vue';
+import CertificationServiceOcspResponders from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceOcspResponders.vue';
+import CertificationServiceSettings from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceSettings.vue';
 import CertificationServiceView from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceView.vue';
-import IntermediateCACertificate
-  from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCACertificate.vue';
-import IntermediateCaDetails
-  from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaDetails.vue';
-import IntermediateCaOcspResponders
-  from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaOcspResponders.vue';
+import IntermediateCACertificate from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCACertificate.vue';
+import IntermediateCaDetails from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaDetails.vue';
+import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaOcspResponders.vue';
 import IntermediateCaView from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaView.vue';
-import OcspResponderCertificate
-  from '@/views/TrustServices/CertificationServices/CertificationService/OcspResponders/OcspResponderCertificate.vue';
+import OcspResponderCertificate from '@/views/TrustServices/CertificationServices/CertificationService/OcspResponders/OcspResponderCertificate.vue';
 import TimestampingServiceCertificate from '@/views/TrustServices/TimestampingServices/TimestampingServiceCertificate.vue';
 import TrustServices from '@/views/TrustServices/TrustServices.vue';
 import TrustServicesView from '@/views/TrustServices/TrustServicesView.vue';
@@ -110,8 +102,7 @@ const routes = [
     path: '/',
     component: AppBase,
     name: RouteName.BaseRoute,
-    redirect: () =>
-      useMainTabs().firstAllowedTab?.to ?? { name: RouteName.Forbidden },
+    redirect: () => useMainTabs().firstAllowedTab?.to ?? { name: RouteName.Forbidden },
     children: [
       {
         name: RouteName.Settings,
@@ -139,10 +130,7 @@ const routes = [
             component: GlobalResourcesView,
             props: true,
             meta: {
-              permissions: [
-                Permissions.VIEW_GLOBAL_GROUPS,
-                Permissions.VIEW_SECURITY_SERVERS,
-              ],
+              permissions: [Permissions.VIEW_GLOBAL_GROUPS, Permissions.VIEW_SECURITY_SERVERS],
             },
             children: [
               {
@@ -305,9 +293,7 @@ const routes = [
                 meta: {
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
                 },
-                props: (
-                  route: RouteLocationNormalized,
-                ): { serverId: string } => {
+                props: (route: RouteLocationNormalized): { serverId: string } => {
                   return { serverId: route.params.serverId as string };
                 },
               },

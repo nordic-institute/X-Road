@@ -55,17 +55,8 @@
 <script lang="ts" setup>
 import { PropType } from 'vue';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
-import {
-  ConfigurationPartContentIdentifier,
-  ConfigurationType,
-} from '@/openapi-types';
-import {
-  XrdFileUploadField,
-  useBasicForm,
-  useFileRef,
-  XrdFormBlock,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { ConfigurationPartContentIdentifier, ConfigurationType } from '@/openapi-types';
+import { XrdFileUploadField, useBasicForm, useFileRef, XrdFormBlock, XrdSimpleDialog } from '@niis/shared-ui';
 
 const props = defineProps({
   configurationType: {
@@ -91,11 +82,7 @@ function save() {
   }
 
   loading.value = true;
-  uploadConfigurationFile(
-    props.configurationType,
-    props.contentIdentifier,
-    partFile.value,
-  )
+  uploadConfigurationFile(props.configurationType, props.contentIdentifier, partFile.value)
     .then(() => {
       addSuccessMessage('globalConf.cfgParts.dialog.upload.success');
       emit('save');

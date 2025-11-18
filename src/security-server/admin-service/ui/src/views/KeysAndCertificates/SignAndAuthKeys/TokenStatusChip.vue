@@ -25,21 +25,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-chip
-    v-if="style"
-    class="xrd"
-    density="compact"
-    :class="style.chipClass"
-    :color="style.bgColor"
-    :variant="style.variant"
-  >
+  <v-chip v-if="style" class="xrd" density="compact" :class="style.chipClass" :color="style.bgColor" :variant="style.variant">
     <template #prepend>
-      <v-icon
-        class="mr-1 ml-n1"
-        :icon="style.icon"
-        :color="style.iconColor"
-        :class="style.textClass"
-      />
+      <v-icon class="mr-1 ml-n1" :icon="style.icon" :color="style.iconColor" :class="style.textClass" />
     </template>
     <span data-test="token-status-text" class="font-weight-medium body-small" :class="style.textClass">
       {{ $t(style.textKey) }}
@@ -48,10 +36,7 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  getTokenUIStatus,
-  TokenUIStatus,
-} from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
+import { getTokenUIStatus, TokenUIStatus } from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
 import { computed, PropType } from 'vue';
 import { TokenStatus } from '@/openapi-types';
 

@@ -30,7 +30,7 @@
       <div class="title-view font-weight-bold">
         {{ client?.member_name }}
         <span v-if="client?.owner" class="opacity-60 font-weight-regular">
-          ({{ $t(client?.owner ? 'client.owner' : 'client.member') }})
+          {{ $t(client?.owner ? 'client.ownerInParenthesis' : 'client.memberInParenthesis') }}
         </span>
       </div>
     </template>
@@ -38,12 +38,7 @@
       <v-spacer />
       <MakeOwnerButton v-if="showMakeOwner" :id="id" @done="fetchData" />
       <DeleteClientButton v-if="showDelete" :id="id" class="ml-2" />
-      <UnregisterClientButton
-        v-if="showUnregister"
-        :id="id"
-        class="ml-2"
-        @done="fetchData"
-      />
+      <UnregisterClientButton v-if="showUnregister" :id="id" class="ml-2" @done="fetchData" />
     </template>
     <template #tabs>
       <ClientTabs :id="id" />
@@ -92,26 +87,18 @@ export default defineComponent({
     },
     showMakeOwner(): boolean {
       return (
-        !!this.client &&
-        this.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) &&
-        this.client.status === 'REGISTERED' &&
-        !this.client.owner
+        !!this.client && this.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) && this.client.status === 'REGISTERED' && !this.client.owner
       );
     },
     showUnregister(): boolean {
       return (
         !!this.client &&
         this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
-        (this.client.status === 'REGISTERED' ||
-          this.client.status === 'REGISTRATION_IN_PROGRESS')
+        (this.client.status === 'REGISTERED' || this.client.status === 'REGISTRATION_IN_PROGRESS')
       );
     },
     showDelete(): boolean {
-      if (
-        !this.client ||
-        this.client.status === 'REGISTERED' ||
-        this.client.status === 'REGISTRATION_IN_PROGRESS'
-      ) {
+      if (!this.client || this.client.status === 'REGISTERED' || this.client.status === 'REGISTRATION_IN_PROGRESS') {
         return false;
       }
 
@@ -139,9 +126,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useClient, ['fetchClient']),
     fetchData(id: string): void {
-      this.fetchClient(id).catch((error) =>
-        this.addError(error, { navigate: true }),
-      );
+      this.fetchClient(id).catch((error) => this.addError(error, { navigate: true }));
     },
   },
 });

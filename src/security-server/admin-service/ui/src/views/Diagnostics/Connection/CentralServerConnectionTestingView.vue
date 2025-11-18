@@ -25,10 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard
-    title="diagnostics.connection.centralServer.title"
-    class="overview-card"
-  >
+  <XrdCard title="diagnostics.connection.centralServer.title" class="overview-card">
     <v-table class="xrd">
       <thead>
         <tr>
@@ -40,10 +37,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="(item, index) in globalConfStatuses"
-          :key="item.download_url"
-        >
+        <tr v-for="(item, index) in globalConfStatuses" :key="item.download_url">
           <td v-if="index === 0" :rowspan="globalConfStatuses.length">
             {{ $t('diagnostics.connection.centralServer.globalConf') }}
           </td>
@@ -53,9 +47,7 @@
             </span>
           </td>
           <td>
-            <StatusAvatar
-              :status="statusIconType(item.connection_status.status_class)"
-            />
+            <StatusAvatar :status="statusIconType(item.connection_status.status_class)" />
           </td>
           <td>
             <span v-if="globalConfLoading" />
@@ -67,11 +59,7 @@
             </span>
           </td>
           <td v-if="index === 0" :rowspan="globalConfStatuses.length">
-            <XrdBtn
-              variant="text"
-              text="diagnostics.connection.test"
-              @click="testGlobalConfDownload()"
-            />
+            <XrdBtn variant="text" text="diagnostics.connection.test" @click="testGlobalConfDownload()" />
           </td>
         </tr>
         <XrdEmptyPlaceholderRow
@@ -85,9 +73,7 @@
             {{ $t('diagnostics.connection.centralServer.authCertRequest') }}
           </td>
           <td>
-            <StatusAvatar
-              :status="statusIconType(authCertReqStatus?.status_class)"
-            />
+            <StatusAvatar :status="statusIconType(authCertReqStatus?.status_class)" />
           </td>
           <td>
             <span v-if="authCertLoading" />
@@ -99,11 +85,7 @@
             </span>
           </td>
           <td>
-            <XrdBtn
-              variant="text"
-              text="diagnostics.connection.test"
-              @click="testAuthCertRequest()"
-            />
+            <XrdBtn variant="text" text="diagnostics.connection.test" @click="testAuthCertRequest()" />
           </td>
         </tr>
         <XrdEmptyPlaceholderRow
@@ -120,12 +102,7 @@
 import { mapActions, mapState } from 'pinia';
 import { defineComponent } from 'vue';
 import { useDiagnostics } from '@/store/modules/diagnostics';
-import {
-  useNotifications,
-  XrdCard,
-  XrdEmptyPlaceholderRow,
-  XrdBtn,
-} from '@niis/shared-ui';
+import { useNotifications, XrdCard, XrdEmptyPlaceholderRow, XrdBtn } from '@niis/shared-ui';
 import type { CodeWithDetails } from '@/openapi-types';
 import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
@@ -158,20 +135,13 @@ export default defineComponent({
     this.testGlobalConfDownload();
   },
   methods: {
-    ...mapActions(useDiagnostics, [
-      'fetchAuthCertReqStatus',
-      'fetchGlobalConfStatuses',
-    ]),
+    ...mapActions(useDiagnostics, ['fetchAuthCertReqStatus', 'fetchGlobalConfStatuses']),
 
     globalConfErrorMessage(error: CodeWithDetails) {
       return this.formatErrorForUi(error);
     },
 
-    formatErrorForUi(err?: {
-      code?: string;
-      metadata?: string[];
-      validation_errors?: Record<string, string[]>;
-    }) {
+    formatErrorForUi(err?: { code?: string; metadata?: string[]; validation_errors?: Record<string, string[]> }) {
       if (!err) return '';
 
       const { code, metadata = [], validation_errors = {} } = err;
@@ -188,9 +158,7 @@ export default defineComponent({
         ? veEntries
             .map(([field, msgs]) => {
               const labelKey = buildKey(field);
-              const label = this.$te(labelKey)
-                ? (this.$t(labelKey) as string)
-                : field;
+              const label = this.$te(labelKey) ? (this.$t(labelKey) as string) : field;
               return `${label}: ${msgs.join(', ')}`;
             })
             .join(' | ')

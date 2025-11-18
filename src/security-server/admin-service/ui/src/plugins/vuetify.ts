@@ -28,9 +28,4 @@ import { Color, createXrdVuetify } from '@niis/shared-ui';
 
 import '@/assets/styles.css';
 
-export default createXrdVuetify(
-  Color.B_600,
-  Color.B_50,
-  Color.B_100,
-  Color.B_800,
-);
+export default createXrdVuetify(Color.B_600, Color.B_50, Color.B_100, Color.B_800);

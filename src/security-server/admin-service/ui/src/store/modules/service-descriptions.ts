@@ -58,44 +58,29 @@ export const useServiceDescriptions = defineStore('service-descriptions', {
   actions: {
     expandDesc(id: string) {
       this.expandedServiceDescriptions.push(id);
-      this.expandedServiceDescriptions = [
-        ...new Set(this.expandedServiceDescriptions),
-      ];
+      this.expandedServiceDescriptions = [...new Set(this.expandedServiceDescriptions)];
     },
 
     hideDesc(id: string) {
-      this.expandedServiceDescriptions =
-        this.expandedServiceDescriptions.filter((item) => item !== id);
+      this.expandedServiceDescriptions = this.expandedServiceDescriptions.filter((item) => item !== id);
     },
 
-    async fetchServiceDescriptions(
-      clientId: string,
-      sort = true,
-    ): Promise<ServiceDescription[]> {
+    async fetchServiceDescriptions(clientId: string, sort = true): Promise<ServiceDescription[]> {
       const encodedId = encodePathParameter(clientId);
-      return api
-        .get<ServiceDescription[]>(`/clients/${encodedId}/service-descriptions`)
-        .then((res) => {
-          const serviceDescriptions: ServiceDescription[] = res.data;
-          this.serviceDescriptions = sort
-            ? serviceDescriptions.map(sortServiceDescriptionServices)
-            : serviceDescriptions;
-          return this.serviceDescriptions;
-        });
+      return api.get<ServiceDescription[]>(`/clients/${encodedId}/service-descriptions`).then((res) => {
+        const serviceDescriptions: ServiceDescription[] = res.data;
+        this.serviceDescriptions = sort ? serviceDescriptions.map(sortServiceDescriptionServices) : serviceDescriptions;
+        return this.serviceDescriptions;
+      });
     },
-    async fetchServiceDescription(
-      serviceDescriptionId: string,
-    ): Promise<ServiceDescription> {
+    async fetchServiceDescription(serviceDescriptionId: string): Promise<ServiceDescription> {
       const encodedId = encodePathParameter(serviceDescriptionId);
       return api
         .get<ServiceDescription>(`/service-descriptions/${encodedId}`)
         .then((res) => res.data)
         .then((data) => (this.serviceDescription = data));
     },
-    async refreshServiceDescription(
-      serviceDescriptionId: string,
-      ignoreWarnings = false,
-    ) {
+    async refreshServiceDescription(serviceDescriptionId: string, ignoreWarnings = false) {
       const encodedId = encodePathParameter(serviceDescriptionId);
       return api.put(`/service-descriptions/${encodedId}/refresh`, {
         ignore_warnings: ignoreWarnings,
@@ -105,10 +90,7 @@ export const useServiceDescriptions = defineStore('service-descriptions', {
       const encodedId = encodePathParameter(serviceDescriptionId);
       return api.put(`/service-descriptions/${encodedId}/enable`, {});
     },
-    async disableServiceDescription(
-      serviceDescriptionId: string,
-      notice: string,
-    ) {
+    async disableServiceDescription(serviceDescriptionId: string, notice: string) {
       const encodedId = encodePathParameter(serviceDescriptionId);
       return api.put(`/service-descriptions/${encodedId}/disable`, {
         disabled_notice: notice,
@@ -122,13 +104,7 @@ export const useServiceDescriptions = defineStore('service-descriptions', {
         ignore_warnings: ignoreWarnings,
       });
     },
-    async saveRest(
-      clientId: string,
-      url: string,
-      serviceCode: string,
-      type: ServiceTypeEnum,
-      ignoreWarnings = false,
-    ) {
+    async saveRest(clientId: string, url: string, serviceCode: string, type: ServiceTypeEnum, ignoreWarnings = false) {
       const encodedId = encodePathParameter(clientId);
       return api.post(`/clients/${encodedId}/service-descriptions`, {
         url,
@@ -137,10 +113,7 @@ export const useServiceDescriptions = defineStore('service-descriptions', {
         ignore_warnings: ignoreWarnings,
       });
     },
-    async updateServiceDescription(
-      serviceDescriptionId: string,
-      update: ServiceDescriptionUpdate,
-    ) {
+    async updateServiceDescription(serviceDescriptionId: string, update: ServiceDescriptionUpdate) {
       const encodedId = encodePathParameter(serviceDescriptionId);
       return api.patch(`/service-descriptions/${encodedId}`, update);
     },

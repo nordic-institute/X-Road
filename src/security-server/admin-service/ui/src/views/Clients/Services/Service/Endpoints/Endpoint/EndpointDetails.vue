@@ -35,7 +35,8 @@
     <XrdFormBlock>
       <XrdFormBlockRow full-length>
         <v-select
-          v-bind="methodRef"
+          v-model="methodMdl"
+          v-bind="methodAttr"
           data-test="endpoint-method"
           class="xrd"
           autofocus
@@ -44,12 +45,7 @@
         />
       </XrdFormBlockRow>
       <XrdFormBlockRow full-length>
-        <v-text-field
-          v-bind="pathRef"
-          data-test="endpoint-path"
-          name="path"
-          :label="$t('endpoints.path')"
-        />
+        <v-text-field v-model="pathMdl" v-bind="pathAttr" data-test="endpoint-path" class="xrd" name="path" :label="$t('endpoints.path')" />
       </XrdFormBlockRow>
     </XrdFormBlock>
     <div class="font-weight-regular mt-6 on-surface">
@@ -95,7 +91,7 @@ import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { PublicPathState, useForm } from 'vee-validate';
+import { useForm } from 'vee-validate';
 import { useServices } from '@/store/modules/services';
 import {
   XrdElevatedViewFixedWidth,
@@ -104,6 +100,7 @@ import {
   XrdFormBlockRow,
   useNotifications,
   XrdConfirmDialog,
+  veeDefaultFieldConfig,
 } from '@niis/shared-ui';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
 import { clientTitle } from '@/util/ClientUtil';
@@ -126,9 +123,9 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    const { meta, resetForm, values, defineComponentBinds } = useForm({
+    const { meta, resetForm, values, defineField } = useForm({
       validationSchema: {
         method: 'required',
         path: 'required|xrdEndpoint',
@@ -138,19 +135,17 @@ export default defineComponent({
         path: '',
       },
     });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
-      },
-    });
-    const methodRef = defineComponentBinds('method', componentConfig);
-    const pathRef = defineComponentBinds('path', componentConfig);
+    const componentConfig = veeDefaultFieldConfig();
+    const [methodMdl, methodAttr] = defineField('method', componentConfig);
+    const [pathMdl, pathAttr] = defineField('path', componentConfig);
     return {
       meta,
       resetForm,
       values,
-      methodRef,
-      pathRef,
+      methodMdl,
+      methodAttr,
+      pathMdl,
+      pathAttr,
       addError,
       addSuccessMessage,
     };
@@ -260,17 +255,8 @@ export default defineComponent({
             });
             return endpoint;
           })
-          .then((endpoint) =>
-            this.fetchService(
-              createFullServiceId(
-                endpoint.client_id || '',
-                endpoint.service_code,
-              ),
-            ),
-          )
-          .then((service) =>
-            this.fetchServiceDescription(service.service_description_id),
-          )
+          .then((endpoint) => this.fetchService(createFullServiceId(endpoint.client_id || '', endpoint.service_code)))
+          .then((service) => this.fetchServiceDescription(service.service_description_id))
           .then((description) => this.fetchClient(description.client_id))
           .catch((error) => this.addError(error, { navigate: true }));
       },
@@ -279,12 +265,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useClient, ['fetchClient']),
     ...mapActions(useServiceDescriptions, ['fetchServiceDescription']),
-    ...mapActions(useServices, [
-      'deleteEndpoint',
-      'updateEndpoint',
-      'fetchEndpoint',
-      'fetchService',
-    ]),
+    ...mapActions(useServices, ['deleteEndpoint', 'updateEndpoint', 'fetchEndpoint', 'fetchService']),
     close(): void {
       this.$router.back();
     },

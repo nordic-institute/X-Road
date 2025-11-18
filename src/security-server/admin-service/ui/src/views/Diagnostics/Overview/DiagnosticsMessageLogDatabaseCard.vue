@@ -32,29 +32,16 @@
     :class="{ disabled: !messageLogEnabled }"
   >
     <template v-if="!messageLogEnabled" #append-title>
-      <XrdStatusChip
-        type="inactive"
-        text="diagnostics.addOnStatus.messageLogDisabled"
-      />
+      <XrdStatusChip type="inactive" text="diagnostics.addOnStatus.messageLogDisabled" />
     </template>
 
-    <div
-      v-if="messageLogEncryptionDiagnostics"
-      class="pl-4 pb-4 status"
-      data-test="message-log-database-encryption-status"
-    >
+    <div v-if="messageLogEncryptionDiagnostics" class="pl-4 pb-4 status" data-test="message-log-database-encryption-status">
       <span class="mr-2">
         {{ $t('diagnostics.encryption.statusTitle') }}
       </span>
-      <XrdStatusChip
-        :type="messageLogEncryptionStatusType"
-        :text="`diagnostics.encryption.status.${messageLogDatabaseEncryptionStatus}`"
-      >
+      <XrdStatusChip :type="messageLogEncryptionStatusType" :text="`diagnostics.encryption.status.${messageLogDatabaseEncryptionStatus}`">
         <template #icon>
-          <XrdStatusIcon
-            class="mr-1 ml-n1"
-            :status="messageLogEncryptionStatusIcon"
-          />
+          <XrdStatusIcon class="mr-1 ml-n1" :status="messageLogEncryptionStatusIcon" />
         </template>
       </XrdStatusChip>
     </div>
@@ -69,13 +56,7 @@
 import { defineComponent } from 'vue';
 import { mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
-import {
-  XrdCard,
-  XrdStatusChip,
-  statusToType,
-  XrdStatusIcon,
-  XrdEmptyPlaceholder
-} from '@niis/shared-ui';
+import { XrdCard, XrdStatusChip, statusToType, XrdStatusIcon, XrdEmptyPlaceholder } from '@niis/shared-ui';
 
 type Status = 'ok' | 'pending' | 'error';
 type Disabled = `${Status}-disabled`;
@@ -89,13 +70,9 @@ export default defineComponent({
     },
   },
   computed: {
-    ...mapState(useDiagnostics, [
-      'messageLogEnabled',
-      'messageLogEncryptionDiagnostics',
-    ]),
+    ...mapState(useDiagnostics, ['messageLogEnabled', 'messageLogEncryptionDiagnostics']),
     messageLogDatabaseEncryptionStatus() {
-      return this.messageLogEncryptionDiagnostics
-        ?.message_log_database_encryption_status;
+      return this.messageLogEncryptionDiagnostics?.message_log_database_encryption_status;
     },
     messageLogEncryptionStatusIcon(): StatusAndDisabled {
       if (this.messageLogEnabled) {

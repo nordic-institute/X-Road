@@ -61,13 +61,7 @@
       @accept="acceptWarnings()"
     />
     <template #footer>
-      <XrdBtn
-        :disabled="disableCancel"
-        variant="outlined"
-        data-test="cancel-button"
-        text="action.cancel"
-        @click="cancel"
-      />
+      <XrdBtn :disabled="disableCancel" variant="outlined" data-test="cancel-button" text="action.cancel" @click="cancel" />
       <v-spacer />
 
       <XrdBtn
@@ -79,12 +73,7 @@
         @click="previous"
       />
 
-      <XrdBtn
-        data-test="submit-button"
-        text="action.submit"
-        :loading="submitLoading"
-        @click="done"
-      />
+      <XrdBtn data-test="submit-button" text="action.submit" :loading="submitLoading" @click="done" />
     </template>
   </XrdWizardStep>
 </template>
@@ -125,21 +114,12 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useAddClient, [
-      'addMemberWizardMode',
-      'memberClass',
-      'memberCode',
-      'subsystemCode',
-      'subsystemName',
-      'tokens',
-    ]),
+    ...mapState(useAddClient, ['addMemberWizardMode', 'memberClass', 'memberCode', 'subsystemCode', 'subsystemName', 'tokens']),
     ...mapState(useUser, ['currentSecurityServer']),
     ...mapState(useCsr, ['csrTokenId', 'acmeOrder']),
 
     showRegisterOption(): boolean {
-      return (
-        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
-      );
+      return this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS;
     },
     canRegisterClient(): boolean {
       const memberName = `${this.currentSecurityServer?.instance_id}:${this.memberClass}:${this.memberCode}`;
@@ -166,22 +146,13 @@ export default defineComponent({
 
       this.createClient(ignoreWarnings).then(
         () => {
-          if (
-            this.addMemberWizardMode ===
-              AddMemberWizardModes.CERTIFICATE_EXISTS &&
-            this.registerChecked &&
-            this.canRegisterClient
-          ) {
+          if (this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS && this.registerChecked && this.canRegisterClient) {
             this.doRegisterClient();
-          } else if (
-            this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
-          ) {
+          } else if (this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS) {
             this.disableCancel = false;
             this.submitLoading = false;
             this.$emit('done');
-          } else if (
-            this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS
-          ) {
+          } else if (this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS) {
             this.generateCsr();
           } else {
             this.requestGenerateKeyAndCsr();
@@ -248,12 +219,7 @@ export default defineComponent({
         throw new Error('Current security server is missing instance id');
       }
 
-      const clientId = createClientId(
-        this.currentSecurityServer.instance_id,
-        this.memberClass,
-        this.memberCode,
-        this.subsystemCode,
-      );
+      const clientId = createClientId(this.currentSecurityServer.instance_id, this.memberClass, this.memberCode, this.subsystemCode);
 
       this.registerClient(clientId)
         .then(

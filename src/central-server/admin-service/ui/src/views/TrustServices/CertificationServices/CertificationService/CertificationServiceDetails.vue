@@ -41,18 +41,12 @@
           label="trustServices.trustService.details.issuerDistinguishedName"
           :value="currentCertificationService?.issuer_distinguished_name || ''"
         />
-        <XrdCardTableRow
-          data-test="valid-from-card"
-          label="trustServices.validFrom"
-        >
+        <XrdCardTableRow data-test="valid-from-card" label="trustServices.validFrom">
           <template #value>
             <XrdDateTime :value="currentCertificationService?.not_before" />
           </template>
         </XrdCardTableRow>
-        <XrdCardTableRow
-          data-test="valid-to-card"
-          label="trustServices.validTo"
-        >
+        <XrdCardTableRow data-test="valid-to-card" label="trustServices.validTo">
           <template #value>
             <XrdDateTime :value="currentCertificationService?.not_after" />
           </template>
@@ -65,21 +59,13 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 
-import {
-  XrdCard,
-  XrdCardTable,
-  XrdCardTableRow,
-  XrdDateTime,
-  XrdSubView,
-} from '@niis/shared-ui';
+import { XrdCard, XrdCardTable, XrdCardTableRow, XrdDateTime, XrdSubView } from '@niis/shared-ui';
 
 import { useCertificationService } from '@/store/modules/trust-services';
 
 const certificationServiceStore = useCertificationService();
 
-const currentCertificationService = computed(
-  () => certificationServiceStore.current,
-);
+const currentCertificationService = computed(() => certificationServiceStore.current);
 const loading = computed(() => certificationServiceStore.loadingCurrent);
 </script>
 
