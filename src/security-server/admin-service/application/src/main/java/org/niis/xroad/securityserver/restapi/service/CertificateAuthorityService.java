@@ -42,7 +42,6 @@ import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
@@ -213,11 +212,7 @@ public class CertificateAuthorityService {
         builder.subjectDnPath(subjectDnPath);
         builder.topCa(subjectDnPath.size() <= 1 && subjectName.equals(subjectDnPath.getFirst()));
 
-        Map<String, CostType> ocspResponderAddressesAndCostTypes = globalConfService.getOcspResponderAddressesAndCostTypes(certificate);
-        ocspResponderAddressesAndCostTypes.put("http://ocsp.int-xroad.net", CostType.FREE); // default OCSP responder
-        ocspResponderAddressesAndCostTypes.put("http://ocsp.int-xroad.net/ocsp2", CostType.PAID); // default OCSP responder
-        ocspResponderAddressesAndCostTypes.put("http://ocsp.int-xroad.net/ocsp3", CostType.UNDEFINED); // default OCSP responder
-        builder.ocspUrlsAndCostTypes(ocspResponderAddressesAndCostTypes);
+        builder.ocspUrlsAndCostTypes(globalConfService.getOcspResponderAddressesAndCostTypes(certificate));
 
         return builder.build();
     }
