@@ -49,6 +49,9 @@ export function createXrdVuetify(appSpecificLight: Color, onAppSpecificLight: Co
       VDataTable: {
         loaderHeight: 2,
       },
+      VCheckboxBtn: {
+        class: 'xrd',
+      },
       VTextField: {
         variant: 'underlined',
       },

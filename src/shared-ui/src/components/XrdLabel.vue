@@ -25,7 +25,13 @@ x<!--
    THE SOFTWARE.
  -->
 <template>
-  <div class="d-flex flex-row align-center" :class="{ 'cursor-pointer': clickable }" @click="clickable && emit('navigate')">
+  <div
+    class="d-flex flex-row align-center xrd-label"
+    :tabindex="clickable ? 0 : undefined"
+    :class="{ 'cursor-pointer': clickable }"
+    @click="clickable && emit('navigate')"
+    @keyup.enter="clickable && emit('navigate')"
+  >
     <slot name="prepend-label" />
     <span data-test="label" :class="textCss">
       <slot name="label">

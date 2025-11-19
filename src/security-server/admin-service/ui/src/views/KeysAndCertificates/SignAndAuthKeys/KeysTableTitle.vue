@@ -27,7 +27,7 @@
 <template>
   <div class="table-title cursor-pointer d-flex flex-row align-center pt-2 pb-2 pl-4 pr-4" :class="{ 'table-closed': !arrowState }">
     <div class="title-text font-weight-medium" data-test="key-title-sort" @click="arrowClick">
-      <v-btn class="opacity-100" variant="plain" color="primary" :icon="icon" :ripple="false" />
+      <v-btn class="xrd opacity-100" variant="plain" color="primary" :icon="icon" :ripple="false" />
 
       {{ title }}
     </div>

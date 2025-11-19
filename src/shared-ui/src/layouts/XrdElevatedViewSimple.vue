@@ -38,7 +38,7 @@
       <slot name="append-header" />
       <template v-if="closeable || goBackOnClose">
         <v-spacer />
-        <v-btn data-test="close-x" icon="close" variant="text" size="small" color="primary" @click="close" />
+        <v-btn data-test="close-x" class="xrd" icon="close" variant="text" size="small" color="primary" @click="close" />
       </template>
     </header>
     <v-progress-linear v-if="loading" bg-color="surface-container" height="1" indeterminate />

@@ -25,8 +25,24 @@
  * THE SOFTWARE.
  */
 
-// Material Symbols Outlined
-// https://fonts.google.com/icons?selected=Material+Symbols+Outlined:id_card:FILL@0;wght@400;GRAD@0;opsz@24&icon.size=24&icon.color=%23e3e3e3
+/*
+
+Material Symbols Outlined
+  https://fonts.google.com/icons?selected=Material+Symbols+Outlined:id_card:FILL@0;wght@400;GRAD@0;opsz@24&icon.size=24&icon.color=%23e3e3e3
+
+When using vuetify components just add suffix '__filled' to the icon name to get filled variant of it,
+  in case of v-icon it's also possible to add attribute 'filled' or 'filled="true"' to get filled variant
+
+Examples:
+
+  <v-btn icon="close" />
+  <v-btn icon="close__filled" />
+  <v-icon icon="close" />
+  <v-icon icon="close__filled" />
+  <v-icon icon="close" filled />
+  <v-icon icon="close" filled="true" />
+
+*/
 
 .msr {
   font-family: 'Material Symbols Rounded Variable';

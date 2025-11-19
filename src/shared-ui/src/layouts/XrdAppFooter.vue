@@ -49,7 +49,7 @@
           <v-col>
             <a
               rel="noopener"
-              class="body-regular font-weight-medium text-accent text-decoration-none"
+              class="basic-link body-regular font-weight-medium text-accent text-decoration-none"
               target="_blank"
               href="https://x-road.global/feedback"
             >
@@ -77,7 +77,7 @@
           <v-col>
             <a
               rel="noopener"
-              class="body-regular font-weight-medium text-accent text-decoration-none"
+              class="basic-link body-regular font-weight-medium text-accent text-decoration-none"
               href="https://niis.org/"
               target="_blank"
             >

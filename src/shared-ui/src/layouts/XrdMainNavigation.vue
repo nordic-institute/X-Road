@@ -30,14 +30,16 @@
       v-for="tab in tabs"
       :key="tab.key"
       data-test="main-navigation-item"
-      class="pa-0 mt-2 mb-3 xrd-rail-item-nav body-small text-center font-weight-bold"
+      class="xrd pa-0 mt-2 mb-3 mx-1 xrd-rail-item-nav body-small text-center font-weight-bold"
       variant="plain"
       density="compact"
+      tabindex
+      rounded
       :to="tab.to"
     >
       <template #default="{ isActive }">
         <v-list-item-title class="text-center mb-1">
-          <v-chip :to="tab.to" variant="flat" :color="isActive ? 'accent-container' : ''">
+          <v-chip variant="flat" :color="isActive ? 'accent-container' : ''">
             <v-icon size="x-large" :icon="tab.icon" :filled="isActive" />
           </v-chip>
         </v-list-item-title>
@@ -52,7 +54,7 @@
 
     <v-list-item
       data-test="user-menu"
-      class="pa-0 mt-2 mb-3 xrd-rail-item-options"
+      class="xrd pa-0 mt-2 mb-3 mx-1 xrd-rail-item-options"
       variant="plain"
       density="compact"
       lines="one"
@@ -75,19 +77,20 @@
             {{ userName }}
           </v-list-item-title>
         </v-list-item>
-        <v-list v-model:opened="expandedUserOptions" :selected="[currentLanguage]" density="compact" slim @update:selected="changeLanguage">
+        <v-list v-if="userOptions" v-model:opened="expandedUserOptions" :selected="[currentLanguage]" density="compact" slim @update:selected="changeLanguage">
           <v-list-group>
             <template #activator="{ props }">
               <v-list-item
                 prepend-icon="language"
                 v-bind="props"
-                rounded="xl"
-                class="xrd-rail-item-lang-select"
+                rounded="pill"
+                class="xrd xrd-rail-item-lang-select mx-1"
                 base-color="primary"
                 color="primary"
+                tabindex="0"
               >
                 <template #prepend>
-                  <v-icon icon="language"></v-icon>
+                  <v-icon icon="language" />
                 </template>
                 <v-list-item-title class="body-small font-weight-bold">{{ displayNames.of(currentLanguage) }}</v-list-item-title>
               </v-list-item>
@@ -96,10 +99,11 @@
               v-for="lang in supportedLanguages"
               :key="lang"
               :value="lang"
-              rounded="xl"
+              rounded="pill"
               variant="flat"
-              class="xrd-rail-item-lang mt-1 mb-1"
+              class="xrd xrd-rail-item-lang mt-1 mb-1 mx-1"
               color="accent-container"
+              tabindex="0"
             >
               <v-list-item-title class="body-small font-weight-bold">{{ displayNames.of(lang) }}</v-list-item-title>
             </v-list-item>
@@ -107,9 +111,10 @@
           <v-list-item
             v-if="databaseBasedAuthentication"
             data-test="password-button"
-            class="xrd-rail-item-password"
-            rounded="xl"
+            class="xrd xrd-rail-item-password mx-1"
+            rounded="pill"
             base-color="primary"
+            tabindex="0"
             @click="changePasswordDialog = true"
           >
             <template #prepend>
@@ -117,7 +122,14 @@
             </template>
             <v-list-item-title class="body-small font-weight-bold">{{ $t('login.changePassword') }}</v-list-item-title>
           </v-list-item>
-          <v-list-item data-test="logout-button" class="xrd-rail-item-logout" rounded="xl" base-color="primary" @click="emit('logout')">
+          <v-list-item
+            data-test="logout-button"
+            class="xrd xrd-rail-item-logout mx-1"
+            rounded="pill"
+            base-color="primary"
+            tabindex="0"
+            @click="emit('logout')"
+          >
             <template #prepend>
               <v-icon icon="logout"></v-icon>
             </template>

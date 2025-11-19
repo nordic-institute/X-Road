@@ -28,7 +28,7 @@
   <v-sheet color="surface-container" class="xrd-expansion-panel xrd-rounded-12 border" :class="{ 'pb-4': opened, 'pb-0': !opened }">
     <div data-test="header" class="xrd-expansion-panel-header d-flex flex-row align-center pt-2 pr-2 pb-2 pl-4" :class="headerClasses">
       <div>
-        <v-btn class="opacity-100" variant="plain" :icon="icon" :disabled="disabled" :ripple="false" color="primary" @click="toggle" />
+        <v-btn class="xrd opacity-100" variant="plain" :icon="icon" :disabled="disabled" :ripple="false" color="primary" @click="toggle" />
       </div>
       <div class="align-content-center" :class="{ 'text--disabled': disabled }">
         <slot name="link" :toggle="toggle" :opened="opened" />
