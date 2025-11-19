@@ -33,15 +33,18 @@ import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
 
 public class TestSuiteSigningCtxProvider extends TestSigningCtxProvider {
+    private final ProxyTestSuiteHelper proxyTestSuiteHelper;
 
-    public TestSuiteSigningCtxProvider(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
+    public TestSuiteSigningCtxProvider(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                       ProxyTestSuiteHelper proxyTestSuiteHelper) {
         super(globalConfProvider, keyConfProvider);
+        this.proxyTestSuiteHelper = proxyTestSuiteHelper;
     }
 
     @Override
     public SigningCtx createSigningCtx(ClientId clientId) {
         String orgName = clientId.getMemberCode();
-        SigningCtx ctx = ProxyTestSuiteHelper.currentTestCase.getSigningCtx(orgName);
+        SigningCtx ctx = proxyTestSuiteHelper.currentTestCase.getSigningCtx(orgName);
         if (ctx != null) {
             return ctx;
         }
