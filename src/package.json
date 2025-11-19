@@ -10,6 +10,11 @@
     "prepReportDirs": "mkdirp ./build && mkdirp ./build/reports",
     "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json >build/reports/audit-ci.txt"
   },
+  "pnpm": {
+    "overrides": {
+      "glob": "^11.1.0"
+    }
+  },
   "devDependencies": {
     "@intlify/eslint-plugin-vue-i18n": "^4.1.0",
     "@rushstack/eslint-patch": "^1.14.1",
@@ -36,7 +41,7 @@
     "typescript": "~5.9.3",
     "vite": "^7.1.12",
     "vite-plugin-vuetify": "^2.1.2",
-    "vitest": "^3.2.4",
+    "vitest": "^4.0.6",
     "vue-eslint-parser": "^10.2.0",
     "vue-i18n": "^11.1.12",
     "vue-tsc": "^3.1.2"
