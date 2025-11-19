@@ -68,6 +68,10 @@ public interface ConfigurationDirectory {
             return;
         }
 
+        if (fileName.endsWith("xxx")) {
+            throw new Exception("Invalid file name");
+        }
+
         Path parent = fileName.getParent();
 
         if (parent != null) {
