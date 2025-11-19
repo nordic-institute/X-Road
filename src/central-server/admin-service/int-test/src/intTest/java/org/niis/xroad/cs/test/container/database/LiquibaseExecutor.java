@@ -55,9 +55,9 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class LiquibaseExecutor extends SpringLiquibase {
     private static final Logger LIQUIBASE_LOGGER = LoggerFactory.getLogger("liquibase");
-    private final PostgresContextualContainer postgresContextualContainer;
+    private final ContainerDatabaseProvider containerDatabaseProvider;
 
-    public LiquibaseExecutor(PostgresContextualContainer postgresContextualContainer) {
+    public LiquibaseExecutor(ContainerDatabaseProvider containerDatabaseProvider) {
         super();
         setShouldRun(false);
         setDropFirst(true);
@@ -66,7 +66,7 @@ public class LiquibaseExecutor extends SpringLiquibase {
         setContexts("int-test");
         setAnalyticsEnabled(false);
 
-        this.postgresContextualContainer = postgresContextualContainer;
+        this.containerDatabaseProvider = containerDatabaseProvider;
     }
 
     /**
@@ -80,6 +80,12 @@ public class LiquibaseExecutor extends SpringLiquibase {
         if (getDataSource() == null) {
             setDataSource(createDataSource());
         }
+
+        // Set change log parameters for username and password
+        Map<String, String> changeLogParameters = new HashMap<>();
+        changeLogParameters.put("db_user", containerDatabaseProvider.getUsername());
+        changeLogParameters.put("db_password", containerDatabaseProvider.getPassword());
+        setChangeLogParameters(changeLogParameters);
 
         Scope.child(createLiquibaseLoggableScope(), () -> {
             executeUpdate();
@@ -99,10 +105,10 @@ public class LiquibaseExecutor extends SpringLiquibase {
     private DataSource createDataSource() {
         var config = new HikariConfig();
         config.setMaximumPoolSize(1);
-        config.setJdbcUrl(postgresContextualContainer.getExternalJdbcUrl());
-        config.setUsername(postgresContextualContainer.getTestContainer().getUsername());
-        config.setPassword(postgresContextualContainer.getTestContainer().getPassword());
 
+        config.setJdbcUrl(containerDatabaseProvider.getJdbcUrl());
+        config.setUsername(containerDatabaseProvider.getAdminUsername());
+        config.setPassword(containerDatabaseProvider.getAdminPassword());
         return new HikariDataSource(config);
     }
 

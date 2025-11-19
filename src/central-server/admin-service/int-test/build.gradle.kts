@@ -26,11 +26,19 @@ dependencies {
   intTestImplementation(libs.lombok)
 }
 
+intTestComposeEnv {
+  images(
+    "CS_IMG" to "central-server-dev"
+  )
+}
+
 tasks.test {
   useJUnitPlatform()
 }
 
 tasks.register<Test>("intTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+
   useJUnitPlatform()
 
   description = "Runs integration tests."
@@ -44,10 +52,6 @@ tasks.register<Test>("intTest") {
   if (project.hasProperty("intTestTags")) {
     intTestArgs += "-Dtest-automation.cucumber.filter.tags=${project.property("intTestTags")}"
   }
-  if (project.hasProperty("intTestProfilesInclude")) {
-    intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"
-  }
-
   jvmArgs(intTestArgs)
 
   testLogging {
@@ -60,13 +64,6 @@ tasks.register<Test>("intTest") {
   reports {
     junitXml.required.set(false) // equivalent to includeSystemOutLog = false
   }
-
-  dependsOn(":central-server:admin-service:application:bootJar")
-  shouldRunAfter(tasks.test)
-}
-
-tasks.named("check") {
-  dependsOn(tasks.named("intTest"))
 }
 
 archUnit {

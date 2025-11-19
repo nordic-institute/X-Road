@@ -108,7 +108,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(4, "body.size()", "Response contains 2 items"))
+                .assertion(equalsAssertion(5, "body.size()", "Response contains 5 items"))
 
                 .assertion(equalsAssertion("shared-params.xml",
                         "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileName", "File name matches"))

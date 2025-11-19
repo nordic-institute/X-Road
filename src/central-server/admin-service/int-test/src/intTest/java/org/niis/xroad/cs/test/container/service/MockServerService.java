@@ -29,21 +29,24 @@ package org.niis.xroad.cs.test.container.service;
 
 import lombok.RequiredArgsConstructor;
 import org.mockserver.client.MockServerClient;
-import org.niis.xroad.cs.test.container.ExtMockServerContainer;
+import org.niis.xroad.cs.test.container.CsAdminServiceIntTestSetup;
 import org.springframework.stereotype.Component;
+
+import static org.niis.xroad.cs.test.container.CsAdminServiceIntTestSetup.MOCKSERVER;
 
 @Component
 @RequiredArgsConstructor
 public class MockServerService {
 
-    private final ExtMockServerContainer mockServerContainer;
+    private final CsAdminServiceIntTestSetup testSetup;
 
     private MockServerClient mockServerClient;
 
     public MockServerClient client() {
         if (this.mockServerClient == null) {
-            this.mockServerClient = new MockServerClient(mockServerContainer.getTestContainer().getHost(),
-                    mockServerContainer.getTestContainer().getServerPort());
+            var mockServerContainer = testSetup.getContainerMapping(MOCKSERVER, CsAdminServiceIntTestSetup.Port.MOCKSERVER);
+            this.mockServerClient = new MockServerClient(mockServerContainer.host(),
+                    mockServerContainer.port());
         }
         return this.mockServerClient;
     }

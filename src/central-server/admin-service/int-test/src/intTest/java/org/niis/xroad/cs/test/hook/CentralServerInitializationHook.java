@@ -28,6 +28,7 @@ package org.niis.xroad.cs.test.hook;
 
 import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.test.container.database.LiquibaseExecutor;
 import org.niis.xroad.cs.test.utils.CentralServerInitializer;
 import org.springframework.stereotype.Component;
 
@@ -37,10 +38,12 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CentralServerInitializationHook implements BeforeSuiteHook {
+    private final LiquibaseExecutor liquibaseExecutor;
     private final CentralServerInitializer centralServerInitializer;
 
     @Override
     public void beforeSuite() {
+        liquibaseExecutor.executeChangesets();
         centralServerInitializer.initializeWithDefaults();
     }
 }
