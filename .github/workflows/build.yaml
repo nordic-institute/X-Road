@@ -22,6 +22,7 @@ permissions:
   pull-requests: write # https://github.com/gradle/actions/tree/main/setup-gradle#adding-job-summary-as-a-pull-request-comment
   actions: read # Required for https://github.com/dorny/test-reporter
   checks: write # Required for https://github.com/dorny/test-reporter
+  security-events: write  # Add this line
 # Cancels previous workflow run on PR if a new one is started (does not affect push to develop).
 # This is because github.head_ref is empty on push events so defaults to the unique github.run_id.
 # More info: https://docs.github.com/en/actions/using-jobs/using-concurrency

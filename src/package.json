@@ -32,7 +32,7 @@
     "path": "^0.12.7",
     "prettier": "^3.6.2",
     "resize-observer-polyfill": "^1.5.1",
-    "sass": "^1.93.2",
+    "sass": "^1.94.1",
     "typescript": "~5.9.3",
     "vite": "^7.1.12",
     "vite-plugin-vuetify": "^2.1.2",
@@ -41,7 +41,12 @@
     "vue-i18n": "^11.1.12",
     "vue-tsc": "^3.1.2"
   },
-  "packageManager": "pnpm@10.18.0+sha512.e804f889f1cecc40d572db084eec3e4881739f8dec69c0ff10d2d1beff9a4e309383ba27b5b750059d7f4c149535b6cd0d2cb1ed3aeb739239a4284a68f40cfa",
+  "pnpm": {
+    "overrides": {
+      "glob": "12.0.0"
+    }
+  },
+  "packageManager": "pnpm@10.22.0+sha512.bf049efe995b28f527fd2b41ae0474ce29186f7edcb3bf545087bd61fbbebb2bf75362d1307fda09c2d288e1e499787ac12d4fcb617a974718a6051f2eee741c",
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
