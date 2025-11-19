@@ -40,6 +40,7 @@ import org.niis.xroad.common.core.exception.ExceptionCategory;
 import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -74,12 +75,15 @@ class DiagnosticConnectionServiceTest {
     AuthCertVerifier authCertVerifier;
     @Mock
     ManagementRequestSenderService managementRequestSenderService;
+    @Mock
+    ServerConfProvider serverConfProvider;
 
     DiagnosticConnectionService service;
 
     @BeforeEach
     void setUp() {
-        service = new DiagnosticConnectionService(globalConfProvider, tokenService, authCertVerifier, managementRequestSenderService);
+        service = new DiagnosticConnectionService(globalConfProvider, tokenService, authCertVerifier, managementRequestSenderService,
+                serverConfProvider);
     }
 
     @Test

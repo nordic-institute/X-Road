@@ -336,11 +336,27 @@
       "ok": "Everything ok",
       "test": "Test",
       "centralServer": {
-        "title": "Central Server",
+        "authCertRequest": "Authentication certificate registration service",
         "globalConf": "Global configuration download",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Authentication certificate registration service"
+        "title": "Central Server"
+      },
+      "management": {
+        "party": "Security server",
+        "partyInfo": "Instance, client, security server",
+        "rest": "REST",
+        "soap": "SOAP",
+        "title": "Management Security Server"
+      },
+      "securityServer": {
+        "current": "Current Client",
+        "currentInfo": "Client",
+        "rest": "REST",
+        "soap": "SOAP",
+        "title": "Other Security Server",
+        "target": "Target",
+        "targetInfo": "Instance, client, security server",
       }
     }
   },

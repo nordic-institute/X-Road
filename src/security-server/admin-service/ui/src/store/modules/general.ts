@@ -26,12 +26,13 @@
 
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
-import { MemberName } from '@/openapi-types';
+import {MemberName, XRoadInstance} from '@/openapi-types';
 
 export const useGeneral = defineStore('general', {
   state: () => {
     return {
-      xroadInstances: [] as string[],
+      xRoadInstances: [] as XRoadInstance[],
+      xRoadInstanceIdentifiers: [] as string[],
       memberClasses: [] as string[],
       memberClassesCurrentInstance: [] as string[],
       memberName: '' as string,
@@ -75,11 +76,14 @@ export const useGeneral = defineStore('general', {
         });
     },
 
-    fetchXroadInstances() {
+    fetchXRoadInstances() {
       return api
         .get('/xroad-instances')
         .then((res) => {
-          this.xroadInstances = res.data as string[];
+          this.xRoadInstances = res.data as XRoadInstance[];
+          this.xRoadInstanceIdentifiers = this.xRoadInstances.map(
+            (instance) => instance.identifier
+          );
         })
         .catch((error) => {
           throw error;

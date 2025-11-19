@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,27 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.converter;
+package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
+import javax.net.ssl.X509TrustManager;
 
-@Component
-public class GlobalConfStatusConverter {
-    private final ConnectionStatusConverter connectionStatusConverter = new ConnectionStatusConverter();
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
-    public List<GlobalConfConnectionStatusDto> convert(List<DownloadUrlConnectionStatus> connectionStatuses) {
-        return connectionStatuses.stream()
-                .map(this::convert)
-                .toList();
+/**
+ * Dummy trust manager class, actual server certificate verification is
+ * done in CustomSSLSocketFactory.
+ */
+@Slf4j
+class ServiceTrustManager implements X509TrustManager {
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType)
+            throws CertificateException {
+        log.trace("checkClientTrusted()");
     }
 
-    private GlobalConfConnectionStatusDto convert(DownloadUrlConnectionStatus connectionStatus) {
-        return new GlobalConfConnectionStatusDto()
-                .downloadUrl(connectionStatus.getDownloadUrl())
-                .connectionStatus(connectionStatusConverter.convert(connectionStatus.getConnectionStatus()));
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType)
+            throws CertificateException {
+        log.trace("checkServerTrusted()");
     }
+
+    @Override
+    public X509Certificate[] getAcceptedIssuers() {
+        log.trace("getAcceptedIssuers()");
+        return new X509Certificate[]{};
+    }
+
 }

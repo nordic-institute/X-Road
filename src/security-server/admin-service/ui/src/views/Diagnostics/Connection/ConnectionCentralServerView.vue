@@ -125,11 +125,11 @@
   </v-card>
 </template>
 <script lang="ts">
-import {mapActions, mapState} from 'pinia';
-import {defineComponent} from 'vue';
-import {useDiagnostics} from "@/store/modules/diagnostics";
-import {useNotifications} from "@/store/modules/notifications";
-import type {CodeWithDetails} from "@/openapi-types";
+import { mapActions, mapState } from 'pinia';
+import { defineComponent } from 'vue';
+import { useDiagnostics } from "@/store/modules/diagnostics";
+import { useNotifications } from "@/store/modules/notifications";
+import type { CodeWithDetails } from "@/openapi-types";
 
 export default defineComponent({
   name: 'ConnectionCentralServerView',

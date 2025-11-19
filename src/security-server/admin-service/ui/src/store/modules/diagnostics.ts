@@ -48,6 +48,8 @@ export interface DiagnosticsState {
   proxyMemoryUsageStatus?: ProxyMemoryUsageStatus;
   authCertReqStatus?: ConnectionStatus;
   globalConfStatuses: GlobalConfConnectionStatus[];
+  otherSecurityServerStatus?: ConnectionStatus;
+  managementServiceStatus?: ConnectionStatus;
 }
 
 export const useDiagnostics = defineStore('diagnostics', {
@@ -62,6 +64,8 @@ export const useDiagnostics = defineStore('diagnostics', {
       proxyMemoryUsageStatus: undefined,
       authCertReqStatus: undefined,
       globalConfStatuses: [],
+      otherSecurityServerStatus: undefined,
+      managementServiceStatus: undefined,
     };
   },
   persist: {
@@ -132,6 +136,39 @@ export const useDiagnostics = defineStore('diagnostics', {
         .get<ConnectionStatus>('/diagnostics/auth-cert-req-status')
         .then((res) => {
           this.authCertReqStatus = res.data;
+        });
+    },
+    async fetchOtherSecurityServerStatus(serviceType: string, clientId: string, targetClientId: string,
+      securityServerId: string) {
+      return api
+        .get<ConnectionStatus>('/diagnostics/other-security-server-status', {
+          params: {
+            service_type: serviceType,
+            client_id: clientId,
+            target_client_id: targetClientId,
+            security_server_id: securityServerId
+          }
+        })
+        .then((res) => {
+          this.otherSecurityServerStatus = res.data;
+        });
+    },
+    cleanOtherSecurityServerStatus() {
+      this.otherSecurityServerStatus = undefined;
+    },
+    async fetchManagementServiceStatus(serviceType: string, clientId: string, targetClientId: string,
+                                       securityServerId: string) {
+      return api
+        .get<ConnectionStatus>('/diagnostics/other-security-server-status', {
+          params: {
+            service_type: serviceType,
+            client_id: clientId,
+            target_client_id: targetClientId,
+            security_server_id: securityServerId
+          }
+        })
+        .then((res) => {
+          this.managementServiceStatus = res.data;
         });
     },
     async fetchGlobalConfStatuses() {

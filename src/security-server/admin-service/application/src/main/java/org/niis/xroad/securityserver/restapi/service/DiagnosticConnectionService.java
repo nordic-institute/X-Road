@@ -27,9 +27,34 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.ProtocolVersion;
+import ee.ria.xroad.common.message.RestMessage;
+import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapBuilder;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapHeader;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapParserImpl;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.HttpSender;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.soap.SOAPException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.niis.xroad.common.core.dto.ConnectionStatus;
 import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -38,22 +63,41 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.util.HttpUrlConnectionConfigurer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
+import org.niis.xroad.securityserver.restapi.wsdl.ClientSslKeyManager;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_SECURITY_SERVER;
+import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
 import static org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 @Slf4j
@@ -64,6 +108,7 @@ import static org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleE
 public class DiagnosticConnectionService {
     private static final String HTTP = "http";
     private static final String HTTPS = "https";
+    private static final Integer HTTP200 = 200;
     private static final Integer PORT_80 = 80;
     private static final Integer PORT_443 = 443;
 
@@ -72,6 +117,7 @@ public class DiagnosticConnectionService {
     private final AuthCertVerifier authCertVerifier;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final HttpUrlConnectionConfigurer connectionConfigurer = new HttpUrlConnectionConfigurer();
+    private final ServerConfProvider serverConfProvider;
 
     public List<DownloadUrlConnectionStatus> getGlobalConfStatus() {
         Set<String> addresses = globalConfProvider.findSourceAddresses();
@@ -90,7 +136,7 @@ public class DiagnosticConnectionService {
         return SystemProperties.getCenterInternalDirectory();
     }
 
-    private URL getUrl(String protocol, String address, int port) {
+    private static URL getUrl(String protocol, String address, int port) {
         try {
             return URI.create(getDownloadUrl(protocol, address, port)).toURL();
         } catch (MalformedURLException e) {
@@ -99,11 +145,11 @@ public class DiagnosticConnectionService {
         return null;
     }
 
-    private String getDownloadUrl(String protocol, String address, int port) {
+    private static String getDownloadUrl(String protocol, String address, int port) {
         return String.format("%s://%s:%d/%s", protocol, address, port, getCenterInternalDirectory());
     }
 
-    private String getDownloadUrl(URL url) {
+    private static String getDownloadUrl(URL url) {
         return getDownloadUrl(url.getProtocol(), url.getHost(), url.getPort());
     }
 
@@ -156,6 +202,180 @@ public class DiagnosticConnectionService {
                     listOrEmpty(e.getFaultString()),
                     certValidation.errorCode, certValidation.metadata);
         }
+    }
+
+    public ConnectionStatus getOtherSecurityServerStatus(String serviceType, ClientId clientId,
+                                                         ClientId targetClientId,
+                                                         SecurityServerId securityServerId) {
+        if (!"REST".equals(serviceType) && !"SOAP".equals(serviceType)) {
+            throw new IllegalStateException("should not get here");
+        }
+
+        try (CloseableHttpClient proxyHttpClient = createProxyHttpClient()) {
+
+            if ("REST".equals(serviceType)) {
+                HttpGet request = getRestHttpGet(clientId, targetClientId, securityServerId);
+
+                try (CloseableHttpResponse response = proxyHttpClient.execute(request)) {
+                    if (response.getStatusLine().getStatusCode() != HTTP200) {
+                        ObjectMapper mapper = new ObjectMapper();
+                        String body = EntityUtils.toString(response.getEntity());
+                        JsonNode json = mapper.readTree(body);
+
+                        String errorCode = json.has("type") ? json.get("type").asText() : "Error";
+                        String details = json.has("message") ? json.get("message").asText() : body;
+
+                        return ConnectionStatus.error(errorCode, List.of(details));
+                    }
+                }
+
+            } else { // SOAP
+                try (HttpSender sender = createSender(proxyHttpClient)) {
+                    SoapMessageImpl soapMessage = buildListMethodsSoapMessage(
+                            clientId, targetClientId, securityServerId);
+
+                    send(sender, new URI(SystemProperties.getProxyUiSecurityServerUrl()), soapMessage);
+                }
+            }
+
+            return ConnectionStatus.ok();
+
+        } catch (Exception e) {
+            XrdRuntimeException result = XrdRuntimeException.systemException(e);
+            return ConnectionStatus.error(result.getErrorCode(), List.of(result.getDetails()));
+        }
+    }
+
+
+    private CloseableHttpClient createProxyHttpClient() {
+        try {
+            return createProxyHttpClientWithInternalKey();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
+                    .cause(e)
+                    .details("Unable to initialize request client")
+                    .build();
+        }
+    }
+
+    @SuppressWarnings("java:S4830") // Won't fix: Works as designed ("Server certificates should be verified")
+    private CloseableHttpClient createProxyHttpClientWithInternalKey() throws NoSuchAlgorithmException, KeyManagementException {
+        TrustManager trustManager = new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                // never called as this is trust manager of a client
+            }
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                // localhost called so server is trusted
+            }
+
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+        };
+
+        return createHttpClient(new KeyManager[] {new ClientSslKeyManager(serverConfProvider)}, new TrustManager[] {trustManager});
+    }
+
+    private static CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers)
+            throws NoSuchAlgorithmException, KeyManagementException {
+
+        SSLContext sslContext = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        sslContext.init(keyManagers, trustManagers, new SecureRandom());
+
+        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+
+        int timeout = SystemProperties.getClientProxyTimeout();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(timeout)
+                .setConnectionRequestTimeout(timeout)
+                .setSocketTimeout(SystemProperties.getClientProxyHttpClientTimeout())
+                .build();
+
+        return HttpClients.custom()
+                .setSSLSocketFactory(sslSocketFactory)
+                .setDefaultRequestConfig(requestConfig)
+                .disableAutomaticRetries()
+                .build();
+    }
+
+    private static HttpSender createSender(CloseableHttpClient client) {
+        HttpSender httpSender = new HttpSender(client);
+        httpSender.setConnectionTimeout(SystemProperties.getClientProxyTimeout());
+        httpSender.setSocketTimeout(SystemProperties.getClientProxyHttpClientTimeout());
+        return httpSender;
+    }
+
+    private static void send(HttpSender sender, URI address, SoapMessageImpl soapMessage) throws XrdRuntimeException {
+        try {
+            sender.doPost(address, new ByteArrayInputStream(soapMessage.getBytes()), CHUNKED_LENGTH, TEXT_XML_UTF8);
+
+            Soap response = new SoapParserImpl().parse(getBaseContentType(sender.getResponseContentType()), sender.getResponseContent());
+            if (response instanceof SoapFault soapFault) {
+                throw soapFault.toCodedException();
+            }
+
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    private HttpGet getRestHttpGet(ClientId clientId, ClientId targetClientId, SecurityServerId securityServerId) {
+        HttpGet request = new HttpGet(URI.create(SystemProperties.getProxyUiSecurityServerUrl() + getRestPath(targetClientId)));
+        request.setProtocolVersion(org.apache.http.HttpVersion.HTTP_1_1);
+        request.addHeader("accept", "application/json");
+        request.addHeader(HEADER_SECURITY_SERVER, String.format("%s/%s/%s/%s",
+                securityServerId.getXRoadInstance(),
+                securityServerId.getMemberClass(),
+                securityServerId.getMemberCode(),
+                securityServerId.getServerCode()));
+        request.addHeader(HEADER_CLIENT_ID, clientId.getSubsystemCode() != null
+                ? String.format("%s/%s/%s/%s",
+                clientId.getXRoadInstance(),
+                clientId.getMemberClass(),
+                clientId.getMemberCode(),
+                clientId.getSubsystemCode())
+                : String.format("%s/%s/%s",
+                clientId.getXRoadInstance(),
+                clientId.getMemberClass(),
+                clientId.getMemberCode()));
+        return request;
+    }
+
+    private static SoapMessageImpl buildListMethodsSoapMessage(ClientId clientId, ClientId targetClientId,
+                                                               SecurityServerId securityServerId)
+            throws IllegalAccessException, SOAPException, JAXBException, IOException {
+
+        SoapHeader header = new SoapHeader();
+        header.setClient(clientId);
+        header.setService(ServiceId.Conf.create(targetClientId, "listMethods"));
+        header.setSecurityServer(SecurityServerId.Conf.create(
+                securityServerId.getXRoadInstance(),
+                securityServerId.getMemberClass(),
+                securityServerId.getMemberCode(),
+                securityServerId.getServerCode()
+        ));
+        header.setQueryId(UUID.randomUUID().toString());
+        header.setProtocolVersion(new ProtocolVersion());
+
+        SoapBuilder builder = new SoapBuilder();
+        builder.setHeader(header);
+        builder.setRpcEncoded(false);
+
+        return builder.build();
+    }
+
+    private static String getRestPath(ClientId clientId) {
+        return String.format("/r%d/%s/%s/%s/%s/listMethods",
+                RestMessage.PROTOCOL_VERSION,
+                clientId.getXRoadInstance(),
+                clientId.getMemberClass(),
+                clientId.getMemberCode(),
+                clientId.getSubsystemCode());
     }
 
     private boolean isExpectedInvalidRequest(CodedException e) {

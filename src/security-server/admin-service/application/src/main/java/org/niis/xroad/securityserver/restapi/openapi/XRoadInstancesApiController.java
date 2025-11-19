@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,27 +23,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.converter;
+package org.niis.xroad.securityserver.restapi.openapi;
 
-import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.securityserver.restapi.openapi.model.XRoadInstanceDto;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@Component
-public class GlobalConfStatusConverter {
-    private final ConnectionStatusConverter connectionStatusConverter = new ConnectionStatusConverter();
+/**
+ * controller for xroad instance identifiers
+ */
+@Controller
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
+@PreAuthorize("denyAll")
+@RequiredArgsConstructor
+public class XRoadInstancesApiController implements XRoadInstancesApi {
 
-    public List<GlobalConfConnectionStatusDto> convert(List<DownloadUrlConnectionStatus> connectionStatuses) {
-        return connectionStatuses.stream()
-                .map(this::convert)
-                .toList();
-    }
+    private final GlobalConfProvider globalConfProvider;
 
-    private GlobalConfConnectionStatusDto convert(DownloadUrlConnectionStatus connectionStatus) {
-        return new GlobalConfConnectionStatusDto()
-                .downloadUrl(connectionStatus.getDownloadUrl())
-                .connectionStatus(connectionStatusConverter.convert(connectionStatus.getConnectionStatus()));
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_XROAD_INSTANCES')")
+    public ResponseEntity<Set<XRoadInstanceDto>> getXRoadInstances() {
+        Set<String> xRoadInstances = globalConfProvider.getInstanceIdentifiers();
+        String localInstance = globalConfProvider.getInstanceIdentifier();
+        return new ResponseEntity<>(xRoadInstances.stream()
+                .map(instance -> new XRoadInstanceDto(instance, localInstance.equals(instance)))
+                .collect(Collectors.toSet()), HttpStatus.OK);
     }
 }

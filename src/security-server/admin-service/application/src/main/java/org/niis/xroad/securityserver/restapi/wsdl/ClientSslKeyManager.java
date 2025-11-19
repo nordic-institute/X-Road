@@ -42,7 +42,7 @@ import java.security.cert.X509Certificate;
 
 @Slf4j
 @RequiredArgsConstructor
-class ClientSslKeyManager extends X509ExtendedKeyManager {
+public class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     private static final String ALIAS = "ClientSslKeyManager";
 

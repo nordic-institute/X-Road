@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-public class AuthCertStatusConverter {
+public class ConnectionStatusConverter {
     public ConnectionStatusDto convert(ConnectionStatus connectionStatus) {
         return new ConnectionStatusDto()
                 .error(getCodeWithDetailsDto(connectionStatus))
