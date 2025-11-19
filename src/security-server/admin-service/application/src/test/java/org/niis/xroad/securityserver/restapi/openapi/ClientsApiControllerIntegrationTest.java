@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -564,7 +563,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertThrows(NotFoundException.class, () -> clientsApiController.getClientServiceDescriptions("FI:GOV:M1:NONEXISTENT"));
 
         // bad client id
-        assertThrows(XrdRuntimeException.class, () -> clientsApiController.getClientServiceDescriptions("foobar"));
+        assertThrows(BadRequestException.class, () -> clientsApiController.getClientServiceDescriptions("foobar"));
 
         // client with some services
         descriptions = clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1);

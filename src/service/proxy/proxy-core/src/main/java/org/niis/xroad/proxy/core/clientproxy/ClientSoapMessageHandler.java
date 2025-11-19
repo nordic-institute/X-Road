@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
@@ -77,7 +76,7 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
             throw XrdRuntimeException.systemException(INVALID_HTTP_METHOD)
                     .details("Must use POST request method instead of %s".formatted(request.getMethod()))
                     .origin(ErrorOrigin.CLIENT)
-                    .build().withPrefix(ErrorCodes.CLIENT_X);
+                    .build();
         }
 
         globalConfProvider.verifyValidity();

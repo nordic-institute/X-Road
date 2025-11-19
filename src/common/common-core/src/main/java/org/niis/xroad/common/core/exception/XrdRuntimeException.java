@@ -235,30 +235,14 @@ public sealed class XrdRuntimeException extends CodedException
      * @throws IllegalArgumentException if ex is null
      */
     public static XrdRuntimeException systemException(Throwable ex) {
-        return systemException(ex, null);
-    }
-
-    /**
-     * Translates technical exceptions to proxy exceptions with
-     * the appropriate error code.
-     *
-     * @param ex     the exception
-     * @param origin the error origin
-     * @return translated XrdRuntimeException
-     * @throws IllegalArgumentException if ex is null
-     */
-//    @SuppressWarnings("squid:S1872")
-    public static XrdRuntimeException systemException(Throwable ex, ErrorOrigin origin) {
         return switch (ex) {
             case null -> throw new IllegalArgumentException("Exception cannot be null");
             case XrdRuntimeException xrdEx -> xrdEx;
             case CodedException cex -> new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, ErrorCode.withCode(cex.getFaultCode()))
-                    .origin(origin)
                     .cause(ex)
                     .details(cex.getFaultString())
                     .build();
             default -> new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, resolveExceptionCode(ex))
-                    .origin(origin)
                     .cause(ex)
                     .details(ex.getMessage())
                     .build();

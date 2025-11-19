@@ -458,7 +458,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
                 originalSoapAction = SoapUtils.validateSoapActionHeader(jRequest.getHeaders().get("SOAPAction"));
                 soapMessageDecoder.parse(jRequest.getInputStream());
             } catch (Exception ex) {
-                throw XrdRuntimeException.systemException(ex, ErrorOrigin.CLIENT).withPrefix(ErrorCodes.CLIENT_X);
+                throw XrdRuntimeException.systemException(ex).withPrefix(ErrorCodes.CLIENT_X);
             }
         } catch (Throwable ex) {
             setError(ex);
@@ -520,7 +520,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
                 setError(XrdRuntimeException.systemException(MISSING_SOAP)
                         .details("Request does not contain SOAP message")
                         .origin(ErrorOrigin.CLIENT)
-                        .build().withPrefix(ErrorCodes.CLIENT_X));
+                        .build());
 
                 return;
             }
