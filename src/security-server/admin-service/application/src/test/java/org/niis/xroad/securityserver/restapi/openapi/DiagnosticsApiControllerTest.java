@@ -549,6 +549,22 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         });
     }
 
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getOtherSecurityServerStatus() {
+
+        ResponseEntity<ConnectionStatusDto> response = diagnosticsApiController.getOtherSecurityServerStatus("REST",
+                "DEV:COM:4321", "DEV:COM:1234:MANAGEMENT", "DEV:COM:1234:SS0");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        ConnectionStatusDto connectionStatusDto = response.getBody();
+        assertNotNull(connectionStatusDto);
+        assertEquals(DiagnosticStatusClassDto.FAIL, connectionStatusDto.getStatusClass());
+        assertEquals("network_error", connectionStatusDto.getError().getCode());
+        assertEquals("Connect to localhost:8443 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",
+                connectionStatusDto.getError().getMetadata().getFirst());
+    }
+
     private void stubForDiagnosticsRequest(String requestPath, String responseBody) {
         stubFor(get(urlEqualTo(requestPath))
                 .willReturn(aResponse().withBody(responseBody)));

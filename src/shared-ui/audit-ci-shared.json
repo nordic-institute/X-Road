@@ -3,6 +3,5 @@
   "skip-dev": false,
   "package-manager": "auto",
   "allowlist": [
-    "GHSA-5j98-mcp5-4vw2|*"
   ]
 }

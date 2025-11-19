@@ -150,11 +150,11 @@ import { useDiagnostics } from "@/store/modules/diagnostics";
 
 const initialState = () => {
   return {
-    selectedClientId: null as string | null,
+    selectedClientId: '',
     selectedServiceType: '',
-    selectedInstance: null as string | null,
-    selectedTargetSubsystemId: null as string | null,
-    selectedSecurityServerId: null as string | null,
+    selectedInstance: '',
+    selectedTargetSubsystemId: '',
+    selectedSecurityServerId: '',
   };
 };
 
@@ -215,9 +215,9 @@ export default defineComponent({
       immediate: true,
       async handler(newInstance: string) {
 
-        this.selectedInstance = newInstance || null;
-        this.selectedTargetSubsystemId = null;
-        this.selectedSecurityServerId = null;
+        this.selectedInstance = '';
+        this.selectedTargetSubsystemId = '';
+        this.selectedSecurityServerId = '';
 
         if (newInstance) {
           await this.fetchAllSubsystems(newInstance);
@@ -225,7 +225,7 @@ export default defineComponent({
       },
     },
     async selectedTargetSubsystemId(newSubsystemId: string | null) {
-      this.selectedSecurityServerId = null;
+      this.selectedSecurityServerId = '';
       if (newSubsystemId) {
         await this.fetchSecurityServers(newSubsystemId);
         if (this.securityServers.length === 1) {
@@ -262,7 +262,7 @@ export default defineComponent({
         ? veEntries
           .map(([field, msgs]) => {
             const labelKey = buildKey(field)
-            const label = this.$te(labelKey) ? (this.$t(labelKey) as string) : field
+            const label = this.$t(labelKey) ? (this.$t(labelKey) as string) : field
             return `${label}: ${msgs.join(', ')}`
           })
           .join(' | ')
@@ -281,7 +281,7 @@ export default defineComponent({
           this.otherSecurityServerLoading = false;
         });
     },
-    statusIconType(status: string): string {
+    statusIconType(status: string | undefined): string {
       if (!status) {
         return '';
       }

@@ -65,7 +65,7 @@ public class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public String[] getClientAliases(String keyType, Principal[] issuers) {
-        return null;
+        return new String[]{};
     }
 
     @Override
@@ -75,7 +75,7 @@ public class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public String[] getServerAliases(String keyType, Principal[] issuers) {
-        return null;
+        return new String[]{};
     }
 
     @Override

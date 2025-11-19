@@ -818,6 +818,7 @@
     "updated": "Updated"
   },
   "noData": {
+    "dataLoading": "Loading data...",
     "noBackUpEncryptionKeys": "No configured backup encryption keys",
     "noCertificateAuthorities": "No certificate authorities",
     "noClientData": "No client data",

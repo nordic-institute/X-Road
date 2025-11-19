@@ -28,11 +28,15 @@
 
     <ConnectionCentralServerView class="mt-0" />
 
-    <div v-if="loading" class="p-4">
-      Loading connection data...
+    <div class="p-4">
+      <XrdEmptyPlaceholderRow
+        :colspan="12"
+        :loading="loading"
+        :no-items-text="$t('noData.dataLoading')"
+      />
     </div>
 
-    <template v-else>
+    <template v-if="!loading">
       <ConnectionManagementView class="mt-0" />
       <ConnectionSecurityServerView class="mt-0" />
     </template>

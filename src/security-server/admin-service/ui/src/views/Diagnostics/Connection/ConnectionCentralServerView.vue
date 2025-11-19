@@ -82,7 +82,7 @@
           :colspan="5"
           :loading="globalConfLoading"
           :data="globalConfStatuses"
-          :no-items-text="$t('noData.noTimestampingServices')"
+          :no-items-text="$t('noData.dataLoading')"
         />
         <tr>
           <td colspan="2">
@@ -117,7 +117,7 @@
           :colspan="5"
           :loading="authCertLoading"
           :data="authCertReqStatus"
-          :no-items-text="$t('noData.noTimestampingServices')"
+          :no-items-text="$t('noData.dataLoading')"
         />
         </tbody>
       </table>
@@ -178,7 +178,7 @@ export default defineComponent({
         ? veEntries
           .map(([field, msgs]) => {
             const labelKey = buildKey(field)
-            const label = this.$te(labelKey) ? (this.$t(labelKey) as string) : field
+            const label = this.$t(labelKey) ? (this.$t(labelKey) as string) : field
             return `${label}: ${msgs.join(', ')}`
           })
           .join(' | ')
@@ -207,7 +207,7 @@ export default defineComponent({
           this.globalConfLoading = false;
         });
     },
-    statusIconType(status: string): string {
+    statusIconType(status: string | undefined): string {
       if (!status) {
         return '';
       }
