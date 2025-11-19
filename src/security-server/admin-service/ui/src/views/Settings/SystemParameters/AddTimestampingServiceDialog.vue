@@ -57,8 +57,13 @@
               class="xrd"
               :label="$t('systemParameters.timestampingServices.action.add.dialog.info')"
             >
-              <div v-for="timestampingService in selectableTimestampingServices" :key="timestampingService.name">
+              <div
+                v-for="timestampingService in selectableTimestampingServices"
+                :key="timestampingService.name"
+                class="d-flex align-center"
+              >
                 <v-radio class="xrd" :name="timestampingService.name" :label="timestampingService.name" :value="timestampingService.name" />
+                <span class="mr-16">{{ $t('systemParameters.costType.' + timestampingService.cost_type) }}</span>
               </div>
             </v-radio-group>
           </XrdFormBlockRow>

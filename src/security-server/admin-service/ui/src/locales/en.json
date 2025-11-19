@@ -197,6 +197,7 @@
       "ok": "Everything ok",
       "test": "Test"
     },
+    "costType": "Cost Type",
     "downloadReport": "Download Diagnostic Report",
     "encryption": {
       "backup": {
@@ -921,7 +922,9 @@
           "acmeIpAddresses": "ACME Server IP",
           "distinguishedName": "Distinguished Name",
           "expires": "Expires",
-          "ocspResponse": "OCSP Response"
+          "ocspCostType": "OCSP Cost Type",
+          "ocspResponse": "OCSP Response",
+          "ocspUrl": "OCSP URL"
         },
         "notAvailable": "N/A",
         "ocspResponse": {
@@ -959,6 +962,11 @@
       },
       "title": "Configuration Anchor"
     },
+    "costType": {
+      "FREE": "Free",
+      "PAID": "Paid",
+      "UNDEFINED": "Undefined"
+    },
     "securityServer": {
       "addressChangeInProgress": "CHANGE IN PROGRESS",
       "editDialog": {
@@ -967,6 +975,24 @@
       "securityServer": "Security Server",
       "serverAddress": "Server address",
       "updateSubmitted": "Security Server address change successfully submitted"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Timestamping prioritization strategy: ",
+        "ONLY_FREE": "use only free timestamping services",
+        "ONLY_PAID": "use only paid timestamping services",
+        "FREE_FIRST": "use free timestamping services first, if all of them fail or none are available then use paid ones",
+        "PAID_FIRST": "use paid timestamping services first, if all of them fail or none are available then use free ones",
+        "NONE": "use all timestamping services without prioritization"
+      },
+      "ocsp": {
+        "label": "OCSP prioritization strategy: ",
+        "ONLY_FREE": "use only free OCSP services",
+        "ONLY_PAID": "use only paid OCSP services",
+        "FREE_FIRST": "use free OCSP services first, if all of them fail or none are available then use paid ones",
+        "PAID_FIRST": "use paid OCSP services first, if all of them fail or none are available then use free ones",
+        "NONE": "use all OCSP services without prioritization"
+      }
     },
     "timestampingServices": {
       "action": {

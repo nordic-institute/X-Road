@@ -179,6 +179,7 @@
       "ok": "Ok",
       "test": "Prueba"
     },
+    "costType": "Tipo de costo",
     "encryption": {
       "backup": {
         "configuredKeyId": "Clave de ID configurada",
@@ -797,6 +798,7 @@
           "acmeIpAddresses": "IP del servidor ACME",
           "distinguishedName": "Nombre distinguido",
           "expires": "Expira",
+          "ocspCostType": "Tipo de coste OCSP",
           "ocspResponse": "Respuesta OCSP"
         },
         "notAvailable": "No disponible",
@@ -835,6 +837,11 @@
       },
       "title": "Ancla de configuración"
     },
+    "costType": {
+      "FREE": "Gratis",
+      "PAID": "De pago",
+      "UNDEFINED": "Indefinido"
+    },
     "securityServer": {
       "addressChangeInProgress": "Cambio en proceso",
       "editDialog": {
@@ -843,6 +850,24 @@
       "securityServer": "Servidor de seguridad",
       "serverAddress": "Dirección del servidor",
       "updateSubmitted": "Cambio de dirección del servidor de seguridad enviado correctamente"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Estrategia de priorización de sellado de tiempo: ",
+        "ONLY_FREE": "usar solo servicios de sellado de tiempo gratuitos",
+        "ONLY_PAID": "usar solo servicios de sellado de tiempo de pago",
+        "FREE_FIRST": "usar primero los servicios gratuitos de sellado de tiempo, si todos fallan o no hay disponibles, usar los de pago",
+        "PAID_FIRST": "usar primero los servicios de pago de sellado de tiempo, si todos fallan o no hay disponibles, usar los gratuitos",
+        "NONE": "usar todos los servicios de sellado de tiempo sin priorización"
+      },
+      "ocsp": {
+        "label": "Estrategia de priorización OCSP: ",
+        "ONLY_FREE": "usar solo servicios OCSP gratuitos",
+        "ONLY_PAID": "usar solo servicios OCSP de pago",
+        "FREE_FIRST": "usar primero los servicios OCSP gratuitos, si todos fallan o no hay disponibles, usar los de pago",
+        "PAID_FIRST": "usar primero los servicios OCSP de pago, si todos fallan o no hay disponibles, usar los gratuitos",
+        "NONE": "usar todos los servicios OCSP sin priorización"
+      }
     },
     "timestampingServices": {
       "action": {

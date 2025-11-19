@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -47,6 +48,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -154,6 +156,10 @@ public class GlobalConfService {
         return globalConfProvider.getApprovedCA(globalConfProvider.getInstanceIdentifier(), certificate);
     }
 
+    public Map<String, CostType> getOcspResponderAddressesAndCostTypes(X509Certificate certificate) {
+        return globalConfProvider.getOcspResponderAddressesAndCostTypes(globalConfProvider.getInstanceIdentifier(), certificate);
+    }
+
     /**
      * @return CA certs for current instance
      */
@@ -180,6 +186,7 @@ public class GlobalConfService {
         TimestampingService tsp = new TimestampingService();
         tsp.setUrl(approvedTSA.getUrl());
         tsp.setName(approvedTSA.getName());
+        tsp.setCostType(approvedTSA.getCostType() != null ? approvedTSA.getCostType().name() : CostType.UNDEFINED.name());
         return tsp;
     }
 

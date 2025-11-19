@@ -29,10 +29,14 @@ package org.niis.xroad.securityserver.restapi.converter;
 import ee.ria.xroad.common.DiagnosticsStatus;
 
 import com.google.common.collect.Streams;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.CaOcspDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetailsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -43,27 +47,33 @@ import java.util.stream.Collectors;
  * Converter for certificate authority diagnostics related data between openapi and service domain classes
  */
 @Component
+@RequiredArgsConstructor
 public class OcspResponderDiagnosticConverter {
 
-    public OcspResponderDiagnosticsDto convert(
+    private final GlobalConfProvider globalConfProvider;
+
+    public CaOcspDiagnosticsDto convert(
             OcspResponderDiagnosticsStatus ocspResponderDiagnosticsStatus) {
-        OcspResponderDiagnosticsDto ocspResponderDiagnostics = new OcspResponderDiagnosticsDto();
+        CaOcspDiagnosticsDto ocspResponderDiagnostics = new CaOcspDiagnosticsDto();
         ocspResponderDiagnostics.setDistinguishedName(ocspResponderDiagnosticsStatus.getName());
-        List<OcspResponderDto> ocspResponders = convertOcspResponders(
+        List<OcspResponderDiagnosticsDto> ocspResponders = convertOcspResponders(
                 ocspResponderDiagnosticsStatus.getOcspResponderStatusMap());
         ocspResponderDiagnostics.setOcspResponders(ocspResponders);
         return ocspResponderDiagnostics;
     }
 
-    public Set<OcspResponderDiagnosticsDto> convert(Iterable<OcspResponderDiagnosticsStatus> statuses) {
+    public Set<CaOcspDiagnosticsDto> convert(Iterable<OcspResponderDiagnosticsStatus> statuses) {
         return Streams.stream(statuses)
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }
 
-    private OcspResponderDto convertOcspResponder(DiagnosticsStatus diagnosticsStatus) {
-        OcspResponderDto ocspResponder = new OcspResponderDto();
+    private OcspResponderDiagnosticsDto convertOcspResponder(DiagnosticsStatus diagnosticsStatus) {
+        OcspResponderDiagnosticsDto ocspResponder = new OcspResponderDiagnosticsDto();
         ocspResponder.setUrl(diagnosticsStatus.getDescription());
+        CostType ocspResponderCostType =
+                globalConfProvider.getOcspResponderCostType(globalConfProvider.getInstanceIdentifier(), diagnosticsStatus.getDescription());
+        ocspResponder.setCostType(CostTypeDto.fromValue(ocspResponderCostType.name()));
         if (diagnosticsStatus.getErrorCode() != null) {
             ocspResponder.setError(new CodeWithDetailsDto(diagnosticsStatus.getErrorCode().code())
                     .metadata(diagnosticsStatus.getErrorCodeMetadata()));
@@ -76,7 +86,7 @@ public class OcspResponderDiagnosticConverter {
         return ocspResponder;
     }
 
-    private List<OcspResponderDto> convertOcspResponders(Iterable<DiagnosticsStatus> statuses) {
+    private List<OcspResponderDiagnosticsDto> convertOcspResponders(Iterable<DiagnosticsStatus> statuses) {
         return Streams.stream(statuses)
                 .map(this::convertOcspResponder)
                 .collect(Collectors.toList());

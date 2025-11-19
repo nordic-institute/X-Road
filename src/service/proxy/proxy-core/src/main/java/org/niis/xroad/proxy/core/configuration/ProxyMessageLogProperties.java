@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import io.smallrye.config.ConfigMapping;
@@ -69,6 +70,10 @@ public interface ProxyMessageLogProperties {
     @WithName("hash-algo-id")
     @WithDefault("SHA-512")
     String hashAlgoIdStr();
+
+    @WithName("timestamping-prioritization-strategy")
+    @WithDefault("NONE")
+    ServicePrioritizationStrategy timestampingPrioritizationStrategy();
 
     default DigestAlgorithm hashAlg() {
         return Optional.ofNullable(hashAlgoIdStr())

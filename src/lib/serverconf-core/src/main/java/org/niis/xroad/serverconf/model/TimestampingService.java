@@ -38,4 +38,5 @@ public class TimestampingService {
     private Long id;
     private String name;
     private String url;
+    private String costType;
 }

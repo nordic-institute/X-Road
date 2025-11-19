@@ -141,6 +141,12 @@
             <XrdStatusChip type="inactive" text="diagnostics.addOnStatus.messageLogDisabled" />
           </template>
         </template>
+        <span class="pl-4" :class="{ 'opacity-60': !messageLogEnabled }">
+          {{ $t('systemParameters.servicePrioritizationStrategy.timestamping.label') }}
+          <strong data-test="timestamping-prioritization-strategy">{{ timestampingPrioritizationStrategy }}</strong>
+          {{ ' - ' }}
+          {{ $t(`systemParameters.servicePrioritizationStrategy.timestamping.${timestampingPrioritizationStrategy}`) }}
+        </span>
         <v-table class="xrd">
           <thead>
             <tr>
@@ -149,6 +155,9 @@
               </th>
               <th :class="{ 'opacity-60': !messageLogEnabled }">
                 {{ $t('systemParameters.timestampingServices.table.header.serviceURL') }}
+              </th>
+              <th :class="{ 'opacity-60': !messageLogEnabled }">
+                {{ $t('systemParameters.timestampingServices.table.header.costType') }}
               </th>
               <th>&nbsp;</th>
             </tr>
@@ -177,6 +186,12 @@
         class="settings-block"
         :class="{ 'ts-disabled': !messageLogEnabled }"
       >
+        <span class="pl-4">
+          {{ $t('systemParameters.servicePrioritizationStrategy.ocsp.label') }}
+          <strong data-test="ocsp-prioritization-strategy">{{ ocspPrioritizationStrategy }}</strong>
+          {{ ' - ' }}
+          {{ $t(`systemParameters.servicePrioritizationStrategy.ocsp.${ocspPrioritizationStrategy}`) }}
+        </span>
         <v-table class="xrd">
           <thead>
             <tr>
@@ -187,6 +202,12 @@
                 {{ $t('systemParameters.approvedCertificateAuthorities.table.header.acmeIpAddresses') }}
               </th>
               <th>
+                {{ $t('systemParameters.approvedCertificateAuthorities.table.header.ocspUrl') }}
+              </th>
+              <th>
+                {{ $t('systemParameters.approvedCertificateAuthorities.table.header.ocspCostType') }}
+              </th>
+              <th>
                 {{ $t('systemParameters.approvedCertificateAuthorities.table.header.ocspResponse') }}
               </th>
               <th>
@@ -195,7 +216,7 @@
             </tr>
           </thead>
           <tbody data-test="system-parameters-approved-ca-table-body">
-            <tr v-for="approvedCA in orderedCertificateAuthorities" :key="approvedCA.path">
+            <tr v-for="approvedCA in orderedCertificateAuthorities" :key="approvedCA.path" data-test="system-parameters-approved-ca-row">
               <td
                 :class="{
                   'interm-ca': !approvedCA.top_ca,
@@ -211,6 +232,20 @@
               </td>
               <td v-else>
                 {{ $t('systemParameters.approvedCertificateAuthorities.table.notAvailable') }}
+              </td>
+              <td>
+                <div v-for="ocspResponder in approvedCA.ocsp_responders" :key="ocspResponder.url" class="py-2">
+                  <p>
+                    {{ ocspResponder.url }}
+                  </p>
+                </div>
+              </td>
+              <td>
+                <div v-for="ocspResponder in approvedCA.ocsp_responders" :key="ocspResponder.url" class="py-2">
+                  <p>
+                    {{ $t('systemParameters.costType.' + ocspResponder.cost_type) }}
+                  </p>
+                </div>
               </td>
               <td v-if="approvedCA.top_ca">
                 {{ $t('systemParameters.approvedCertificateAuthorities.table.ocspResponse.NOT_AVAILABLE') }}
@@ -299,7 +334,9 @@ export default defineComponent({
       configurationAnchor: undefined as Anchor | undefined,
       downloadingAnchor: false,
       configuredTimestampingServices: [] as TimestampingService[],
+      timestampingPrioritizationStrategy: undefined as ServicePrioritizationStrategy | undefined,
       certificateAuthorities: [] as CertificateAuthority[],
+      ocspPrioritizationStrategy: undefined as ServicePrioritizationStrategy | undefined,
       permissions: Permissions,
       loadingTimestampingservices: false,
       loadingAnchor: false,
@@ -327,10 +364,12 @@ export default defineComponent({
     if (this.hasPermission(Permissions.VIEW_TSPS)) {
       this.fetchMessageLogEnabled();
       this.fetchConfiguredTimestampingServiced();
+      this.fetchTimestampingPrioritizationStrategy();
     }
 
     if (this.hasPermission(Permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)) {
       this.fetchApprovedCertificateAuthorities();
+      this.fetchOcspPrioritizationStrategy();
     }
     if (this.hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
       this.fetchServerAddress();
@@ -361,6 +400,12 @@ export default defineComponent({
         .catch((error) => this.addError(error))
         .finally(() => (this.loadingTimestampingservices = false));
     },
+    async fetchTimestampingPrioritizationStrategy() {
+      return api
+        .get<ServicePrioritizationStrategy>('/system/timestamping-services/prioritization-strategy')
+        .then((resp) => (this.timestampingPrioritizationStrategy = resp.data))
+        .catch((error) => this.showError(error));
+    },
     async fetchApprovedCertificateAuthorities() {
       this.loadingCAs = true;
       return api
@@ -368,6 +413,12 @@ export default defineComponent({
         .then((resp) => (this.certificateAuthorities = resp.data))
         .catch((error) => this.addError(error))
         .finally(() => (this.loadingCAs = false));
+    },
+    async fetchOcspPrioritizationStrategy() {
+      return api
+        .get<ServicePrioritizationStrategy>('/certificate-authorities/ocsp-prioritization-strategy')
+        .then((resp) => (this.ocspPrioritizationStrategy = resp.data))
+        .catch((error) => this.showError(error));
     },
     downloadAnchor(): void {
       this.downloadingAnchor = true;
@@ -411,5 +462,9 @@ export default defineComponent({
 
 .settings-block:not(:last-child) {
   margin-bottom: 16px;
+}
+
+.vertical-align-top {
+  vertical-align: top;
 }
 </style>

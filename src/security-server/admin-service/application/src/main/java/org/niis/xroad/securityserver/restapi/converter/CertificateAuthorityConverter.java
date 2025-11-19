@@ -27,11 +27,15 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import com.google.common.collect.Streams;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthorityDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,7 +55,7 @@ public class CertificateAuthorityConverter {
     public CertificateAuthorityDto convert(ApprovedCaDto approvedCaDto) {
         CertificateAuthorityDto ca = new CertificateAuthorityDto();
         ca.setName(approvedCaDto.getName());
-        ca.setAuthenticationOnly(Boolean.TRUE.equals(approvedCaDto.isAuthenticationOnly()));
+        ca.setAuthenticationOnly(approvedCaDto.isAuthenticationOnly());
         ca.setNotAfter(approvedCaDto.getNotAfter());
         ca.setIssuerDistinguishedName(approvedCaDto.getIssuerDistinguishedName());
         ca.setSubjectDistinguishedName(approvedCaDto.getSubjectDistinguishedName());
@@ -65,7 +69,18 @@ public class CertificateAuthorityConverter {
                 .map(ips -> ips.split(","))
                 .map(List::of)
                 .orElse(null));
+        ca.setOcspResponders(convertOcspResponders(approvedCaDto.getOcspUrlsAndCostTypes()));
         return ca;
+    }
+
+    private List<OcspResponderDto> convertOcspResponders(Map<String, CostType> ocspUrlsAndCostTypes) {
+        return ocspUrlsAndCostTypes.entrySet().stream()
+                .map(entry -> new OcspResponderDto(entry.getKey(), convertCostType(entry.getValue())))
+                .toList();
+    }
+
+    private static CostTypeDto convertCostType(CostType costType) {
+        return costType != null ? CostTypeDto.valueOf(costType.name()) : CostTypeDto.UNDEFINED;
     }
 
     /**

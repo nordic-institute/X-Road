@@ -191,6 +191,7 @@
       "ok": "Kõik on korras",
       "test": "Test"
     },
+    "costType": "Hinna tüüp",
     "downloadReport": "Salvesta Diagnostika Raport",
     "encryption": {
       "backup": {
@@ -854,6 +855,7 @@
           "acmeIpAddresses": "ACME serveri IP",
           "distinguishedName": "Eristusnimi",
           "expires": "Aegub",
+          "ocspCostType": "OCSP hinna tüüp",
           "ocspResponse": "OCSP vastus"
         },
         "notAvailable": "Ei kohaldata",
@@ -892,6 +894,11 @@
       },
       "title": "Konfiguratsiooniankur"
     },
+    "costType": {
+      "FREE": "Tasuta",
+      "PAID": "Tasuline",
+      "UNDEFINED": "Määramata"
+    },
     "securityServer": {
       "addressChangeInProgress": "MUUTUS ON POOLELI",
       "editDialog": {
@@ -900,6 +907,24 @@
       "securityServer": "Turvaserver",
       "serverAddress": "Serveri aadress",
       "updateSubmitted": "Turvaserveri aadressi muutus edukalt esitatud"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Ajatemplite eelistamise strateegia: ",
+        "ONLY_FREE": "kasuta ainult tasuta ajatempliteenuseid",
+        "ONLY_PAID": "kasuta ainult tasulisi ajatempliteenuseid",
+        "FREE_FIRST": "kasuta esmalt tasuta ajatempliteenuseid, kui need ebaõnnestuvad või pole saadaval, kasuta tasulisi",
+        "PAID_FIRST": "kasuta esmalt tasulisi ajatempliteenuseid, kui need ebaõnnestuvad või pole saadaval, kasuta tasuta",
+        "NONE": "kasuta kõiki ajatempliteenuseid ilma eelistuseta"
+      },
+      "ocsp": {
+        "label": "OCSP eelistamise strateegia: ",
+        "ONLY_FREE": "kasuta ainult tasuta OCSP teenuseid",
+        "ONLY_PAID": "kasuta ainult tasulisi OCSP teenuseid",
+        "FREE_FIRST": "kasuta esmalt tasuta OCSP teenuseid, kui need ebaõnnestuvad või pole saadaval, kasuta tasulisi",
+        "PAID_FIRST": "kasuta esmalt tasulisi OCSP teenuseid, kui need ebaõnnestuvad või pole saadaval, kasuta tasuta",
+        "NONE": "kasuta kõiki OCSP teenuseid ilma eelistuseta"
+      }
     },
     "timestampingServices": {
       "action": {

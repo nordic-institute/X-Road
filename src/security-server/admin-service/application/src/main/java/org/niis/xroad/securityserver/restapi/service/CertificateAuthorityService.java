@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
@@ -41,6 +42,7 @@ import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
@@ -84,6 +86,7 @@ public class CertificateAuthorityService {
     private final CurrentSecurityServerId currentSecurityServerId;
     private final AcmeService acmeService;
     private final AcmeProperties acmeProperties;
+    private final ProxyRpcClient proxyRpcClient;
 
     /**
      * {@link CertificateAuthorityService#getCertificateAuthorities(KeyUsageInfo, boolean)}
@@ -209,6 +212,8 @@ public class CertificateAuthorityService {
         builder.subjectDnPath(subjectDnPath);
         builder.topCa(subjectDnPath.size() <= 1 && subjectName.equals(subjectDnPath.getFirst()));
 
+        builder.ocspUrlsAndCostTypes(globalConfService.getOcspResponderAddressesAndCostTypes(certificate));
+
         return builder.build();
     }
 
@@ -227,6 +232,10 @@ public class CertificateAuthorityService {
             issuer = subjectsToIssuers.get(current);
         }
         return pathElements;
+    }
+
+    public ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
+        return proxyRpcClient.getOcspPrioritizationStrategy();
     }
 
     public boolean isAcmeExternalAccountBindingRequired(String caName) throws CertificateAuthorityNotFoundException {

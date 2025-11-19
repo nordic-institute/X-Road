@@ -32,6 +32,9 @@
     <td :class="{ 'opacity-60': !messageLogEnabled }">
       {{ timestampingService.url }}
     </td>
+    <td :class="{ 'opacity-60': !messageLogEnabled }">
+      {{ $t('systemParameters.costType.' + timestampingService.cost_type) }}
+    </td>
     <td class="text-end">
       <XrdBtn
         v-if="showDeleteTsp"

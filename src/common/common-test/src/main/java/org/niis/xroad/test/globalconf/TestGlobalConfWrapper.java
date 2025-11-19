@@ -38,6 +38,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -48,6 +49,7 @@ import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
@@ -131,6 +133,16 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     @Override
     public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) {
         return globalConfProvider.getSubjectName(parameters, cert);
+    }
+
+    @Override
+    public Map<String, CostType>  getOcspResponderAddressesAndCostTypes(String instanceIdentifier, X509Certificate caCert) {
+        return globalConfProvider.getOcspResponderAddressesAndCostTypes(instanceIdentifier, caCert);
+    }
+
+    @Override
+    public CostType getOcspResponderCostType(String instanceIdentifier, String ocspUrl) {
+        return globalConfProvider.getOcspResponderCostType(instanceIdentifier, ocspUrl);
     }
 
     @Override
