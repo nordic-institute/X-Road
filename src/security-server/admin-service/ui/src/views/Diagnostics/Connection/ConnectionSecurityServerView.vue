@@ -173,7 +173,6 @@ export default defineComponent({
     ...mapState(useClient, ['securityServers']),
     ...mapState(useDiagnostics, ['otherSecurityServerStatus']),
 
-
     localInstance(): string {
       const local = this.xRoadInstances.find(i => i.local);
       return local ? local.identifier : '';

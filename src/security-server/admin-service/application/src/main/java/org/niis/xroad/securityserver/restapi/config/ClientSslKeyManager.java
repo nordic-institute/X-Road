@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.wsdl;
+package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 

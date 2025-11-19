@@ -63,7 +63,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.util.HttpUrlConnectionConfigurer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
-import org.niis.xroad.securityserver.restapi.wsdl.ClientSslKeyManager;
+import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -108,7 +108,7 @@ import static org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleE
 public class DiagnosticConnectionService {
     private static final String HTTP = "http";
     private static final String HTTPS = "https";
-    private static final Integer HTTP200 = 200;
+    private static final Integer HTTP_200 = 200;
     private static final Integer PORT_80 = 80;
     private static final Integer PORT_443 = 443;
 
@@ -217,7 +217,7 @@ public class DiagnosticConnectionService {
                 HttpGet request = getRestHttpGet(clientId, targetClientId, securityServerId);
 
                 try (CloseableHttpResponse response = proxyHttpClient.execute(request)) {
-                    if (response.getStatusLine().getStatusCode() != HTTP200) {
+                    if (response.getStatusLine().getStatusCode() != HTTP_200) {
                         ObjectMapper mapper = new ObjectMapper();
                         String body = EntityUtils.toString(response.getEntity());
                         JsonNode json = mapper.readTree(body);

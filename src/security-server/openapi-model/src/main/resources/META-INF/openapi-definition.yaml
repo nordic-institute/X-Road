@@ -1247,7 +1247,7 @@ paths:
     get:
       tags:
         - clients
-      summary: get all cliens security servers
+      summary: get all clients security servers
       operationId: getClientSecurityServers
       description: <h3>Administrator views the details of clients security servers.</h3>
       parameters:
@@ -6216,7 +6216,7 @@ components:
           $ref: '#/components/schemas/ConnectionStatus'
     XRoadInstance:
       type: object
-      description: x-road instance identifier
+      description: x-road instance
       required:
         - identifier
         - local
@@ -6227,7 +6227,7 @@ components:
           format: text
           minLength: 1
           maxLength: 255
-          description: x-Road instance identifier
+          description: x-road instance identifier
         local:
           type: boolean
           readOnly: true

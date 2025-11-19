@@ -27,7 +27,7 @@
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import {CertificateDetails, Client, SecurityServer, TokenCertificate} from '@/openapi-types';
+import { CertificateDetails, Client, SecurityServer, TokenCertificate } from '@/openapi-types';
 
 export interface ClientState {
   client: Client | null;

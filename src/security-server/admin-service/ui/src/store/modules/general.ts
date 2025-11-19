@@ -26,7 +26,7 @@
 
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
-import {MemberName, XRoadInstance} from '@/openapi-types';
+import { MemberName, XRoadInstance } from '@/openapi-types';
 
 export const useGeneral = defineStore('general', {
   state: () => {
