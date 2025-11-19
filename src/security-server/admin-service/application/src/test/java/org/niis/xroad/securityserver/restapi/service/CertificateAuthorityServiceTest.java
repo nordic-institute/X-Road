@@ -36,6 +36,7 @@ import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -82,6 +83,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
             "CN=X-Road Test CA CN, OU=X-Road Test CA OU, O=X-Road Test, C=FI";
     public static final String MOCK_INTERMEDIATE_CA_SUBJECT_DN =
             "CN=int-cn, O=X-Road Test int";
+    public static final String MOCK_OCSP_RESPONDER_ADDRESS = "http://ocsp-responder.example.com";
 
     @Before
     public void setup() throws Exception {
@@ -99,6 +101,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         approvedCAInfos.add(new ApprovedCAInfo("mock-intermediate-ca", false,
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", null, null, null, null));
         when(globalConfProvider.getApprovedCAs(any())).thenReturn(approvedCAInfos);
+        when(globalConfProvider.getOcspResponderAddressesAndCostTypes(any(), any())).thenReturn(Map.of(MOCK_OCSP_RESPONDER_ADDRESS,
+                CostType.FREE));
 
         List<X509Certificate> caCerts = new ArrayList<>();
         caCerts.add(CertificateTestUtils.getMockCertificate());
@@ -262,6 +266,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals(Collections.singletonList("CN=N/A"), ca.getSubjectDnPath());
         assertTrue(ca.isTopCa());
         assertEquals("good", ca.getOcspResponse());
+        assertEquals(CostType.FREE, ca.getOcspUrlsAndCostTypes().get(MOCK_OCSP_RESPONDER_ADDRESS));
         assertEquals(OffsetDateTime.parse("2038-01-01T00:00Z"), ca.getNotAfter());
         assertTrue(ca.isAcmeCapable());
 
@@ -275,6 +280,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals(Collections.singletonList(MOCK_AUTH_CERT_SUBJECT), ca2.getSubjectDnPath());
         assertTrue(ca2.isTopCa());
         assertEquals("not available", ca2.getOcspResponse());
+        assertEquals(CostType.FREE, ca.getOcspUrlsAndCostTypes().get(MOCK_OCSP_RESPONDER_ADDRESS));
         assertEquals(OffsetDateTime.parse("2039-11-23T09:20:27Z"), ca2.getNotAfter());
         assertFalse(ca2.isAcmeCapable());
 

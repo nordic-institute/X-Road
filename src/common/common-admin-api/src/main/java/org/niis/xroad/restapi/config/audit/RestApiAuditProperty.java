@@ -110,6 +110,7 @@ public enum RestApiAuditProperty {
     GENERATED_AT,
     TSP_NAME,
     TSP_URL,
+    TSP_COST_TYPE,
 
     OWNER_IDENTIFIER,
     OWNER_CLASS,

@@ -174,6 +174,7 @@
       "ok": "Her şey yolunda",
       "test": "Test"
     },
+    "costType": "Gurluş görnüşi",
     "encryption": {
       "backup": {
         "configuredKeyId": "Açaryň sazlanan Id-si",
@@ -774,6 +775,7 @@
           "acmeIpAddresses": "ACME Serweriň IP-si",
           "distinguishedName": "Tapawutlanan at",
           "expires": "Möhleti gutarýar",
+          "ocspCostType": "OCSP çykdajy görnüşi",
           "ocspResponse": "OCSP jogap"
         },
         "notAvailable": "Maglumat ýok",
@@ -812,6 +814,11 @@
       },
       "title": "Konfigurasiýanyň labyry"
     },
+    "costType": {
+      "FREE": "Mugt",
+      "PAID": "Tölegli",
+      "UNDEFINED": "Kesgitlenmedik"
+    },
     "securityServer": {
       "addressChangeInProgress": "ÜÝTGETME DOWAM EDIP DUR",
       "editDialog": {
@@ -820,6 +827,24 @@
       "securityServer": "Howpsuz serwer",
       "serverAddress": "Seweriň salgysy",
       "updateSubmitted": "Howpsuzlyk Serweriniň salgysynyň üýtgemegi üstünlikli iberildi"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Wagty bellige alyş hyzmatlarynyň ileri tutulma strategiýasy: ",
+        "ONLY_FREE": "diňe mugt wagty bellige alyş hyzmatlaryny ulanyň",
+        "ONLY_PAID": "diňe tölegli wagty bellige alyş hyzmatlaryny ulanyň",
+        "FREE_FIRST": "ilki mugt wagty bellige alyş hyzmatlaryny ulanyň, hemmesi işlemeýän bolsa ýa-da elýeterli däl bolsa, tölegli hyzmatlary ulanyň",
+        "PAID_FIRST": "ilki tölegli wagty bellige alyş hyzmatlaryny ulanyň, hemmesi işlemeýän bolsa ýa-da elýeterli däl bolsa, mugt hyzmatlary ulanyň",
+        "NONE": "prioritetleşdirilmezden ähli wagty bellige alyş hyzmatlaryny ulanyň"
+      },
+      "ocsp": {
+        "label": "OCSP ileri tutulma strategiýasy: ",
+        "ONLY_FREE": "diňe mugt OCSP hyzmatlaryny ulanyň",
+        "ONLY_PAID": "diňe tölegli OCSP hyzmatlaryny ulanyň",
+        "FREE_FIRST": "ilki mugt OCSP hyzmatlaryny ulanyň, hemmesi işlemeýän bolsa ýa-da elýeterli däl bolsa, tölegli hyzmatlary ulanyň",
+        "PAID_FIRST": "ilki tölegli OCSP hyzmatlaryny ulanyň, hemmesi işlemeýän bolsa ýa-da elýeterli däl bolsa, mugt hyzmatlary ulanyň",
+        "NONE": "prioritetleşdirilmezden ähli OCSP hyzmatlaryny ulanyň"
+      }
     },
     "timestampingServices": {
       "action": {

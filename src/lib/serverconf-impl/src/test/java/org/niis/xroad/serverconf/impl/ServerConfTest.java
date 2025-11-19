@@ -40,6 +40,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
@@ -320,6 +321,14 @@ public class ServerConfTest {
         for (int i = 0; i < NUM_TSPS; i++) {
             assertEquals(String.format("tspUrl%d", i), tspUrls.get(i));
         }
+    }
+
+    @Test
+    public void getTspCostType() {
+        String costType0 = serverConfProvider.getTspCostType("tspUrl0");
+        String costType2 = serverConfProvider.getTspCostType("tspUrl2");
+        assertEquals(CostType.UNDEFINED.name(), costType0);
+        assertEquals(CostType.FREE.name(), costType2);
     }
 
     /**

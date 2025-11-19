@@ -183,7 +183,7 @@ public class GlobalConfChecker {
 
     /**
      * Matches timestamping services in globalTsps with localTsps by name and checks if the URLs have changed.
-     * If the change is unambiguous, it's performed on localTsps. Otherwise a warning is logged.
+     * If the change is unambiguous, it's performed on localTsps. Otherwise, a warning is logged.
      *
      * @param globalTsps timestamping services from global configuration
      * @param localTsps  timestamping services from local database

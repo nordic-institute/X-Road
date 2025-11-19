@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
@@ -36,6 +37,7 @@ import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.AcmeOrderDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritizationStrategyDto;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -157,6 +159,17 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
             fail("should have thrown exception");
         } catch (AccessDeniedException expected) {
         }
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_APPROVED_CERTIFICATE_AUTHORITIES"})
+    public void getOcspPrioritizationStrategy() {
+        when(certificateAuthorityService.getOcspPrioritizationStrategy())
+                .thenReturn(ServicePrioritizationStrategy.ONLY_PAID);
+
+        ResponseEntity<ServicePrioritizationStrategyDto> response = caController.getOcspPrioritizationStrategy();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(ServicePrioritizationStrategyDto.ONLY_PAID, response.getBody());
     }
 
     @Test

@@ -52,11 +52,11 @@ import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagno
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CaOcspDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OperationalDataIntervalDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ProxyMemoryUsageStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
@@ -122,7 +122,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<Set<OcspResponderDiagnosticsDto>> getOcspRespondersDiagnostics() {
+    public ResponseEntity<Set<CaOcspDiagnosticsDto>> getOcspRespondersDiagnostics() {
         List<OcspResponderDiagnosticsStatus> statuses = diagnosticService.queryOcspResponderStatus();
         return new ResponseEntity<>(ocspResponderDiagnosticConverter.convert(statuses), HttpStatus.OK);
     }

@@ -48,6 +48,7 @@ import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
@@ -63,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -321,6 +323,32 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert) throws CertificateEncodingException, IOException {
         return doGetOcspResponderAddressesForCertificate(caCert, true);
+    }
+
+    @Override
+    public Map<String, CostType> getOcspResponderAddressesAndCostTypes(String instanceIdentifier, X509Certificate caCert) {
+        Map<String, CostType> responders = new java.util.HashMap<>();
+        SharedParametersCache sharedParametersCache = getSharedParametersCache(instanceIdentifier);
+        List<SharedParameters.OcspInfo> ocspInfos = sharedParametersCache.getCaCertsAndOcspData().get(caCert);
+        if (ocspInfos != null) {
+            ocspInfos.stream()
+                    .filter(ocspInfo -> StringUtils.isNotBlank(ocspInfo.getUrl()))
+                    .forEach(ocspInfo -> responders.put(ocspInfo.getUrl().trim(), ocspInfo.getCostType()));
+        }
+        return responders;
+    }
+
+    @Override
+    public CostType getOcspResponderCostType(String instanceIdentifier, String ocspUrl) {
+        SharedParametersCache sharedParametersCache = getSharedParametersCache(instanceIdentifier);
+        for (List<SharedParameters.OcspInfo> ocspInfos : sharedParametersCache.getCaCertsAndOcspData().values()) {
+            for (SharedParameters.OcspInfo ocspInfo : ocspInfos) {
+                if (StringUtils.isNotBlank(ocspInfo.getUrl()) && ocspInfo.getUrl().trim().equals(ocspUrl.trim())) {
+                    return ocspInfo.getCostType();
+                }
+            }
+        }
+        return CostType.UNDEFINED;
     }
 
     @Override

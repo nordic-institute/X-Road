@@ -34,10 +34,12 @@ import com.google.common.collect.Ordering;
 import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.model.TimestampingService;
@@ -307,17 +309,19 @@ public final class TestUtils {
      * @param name
      * @return
      */
-    public static TimestampingService createTspType(String url, String name) {
+    public static TimestampingService createTspType(String url, String name, String costType) {
         TimestampingService tsp = new TimestampingService();
         tsp.setUrl(url);
         tsp.setName(name);
+        tsp.setCostType(costType);
         return tsp;
     }
 
-    public static TimestampingServiceEntity createTspTypeEntity(String url, String name) {
+    public static TimestampingServiceEntity createTspTypeEntity(String url, String name, String costType) {
         TimestampingServiceEntity tsp = new TimestampingServiceEntity();
         tsp.setUrl(url);
         tsp.setName(name);
+        tsp.setCostType(costType);
         return tsp;
     }
 
@@ -328,10 +332,11 @@ public final class TestUtils {
      * @param name
      * @return
      */
-    public static SharedParameters.ApprovedTSA createApprovedTsaType(String url, String name) {
+    public static SharedParameters.ApprovedTSA createApprovedTsaType(String url, String name, CostType costType) {
         SharedParameters.ApprovedTSA approvedTSA = new SharedParameters.ApprovedTSA();
         approvedTSA.setUrl(url);
         approvedTSA.setName(name);
+        approvedTSA.setCostType(costType);
         return approvedTSA;
     }
 
@@ -342,10 +347,11 @@ public final class TestUtils {
      * @param name
      * @return
      */
-    public static TimestampingServiceDto createTimestampingService(String url, String name) {
+    public static TimestampingServiceDto createTimestampingService(String url, String name, CostTypeDto costType) {
         TimestampingServiceDto timestampingService = new TimestampingServiceDto();
         timestampingService.setUrl(url);
         timestampingService.setName(name);
+        timestampingService.costType(costType);
         return timestampingService;
     }
 

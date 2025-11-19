@@ -29,8 +29,8 @@ import com.codeborne.selenide.Selenide;
 import io.cucumber.java.After;
 import io.cucumber.java.en.Step;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v140.network.Network;
-import org.openqa.selenium.devtools.v140.network.model.ConnectionType;
+import org.openqa.selenium.devtools.v142.network.Network;
+import org.openqa.selenium.devtools.v142.network.model.ConnectionType;
 
 import java.util.Optional;
 
@@ -60,7 +60,7 @@ public class CommonUiStepDefs extends BaseUiStepDefs {
     @Step("Browser is set in {} network speed")
     public void setInBrowserSpeed(String connectionType) {
         DevTools devTools = chromiumDevTools.getDevTools();
-        devTools.send(Network.enable(empty(), empty(), empty(), empty()));
+        devTools.send(Network.enable(empty(), empty(), empty(), empty(), empty()));
         devTools.send(Network.emulateNetworkConditions(
                 false,
                 350,

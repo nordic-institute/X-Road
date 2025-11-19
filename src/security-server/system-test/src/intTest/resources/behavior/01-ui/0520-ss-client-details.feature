@@ -16,7 +16,7 @@ Feature: 0520 - SS: Client Details
     Then Certificate fields as follows:
       | Version                    | 3                                                  |
       | Signature Algorithm        | SHA256withRSA                                      |
-      | Issuer Distinguished Name  | CN=Test CA, O=X-Road Test CA                       |
+      | Issuer Distinguished Name  | CN=Test CA, O=Test                                 |
       | Subject Distinguished Name | SERIALNUMBER=DEV/SS0/COM, CN=1234, O=ui-test, C=FI |
     And Certificate is closed
 
