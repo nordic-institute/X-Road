@@ -9,6 +9,9 @@ dependencies {
   intTestImplementation(libs.testAutomation.restassured)
   intTestImplementation(libs.feign.hc5)
   intTestImplementation(libs.postgresql)
+  intTestImplementation(project(":lib:asic-core"))
+  intTestImplementation(project(":common:common-test"))
+  intTestImplementation(project(":lib:globalconf-impl"))
 }
 
 intTestComposeEnv {

@@ -25,21 +25,29 @@
  */
 package org.niis.xroad.e2e.glue;
 
+import ee.ria.xroad.common.asic.AsicContainerVerifier;
+
 import io.cucumber.docstring.DocString;
 import io.cucumber.java.en.Step;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponseOptions;
+import lombok.SneakyThrows;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.niis.xroad.e2e.container.EnvSetup;
 import org.niis.xroad.e2e.container.Port;
 import org.niis.xroad.e2e.container.service.TestDatabaseService;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
@@ -55,6 +63,9 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 
 @SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
 public class ProxyStepDefs extends BaseE2EStepDefs {
+
+    private static final String TMP_DIR = "build/tmp/e2eTest/";
+
     @Autowired
     private EnvSetup envSetup;
     @Autowired
@@ -120,10 +131,29 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
         TimeUnit.SECONDS.sleep(seconds);
     }
 
-    @Step("{string}'s {string} service has {int} messagelogs present in the archives")
+    @Step("Global configuration is fetched from {string}'s {string} for messagelog verification")
+    public void globalConfIsFetchedForMessagelogValidation(String env, String service) throws IOException {
+        var mapping = envSetup.getContainerMapping(env, service, Port.PROXY);
+
+        try (var zis = new ZipInputStream(given()
+                .get("http://%s:%s/verificationconf".formatted(mapping.host(), mapping.port()))
+                .asInputStream())) {
+
+
+            for (var entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
+                var path = Path.of(TMP_DIR).resolve(entry.getName());
+                if (!entry.isDirectory()) {
+                    Files.createDirectories(path.getParent());
+                    Files.copy(zis, path, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
+    }
+
+    @Step("{string}'s {string} service has {int} messagelogs present in the archives and all are cryptographically valid")
     public void serviceHasMessagelogArchivePresent(String env, String service, int expectedMessagelogCount)
             throws IOException, InterruptedException {
-        var localCompressedArchivesPath = "build/tmp/e2eTest/messagelog-archives.tar.gz";
+        var localCompressedArchivesPath = TMP_DIR + "messagelog-archives.tar.gz";
         var container = envSetup.getContainerByServiceName(env, service).orElseThrow();
         container.execInContainer("tar", "czf", "/tmp/messagelog-archives.tar.gz", "-C", "/var/lib/xroad", ".");
         container.copyFileFromContainer("/tmp/messagelog-archives.tar.gz", localCompressedArchivesPath);
@@ -145,12 +175,24 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                             continue;
                         }
                         assertThat(archiveEntry.getName()).endsWith(".asice");
+                        var tmpAsiceContainer = Files.write(Path.of(TMP_DIR + archiveEntry.getName()), zis.readAllBytes());
+                        verifyMessagelog(tmpAsiceContainer);
+                        Files.delete(tmpAsiceContainer);
                         messagelogCount++;
                     }
                 }
             }
             assertThat(messagelogCount).isEqualTo(expectedMessagelogCount);
         }
+    }
+
+    @SneakyThrows
+    private void verifyMessagelog(Path asiceContainer) {
+        new AsicContainerVerifier(
+                TestGlobalConfFactory.create(TMP_DIR + "verificationconf"),
+                new OcspVerifierFactory(),
+                asiceContainer.toString()
+        ).verify();
     }
 
     @Step("{string} contains {int} messagelog entries")

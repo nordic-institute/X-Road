@@ -6,6 +6,3 @@ services:
       args:
         - BASE_SIGNER_IMAGE=${SIGNER_IMG:-localhost:5555/ss-signer:latest}
       dockerfile: Dockerfile
-  proxy:
-    environment:
-      - XROAD_PROXY_BATCH_SIGNING_ENABLED=true
