@@ -121,7 +121,8 @@ public final class VuetifyHelper {
         }
 
         public void click() {
-            controlElement.shouldBe(visible).click();
+            controlElement.shouldBe(visible);
+            input.click();
         }
     }
 
