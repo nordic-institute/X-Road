@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -204,7 +203,7 @@ public class SaxSoapParserImpl implements SoapParser {
         Writer outputWriter = new OutputStreamWriter(processedXml, charset);
         XRoadSoapHandler handler = handleSoap(outputWriter, proxyStream);
 
-        CodedException fault = handler.getFault();
+        SoapFaultDto fault = handler.getFault();
         if (fault != null) {
             return createSoapFault(charset, rawXml, fault);
         }
@@ -239,9 +238,9 @@ public class SaxSoapParserImpl implements SoapParser {
     }
 
     private static Soap createSoapFault(String charset,
-                                        ByteArrayOutputStream rawXml, CodedException fault) {
-        return new SoapFault(fault.getFaultCode(), fault.getFaultString(),
-                fault.getFaultActor(), fault.getFaultDetail(),
+                                        ByteArrayOutputStream rawXml, SoapFaultDto fault) {
+        return new SoapFault(fault.faultCode(), fault.faultString(),
+                fault.faultActor(), fault.faultDetail(),
                 rawXml.toByteArray(), charset);
     }
 
@@ -328,7 +327,7 @@ public class SaxSoapParserImpl implements SoapParser {
             return envelopeHandler != null && envelopeHandler.isRpc();
         }
 
-        public CodedException getFault() {
+        public SoapFaultDto getFault() {
             return envelopeHandler != null ? envelopeHandler.getFault() : null;
         }
 
@@ -630,7 +629,7 @@ public class SaxSoapParserImpl implements SoapParser {
         @Getter
         private boolean rpc;
 
-        public CodedException getFault() {
+        public SoapFaultDto getFault() {
             return bodyHandler != null ? bodyHandler.getFault() : null;
         }
 
@@ -1036,7 +1035,7 @@ public class SaxSoapParserImpl implements SoapParser {
         private SoapFaultHandler soapFaultHandler;
 
         @Getter
-        private CodedException fault;
+        private SoapFaultDto fault;
 
         @Getter
         private String serviceName;
@@ -1062,7 +1061,7 @@ public class SaxSoapParserImpl implements SoapParser {
         @Override
         protected void closeTag() {
             if (soapFaultHandler != null) {
-                fault = CodedException.fromFault(
+                fault = new SoapFaultDto(
                         soapFaultHandler.getFaultCode(),
                         soapFaultHandler.getFaultString(),
                         soapFaultHandler.getFaultActor(),
@@ -1116,5 +1115,13 @@ public class SaxSoapParserImpl implements SoapParser {
             };
         }
 
+    }
+
+    private record SoapFaultDto(
+            String faultCode,
+            String faultString,
+            String faultActor,
+            String faultDetail,
+            String rawXml) {
     }
 }
