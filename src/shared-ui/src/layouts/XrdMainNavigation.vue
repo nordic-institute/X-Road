@@ -33,7 +33,7 @@
       class="xrd pa-0 mt-2 mb-3 mx-1 xrd-rail-item-nav body-small text-center font-weight-bold"
       variant="plain"
       density="compact"
-      tabindex
+      tabindex="0"
       rounded
       :to="tab.to"
     >

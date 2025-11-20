@@ -33,7 +33,7 @@ i.v-icon {
       content: '';
       width: calc(100% + 4px);
       height: calc(100% + 4px);
-      top: -2;
+      top: -2px;
       left: -2px;
       position: absolute;
       border-radius: 4px;
@@ -252,7 +252,7 @@ i.v-icon {
 
       box-shadow: 0 0 4px 0 rgb(var(--v-theme-accent));
       border: 2px solid rgb(var(--v-theme-accent));
-      border-radius: 9999px
+      border-radius: 9999px;
     }
 
     .v-switch__track {

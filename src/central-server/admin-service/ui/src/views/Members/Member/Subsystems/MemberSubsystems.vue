@@ -158,7 +158,7 @@
                 :text="$t('securityServers.disabled')"
               >
                 <template #prepend>
-                  <v-icon class="status-icon" icon="cancel" color="warning" filled/>
+                  <v-icon class="status-icon" icon="cancel" color="warning" filled />
                 </template>
               </v-chip>
               <v-chip
