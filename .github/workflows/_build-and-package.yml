@@ -23,8 +23,7 @@ jobs:
   build-and-package:
     name: Build, test and package code
     timeout-minutes: 60
-    runs-on:
-      labels: xrd-runner-8c
+    runs-on: ubuntu-24.04
     outputs:
       image_registry: ${{ steps.build-config.outputs.image_registry }}
       service_image_tag: ${{ steps.build-config.outputs.service_image_tag }}

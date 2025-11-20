@@ -124,38 +124,40 @@ public class LiquibaseExecutor {
     @SneakyThrows
     private void dropAllTablesInSchema(java.sql.Connection connection) {
         try (var stmt = connection.createStatement()) {
-            var dropTablesSql =
-                    "DO $$ " +
-                            "DECLARE r RECORD; " +
-                            "BEGIN " +
-                            "  FOR r IN ( " +
-                            "    SELECT c.relname " +
-                            "    FROM pg_class c " +
-                            "    JOIN pg_namespace n ON n.oid = c.relnamespace " +
-                            "    WHERE n.nspname = current_schema() " +
-                            "      AND c.relkind = 'r' " +
-                            "      AND c.relname NOT LIKE 'pg_%' " +
-                            "      AND c.relname NOT LIKE '_pg_%' " +
-                            "  ) LOOP " +
-                            "    EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.relname) || ' CASCADE'; " +
-                            "  END LOOP; " +
-                            "END $$;";
+            var dropTablesSql = """
+                    DO $$
+                    DECLARE r RECORD;
+                    BEGIN
+                      FOR r IN (
+                        SELECT c.relname
+                        FROM pg_class c
+                        JOIN pg_namespace n ON n.oid = c.relnamespace
+                        WHERE n.nspname = current_schema()
+                          AND c.relkind = 'r'
+                          AND c.relname NOT LIKE 'pg_%'
+                          AND c.relname NOT LIKE '_pg_%'
+                      ) LOOP
+                        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.relname) || ' CASCADE';
+                      END LOOP;
+                    END $$;
+                    """;
             stmt.execute(dropTablesSql);
 
-            var dropSequencesSql =
-                    "DO $$ " +
-                            "DECLARE r RECORD; " +
-                            "BEGIN " +
-                            "  FOR r IN ( " +
-                            "    SELECT c.relname " +
-                            "    FROM pg_class c " +
-                            "    JOIN pg_namespace n ON n.oid = c.relnamespace " +
-                            "    WHERE n.nspname = current_schema() " +
-                            "      AND c.relkind = 'S' " +
-                            "  ) LOOP " +
-                            "    EXECUTE 'DROP SEQUENCE IF EXISTS ' || quote_ident(r.relname) || ' CASCADE'; " +
-                            "  END LOOP; " +
-                            "END $$;";
+            var dropSequencesSql = """
+                    DO $$
+                    DECLARE r RECORD;
+                    BEGIN
+                      FOR r IN (
+                        SELECT c.relname
+                        FROM pg_class c
+                        JOIN pg_namespace n ON n.oid = c.relnamespace
+                        WHERE n.nspname = current_schema()
+                          AND c.relkind = 'S'
+                      ) LOOP
+                        EXECUTE 'DROP SEQUENCE IF EXISTS ' || quote_ident(r.relname) || ' CASCADE';
+                      END LOOP;
+                    END $$;
+                    """;
             stmt.execute(dropSequencesSql);
 
             log.debug("Dropped all tables and sequences in current schema");
