@@ -57,7 +57,7 @@ jobs:
       - name: Run Signer integration tests
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :service:signer:signer-int-test:intTest \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx2g :service:signer:signer-int-test:intTest \
             -PxroadImageRegistry=${{ inputs.image_registry }} \
             -PxroadImageTag=${{ inputs.service_image_tag }}
 
@@ -136,7 +136,7 @@ jobs:
       - name: Run Operational Monitor integration tests
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :service:op-monitor:op-monitor-int-test:intTest \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx2g :service:op-monitor:op-monitor-int-test:intTest \
             -PxroadImageRegistry=${{ inputs.image_registry }} \
             -PxroadImageTag=${{ inputs.service_image_tag }}
 
@@ -214,7 +214,7 @@ jobs:
       - name: Run CS Admin integration tests
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:int-test:intTest \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx2g :central-server:admin-service:int-test:intTest \
             -PxroadImageRegistry=${{ inputs.image_registry }} \
             -PxroadImageTag=${{ inputs.service_image_tag }}
 

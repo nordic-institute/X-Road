@@ -59,7 +59,7 @@ jobs:
         working-directory: ./src
         run: |
           docker network create xroad-network
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx2g \
             :security-server:e2e-test:e2eTest \
             -PxroadImageRegistry=${{ inputs.image_registry }} \
             -PxroadImageTag=${{ inputs.service_image_tag }}
