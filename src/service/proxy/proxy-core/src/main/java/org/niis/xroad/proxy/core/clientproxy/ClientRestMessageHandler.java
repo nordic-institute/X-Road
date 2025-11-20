@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -122,8 +121,8 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
     public void sendErrorResponse(Request request,
                                   Response response,
                                   Callback callback,
-                                  CodedException ex) throws IOException {
-        if (ex.getFaultCode().startsWith("server.")) {
+                                  XrdRuntimeException ex) throws IOException {
+        if (ex.getErrorCode().startsWith("server.")) {
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         } else {
             response.setStatus(HttpStatus.BAD_REQUEST_400);
@@ -138,10 +137,10 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 Element errorRootElement = doc.createElement("error");
                 doc.appendChild(errorRootElement);
                 Element typeElement = doc.createElement("type");
-                typeElement.appendChild(doc.createTextNode(ex.getFaultCode()));
+                typeElement.appendChild(doc.createTextNode(ex.getErrorCode()));
                 errorRootElement.appendChild(typeElement);
                 Element messageElement = doc.createElement("message");
-                messageElement.appendChild(doc.createTextNode(ex.getFaultString()));
+                messageElement.appendChild(doc.createTextNode(ex.getDetails()));
                 errorRootElement.appendChild(messageElement);
                 Element detailElement = doc.createElement("detail");
                 detailElement.appendChild(doc.createTextNode(ex.getFaultDetail()));
@@ -156,8 +155,8 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
             try (JsonGenerator jsonGenerator = JsonUtils.getObjectWriter()
                     .getFactory().createGenerator(new PrintWriter(asOutputStream(response)))) {
                 jsonGenerator.writeStartObject();
-                jsonGenerator.writeStringField("type", ex.getFaultCode());
-                jsonGenerator.writeStringField("message", ex.getFaultString());
+                jsonGenerator.writeStringField("type", ex.getErrorCode());
+                jsonGenerator.writeStringField("message", ex.getDetails());
                 jsonGenerator.writeStringField("detail", ex.getFaultDetail());
                 jsonGenerator.writeEndObject();
             } finally {

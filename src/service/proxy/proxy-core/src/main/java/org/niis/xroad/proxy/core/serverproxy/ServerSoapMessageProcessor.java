@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -503,10 +502,9 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
 
     private void handleException(Exception ex) throws Exception {
         if (encoder != null) {
-            CodedException exception;
-
-            if (ex instanceof CodedException.Fault) {
-                exception = (CodedException.Fault) ex;
+            XrdRuntimeException exception;
+            if (ex instanceof XrdRuntimeException xrdEx && xrdEx.hasSoapFault()) {
+                exception = xrdEx;
             } else {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }

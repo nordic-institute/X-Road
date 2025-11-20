@@ -64,9 +64,9 @@ public final class ErrorCodes {
      * the appropriate error code.
      *
      * @param ex the exception
-     * @return translated CodedException
+     * @return translated XrdRuntimeException
      */
-    public static CodedException translateException(Throwable ex) {
+    public static XrdRuntimeException translateException(Throwable ex) {
         return XrdRuntimeException.systemException(ex);
     }
 
@@ -79,7 +79,7 @@ public final class ErrorCodes {
      * @param ex     the exception
      * @return translated exception with prefix
      */
-    public static CodedException translateWithPrefix(String prefix, Throwable ex) {
+    public static XrdRuntimeException translateWithPrefix(String prefix, Throwable ex) {
         return translateException(ex).withPrefix(prefix);
     }
 

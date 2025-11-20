@@ -25,10 +25,9 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.xml.soap.SOAPFault;
 import org.apache.commons.text.StringEscapeUtils;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.UnsupportedEncodingException;
@@ -133,12 +132,16 @@ public class SoapFault implements Soap {
     /**
      * Converts this SOAP fault into a coded exception.
      *
-     * @return CodedException
+     * @return XrdRuntimeException
      */
-    public CodedException toCodedException() {
+    public XrdRuntimeException toCodedException() {
         try {
-            return CodedException.fromFault(faultCode, faultString, faultActor,
-                    faultDetail, new String(rawXml, charset));
+
+            return XrdRuntimeException.systemException(ErrorCode.withCode(faultCode))
+                    .details(faultString)
+                    .identifier(faultDetail)
+                    .soapFaultInfo(faultCode, faultString, faultActor, faultDetail, new String(rawXml, charset))
+                    .build();
         } catch (UnsupportedEncodingException e) {
             throw XrdRuntimeException.systemException(e);
         }
@@ -160,9 +163,18 @@ public class SoapFault implements Soap {
      * @param ex exception representing a SOAP fault
      * @return a String containing XML of the SOAP fault represented by the given coded exception
      */
-    public static String createFaultXml(CodedException ex) {
-        if (ex instanceof CodedException.Fault fault) {
-            return fault.getFaultXml();
+    public static String createFaultXml(XrdRuntimeException ex) {
+        if (ex.hasSoapFault()) {
+            if (ex.getSoapFaultInfo().faultXml() != null) {
+                return ex.getSoapFaultInfo().faultXml();
+            } else {
+                // this is for single use case - when client sends a soap fault as request (not valid)
+                return createFaultXml(
+                        ex.getSoapFaultInfo().faultCode(),
+                        ex.getSoapFaultInfo().faultString(),
+                        ex.getSoapFaultInfo().faultActor(),
+                        ex.getSoapFaultInfo().faultDetail());
+            }
         } else {
             return createFaultXml(ex.getFaultCode(), ex.getFaultString(),
                     ex.getFaultActor(), ex.getFaultDetail());

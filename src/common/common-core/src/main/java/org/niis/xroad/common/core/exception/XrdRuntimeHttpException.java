@@ -43,14 +43,14 @@ public final class XrdRuntimeHttpException extends XrdRuntimeException implement
     XrdRuntimeHttpException(@NonNull String identifier, @NonNull ExceptionCategory category, @NonNull String errorCode,
                             @NonNull List<String> errorCodeMetadata, ErrorOrigin origin, String details,
                             @NonNull HttpStatus httpStatus) {
-        super(identifier, category, errorCode, errorCodeMetadata, origin, details);
+        super(identifier, category, errorCode, errorCodeMetadata, origin, details, null);
         this.httpStatus = httpStatus;
     }
 
     XrdRuntimeHttpException(@NonNull Throwable cause, @NonNull String identifier, @NonNull ExceptionCategory category,
                             @NonNull String errorCode, @NonNull List<String> errorCodeMetadata, ErrorOrigin origin,
                             String details, @NonNull HttpStatus httpStatus) {
-        super(cause, identifier, category, errorCode, errorCodeMetadata, origin, details);
+        super(cause, identifier, category, errorCode, errorCodeMetadata, origin, details, null);
         this.httpStatus = httpStatus;
     }
 

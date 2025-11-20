@@ -67,13 +67,15 @@ public sealed class XrdRuntimeException extends CodedException
 
     private final String details;
     private final ErrorOrigin origin;
+    private final SoapFaultInfo soapFaultInfo;
 
     XrdRuntimeException(@NonNull String identifier,
                         @NonNull ExceptionCategory category,
                         @NonNull String errorCode,
                         @NonNull List<String> errorCodeMetadata,
                         ErrorOrigin origin,
-                        String details) {
+                        String details,
+                        SoapFaultInfo soapFaultInfo) {
         super(errorCode, details);
         this.identifier = identifier;
         this.translationCode = errorCode;
@@ -82,6 +84,7 @@ public sealed class XrdRuntimeException extends CodedException
         this.errorCodeMetadata = errorCodeMetadata;
         this.origin = origin;
         this.details = details;
+        this.soapFaultInfo = soapFaultInfo;
     }
 
     XrdRuntimeException(@NonNull Throwable cause,
@@ -90,7 +93,8 @@ public sealed class XrdRuntimeException extends CodedException
                         @NonNull String errorCode,
                         @NonNull List<String> errorCodeMetadata,
                         ErrorOrigin origin,
-                        String details) {
+                        String details,
+                        SoapFaultInfo soapFaultInfo) {
         super(errorCode, cause, details);
         this.identifier = identifier;
         this.translationCode = errorCode;
@@ -99,6 +103,7 @@ public sealed class XrdRuntimeException extends CodedException
         this.errorCodeMetadata = errorCodeMetadata;
         this.origin = origin;
         this.details = details;
+        this.soapFaultInfo = soapFaultInfo;
     }
 
     @Override
@@ -166,17 +171,19 @@ public sealed class XrdRuntimeException extends CodedException
                         getIdentifier(),
                         getCategory(),
                         prefix + "." + getCode(),
-                        errorCodeMetadata,
+                        getErrorCodeMetadata(),
                         getOrigin(),
-                        getDetails());
+                        getDetails(),
+                        getSoapFaultInfo());
             } else {
                 return new XrdRuntimeException(
                         getIdentifier(),
                         getCategory(),
                         prefix + "." + getCode(),
-                        errorCodeMetadata,
+                        getErrorCodeMetadata(),
                         getOrigin(),
-                        getDetails());
+                        getDetails(),
+                        getSoapFaultInfo());
             }
         }
         return this;
@@ -332,6 +339,17 @@ public sealed class XrdRuntimeException extends CodedException
      */
     private static boolean isMimeException(Throwable ex) {
         return ex != null && ex.getClass().getName().equals("org.apache.james.mime4j.MimeException");
+    }
+
+    public boolean hasSoapFault() {
+        return soapFaultInfo != null;
+    }
+
+    public record SoapFaultInfo(String faultCode,
+                                String faultString,
+                                String faultActor,
+                                String faultDetail,
+                                String faultXml) {
     }
 
 }

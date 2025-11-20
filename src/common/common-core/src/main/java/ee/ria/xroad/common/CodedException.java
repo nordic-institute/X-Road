@@ -86,25 +86,6 @@ public class CodedException extends RuntimeException implements Serializable {
         faultString = super.getMessage();
     }
 
-    /**
-     * Creates new exception with full SOAP fault details.
-     * @param faultCode the fault code
-     * @param faultString the fault string (e.g. the message)
-     * @param faultActor the fault actor
-     * @param faultDetail the details
-     * @return new proxy exception
-     */
-    public static CodedException fromFault(String faultCode, String faultString,
-                                           String faultActor, String faultDetail, String faultXml) {
-        Fault ret = new Fault(faultCode, faultString);
-
-        ret.faultActor = faultActor;
-        ret.faultDetail = faultDetail;
-        ret.faultXml = faultXml;
-
-        return ret;
-    }
-
     @Override
     public String getMessage() {
         return toString();
@@ -140,22 +121,4 @@ public class CodedException extends RuntimeException implements Serializable {
         return this;
     }
 
-    /**
-     * Encapsulates error message read from SOAP fault.
-     * This allows processing faults separately in ClientProxy.
-     */
-    public static class Fault extends CodedException implements Serializable {
-
-        @Getter
-        private String faultXml;
-
-        /**
-         * Creates new fault.
-         * @param faultCode the code
-         * @param faultString the details
-         */
-        public Fault(String faultCode, String faultString) {
-            super(faultCode, faultString);
-        }
-    }
 }

@@ -42,6 +42,7 @@ public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>>
 
     protected String details;
     protected ErrorOrigin origin;
+    protected XrdRuntimeException.SoapFaultInfo soapFaultInfo;
 
     public XrdRuntimeExceptionBuilder(ExceptionCategory category, DeviationBuilder.ErrorDeviationBuilder errorDeviation) {
         if (category == null) {
@@ -111,6 +112,15 @@ public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>>
         return (T) this;
     }
 
+    public T soapFaultInfo(String faultCode,
+                           String faultString,
+                           String faultActor,
+                           String faultDetail,
+                           String faultXml) {
+        this.soapFaultInfo = new XrdRuntimeException.SoapFaultInfo(faultCode, faultString, faultActor, faultDetail, faultXml);
+        return (T) this;
+    }
+
     /**
      * Builds the XrdRuntimeException with all configured properties.
      * Generates a random UUID identifier if none was specified.
@@ -132,7 +142,8 @@ public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>>
                     resolveErrorCode(),
                     deviation.metadata(),
                     origin,
-                    details);
+                    details,
+                    soapFaultInfo);
         }
         return new XrdRuntimeException(
                 identifier,
@@ -140,7 +151,8 @@ public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>>
                 resolveErrorCode(),
                 deviation.metadata(),
                 origin,
-                details);
+                details,
+                soapFaultInfo);
     }
 
     protected String resolveErrorCode() {
