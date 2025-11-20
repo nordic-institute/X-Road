@@ -55,19 +55,7 @@ public class CodedException extends RuntimeException implements Serializable {
     protected String faultString = "";
 
     @Getter
-    protected String[] arguments;
-
-    @Getter
     protected String translationCode;
-
-    /**
-     * Creates new exception using the fault code.
-     * @param faultCode the fault code
-     */
-    public CodedException(String faultCode) {
-        this.faultCode = faultCode;
-        faultDetail = String.valueOf(UUID.randomUUID());
-    }
 
     /**
      * Creates new exception with fault code and fault message.
@@ -90,42 +78,12 @@ public class CodedException extends RuntimeException implements Serializable {
      * @param format the string format
      * @param args the arguments
      */
-    public CodedException(String faultCode, String format, Object... args) {
-        this(faultCode, String.format(format, args));
-
-        setArguments(args);
-    }
-
-    /**
-     * Creates new exception with fault code and fault message.
-     * The message is constructed using String.format(). from parameters
-     * format and args.
-     * @param faultCode the fault code
-     * @param format the string format
-     * @param args the arguments
-     */
     public CodedException(String faultCode, Throwable cause, String format, Object... args) {
         super(format != null ? String.format(format, args) : null, cause);
 
         this.faultCode = faultCode;
         faultDetail = String.valueOf(UUID.randomUUID());
         faultString = super.getMessage();
-
-        setArguments(args);
-    }
-
-
-    /**
-     * Creates exception from fault code and cause.
-     * @param faultCode the fault code
-     * @param cause the cause
-     */
-    public CodedException(String faultCode, Throwable cause) {
-        super(cause);
-
-        this.faultCode = faultCode;
-        this.faultDetail = String.valueOf(UUID.randomUUID());
-        this.faultString = cause.getMessage();
     }
 
     /**
@@ -143,39 +101,6 @@ public class CodedException extends RuntimeException implements Serializable {
         ret.faultActor = faultActor;
         ret.faultDetail = faultDetail;
         ret.faultXml = faultXml;
-
-        return ret;
-    }
-
-    /**
-     * Creates new exception with translation code for i18n.
-     * @param faultCode the fault code
-     * @param trCode the translation code
-     * @param faultMessage the message
-     * @return CodedException
-     */
-    public static CodedException tr(String faultCode, String trCode,
-                                    String faultMessage) {
-        CodedException ret = new CodedException(faultCode, faultMessage);
-
-        ret.translationCode = trCode;
-
-        return ret;
-    }
-
-    /**
-     * Creates new exception with translation code for i18n and arguments.
-     * @param faultCode the fault code
-     * @param trCode the translation code
-     * @param faultMessage the message
-     * @param args optional arguments
-     * @return CodedException
-     */
-    public static CodedException tr(String faultCode, String trCode,
-                                    String faultMessage, Object... args) {
-        CodedException ret = new CodedException(faultCode, faultMessage, args);
-
-        ret.translationCode = trCode;
 
         return ret;
     }
@@ -216,22 +141,9 @@ public class CodedException extends RuntimeException implements Serializable {
     }
 
     /**
-     * Converts provided arguments to string array.
-     */
-    private void setArguments(Object... args) {
-        arguments = new String[args.length];
-
-        for (int i = 0; i < args.length; i++) {
-            arguments[i] = args[i] != null ? args[i].toString() : "";
-        }
-    }
-
-
-    /**
      * Encapsulates error message read from SOAP fault.
      * This allows processing faults separately in ClientProxy.
      */
-    @SuppressWarnings("serial") // does not need to have serial
     public static class Fault extends CodedException implements Serializable {
 
         @Getter

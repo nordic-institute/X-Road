@@ -52,8 +52,6 @@ public final class ErrorCodes {
     public static final String X_SSL_AUTH_FAILED = "ssl_authentication_failed";
     public static final String X_LOGGING_FAILED_X = "logging_failed";
     public static final String X_TIMESTAMPING_FAILED_X = "timestamping_failed";
-    public static final String X_INVALID_HTTP_METHOD = "invalid_http_method";
-    public static final String X_MISSING_SOAP = "missing_soap";
     public static final String X_SERVICE_FAILED_X = "service_failed";
 
     // Signer Errors
