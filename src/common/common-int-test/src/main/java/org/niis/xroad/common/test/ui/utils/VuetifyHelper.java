@@ -27,7 +27,6 @@
 
 package org.niis.xroad.common.test.ui.utils;
 
-import com.codeborne.selenide.ScrollIntoViewOptions;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
 
@@ -117,7 +116,7 @@ public final class VuetifyHelper {
         }
 
         public Checkbox scrollIntoView(boolean alignToTop) {
-            controlElement.scrollIntoView(instant().block(alignToTop? start: end));
+            controlElement.scrollIntoView(instant().block(alignToTop ? start : end));
             return this;
         }
 
