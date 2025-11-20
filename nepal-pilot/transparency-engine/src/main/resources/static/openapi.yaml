@@ -1,0 +1,137 @@
+openapi: 3.0.0
+info:
+  title: Nepal Transparency Engine API
+  description: API for the X-Road Transparency Engine (Smart Budget & Watchdog)
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+paths:
+  /budget/allocate:
+    post:
+      summary: Allocate a new budget
+      parameters:
+        - name: X-Road-Client
+          in: header
+          required: true
+          schema:
+            type: string
+          description: The X-Road Member Identifier of the caller (e.g., Ministry of Finance)
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: province
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: district
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: sequence
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: projectName
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: amount
+          in: query
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Budget allocated successfully
+  /budget/{tid}:
+    get:
+      summary: Get budget details
+      parameters:
+        - name: X-Road-Client
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: tid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Budget details
+        '404':
+          description: Budget not found
+  /budgets:
+    get:
+      summary: List all budgets
+      parameters:
+        - name: X-Road-Client
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of all budgets
+  /report:
+    post:
+      summary: Submit a corruption report
+      parameters:
+        - name: X-Road-Client
+          in: header
+          required: true
+          schema:
+            type: string
+          description: The X-Road Member Identifier (e.g., Super App)
+        - name: X-Road-UserId
+          in: header
+          schema:
+            type: string
+          description: The Citizen ID (National ID) derived from the token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CorruptionReport'
+      responses:
+        '200':
+          description: Report received
+components:
+  schemas:
+    CorruptionReport:
+      type: object
+      properties:
+        projectTid:
+          type: string
+        userType:
+          type: string
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+            ward:
+              type: string
+        evidence:
+          type: object
+          properties:
+            mediaHash:
+              type: string
+            description:
+              type: string
+        whistleblowerHash:
+          type: string
