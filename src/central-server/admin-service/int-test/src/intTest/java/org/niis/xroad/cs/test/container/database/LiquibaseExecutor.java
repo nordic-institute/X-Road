@@ -26,13 +26,17 @@
  */
 package org.niis.xroad.cs.test.container.database;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import liquibase.Liquibase;
 import liquibase.Scope;
+import liquibase.UpdateSummaryEnum;
+import liquibase.UpdateSummaryOutputEnum;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.DatabaseException;
-import liquibase.integration.spring.SpringLiquibase;
 import liquibase.logging.core.AbstractLogService;
+import liquibase.resource.ClassLoaderResourceAccessor;
+import liquibase.resource.ResourceAccessor;
 import liquibase.ui.LoggerUIService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -41,32 +45,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.sql.DataSource;
-
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * An extension of {@link  SpringLiquibase} which allows manual liquibase execution.
+ * Executes Liquibase changesets manually without SpringLiquibase wrapper.
+ * Uses Liquibase directly to avoid any internal state accumulation.
  */
 @Slf4j
 @Component
-public class LiquibaseExecutor extends SpringLiquibase {
+public class LiquibaseExecutor {
     private static final Logger LIQUIBASE_LOGGER = LoggerFactory.getLogger("liquibase");
+    private static final String CHANGELOG_FILE = "test-data/centerui-int-test-changelog.xml";
+    private static final String CONTEXTS = "int-test";
+
     private final ContainerDatabaseProvider containerDatabaseProvider;
+    private final Map<String, Object> liquibaseScope;
 
     public LiquibaseExecutor(ContainerDatabaseProvider containerDatabaseProvider) {
-        super();
-        setShouldRun(false);
-        setDropFirst(true);
-
-        setChangeLog("classpath:test-data/centerui-int-test-changelog.xml");
-        setContexts("int-test");
-        setAnalyticsEnabled(false);
-
         this.containerDatabaseProvider = containerDatabaseProvider;
+        this.liquibaseScope = createLiquibaseLoggableScope();
     }
 
     /**
@@ -75,41 +77,91 @@ public class LiquibaseExecutor extends SpringLiquibase {
      */
     @SneakyThrows
     public void executeChangesets() {
-        var stopWatch = StopWatch.createStarted();
-
-        if (getDataSource() == null) {
-            setDataSource(createDataSource());
-        }
-
-        // Set change log parameters for username and password
-        Map<String, String> changeLogParameters = new HashMap<>();
-        changeLogParameters.put("db_user", containerDatabaseProvider.getUsername());
-        changeLogParameters.put("db_password", containerDatabaseProvider.getPassword());
-        setChangeLogParameters(changeLogParameters);
-
-        Scope.child(createLiquibaseLoggableScope(), () -> {
-            executeUpdate();
-            log.info("Liquibase schema initialized in {} ms.", stopWatch.getTime(TimeUnit.MILLISECONDS));
-        });
+        Scope.child(liquibaseScope, this::executeUpdate);
     }
 
     @SneakyThrows
     private void executeUpdate() {
-        try (var c = getDataSource().getConnection(); Liquibase liquibase = createLiquibase(c)) {
-            performUpdate(liquibase);
+        var stopWatch = StopWatch.createStarted();
+
+        String jdbcUrl = containerDatabaseProvider.getJdbcUrl();
+        String username = containerDatabaseProvider.getAdminUsername();
+        String password = containerDatabaseProvider.getAdminPassword();
+
+        try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password)) {
+            // Drop all tables in the schema first
+            dropAllTablesInSchema(connection);
+            long dropTime = stopWatch.getTime(TimeUnit.MILLISECONDS);
+
+            // Create Liquibase instance directly (no SpringLiquibase wrapper)
+            JdbcConnection jdbcConnection = new JdbcConnection(connection);
+            Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(jdbcConnection);
+            ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor();
+
+            // Set change log parameters
+            Map<String, String> changeLogParameters = new HashMap<>();
+            changeLogParameters.put("db_user", containerDatabaseProvider.getUsername());
+            changeLogParameters.put("db_password", containerDatabaseProvider.getPassword());
+
+            try (Liquibase liquibase = new Liquibase(CHANGELOG_FILE, resourceAccessor, database)) {
+                changeLogParameters.forEach(liquibase::setChangeLogParameter);
+                liquibase.setShowSummary(UpdateSummaryEnum.OFF);
+                liquibase.setShowSummaryOutput(UpdateSummaryOutputEnum.LOG);
+                liquibase.update(CONTEXTS);
+            }
+
+            long liquibaseTime = stopWatch.getTime(TimeUnit.MILLISECONDS) - dropTime;
+
+
+            long totalTime = stopWatch.getTime(TimeUnit.MILLISECONDS);
+            log.info("Liquibase schema initialized in {} ms (drop: {} ms, liquibase: {} ms)",
+                    totalTime, dropTime, liquibaseTime);
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
     }
 
-    private DataSource createDataSource() {
-        var config = new HikariConfig();
-        config.setMaximumPoolSize(1);
+    @SneakyThrows
+    private void dropAllTablesInSchema(java.sql.Connection connection) {
+        try (var stmt = connection.createStatement()) {
+            var dropTablesSql =
+                    "DO $$ " +
+                            "DECLARE r RECORD; " +
+                            "BEGIN " +
+                            "  FOR r IN ( " +
+                            "    SELECT c.relname " +
+                            "    FROM pg_class c " +
+                            "    JOIN pg_namespace n ON n.oid = c.relnamespace " +
+                            "    WHERE n.nspname = current_schema() " +
+                            "      AND c.relkind = 'r' " +
+                            "      AND c.relname NOT LIKE 'pg_%' " +
+                            "      AND c.relname NOT LIKE '_pg_%' " +
+                            "  ) LOOP " +
+                            "    EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.relname) || ' CASCADE'; " +
+                            "  END LOOP; " +
+                            "END $$;";
+            stmt.execute(dropTablesSql);
 
-        config.setJdbcUrl(containerDatabaseProvider.getJdbcUrl());
-        config.setUsername(containerDatabaseProvider.getAdminUsername());
-        config.setPassword(containerDatabaseProvider.getAdminPassword());
-        return new HikariDataSource(config);
+            var dropSequencesSql =
+                    "DO $$ " +
+                            "DECLARE r RECORD; " +
+                            "BEGIN " +
+                            "  FOR r IN ( " +
+                            "    SELECT c.relname " +
+                            "    FROM pg_class c " +
+                            "    JOIN pg_namespace n ON n.oid = c.relnamespace " +
+                            "    WHERE n.nspname = current_schema() " +
+                            "      AND c.relkind = 'S' " +
+                            "  ) LOOP " +
+                            "    EXECUTE 'DROP SEQUENCE IF EXISTS ' || quote_ident(r.relname) || ' CASCADE'; " +
+                            "  END LOOP; " +
+                            "END $$;";
+            stmt.execute(dropSequencesSql);
+
+            log.debug("Dropped all tables and sequences in current schema");
+        } catch (SQLException e) {
+            log.debug("Could not drop tables in schema (may not exist): {}", e.getMessage());
+        }
     }
 
     private Map<String, Object> createLiquibaseLoggableScope() {
