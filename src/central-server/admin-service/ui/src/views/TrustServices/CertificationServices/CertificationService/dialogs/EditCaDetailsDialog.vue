@@ -63,7 +63,7 @@
           <v-select
             v-model="defaultCsrFormat"
             v-bind="defaultCsrFormatAttrs"
-            data-test="default-csr-format-select"
+            data-test="xrd default-csr-format-select"
             class="xrd mt-6"
             variant="outlined"
             :label="$t('trustServices.defaultCsrFormat')"

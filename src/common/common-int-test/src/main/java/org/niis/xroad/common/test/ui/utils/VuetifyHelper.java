@@ -27,6 +27,7 @@
 
 package org.niis.xroad.common.test.ui.utils;
 
+import com.codeborne.selenide.ScrollIntoViewOptions;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
 
@@ -40,6 +41,9 @@ import static com.codeborne.selenide.Condition.tagName;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.ScrollIntoViewOptions.Block.end;
+import static com.codeborne.selenide.ScrollIntoViewOptions.Block.start;
+import static com.codeborne.selenide.ScrollIntoViewOptions.instant;
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
 
@@ -113,13 +117,12 @@ public final class VuetifyHelper {
         }
 
         public Checkbox scrollIntoView(boolean alignToTop) {
-            controlElement.scrollIntoView(alignToTop);
+            controlElement.scrollIntoView(instant().block(alignToTop? start: end));
             return this;
         }
 
         public void click() {
-            controlElement.shouldBe(visible);
-            input.click();
+            controlElement.shouldBe(visible).click();
         }
     }
 
