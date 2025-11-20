@@ -151,7 +151,7 @@ class QueryRequestProcessor {
         public void fault(SoapFault fault) throws Exception {
             log.error("Received fault {}", fault.getXml());
 
-            throw fault.toCodedException();
+            throw fault.toXrdRuntimeException();
         }
     }
 

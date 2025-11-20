@@ -154,7 +154,7 @@ public class QueryRequestHandlerTest {
 
                     @Override
                     public void fault(SoapFault fault) {
-                        throw fault.toCodedException();
+                        throw fault.toXrdRuntimeException();
                     }
                 });
 

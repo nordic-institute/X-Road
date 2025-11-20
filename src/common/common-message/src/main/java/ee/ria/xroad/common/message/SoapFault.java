@@ -134,7 +134,7 @@ public class SoapFault implements Soap {
      *
      * @return XrdRuntimeException
      */
-    public XrdRuntimeException toCodedException() {
+    public XrdRuntimeException toXrdRuntimeException() {
         try {
 
             return XrdRuntimeException.systemException(ErrorCode.withCode(faultCode))

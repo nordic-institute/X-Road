@@ -357,7 +357,7 @@ public final class ManagementRequestSender {
                 sender.getResponseContent());
         if (response instanceof SoapFault soapFault) {
             // Server responded with fault
-            throw soapFault.toCodedException();
+            throw soapFault.toXrdRuntimeException();
         }
 
         if (!(response instanceof SoapMessageImpl responseMessage)) {

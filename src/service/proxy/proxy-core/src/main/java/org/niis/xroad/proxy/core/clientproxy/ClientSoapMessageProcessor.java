@@ -328,7 +328,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
         log.trace("checkResponse()");
 
         if (response.getFault() != null) {
-            throw response.getFault().toCodedException();
+            throw response.getFault().toXrdRuntimeException();
         }
 
         if (response.getSoap() == null) {

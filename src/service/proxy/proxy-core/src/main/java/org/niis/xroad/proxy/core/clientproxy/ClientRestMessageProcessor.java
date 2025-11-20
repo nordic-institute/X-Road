@@ -226,7 +226,7 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void checkResponse() {
         if (response.getFault() != null) {
-            throw response.getFault().toCodedException();
+            throw response.getFault().toXrdRuntimeException();
         }
         if (response.getRestResponse() == null) {
             throw XrdRuntimeException.systemException(MISSING_REST, "Response does not have REST message");

@@ -461,7 +461,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         // If we received a fault from the service, we just send it back
         // to the client.
         if (responseFault != null) {
-            throw responseFault.toCodedException();
+            throw responseFault.toXrdRuntimeException();
         }
 
         // If we did not parse a response message (empty response

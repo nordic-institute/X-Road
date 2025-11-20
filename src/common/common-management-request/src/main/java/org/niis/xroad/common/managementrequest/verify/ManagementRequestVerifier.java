@@ -196,7 +196,7 @@ public final class ManagementRequestVerifier {
 
         @Override
         public void fault(SoapFault fault) {
-            onError(fault.toCodedException());
+            onError(fault.toXrdRuntimeException());
         }
 
         @Override
