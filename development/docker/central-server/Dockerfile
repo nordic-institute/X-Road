@@ -97,6 +97,9 @@ RUN useradd xrd-sys && adduser xrd-sys xroad-system-administrator && sh -c "echo
 
 COPY --chown=xroad:xroad files/etc /etc/
 
+# Copy PostgreSQL performance configuration
+COPY --chown=postgres:postgres files/etc/postgresql/16/main/postgresql-performance.conf /etc/postgresql/16/main/postgresql-performance.conf
+
 COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf
 COPY --chmod=755 files/wait-for-secret-store.sh /usr/share/xroad/scripts/wait-for-secret-store.sh

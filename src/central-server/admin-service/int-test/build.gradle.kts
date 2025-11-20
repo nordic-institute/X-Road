@@ -61,9 +61,6 @@ tasks.register<Test>("intTest") {
     showStandardStreams = true
   }
 
-  reports {
-    junitXml.required.set(false) // equivalent to includeSystemOutLog = false
-  }
 }
 
 archUnit {
