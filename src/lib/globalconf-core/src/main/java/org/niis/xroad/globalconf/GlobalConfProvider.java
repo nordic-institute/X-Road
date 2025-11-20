@@ -36,6 +36,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -47,6 +48,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
@@ -165,6 +167,10 @@ public interface GlobalConfProvider {
      *
      */
     List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert) throws CertificateEncodingException, IOException;
+
+    Map<String, CostType> getOcspResponderAddressesAndCostTypes(String instanceIdentifier, X509Certificate caCert);
+
+    CostType getOcspResponderCostType(String instanceIdentifier, String ocspUrl);
 
     /**
      * @return a list of known OCSP responder certificates
@@ -339,6 +345,11 @@ public interface GlobalConfProvider {
      *
      */
     X509Certificate getCentralServerSslCertificate();
+
+    /**
+     * @return a set containing all configured source addresses
+     */
+    Set<String> findSourceAddresses();
 
     /**
      * @return maximum allowed validity time of OCSP responses. If thisUpdate

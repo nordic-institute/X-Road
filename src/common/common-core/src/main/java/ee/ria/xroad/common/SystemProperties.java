@@ -58,7 +58,7 @@ public final class SystemProperties {
             PREFIX + "common.configuration-path";
 
     /** Current version number of the global configuration **/
-    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 5;
+    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 6;
 
     /** Minimum supported version number of the global configuration **/
     public static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
@@ -373,6 +373,11 @@ public final class SystemProperties {
     private static final String HSM_HEALTH_CHECK_ENABLED = PROXY_PREFIX + "hsm-health-check-enabled";
     private static final String PROXY_MESSAGE_SIGN_DIGEST_NAME = PROXY_PREFIX + "message-sign-digest-name";
     public static final String PROXY_MEMORY_USAGE_THRESHOLD = PROXY_PREFIX + "memory-usage-threshold";
+
+    private static final String PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY = PROXY_PREFIX + "timestamping_prioritization_strategy";
+    private static final String PROXY_OCSP_PRIORITIZATION_STRATEGY = PROXY_PREFIX + "ocsp_prioritization_strategy";
+
+    public enum ServicePrioritizationStrategy { ONLY_FREE, ONLY_PAID, FREE_FIRST, PAID_FIRST, NONE }
 
     private static final String FALSE = Boolean.FALSE.toString();
     private static final String TRUE = Boolean.TRUE.toString();
@@ -2006,6 +2011,22 @@ public final class SystemProperties {
         return Optional.ofNullable(System.getProperty(PROXY_MEMORY_USAGE_THRESHOLD))
                 .map(Long::parseLong)
                 .orElse(null);
+    }
+
+    public static ServicePrioritizationStrategy getTimestampingPrioritizationStrategy() {
+        return getServicePrioritizationStrategy(PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY);
+    }
+
+    public static ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
+        return getServicePrioritizationStrategy(PROXY_OCSP_PRIORITIZATION_STRATEGY);
+    }
+
+
+    private static ServicePrioritizationStrategy getServicePrioritizationStrategy(String systemPropertyName) {
+        return Arrays.stream(ServicePrioritizationStrategy.values())
+                .filter(e -> e.name().equalsIgnoreCase(System.getProperty(systemPropertyName)))
+                .findAny()
+                .orElse(ServicePrioritizationStrategy.NONE);
     }
 
     /**

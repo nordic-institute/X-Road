@@ -50,6 +50,7 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
@@ -123,6 +124,7 @@ public class TokenCertificateService {
     private final AcmeService acmeService;
     private final MailNotificationHelper mailNotificationHelper;
     private final ServerConfService serverConfService;
+    private final AuthCertVerifier authCertVerifier = new AuthCertVerifier();
 
     /**
      * Create a CSR
@@ -710,11 +712,11 @@ public class TokenCertificateService {
             KeyNotFoundException, ActionNotPossibleException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         auditLogTokenKeyAndCert(hash, certificateInfo, false);
-        verifyAuthCert(certificateInfo);
+        authCertVerifier.verify(certificateInfo);
         verifyCertAction(PossibleActionEnum.REGISTER, certificateInfo, hash);
         try {
             Integer requestId = managementRequestSenderService.sendAuthCertRegisterRequest(securityServerAddress,
-                    certificateInfo.getCertificateBytes());
+                    certificateInfo.getCertificateBytes(), false);
             auditDataHelper.put(RestApiAuditProperty.ADDRESS, securityServerAddress);
             auditDataHelper.putManagementRequestId(requestId);
             auditDataHelper.put(RestApiAuditProperty.CERT_STATUS, CertificateInfo.STATUS_REGINPROG);
@@ -746,7 +748,7 @@ public class TokenCertificateService {
             ActionNotPossibleException, ManagementRequestSendingFailedException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         auditLogTokenKeyAndCert(hash, certificateInfo, false);
-        verifyAuthCert(certificateInfo);
+        authCertVerifier.verify(certificateInfo);
         verifyCertAction(PossibleActionEnum.UNREGISTER, certificateInfo, hash);
         if (!skipUnregister) {
             Integer requestId = managementRequestSenderService.sendAuthCertDeletionRequest(
@@ -802,23 +804,6 @@ public class TokenCertificateService {
             KeyNotFoundException, CertificateNotFoundException {
 
         unregisterAuthCertAndMarkForDeletion(hash, true);
-    }
-
-    private void verifyAuthCert(CertificateInfo certificateInfo)
-            throws SignCertificateNotSupportedException, InvalidCertificateException {
-        boolean isAuthCert;
-        X509Certificate certificate;
-        try {
-            certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
-            isAuthCert = CertUtils.isAuthCert(certificate);
-            if (!isAuthCert) {
-                throw new SignCertificateNotSupportedException("not an auth cert");
-            }
-        } catch (SignCertificateNotSupportedException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new InvalidCertificateException("invalid certificate", e);
-        }
     }
 
     /**

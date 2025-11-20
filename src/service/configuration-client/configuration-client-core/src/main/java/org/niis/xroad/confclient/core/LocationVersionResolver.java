@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
+import org.niis.xroad.common.core.util.HttpUrlConnectionConfigurer;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 
 import java.io.IOException;

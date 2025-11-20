@@ -91,7 +91,7 @@ jobs:
           task: get-measurement
           label: 'Build, unit tests and packaging'
       - name: Store files for arm packaging
-        uses: pyTooling/upload-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
+        uses: pyTooling/upload-artifact@v5 # https://github.com/actions/upload-artifact/issues/38
         with:
           name: workspace-for-arm
           include-hidden-files: true
@@ -124,7 +124,7 @@ jobs:
           DEBFULLNAME: 'NIIS'
         run: ./src/packages/build-deb.sh noble -release
       - name: Store deb files for system tests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: debian-packages
           path: src/packages/build/ubuntu22.04/*.deb
@@ -166,7 +166,7 @@ jobs:
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
       - name: Download workspace
-        uses: pyTooling/download-artifact@v5 # https://github.com/actions/upload-artifact/issues/38
+        uses: pyTooling/download-artifact@v6 # https://github.com/actions/upload-artifact/issues/38
         with:
           name: workspace-for-arm
       - name: Set up measurement for arm packaging
@@ -192,7 +192,7 @@ jobs:
           DEBFULLNAME: 'NIIS'
         run: ./src/packages/build-deb.sh noble -release
       - name: Store deb files for Docker dev images
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: debian-packages-arm
           path: src/packages/build/ubuntu22.04/*.deb
@@ -240,7 +240,7 @@ jobs:
         with:
           driver-opts: network=host
       - name: Download debian packages
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: debian-packages
           path: ./Docker/centralserver/build/packages/
@@ -259,6 +259,8 @@ jobs:
         with:
           task: get-measurement
           label: 'Set up Central Server tests'
+      - name: Check Chromium version
+        run: chromium --version || chromium-browser --version || google-chrome --version
       - name: Run Central Server system tests
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
@@ -281,12 +283,12 @@ jobs:
         if: failure()
       - name: Upload CS screenshots
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: CS System Test screenshots
           path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
       - name: Upload CS report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: CS System Test report
@@ -299,7 +301,7 @@ jobs:
           task: display-results
           pr-comment: true
       - name: Upload GMT jsons
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: CS System Test GMT jsons
           path: |
@@ -338,7 +340,7 @@ jobs:
         working-directory: ./Docker/securityserver
         run: ./init_context.sh
       - name: Download debian packages
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: debian-packages
           path: ./Docker/securityserver/build/packages/
@@ -376,7 +378,7 @@ jobs:
         run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/ && sudo chown -R $USER src/security-server/system-test/build/ca-container-logs/
         if: failure()
       - name: Upload SS report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: SS System Test report
@@ -425,7 +427,7 @@ jobs:
         working-directory: ./Docker/centralserver
         run: ./init_context.sh
       - name: Download debian packages for CS
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: debian-packages
           path: ./Docker/centralserver/build/packages/
@@ -478,7 +480,7 @@ jobs:
           path: src/security-server/e2e-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
       - name: Upload E2E report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: E2E report

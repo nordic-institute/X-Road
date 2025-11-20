@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
@@ -66,6 +67,7 @@ public class ApprovedCaConverter {
                         .toList())
                 .setCreatedAt(entity.getCreatedAt())
                 .setUpdatedAt(entity.getUpdatedAt())
+                .setDefaultCsrFormat(CsrFormat.valueOf(entity.getDefaultCsrFormat()))
                 .setAcmeServerDirectoryUrl(entity.getAcmeServerDirectoryUrl())
                 .setAcmeServerIpAddress(entity.getAcmeServerIpAddress())
                 .setAuthenticationCertificateProfileId(entity.getAuthCertProfileId())

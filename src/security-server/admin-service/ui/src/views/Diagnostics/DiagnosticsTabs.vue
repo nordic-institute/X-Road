@@ -58,6 +58,14 @@ function getAllowedTabs(): Tab[] {
       },
       permissions: [Permissions.DIAGNOSTICS],
     },
+    {
+      key: 'diagnostics-connection-tab-button',
+      name: 'tab.diagnostics.connectionTesting',
+      to: {
+        name: RouteName.DiagnosticsConnection,
+      },
+      permissions: [Permissions.DIAGNOSTICS],
+    },
   ];
   return userStore.getAllowedTabs(allTabs);
 }

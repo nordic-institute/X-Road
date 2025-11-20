@@ -627,6 +627,7 @@
     "certProfileInput": "Информация о профиле сертификата",
     "certProfileInputExplanation": "Полное имя класса, реализующего интерфейс ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "certificationServices": "Сервисы сертификации",
+    "defaultCsrFormat": "Формат CSR по умолчанию",
     "timestampingService": {
       "addedSuccessfully": "Служба временных меток успешно добавлена",
       "dialog": {
@@ -644,6 +645,12 @@
     },
     "timestampingServices": "Службы временных меток",
     "trustService": {
+      "cost": "Стоимость",
+      "costType": {
+        "FREE": "Бесплатно",
+        "PAID": "Платно",
+        "UNDEFINED": "Не определено"
+      },
       "delete": {
         "action": "Удалить службу доверия",
         "confirmationDialog": {
@@ -705,16 +712,11 @@
         "acmeCapable": "Этот CA может использоваться для ACME",
         "acmeNotCapable": "Этот CA не может использоваться для ACME",
         "certProfile": "Информация о профиле сертификата (полное имя класса, реализующего интерфейс ee.ria.xroad.common.CertificateProfileInfoProvider)",
+        "defaultCsrFormat": "Формат CSR по умолчанию (выбирается автоматически при создании новых ключей аутентификации и подписи с этим УЦ; можно изменить вручную)",
         "saveSuccess": "Настройки CA успешно сохранены",
         "tlsAuth": "Этот CA может использоваться только для TLS-аутентификации"
       },
       "timestampingService": {
-        "cost": "Стоимость",
-        "costValues": {
-          "FREE": "Бесплатно",
-          "PAID": "Платно",
-          "UNDEFINED": "Не определено"
-        },
         "delete": {
           "dialog": {
             "message": "Вы уверены, что хотите удалить службу временных меток с URL {url}?",

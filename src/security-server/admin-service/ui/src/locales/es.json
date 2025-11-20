@@ -5,7 +5,7 @@
     "addServiceClientsTitle": "Agregar permisos",
     "addSubjectsSuccess": "Permisos de acceso agregados con éxito",
     "id": "ID",
-    "memberName": "Nombre del miembro / Descripción del grupo",
+    "subsystemName": "Nombre del subsistema / Descripción del grupo",
     "removeAllText": "¿Estás seguro de que deseas eliminar los permisos de acceso de todos los clientes?",
     "removeAllTitle": "Eliminar todos los permisos de acceso?",
     "removeSuccess": "Permisos de acceso eliminados con éxito",
@@ -167,6 +167,7 @@
     "addOnStatus": {
       "messageLogDisabled": "Deshabilitado por configuración"
     },
+    "costType": "Tipo de costo",
     "encryption": {
       "backup": {
         "configuredKeyId": "Clave de ID configurada",
@@ -279,6 +280,17 @@
       "failedRequests": "Solicitudes fallidas",
       "disabledTitle": "La monitorización de datos operativos está deshabilitada",
       "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instala el complemento de monitorización de datos operativos (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Ok",
+      "test": "Prueba",
+      "centralServer": {
+        "title": "Servidor Central",
+        "globalConf": "Descarga de configuración global",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "authCertRequest": "Servicio de registro de certificados de autenticación"
+      }
     }
   },
   "endpoints": {
@@ -384,6 +396,7 @@
     "invalid_service_url": "La URL del servicio no es válida",
     "invalid_wsdl": "El WSDL no es válido",
     "invalid_wsdl_service_identifier": "El identificador de servicio WSDL no es válido",
+    "io_error": "Error de E/S",
     "key_and_cert_generation_failed": "Falló la generación de clave y certificado",
     "key_not_found": "Clave no encontrada",
     "local_group_code_already_exists": "El código de grupo local ya existe",
@@ -399,6 +412,12 @@
     "member_code_exists": "El código de miembro ya existe",
     "member_code_not_provided": "No has proporcionado el código de miembro",
     "missing_parameter": "Parámetro faltante",
+    "network_error": "Error de red",
+    "http_error": "Error HTTP",
+    "ocsp_connection_error": "Incapaz de conectarse al servicio OCSP Responder",
+    "ocsp_failed": "No se puede obtener la respuesta del servicio OCSP Responder",
+    "ocsp_response_parsing_failure": "Incapaz de analizar la respuesta OCSP",
+    "ocsp_response_verification_failure": "No se puede verificar la respuesta OCSP",
     "openapi_parsing_error": "Error al analizar la descripción de OpenApi3",
     "orphans_not_found": "Las claves huérfanas, certificados y/o CSR que pertenecen al cliente dado no fueron encontrados",
     "pin_code_exists": "El código PIN ya existe",
@@ -698,7 +717,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Miembro/código de grupo",
     "memberGroupStep": "Miembro / grupo",
-    "name": "Nombre del miembro / Descripción del grupo",
+    "name": "Nombre del subsistema / Descripción del grupo",
     "noAccessRights": "Sin permisos de acceso a este cliente",
     "noAvailableServices": "No hay servicios disponibles",
     "removeAll": "Eliminar todo",
@@ -728,7 +747,7 @@
     "enableSuccess": "Descripción del servicio habilitado",
     "idGroupCode": "ID / Código de grupo",
     "lastRefreshed": "Última actualización:",
-    "memberNameGroupDesc": "Nombre del miembro / Descripción del grupo",
+    "subsystemNameGroupDesc": "Nombre del subsistema / Descripción del grupo",
     "noMatches": "Sin registros coincidentes",
     "openApi3Added": "Servicio OpenApi3 agregado",
     "openapiDetails": "Detalles OpenAPI 3",
@@ -809,6 +828,7 @@
           "acmeIpAddresses": "IP del servidor ACME",
           "distinguishedName": "Nombre distinguido",
           "expires": "Expira",
+          "ocspCostType": "Tipo de coste OCSP",
           "ocspResponse": "Respuesta OCSP"
         },
         "notAvailable": "No disponible",
@@ -847,6 +867,11 @@
       },
       "title": "Ancla de configuración"
     },
+    "costType": {
+      "FREE": "Gratis",
+      "PAID": "De pago",
+      "UNDEFINED": "Indefinido"
+    },
     "securityServer": {
       "addressChangeInProgress": "Cambio en proceso",
       "editDialog": {
@@ -855,6 +880,24 @@
       "securityServer": "Servidor de seguridad",
       "serverAddress": "Dirección del servidor",
       "updateSubmitted": "Cambio de dirección del servidor de seguridad enviado correctamente"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Estrategia de priorización de sellado de tiempo: ",
+        "ONLY_FREE": "usar solo servicios de sellado de tiempo gratuitos",
+        "ONLY_PAID": "usar solo servicios de sellado de tiempo de pago",
+        "FREE_FIRST": "usar primero los servicios gratuitos de sellado de tiempo, si todos fallan o no hay disponibles, usar los de pago",
+        "PAID_FIRST": "usar primero los servicios de pago de sellado de tiempo, si todos fallan o no hay disponibles, usar los gratuitos",
+        "NONE": "usar todos los servicios de sellado de tiempo sin priorización"
+      },
+      "ocsp": {
+        "label": "Estrategia de priorización OCSP: ",
+        "ONLY_FREE": "usar solo servicios OCSP gratuitos",
+        "ONLY_PAID": "usar solo servicios OCSP de pago",
+        "FREE_FIRST": "usar primero los servicios OCSP gratuitos, si todos fallan o no hay disponibles, usar los de pago",
+        "PAID_FIRST": "usar primero los servicios OCSP de pago, si todos fallan o no hay disponibles, usar los gratuitos",
+        "NONE": "usar todos los servicios OCSP sin priorización"
+      }
     },
     "timestampingServices": {
       "action": {
@@ -880,7 +923,8 @@
         },
         "header": {
           "serviceURL": "URL de servicio",
-          "timestampingService": "Servicio de marca de tiempo"
+          "timestampingService": "Servicio de marca de tiempo",
+          "costType": "Tipo de costo"
         }
       },
       "title": "Servicios de marca de tiempo"
@@ -897,7 +941,8 @@
     },
     "diagnostics": {
       "overview": "Resumen",
-      "traffic": "Tráfico"
+      "traffic": "Tráfico",
+      "connectionTesting": "Prueba de conexión"
     },
     "keys": {
       "apiKey": "Clave de API",

@@ -2243,7 +2243,7 @@ paths:
                 description: array of ocsp responder diagnostics objects
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/OcspResponderDiagnostics'
+                  $ref: '#/components/schemas/CaOcspDiagnostics'
         '400':
           description: request was invalid
         '401':
@@ -2378,6 +2378,61 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProxyMemoryUsageStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /diagnostics/auth-cert-req-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view authentication certificate registration request status
+      operationId: getAuthCertReqStatus
+      description: <h3>Administrator views the authentication certificate registration request status.</h3>
+      responses:
+        '200':
+          description: authentication certificate registration request status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /diagnostics/global-conf-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view global configuration download connection status
+      operationId: getGlobalConfStatus
+      description: <h3>Administrator views global configuration download connection status.</h3>
+      responses:
+        '200':
+          description: global configuration download connection status
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of statuses for the global configuration download connection
+                items:
+                  $ref: '#/components/schemas/GlobalConfConnectionStatus'
         '400':
           description: request was invalid
         '401':
@@ -4844,6 +4899,28 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
+  /system/timestamping-services/prioritization-strategy:
+    get:
+      tags:
+        - system
+      summary: get timestamping services prioritization strategy
+      operationId: getTimestampingPrioritizationStrategy
+      description: <h3>Administrator views the timestamping prioritization strategy.</h3>
+      responses:
+        '200':
+          description: Timestamping prioritization strategy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicePrioritizationStrategy'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '500':
+          description: internal server error
   /system/node-type:
     get:
       tags:
@@ -5161,6 +5238,28 @@ paths:
           description: request has been refused
         '409':
           description: an existing item already exists, outdated global conf or token not logged in
+        '500':
+          description: internal server error
+  /certificate-authorities/ocsp-prioritization-strategy:
+    get:
+      tags:
+        - certificate-authorities
+      summary: get OCSP responders prioritization strategy
+      operationId: getOcspPrioritizationStrategy
+      description: <h3>Administrator views the OCSP prioritization strategy.</h3>
+      responses:
+        '200':
+          description: OCSP prioritization strategy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicePrioritizationStrategy'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
         '500':
           description: internal server error
   /mail/mail-notification-status:
@@ -5983,6 +6082,35 @@ components:
           type: boolean
           readOnly: true
           description: Is usage over threshold
+    ConnectionStatus:
+      type: object
+      description: connection status
+      required:
+        - status_class
+        - error
+      properties:
+        status_class:
+          readOnly: true
+          description: connection status class
+          allOf:
+            - $ref: '#/components/schemas/DiagnosticStatusClass'
+        error:
+          $ref: '#/components/schemas/CodeWithDetails'
+    GlobalConfConnectionStatus:
+      type: object
+      description: global configuration download connection status
+      required:
+        - download_url
+        - connection_status
+      properties:
+        download_url:
+          type: string
+          format: text
+          minLength: 1
+          maxLength: 255
+          description: download url of the global configuration
+        connection_status:
+          $ref: '#/components/schemas/ConnectionStatus'
     MailNotificationStatus:
       type: object
       description: automatic e-mail notification status
@@ -6213,7 +6341,7 @@ components:
           $ref: '#/components/schemas/CertificateStatus'
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-    OcspResponderDiagnostics:
+    CaOcspDiagnostics:
       type: object
       description: Ocsp responder diagnostics
       required:
@@ -6232,7 +6360,7 @@ components:
           type: array
           readOnly: true
           items:
-            $ref: '#/components/schemas/OcspResponder'
+            $ref: '#/components/schemas/OcspResponderDiagnostics'
     CertificateDetails:
       type: object
       description: certificate details for any kind of certificate (TLS, auth, sign)
@@ -6448,6 +6576,11 @@ components:
           items:
             type: string
             format: text
+        ocsp_responders:
+          type: array
+          description: list of ocsp responders for this CA
+          items:
+            $ref: '#/components/schemas/OcspResponder'
     CertificateStatus:
       type: string
       format: enum
@@ -7231,6 +7364,23 @@ components:
           $ref: '#/components/schemas/NodeType'
     OcspResponder:
       type: object
+      description: OCSP responder
+      required:
+        - url
+        - cost_type
+      properties:
+        url:
+          type: string
+          format: url
+          description: url of the OCSP responder
+          example: http://dev.xroad.rocks:123
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+        cost_type:
+          $ref: '#/components/schemas/CostType'
+    OcspResponderDiagnostics:
+      type: object
       description: OCSP responder diagnostics
       required:
         - url
@@ -7245,6 +7395,8 @@ components:
           minLength: 1
           maxLength: 255
           readOnly: true
+        cost_type:
+          $ref: '#/components/schemas/CostType'
         status_class:
           $ref: '#/components/schemas/DiagnosticStatusClass'
         prev_update_at:
@@ -7726,6 +7878,17 @@ components:
           default: false
         type:
           $ref: '#/components/schemas/ServiceType'
+    ServicePrioritizationStrategy:
+      type: string
+      format: enum
+      description: service prioritization strategy
+      example: FREE_FIRST
+      enum:
+        - ONLY_FREE
+        - ONLY_PAID
+        - FREE_FIRST
+        - PAID_FIRST
+        - NONE
     ServiceType:
       type: string
       format: text
@@ -7751,6 +7914,7 @@ components:
       required:
         - name
         - url
+        - cost_type
       properties:
         name:
           type: string
@@ -7766,6 +7930,8 @@ components:
           example: http://dev.xroad.rocks:123
           minLength: 1
           maxLength: 255
+        cost_type:
+          $ref: '#/components/schemas/CostType'
     TimestampingServiceDiagnostics:
       type: object
       description: timestamping service diagnostics
@@ -7782,6 +7948,8 @@ components:
           minLength: 1
           maxLength: 255
           readOnly: true
+        cost_type:
+          $ref: '#/components/schemas/CostType'
         status_class:
           $ref: '#/components/schemas/DiagnosticStatusClass'
         prev_update_at:
@@ -7794,6 +7962,15 @@ components:
           readOnly: true
         error:
           $ref: '#/components/schemas/CodeWithDetails'
+    CostType:
+      description: cost type for services like TSP-s and OCSP responders
+      enum:
+        - FREE
+        - PAID
+        - UNDEFINED
+      example: FREE
+      format: enum
+      type: string
     Token:
       type: object
       description: Token. Also includes the possible actions that can be done to this object,

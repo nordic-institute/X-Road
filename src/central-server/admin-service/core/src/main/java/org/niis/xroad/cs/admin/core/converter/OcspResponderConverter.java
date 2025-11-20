@@ -34,6 +34,7 @@ import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
@@ -54,6 +55,9 @@ public class OcspResponderConverter {
         }
         var ocspInfo = new OcspInfoEntity(ca.getCaInfo(), ocspResponder.getUrl(), ocspResponder.getCertificate());
         ocspInfo.setCaInfo(ocspInfo.getCaInfo());
+        if (ocspResponder.getCostType() != null) {
+            ocspInfo.setCostType(ocspResponder.getCostType().name());
+        }
 
         return ocspInfo;
     }
@@ -65,7 +69,8 @@ public class OcspResponderConverter {
                 .setUrl(ocspInfo.getUrl())
                 .setCertificate(ocspInfo.getCert())
                 .setCreatedAt(ocspInfo.getCreatedAt())
-                .setUpdatedAt(ocspInfo.getUpdatedAt());
+                .setUpdatedAt(ocspInfo.getUpdatedAt())
+                .setCostType(ocspInfo.getCostType() != null ? CostType.valueOf(ocspInfo.getCostType()) : CostType.UNDEFINED);
     }
 
 }

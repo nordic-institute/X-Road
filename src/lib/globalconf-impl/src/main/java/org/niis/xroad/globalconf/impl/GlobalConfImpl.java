@@ -50,6 +50,7 @@ import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
@@ -65,10 +66,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
@@ -329,6 +332,32 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
+    public Map<String, CostType> getOcspResponderAddressesAndCostTypes(String instanceIdentifier, X509Certificate caCert) {
+        Map<String, CostType> responders = new java.util.HashMap<>();
+        SharedParametersCache sharedParametersCache = getSharedParametersCache(instanceIdentifier);
+        List<SharedParameters.OcspInfo> ocspInfos = sharedParametersCache.getCaCertsAndOcspData().get(caCert);
+        if (ocspInfos != null) {
+            ocspInfos.stream()
+                    .filter(ocspInfo -> StringUtils.isNotBlank(ocspInfo.getUrl()))
+                    .forEach(ocspInfo -> responders.put(ocspInfo.getUrl().trim(), ocspInfo.getCostType()));
+        }
+        return responders;
+    }
+
+    @Override
+    public CostType getOcspResponderCostType(String instanceIdentifier, String ocspUrl) {
+        SharedParametersCache sharedParametersCache = getSharedParametersCache(instanceIdentifier);
+        for (List<SharedParameters.OcspInfo> ocspInfos : sharedParametersCache.getCaCertsAndOcspData().values()) {
+            for (SharedParameters.OcspInfo ocspInfo : ocspInfos) {
+                if (StringUtils.isNotBlank(ocspInfo.getUrl()) && ocspInfo.getUrl().trim().equals(ocspUrl.trim())) {
+                    return ocspInfo.getCostType();
+                }
+            }
+        }
+        return CostType.UNDEFINED;
+    }
+
+    @Override
     public List<X509Certificate> getOcspResponderCertificates() {
         List<X509Certificate> responderCerts = new ArrayList<>();
         try {
@@ -445,7 +474,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public SecurityServerId.Conf getServerId(X509Certificate cert)
             throws CertificateEncodingException, IOException, OperatorCreationException {
         for (SharedParametersCache p : getSharedParametersCaches()) {
-            String b64 = encodeBase64(calculateCertHash(p.getInstanceIdentifier(), cert));
+            String b64 = encodeBase64(calculateCertHash(cert));
             SharedParameters.SecurityServer server = p.getServerByAuthCert().get(b64);
             if (server != null) {
                 return SecurityServerId.Conf.create(
@@ -458,7 +487,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
         return null;
     }
 
-    private byte[] calculateCertHash(String instanceIdentifier, X509Certificate cert)
+    private byte[] calculateCertHash(X509Certificate cert)
             throws CertificateEncodingException, IOException, OperatorCreationException {
         Integer version = globalConfSource.getVersion();
         if (version != null && version > 2) {
@@ -483,7 +512,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
             throws CertificateEncodingException, IOException, OperatorCreationException {
         for (SharedParametersCache p : getSharedParametersCaches()) {
-            byte[] inputCertHash = calculateCertHash(p.getInstanceIdentifier(), cert);
+            byte[] inputCertHash = calculateCertHash(cert);
             boolean match = Optional.ofNullable(p.getMemberAuthCerts().get(memberId)).stream()
                     .flatMap(Collection::stream)
                     .anyMatch(h -> Arrays.equals(inputCertHash, h));
@@ -635,6 +664,14 @@ public class GlobalConfImpl implements GlobalConfProvider {
         byte[] certBytes = getPrivateParameters().getManagementService()
                 .getAuthCertRegServiceCert();
         return certBytes != null ? CryptoUtils.readCertificate(certBytes) : null;
+    }
+
+    @Override
+    public Set<String> findSourceAddresses() {
+        return getSharedParameters(getInstanceIdentifier()).getSources().stream()
+                .map(SharedParameters.ConfigurationSource::getAddress)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toSet());
     }
 
     @Override

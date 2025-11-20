@@ -5,7 +5,7 @@
     "addServiceClientsTitle": "Adicionar clientes",
     "addSubjectsSuccess": "Direitos de acesso adicionados com sucesso",
     "id": "ID",
-    "memberName": "Nome do Membro / Descrição do Grupo",
+    "subsystemName": "Nome do subsistema / Descrição do grupo",
     "removeAllText": "Tem certeza de que deseja remover os direitos de acesso de todos os clientes?",
     "removeAllTitle": "Remover todos os direitos de acesso?",
     "removeSuccess": "Direitos de acesso removidos com sucesso",
@@ -178,6 +178,7 @@
     "addOnStatus": {
       "messageLogDisabled": "Desativado por configuração"
     },
+    "costType": "Tipo de custo",
     "downloadReport": "Baixar relatório de diagnóstico",
     "encryption": {
       "backup": {
@@ -304,6 +305,38 @@
         "UNKNOWN": "Desconhecido"
       },
       "title": "Carimbo de tempo"
+    },
+    "traffic": {
+      "period": "Período",
+      "periodInfo": "Selecione início e fim",
+      "date": "Data",
+      "time": "Hora",
+      "party": "Parte",
+      "partyInfo": "Serviço, subsistema, membro",
+      "client": "Cliente",
+      "service": "Serviço",
+      "exchangeRole": "Função de troca",
+      "exchangeRoleInfo": "Produtor ou Consumidor",
+      "producer": "Produtor",
+      "status": "Status",
+      "statusInfo": "Status da troca de mensagens",
+      "success": "Sucesso",
+      "failure": "Falha",
+      "successfulRequests": "Solicitações exitosas",
+      "failedRequests": "Solicitações falhas",
+      "disabledTitle": "Monitoramento de dados operacionais desativado",
+      "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, instale o complemento de monitoramento de dados operacionais (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Tudo certo",
+      "test": "Teste",
+      "centralServer": {
+        "title": "Servidor Central",
+        "globalConf": "Download da configuração global",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "authCertRequest": "Serviço de registro de certificado de autenticação"
+      }
     }
   },
   "endpoints": {
@@ -413,6 +446,7 @@
     "invalid_service_url": "URL de serviço inválida",
     "invalid_wsdl": "WSDL inválido",
     "invalid_wsdl_service_identifier": "Identificador de serviço WSDL inválido",
+    "io_error": "Erro de E/S",
     "key_and_cert_generation_failed": "Falha ao gerar chave e certificado",
     "key_not_found": "Chave não encontrada",
     "local_group_code_already_exists": "Código de grupo local já existe",
@@ -429,6 +463,12 @@
     "member_code_exists": "Código de membro já existe",
     "member_code_not_provided": "Código de membro não informado",
     "missing_parameter": "Parâmetro ausente",
+    "network_error": "Erro de rede",
+    "http_error": "Erro HTTP",
+    "ocsp_connection_error": "Não foi possível conectar ao respondedor OCSP",
+    "ocsp_failed": "Não foi possível obter resposta do respondedor OCSP",
+    "ocsp_response_parsing_failure": "Não foi possível interpretar a resposta OCSP",
+    "ocsp_response_verification_failure": "Não foi possível verificar a resposta OCSP",
     "openapi_parsing_error": "Falha ao interpretar descrição OpenAPI 3",
     "orphans_not_found": "Não foram encontradas chaves, certificados ou CSRs órfãos vinculados ao cliente",
     "pin_code_exists": "PIN já existe",
@@ -733,7 +773,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Código do Membro / Grupo",
     "memberGroupStep": "Membro / Grupo",
-    "name": "Nome do Membro (Subsistema) / Descrição do Grupo",
+    "name": "Nome do subsistema / Descrição do grupo",
     "noAccessRights": "Sem direitos de acesso a este cliente",
     "noAvailableServices": "Nenhum serviço disponível",
     "removeAll": "Remover todos",
@@ -763,7 +803,7 @@
     "enableSuccess": "Descrição do serviço ativada",
     "idGroupCode": "ID / Código do grupo",
     "lastRefreshed": "Última atualização: ",
-    "memberNameGroupDesc": "Nome do membro / Descrição do grupo",
+    "subsystemNameGroupDesc": "Nome do subsistema / Descrição do grupo",
     "noMatches": "Nenhum registro correspondente",
     "openApi3Added": "Serviço OpenAPI 3 adicionado",
     "openapiDetails": "Detalhes OpenAPI 3",
@@ -844,6 +884,7 @@
           "acmeIpAddresses": "IP do Servidor ACME",
           "distinguishedName": "Titular do Certificado (DN)",
           "expires": "Expira em",
+          "ocspCostType": "Tipo de custo OCSP",
           "ocspResponse": "Resposta OCSP"
         },
         "notAvailable": "N/D",
@@ -882,6 +923,11 @@
       },
       "title": "Âncora de Configuração"
     },
+    "costType": {
+      "FREE": "Grátis",
+      "PAID": "Pago",
+      "UNDEFINED": "Indefinido"
+    },
     "securityServer": {
       "addressChangeInProgress": "MUDANÇA EM ANDAMENTO",
       "editDialog": {
@@ -890,6 +936,24 @@
       "securityServer": "Servidor Seguro",
       "serverAddress": "Endereço do servidor",
       "updateSubmitted": "Alteração de endereço do Servidor Seguro enviada com sucesso"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Estratégia de priorização de carimbo de tempo: ",
+        "ONLY_FREE": "usar apenas serviços de carimbo de tempo gratuitos",
+        "ONLY_PAID": "usar apenas serviços de carimbo de tempo pagos",
+        "FREE_FIRST": "usar primeiro os serviços gratuitos de carimbo de tempo, se todos falharem ou não estiverem disponíveis, usar os pagos",
+        "PAID_FIRST": "usar primeiro os serviços pagos de carimbo de tempo, se todos falharem ou não estiverem disponíveis, usar os gratuitos",
+        "NONE": "usar todos os serviços de carimbo de tempo sem priorização"
+      },
+      "ocsp": {
+        "label": "Estratégia de priorização OCSP: ",
+        "ONLY_FREE": "usar apenas serviços OCSP gratuitos",
+        "ONLY_PAID": "usar apenas serviços OCSP pagos",
+        "FREE_FIRST": "usar primeiro os serviços OCSP gratuitos, se todos falharem ou não estiverem disponíveis, usar os pagos",
+        "PAID_FIRST": "usar primeiro os serviços OCSP pagos, se todos falharem ou não estiverem disponíveis, usar os gratuitos",
+        "NONE": "usar todos os serviços OCSP sem priorização"
+      }
     },
     "timestampingServices": {
       "action": {
@@ -915,7 +979,8 @@
         },
         "header": {
           "serviceURL": "URL do Serviço",
-          "timestampingService": "Serviço de Carimbo do Tempo"
+          "timestampingService": "Serviço de Carimbo do Tempo",
+          "costType": "Tipo de Custo"
         }
       },
       "title": "Serviços de Carimbo do Tempo"
@@ -948,6 +1013,11 @@
     "settings": {
       "backupAndRestore": "Backup e Restauração",
       "systemParameters": "Parâmetros do Sistema"
+    },
+    "diagnostics": {
+      "overview": "Visão Geral",
+      "traffic": "Tráfego",
+      "connectionTesting": "Teste de Conexão"
     }
   },
   "token": {

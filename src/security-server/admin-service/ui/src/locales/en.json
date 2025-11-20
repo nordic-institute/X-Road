@@ -5,7 +5,7 @@
     "addServiceClientsTitle": "Add Subjects",
     "addSubjectsSuccess": "Access rights added successfully",
     "id": "ID",
-    "memberName": "Member Name / Group Description",
+    "subsystemName": "Subsystem Name / Group Description",
     "removeAllText": "Are you sure you want to remove access rights from all clients?",
     "removeAllTitle": "Remove all access rights?",
     "removeSuccess": "Access rights removed successfully",
@@ -178,6 +178,7 @@
     "addOnStatus": {
       "messageLogDisabled": "Disabled by configuration"
     },
+    "costType": "Cost Type",
     "downloadReport": "Download Diagnostic Report",
     "encryption": {
       "backup": {
@@ -330,6 +331,17 @@
       "failedRequests": "Failed requests",
       "disabledTitle": "Operational Data Monitoring Is Disabled",
       "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Everything ok",
+      "test": "Test",
+      "centralServer": {
+        "title": "Central Server",
+        "globalConf": "Global configuration download",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "authCertRequest": "Authentication certificate registration service"
+      }
     }
   },
   "endpoints": {
@@ -503,6 +515,11 @@
       "updating_message_signature_failed": "Updating the message signature properties in the database failed"
     },
     "network_error": "Network error",
+    "http_error": "HTTP error",
+    "ocsp_connection_error": "Unable to connect to the OCSP responder",
+    "ocsp_failed": "Unable to fetch response from the OCSP responder",
+    "ocsp_response_parsing_failure": "Unable to parse the OCSP response",
+    "ocsp_response_verification_failure": "Unable to verify the OCSP response",
     "openapi_parsing_error": "Parsing OpenApi3 description failed",
     "orphans_not_found": "Orphan keys, certificates and/or CSRs that belong to the given client were not found",
     "pin_code_exists": "PIN code exists",
@@ -569,10 +586,6 @@
     },
     "maintenanceModeMessage": "Maintenance mode message",
     "memberCode": "Member Code",
-    "ocsp_connection_error": "Unable to connect to the OCSP responder",
-    "ocsp_failed": "Unable to fetch response from the OCSP responder",
-    "ocsp_response_parsing_failure": "Unable to parse the OCSP response",
-    "ocsp_response_verification_failure": "Unable to verify the OCSP response",
     "path": "path",
     "pin": "PIN",
     "securityServerAddress": "Security Server address",
@@ -812,7 +825,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Member/Group code",
     "memberGroupStep": "Member / Group",
-    "name": "Member(Subsystem) name / Group description",
+    "name": "Subsystem name / Group description",
     "noAccessRights": "No access rights to this client",
     "noAvailableServices": "No available services",
     "removeAll": "Remove all",
@@ -842,7 +855,7 @@
     "enableSuccess": "Service description enabled",
     "idGroupCode": "ID / Group code",
     "lastRefreshed": "Last refreshed: ",
-    "memberNameGroupDesc": "Member name / Group description",
+    "subsystemNameGroupDesc": "Subsystem name / Group description",
     "noMatches": "No matching records",
     "openApi3Added": "OpenApi3 service added",
     "openapiDetails": "OpenAPI 3 details",
@@ -923,7 +936,9 @@
           "acmeIpAddresses": "ACME Server IP",
           "distinguishedName": "Distinguished Name",
           "expires": "Expires",
-          "ocspResponse": "OCSP Response"
+          "ocspCostType": "OCSP Cost Type",
+          "ocspResponse": "OCSP Response",
+          "ocspUrl": "OCSP URL"
         },
         "notAvailable": "N/A",
         "ocspResponse": {
@@ -961,6 +976,11 @@
       },
       "title": "Configuration Anchor"
     },
+    "costType": {
+      "FREE": "Free",
+      "PAID": "Paid",
+      "UNDEFINED": "Undefined"
+    },
     "securityServer": {
       "addressChangeInProgress": "CHANGE IN PROGRESS",
       "editDialog": {
@@ -969,6 +989,24 @@
       "securityServer": "Security Server",
       "serverAddress": "Server address",
       "updateSubmitted": "Security Server address change successfully submitted"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Timestamping prioritization strategy: ",
+        "ONLY_FREE": "use only free timestamping services",
+        "ONLY_PAID": "use only paid timestamping services",
+        "FREE_FIRST": "use free timestamping services first, if all of them fail or none are available then use paid ones",
+        "PAID_FIRST": "use paid timestamping services first, if all of them fail or none are available then use free ones",
+        "NONE": "use all timestamping services without prioritization"
+      },
+      "ocsp": {
+        "label": "OCSP prioritization strategy: ",
+        "ONLY_FREE": "use only free OCSP services",
+        "ONLY_PAID": "use only paid OCSP services",
+        "FREE_FIRST": "use free OCSP services first, if all of them fail or none are available then use paid ones",
+        "PAID_FIRST": "use paid OCSP services first, if all of them fail or none are available then use free ones",
+        "NONE": "use all OCSP services without prioritization"
+      }
     },
     "timestampingServices": {
       "action": {
@@ -994,7 +1032,8 @@
         },
         "header": {
           "serviceURL": "Service URL",
-          "timestampingService": "Timestamping Service"
+          "timestampingService": "Timestamping Service",
+          "costType": "Cost Type"
         }
       },
       "title": "Timestamping Services"
@@ -1030,7 +1069,8 @@
     },
     "diagnostics": {
       "overview": "Overview",
-      "traffic": "Traffic"
+      "traffic": "Traffic",
+      "connectionTesting": "Connection Testing"
     }
   },
   "token": {

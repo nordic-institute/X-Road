@@ -65,7 +65,7 @@ public final class DiagnosticsUtils {
 
     public static List<String> getErrorCodeMetadata(Exception e) {
         if (e instanceof XrdRuntimeException xre) {
-             return xre.getErrorCodeMetadata();
+            return xre.getErrorCodeMetadata();
         }
         return null;
     }

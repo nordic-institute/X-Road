@@ -209,7 +209,7 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
         CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
         acmeClientWorker.execute(scheduler);
         verify(signerRpcClient, times(2)).importCert(any(), any(), any(), anyBoolean());
-        verify(managementRequestSenderMock, times(1)).sendAuthCertRegRequest(any(), any(), any());
+        verify(managementRequestSenderMock, times(1)).sendAuthCertRegRequest(any(), any(), any(), anyBoolean());
         verify(signerRpcClient, times(2)).setRenewedCertHash(any(), any());
         verify(signerRpcClient, times(2)).setNextPlannedRenewal(any(), any());
     }

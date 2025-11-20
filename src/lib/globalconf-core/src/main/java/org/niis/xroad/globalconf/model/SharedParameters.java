@@ -100,6 +100,7 @@ public class SharedParameters {
         private CaInfo topCA;
         private List<CaInfo> intermediateCas;
         private String certificateProfileInfo;
+        private CsrFormat defaultCsrFormat;
         private AcmeServer acmeServer;
     }
 
@@ -127,6 +128,12 @@ public class SharedParameters {
     public static class OcspInfo {
         private String url;
         private byte[] cert;
+        private CostType costType;
+
+        public OcspInfo(String url, byte[] cert) {
+            this.url = url;
+            this.cert = cert;
+        }
     }
 
     @Data
@@ -136,6 +143,13 @@ public class SharedParameters {
         private String name;
         private String url;
         private byte[] cert;
+        private CostType costType;
+
+        public ApprovedTSA(String name, String url, byte[] cert) {
+            this.name = name;
+            this.url = url;
+            this.cert = cert;
+        }
     }
 
     @Data

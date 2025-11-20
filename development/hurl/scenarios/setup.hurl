@@ -172,6 +172,7 @@ POST https://{{cs_host}}:4000/api/v1/certification-services/{{ca_id}}/ocsp-respo
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 [MultipartFormData]
 url: http://{{ca_host}}:8888
+cost_type: FREE
 certificate: file,ca/ocsp.pem;
 
 HTTP 201
@@ -181,6 +182,7 @@ POST https://{{cs_host}}:4000/api/v1/timestamping-services
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 [MultipartFormData]
 url: http://{{ca_host}}:8899
+cost_type: FREE
 certificate: file,ca/tsa.pem;
 
 
@@ -533,12 +535,14 @@ HTTP 200
 [Captures]
 tsa_name: jsonpath "$[0].name"
 tsa_url: jsonpath "$[0].url"
+cost_type: jsonpath "$[0].cost_type"
 
 POST https://{{ss0_host}}:4000/api/v1/system/timestamping-services
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "name": "{{tsa_name}}",
-  "url": "{{tsa_url}}"
+  "url": "{{tsa_url}}",
+  "cost_type": "{{cost_type}}"
 }
 
 HTTP 201
@@ -768,7 +772,8 @@ POST https://{{ss1_host}}:4000/api/v1/system/timestamping-services
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 {
   "name": "{{tsa_name}}",
-  "url": "{{tsa_url}}"
+  "url": "{{tsa_url}}",
+  "cost_type": "{{cost_type}}"
 }
 
 HTTP 201

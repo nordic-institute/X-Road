@@ -68,9 +68,9 @@ public class AuthCertRegRequest implements ManagementRequest {
 
     private CertificateInfo ownerCert;
 
-    private byte[] dataToSign;
+    private final byte[] dataToSign;
 
-    private MultipartOutputStream multipart;
+    protected MultipartOutputStream multipart;
 
     public AuthCertRegRequest(SignerRpcClient signerRpcClient, byte[] authCert, ClientId owner, SoapMessageImpl request) {
         this.signerRpcClient = signerRpcClient;
@@ -154,7 +154,7 @@ public class AuthCertRegRequest implements ManagementRequest {
         multipart.write(createSignature(memberSigningInfo.keyId(), ownerSignAlgoId, digest));
     }
 
-    private void writeSoap() throws IOException {
+    protected void writeSoap() throws IOException {
         multipart.startPart(MimeTypes.TEXT_XML_UTF8);
         multipart.write(dataToSign);
     }
