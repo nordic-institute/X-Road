@@ -225,7 +225,7 @@ public class OcspVerifierTest {
         var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         assertThatThrownBy(() -> verifier.verifyValidityAndStatus(ocsp, subject, issuer))
                 .isInstanceOfSatisfying(XrdRuntimeException.class,
-                        ce -> assertThat(ce.getFaultCode()).isEqualTo(CERT_VALIDATION.code()));
+                        ce -> assertThat(ce.getErrorCode()).isEqualTo(CERT_VALIDATION.code()));
     }
 
     /**
@@ -243,7 +243,7 @@ public class OcspVerifierTest {
         var verifier = ocspVerifierFactory.create(globalConfProvider, new OcspVerifierOptions(true));
         assertThatThrownBy(() -> verifier.verifyValidityAndStatus(ocsp, subject, issuer))
                 .isInstanceOfSatisfying(XrdRuntimeException.class,
-                        ce -> assertThat(ce.getFaultCode()).isEqualTo(CERT_VALIDATION.code()));
+                        ce -> assertThat(ce.getErrorCode()).isEqualTo(CERT_VALIDATION.code()));
     }
 
     @Test

@@ -118,7 +118,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
             } else if (USER_PIN_LOCKED == token1.getStatus()) {
                 throw new BadRequestException(xrdRuntimeException, TOKEN_PIN_LOCKED.build());
             }
-            throw new SignerProxyException(xrdRuntimeException, TOKEN_ACTIVATION_FAILED.build(xrdRuntimeException.getFaultCode()));
+            throw new SignerProxyException(xrdRuntimeException, TOKEN_ACTIVATION_FAILED.build(xrdRuntimeException.getErrorCode()));
         } catch (Exception exception) {
             throw new SignerProxyException(exception, TOKEN_ACTIVATION_FAILED.build());
         }
@@ -134,7 +134,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         try {
             signerProxyFacade.deactivateToken(tokenId);
         } catch (XrdRuntimeException xrdRuntimeException) {
-            throw new SignerProxyException(xrdRuntimeException, TOKEN_DEACTIVATION_FAILED.build(xrdRuntimeException.getFaultCode()));
+            throw new SignerProxyException(xrdRuntimeException, TOKEN_DEACTIVATION_FAILED.build(xrdRuntimeException.getErrorCode()));
         } catch (Exception exception) {
             throw new SignerProxyException(exception, TOKEN_DEACTIVATION_FAILED.build());
         }

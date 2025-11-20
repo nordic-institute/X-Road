@@ -108,8 +108,8 @@ class CertManagerTest {
 
         var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setCertActive(CERT_EXTERNAL_ID, true));
 
-        assertEquals("internal_error", exception.getFaultCode());
-        assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
+        assertEquals("internal_error", exception.getErrorCode());
+        assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getDetails());
 
         verify(tokenRegistryLoader).loadTokens();
         verifyNoMoreInteractions(tokenRegistryLoader);
@@ -144,7 +144,7 @@ class CertManagerTest {
 
         var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setCertActive(CERT_EXTERNAL_ID, true));
 
-        assertEquals("internal_error", exception.getFaultCode());
+        assertEquals("internal_error", exception.getErrorCode());
 
         verify(tokenRegistryLoader).refreshTokens(any());
     }
@@ -175,8 +175,8 @@ class CertManagerTest {
 
         var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setCertStatus(CERT_EXTERNAL_ID, "status"));
 
-        assertEquals("internal_error", exception.getFaultCode());
-        assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
+        assertEquals("internal_error", exception.getErrorCode());
+        assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getDetails());
 
         verifyNoInteractions(tokenKeyCertWriteService);
         verify(tokenRegistryLoader).loadTokens();
@@ -210,8 +210,8 @@ class CertManagerTest {
 
         var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setRenewedCertHash(CERT_EXTERNAL_ID, "status"));
 
-        assertEquals("internal_error", exception.getFaultCode());
-        assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
+        assertEquals("internal_error", exception.getErrorCode());
+        assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getDetails());
 
         verifyNoInteractions(tokenKeyCertWriteService);
         verify(tokenRegistryLoader).loadTokens();
@@ -245,8 +245,8 @@ class CertManagerTest {
 
         var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setRenewalError(CERT_EXTERNAL_ID, "renewal error"));
 
-        assertEquals("internal_error", exception.getFaultCode());
-        assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
+        assertEquals("internal_error", exception.getErrorCode());
+        assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getDetails());
 
         verifyNoInteractions(tokenKeyCertWriteService);
         verify(tokenRegistryLoader).loadTokens();
@@ -282,8 +282,8 @@ class CertManagerTest {
 
         var exception = assertThrows(XrdRuntimeException.class, () -> certManager.setNextPlannedRenewal(CERT_EXTERNAL_ID, Instant.now()));
 
-        assertEquals("internal_error", exception.getFaultCode());
-        assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
+        assertEquals("internal_error", exception.getErrorCode());
+        assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getDetails());
 
         verifyNoInteractions(tokenKeyCertWriteService);
         verify(tokenRegistryLoader).loadTokens();
@@ -348,7 +348,7 @@ class CertManagerTest {
                         KeyUsageInfo.AUTHENTICATION, "certProfile"));
 
         assertEquals("wrong_cert_usage", exception.getErrorCode());
-        assertEquals("Cannot add AUTHENTICATION certificate request to SIGNING key", exception.getFaultString());
+        assertEquals("Cannot add AUTHENTICATION certificate request to SIGNING key", exception.getDetails());
 
         verifyNoInteractions(tokenKeyWriteService);
         verifyNoInteractions(tokenKeyCertRequestWriteService);

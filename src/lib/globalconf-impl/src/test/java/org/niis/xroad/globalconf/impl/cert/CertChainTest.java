@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.globalconf.impl.cert;
 
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
@@ -34,6 +33,7 @@ import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
@@ -203,8 +203,8 @@ public class CertChainTest {
             verify(chain, ocsp, makeDate(rootCa.getNotBefore(), 1));
             fail("OCSP verification should fail");
         } catch (XrdRuntimeException e) {
-            assertTrue(e.getFaultCode().startsWith(
-                    ErrorCodes.X_INVALID_CERT_PATH_X));
+            assertTrue(e.getErrorCode().startsWith(
+                    ErrorCode.INVALID_CERT_PATH.code()));
         }
     }
 
@@ -232,8 +232,8 @@ public class CertChainTest {
             verify(chain, ocsp, makeDate(rootCa.getNotBefore(), 1));
             fail("OCSP verification should fail");
         } catch (XrdRuntimeException e) {
-            assertTrue(e.getFaultCode().startsWith(
-                    ErrorCodes.X_INVALID_CERT_PATH_X));
+            assertTrue(e.getErrorCode().startsWith(
+                    ErrorCode.INVALID_CERT_PATH.code()));
         }
     }
 

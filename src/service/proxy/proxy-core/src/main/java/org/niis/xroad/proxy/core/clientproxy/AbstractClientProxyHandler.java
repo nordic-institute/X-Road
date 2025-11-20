@@ -111,8 +111,8 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
 
             String errorMessage;
             XrdRuntimeException exception = e;
+            errorMessage = "Request processing error (" + e.getDetails() + ")";
             if (!e.originatesFrom(ErrorOrigin.CLIENT)) {
-                errorMessage = "Request processing error (" + e.getFaultDetail() + ")";
                 exception = e.withPrefix(SERVER_CLIENTPROXY_X);
             } else {
                 errorMessage = "Request processing error (" + e.getDetails() + ")";
@@ -179,7 +179,7 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 
-        sendPlainTextErrorResponse(response, callback, e.getHttpStatus().get().getCode(), e.getFaultString());
+        sendPlainTextErrorResponse(response, callback, e.getHttpStatus().get().getCode(), e.getDetails());
     }
 
     protected boolean isGetRequest(RequestWrapper request) {

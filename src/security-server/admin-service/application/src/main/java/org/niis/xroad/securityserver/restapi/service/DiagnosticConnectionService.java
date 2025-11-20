@@ -129,7 +129,7 @@ public class DiagnosticConnectionService {
                 return certValidation.isOk() ? ConnectionStatus.ok()
                         : ConnectionStatus.error(certValidation.errorCode, certValidation.metadata);
             }
-            return certValidation.isOk() ? ConnectionStatus.error(e.getErrorCode(), listOrEmpty(e.getFaultString()))
+            return certValidation.isOk() ? ConnectionStatus.error(e.getErrorCode(), listOrEmpty(e.getDetails()))
                     : ConnectionStatus.fromErrorAndValidation(
                     e.getErrorCode(),
                     listOrEmpty(e.getDetails()),

@@ -88,7 +88,7 @@ public class SecurityServerBackupService {
         try {
             backupManagerRpcClient.deleteBackup(name);
         } catch (XrdRuntimeException ce) {
-            throw mapException(ce, new InternalServerErrorException(ce, BACKUP_DELETION_FAILED.build(ce.getFaultString())));
+            throw mapException(ce, new InternalServerErrorException(ce, BACKUP_DELETION_FAILED.build(ce.getDetails())));
         }
     }
 
@@ -96,7 +96,7 @@ public class SecurityServerBackupService {
         try {
             return backupManagerRpcClient.downloadBackup(name);
         } catch (XrdRuntimeException ce) {
-            throw mapException(ce, new NotFoundException(BACKUP_FILE_NOT_FOUND.build(ce.getFaultString())));
+            throw mapException(ce, new NotFoundException(BACKUP_FILE_NOT_FOUND.build(ce.getDetails())));
         }
     }
 
@@ -148,26 +148,26 @@ public class SecurityServerBackupService {
     }
 
     private DeviationAwareRuntimeException mapException(XrdRuntimeException ce, DeviationAwareRuntimeException defaultEx) {
-        if (ce.getFaultCode().equals(INVALID_FILENAME.code())) {
-            return new BadRequestException(INVALID_FILENAME.build(ce.getFaultString()));
-        } else if (ce.getFaultCode().equals(INVALID_BACKUP_FILE.code())) {
-            throw new InternalServerErrorException(INVALID_BACKUP_FILE.build(ce.getFaultString()));
-        } else if (ce.getFaultCode().equals(BACKUP_FILE_NOT_FOUND.code())) {
-            throw new NotFoundException(BACKUP_FILE_NOT_FOUND.build(ce.getFaultString()));
-        } else if (ce.getFaultCode().equals(BACKUP_GENERATION_FAILED.code())) {
+        if (ce.getErrorCode().equals(INVALID_FILENAME.code())) {
+            return new BadRequestException(INVALID_FILENAME.build(ce.getDetails()));
+        } else if (ce.getErrorCode().equals(INVALID_BACKUP_FILE.code())) {
+            throw new InternalServerErrorException(INVALID_BACKUP_FILE.build(ce.getDetails()));
+        } else if (ce.getErrorCode().equals(BACKUP_FILE_NOT_FOUND.code())) {
+            throw new NotFoundException(BACKUP_FILE_NOT_FOUND.build(ce.getDetails()));
+        } else if (ce.getErrorCode().equals(BACKUP_GENERATION_FAILED.code())) {
             return new InternalServerErrorException(BACKUP_GENERATION_FAILED.build());
-        } else if (ce.getFaultCode().equals(BACKUP_GENERATION_INTERRUPTED.code())) {
+        } else if (ce.getErrorCode().equals(BACKUP_GENERATION_INTERRUPTED.code())) {
             return new InternalServerErrorException(BACKUP_GENERATION_INTERRUPTED.build());
-        } else if (ce.getFaultCode().equals(ERROR_GPG_KEY_GENERATION_INTERRUPTED)) {
+        } else if (ce.getErrorCode().equals(ERROR_GPG_KEY_GENERATION_INTERRUPTED)) {
             return new InternalServerErrorException(GPG_KEY_GENERATION_INTERRUPTED.build());
-        } else if (ce.getFaultCode().equals(GPG_KEY_GENERATION_FAILED.code())) {
+        } else if (ce.getErrorCode().equals(GPG_KEY_GENERATION_FAILED.code())) {
             return new InternalServerErrorException(GPG_KEY_GENERATION_FAILED.build());
-        } else if (ce.getFaultCode().equals(BACKUP_RESTORATION_FAILED.code())) {
+        } else if (ce.getErrorCode().equals(BACKUP_RESTORATION_FAILED.code())) {
             return new InternalServerErrorException(BACKUP_RESTORATION_FAILED.build());
-        } else if (ce.getFaultCode().equals(BACKUP_RESTORATION_INTERRUPTED.code())) {
+        } else if (ce.getErrorCode().equals(BACKUP_RESTORATION_INTERRUPTED.code())) {
             return new InternalServerErrorException(BACKUP_RESTORATION_INTERRUPTED.build());
-        } else if (ce.getFaultCode().equals(BACKUP_DELETION_FAILED.code())) {
-            throw new NotFoundException(BACKUP_DELETION_FAILED.build(ce.getFaultString()));
+        } else if (ce.getErrorCode().equals(BACKUP_DELETION_FAILED.code())) {
+            throw new NotFoundException(BACKUP_DELETION_FAILED.build(ce.getDetails()));
         } else {
             return defaultEx;
         }

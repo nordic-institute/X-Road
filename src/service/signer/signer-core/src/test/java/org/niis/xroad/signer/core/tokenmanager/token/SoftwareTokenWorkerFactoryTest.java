@@ -185,7 +185,7 @@ class SoftwareTokenWorkerFactoryTest {
         when(signerProperties.enforceTokenPinPolicy()).thenReturn(true);
 
         var thrown = assertThrows(XrdRuntimeException.class, () -> tokenWorker.initializeToken(new char[]{'p', 'i', 'n'}));
-        assertEquals("Token PIN does not meet complexity requirements", thrown.getFaultString());
+        assertEquals("Token PIN does not meet complexity requirements", thrown.getDetails());
         assertEquals(TOKEN_PIN_POLICY_FAILURE.code(), thrown.getErrorCode());
 
         verifyNoInteractions(pinManager, tokenManager);
