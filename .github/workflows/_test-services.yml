@@ -180,7 +180,8 @@ jobs:
           pr-comment: true
   test-cs-admin-service:
     name: Run CS Admin service integration tests
-    runs-on: ubuntu-24.04
+    runs-on:
+      labels: xrd-runner-8c
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
