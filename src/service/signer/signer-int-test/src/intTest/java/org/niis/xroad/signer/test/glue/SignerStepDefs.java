@@ -221,7 +221,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             clientHolder.get().updateTokenPin(tokenId, oldPin.toCharArray(), newPin.toCharArray());
         } catch (XrdRuntimeException e) {
             assertException("signer.internal_error",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.internal_error: Software token not found", e);
+                    "\\[.*?\\] signer\\.internal_error: Software token not found", e);
         }
     }
 
@@ -308,7 +308,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             clientHolder.get().importCert(certBytes, CertificateInfo.STATUS_REGISTERED, getClientId(client));
         } catch (XrdRuntimeException e) {
             assertException("signer.key_not_found",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.key_not_found: Could not find key that has public key that matches "
+                    "\\[.*?\\] signer\\.key_not_found: Could not find key that has public key that matches "
                             + "the public key of certificate", e);
         }
     }
@@ -345,7 +345,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             certRequestIsGeneratedForTokenKey(keyUsage, friendlyName, keyName, client);
         } catch (XrdRuntimeException e) {
             assertException("signer.wrong_cert_usage",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.wrong_cert_usage: Authentication certificate requests can only be created under "
+                    "\\[.*?\\] signer\\.wrong_cert_usage: Authentication certificate requests can only be created under "
                             + "software tokens", e);
         }
     }
@@ -561,7 +561,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         } catch (XrdRuntimeException e) {
             var errorServerId = securityServerId.replace(":", "/");
             assertException("signer.key_not_found",
-                    format("\\[.*?\\] \\[SYSTEM\\] signer\\.key_not_found: Could not find active authentication key for "
+                    format("\\[.*?\\] signer\\.key_not_found: Could not find active authentication key for "
                             + "security server 'SERVER:%s'", errorServerId), e);
         }
     }
@@ -574,7 +574,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (XrdRuntimeException e) {
             assertException("signer.token_not_found",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.token_not_found: Token '" + tokenId + "' not found", e);
+                    "\\[.*?\\] signer\\.token_not_found: Token '" + tokenId + "' not found", e);
         }
     }
 
@@ -586,7 +586,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (XrdRuntimeException e) {
             assertException("signer.cert_not_found",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.cert_not_found: Certificate with id '" + cerId + "' not found", e);
+                    "\\[.*?\\] signer\\.cert_not_found: Certificate with id '" + cerId + "' not found", e);
         }
     }
 
@@ -598,7 +598,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (XrdRuntimeException e) {
             assertException("signer.key_not_found",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.key_not_found: Key '" + keyId + "' not found", e);
+                    "\\[.*?\\] signer\\.key_not_found: Key '" + keyId + "' not found", e);
         }
     }
 
@@ -610,7 +610,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (XrdRuntimeException e) {
             assertException("signer.csr_not_found",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.csr_not_found: Certificate request '" + csrId + "' not found", e);
+                    "\\[.*?\\] signer\\.csr_not_found: Certificate request '" + csrId + "' not found", e);
         }
     }
 
@@ -622,7 +622,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (XrdRuntimeException e) {
             assertException("signer.key_not_found",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.key_not_found: Key '" + keyId + "' not found", e);
+                    "\\[.*?\\] signer\\.key_not_found: Key '" + keyId + "' not found", e);
         }
     }
 
@@ -637,7 +637,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (XrdRuntimeException e) {
             assertException("signer.cannot_sign.internal_error",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.cannot_sign\\.internal_error: Unknown sign mechanism of signature algorithm:"
+                    "\\[.*?\\] signer\\.cannot_sign\\.internal_error: Unknown sign mechanism of signature algorithm:"
                             + " uSA\\[name=NOT-ALGORITHM-ID, uri=null\\]", e);
         }
     }
@@ -650,7 +650,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (XrdRuntimeException e) {
             assertException("signer.cert_not_found",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.cert_not_found: Certificate with hash '" + hash + "' not found", e);
+                    "\\[.*?\\] signer\\.cert_not_found: Certificate with hash '" + hash + "' not found", e);
         }
     }
 
@@ -662,7 +662,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (XrdRuntimeException e) {
             assertException("signer.cert_not_found",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.cert_not_found: Certificate with id '" + certId + "' not found", e);
+                    "\\[.*?\\] signer\\.cert_not_found: Certificate with id '" + certId + "' not found", e);
         }
     }
 
@@ -673,7 +673,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (XrdRuntimeException e) {
             assertException("signer.internal_error",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.internal_error: Member 'MEMBER:DEV/test/member-1' has no suitable certificates",
+                    "\\[.*?\\] signer\\.internal_error: Member 'MEMBER:DEV/test/member-1' has no suitable certificates",
                     e);
         }
     }
@@ -728,8 +728,8 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (XrdRuntimeException e) {
             assertException("signer.internal_error",
-                    "\\[.*?\\] \\[SYSTEM\\] signer\\.internal_error: Failed to verify OCSP responses for certificate\\. "
-                            + "Error: \\[.*?\\] \\[SYSTEM\\] invalid_cert_path\\.cert_validation: OCSP "
+                    "\\[.*?\\] signer\\.internal_error: Failed to verify OCSP responses for certificate\\. "
+                            + "Error: \\[.*?\\] invalid_cert_path\\.cert_validation: OCSP "
                             + "response indicates certificate status is REVOKED \\(date: 2022-01-01 00:00:00\\)", e);
         }
     }
@@ -776,7 +776,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void signerGetTokensFailsWithTimeoutException() {
         assertThatThrownBy(() -> clientHolder.get().getTokens())
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageMatching("\\[.*?\\] \\[SYSTEM\\] signer\\.network_error: gRPC client timed out\\..*");
+                .hasMessageMatching("\\[.*?] signer\\.network_error: gRPC client timed out\\..*");
     }
 
     @Step("Policy enforcement status endpoint returns false")
