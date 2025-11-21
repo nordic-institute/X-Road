@@ -40,14 +40,7 @@ public final class XrdRuntimeHttpException extends XrdRuntimeException implement
 
     private final HttpStatus httpStatus;
 
-    XrdRuntimeHttpException(@NonNull String identifier, @NonNull ExceptionCategory category, @NonNull String errorCode,
-                            @NonNull List<String> errorCodeMetadata, ErrorOrigin origin, String details,
-                            @NonNull HttpStatus httpStatus) {
-        super(identifier, category, errorCode, errorCodeMetadata, origin, details, null);
-        this.httpStatus = httpStatus;
-    }
-
-    XrdRuntimeHttpException(@NonNull Throwable cause, @NonNull String identifier, @NonNull ExceptionCategory category,
+    XrdRuntimeHttpException(Throwable cause, @NonNull String identifier, @NonNull ExceptionCategory category,
                             @NonNull String errorCode, @NonNull List<String> errorCodeMetadata, ErrorOrigin origin,
                             String details, @NonNull HttpStatus httpStatus) {
         super(cause, identifier, category, errorCode, errorCodeMetadata, origin, details, null);
@@ -65,32 +58,21 @@ public final class XrdRuntimeHttpException extends XrdRuntimeException implement
         var prefix = StringUtils.join(prefixes, ".");
 
         if (!getCode().startsWith(prefix)) {
-            if (getCause() != null) {
-                return new XrdRuntimeHttpException(
-                        getCause(),
-                        getIdentifier(),
-                        getCategory(),
-                        prefix + "." + getCode(),
-                        getErrorCodeMetadata(),
-                        getOrigin(),
-                        getDetails(),
-                        httpStatus);
-            } else {
-                return new XrdRuntimeHttpException(
-                        getIdentifier(),
-                        getCategory(),
-                        prefix + "." + getCode(),
-                        getErrorCodeMetadata(),
-                        getOrigin(),
-                        getDetails(),
-                        httpStatus);
-            }
+            return new XrdRuntimeHttpException(
+                    getCause(),
+                    getIdentifier(),
+                    getCategory(),
+                    prefix + "." + getCode(),
+                    getErrorCodeMetadata(),
+                    getOrigin(),
+                    getDetails(),
+                    httpStatus);
         }
         return this;
     }
 
     public static XrdRuntimeHttpExceptionBuilder from(XrdRuntimeException ex) {
-        return XrdRuntimeHttpExceptionBuilder.from(ex);
+        return XrdRuntimeHttpExceptionBuilder.fromEx(ex);
     }
 
     public static XrdRuntimeHttpExceptionBuilder builder(DeviationBuilder.ErrorDeviationBuilder error) {
@@ -117,18 +99,8 @@ public final class XrdRuntimeHttpException extends XrdRuntimeException implement
             }
 
             var deviation = errorDeviation.build(metadataItems);
-            if (cause != null) {
-                return new XrdRuntimeHttpException(
-                        cause,
-                        identifier,
-                        category,
-                        resolveErrorCode(),
-                        deviation.metadata(),
-                        origin,
-                        details,
-                        httpStatusValue);
-            }
             return new XrdRuntimeHttpException(
+                    cause,
                     identifier,
                     category,
                     resolveErrorCode(),
@@ -138,7 +110,7 @@ public final class XrdRuntimeHttpException extends XrdRuntimeException implement
                     httpStatusValue);
         }
 
-        static XrdRuntimeHttpExceptionBuilder from(XrdRuntimeException ex) {
+        static XrdRuntimeHttpExceptionBuilder fromEx(XrdRuntimeException ex) {
             return new XrdRuntimeHttpExceptionBuilder(ex.getCategory(), ErrorCode.withCode(ex.getErrorCode()))
                     .identifier(ex.getIdentifier())
                     .cause(ex.getCause())

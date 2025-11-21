@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.common.core.exception;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -349,21 +347,6 @@ class XrdRuntimeExceptionTest {
     }
 
     @Test
-    void shouldTranslateCodedExceptionUsingFaultCode() {
-        // Mock a CodedException with a specific fault code
-        CodedException codedException = new CodedException(HTTP_ERROR.code(), "Test error message") {
-        };
-
-        XrdRuntimeException result = XrdRuntimeException.systemException(codedException);
-
-        assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
-        assertEquals(HTTP_ERROR.code(), result.getCode());
-        assertEquals(codedException, result.getCause());
-        assertTrue(result.toString().contains(HTTP_ERROR.code()));
-    }
-
-    @Test
     void shouldTranslateUnknownExceptionToInternalError() {
         RuntimeException unknownException = new RuntimeException("Unknown error");
 
@@ -664,10 +647,9 @@ class XrdRuntimeExceptionTest {
     }
 
     @Test
-    void shouldTranslateAccessorExceptionWithCodedExceptionCause() {
-        // Create a mock AccessorException with CodedException cause
-        CodedException codedCause = new CodedException(HTTP_ERROR.code(), "Coded exception cause") {
-        };
+    void shouldTranslateAccessorExceptionWithXrdRuntimeExceptionCause() {
+        // Create a mock AccessorException with XrdRuntimeException cause
+        XrdRuntimeException codedCause = XrdRuntimeException.systemException(HTTP_ERROR, "Coded exception cause");
         Exception accessorException = new Exception("AccessorException", codedCause) {
             // We can't easily mock getClass().getName() in a test, so we'll test the fallback behavior
         };
@@ -688,14 +670,14 @@ class XrdRuntimeExceptionTest {
                 .build();
 
         // Test adding prefix
-        CodedException prefixedException = exception.withPrefix("client", "proxy");
+        XrdRuntimeException prefixedException = exception.withPrefix("client", "proxy");
         assertNotNull(prefixedException);
-        assertTrue(prefixedException.getFaultCode().startsWith("client.proxy.io_error"));
+        assertTrue(prefixedException.getErrorCode().startsWith("client.proxy.io_error"));
 
         // Test adding prefix when already prefixed (should return same instance)
         // First add a prefix, then try to add the same prefix again
         XrdRuntimeException prefixedOnce = (XrdRuntimeException) exception.withPrefix("client");
-        CodedException sameException = prefixedOnce.withPrefix("client");
+        XrdRuntimeException sameException = prefixedOnce.withPrefix("client");
         assertEquals(prefixedOnce, sameException);
     }
 
@@ -705,8 +687,8 @@ class XrdRuntimeExceptionTest {
                 .identifier("fault-code-test")
                 .build();
 
-        assertEquals(ErrorCode.IO_ERROR.code(), exception.getFaultCode());
-        assertEquals(exception.getCode(), exception.getFaultCode());
+        assertEquals(ErrorCode.IO_ERROR.code(), exception.getErrorCode());
+        assertEquals(exception.getCode(), exception.getErrorCode());
     }
 
     @Test
@@ -717,7 +699,7 @@ class XrdRuntimeExceptionTest {
                 .details(details)
                 .build();
 
-        assertEquals(details, exception.getFaultString());
+        assertEquals(details, exception.getDetails());
     }
 
     @Test

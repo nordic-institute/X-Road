@@ -26,13 +26,13 @@
  */
 package org.niis.xroad.common.managementrequest;
 
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.message.SoapFault;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestUtil;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.slf4j.MDC;
@@ -61,9 +61,10 @@ public class ManagementRequestSoapExecutor {
             return disableCache(ResponseEntity.ok())
                     .body(responseBody);
         } catch (Exception e) {
-            var ex = ErrorCodes.translateException(e);
-            // override the detail code with traceId
-            ex.setFaultDetail(MDC.get("traceId"));
+            var ex = XrdRuntimeException.systemException(e);
+
+            // override the identifier with traceId
+            ex = XrdRuntimeExceptionBuilder.from(ex).identifier(MDC.get("traceId")).build();
 
             if (log.isDebugEnabled() || !(e instanceof XrdRuntimeException)) {
                 log.error("ManagementRequest failed", ex);

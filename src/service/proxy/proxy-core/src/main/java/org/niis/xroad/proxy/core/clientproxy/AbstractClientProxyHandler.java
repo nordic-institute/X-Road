@@ -133,7 +133,7 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
             // All the other exceptions get prefix Server.ClientProxy...
             XrdRuntimeException cex = XrdRuntimeException.systemException(e).withPrefix(SERVER_CLIENTPROXY_X);
 
-            log.error("Request processing error ({})", cex.getFaultDetail(), e);
+            log.error("Request processing error ({})", cex.getIdentifier(), e);
 
             updateOpMonitoringSoapFault(opMonitoringData, cex);
 

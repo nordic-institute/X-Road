@@ -92,7 +92,7 @@ public class ServerProxyHandler extends HandlerBase {
         } catch (Throwable e) { // We want to catch serious errors as well
             XrdRuntimeException cex = XrdRuntimeException.systemException(e).withPrefix(SERVER_SERVERPROXY_X);
 
-            log.error("Request processing error ({})", cex.getFaultDetail(), e);
+            log.error("Request processing error ({})", cex.getIdentifier(), e);
 
             opMonitoringData.setFaultCodeAndString(cex);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);

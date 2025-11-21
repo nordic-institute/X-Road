@@ -176,8 +176,8 @@ public class SoapFault implements Soap {
                         ex.getSoapFaultInfo().faultDetail());
             }
         } else {
-            return createFaultXml(ex.getFaultCode(), ex.getFaultString(),
-                    ex.getFaultActor(), ex.getFaultDetail());
+            return createFaultXml(ex.getErrorCode(), ex.getDetails(),
+                    "", ex.getIdentifier());
         }
     }
 

@@ -127,7 +127,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
         } else {
             response.setStatus(HttpStatus.BAD_REQUEST_400);
         }
-        response.getHeaders().put("X-Road-Error", ex.getFaultCode());
+        response.getHeaders().put("X-Road-Error", ex.getErrorCode());
 
         final String responseContentType = decideErrorResponseContentType(request.getHeaders().getValues("Accept"));
         setContentType(response, responseContentType, MimeUtils.UTF8);
@@ -143,7 +143,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 messageElement.appendChild(doc.createTextNode(ex.getDetails()));
                 errorRootElement.appendChild(messageElement);
                 Element detailElement = doc.createElement("detail");
-                detailElement.appendChild(doc.createTextNode(ex.getFaultDetail()));
+                detailElement.appendChild(doc.createTextNode(ex.getIdentifier()));
                 errorRootElement.appendChild(detailElement);
                 responseOut.write(XmlUtils.prettyPrintXml(doc, "UTF-8", 0).getBytes());
             } catch (Exception e) {
@@ -157,7 +157,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 jsonGenerator.writeStartObject();
                 jsonGenerator.writeStringField("type", ex.getErrorCode());
                 jsonGenerator.writeStringField("message", ex.getDetails());
-                jsonGenerator.writeStringField("detail", ex.getFaultDetail());
+                jsonGenerator.writeStringField("detail", ex.getIdentifier());
                 jsonGenerator.writeEndObject();
             } finally {
                 callback.succeeded();

@@ -112,6 +112,11 @@ public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>>
         return (T) this;
     }
 
+    T soapFaultInfo(XrdRuntimeException.SoapFaultInfo soapFaultInfo) {
+        this.soapFaultInfo = soapFaultInfo;
+        return (T) this;
+    }
+
     public T soapFaultInfo(String faultCode,
                            String faultString,
                            String faultActor,
@@ -134,7 +139,6 @@ public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>>
         }
 
         var deviation = errorDeviation.build(metadataItems);
-        if (cause != null) {
             return new XrdRuntimeException(
                     cause,
                     identifier,
@@ -144,15 +148,6 @@ public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>>
                     origin,
                     details,
                     soapFaultInfo);
-        }
-        return new XrdRuntimeException(
-                identifier,
-                category,
-                resolveErrorCode(),
-                deviation.metadata(),
-                origin,
-                details,
-                soapFaultInfo);
     }
 
     protected String resolveErrorCode() {
@@ -160,5 +155,15 @@ public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>>
             return origin.toPrefix() + errorDeviation.code();
         }
         return errorDeviation.code();
+    }
+
+    public static XrdRuntimeExceptionBuilder from(XrdRuntimeException ex) {
+        return new XrdRuntimeExceptionBuilder<>(ex.getCategory(), ErrorCode.fromCode(ex.getErrorCode()))
+                .identifier(ex.getIdentifier())
+                .origin(ex.getOrigin())
+                .details(ex.getDetails())
+                .metadataItems(ex.getErrorCodeMetadata())
+                .cause(ex.getCause())
+                .soapFaultInfo(ex.getSoapFaultInfo());
     }
 }

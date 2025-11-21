@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.common.core.exception;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.soap.SOAPException;
 import lombok.Getter;
@@ -50,13 +48,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * A highly customizable exception class for X-Road use cases.
- * <p>
- * TODO Until migration from CodedException is complete, this class
- *       extends CodedException. In the future, it will be a standalone.
  */
 @Getter
 @Slf4j
-public sealed class XrdRuntimeException extends CodedException
+public sealed class XrdRuntimeException extends RuntimeException
         permits XrdRuntimeHttpException {
 
     private final String identifier;
@@ -69,25 +64,7 @@ public sealed class XrdRuntimeException extends CodedException
     private final ErrorOrigin origin;
     private final SoapFaultInfo soapFaultInfo;
 
-    XrdRuntimeException(@NonNull String identifier,
-                        @NonNull ExceptionCategory category,
-                        @NonNull String errorCode,
-                        @NonNull List<String> errorCodeMetadata,
-                        ErrorOrigin origin,
-                        String details,
-                        SoapFaultInfo soapFaultInfo) {
-        super(errorCode, details);
-        this.identifier = identifier;
-        this.translationCode = errorCode;
-        this.category = category;
-        this.errorCode = errorCode;
-        this.errorCodeMetadata = errorCodeMetadata;
-        this.origin = origin;
-        this.details = details;
-        this.soapFaultInfo = soapFaultInfo;
-    }
-
-    XrdRuntimeException(@NonNull Throwable cause,
+    XrdRuntimeException(Throwable cause,
                         @NonNull String identifier,
                         @NonNull ExceptionCategory category,
                         @NonNull String errorCode,
@@ -95,9 +72,8 @@ public sealed class XrdRuntimeException extends CodedException
                         ErrorOrigin origin,
                         String details,
                         SoapFaultInfo soapFaultInfo) {
-        super(errorCode, cause, details);
+        super(details, cause);
         this.identifier = identifier;
-        this.translationCode = errorCode;
         this.category = category;
         this.errorCode = errorCode;
         this.errorCodeMetadata = errorCodeMetadata;
@@ -129,11 +105,6 @@ public sealed class XrdRuntimeException extends CodedException
         return toString();
     }
 
-    @Override
-    public String getFaultString() {
-        return details;
-    }
-
     public String getCode() {
         return errorCode;
     }
@@ -154,37 +125,20 @@ public sealed class XrdRuntimeException extends CodedException
         return errorCode.startsWith(expectedOrigin.toPrefix());
     }
 
-    @Override
-    public String getFaultCode() {
-        return getCode();
-    }
-
-    @Override
     public XrdRuntimeException withPrefix(String... prefixes) {
         //TODO consider keeping prefix separately instead of modifying the code
         var prefix = StringUtils.join(prefixes, ".");
 
         if (!getCode().startsWith(prefix)) {
-            if (getCause() != null) {
-                return new XrdRuntimeException(
-                        getCause(),
-                        getIdentifier(),
-                        getCategory(),
-                        prefix + "." + getCode(),
-                        getErrorCodeMetadata(),
-                        getOrigin(),
-                        getDetails(),
-                        getSoapFaultInfo());
-            } else {
-                return new XrdRuntimeException(
-                        getIdentifier(),
-                        getCategory(),
-                        prefix + "." + getCode(),
-                        getErrorCodeMetadata(),
-                        getOrigin(),
-                        getDetails(),
-                        getSoapFaultInfo());
-            }
+            return new XrdRuntimeException(
+                    getCause(),
+                    getIdentifier(),
+                    getCategory(),
+                    prefix + "." + getCode(),
+                    getErrorCodeMetadata(),
+                    getOrigin(),
+                    getDetails(),
+                    getSoapFaultInfo());
         }
         return this;
     }
@@ -245,10 +199,6 @@ public sealed class XrdRuntimeException extends CodedException
         return switch (ex) {
             case null -> throw new IllegalArgumentException("Exception cannot be null");
             case XrdRuntimeException xrdEx -> xrdEx;
-            case CodedException cex -> new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, ErrorCode.withCode(cex.getFaultCode()))
-                    .cause(ex)
-                    .details(cex.getFaultString())
-                    .build();
             default -> new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, resolveExceptionCode(ex))
                     .cause(ex)
                     .details(ex.getMessage())
@@ -302,7 +252,6 @@ public sealed class XrdRuntimeException extends CodedException
     @ArchUnitSuppressed("NoVanillaExceptions")
     private static DeviationBuilder.ErrorDeviationBuilder resolveExceptionCode(Throwable ex) {
         return switch (ex) {
-            case CodedException cex -> ErrorCode.withCode(cex.getFaultCode());
             case UnknownHostException ignored -> ErrorCode.UNKNOWN_HOST;
             case MalformedURLException ignored -> ErrorCode.NETWORK_ERROR;
             case SocketException ignored -> ErrorCode.NETWORK_ERROR;
@@ -315,8 +264,8 @@ public sealed class XrdRuntimeException extends CodedException
             case SAXException ignored -> ErrorCode.INVALID_XML;
             case UnmarshalException ue when isAccessorException(ue.getCause()) -> resolveExceptionCode(ue.getCause());
             case Exception me when isMimeException(me) -> ErrorCode.MIME_PARSING_FAILED;
-            case Exception ae when isAccessorException(ae) && ae.getCause() instanceof CodedException cex ->
-                    ErrorCode.withCode(cex.getFaultCode());
+            case Exception ae when isAccessorException(ae) && ae.getCause() instanceof XrdRuntimeException cex ->
+                    ErrorCode.withCode(cex.getErrorCode());
             default -> INTERNAL_ERROR;
         };
     }
