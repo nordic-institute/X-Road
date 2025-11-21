@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.confproxy;
 
+import ee.ria.xroad.common.GlobalConfVersion;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,6 @@ public class ConfProxy {
 
     /**
      * Initializes a new configuration proxy instance.
-     *
      * @param instance name of this proxy instance
      * @throws Exception if loading instance configuration fails
      */
@@ -65,7 +65,6 @@ public class ConfProxy {
     /**
      * Launch the configuration proxy instance. Downloads signed directory,
      * signs its content and moves it to the public distribution directory.
-     *
      * @throws Exception in case of any errors
      */
     public final void execute() throws Exception {
@@ -73,7 +72,7 @@ public class ConfProxy {
         ConfProxyHelper.purgeOutdatedGenerations(conf);
 
         var result = new ConfProxyExecutionResult();
-        for (int version = SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
+        for (int version = GlobalConfVersion.CURRENT_VERSION;
                 version >= SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion();
                 version--) {
             log.debug("Download global configuration version {}. Minimum version {}",
@@ -104,7 +103,6 @@ public class ConfProxy {
     /**
      * Downloads the global configuration to configuration download path e.g. /etc/xroad/globalconf,
      * according to the instance configuration.
-     *
      * @return downloaded configuration directory
      * @throws Exception if configuration client script encounters errors
      */

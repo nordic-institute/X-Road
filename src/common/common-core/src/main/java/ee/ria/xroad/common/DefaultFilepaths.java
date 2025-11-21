@@ -57,7 +57,7 @@ public final class DefaultFilepaths {
 
     static final String TEMP_FILES_PATH = "/var/tmp/xroad/";
 
-    private static FileAttribute<Set<PosixFilePermission>> permissions =
+    private static final FileAttribute<Set<PosixFilePermission>> PERMISSIONS =
             PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE, GROUP_READ, GROUP_WRITE));
 
     /**
@@ -77,8 +77,8 @@ public final class DefaultFilepaths {
     /**
      * Creates a temporary file in the specified location. Also creates the location if it does not exist.
      * @param tempDirPath the location
-     * @param prefix the prefix to use
-     * @param suffix the suffix to use
+     * @param prefix      the prefix to use
+     * @param suffix      the suffix to use
      * @return path to the created temporary file
      * @throws IOException if an error occurs
      */
@@ -87,14 +87,14 @@ public final class DefaultFilepaths {
             Files.createDirectory(tempDirPath);
         }
 
-        return Files.createTempFile(tempDirPath, prefix, suffix, permissions);
+        return Files.createTempFile(tempDirPath, prefix, suffix, PERMISSIONS);
     }
 
     /**
      * Convenience method which creates a temporary file on disk and returns its path.
      * The new file is created in the same directory as the file whose path is given as parameter.
-     * @return path to the created temporary file
      * @param fileName file whose path will be used
+     * @return path to the created temporary file
      * @throws IOException if an error occurs
      */
     public static Path createTempFileInSameDir(String fileName) throws IOException {

@@ -148,6 +148,12 @@ public class LegacyConfigPathMapping {
         // proxy-ui
         addMapping("proxy-ui-api.security-server-url", "proxy-ui-api.proxy-server-url");
 
+        // center
+        addMapping("center.minimum-global-configuration-version", "global-conf-generator.minimum-global-configuration-version");
+        addMapping("center.internal-directory", "admin-service.global-conf-generator.internal-directory");
+        addMapping("center.external-directory", "admin-service.global-conf-generator.external-directory");
+        addMapping("center.generated-conf-dir", "admin-service.global-conf-generator.generated-conf-dir");
+
         MAPPING.putAll(addDatabaseMapping("serverconf"));
         MAPPING.putAll(addDatabaseMapping("messagelog"));
         MAPPING.putAll(addDatabaseMapping("op-monitor"));

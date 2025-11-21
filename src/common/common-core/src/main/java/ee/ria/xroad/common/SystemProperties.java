@@ -38,7 +38,9 @@ public final class SystemProperties {
     private SystemProperties() {
     }
 
-    /** The prefix for all properties. */
+    /**
+     * The prefix for all properties.
+     */
     public static final String PREFIX = "xroad.";
     private static final String CENTER_PREFIX = PREFIX + "center.";
 
@@ -52,21 +54,8 @@ public final class SystemProperties {
     public static final String CONFIGURATION_PATH =
             PREFIX + "common.configuration-path";
 
-    /** Current version number of the global configuration **/
-    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 6;
-
-    /** Minimum supported version number of the global configuration **/
-    public static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
-
-    /** Default minimum supported global conf version on central server */
-    public static final String DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION = "2";
-
     /** Default minimum supported global conf version on configuration proxy */
     public static final String DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION = "2";
-
-    /** Minimum supported global conf version on central server **/
-    private static final String MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION =
-            CENTER_PREFIX + "minimum-global-configuration-version";
 
     /** Minimum supported global conf version on configuration proxy **/
     private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
@@ -87,12 +76,6 @@ public final class SystemProperties {
     public static final String CENTER_DATABASE_PROPERTIES = CENTER_PREFIX + "database-properties";
 
     public static final String CENTER_TRUSTED_ANCHORS_ALLOWED = CENTER_PREFIX + "trusted-anchors-allowed";
-
-    public static final String CENTER_INTERNAL_DIRECTORY = CENTER_PREFIX + "internal-directory";
-
-    public static final String CENTER_EXTERNAL_DIRECTORY = CENTER_PREFIX + "external-directory";
-
-    private static final String CENTER_GENERATED_CONF_DIR = CENTER_PREFIX + "generated-conf-dir";
 
     /** Property name of the path where conf backups are created. */
     public static final String CONF_BACKUP_PATH = CENTER_PREFIX + "conf-backup-path";
@@ -207,30 +190,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the name of the signed internal configuration directory
-     * that will be distributed to security servers inside the instance, internalconf' by default.
-     */
-    public static String getCenterInternalDirectory() {
-        return getProperty(CENTER_INTERNAL_DIRECTORY, "internalconf");
-    }
-
-    /**
-     * @return the name of the signed external configuration directory
-     * that will be distributed to security servers inside the federation, 'externalconf' by default.
-     */
-    public static String getCenterExternalDirectory() {
-        return getProperty(CENTER_EXTERNAL_DIRECTORY, "externalconf");
-    }
-
-    /**
-     * @return path to the directory on the central server where both private
-     * and shared parameter files are created for distribution, '/var/lib/xroad/public' by default.
-     */
-    public static String getCenterGeneratedConfDir() {
-        return getProperty(CENTER_GENERATED_CONF_DIR, DefaultFilepaths.DISTRIBUTED_GLOBALCONF_PATH);
-    }
-
-    /**
      * @return whether automatic approval of auth cert registration requests is enabled, 'false' by default.
      */
     public static boolean getCenterAutoApproveAuthCertRegRequests() {
@@ -310,23 +269,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return minimum central server global configuration version or default
-     */
-    public static int getMinimumCentralServerGlobalConfigurationVersion() {
-        // read the setting
-        int minVersion = Integer.parseInt(getProperty(MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION,
-                DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION));
-        // check that it is a valid looking version number
-        checkVersionValidity(minVersion, CURRENT_GLOBAL_CONFIGURATION_VERSION,
-                DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION);
-        // ignore the versions that are no longer supported
-        if (minVersion < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
-            minVersion = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
-        }
-        return minVersion;
-    }
-
-    /**
      * @return minimum configuration proxy global configuration version or default
      */
     public static int getMinimumConfigurationProxyGlobalConfigurationVersion() {
@@ -335,16 +277,15 @@ public final class SystemProperties {
                 MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION));
         // check that it is a valid looking version number
-        checkVersionValidity(minVersion, CURRENT_GLOBAL_CONFIGURATION_VERSION,
-                DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION);
+        checkVersionValidity(minVersion, GlobalConfVersion.CURRENT_VERSION);
         // ignore the versions that are no longer supported
-        if (minVersion < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
-            minVersion = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
+        if (minVersion < GlobalConfVersion.MINIMUM_SUPPORTED_VERSION) {
+            minVersion = GlobalConfVersion.MINIMUM_SUPPORTED_VERSION;
         }
         return minVersion;
     }
 
-    private static void checkVersionValidity(int min, int current, String defaultVersion) {
+    private static void checkVersionValidity(int min, int current) {
         if (min > current || min < 1) {
             throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
         }

@@ -30,7 +30,7 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.bouncycastle.operator.DigestCalculator;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -65,8 +65,8 @@ import java.util.SequencedSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
-import static ee.ria.xroad.common.SystemProperties.MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
+import static ee.ria.xroad.common.GlobalConfVersion.CURRENT_VERSION;
+import static ee.ria.xroad.common.GlobalConfVersion.MINIMUM_SUPPORTED_VERSION;
 import static ee.ria.xroad.common.crypto.Digests.createDigestCalculator;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -127,7 +127,6 @@ public class ConfigurationDownloader {
 
     /**
      * Downloads the configuration from the given configuration source.
-     *
      * @param source             the configuration source
      * @param contentIdentifiers the content identifier to include
      * @return download result object which contains the state of the download and in case of success
@@ -208,7 +207,6 @@ public class ConfigurationDownloader {
 
     /**
      * Download all configuration files if the conditions are met {@link #shouldDownload(ConfigurationFile, Path)}.
-     *
      * @param configuration configuration object with details about the configuration download location
      * @return list of downloaded content
      */
@@ -315,8 +313,7 @@ public class ConfigurationDownloader {
      * Checks if the configuration currentConfigurationFile should be downloaded. The rules to download:
      * i) Configuration currentConfigurationFile does not exist in the system
      * ii) Configuration currentConfigurationFile hash is different from the one that system has
-     *
-     * @param newConfigurationFile new configuration file
+     * @param newConfigurationFile     new configuration file
      * @param currentConfigurationFile current configuration file
      * @return boolean value of whether the files should be downloaded or not
      */
@@ -336,7 +333,7 @@ public class ConfigurationDownloader {
                         .build();
             }
             String existingHash = encodeBase64(fileHash);
-            if (StringUtils.equals(existingHash, contentHash)) {
+            if (Strings.CS.equals(existingHash, contentHash)) {
                 return false;
             } else {
                 log.trace("Downloading {} because currentConfigurationFile has changed ({} != {})",
@@ -353,8 +350,8 @@ public class ConfigurationDownloader {
     private LocationVersionResolver locationVersionResolver(ConfigurationLocation location) {
         if (configurationVersion == null) {
             return LocationVersionResolver.range(connectionConfigurer, location,
-                    MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION,
-                    CURRENT_GLOBAL_CONFIGURATION_VERSION);
+                    MINIMUM_SUPPORTED_VERSION,
+                    CURRENT_VERSION);
         } else {
             return LocationVersionResolver.fixed(connectionConfigurer, location, configurationVersion);
         }

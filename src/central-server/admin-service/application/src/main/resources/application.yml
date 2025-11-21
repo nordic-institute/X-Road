@@ -104,6 +104,11 @@ file-upload-endpoints:
 
 xroad:
   admin-service:
+    global-conf-generator:
+      minimum-global-configuration-version: 2
+      internal-directory: internalconf
+      external-directory: externalconf
+      generated-conf-dir: /var/lib/xroad/public
     authentication-provider: PAM
     global-configuration-generation-rate-in-seconds: 60
     rate-limit-enabled: true
