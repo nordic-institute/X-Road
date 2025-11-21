@@ -38,7 +38,6 @@ public class XrdRuntimeHttpExceptionTest {
     @Test
     void shouldCreateExceptionWithHttpStatus() {
         String identifier = "http-test";
-        ExceptionCategory category = ExceptionCategory.SYSTEM;
         var errorDeviation = ErrorCode.NOT_FOUND;
         String details = "Resource not found";
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
@@ -50,12 +49,11 @@ public class XrdRuntimeHttpExceptionTest {
                 .build();
 
         assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
         assertEquals(errorDeviation.code(), exception.getCode());
         assertEquals(details, exception.getDetails());
         assertEquals(httpStatus, exception.getHttpStatus().orElse(null));
 
-        String expectedMessage = "[http-test] [SYSTEM] not_found: Resource not found";
+        String expectedMessage = "[http-test] not_found: Resource not found";
         assertEquals(expectedMessage, exception.toString());
     }
 

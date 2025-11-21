@@ -55,7 +55,6 @@ public sealed class XrdRuntimeException extends RuntimeException
         permits XrdRuntimeHttpException {
 
     private final String identifier;
-    private final ExceptionCategory category;
 
     private final String errorCode;
     private final List<String> errorCodeMetadata;
@@ -66,7 +65,6 @@ public sealed class XrdRuntimeException extends RuntimeException
 
     XrdRuntimeException(Throwable cause,
                         @NonNull String identifier,
-                        @NonNull ExceptionCategory category,
                         @NonNull String errorCode,
                         @NonNull List<String> errorCodeMetadata,
                         ErrorOrigin origin,
@@ -74,7 +72,6 @@ public sealed class XrdRuntimeException extends RuntimeException
                         SoapFaultInfo soapFaultInfo) {
         super(details, cause);
         this.identifier = identifier;
-        this.category = category;
         this.errorCode = errorCode;
         this.errorCodeMetadata = errorCodeMetadata;
         this.origin = origin;
@@ -85,9 +82,8 @@ public sealed class XrdRuntimeException extends RuntimeException
     @Override
     public String toString() {
         String id = identifier != null ? identifier : "unknown";
-        String cat = category != null ? category.toString() : "UNKNOWN";
 
-        var message = "[%s] [%s] %s".formatted(id, cat, getCode());
+        var message = "[%s] %s".formatted(id, getCode());
 
         if (errorCodeMetadata != null && !errorCodeMetadata.isEmpty()) {
             message += " (%s)".formatted(String.join(", ", errorCodeMetadata));
@@ -133,7 +129,6 @@ public sealed class XrdRuntimeException extends RuntimeException
             return new XrdRuntimeException(
                     getCause(),
                     getIdentifier(),
-                    getCategory(),
                     prefix + "." + getCode(),
                     getErrorCodeMetadata(),
                     getOrigin(),
@@ -154,37 +149,7 @@ public sealed class XrdRuntimeException extends RuntimeException
         if (error == null) {
             throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
         }
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, error);
-    }
-
-    /**
-     * Creates a business exception builder for business logic errors.
-     *
-     * @param error the error deviation builder
-     * @return a new builder instance
-     * @throws IllegalArgumentException if error is null
-     */
-    @Deprecated(forRemoval = true)
-    public static XrdRuntimeExceptionBuilder businessException(DeviationBuilder.ErrorDeviationBuilder error) {
-        if (error == null) {
-            throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
-        }
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.BUSINESS, error);
-    }
-
-    /**
-     * Creates a validation exception builder for validation errors.
-     *
-     * @param error the error deviation builder
-     * @return a new builder instance
-     * @throws IllegalArgumentException if error is null
-     */
-    @Deprecated(forRemoval = true)
-    public static XrdRuntimeExceptionBuilder validationException(DeviationBuilder.ErrorDeviationBuilder error) {
-        if (error == null) {
-            throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
-        }
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.VALIDATION, error);
+        return new XrdRuntimeExceptionBuilder(error);
     }
 
     /**
@@ -199,7 +164,7 @@ public sealed class XrdRuntimeException extends RuntimeException
         return switch (ex) {
             case null -> throw new IllegalArgumentException("Exception cannot be null");
             case XrdRuntimeException xrdEx -> xrdEx;
-            default -> new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, resolveExceptionCode(ex))
+            default -> new XrdRuntimeExceptionBuilder(resolveExceptionCode(ex))
                     .cause(ex)
                     .details(ex.getMessage())
                     .build();
@@ -207,27 +172,27 @@ public sealed class XrdRuntimeException extends RuntimeException
     }
 
     public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, String details, Object... params) {
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, errorCode)
+        return new XrdRuntimeExceptionBuilder(errorCode)
                 .details(details.formatted(params))
                 .build();
     }
 
     public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, Throwable cause, String details,
                                                       Object... params) {
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, errorCode)
+        return new XrdRuntimeExceptionBuilder(errorCode)
                 .cause(cause)
                 .details(details.formatted(params))
                 .build();
     }
 
     public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, Throwable cause) {
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, errorCode)
+        return new XrdRuntimeExceptionBuilder(errorCode)
                 .cause(cause)
                 .build();
     }
 
     public static XrdRuntimeException systemInternalError(String details) {
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, INTERNAL_ERROR)
+        return new XrdRuntimeExceptionBuilder(INTERNAL_ERROR)
                 .details(details)
                 .build();
     }
@@ -236,7 +201,7 @@ public sealed class XrdRuntimeException extends RuntimeException
         if (ex instanceof XrdRuntimeException xrdEx) {
             return xrdEx;
         }
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, INTERNAL_ERROR)
+        return new XrdRuntimeExceptionBuilder(INTERNAL_ERROR)
                 .details(details)
                 .cause(ex)
                 .build();

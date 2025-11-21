@@ -35,7 +35,6 @@ import java.util.UUID;
 public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>> {
     protected Throwable cause;
     protected String identifier;
-    protected final ExceptionCategory category;
 
     protected final DeviationBuilder.ErrorDeviationBuilder errorDeviation;
     protected Object[] metadataItems;
@@ -44,15 +43,11 @@ public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>>
     protected ErrorOrigin origin;
     protected XrdRuntimeException.SoapFaultInfo soapFaultInfo;
 
-    public XrdRuntimeExceptionBuilder(ExceptionCategory category, DeviationBuilder.ErrorDeviationBuilder errorDeviation) {
-        if (category == null) {
-            throw new IllegalArgumentException("ExceptionCategory cannot be null");
-        }
+    public XrdRuntimeExceptionBuilder(DeviationBuilder.ErrorDeviationBuilder errorDeviation) {
         if (errorDeviation == null) {
             throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
         }
 
-        this.category = category;
         this.errorDeviation = errorDeviation;
     }
 
@@ -139,15 +134,14 @@ public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>>
         }
 
         var deviation = errorDeviation.build(metadataItems);
-            return new XrdRuntimeException(
-                    cause,
-                    identifier,
-                    category,
-                    resolveErrorCode(),
-                    deviation.metadata(),
-                    origin,
-                    details,
-                    soapFaultInfo);
+        return new XrdRuntimeException(
+                cause,
+                identifier,
+                resolveErrorCode(),
+                deviation.metadata(),
+                origin,
+                details,
+                soapFaultInfo);
     }
 
     protected String resolveErrorCode() {
@@ -158,7 +152,7 @@ public class XrdRuntimeExceptionBuilder<T extends XrdRuntimeExceptionBuilder<T>>
     }
 
     public static XrdRuntimeExceptionBuilder from(XrdRuntimeException ex) {
-        return new XrdRuntimeExceptionBuilder<>(ex.getCategory(), ErrorCode.fromCode(ex.getErrorCode()))
+        return new XrdRuntimeExceptionBuilder<>(ErrorCode.fromCode(ex.getErrorCode()))
                 .identifier(ex.getIdentifier())
                 .origin(ex.getOrigin())
                 .details(ex.getDetails())

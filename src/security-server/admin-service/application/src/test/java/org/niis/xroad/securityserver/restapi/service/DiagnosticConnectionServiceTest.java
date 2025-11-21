@@ -35,7 +35,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
-import org.niis.xroad.common.core.exception.ExceptionCategory;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
@@ -172,7 +171,7 @@ class DiagnosticConnectionServiceTest {
         doNothing().when(authCertVerifier).verify(any());
 
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
-                .thenThrow(new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, ErrorCode.withCode("management_service_error"))
+                .thenThrow(new XrdRuntimeExceptionBuilder(ErrorCode.withCode("management_service_error"))
                         .build());
 
         var status = service.getAuthCertReqStatus();
@@ -257,7 +256,7 @@ class DiagnosticConnectionServiceTest {
         when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
         when(token.getKeyInfo()).thenReturn(List.of());
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
-                .thenThrow(new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, ErrorCode.withCode("network_error"))
+                .thenThrow(new XrdRuntimeExceptionBuilder(ErrorCode.withCode("network_error"))
                         .cause(new UnresolvedAddressException())
                         .build());
 

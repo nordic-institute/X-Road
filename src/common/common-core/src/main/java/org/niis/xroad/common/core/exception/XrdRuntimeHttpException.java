@@ -40,10 +40,10 @@ public final class XrdRuntimeHttpException extends XrdRuntimeException implement
 
     private final HttpStatus httpStatus;
 
-    XrdRuntimeHttpException(Throwable cause, @NonNull String identifier, @NonNull ExceptionCategory category,
+    XrdRuntimeHttpException(Throwable cause, @NonNull String identifier,
                             @NonNull String errorCode, @NonNull List<String> errorCodeMetadata, ErrorOrigin origin,
                             String details, @NonNull HttpStatus httpStatus) {
-        super(cause, identifier, category, errorCode, errorCodeMetadata, origin, details, null);
+        super(cause, identifier, errorCode, errorCodeMetadata, origin, details, null);
         this.httpStatus = httpStatus;
     }
 
@@ -61,7 +61,6 @@ public final class XrdRuntimeHttpException extends XrdRuntimeException implement
             return new XrdRuntimeHttpException(
                     getCause(),
                     getIdentifier(),
-                    getCategory(),
                     prefix + "." + getCode(),
                     getErrorCodeMetadata(),
                     getOrigin(),
@@ -76,15 +75,15 @@ public final class XrdRuntimeHttpException extends XrdRuntimeException implement
     }
 
     public static XrdRuntimeHttpExceptionBuilder builder(DeviationBuilder.ErrorDeviationBuilder error) {
-        return new XrdRuntimeHttpExceptionBuilder(ExceptionCategory.SYSTEM, error);
+        return new XrdRuntimeHttpExceptionBuilder(error);
     }
 
     public static class XrdRuntimeHttpExceptionBuilder extends XrdRuntimeExceptionBuilder<XrdRuntimeHttpExceptionBuilder> {
 
         private HttpStatus httpStatusValue;
 
-        public XrdRuntimeHttpExceptionBuilder(ExceptionCategory category, DeviationBuilder.ErrorDeviationBuilder errorDeviation) {
-            super(category, errorDeviation);
+        public XrdRuntimeHttpExceptionBuilder(DeviationBuilder.ErrorDeviationBuilder errorDeviation) {
+            super(errorDeviation);
         }
 
         public XrdRuntimeHttpExceptionBuilder httpStatus(HttpStatus httpStatus) {
@@ -102,7 +101,6 @@ public final class XrdRuntimeHttpException extends XrdRuntimeException implement
             return new XrdRuntimeHttpException(
                     cause,
                     identifier,
-                    category,
                     resolveErrorCode(),
                     deviation.metadata(),
                     origin,
@@ -111,7 +109,7 @@ public final class XrdRuntimeHttpException extends XrdRuntimeException implement
         }
 
         static XrdRuntimeHttpExceptionBuilder fromEx(XrdRuntimeException ex) {
-            return new XrdRuntimeHttpExceptionBuilder(ex.getCategory(), ErrorCode.withCode(ex.getErrorCode()))
+            return new XrdRuntimeHttpExceptionBuilder(ErrorCode.withCode(ex.getErrorCode()))
                     .identifier(ex.getIdentifier())
                     .cause(ex.getCause())
                     .metadataItems(ex.getErrorCodeMetadata())
