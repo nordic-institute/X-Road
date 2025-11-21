@@ -22,12 +22,21 @@ log_success "Project built successfully"
 
 
 # Step 2: Build ss images
-log_info "=== Step 3: Building development image ==="
+log_info "=== Step 2: Building ss images ==="
 cd "${ROOT_DIR}"
 ./deployment/security-server/images/build-images.sh --push
+if [[ $? -ne 0 ]]; then
+    log_error "Failed to build ss images"
+    exit 1
+fi
+
+log_info "=== Step 3: Building aux dev image ==="
+cd "${ROOT_DIR}"
+./development/docker/build-dev-images.sh
 if [[ $? -ne 0 ]]; then
     log_error "Failed to build development image"
     exit 1
 fi
+
 log_success "=== All steps completed successfully ==="
 
