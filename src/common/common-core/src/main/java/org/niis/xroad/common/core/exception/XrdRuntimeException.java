@@ -35,6 +35,7 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -263,7 +264,7 @@ public sealed class XrdRuntimeException extends RuntimeException
                                 String faultString,
                                 String faultActor,
                                 String faultDetail,
-                                String faultXml) {
+                                String faultXml) implements Serializable {
     }
 
 }

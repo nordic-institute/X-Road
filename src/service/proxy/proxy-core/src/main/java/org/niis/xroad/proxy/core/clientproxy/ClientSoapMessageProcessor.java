@@ -52,7 +52,6 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -514,7 +513,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             // client sent soap fault as request. not a valid case.
             // special handling to return fault fields from provided fault back to client with prefixed error code (backwards compatibility)
             log.info("SOAP fault message received from client as request. It is not valid.");
-            var ex = XrdRuntimeHttpException.systemException(ErrorCode.withCode(fault.getCode()))
+            var ex = XrdRuntimeException.systemException(ErrorCode.withCode(fault.getCode()))
                     .details(fault.getString())
                     .identifier(fault.getDetail())
                     .soapFaultInfo(ErrorOrigin.CLIENT.toPrefix() + fault.getCode(), fault.getString(),
