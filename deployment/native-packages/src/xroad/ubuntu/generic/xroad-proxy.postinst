@@ -71,7 +71,6 @@ prepare_tls_settings() {
     read ip_list dns_list < <(split_ip_dns "$altn")
 
     log "Writing proxy internal TLS settings to $CONFIG_FILE"
-    ensure_local_config_exists
     /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.tls.certificate-provisioning.common-name" "$cn"
     /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.tls.certificate-provisioning.alt-names" "$dns_list"
     /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
@@ -173,7 +172,17 @@ case "$1" in
     fi
   done
 
+  ensure_local_config_exists
+
   prepare_tls_settings
+
+  # Keep batch signatures enabled for upgrades from version < 8.0.0
+  if dpkg --compare-versions "$2" lt-nl "8.0.0"; then
+    CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
+    if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.batch-signing-enabled') ]]; then
+      /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.batch-signing-enabled" "true"
+    fi
+  fi
 
   db_stop
 
