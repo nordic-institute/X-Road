@@ -27,6 +27,7 @@
 
 package org.niis.xroad.common.test.ui.utils;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
 
@@ -39,6 +40,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.tagName;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
 
@@ -67,7 +69,6 @@ public final class VuetifyHelper {
     public static Select vSelect(final SelenideElement vuetifySelectField) {
         return new Select(vuetifySelectField);
     }
-
 
     public static SelenideElement selectorOptionOf(String value) {
         var xpath = "//div[@role='listbox']//div[contains(@class, 'v-list-item') and contains(./descendant-or-self::*/text(),'%s')]";
@@ -242,6 +243,15 @@ public final class VuetifyHelper {
 
         public void select(final String val) {
             selectorOptionOf(val).click();
+        }
+
+        public void selectCombobox(final String val) {
+            controlElement.$("input").setValue(val);
+
+            $$("div.v-list-item-title")
+                    .findBy(Condition.exactText(val))
+                    .shouldBe(Condition.visible)
+                    .click();
         }
 
         public void clickAndSelect(final String val) {

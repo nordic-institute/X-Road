@@ -28,17 +28,17 @@
 
     <ConnectionCentralServerView class="mt-0" />
 
-    <div class="p-4">
-      <XrdEmptyPlaceholderRow
-        :colspan="12"
-        :loading="loading"
-        :no-items-text="$t('noData.dataLoading')"
-      />
-    </div>
+    <XrdEmptyPlaceholder
+      :data="xRoadInstances"
+      :loading="loading"
+      :no-items-text="$t('noData.noData')"
+      skeleton-type="table-heading"
+      :skeleton-count="2"
+    />
 
     <template v-if="!loading">
-      <ConnectionManagementView class="mt-0" />
       <ConnectionSecurityServerView class="mt-0" />
+      <ConnectionManagementView class="mt-0" />
     </template>
 
   </XrdTitledView>
@@ -51,7 +51,7 @@ import ConnectionCentralServerView from "@/views/Diagnostics/Connection/Connecti
 import ConnectionSecurityServerView from "@/views/Diagnostics/Connection/ConnectionSecurityServerView.vue";
 import ConnectionManagementSSView from "@/views/Diagnostics/Connection/ConnectionManagementView.vue";
 import ConnectionManagementView from "@/views/Diagnostics/Connection/ConnectionManagementView.vue";
-import { mapActions } from "pinia";
+import { mapActions, mapState } from "pinia";
 import { useGeneral } from "@/store/modules/general";
 import { useClients } from "@/store/modules/clients";
 
@@ -69,6 +69,10 @@ export default defineComponent({
     return {
       loading: false
     }
+  },
+
+  computed: {
+    ...mapState(useGeneral, ['xRoadInstances']),
   },
 
   async created() {

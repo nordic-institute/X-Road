@@ -378,7 +378,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getOtherSecurityServerStatusWithWrongTypeThenReturnIllegalStateException() throws Exception {
+    void getOtherSecurityServerStatusWithWrongTypeThenReturnIllegalStateException() {
         assertThatThrownBy(() ->
                 service.getOtherSecurityServerStatus("WRONG_TYPE", CLIENT_ID, TARGET_CLIENT_ID, SECURITY_SERVER_ID)
         )

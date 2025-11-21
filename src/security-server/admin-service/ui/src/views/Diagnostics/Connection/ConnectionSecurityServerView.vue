@@ -30,6 +30,7 @@
     </v-card-title>
 
     <v-card-text class="xrd-card-text">
+      <v-row class="my-2"></v-row>
       <v-row dense>
         <v-col cols="2">
           <xrd-form-label
@@ -45,6 +46,7 @@
             :return-object="false"
             label="Client"
             variant="outlined"
+            data-test="other-security-server-client-id"
           ></v-combobox>
         </v-col>
         <v-col cols="2">
@@ -57,10 +59,12 @@
             <v-radio
               :label="$t('diagnostics.connection.securityServer.rest')"
               value="REST"
+              data-test="other-security-server-rest-radio-button"
             ></v-radio>
             <v-radio
               :label="$t('diagnostics.connection.securityServer.soap')"
               value="SOAP"
+              data-test="other-security-server-soap-radio-button"
             ></v-radio>
           </v-radio-group>
         </v-col>
@@ -70,6 +74,7 @@
             variant="text"
             :disabled="!selectedClientId || !selectedSecurityServerId || !selectedServiceType || otherSecurityServerLoading"
             @click="testOtherSecurityServerStatus()"
+            data-test="other-security-server-test-button"
           >
             {{ $t('diagnostics.connection.test') }}
           </xrd-button>
@@ -89,6 +94,7 @@
             class="flex-input"
             variant="outlined"
             hide-details
+            data-test="other-security-server-target-instance"
           ></v-select>
         </v-col>
         <v-col cols="5">
@@ -100,6 +106,7 @@
             :return-object="false"
             label="Target Client"
             variant="outlined"
+            data-test="other-security-server-target-client-id"
           ></v-combobox>
         </v-col>
         <v-col cols="2">
@@ -111,6 +118,7 @@
             :return-object="false"
             label="Security server"
             variant="outlined"
+            data-test="other-security-server-id"
           ></v-combobox>
         </v-col>
       </v-row>
@@ -120,7 +128,7 @@
             <xrd-status-icon :status="statusIconType(otherSecurityServerStatus?.status_class)"/>
           </span>
         </v-col>
-        <v-col cols="11">
+        <v-col cols="11" data-test="other-security-server-status-message">
           <span v-if="otherSecurityServerLoading">
           </span>
           <span v-else-if="otherSecurityServerStatus?.status_class === 'OK'">
@@ -131,6 +139,14 @@
           </span>
         </v-col>
       </v-row>
+
+      <XrdEmptyPlaceholder
+        :data="xRoadInstances"
+        :loading="otherSecurityServerLoading"
+        :no-items-text="$t('noData.noData')"
+        skeleton-type="list-item"
+        :skeleton-count="1"
+      />
     </v-card-text>
   </v-card>
 </template>
@@ -143,6 +159,7 @@ import { useGeneral } from "@/store/modules/general";
 import { useClients } from "@/store/modules/clients";
 import { useClient } from "@/store/modules/client";
 import { useDiagnostics } from "@/store/modules/diagnostics";
+import { formatErrorForUi, statusIconType } from "@/util/formatting";
 
 const initialState = () => {
   return {
@@ -179,7 +196,7 @@ export default defineComponent({
     },
     otherSecurityServerErrorMessage() {
       const err = this.otherSecurityServerStatus?.error
-      return this.formatErrorForUi(err)
+      return formatErrorForUi(err)
     },
   },
 
@@ -208,40 +225,11 @@ export default defineComponent({
     },
   },
   methods: {
+    statusIconType,
     ...mapActions(useNotifications, ['showError']),
     ...mapActions(useClients, ['fetchAllSubsystems']),
     ...mapActions(useClient, ['fetchSecurityServers']),
     ...mapActions(useDiagnostics, ['fetchOtherSecurityServerStatus', 'cleanOtherSecurityServerStatus']),
-
-    formatErrorForUi(err?: {
-      code?: string
-      metadata?: string[]
-      validation_errors?: Record<string, string[]>
-    }) {
-      if (!err) return ''
-
-      const {code, metadata = [], validation_errors = {}} = err
-      const buildKey = (rawKey?: string) => {
-        if (!rawKey) return ''
-        return rawKey.includes('.') ? rawKey : `${rawKey}`
-      }
-      const codeKey = buildKey(code)
-      const codeText = codeKey ? (this.$t(codeKey) as string) : ''
-      const metaText = metadata.length ? metadata.join(', ') : ''
-      const header = [codeText, metaText].filter(Boolean).join(' : ')
-      const veEntries = Object.entries(validation_errors)
-      const veText = veEntries.length
-        ? veEntries
-          .map(([field, msgs]) => {
-            const labelKey = buildKey(field)
-            const label = this.$t(labelKey) ? (this.$t(labelKey) as string) : field
-            return `${label}: ${msgs.join(', ')}`
-          })
-          .join(' | ')
-        : ''
-
-      return [header, veText].filter(Boolean).join(' | ')
-    },
 
     testOtherSecurityServerStatus() {
       this.otherSecurityServerLoading = true;
@@ -253,19 +241,6 @@ export default defineComponent({
         .finally(() => {
           this.otherSecurityServerLoading = false;
         });
-    },
-    statusIconType(status: string | undefined): string {
-      if (!status) {
-        return '';
-      }
-      switch (status) {
-        case 'OK':
-          return 'ok';
-        case 'FAIL':
-          return 'error';
-        default:
-          return 'error';
-      }
     },
   },
 });
