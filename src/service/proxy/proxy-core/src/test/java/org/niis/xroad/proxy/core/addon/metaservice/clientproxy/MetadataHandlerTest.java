@@ -33,7 +33,6 @@ import org.eclipse.jetty.http.HttpURI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;

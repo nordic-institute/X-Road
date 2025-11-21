@@ -30,8 +30,8 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResponseType;
 
 import com.google.common.collect.Sets;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 

@@ -37,8 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.messagelog.MessageRecordEncryption;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.vault.VaultClient;
