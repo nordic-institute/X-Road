@@ -56,7 +56,7 @@ const props = defineProps({
   },
 });
 
-const icon = computed(() => (props.enabled ? 'check_circle filled' : 'cancel'));
+const icon = computed(() => (props.enabled ? 'check_circle__filled' : 'cancel'));
 const variant = computed(() => (props.enabled ? 'flat' : 'outlined'));
 const chipColor = computed(() => (props.enabled ? 'success-container' : undefined));
 const iconColor = computed(() => (props.enabled ? 'success' : undefined));

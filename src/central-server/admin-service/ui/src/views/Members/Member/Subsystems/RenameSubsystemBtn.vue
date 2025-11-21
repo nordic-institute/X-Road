@@ -29,6 +29,7 @@
     v-if="subsystemName"
     v-tooltip="tooltip"
     data-test="rename-subsystem"
+    class="xrd"
     variant="plain"
     color="primary"
     density="compact"

@@ -25,15 +25,15 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-navigation-drawer class="xrd-rail-nav" width="96" permanent>
-    <v-list-item class="xrd-rail-item-logo opacity-100" density="compact" variant="plain" to="/">
+  <v-navigation-drawer class="xrd-rail-nav px-1" width="96" permanent>
+    <v-list-item class="xrd xrd-rail-item-logo mx-1 opacity-100" density="compact" variant="plain" to="/" rounded>
       <v-img class="ma-auto mb-3" width="48px" :src="logo" />
     </v-list-item>
 
     <slot />
     <template #append>
       <div class="w-100 text-center">
-        <XrdThemeSwitcher class="mx-auto" />
+        <XrdThemeSwitcher class="xrd mx-auto my-1" />
       </div>
     </template>
   </v-navigation-drawer>

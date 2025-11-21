@@ -31,7 +31,7 @@
       <v-select
         v-model="perPage"
         data-test="xrd-paginator-select"
-        class="per-page-options"
+        class="xrd per-page-options"
         variant="underlined"
         density="compact"
         max-width="48px"

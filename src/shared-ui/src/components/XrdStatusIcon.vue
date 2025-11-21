@@ -44,9 +44,9 @@ const color = computed(() => statusToType(props.status));
 const icon = computed(() => {
   switch (props.status) {
     case 'ok':
-      return 'check_circle filled';
+      return 'check_circle__filled';
     case 'ok-disabled':
-      return 'check_circle filled';
+      return 'check_circle__filled';
     case 'saved':
       return 'check';
     case 'progress-register':
@@ -56,19 +56,19 @@ const icon = computed(() => {
     case 'progress-delete':
       return 'cached';
     case 'error':
-      return 'error filled';
+      return 'error__filled';
     case 'error-disabled':
-      return 'error filled';
+      return 'error__filled';
     case 'pending':
       return 'cached';
     case 'pending-disabled':
-      return 'error filled';
+      return 'error__filled';
     case 'name-set':
       return 'edit_square';
     case 'name-submitted':
       return 'edit_square';
     default:
-      return 'error filled';
+      return 'error__filled';
   }
 });
 </script>
