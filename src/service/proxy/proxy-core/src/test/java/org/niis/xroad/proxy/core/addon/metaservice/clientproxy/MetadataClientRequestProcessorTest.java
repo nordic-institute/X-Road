@@ -47,6 +47,7 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.messagelog.MessageRecordEncryption;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -91,6 +92,7 @@ class MetadataClientRequestProcessorTest {
     private ServerConfProvider serverConfProvider;
     private ClientAuthenticationService clientAuthenticationService;
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+    private final ProxyTestSuiteHelper proxyTestSuiteHelper = new ProxyTestSuiteHelper();
 
     /**
      * Init class-wide test instances
@@ -105,7 +107,7 @@ class MetadataClientRequestProcessorTest {
      */
     @BeforeEach
     void init() {
-        globalConfProvider = new TestSuiteGlobalConf();
+        globalConfProvider = new TestSuiteGlobalConf(proxyTestSuiteHelper);
         serverConfProvider = mock(ServerConfProvider.class);
         clientAuthenticationService = mock(ClientAuthenticationService.class);
 
@@ -148,7 +150,7 @@ class MetadataClientRequestProcessorTest {
                 createMember("anothermemeber", "somesub"),
                 createMember("thirdmember", null));
 
-        globalConfProvider = new TestSuiteGlobalConf() {
+        globalConfProvider = new TestSuiteGlobalConf(proxyTestSuiteHelper) {
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {
                 assertThat("Wrong Xroad instance in query", instanceIdentifier, arrayContaining(EXPECTED_XR_INSTANCE));
@@ -193,7 +195,7 @@ class MetadataClientRequestProcessorTest {
                 createMember("producer", null),
                 createMember("producer", "subsystem"));
 
-        globalConfProvider = new TestSuiteGlobalConf() {
+        globalConfProvider = new TestSuiteGlobalConf(proxyTestSuiteHelper) {
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {
                 assertThat("Wrong Xroad instance in query", instanceIdentifier, arrayContaining(EXPECTED_XR_INSTANCE));

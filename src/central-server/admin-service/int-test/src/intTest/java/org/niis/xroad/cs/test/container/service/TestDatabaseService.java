@@ -29,7 +29,7 @@ package org.niis.xroad.cs.test.container.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.niis.xroad.cs.test.container.database.PostgresContextualContainer;
+import org.niis.xroad.cs.test.container.database.ContainerDatabaseProvider;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
@@ -42,15 +42,17 @@ import java.sql.DriverManager;
 @RequiredArgsConstructor
 public class TestDatabaseService implements DisposableBean {
 
-    private final PostgresContextualContainer postgre;
+    private final ContainerDatabaseProvider containerDatabaseProvider;
     private Connection connection;
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @SneakyThrows
     public NamedParameterJdbcTemplate getTemplate() {
         if (namedParameterJdbcTemplate == null) {
-            connection = DriverManager.getConnection(postgre.getExternalJdbcUrl(),
-                    postgre.getTestContainer().getUsername(), postgre.getTestContainer().getPassword());
+            connection = DriverManager.getConnection(
+                    containerDatabaseProvider.getJdbcUrl(),
+                    containerDatabaseProvider.getUsername(),
+                    containerDatabaseProvider.getPassword());
             final SingleConnectionDataSource dataSource = new SingleConnectionDataSource(connection, true);
             namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         }

@@ -9,7 +9,7 @@ services:
     environment:
       - JAVA_TOOL_OPTIONS=-Dxroad.internal.passwordstore-provider=file -Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
       - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
-      - QUARKUS_LOG_LEVEL=DEBUG
+      - QUARKUS_LOG_LEVEL=INFO
     volumes:
       - ./container-files/etc/xroad/conf.d:/etc/xroad/conf.d
   proxy:
@@ -51,7 +51,8 @@ services:
       - ./container-files/etc/xroad/backup-keys:/etc/xroad/backup-keys
 
   db-opmonitor:
-    image: postgres:16
+    image: ${POSTGRES_DEV_IMG}
+    pull_policy: always
     environment:
       - POSTGRES_DB=op-monitor
       - POSTGRES_PASSWORD=secret

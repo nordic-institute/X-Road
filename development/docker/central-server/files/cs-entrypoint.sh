@@ -72,6 +72,27 @@ log "Enabling public postgres access.."
 sed -i 's/#listen_addresses = \x27localhost\x27/listen_addresses = \x27*\x27/g' /etc/postgresql/*/main/postgresql.conf
 sed -ri 's/host    replication     all             127.0.0.1\/32/host    all             all             0.0.0.0\/0/g' /etc/postgresql/*/main/pg_hba.conf
 
+# Apply PostgreSQL performance optimizations if enabled
+if [ "${POSTGRES_PERFORMANCE_TUNING:-true}" = "true" ]; then
+  log "Applying PostgreSQL performance optimizations for single-session performance.."
+  POSTGRES_CONF="/etc/postgresql/16/main/postgresql.conf"
+  PERF_CONF="/etc/postgresql/16/main/postgresql-performance.conf"
+  
+  if [ -f "$PERF_CONF" ]; then
+    # Include performance config if not already included
+    if ! grep -q "include.*postgresql-performance.conf" "$POSTGRES_CONF"; then
+      echo "" >> "$POSTGRES_CONF"
+      echo "# Include performance optimizations" >> "$POSTGRES_CONF"
+      echo "include = 'postgresql-performance.conf'" >> "$POSTGRES_CONF"
+    fi
+    log "PostgreSQL performance configuration applied"
+  else
+    warn "PostgreSQL performance config file not found at $PERF_CONF"
+  fi
+else
+  log "PostgreSQL performance tuning disabled (set POSTGRES_PERFORMANCE_TUNING=false to disable)"
+fi
+
 # Load OpenBao environment file
 if [ -f /etc/openbao/openbao.env ]; then
   log "Loading OpenBao environment variables"

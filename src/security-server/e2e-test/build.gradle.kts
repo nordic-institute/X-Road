@@ -17,6 +17,7 @@ intTestComposeEnv {
 
   images(
     "CS_IMG" to "central-server-dev",
+    "POSTGRES_DEV_IMG" to "postgres-dev",
     "OPENBAO_DEV_IMG" to "openbao-dev",
     "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
     "MESSAGELOG_INIT_IMG" to "ss-db-messagelog-init",

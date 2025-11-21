@@ -57,7 +57,7 @@ jobs:
       - name: Run Central Server system tests
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx2g \
           :central-server:admin-service:ui-system-test:systemTest \
           -PsystemTestCsImageName=${{ inputs.image_registry }}/central-server-dev:${{ inputs.service_image_tag }}
 

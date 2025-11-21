@@ -57,7 +57,7 @@ jobs:
       - name: Run Security Server system tests
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx2g :security-server:system-test:systemTest \
             -PxroadImageRegistry=${{ inputs.image_registry }} \
             -PxroadImageTag=${{ inputs.service_image_tag }}
 

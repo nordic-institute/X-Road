@@ -67,6 +67,8 @@ public class ProxyMonitorMetaserviceTest {
             EnvMonitorRpcChannelProperties.class,
             Map.of(EnvMonitorRpcChannelProperties.PREFIX + ".port", String.valueOf(findRandomPort())));
 
+    private static final ProxyTestSuiteHelper PROXY_TEST_SUITE_HELPER = new ProxyTestSuiteHelper();
+
     private static MonitorRpcClient monitorRpcClient;
 
     @BeforeAll
@@ -80,14 +82,14 @@ public class ProxyMonitorMetaserviceTest {
         proxyProps.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
         proxyProps.put("xroad.proxy.ssl-enabled", "false");
 
-        ProxyTestSuiteHelper.setPropsIfNotSet(proxyProps);
+        PROXY_TEST_SUITE_HELPER.setPropsIfNotSet(proxyProps);
 
-        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, proxyProps);
-        ProxyTestSuiteHelper.commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
+        PROXY_TEST_SUITE_HELPER.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, proxyProps);
+        PROXY_TEST_SUITE_HELPER.commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
                 "xroad.common.temp-files-path", "build/"
         ));
 
-        ProxyTestSuiteHelper.startTestServices();
+        PROXY_TEST_SUITE_HELPER.startTestServices();
         monitorRpcClient = new MonitorRpcClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()),
                 envMonitorRpcChannelProperties);
         monitorRpcClient.init();
@@ -95,7 +97,7 @@ public class ProxyMonitorMetaserviceTest {
 
     @AfterAll
     static void afterAll() {
-        ProxyTestSuiteHelper.destroyTestServices();
+        PROXY_TEST_SUITE_HELPER.destroyTestServices();
     }
 
     TestContext ctx;
@@ -105,8 +107,7 @@ public class ProxyMonitorMetaserviceTest {
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getAllTestCases(getClass().getPackageName() + ".testcases.");
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, ProxyTestSuiteHelper.commonProperties,
-                true, monitorRpcClient);
+        ctx = new TestContext(PROXY_TEST_SUITE_HELPER, true, monitorRpcClient);
 
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),

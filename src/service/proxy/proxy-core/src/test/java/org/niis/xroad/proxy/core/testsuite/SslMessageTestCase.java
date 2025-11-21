@@ -43,7 +43,6 @@ import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.ssl.SSLContexts;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
-import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -100,7 +99,7 @@ public class SslMessageTestCase extends MessageTestCase {
 
     @Override
     protected URI getClientUri() throws URISyntaxException {
-        return new URI("https://localhost:" + ProxyTestSuiteHelper.proxyProperties.clientProxy().clientHttpsPort());
+        return new URI("https://localhost:" + proxyTestSuiteHelper.proxyProperties.clientProxy().clientHttpsPort());
     }
 
     public KeyStore getKeyStore() {
