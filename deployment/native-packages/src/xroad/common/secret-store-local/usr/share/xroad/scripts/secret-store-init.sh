@@ -80,7 +80,9 @@ if [ -f $CLIENT_TOKEN_FILE ]; then
   echo "X-Road client token already exists"
 else
   echo "Generating X-Road client token.."
-  CLIENT_TOKEN=$(create_token "$BAO_ADDR" "$BAO_TOKEN")
+  # Use custom token ID if provided via environment variable (useful for dev/test)
+  XROAD_SECRET_STORE_TOKEN_OVERRIDE="${XROAD_SECRET_STORE_TOKEN_OVERRIDE:-}"
+  CLIENT_TOKEN=$(create_token "$BAO_ADDR" "$BAO_TOKEN" "xroad-policy" "0" "xroad-client" "$XROAD_SECRET_STORE_TOKEN_OVERRIDE")
   if [ $? -ne 0 ]; then
     echo " Failed to create X-Road client token" >&2
     exit 1

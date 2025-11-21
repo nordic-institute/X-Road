@@ -166,6 +166,13 @@ path "xrd-secret/*" {
 path "xrd-secret/tls/*" {
   capabilities = ["read", "list", "create", "update"]
 }
+path "xrd-secret/message-log/archival/pgp/*" {
+  capabilities = ["read", "list", "create", "update"]
+}
+path "xrd-secret/message-log/database-encryption/keys/*" {
+  capabilities = ["read", "list", "create", "update"]
+}
+
 path "xrd-secret" {
   capabilities = ["list"]
 }
@@ -201,11 +208,19 @@ create_token() {
   local policy="${3:-xroad-policy}"
   local ttl="${4:-0}" # 0 means use default TTL
   local display_name="${5:-xroad-client}"
+  local token_id="${6:-}" # Optional: custom token ID
 
   echo "[OPENBAO] Creating new token with policy: $policy" >&2
 
+  # Build JSON payload with optional id field
+  local payload_json="{\"policies\":[\"$policy\"], \"ttl\":\"${ttl}\", \"display_name\":\"${display_name}\"}"
+  if [ -n "$token_id" ]; then
+    payload_json=$(echo "$payload_json" | jq --arg id "$token_id" '. + {id: $id}')
+    echo "[OPENBAO] Using custom token ID: $token_id" >&2
+  fi
+
   local token_response=$(bao_api "POST" "$addr" "/v1/auth/token/create" \
-    "{\"policies\":[\"$policy\"], \"ttl\":\"${ttl}\", \"display_name\":\"${display_name}\"}" \
+    "$payload_json" \
     "$token" "Creating token with policy: $policy")
 
   if [ $? -ne 0 ]; then

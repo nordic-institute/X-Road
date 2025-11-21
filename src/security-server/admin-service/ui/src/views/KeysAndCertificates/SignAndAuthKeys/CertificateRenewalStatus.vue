@@ -35,11 +35,7 @@
           <span class="font-weight-medium">{{ status.text }}</span>
           <span v-if="status.additionalText">
             &nbsp;{{ status.additionalText }}
-            <v-tooltip
-              v-if="status.tooltipText"
-              activator="parent"
-              location="top"
-            >
+            <v-tooltip v-if="status.tooltipText" activator="parent" location="top">
               {{ status.tooltipText }}
             </v-tooltip>
           </span>
@@ -53,7 +49,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 
-import { helper, XrdStatusChip, XrdStatusIcon } from '@niis/shared-ui';
+import { XrdStatusChip, XrdStatusIcon, formatDate, formatDateTime } from '@niis/shared-ui';
 
 import { CertificateStatus, TokenCertificate } from '@/openapi-types';
 
@@ -78,10 +74,7 @@ export default defineComponent({
   },
   computed: {
     status(): Status {
-      if (
-        !this.isAcmeCertificate ||
-        this.certificate.status !== CertificateStatus.REGISTERED
-      ) {
+      if (!this.isAcmeCertificate || this.certificate.status !== CertificateStatus.REGISTERED) {
         return {
           type: undefined,
           icon: 'error',
@@ -108,12 +101,8 @@ export default defineComponent({
         type: 'success',
         icon: 'ok',
         text: 'Next planned renewal on',
-        additionalText: helper.formatDate(
-          this.certificate.next_automatic_renewal_time,
-        ),
-        tooltipText: helper.formatDateTime(
-          this.certificate.next_automatic_renewal_time,
-        ),
+        additionalText: formatDate(this.certificate.next_automatic_renewal_time),
+        tooltipText: formatDateTime(this.certificate.next_automatic_renewal_time),
       };
     },
   },

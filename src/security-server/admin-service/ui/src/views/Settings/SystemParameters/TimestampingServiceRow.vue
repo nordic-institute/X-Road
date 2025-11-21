@@ -32,6 +32,9 @@
     <td :class="{ 'opacity-60': !messageLogEnabled }">
       {{ timestampingService.url }}
     </td>
+    <td :class="{ 'opacity-60': !messageLogEnabled }">
+      {{ $t('systemParameters.costType.' + timestampingService.cost_type) }}
+    </td>
     <td class="text-end">
       <XrdBtn
         v-if="showDeleteTsp"
@@ -87,9 +90,7 @@ export default defineComponent({
   computed: {
     ...mapState(useUser, ['hasPermission']),
     showDeleteTsp(): boolean {
-      return (
-        this.hasPermission(Permissions.DELETE_TSP) && this.messageLogEnabled
-      );
+      return this.hasPermission(Permissions.DELETE_TSP) && this.messageLogEnabled;
     },
   },
   methods: {
@@ -101,9 +102,7 @@ export default defineComponent({
           this.deleting = false;
           this.confirmDeleteDialog = false;
           this.$emit('deleted');
-          this.addSuccessMessage(
-            'systemParameters.timestampingServices.table.action.delete.success',
-          );
+          this.addSuccessMessage('systemParameters.timestampingServices.table.action.delete.success');
         })
         .catch((error) => this.addError(error));
     },

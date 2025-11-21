@@ -70,10 +70,7 @@ function decline(): void {
   loading.value = true;
   declineManagementRequest(props.requestId)
     .then(() => {
-      addSuccessMessage(
-        'managementRequests.dialog.decline.successMessage',
-        messageData.value,
-      );
+      addSuccessMessage('managementRequests.dialog.decline.successMessage', messageData.value);
       emits('decline');
     })
     .catch((error) => addError(error))

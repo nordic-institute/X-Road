@@ -41,10 +41,7 @@
     @cancel="close"
   >
     <template #text>
-      <i18n-t
-        scope="global"
-        keypath="securityServers.dialogs.deleteAddress.areYouSure"
-      >
+      <i18n-t scope="global" keypath="securityServers.dialogs.deleteAddress.areYouSure">
         <template #securityServer>
           <span class="font-weight-bold">{{ serverCode }}</span>
         </template>
@@ -74,12 +71,7 @@ import { useRouter } from 'vue-router';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
-import {
-  XrdSimpleDialog,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
 
 /**
  * Component for a Security server details view
@@ -119,11 +111,7 @@ const deleteSecurityServer = handleSubmit(() => {
   loading.value = true;
   deleteSS(props.securityServerId)
     .then(() => {
-      addSuccessMessage(
-        'securityServers.dialogs.deleteAddress.success',
-        {},
-        true,
-      );
+      addSuccessMessage('securityServers.dialogs.deleteAddress.success', {}, true);
       router.replace({
         name: RouteName.SecurityServers,
       });

@@ -26,13 +26,13 @@
 package org.niis.xroad.securityserver.restapi.auth;
 
 import ee.ria.xroad.common.util.JsonUtils;
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
 import jakarta.servlet.http.Cookie;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;

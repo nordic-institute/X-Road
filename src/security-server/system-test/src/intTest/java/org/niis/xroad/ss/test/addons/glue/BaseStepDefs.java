@@ -114,7 +114,6 @@ public abstract class BaseStepDefs {
      */
     public enum StepDataKey {
         XROAD_SOAP_RESPONSE,
-        XROAD_JMX_RESPONSE
     }
 
 }

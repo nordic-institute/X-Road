@@ -30,11 +30,7 @@
       <SettingsViewTabs />
     </template>
     <XrdSubView>
-      <XrdCard
-        data-test="system-settings-system-parameters-card"
-        class="mb-4"
-        title="systemSettings.systemParameters"
-      >
+      <XrdCard data-test="system-settings-system-parameters-card" class="mb-4" title="systemSettings.systemParameters">
         <XrdCardTable>
           <XrdCardTableRow
             data-test="system-settings-instance-identifier-field"
@@ -76,14 +72,7 @@ import { defineComponent } from 'vue';
 
 import { mapActions, mapState } from 'pinia';
 
-import {
-  XrdBtn,
-  XrdCard,
-  XrdCardTable,
-  XrdCardTableRow,
-  XrdSubView,
-  XrdView,
-} from '@niis/shared-ui';
+import { XrdBtn, XrdCard, XrdCardTable, XrdCardTableRow, XrdSubView, XrdView } from '@niis/shared-ui';
 
 import { useManagementServices } from '@/store/modules/management-services';
 import { useSystem } from '@/store/modules/system';
@@ -118,8 +107,7 @@ export default defineComponent({
   computed: {
     ...mapState(useSystem, ['getSystemStatus']),
     serverAddress(): string | undefined {
-      return this.getSystemStatus?.initialization_status
-        ?.central_server_address;
+      return this.getSystemStatus?.initialization_status?.central_server_address;
     },
     instanceIdentifier(): string | undefined {
       return this.getSystemStatus?.initialization_status?.instance_identifier;
@@ -129,13 +117,8 @@ export default defineComponent({
     this.fetchSystemStatus();
   },
   methods: {
-    ...mapActions(useSystem, [
-      'fetchSystemStatus',
-      'updateCentralServerAddress',
-    ]),
-    ...mapActions(useManagementServices, [
-      'fetchManagementServicesConfiguration',
-    ]),
+    ...mapActions(useSystem, ['fetchSystemStatus', 'updateCentralServerAddress']),
+    ...mapActions(useManagementServices, ['fetchManagementServicesConfiguration']),
     refreshData() {
       this.showEditServerAddressDialog = false;
       this.fetchSystemStatus();

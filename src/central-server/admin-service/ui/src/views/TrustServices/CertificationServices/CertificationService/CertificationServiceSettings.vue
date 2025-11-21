@@ -40,22 +40,22 @@
               <th>
                 {{ $t('trustServices.certProfileInput') }}
               </th>
+              <th>
+                {{ $t('trustServices.defaultCsrFormat') }}
+              </th>
               <th v-if="allowEditSettings" class="pa-0"></th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td data-test="tls-auth-card">
-                {{
-                  currentCertificationService?.tls_auth
-                    ? $t('common.true')
-                    : $t('common.false')
-                }}
+                {{ currentCertificationService?.tls_auth ? $t('common.true') : $t('common.false') }}
               </td>
               <td data-test="cert-profile-card">
-                {{
-                  currentCertificationService?.certificate_profile_info || ''
-                }}
+                {{ currentCertificationService?.certificate_profile_info || '' }}
+              </td>
+              <td data-test="default-csr-format-card">
+                {{ currentCertificationService?.default_csr_format || '' }}
               </td>
               <td v-if="allowEditSettings" class="pl-2 pr-2">
                 <XrdBtn
@@ -99,31 +99,19 @@
           <tbody>
             <tr>
               <td data-test="is-acme-capable">
-                {{
-                  currentCertificationService?.acme_server_directory_url
-                    ? $t('common.true')
-                    : $t('common.false')
-                }}
+                {{ currentCertificationService?.acme_server_directory_url ? $t('common.true') : $t('common.false') }}
               </td>
               <td data-test="acme-server-directory-url">
-                {{
-                  currentCertificationService?.acme_server_directory_url || '-'
-                }}
+                {{ currentCertificationService?.acme_server_directory_url || '-' }}
               </td>
               <td data-test="acme-server-ip-address">
                 {{ currentCertificationService?.acme_server_ip_address || '-' }}
               </td>
               <td data-test="authentication-certificate-profile-id">
-                {{
-                  currentCertificationService?.authentication_certificate_profile_id ||
-                  '-'
-                }}
+                {{ currentCertificationService?.authentication_certificate_profile_id || '-' }}
               </td>
               <td data-test="signing-certificate-profile-id">
-                {{
-                  currentCertificationService?.signing_certificate_profile_id ||
-                  '-'
-                }}
+                {{ currentCertificationService?.signing_certificate_profile_id || '-' }}
               </td>
               <td v-if="allowEditSettings" class="pl-2 pr-2">
                 <XrdBtn
@@ -175,13 +163,9 @@ const certificationServiceStore = useCertificationService();
 const showEditCaDetailsDialog = ref(false);
 const showEditAcmeServerDialog = ref(false);
 
-const currentCertificationService = computed(
-  () => certificationServiceStore.current,
-);
+const currentCertificationService = computed(() => certificationServiceStore.current);
 const loading = computed(() => certificationServiceStore.loadingCurrent);
-const allowEditSettings = computed(() =>
-  hasPermission(Permissions.EDIT_APPROVED_CA),
-);
+const allowEditSettings = computed(() => hasPermission(Permissions.EDIT_APPROVED_CA));
 
 function hideEditCaDialog() {
   showEditCaDetailsDialog.value = false;

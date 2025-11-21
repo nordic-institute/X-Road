@@ -36,6 +36,7 @@ Feature: 0500 - CS: Trust Services
     Then CA settings are shown
     And user can change the TLS Auth setting
     And user can change the certificate profile
+    And user can change the default CSR format
 
   Scenario: Add ACME certification service
     Given new CA certificate is uploaded

@@ -35,6 +35,7 @@
       </span>
     </template>
     <template #divider>
+      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
       <span class="on-surface font-weight-medium body-small opacity-20">/</span>
     </template>
   </v-breadcrumbs>

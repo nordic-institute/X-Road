@@ -30,17 +30,17 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResponseType;
 
 import com.google.common.collect.Sets;
-import org.junit.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.util.Collections;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

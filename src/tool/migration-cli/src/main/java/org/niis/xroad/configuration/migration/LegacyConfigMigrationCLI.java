@@ -37,19 +37,56 @@ import java.nio.file.Paths;
  * Supports:
  * - Configuration migration (INI/properties to DB)
  * - PGP key migration (GPG to Vault)
+ * - Message log encryption key migration (P12 to Vault)
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LegacyConfigMigrationCLI {
 
-    private static final String OPTION_PGP_KEYS = "--pgp-keys";
+    private enum Command {
+        CONFIG("config", "Migrate configuration files (INI/properties to DB)"),
+        PGP_KEYS("pgp-keys", "Migrate PGP keys from GPG to Vault"),
+        MESSAGELOG_DB_ENCRYPTION_KEYS("messagelog-db-encryption-keys", "Migrate message log database encryption keys from P12 to Vault"),
+        HELP("help", "Show this help message");
+
+        private final String name;
+        private final String description;
+
+        Command(String name, String description) {
+            this.name = name;
+            this.description = description;
+        }
+
+        static Command fromString(String value) {
+            return switch (value) {
+                case "config" -> CONFIG;
+                case "pgp-keys" -> PGP_KEYS;
+                case "messagelog-db-encryption-keys" -> MESSAGELOG_DB_ENCRYPTION_KEYS;
+                case "help", "-h", "--help" -> HELP;
+                default -> null;
+            };
+        }
+    }
 
     public static void main(String[] args) {
         try {
-            if (args.length > 0 && OPTION_PGP_KEYS.equals(args[0])) {
-                migratePgpKeys(args);
-            } else {
-                migrateConfiguration(args);
+            if (args.length == 0) {
+                showHelp();
+                return;
+            }
+
+            Command command = Command.fromString(args[0]);
+            if (command == null) {
+                log.error("Unknown command: {}", args[0]);
+                showHelp();
+                System.exit(1);
+            }
+
+            switch (command) {
+                case CONFIG -> migrateConfiguration(shiftArgs(args));
+                case PGP_KEYS -> migratePgpKeys(shiftArgs(args));
+                case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
+                default -> showHelp();
             }
         } catch (Exception e) {
             log.error("Migration failed: {}", e.getMessage(), e);
@@ -57,12 +94,58 @@ public class LegacyConfigMigrationCLI {
         }
     }
 
+    private static String[] shiftArgs(String[] args) {
+        if (args.length <= 1) {
+            return new String[0];
+        }
+        String[] shifted = new String[args.length - 1];
+        System.arraycopy(args, 1, shifted, 0, args.length - 1);
+        return shifted;
+    }
+
+    private static void showHelp() {
+        System.out.println("""
+                X-Road Migration Tool
+
+                Usage: migration-cli <command> [options]
+
+                Commands:
+                  config                         Migrate configuration files (INI/properties to DB)
+                  pgp-keys                       Migrate PGP keys from GPG to Vault
+                  messagelog-db-encryption-keys  Migrate message log database encryption keys from P12 to Vault
+                  help                           Show this help message
+
+                Configuration Migration:
+                  migration-cli config <input.properties>          # Migrate properties file
+                  migration-cli config <input.ini> <output.yaml>   # Migrate INI to YAML
+
+                PGP Keys Migration:
+                  migration-cli pgp-keys <ini-config-file>
+                    Migrates PGP keys from GPG home directory (specified in config) to Vault.
+
+                Message Log Database Encryption Keys Migration:
+                  migration-cli messagelog-db-encryption-keys <keystore.p12> <password> <key-id>
+                    Migrates the specified database encryption key from P12 keystore to Vault.
+                    Arguments:
+                      <keystore.p12>  Path to PKCS12 keystore file
+                      <password>      Keystore password
+                      <key-id>        Key alias/ID to migrate (from messagelog-key-id config)
+
+                Examples:
+                  migration-cli config /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/local.yaml
+                  migration-cli pgp-keys /etc/xroad/conf.d/local.ini
+                  migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 secret key1
+                """);
+    }
+
     private static void migratePgpKeys(String[] args) {
-        if (args.length < 2) {
-            logPgpUsageAndThrow("Configuration file required");
+        if (args.length < 1) {
+            log.error("PGP key migration requires configuration file");
+            log.error("Usage: migration-cli pgp-keys <ini-config-file>");
+            System.exit(1);
         }
 
-        String configFile = args[1];
+        String configFile = args[0];
 
         validateFilePath(configFile, "configuration");
 
@@ -86,9 +169,50 @@ public class LegacyConfigMigrationCLI {
         // MigrationResult result = migrator.migrateFromConfig(Paths.get(configFile));
         // log.info("Migration result: {}", result);
         // log.info("Keys stored in Vault");
+    }
 
-        // Configuration migration should be done separately:
-        // MessageLogIniToDbMigrator.main(new String[] { mappingFile, dbPropertiesFile });
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private static void migrateMessageLogKeys(String[] args) {
+        if (args.length < 3) {
+            log.error("Message log database encryption key migration requires 3 arguments");
+            log.error("Usage: migration-cli messagelog-db-encryption-keys <keystore.p12> <password> <key-id>");
+            log.error("  <keystore.p12>  Path to PKCS12 keystore file");
+            log.error("  <password>      Keystore password");
+            log.error("  <key-id>        Key alias/ID to migrate (from messagelog-key-id config)");
+            System.exit(1);
+        }
+
+        String keystorePath = args[0];
+        String password = args[1];
+        String keyId = args[2];
+
+        validateFilePath(keystorePath, "keystore");
+
+        if (!new File(keystorePath).exists()) {
+            throw new IllegalArgumentException("Keystore file does not exist: " + keystorePath);
+        }
+
+        log.info("Starting message log database encryption key migration");
+        log.info("  Keystore: {}", keystorePath);
+        log.info("  Key ID: {}", keyId);
+
+        log.warn("Message log database encryption key migration requires Vault configuration");
+        log.info("Keystore file validated: {}", keystorePath);
+        log.info("To complete migration, ensure Vault is configured and accessible");
+
+        //TODO provide vault configuration
+
+        // Note: Message log database encryption key migration requires Vault configuration
+        // Example of how this would work with proper vault client:
+        // VaultClient vaultClient = createVaultClient();
+        // MessageLogKeyMigrator migrator = new MessageLogKeyMigrator(vaultClient);
+        // MessageLogKeyMigrationResult result = migrator.migrateFromKeystore(
+        //     Paths.get(keystorePath),
+        //     password.toCharArray(),
+        //     keyId
+        // );
+        // log.info("Migration result: {}", result);
+        // log.info("Key stored in Vault");
     }
 
     private static void migrateConfiguration(String[] args) {
@@ -118,17 +242,25 @@ public class LegacyConfigMigrationCLI {
 
     private static void validateConfigArgs(String[] args) {
         if (args.length == 0) {
-            logConfigUsageAndThrow("No arguments provided");
+            log.error("Configuration migration requires input file");
+            log.error("Usage:");
+            log.error("  migration-cli config <input.properties>          # Migrate properties");
+            log.error("  migration-cli config <input.ini> <output.yaml>   # Migrate INI to YAML");
+            System.exit(1);
         }
 
         String inputFile = args[0];
         boolean isPropertiesFile = inputFile.endsWith(".properties");
 
         if (isPropertiesFile && args.length != 1) {
-            logConfigUsageAndThrow("Properties file migration requires only input file");
+            log.error("Properties file migration requires only input file");
+            log.error("Usage: migration-cli config <input.properties>");
+            System.exit(1);
         }
         if (!isPropertiesFile && args.length != 2) {
-            logConfigUsageAndThrow("INI file migration requires both input and output files");
+            log.error("INI file migration requires both input and output files");
+            log.error("Usage: migration-cli config <input.ini> <output.yaml>");
+            System.exit(1);
         }
 
         validateFilePath(inputFile, "input");
@@ -152,21 +284,6 @@ public class LegacyConfigMigrationCLI {
             throw new IllegalArgumentException(
                     String.format("Invalid %s file path: %s", fileType, path), e);
         }
-    }
-
-    private static void logConfigUsageAndThrow(String message) {
-        log.error("Configuration Migration Usage: <input file> [output file]");
-        log.error("  Properties: <file.properties>");
-        log.error("  INI: <input.ini> <output.yaml>");
-        throw new IllegalArgumentException(message);
-    }
-
-    private static void logPgpUsageAndThrow(String message) {
-        log.error("PGP Key Migration Usage: --pgp-keys <ini-config-file>");
-        log.error("  - PGP keys will be stored in Vault");
-        log.error("  - Configuration migration should be done separately using MessageLogIniToDbMigrator");
-        log.error("  Example: --pgp-keys /etc/xroad/conf.d/local.ini");
-        throw new IllegalArgumentException(message);
     }
 }
 

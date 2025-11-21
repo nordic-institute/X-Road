@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.api.dto;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.niis.xroad.globalconf.model.CsrFormat;
 
 import java.time.Instant;
 import java.util.List;
@@ -45,6 +46,7 @@ public class CertificationService {
     private Instant notBefore;
     private String certificateProfileInfo;
     private Boolean tlsAuth;
+    private CsrFormat defaultCsrFormat;
     private String acmeServerDirectoryUrl;
     private String acmeServerIpAddress;
     private String authenticationCertificateProfileId;

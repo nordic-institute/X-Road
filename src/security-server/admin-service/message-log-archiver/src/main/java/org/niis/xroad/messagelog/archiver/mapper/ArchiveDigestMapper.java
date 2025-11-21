@@ -24,11 +24,10 @@
  */
 package org.niis.xroad.messagelog.archiver.mapper;
 
-import ee.ria.xroad.messagelog.database.entity.DigestEntryEmbeddable;
-
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import org.niis.xroad.messagelog.archiver.core.DigestEntry;
+import org.niis.xroad.messagelog.entity.DigestEntryEmbeddable;
 
 @Mapper
 public interface ArchiveDigestMapper {

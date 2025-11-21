@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.messagelog.MessageRecord;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -37,6 +35,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 

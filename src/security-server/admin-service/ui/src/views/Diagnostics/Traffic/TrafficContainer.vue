@@ -25,11 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdView
-    data-test="diagnostics-view"
-    title="tab.main.diagnostics"
-    :loading="opMonitoringStatusLoading"
-  >
+  <XrdView data-test="diagnostics-view" title="tab.main.diagnostics" :loading="opMonitoringStatusLoading">
     <template #tabs>
       <DiagnosticsTabs />
     </template>
@@ -60,9 +56,7 @@ import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
 
 const diagnosticsStore = useDiagnostics();
 
-const opMonitoringStatusLoading = ref(
-  diagnosticsStore.addOnStatus === undefined,
-);
+const opMonitoringStatusLoading = ref(diagnosticsStore.addOnStatus === undefined);
 
 const opMonitoringEnabled = ref(false);
 
@@ -74,7 +68,6 @@ async function getOpMonitoringStatus() {
   if (diagnosticsStore.addOnStatus === undefined) {
     await diagnosticsStore.fetchAddonStatus();
   }
-  opMonitoringEnabled.value =
-    diagnosticsStore.addOnStatus?.opmonitoring_enabled ?? false;
+  opMonitoringEnabled.value = diagnosticsStore.addOnStatus?.opmonitoring_enabled ?? false;
 }
 </script>

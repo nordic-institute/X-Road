@@ -59,6 +59,7 @@
                     neKQsBCiYuP03CJX5gg5yC37MxlcC2NpwdM60Q+7sp+Riz+eGw4tpVnAEmD8ZwHl
                     vuN63j9maswGt/KrgylIF99T/5WpbFVRWQHibbEH
                 </cert>
+                <costType>FREE</costType>
             </ocsp>
             <ocsp>
                 <url>http://www.example.net/ocsp</url>
@@ -81,9 +82,11 @@
                     3AH22TFUUUnaTGVF+OiHtthE1u7bnwsTqWXX4PI9I3KnSaIEE55mveNq2jHVWu4r
                     Myy2flOZMonYh3dw1gmSp2yWo1YDpN3olM0Li6Lnfvg1TZd71xZ6ZkKf+MoAs+pW
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
+                <costType>PAID</costType>
             </ocsp>
         </topCA>
         <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
+        <defaultCsrFormat>PEM</defaultCsrFormat>
         <acmeServer>
             <directoryURL>http://ca:8887/acme/directory</directoryURL>
             <authenticationCertificateProfileId>5</authenticationCertificateProfileId>
@@ -141,7 +144,7 @@
                 <costType>FREE</costType>
             </ocsp>
             <ocsp>
-                <url>http://www.example.net/ocsp</url>
+                <url>http://www.example.net/ocsp2</url>
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
                     HhcNMTIwOTA2MTEzODMwWhcNMTQwOTA2MTEzODMwWjAWMRQwEgYDVQQDDAtPY3Nw
@@ -161,10 +164,11 @@
                     3AH22TFUUUnaTGVF+OiHtthE1u7bnwsTqWXX4PI9I3KnSaIEE55mveNq2jHVWu4r
                     Myy2flOZMonYh3dw1gmSp2yWo1YDpN3olM0Li6Lnfvg1TZd71xZ6ZkKf+MoAs+pW
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
-            <costType>FREE</costType>
+                <costType>FREE</costType>
             </ocsp>
         </topCA>
         <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
+        <defaultCsrFormat>PEM</defaultCsrFormat>
     </approvedCA>
     <approvedCA>
         <name>pki3</name>
@@ -214,7 +218,6 @@
                     3AH22TFUUUnaTGVF+OiHtthE1u7bnwsTqWXX4PI9I3KnSaIEE55mveNq2jHVWu4r
                     Myy2flOZMonYh3dw1gmSp2yWo1YDpN3olM0Li6Lnfvg1TZd71xZ6ZkKf+MoAs+pW
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
-                <costType>PAID</costType>
             </ocsp>
             <ocsp>
                 <url>http://www.example.net/ocsp</url>
@@ -237,7 +240,6 @@
                     3AH22TFUUUnaTGVF+OiHtthE1u7bnwsTqWXX4PI9I3KnSaIEE55mveNq2jHVWu4r
                     Myy2flOZMonYh3dw1gmSp2yWo1YDpN3olM0Li6Lnfvg1TZd71xZ6ZkKf+MoAs+pW
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
-                <costType>FREE</costType>
             </ocsp>
         </topCA>
         <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
@@ -268,6 +270,7 @@
                 89A9e6HCmXEY1bo=</cert>
         </topCA>
         <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
+        <defaultCsrFormat>DER</defaultCsrFormat>
     </approvedCA>
 
     <approvedCA>

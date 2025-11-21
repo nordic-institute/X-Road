@@ -25,13 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewFixedWidth
-    title="cert.certificate"
-    closeable
-    :breadcrumbs="breadcrumbs"
-    :loading="loading"
-    @close="close"
-  >
+  <XrdElevatedViewFixedWidth title="cert.certificate" closeable :breadcrumbs="breadcrumbs" :loading="loading" @close="close">
     <XrdCertificate v-if="certificate" :certificate="certificate" />
   </XrdElevatedViewFixedWidth>
 </template>
@@ -39,11 +33,7 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { CertificateDetails } from '@/openapi-types';
-import {
-  XrdElevatedViewFixedWidth,
-  XrdCertificate,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdElevatedViewFixedWidth, XrdCertificate, useNotifications } from '@niis/shared-ui';
 import { useTlsCertificate } from '@/store/modules/tls-certificate';
 import { useRouter } from 'vue-router';
 import { RouteName } from '@/global';

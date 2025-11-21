@@ -183,7 +183,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
 
         try {
             final ResponseEntity<ApprovedCertificationServiceDto> result = certificationServicesApi
-                    .addCertificationService(certificate, certificateProfileInfo, null, null, null, null, null);
+                    .addCertificationService(certificate, certificateProfileInfo, null, null, null, null, null, null);
 
             validate(result)
                     .assertion(equalsStatusCodeAssertion(CREATED))

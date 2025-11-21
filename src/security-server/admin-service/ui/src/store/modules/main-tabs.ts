@@ -53,11 +53,7 @@ const tabs: Tab[] = [
     key: 'settings',
     name: 'tab.main.settings',
     icon: 'settings',
-    permissions: [
-      Permissions.VIEW_SYS_PARAMS,
-      Permissions.BACKUP_CONFIGURATION,
-      Permissions.VIEW_ADMIN_USERS,
-    ],
+    permissions: [Permissions.VIEW_SYS_PARAMS, Permissions.BACKUP_CONFIGURATION, Permissions.VIEW_ADMIN_USERS],
   },
 ];
 

@@ -39,6 +39,8 @@ import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.messagelog.MessageRecordEncryption;
+import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteKeyConf;
@@ -80,7 +82,7 @@ class MetadataHandlerTest {
         ServerConfProvider serverConfProvider = mock(ServerConfProvider.class);
         ClientAuthenticationService clientAuthenticationService = mock(ClientAuthenticationService.class);
         EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
-        var messageRecordEncryption = mock(org.niis.xroad.common.messagelog.MessageRecordEncryption.class);
+        var messageRecordEncryption = mock(MessageRecordEncryption.class);
 
         mockRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);

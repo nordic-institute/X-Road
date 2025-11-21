@@ -31,6 +31,7 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 
@@ -44,8 +45,9 @@ class TestLogArchiver extends LogArchiver {
     TestLogArchiver(PgpKeyManager keyManager,
                     BouncyCastlePgpEncryptionService encryptionService,
                     GlobalConfProvider globalConfProvider,
-                    DatabaseCtx messageLogDatabaseCtx) {
-        super(keyManager, encryptionService, globalConfProvider, messageLogDatabaseCtx);
+                    DatabaseCtx messageLogDatabaseCtx,
+                    VaultClient vaultClient) {
+        super(keyManager, encryptionService, globalConfProvider, messageLogDatabaseCtx, vaultClient);
     }
 
     public static void waitForArchiveSuccessful() throws Exception {

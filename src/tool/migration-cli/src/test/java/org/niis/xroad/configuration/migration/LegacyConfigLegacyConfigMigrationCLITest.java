@@ -55,6 +55,7 @@ class LegacyConfigLegacyConfigMigrationCLITest {
     @Test
     void testPropertyCopy() {
         LegacyConfigMigrationCLI.main(new String[]{
+                "config",
                 INPUT_INI,
                 OUTPUT_YAML});
 
@@ -73,6 +74,7 @@ class LegacyConfigLegacyConfigMigrationCLITest {
     @Test
     void shouldMigrateToYaml() {
         LegacyConfigMigrationCLI.main(new String[]{
+                "config",
                 INPUT_INI,
                 OUTPUT_YAML});
 
@@ -87,13 +89,16 @@ class LegacyConfigLegacyConfigMigrationCLITest {
     }
 
     @Test
-    void shouldThrowExceptionWhenMissingArgs() {
-        assertThrows(MigrationException.class, () -> LegacyConfigMigrationCLI.main(new String[]{}));
+    void shouldShowHelpWhenMissingArgs() {
+        // With command-based CLI, missing args shows help instead of throwing exception
+        LegacyConfigMigrationCLI.main(new String[]{});
+        // No exception expected - help is shown and program exits normally
     }
 
     @Test
     void shouldThrowExceptionWhenInputFileDoesNotExist() {
         assertThrows(MigrationException.class, () -> LegacyConfigMigrationCLI.main(new String[]{
+                "config",
                 "nonexistent.ini",
                 OUTPUT_YAML}));
     }
@@ -101,6 +106,7 @@ class LegacyConfigLegacyConfigMigrationCLITest {
     @Test
     void shouldThrowExceptionWhenOutputPathIsDir() {
         assertThrows(MigrationException.class, () -> LegacyConfigMigrationCLI.main(new String[]{
+                "config",
                 INPUT_INI,
                 "."}));
     }
@@ -110,6 +116,7 @@ class LegacyConfigLegacyConfigMigrationCLITest {
         Files.copy(Paths.get(INPUT_DB_PROPERTIES_SRC), Paths.get(INPUT_DB_PROPERTIES), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
         LegacyConfigMigrationCLI.main(new String[]{
+                "config",
                 INPUT_DB_PROPERTIES
         });
 
@@ -132,6 +139,7 @@ class LegacyConfigLegacyConfigMigrationCLITest {
     void shouldPreserveOriginalPropertiesAsComments() throws IOException {
         Files.copy(Paths.get(INPUT_DB_PROPERTIES_SRC), Paths.get(INPUT_DB_PROPERTIES), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         LegacyConfigMigrationCLI.main(new String[]{
+                "config",
                 INPUT_DB_PROPERTIES
         });
 

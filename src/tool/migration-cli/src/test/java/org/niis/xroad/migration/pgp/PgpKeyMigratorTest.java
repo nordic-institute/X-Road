@@ -61,9 +61,9 @@ class PgpKeyMigratorTest {
         migrator = new PgpKeyMigrator(mockVaultClient);
 
         // Mock vault read to return stored data (for verification)
-        when(mockVaultClient.getMessageLogArchivalSigningSecretKey())
+        when(mockVaultClient.getMLogArchivalSigningSecretKey())
                 .thenReturn(java.util.Optional.of("test-secret-key"));
-        when(mockVaultClient.getMessageLogArchivalEncryptionPublicKeys())
+        when(mockVaultClient.getMLogArchivalEncryptionPublicKeys())
                 .thenReturn(java.util.Optional.of("test-public-keys"));
     }
 
@@ -83,8 +83,8 @@ class PgpKeyMigratorTest {
         assertTrue(result.getPublicKeyCount() >= 1);
 
         // Verify vault interactions
-        verify(mockVaultClient, times(1)).createMessageLogArchivalSigningSecretKey(anyString());
-        verify(mockVaultClient, times(1)).createMessageLogArchivalEncryptionPublicKeys(anyString());
+        verify(mockVaultClient, times(1)).setMLogArchivalSigningSecretKey(anyString());
+        verify(mockVaultClient, times(1)).setMLogArchivalEncryptionPublicKeys(anyString());
     }
 
     @Test
@@ -122,8 +122,8 @@ class PgpKeyMigratorTest {
         ArgumentCaptor<String> secretCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> publicCaptor = ArgumentCaptor.forClass(String.class);
 
-        verify(mockVaultClient).createMessageLogArchivalSigningSecretKey(secretCaptor.capture());
-        verify(mockVaultClient).createMessageLogArchivalEncryptionPublicKeys(publicCaptor.capture());
+        verify(mockVaultClient).setMLogArchivalSigningSecretKey(secretCaptor.capture());
+        verify(mockVaultClient).setMLogArchivalEncryptionPublicKeys(publicCaptor.capture());
 
         String secretKey = secretCaptor.getValue();
         String publicKeys = publicCaptor.getValue();
@@ -212,8 +212,8 @@ class PgpKeyMigratorTest {
         assertTrue(result.isSkipped());
 
         // Verify no vault writes
-        verify(mockVaultClient, never()).createMessageLogArchivalSigningSecretKey(anyString());
-        verify(mockVaultClient, never()).createMessageLogArchivalEncryptionPublicKeys(anyString());
+        verify(mockVaultClient, never()).setMLogArchivalSigningSecretKey(anyString());
+        verify(mockVaultClient, never()).setMLogArchivalEncryptionPublicKeys(anyString());
     }
 
     @Test

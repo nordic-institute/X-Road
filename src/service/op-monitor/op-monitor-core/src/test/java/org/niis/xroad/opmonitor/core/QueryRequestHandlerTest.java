@@ -43,7 +43,7 @@ import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerHealthDataResponseT
 import com.codahale.metrics.MetricRegistry;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
@@ -61,7 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;

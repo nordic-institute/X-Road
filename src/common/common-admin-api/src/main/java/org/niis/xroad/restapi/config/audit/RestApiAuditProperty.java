@@ -110,6 +110,7 @@ public enum RestApiAuditProperty {
     GENERATED_AT,
     TSP_NAME,
     TSP_URL,
+    TSP_COST_TYPE,
 
     OWNER_IDENTIFIER,
     OWNER_CLASS,
@@ -135,6 +136,7 @@ public enum RestApiAuditProperty {
 
     AUTHENTICATION_ONLY,
     CERTIFICATE_PROFILE_INFO,
+    DEFAULT_CSR_FORMAT,
     ACME_DIRECTORY_URL,
     ACME_IP_ADDRESSES,
     AUTH_CERT_PROFILE_ID,

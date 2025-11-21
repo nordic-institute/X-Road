@@ -26,17 +26,16 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
-import org.niis.xroad.common.messagelog.MessageLogArchivalProperties;
-import org.niis.xroad.common.messagelog.MessageLogDatabaseEncryptionProperties;
-import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.messagelog.MessageLogArchivalProperties;
+import org.niis.xroad.messagelog.MessageLogDatabaseEncryptionProperties;
+import org.niis.xroad.messagelog.archive.GroupingStrategy;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -72,6 +71,10 @@ public interface ProxyMessageLogProperties {
     @WithDefault("SHA-512")
     String hashAlgoIdStr();
 
+    @WithName("timestamping-prioritization-strategy")
+    @WithDefault("NONE")
+    ServicePrioritizationStrategy timestampingPrioritizationStrategy();
+
     default DigestAlgorithm hashAlg() {
         return Optional.ofNullable(hashAlgoIdStr())
                 .map(DigestAlgorithm::ofName)
@@ -83,27 +86,9 @@ public interface ProxyMessageLogProperties {
         @WithDefault("false")
         boolean enabled();
 
-        @Deprecated
-        @WithName("messagelog-keystore")
-        Optional<String> messagelogKeystoreStr();
-
-        @Deprecated
-        @WithName("messagelog-keystore-password")
-        Optional<String> messagelogKeystorePasswordStr();
-
-        @Deprecated
-        @WithName("messagelog-key-id")
-        Optional<String> messagelogKeyId();
-
-        @Override
-        default Optional<Path> messagelogKeystore() {
-            return messagelogKeystoreStr().map(Paths::get);
-        }
-
-        @Override
-        default Optional<char[]> messagelogKeystorePassword() {
-            return messagelogKeystorePasswordStr().map(String::toCharArray);
-        }
+        @WithName("key-id")
+        @WithDefault("default")
+        String keyId();
     }
 
     interface ArchiverProperties extends MessageLogArchivalProperties {

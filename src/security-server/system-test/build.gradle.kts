@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
   intTestImplementation(project(":security-server:openapi-model"))
-  intTestImplementation(project(":addons:proxymonitor-common"))
+  intTestImplementation(project(":service::proxy:proxy-monitoring-api"))
   intTestImplementation(project(":service:op-monitor:op-monitor-core"))
 
   intTestImplementation(project(":common:common-int-test"))
@@ -15,7 +15,8 @@ dependencies {
 }
 
 intTestComposeEnv {
-  env("XROAD_SECRET_STORE_TOKEN", "root-token")
+  env("XROAD_SECRET_STORE_ROOT_TOKEN", "root-token")
+  env("XROAD_SECRET_STORE_TOKEN", "system-test-xroad-token")
 
   images(
     "OPENBAO_DEV_IMG" to "openbao-dev",

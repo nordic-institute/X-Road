@@ -39,19 +39,9 @@
       </XrdFormBlockRow>
     </XrdFormBlock>
     <template #footer>
-      <XrdBtn
-        data-test="cancel-button"
-        variant="text"
-        text="action.cancel"
-        @click="cancel"
-      />
+      <XrdBtn data-test="cancel-button" variant="text" text="action.cancel" @click="cancel" />
       <v-spacer />
-      <XrdBtn
-        data-test="next-button"
-        append-icon="arrow_forward"
-        text="action.next"
-        @click="done"
-      />
+      <XrdBtn data-test="next-button" append-icon="arrow_forward" text="action.next" @click="done" />
     </template>
   </XrdWizardStep>
 </template>
@@ -60,12 +50,7 @@
 import { defineComponent } from 'vue';
 import { mapWritableState } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import {
-  XrdWizardStep,
-  XrdBtn,
-  XrdFormBlock,
-  XrdFormBlockRow,
-} from '@niis/shared-ui';
+import { XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {

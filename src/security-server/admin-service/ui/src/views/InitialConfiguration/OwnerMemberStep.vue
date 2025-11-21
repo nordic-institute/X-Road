@@ -25,26 +25,17 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdWizardStep
-    title="wizard.memberName"
-    sub-title="wizard.client.memberNameTooltip"
-  >
+  <XrdWizardStep title="wizard.memberName" sub-title="wizard.client.memberNameTooltip">
     <v-slide-y-transition>
-      <div
-        v-if="memberName"
-        class="readonly-info-field"
-        data-test="selected-member-name"
-      >
+      <div v-if="memberName" class="readonly-info-field" data-test="selected-member-name">
         {{ memberName }}
       </div>
     </v-slide-y-transition>
 
     <XrdFormBlock>
-      <XrdFormBlockRow
-        description="wizard.client.memberClassTooltip"
-        adjust-against-content
-      >
+      <XrdFormBlockRow description="wizard.client.memberClassTooltip" adjust-against-content>
         <v-select
+          v-model="memberClassMdl"
           v-bind="memberClassRef"
           data-test="member-class-input"
           class="xrd"
@@ -53,11 +44,9 @@
           :disabled="isServerOwnerInitialized"
         />
       </XrdFormBlockRow>
-      <XrdFormBlockRow
-        description="wizard.client.memberCodeTooltip"
-        adjust-against-content
-      >
+      <XrdFormBlockRow description="wizard.client.memberCodeTooltip" adjust-against-content>
         <v-text-field
+          v-model="memberCodeMdl"
           v-bind="memberCodeRef"
           data-test="member-code-input"
           class="xrd"
@@ -67,11 +56,9 @@
           :disabled="isServerOwnerInitialized"
         />
       </XrdFormBlockRow>
-      <XrdFormBlockRow
-        description="initialConfiguration.member.serverCodeHelp"
-        adjust-against-content
-      >
+      <XrdFormBlockRow description="initialConfiguration.member.serverCodeHelp" adjust-against-content>
         <v-text-field
+          v-model="securityServerCodeMdl"
           v-bind="securityServerCodeRef"
           data-test="security-server-code-input"
           class="xrd"
@@ -93,13 +80,7 @@
         variant="outlined"
         @click="previous"
       />
-      <XrdBtn
-        data-test="owner-member-save-button"
-        variant="flat"
-        :text="saveButtonText"
-        :disabled="!meta.valid"
-        @click="done"
-      />
+      <XrdBtn data-test="owner-member-save-button" variant="flat" :text="saveButtonText" :disabled="!meta.valid" @click="done" />
     </template>
   </XrdWizardStep>
 </template>
@@ -108,15 +89,9 @@
 import { defineComponent } from 'vue';
 
 import { mapActions, mapState } from 'pinia';
-import { PublicPathState, useForm } from 'vee-validate';
+import { useForm } from 'vee-validate';
 
-import {
-  useNotifications,
-  XrdWizardStep,
-  XrdBtn,
-  XrdFormBlock,
-  XrdFormBlockRow,
-} from '@niis/shared-ui';
+import { useNotifications, XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, veeDefaultFieldConfig } from '@niis/shared-ui';
 
 import { useGeneral } from '@/store/modules/general';
 import { useInitializeServer } from '@/store/modules/initializeServer';
@@ -138,53 +113,40 @@ export default defineComponent({
   setup() {
     const { addError } = useNotifications();
     const { currentSecurityServer } = useUser();
-    const { meta, values, validateField, setFieldValue, defineComponentBinds } =
-      useForm({
-        validationSchema: {
-          memberClass: 'required',
-          memberCode: 'required|xrdIdentifier',
-          securityServerCode: 'required|xrdIdentifier',
-        },
-        initialValues: {
-          memberClass: currentSecurityServer?.member_class,
-          memberCode: currentSecurityServer?.member_code,
-          securityServerCode: currentSecurityServer?.server_code,
-        },
-      });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
+    const { meta, values, validateField, setFieldValue, defineField } = useForm({
+      validationSchema: {
+        memberClass: 'required',
+        memberCode: 'required|xrdIdentifier',
+        securityServerCode: 'required|xrdIdentifier',
+      },
+      initialValues: {
+        memberClass: currentSecurityServer?.member_class,
+        memberCode: currentSecurityServer?.member_code,
+        securityServerCode: currentSecurityServer?.server_code,
       },
     });
-    const memberClassRef = defineComponentBinds('memberClass', componentConfig);
-    const memberCodeRef = defineComponentBinds('memberCode', componentConfig);
-    const securityServerCodeRef = defineComponentBinds(
-      'securityServerCode',
-      componentConfig,
-    );
+    const componentConfig = veeDefaultFieldConfig();
+    const [memberClassMdl, memberClassRef] = defineField('memberClass', componentConfig);
+    const [memberCodeMdl, memberCodeRef] = defineField('memberCode', componentConfig);
+    const [securityServerCodeMdl, securityServerCodeRef] = defineField('securityServerCode', componentConfig);
     return {
       meta,
       values,
       validateField,
       setFieldValue,
       memberClassRef,
+      memberClassMdl,
       memberCodeRef,
+      memberCodeMdl,
       securityServerCodeRef,
+      securityServerCodeMdl,
       addError,
     };
   },
   computed: {
     ...mapState(useGeneral, ['memberClassesCurrentInstance', 'memberName']),
-    ...mapState(useUser, [
-      'currentSecurityServer',
-      'isServerCodeInitialized',
-      'isServerOwnerInitialized',
-    ]),
-    ...mapState(useInitializeServer, [
-      'initServerMemberClass',
-      'initServerMemberCode',
-      'initServerSSCode',
-    ]),
+    ...mapState(useUser, ['currentSecurityServer', 'isServerCodeInitialized', 'isServerOwnerInitialized']),
+    ...mapState(useInitializeServer, ['initServerMemberClass', 'initServerMemberCode', 'initServerSSCode']),
     memberClassItems() {
       return this.memberClassesCurrentInstance.map((memberClass) => ({
         title: memberClass,
@@ -223,16 +185,9 @@ export default defineComponent({
     this.updateMemberName();
   },
   methods: {
-    ...mapActions(useInitializeServer, [
-      'storeInitServerSSCode',
-      'storeInitServerMemberClass',
-      'storeInitServerMemberCode',
-    ]),
+    ...mapActions(useInitializeServer, ['storeInitServerSSCode', 'storeInitServerMemberClass', 'storeInitServerMemberCode']),
 
-    ...mapActions(useGeneral, [
-      'fetchMemberClassesForCurrentInstance',
-      'fetchMemberName',
-    ]),
+    ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance', 'fetchMemberName']),
 
     done(): void {
       this.storeInitServerMemberClass(this.values.memberClass);
@@ -245,14 +200,8 @@ export default defineComponent({
     },
 
     async updateMemberName(): Promise<void> {
-      if (
-        (await this.validateField('memberClass')).valid &&
-        (await this.validateField('memberCode')).valid
-      ) {
-        this.fetchMemberName(
-          this.values.memberClass!,
-          this.values.memberCode!,
-        ).catch((error) => {
+      if ((await this.validateField('memberClass')).valid && (await this.validateField('memberCode')).valid) {
+        this.fetchMemberName(this.values.memberClass!, this.values.memberCode!).catch((error) => {
           if (error.response.status === 404) {
             // no match found
             return;

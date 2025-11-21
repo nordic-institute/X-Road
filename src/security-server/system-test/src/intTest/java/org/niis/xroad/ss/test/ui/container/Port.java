@@ -26,30 +26,15 @@
  */
 package org.niis.xroad.ss.test.ui.container;
 
-import com.google.common.base.Suppliers;
-import lombok.SneakyThrows;
-
-import java.net.ServerSocket;
-import java.util.function.Supplier;
-
 public final class Port {
     public static final int
             UI = 4000,
             PROXY_HTTP = 8080,
             DB = 5432,
             PROXY_HEALTHCHECK = 5558,
-            JMX = 9990,
             TEST_CA = 8888;
-
-    public static final Supplier<Integer> MONITOR_JMX = Suppliers.memoize(Port::findRandomPort);
 
     private Port() {
     }
 
-    @SneakyThrows
-    private static Integer findRandomPort() {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            return socket.getLocalPort();
-        }
-    }
 }

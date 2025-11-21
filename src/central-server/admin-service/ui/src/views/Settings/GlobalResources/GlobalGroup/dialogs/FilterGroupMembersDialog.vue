@@ -42,18 +42,8 @@
             {{ $t('filters.groupMembers.byType') }}
           </v-col>
           <v-col cols="6">
-            <v-checkbox
-              v-model="typeMemberModel"
-              class="xrd"
-              hide-details
-              :label="$t('filters.groupMembers.member')"
-            />
-            <v-checkbox
-              v-model="typeSubsystemModel"
-              class="xrd"
-              hide-details
-              :label="$t('filters.groupMembers.subsystem')"
-            />
+            <v-checkbox v-model="typeMemberModel" class="xrd" hide-details :label="$t('filters.groupMembers.member')" />
+            <v-checkbox v-model="typeSubsystemModel" class="xrd" hide-details :label="$t('filters.groupMembers.subsystem')" />
           </v-col>
           <v-col cols="3" />
         </v-row>
@@ -67,26 +57,9 @@
             </div>
           </v-col>
           <v-col cols="6">
-            <v-select
-              v-model="instanceModel"
-              class="xrd"
-              :items="instances"
-              :label="$t('filters.groupMembers.instance')"
-            />
-            <v-select
-              v-model="memberClassModel"
-              class="xrd"
-              :items="memberClasses"
-              :label="$t('filters.groupMembers.class')"
-            />
-            <v-autocomplete
-              v-model="codesModel"
-              class="xrd"
-              clearable
-              multiple
-              :items="codes"
-              :label="$t('filters.groupMembers.code')"
-            />
+            <v-select v-model="instanceModel" class="xrd" :items="instances" :label="$t('filters.groupMembers.instance')" />
+            <v-select v-model="memberClassModel" class="xrd" :items="memberClasses" :label="$t('filters.groupMembers.class')" />
+            <v-autocomplete v-model="codesModel" class="xrd" clearable multiple :items="codes" :label="$t('filters.groupMembers.code')" />
             <v-autocomplete
               v-model="subsystemsModel"
               class="xrd"
@@ -100,12 +73,7 @@
       </XrdFormBlock>
     </template>
     <template #prepend-save-button>
-      <XrdBtn
-        class="font-weight-medium"
-        variant="outlined"
-        text="filters.clearFields"
-        @click="clearFields"
-      />
+      <XrdBtn class="font-weight-medium" variant="outlined" text="filters.clearFields" @click="clearFields" />
     </template>
   </XrdSimpleDialog>
 </template>

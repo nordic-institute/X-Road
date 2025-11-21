@@ -25,11 +25,7 @@
  * THE SOFTWARE.
  */
 
-import {
-  Key,
-  TokenCertificate,
-  TokenCertificateSigningRequest,
-} from '@/openapi-types';
+import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/openapi-types';
 
 // Keys sort columns for keys and certificates view
 export enum KeysSortColumn {
@@ -43,11 +39,7 @@ export enum KeysSortColumn {
 /**
  * Main sorting function for keys (with certificates and csr:s)
  */
-export const keyArraySort = (
-  keys: Key[],
-  sortType: string,
-  sortDirection: boolean,
-): Key[] => {
+export const keyArraySort = (keys: Key[], sortType: string, sortDirection: boolean): Key[] => {
   const sortedKeys = [...keys];
   switch (sortType) {
     case KeysSortColumn.NAME:
@@ -104,9 +96,7 @@ export const sortKeysByName = (keys: Key[], sortDirection: boolean): Key[] => {
 
   temp.forEach((key: Key) => {
     if (key.certificates) {
-      key.certificates = sortDirection
-        ? sortCertsByNameAsc(key.certificates)
-        : sortCertsByNameAsc(key.certificates).reverse();
+      key.certificates = sortDirection ? sortCertsByNameAsc(key.certificates) : sortCertsByNameAsc(key.certificates).reverse();
     }
   });
 
@@ -116,13 +106,9 @@ export const sortKeysByName = (keys: Key[], sortDirection: boolean): Key[] => {
 /**
  * Sort certificates by name Ascending
  */
-export const sortCertsByNameAsc = (
-  certs: TokenCertificate[],
-): TokenCertificate[] => {
+export const sortCertsByNameAsc = (certs: TokenCertificate[]): TokenCertificate[] => {
   return [...certs].sort((a: TokenCertificate, b: TokenCertificate) => {
-    return (
-      a.certificate_details.issuer_common_name + a.certificate_details.serial
-    ).localeCompare(
+    return (a.certificate_details.issuer_common_name + a.certificate_details.serial).localeCompare(
       b.certificate_details.issuer_common_name + b.certificate_details.serial,
     );
   });
@@ -131,20 +117,13 @@ export const sortCertsByNameAsc = (
 /**
  * Sort certificates using given functions
  */
-export const sortCertificatesForKeys = (
-  keys: Key[],
-  sortDirection: boolean,
-  sortingValue: string,
-): Key[] => {
+export const sortCertificatesForKeys = (keys: Key[], sortDirection: boolean, sortingValue: string): Key[] => {
   keys.forEach((key: Key) => {
     if (key.certificates) {
       if (sortDirection) {
         key.certificates = sortCertsAsc(key.certificates, sortingValue);
       } else {
-        key.certificates = sortCertsAsc(
-          key.certificates,
-          sortingValue,
-        ).reverse();
+        key.certificates = sortCertsAsc(key.certificates, sortingValue).reverse();
       }
     }
   });
@@ -169,10 +148,7 @@ export const sortKeysByDate = (keys: Key[], sortDirection: boolean): Key[] => {
   return keys;
 };
 
-export const sortCertsAsc = (
-  certs: TokenCertificate[],
-  sortingValue: string,
-): TokenCertificate[] => {
+export const sortCertsAsc = (certs: TokenCertificate[], sortingValue: string): TokenCertificate[] => {
   return [...certs].sort((a: TokenCertificate, b: TokenCertificate) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (a as any)[sortingValue].localeCompare((b as any)[sortingValue]);
@@ -182,13 +158,9 @@ export const sortCertsAsc = (
 /**
  * Sort certificates by date Ascending
  */
-export const sortCertsByDateAsc = (
-  certs: TokenCertificate[],
-): TokenCertificate[] => {
+export const sortCertsByDateAsc = (certs: TokenCertificate[]): TokenCertificate[] => {
   return [...certs].sort((a: TokenCertificate, b: TokenCertificate) => {
-    return a.certificate_details.not_after.localeCompare(
-      b.certificate_details.not_after,
-    );
+    return a.certificate_details.not_after.localeCompare(b.certificate_details.not_after);
   });
 };
 
@@ -200,9 +172,7 @@ export const sortKeysById = (keys: Key[], sortDirection: boolean): Key[] => {
 
   temp.forEach((key: Key) => {
     const sortedRequests = sortRequestsAsc(key.certificate_signing_requests);
-    key.certificate_signing_requests = sortDirection
-      ? sortedRequests
-      : sortedRequests.reverse();
+    key.certificate_signing_requests = sortDirection ? sortedRequests : sortedRequests.reverse();
   });
 
   return temp;
@@ -211,12 +181,8 @@ export const sortKeysById = (keys: Key[], sortDirection: boolean): Key[] => {
 /**
  * Sort CSR:s by id Ascending
  */
-export const sortRequestsAsc = (
-  certs: TokenCertificateSigningRequest[],
-): TokenCertificateSigningRequest[] => {
-  return [...certs].sort(
-    (a: TokenCertificateSigningRequest, b: TokenCertificateSigningRequest) => {
-      return a.id.localeCompare(b.id);
-    },
-  );
+export const sortRequestsAsc = (certs: TokenCertificateSigningRequest[]): TokenCertificateSigningRequest[] => {
+  return [...certs].sort((a: TokenCertificateSigningRequest, b: TokenCertificateSigningRequest) => {
+    return a.id.localeCompare(b.id);
+  });
 };

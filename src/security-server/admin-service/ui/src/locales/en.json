@@ -5,13 +5,13 @@
     "addServiceClientsTitle": "Add Subjects",
     "addSubjectsSuccess": "Access rights added successfully",
     "id": "ID",
-    "memberName": "Member Name / Group Description",
     "removeAllText": "Are you sure you want to remove access rights from all clients?",
     "removeAllTitle": "Remove all access rights?",
     "removeSuccess": "Access rights removed successfully",
     "removeText": "Are you sure you want to remove access rights from this client?",
     "removeTitle": "Remove access rights?",
     "rightsGiven": "Access Rights given",
+    "subsystemName": "Subsystem Name / Group Description",
     "title": "Access Rights"
   },
   "action": {
@@ -19,14 +19,14 @@
     "enable": "Enable",
     "order": "Order"
   },
-  "alert": {
-    "warningCount": "Amount of same warnings"
-  },
   "adminUsers": {
     "role": {
       "XROAD_SECURITYSERVER_OBSERVER": "Server Observer",
       "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator"
     }
+  },
+  "alert": {
+    "warningCount": "Amount of same warnings"
   },
   "apiKey": {
     "role": {
@@ -125,9 +125,11 @@
     "member": "Member",
     "memberClass": "Member Class",
     "memberCode": "Member Code",
+    "memberInParenthesis": "(@:client.member)",
     "memberName": "Member Name",
     "name": "Name",
     "owner": "Owner",
+    "ownerInParenthesis": "(@:client.owner)",
     "status": "Status",
     "statusText": {
       "deletionInProgress": "Deletion in progress",
@@ -184,6 +186,18 @@
     "addOnStatus": {
       "messageLogDisabled": "Disabled by configuration"
     },
+    "connection": {
+      "centralServer": {
+        "authCertRequest": "Authentication certificate registration service",
+        "globalConf": "Global configuration download",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Central Server"
+      },
+      "ok": "Everything ok",
+      "test": "Test"
+    },
+    "costType": "Cost Type",
     "downloadReport": "Download Diagnostic Report",
     "encryption": {
       "backup": {
@@ -336,17 +350,6 @@
       "success": "Success",
       "successfulRequests": "Successful requests",
       "time": "Time"
-    },
-    "connection": {
-      "ok": "Everything ok",
-      "test": "Test",
-      "centralServer": {
-        "title": "Central Server",
-        "globalConf": "Global configuration download",
-        "globalConfHttp": "http",
-        "globalConfHttps": "https",
-        "authCertRequest": "Authentication certificate registration service"
-      }
     }
   },
   "endpoints": {
@@ -460,6 +463,7 @@
     "global_conf_signature_verification_failure": "Failed to verify signature of global configuration",
     "gpg_key_generation_failed": "GPG keypair generation failed",
     "gpg_key_generation_interrupted": "GPG keypair generation interrupted",
+    "http_error": "HTTP error",
     "identifier_not_found": "Identifier not found",
     "illegal_generated_endpoint_remove": "Removing the generated endpoint is not allowed",
     "illegal_generated_endpoint_update": "Updating the generated endpoint is not allowed",
@@ -520,7 +524,6 @@
       "updating_message_signature_failed": "Updating the message signature properties in the database failed"
     },
     "network_error": "Network error",
-    "http_error": "HTTP error",
     "ocsp_connection_error": "Unable to connect to the OCSP responder",
     "ocsp_failed": "Unable to fetch response from the OCSP responder",
     "ocsp_response_parsing_failure": "Unable to parse the OCSP response",
@@ -831,7 +834,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Member/Group code",
     "memberGroupStep": "Member / Group",
-    "name": "Member(Subsystem) name / Group description",
+    "name": "Subsystem name / Group description",
     "noAccessRights": "No access rights to this client",
     "noAvailableServices": "No available services",
     "removeAll": "Remove all",
@@ -864,7 +867,6 @@
     "enableSuccess": "Service description enabled",
     "idGroupCode": "ID / Group code",
     "lastRefreshed": "Last refreshed: ",
-    "memberNameGroupDesc": "Member name / Group description",
     "noMatches": "No matching records",
     "openApi3Added": "OpenApi3 service added",
     "openapiDetails": "OpenAPI 3 details",
@@ -886,6 +888,7 @@
       "disabled": "Disabled",
       "enabled": "Enabled"
     },
+    "subsystemNameGroupDesc": "Subsystem name / Group description",
     "timeout": "Timeout",
     "timeoutSec": "Timeout (s)",
     "timeoutTooltip": "The maximum duration of a request to the service, in seconds",
@@ -919,7 +922,9 @@
           "acmeIpAddresses": "ACME Server IP",
           "distinguishedName": "Distinguished Name",
           "expires": "Expires",
-          "ocspResponse": "OCSP Response"
+          "ocspCostType": "OCSP Cost Type",
+          "ocspResponse": "OCSP Response",
+          "ocspUrl": "OCSP URL"
         },
         "notAvailable": "N/A",
         "ocspResponse": {
@@ -957,6 +962,11 @@
       },
       "title": "Configuration Anchor"
     },
+    "costType": {
+      "FREE": "Free",
+      "PAID": "Paid",
+      "UNDEFINED": "Undefined"
+    },
     "securityServer": {
       "addressChangeInProgress": "CHANGE IN PROGRESS",
       "editDialog": {
@@ -965,6 +975,24 @@
       "securityServer": "Security Server",
       "serverAddress": "Server address",
       "updateSubmitted": "Security Server address change successfully submitted"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Timestamping prioritization strategy: ",
+        "ONLY_FREE": "use only free timestamping services",
+        "ONLY_PAID": "use only paid timestamping services",
+        "FREE_FIRST": "use free timestamping services first, if all of them fail or none are available then use paid ones",
+        "PAID_FIRST": "use paid timestamping services first, if all of them fail or none are available then use free ones",
+        "NONE": "use all timestamping services without prioritization"
+      },
+      "ocsp": {
+        "label": "OCSP prioritization strategy: ",
+        "ONLY_FREE": "use only free OCSP services",
+        "ONLY_PAID": "use only paid OCSP services",
+        "FREE_FIRST": "use free OCSP services first, if all of them fail or none are available then use paid ones",
+        "PAID_FIRST": "use paid OCSP services first, if all of them fail or none are available then use free ones",
+        "NONE": "use all OCSP services without prioritization"
+      }
     },
     "timestampingServices": {
       "action": {
@@ -989,9 +1017,9 @@
           }
         },
         "header": {
+          "costType": "Cost Type",
           "serviceURL": "Service URL",
-          "timestampingService": "Timestamping Service",
-          "costType": "Cost Type"
+          "timestampingService": "Timestamping Service"
         }
       },
       "title": "Timestamping Services"
@@ -1007,9 +1035,9 @@
       "services": "Services"
     },
     "diagnostics": {
+      "connectionTesting": "Connection Testing",
       "overview": "Overview",
-      "traffic": "Traffic",
-      "connectionTesting": "Connection Testing"
+      "traffic": "Traffic"
     },
     "keys": {
       "apiKey": "API Keys",
@@ -1027,8 +1055,8 @@
       "parameters": "Service Parameters"
     },
     "settings": {
-      "backupAndRestore": "Backup And Restore",
       "adminUsers": "Admin Users",
+      "backupAndRestore": "Backup And Restore",
       "systemParameters": "System Parameters"
     }
   },

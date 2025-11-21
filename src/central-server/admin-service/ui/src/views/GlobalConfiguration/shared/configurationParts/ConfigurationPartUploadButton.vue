@@ -78,10 +78,7 @@ export default defineComponent({
     ...mapState(useUser, ['hasPermission']),
 
     showUploadButton(): boolean {
-      return (
-        this.hasPermission(Permissions.UPLOAD_CONFIGURATION_PART) &&
-        this.configurationPart.optional
-      );
+      return this.hasPermission(Permissions.UPLOAD_CONFIGURATION_PART) && this.configurationPart.optional;
     },
   },
   methods: {},

@@ -26,15 +26,10 @@
  */
 
 import * as api from '@/util/api';
-import {
-  CertificateDetails,
-  ManagementServicesConfiguration,
-  RegisterServiceProviderRequest,
-  ServiceProviderId,
-} from '@/openapi-types';
+import { CertificateDetails, ManagementServicesConfiguration, RegisterServiceProviderRequest, ServiceProviderId } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import { helper } from '@niis/shared-ui';
+import { saveResponseAsFile, buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
 
 interface ManagementServicesState {
   managementServicesConfiguration: ManagementServicesConfiguration;
@@ -56,22 +51,13 @@ export const useManagementServices = defineStore('managementServices', {
   persist: true,
   actions: {
     async fetchManagementServicesConfiguration() {
-      return api
-        .get<ManagementServicesConfiguration>(
-          '/management-services-configuration',
-        )
-        .then((resp) => {
-          this.managementServicesConfiguration = resp.data;
-        });
+      return api.get<ManagementServicesConfiguration>('/management-services-configuration').then((resp) => {
+        this.managementServicesConfiguration = resp.data;
+      });
     },
-    updateManagementServicesConfiguration(
-      serviceProviderId: ServiceProviderId,
-    ) {
+    updateManagementServicesConfiguration(serviceProviderId: ServiceProviderId) {
       return api
-        .patch<ManagementServicesConfiguration>(
-          '/management-services-configuration',
-          serviceProviderId,
-        )
+        .patch<ManagementServicesConfiguration>('/management-services-configuration', serviceProviderId)
         .then((resp) => {
           this.managementServicesConfiguration = resp.data;
         })
@@ -81,10 +67,7 @@ export const useManagementServices = defineStore('managementServices', {
     },
     registerServiceProvider(securityServerId: RegisterServiceProviderRequest) {
       return api
-        .post<ManagementServicesConfiguration>(
-          '/management-services-configuration/register-provider',
-          securityServerId,
-        )
+        .post<ManagementServicesConfiguration>('/management-services-configuration/register-provider', securityServerId)
         .then((resp) => {
           this.managementServicesConfiguration = resp.data;
         })
@@ -98,46 +81,40 @@ export const useManagementServices = defineStore('managementServices', {
           responseType: 'blob',
         })
         .then((resp) => {
-          helper.saveResponseAsFile(resp, 'management-service.tar.gz');
+          saveResponseAsFile(resp, 'management-service.tar.gz');
         })
         .catch((error) => {
           throw error;
         });
     },
     uploadCertificate(certificate: File) {
-      const formData = new FormData();
-      formData.append('certificate', certificate);
       return axios
-        .post(`/management-services-configuration/upload-certificate`, formData)
+        .post(
+          `/management-services-configuration/upload-certificate`,
+          buildFileFormData('certificate', certificate),
+          multipartFormDataConfig(),
+        )
         .catch((error) => {
           throw error;
         });
     },
     generateKey() {
-      return axios
-        .post(`/management-services-configuration/certificate`, {})
-        .catch((error) => {
-          throw error;
-        });
+      return axios.post(`/management-services-configuration/certificate`, {}).catch((error) => {
+        throw error;
+      });
     },
     async generateCsr(distinguishedName: string) {
       return axios
-        .post(
-          `/management-services-configuration/generate-csr`,
-          { name: distinguishedName },
-          { responseType: 'json' },
-        )
+        .post(`/management-services-configuration/generate-csr`, { name: distinguishedName }, { responseType: 'json' })
         .then((res) => {
-          helper.saveResponseAsFile(res, 'request.csr');
+          saveResponseAsFile(res, 'request.csr');
         })
         .catch((error) => {
           throw error;
         });
     },
     getCertificate() {
-      return axios.get<CertificateDetails>(
-        `/management-services-configuration/certificate`,
-      );
+      return axios.get<CertificateDetails>(`/management-services-configuration/certificate`);
     },
   },
 });

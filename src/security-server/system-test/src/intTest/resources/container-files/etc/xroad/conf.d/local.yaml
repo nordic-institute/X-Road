@@ -17,11 +17,10 @@ xroad:
     ssl-enabled: false # Can be removed once UI system tests configure a functional AUTH certificate
     health-check-port: 5558
     message-log:
+      timestamping-prioritization-strategy: PAID_FIRST
       database-encryption:
         enabled: true
-        messagelog-keystore: /etc/xroad/messagelog/messagelog.p12
-        messagelog-keystore-password: somepassword
-        messagelog-key-id: key1
+        key-id: default
       archiver:
         encryption-enabled: true
     addon:
@@ -33,6 +32,8 @@ xroad:
           host: op-monitor
           scheme: https
           socket-timeout-seconds: 1
+    ocsp-responder:
+      ocsp-prioritization-strategy: ONLY_FREE
   proxy-ui-api:
     enforce-user-password-policy: true
     rate-limit-enabled: true

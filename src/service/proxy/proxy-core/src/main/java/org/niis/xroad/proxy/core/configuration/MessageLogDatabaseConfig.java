@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
-
 import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Singleton;
-import org.niis.xroad.common.messagelog.MessageLogDbProperties;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
+import org.niis.xroad.messagelog.MessageLogDbProperties;
 
 /**
  * Message log database context.

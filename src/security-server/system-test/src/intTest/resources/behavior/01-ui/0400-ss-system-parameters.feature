@@ -27,13 +27,18 @@ Feature: 0400 - SS: System Parameters
     Then Timestamping services table has 0 entries
 
   Scenario: Timestamping service is selected
-    And Timestamping services table has 0 entries
+    Given Timestamping services table has 0 entries
     When Add Timestamping services dialog is opened
     And Add Timestamping services dialog is closed
     And Add Timestamping services dialog is opened
     And First timestamping option is selected
     Then  Timestamping services table has 1 entries
-    And Timestamping services table row 0 has service "Test TSA" and url "http://testca:8899"
+    And Timestamping services table row 0 has service "Test TSA" and url "http://testca:8899" and cost type "Free"
+    And Timestamping prioritization strategy is "PAID_FIRST"
+
+  Scenario: Approved CA component has correct values
+    Then Approved CAs table row 0 has distinguished name "CN=Test CA, O=Test" and ocsp url "http://testca:8888" and ocsp cost type "Free"
+    And Ocsp prioritization strategy is "ONLY_FREE"
 
   Scenario: Administrator cannot turn on maintenance mode for management services provider
     Then maintenance mode toggle is off

@@ -31,7 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.xml.bind.JAXBElement;
 import org.niis.xroad.globalconf.schema.sharedparameters.v6.AcmeServer;
-import org.niis.xroad.globalconf.schema.sharedparameters.v6.ApprovedCATypeV3;
+import org.niis.xroad.globalconf.schema.sharedparameters.v6.ApprovedCATypeV4;
 import org.niis.xroad.globalconf.schema.sharedparameters.v6.ApprovedTSAType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v6.CaInfoType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v6.ConfigurationSourceType;
@@ -73,7 +73,7 @@ public class SharedParametersV6Converter {
         return configurationSources;
     }
 
-    private List<SharedParameters.ApprovedCA> getApprovedCAs(List<ApprovedCATypeV3> approvedCATypes) {
+    private List<SharedParameters.ApprovedCA> getApprovedCAs(List<ApprovedCATypeV4> approvedCATypes) {
         List<SharedParameters.ApprovedCA> approvedCAs = new ArrayList<>();
         if (approvedCATypes != null) {
             approvedCAs.addAll(approvedCATypes.stream().map(this::toApprovedCa).toList());
@@ -141,7 +141,7 @@ public class SharedParametersV6Converter {
         return target;
     }
 
-    private SharedParameters.ApprovedCA toApprovedCa(ApprovedCATypeV3 source) {
+    private SharedParameters.ApprovedCA toApprovedCa(ApprovedCATypeV4 source) {
         var target = new SharedParameters.ApprovedCA();
         target.setName(source.getName());
         target.setAuthenticationOnly(source.isAuthenticationOnly());
@@ -154,6 +154,9 @@ public class SharedParametersV6Converter {
         target.setCertificateProfileInfo(source.getCertificateProfileInfo());
         if (source.getAcmeServer() != null) {
             target.setAcmeServer(toAcmeServer(source.getAcmeServer()));
+        }
+        if (source.getDefaultCsrFormat() != null) {
+            target.setDefaultCsrFormat(source.getDefaultCsrFormat());
         }
         return target;
     }

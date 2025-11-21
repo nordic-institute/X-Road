@@ -27,22 +27,57 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.pgp.PgpKeyGenerator;
 import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
+import java.util.Base64;
+
 /**
  * Service for initializing encryption functionality.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EncryptionInitializationService {
+    private static final String DEFAULT_DB_ENCRYPTION_KEY_ID = "default";
+    private static final int MASTER_KEY_SIZE_BYTES = 32; // 256-bit master key
+
     private final VaultClient vaultClient;
     private final PgpKeyGenerator pgpGenerator = new PgpKeyGenerator();
 
     public void initializeMessageLogArchivalEncryption(String securityServerId) {
         var result = pgpGenerator.generate(securityServerId);
 
-        vaultClient.createMessageLogArchivalSigningSecretKey(result.secretData());
+        vaultClient.setMLogArchivalSigningSecretKey(result.secretData());
+    }
+
+    /**
+     * Initializes message log database encryption key.
+     * Generates a new random AES key and stores it in Vault with the default key ID.
+     * If keys already exist, logs a warning and does not overwrite them.
+     */
+    public void initializeMessageLogDatabaseEncryption() {
+        log.info("Initializing message log database encryption key with ID: {}", DEFAULT_DB_ENCRYPTION_KEY_ID);
+
+        var existingKeys = vaultClient.getMLogDBEncryptionSecretKeys();
+        if (!existingKeys.isEmpty()) {
+            log.warn("Message log database encryption keys already exist in Vault. Found {} key(s): {}. "
+                            + "Skipping initialization to avoid overwriting existing keys.",
+                    existingKeys.size(), existingKeys.keySet());
+            return;
+        }
+
+        // Generate a new random 256-bit (32-byte) master key
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] secretKey = new byte[MASTER_KEY_SIZE_BYTES];
+        secureRandom.nextBytes(secretKey);
+
+        var base64SecretKey = Base64.getEncoder().encodeToString(secretKey);
+
+        vaultClient.setMLogDBEncryptionSecretKey(DEFAULT_DB_ENCRYPTION_KEY_ID, base64SecretKey);
+        log.info("Successfully initialized message log database encryption master key (256-bit) with ID: {}", DEFAULT_DB_ENCRYPTION_KEY_ID);
     }
 }

@@ -27,12 +27,7 @@
 <template>
   <XrdView title="tab.keys.signAndAuthKeys">
     <template #append-header>
-      <HelpButton
-        class="ml-2"
-        :help-image="helpImage"
-        help-title="keys.helpTitleKeys"
-        help-text="keys.helpTextKeys"
-      />
+      <HelpButton class="ml-2" :help-image="helpImage" help-title="keys.helpTitleKeys" help-text="keys.helpTextKeys" />
     </template>
     <template #tabs>
       <KeysAndCertificatesTabs />
@@ -68,11 +63,7 @@
       @accept="acceptTokenLogout()"
     />
 
-    <TokenLoginDialog
-      :dialog="loginDialog"
-      @cancel="loginDialog = false"
-      @save="tokenLogin"
-    />
+    <TokenLoginDialog :dialog="loginDialog" @cancel="loginDialog = false" @save="tokenLogin" />
   </XrdView>
 </template>
 
@@ -87,21 +78,10 @@ import { mapActions, mapState } from 'pinia';
 import { useTokens } from '@/store/modules/tokens';
 import helpImage from '@/assets/keys_and_certificates.png';
 
-import {
-  Key,
-  Token,
-  TokenCertificate,
-  TokenCertificateSigningRequest,
-} from '@/openapi-types';
+import { Key, Token, TokenCertificate, TokenCertificateSigningRequest } from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import {
-  XrdView,
-  XrdSubView,
-  useNotifications,
-  XrdEmptyPlaceholder,
-  XrdConfirmDialog,
-} from '@niis/shared-ui';
+import { XrdView, XrdSubView, useNotifications, XrdEmptyPlaceholder, XrdConfirmDialog } from '@niis/shared-ui';
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
 
 export default defineComponent({
@@ -169,14 +149,12 @@ export default defineComponent({
           key.certificates = certs;
 
           // Filter the CSR:s
-          const csrs = key.certificate_signing_requests.filter(
-            (csr: TokenCertificateSigningRequest) => {
-              if (csr.id) {
-                return csr.id.toLowerCase().includes(mysearch);
-              }
-              return false;
-            },
-          );
+          const csrs = key.certificate_signing_requests.filter((csr: TokenCertificateSigningRequest) => {
+            if (csr.id) {
+              return csr.id.toLowerCase().includes(mysearch);
+            }
+            return false;
+          });
           key.certificate_signing_requests = csrs;
         });
       });
@@ -187,10 +165,7 @@ export default defineComponent({
             return true;
           }
 
-          if (
-            key.certificate_signing_requests &&
-            key.certificate_signing_requests.length > 0
-          ) {
+          if (key.certificate_signing_requests && key.certificate_signing_requests.length > 0) {
             return true;
           }
 

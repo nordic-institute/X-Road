@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.crypto.Digests;
 
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
@@ -94,6 +96,7 @@ public class SystemService {
     private final ConfClientRpcClient confClientRpcClient;
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final GlobalConfProvider globalConfProvider;
+    private final ProxyRpcClient proxyRpcClient;
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
@@ -116,6 +119,7 @@ public class SystemService {
     private void auditLog(TimestampingService timestampingService) {
         auditDataHelper.put(RestApiAuditProperty.TSP_NAME, timestampingService.getName());
         auditDataHelper.put(RestApiAuditProperty.TSP_URL, timestampingService.getUrl());
+        auditDataHelper.put(RestApiAuditProperty.TSP_COST_TYPE, timestampingService.getCostType());
     }
 
     public void addConfiguredTimestampingService(TimestampingService timestampingServiceToAdd)
@@ -393,6 +397,10 @@ public class SystemService {
      */
     public NodeProperties.NodeType getServerNodeType() {
         return NodeProperties.getServerNodeType();
+    }
+
+    public ServicePrioritizationStrategy getTimestampingPrioritizationStrategy() {
+        return proxyRpcClient.getTimestampingPrioritizationStrategy();
     }
 
     public boolean isManagementServiceProvider() {

@@ -32,25 +32,15 @@
       </span>
     </template>
 
-    <TokensList
-      :configuration-type="configurationType"
-      @update-keys="refreshAnchor"
-    />
+    <TokensList :configuration-type="configurationType" @update-keys="refreshAnchor" />
 
     <div class="title-text font-weight-bold on-surface mt-12 mb-6">
       <div class="xrd-view-title">{{ title }}</div>
     </div>
 
-    <ConfigurationAnchor
-      ref="anchor"
-      class="mb-4"
-      :configuration-type="configurationType"
-    />
+    <ConfigurationAnchor ref="anchor" class="mb-4" :configuration-type="configurationType" />
 
-    <ConfigurationDownloadUrl
-      class="mb-4"
-      :configuration-type="configurationType"
-    />
+    <ConfigurationDownloadUrl class="mb-4" :configuration-type="configurationType" />
 
     <ConfigurationPartsList :configuration-type="configurationType" />
   </XrdSubView>
@@ -89,9 +79,7 @@ export default defineComponent({
   methods: {
     refreshAnchor(action: string) {
       if (action === 'add' || action === 'delete') {
-        (
-          this.$refs.anchor as InstanceType<typeof ConfigurationAnchor>
-        ).fetchConfigurationAnchor();
+        (this.$refs.anchor as InstanceType<typeof ConfigurationAnchor>).fetchConfigurationAnchor();
       }
     },
   },

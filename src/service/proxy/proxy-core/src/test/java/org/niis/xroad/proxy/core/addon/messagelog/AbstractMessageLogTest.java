@@ -29,21 +29,23 @@ package org.niis.xroad.proxy.core.addon.messagelog;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.RestLogMessage;
-import ee.ria.xroad.common.messagelog.SoapLogMessage;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.niis.xroad.common.messagelog.MessageLogDbProperties;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
+import org.niis.xroad.messagelog.MessageLogDbProperties;
+import org.niis.xroad.messagelog.MessageRecord;
+import org.niis.xroad.messagelog.MessageRecordEncryption;
+import org.niis.xroad.messagelog.RestLogMessage;
+import org.niis.xroad.messagelog.SoapLogMessage;
+import org.niis.xroad.messagelog.TimestampRecord;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
@@ -62,6 +64,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.getGlobalConf;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.getServerConf;
 
@@ -78,7 +81,8 @@ abstract class AbstractMessageLogTest {
     TestServerConfWrapper serverConfProvider;
     LogRecordManager logRecordManager;
     MessageLogDatabaseCtx databaseCtx;
-    org.niis.xroad.common.messagelog.MessageRecordEncryption messageRecordEncryption;
+    MessageRecordEncryption messageRecordEncryption;
+    VaultClient vaultClient;
 
     LogManager logManager;
     LogArchiverExecutionProperties logArchiverExecutionProperties;
@@ -89,15 +93,11 @@ abstract class AbstractMessageLogTest {
     private LogArchiver logArchiverRef;
     private LogCleaner logCleanerRef;
 
-    void testSetUp() throws Exception {
-        testSetUp(Map.of());
-    }
-
-    protected void testSetUp(boolean timestampImmediately) throws Exception {
-        testSetUp(Map.of("xroad.proxy.message-log.timestamper.timestamp-immediately", String.valueOf(timestampImmediately)));
-    }
-
     protected void testSetUp(Map<String, String> configOverrides) throws Exception {
+        testSetUp(configOverrides, false);
+    }
+
+    protected void testSetUp(Map<String, String> configOverrides, boolean encrypted) throws Exception {
         // Initialize ProxyProperties with overrides
         proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
 
@@ -122,7 +122,23 @@ abstract class AbstractMessageLogTest {
         var props = ConfigUtils.initConfiguration(MessageLogDbProperties.class, hibernateProperties);
 
         databaseCtx = MessageLogDatabaseConfig.create(props);
-        messageRecordEncryption = new org.niis.xroad.common.messagelog.MessageRecordEncryption(messageLogProperties.databaseEncryption());
+
+        // Mock VaultClient properly for encrypted tests
+        vaultClient = mock(VaultClient.class);
+        if (encrypted) {
+            // Generate test secret key
+            byte[] testSecretKey = new byte[32]; // 256-bit AES key
+            for (int i = 0; i < testSecretKey.length; i++) {
+                testSecretKey[i] = (byte) (i * 17);
+            }
+            String keyId = messageLogProperties.databaseEncryption().keyId();
+            String base64Key = java.util.Base64.getEncoder().encodeToString(testSecretKey);
+            when(vaultClient.getMLogDBEncryptionSecretKeys()).thenReturn(java.util.Map.of(keyId, base64Key));
+        }
+
+        messageRecordEncryption = new MessageRecordEncryption(
+                messageLogProperties.databaseEncryption(),
+                vaultClient);
         logRecordManager = new LogRecordManager(databaseCtx, messageRecordEncryption);
 
         var keyManager = mock(org.niis.xroad.common.pgp.PgpKeyManager.class);
@@ -153,9 +169,7 @@ abstract class AbstractMessageLogTest {
         // Create database encryption properties
         var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
                 databaseProps.enabled(),
-                databaseProps.messagelogKeystoreStr().orElse(null),
-                databaseProps.messagelogKeystorePasswordStr().orElse(null),
-                databaseProps.messagelogKeyId().orElse(null)
+                databaseProps.keyId()
         );
 
         logArchiverExecutionProperties = new LogArchiverExecutionProperties(
@@ -171,7 +185,7 @@ abstract class AbstractMessageLogTest {
                 archiverProps.archivePath()
         );
 
-        logArchiverRef = new TestLogArchiver(keyManager, encryptionService, globalConfProvider, databaseCtx);
+        logArchiverRef = new TestLogArchiver(keyManager, encryptionService, globalConfProvider, databaseCtx, vaultClient);
         logCleanerRef = new TestLogCleaner(databaseCtx);
     }
 
@@ -197,18 +211,17 @@ abstract class AbstractMessageLogTest {
         logManager.setTimestampingStatus(new SetTimestampingStatusMessage(status));
     }
 
-    protected void log(SoapMessageImpl message, SignatureData signature) throws Exception {
+    protected void log(SoapMessageImpl message, SignatureData signature) {
         log(message, signature, List.of());
     }
 
-    protected void log(SoapMessageImpl message, SignatureData signature, List<byte[]> attachments) throws Exception {
+    protected void log(SoapMessageImpl message, SignatureData signature, List<byte[]> attachments) {
         var attachmentStreamList = attachments.stream()
                 .map(attachment -> AttachmentStream.fromInputStream(new ByteArrayInputStream(attachment), attachment.length)).toList();
         logManager.log(new SoapLogMessage(message, signature, attachmentStreamList, true, message.getQueryId()));
     }
 
-    protected void log(RestRequest message, SignatureData signatureData, byte[] body)
-            throws Exception {
+    protected void log(RestRequest message, SignatureData signatureData, byte[] body) {
         final ByteArrayInputStream bos = new ByteArrayInputStream(body);
         final CacheInputStream cis = new CacheInputStream(bos, bos.available());
 
@@ -222,8 +235,8 @@ abstract class AbstractMessageLogTest {
         logManager.log(logMessage);
     }
 
-    TimestampRecord timestamp(MessageRecord record) {
-        return logManager.timestamp(record.getId());
+    TimestampRecord timestamp(MessageRecord messageRecord) {
+        return logManager.timestamp(messageRecord.getId());
     }
 
     void startTimestamping() {

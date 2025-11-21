@@ -136,7 +136,7 @@
                     </documentation>
                 </annotation>
             </element>
-            <element name="approvedCA" type="tns:ApprovedCATypeV3" minOccurs="0" maxOccurs="unbounded">
+            <element name="approvedCA" type="tns:ApprovedCATypeV4" minOccurs="0" maxOccurs="unbounded">
                 <annotation>
                     <documentation>
                         Certification authority approved by the Governing Authority of providing certification services
@@ -192,7 +192,7 @@
         </sequence>
     </complexType>
 
-    <complexType name="ApprovedCATypeV3">
+    <complexType name="ApprovedCATypeV4">
         <sequence>
             <element name="name" type="string">
                 <annotation>
@@ -229,6 +229,13 @@
                     <documentation>
                         Fully qualified class name implementing the
                         ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="defaultCsrFormat" type="tns:CsrFormat" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Default format of the CSR.
                     </documentation>
                 </annotation>
             </element>
@@ -293,6 +300,19 @@
             <enumeration value="FREE"/>
             <enumeration value="PAID"/>
             <enumeration value="UNDEFINED"/>
+        </restriction>
+    </simpleType>
+
+    <simpleType name="CsrFormat">
+        <annotation>
+            <documentation>The format of the CSR</documentation>
+            <appinfo>
+                <jxb:javaType name="org.niis.xroad.globalconf.model.CsrFormat" parseMethod="valueOf" printMethod="name"/>
+            </appinfo>
+        </annotation>
+        <restriction base="string">
+            <enumeration value="PEM"/>
+            <enumeration value="DER"/>
         </restriction>
     </simpleType>
 </schema>

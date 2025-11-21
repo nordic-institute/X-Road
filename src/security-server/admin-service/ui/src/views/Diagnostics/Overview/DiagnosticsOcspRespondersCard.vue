@@ -25,28 +25,12 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard
-    data-test="diagnostics-ocsp-responders"
-    title="diagnostics.ocspResponders.title"
-    class="overview-card"
-  >
-    <XrdEmptyPlaceholder
-      :loading="ocspLoading"
-      :data="ocspResponderDiagnostics"
-      :no-items-text="$t('noData.noData')"
-    />
+  <XrdCard data-test="diagnostics-ocsp-responders" title="diagnostics.ocspResponders.title" class="overview-card">
+    <XrdEmptyPlaceholder :loading="ocspLoading" :data="ocspResponderDiagnostics" :no-items-text="$t('noData.noData')" />
 
-    <div
-      v-for="ocspDiags in ocspResponderDiagnostics"
-      :key="ocspDiags.distinguished_name"
-      class="ocsp-block"
-    >
+    <div v-for="ocspDiags in ocspResponderDiagnostics" :key="ocspDiags.distinguished_name" class="ocsp-block">
       <div class="ml-4">
-        <span
-          >{{
-            $t('diagnostics.ocspResponders.certificationService')
-          }}&nbsp;</span
-        >
+        <span>{{ $t('diagnostics.ocspResponders.certificationService') }}&nbsp;</span>
         <span class="font-weight-bold">{{ ocspDiags.distinguished_name }}</span>
       </div>
       <v-table class="xrd">
@@ -58,7 +42,8 @@
             <th class="url-column">
               {{ $t('diagnostics.serviceUrl') }}
             </th>
-            <th>{{ $t('diagnostics.message') }}</th>
+            <th class="cost-type-column">{{ $t('diagnostics.costType') }}</th>
+              <th>{{ $t('diagnostics.message') }}</th>
             <th class="time-column">
               {{ $t('diagnostics.previousUpdate') }}
             </th>
@@ -75,7 +60,10 @@
             <td class="url-column" data-test="service-url">
               {{ ocsp.url }}
             </td>
-            <td data-test="ocsp-responders-message">
+            <td class="cost-type-column" data-test="service-cost-type">
+                {{ $t('systemParameters.costType.' + ocsp.cost_type) }}
+              </td>
+              <td data-test="ocsp-responders-message">
               {{ statusMessage(ocsp) }}
             </td>
             <td class="time-column">
@@ -101,17 +89,16 @@ import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { defineComponent } from 'vue';
 import { DiagnosticStatusClass, type OcspResponder } from '@/openapi-types';
-import {
-  XrdCard,
-  Status,
-  useNotifications,
-  XrdEmptyPlaceholderRow,
-  XrdEmptyPlaceholder,
-} from '@niis/shared-ui';
+import { XrdCard, Status, useNotifications, XrdEmptyPlaceholderRow, XrdEmptyPlaceholder } from '@niis/shared-ui';
 import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
 export default defineComponent({
-  components: { StatusAvatar, XrdCard, XrdEmptyPlaceholderRow, XrdEmptyPlaceholder },
+  components: {
+    StatusAvatar,
+    XrdCard,
+    XrdEmptyPlaceholderRow,
+    XrdEmptyPlaceholder,
+  },
   setup() {
     const { addError } = useNotifications();
     return { addError };
@@ -153,9 +140,7 @@ export default defineComponent({
       if (ocsp.status_class === DiagnosticStatusClass.FAIL) {
         return this.$t(`error_code.${ocsp.error?.code}`, ocsp.error?.metadata);
       } else {
-        return this.$t(
-          `diagnostics.ocspResponders.ocspStatus.${ocsp.status_class}`,
-        );
+        return this.$t(`diagnostics.ocspResponders.ocspStatus.${ocsp.status_class}`);
       }
     },
   },

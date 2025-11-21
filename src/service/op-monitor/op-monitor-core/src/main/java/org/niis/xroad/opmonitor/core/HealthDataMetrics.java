@@ -52,7 +52,7 @@ import static org.niis.xroad.opmonitor.core.HealthDataMetricsUtil.getResponseSiz
 import static org.niis.xroad.opmonitor.core.HealthDataMetricsUtil.getServiceTypeName;
 
 /**
- * Health data metrics forwarded over JMX. Also, these metrics are used when
+ * Health data metrics are used when
  * health data is requested using the getSecurityServerHealthData SOAP request.
  */
 @Slf4j

@@ -194,7 +194,7 @@ public class InitializationService {
         // the same algorithm is used in get_security_server_id.sh script
         String keyRealName = ownerClientId.getXRoadInstance() + "/" + ownerClientId.getMemberClass() + "/"
                 + ownerClientId.getMemberCode() + "/" + serverConf.getServerCode();
-        generateGPGKeyPair(keyRealName);
+        prepareEncryption(keyRealName);
 
     }
 
@@ -379,10 +379,11 @@ public class InitializationService {
         return localClient;
     }
 
-    private void generateGPGKeyPair(String nameReal) {
+    private void prepareEncryption(String nameReal) {
         log.info("Generating GPG key pair for {}", nameReal);
         securityServerBackupService.generateGpgKey(nameReal);
         encryptionInitializationService.initializeMessageLogArchivalEncryption(nameReal);
+        encryptionInitializationService.initializeMessageLogDatabaseEncryption();
     }
 
     /**

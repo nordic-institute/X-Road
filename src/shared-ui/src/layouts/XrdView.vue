@@ -39,7 +39,9 @@
       <slot name="title">
         <span class="title-view font-weight-bold">{{ translatedTitle ? title : $t(title) }}</span>
       </slot>
-      <span v-if="titleDetails" class="title-view font-weight-regular opacity-60">({{ $t(titleDetails) }})</span>
+      <span v-if="titleDetails" class="title-view font-weight-regular opacity-60">
+        {{ $t('common.inParenthesis', [$t(titleDetails)]) }}
+      </span>
       <slot name="append-header" />
     </header>
     <div v-if="$slots.tabs" :class="{ 'mb-4': manager.hasErrors(), 'mb-6': !manager.hasErrors() }">

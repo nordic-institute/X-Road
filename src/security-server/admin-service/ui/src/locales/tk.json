@@ -5,13 +5,13 @@
     "addServiceClientsTitle": "Subýektleri goş",
     "addSubjectsSuccess": "Giriş hukuklary üstünlikli goşuldy",
     "id": "ID",
-    "memberName": "Agzanyň ady / Toparyň beýany",
     "removeAllText": "Are you sure you want to remove access rights from all clients?",
     "removeAllTitle": "Ähli giriş hukuklary aýyrmalymy?",
     "removeSuccess": "Giriş hukuklary üstünlikli aýryldy",
     "removeText": "Siz dogurdanam şu müşderiden giriş hukuklaryny aýyrmak isleýärsiňizmi?",
     "removeTitle": "Giriş hukuklary aýyrmalymy?",
     "rightsGiven": "Giriş hukuklary berildi",
+    "subsystemName": "Kiçi ulgamyň ady / Toparyň beýany",
     "title": "Giriş hukuklary"
   },
   "action": {
@@ -106,9 +106,11 @@
     "member": "Agza",
     "memberClass": "Agzanyň klassy",
     "memberCode": "Agzanyň kody",
+    "memberInParenthesis": "(@:client.member)",
     "memberName": "Agzanyň ady",
     "name": "Ady",
     "owner": "Eýesi",
+    "ownerInParenthesis": "(@:client.owner)",
     "status": "Status",
     "statusText": {
       "deletionInProgress": "Pozulyp dur",
@@ -161,6 +163,18 @@
     "addOnStatus": {
       "messageLogDisabled": "Konfigurasiýa tarapyndan öçürilendir"
     },
+    "connection": {
+      "centralServer": {
+        "authCertRequest": "Kimlik doğrulama sertifikası kayıt servisi",
+        "globalConf": "Küresel yapılandırma indirme",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Merkezi Sunucu"
+      },
+      "ok": "Her şey yolunda",
+      "test": "Test"
+    },
+    "costType": "Gurluş görnüşi",
     "encryption": {
       "backup": {
         "configuredKeyId": "Açaryň sazlanan Id-si",
@@ -254,17 +268,6 @@
       "success": "Üstünlik",
       "successfulRequests": "Üstünlikli talaplar",
       "time": "Wagt"
-    },
-    "connection": {
-      "ok": "Her şey yolunda",
-      "test": "Test",
-      "centralServer": {
-        "title": "Merkezi Sunucu",
-        "globalConf": "Küresel yapılandırma indirme",
-        "globalConfHttp": "http",
-        "globalConfHttps": "https",
-        "authCertRequest": "Kimlik doğrulama sertifikası kayıt servisi"
-      }
     }
   },
   "endpoints": {
@@ -364,6 +367,7 @@
     "global_conf_outdated": "Global konfigurasiýa köneldi",
     "gpg_key_generation_failed": "GPG jübüt açary döredip bolmady",
     "gpg_key_generation_interrupted": "GPG jübüt açary döredilmegi bölündi",
+    "http_error": "HTTP hatası",
     "identifier_not_found": "Identifikator tapylmady",
     "illegal_generated_endpoint_remove": "Döredilen ahyrky nokady aýyrmaga rugsat berilmedi",
     "illegal_generated_endpoint_update": "Döredilen ahyrky nokady täzelemäge rugsat berilmedi",
@@ -397,7 +401,6 @@
     "member_code_not_provided": "Agzanyň kody görkezilmedi",
     "missing_parameter": "Parametrleri ýok",
     "network_error": "Ağ hatası",
-    "http_error": "HTTP hatası",
     "ocsp_connection_error": "OCSP jogap berijisine birigip bolmaýar",
     "ocsp_failed": "OCSP jogap berijisinden jogap alyp bolmaýar",
     "ocsp_response_parsing_failure": "OCSP jogabyny seljerip bolmaýar",
@@ -691,7 +694,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Agzanyň/Toparyň kody",
     "memberGroupStep": "Agza / Topar",
-    "name": "Agzanyň ady / Toparyň beýany",
+    "name": "Kiçi ulgamyň ady / Toparyň beýany",
     "noAccessRights": "Bu müşderä giriş hukugy ýok",
     "noAvailableServices": "Elýeterli hyzmatlar ýok",
     "removeAll": "Ählisini aýyr",
@@ -721,7 +724,6 @@
     "enableSuccess": "Gulluk beýany işledildi",
     "idGroupCode": "ID / Topar kody",
     "lastRefreshed": "Soňky täzelenme: ",
-    "memberNameGroupDesc": "Agzanyň ady / Topar beýany",
     "noMatches": "Gabat gelýän ýazgylar ýok",
     "openApi3Added": "OpenApi3 gullugy goşuldy",
     "openapiDetails": "OpenAPI 3 jikme-jikleri",
@@ -739,6 +741,7 @@
       "internal_server_ssl_error": "Serweriň içki şahdatnamalarynhyň barlagy ýerine ýetirilmedi. Ýokarky serweriň URL salgysy dogrymy we howpsuzlyk serweri üçin elýeterlimi?",
       "internal_server_ssl_handshake_error": "TLS-i ýokarky serwer bilen birigip bilmedi, konfigurasiýada serweriň şahadatnamasy ýok:"
     },
+    "subsystemNameGroupDesc": "Kiçi ulgamyň ady / Toparyň beýany",
     "timeout": "Wagt gutardy",
     "timeoutSec": "Wagt gutardy (s)",
     "timeoutTooltip": "Gulluk üçin talabyň iň ýokary dowamlylygy, sekuntda",
@@ -772,6 +775,7 @@
           "acmeIpAddresses": "ACME Serweriň IP-si",
           "distinguishedName": "Tapawutlanan at",
           "expires": "Möhleti gutarýar",
+          "ocspCostType": "OCSP çykdajy görnüşi",
           "ocspResponse": "OCSP jogap"
         },
         "notAvailable": "Maglumat ýok",
@@ -810,6 +814,11 @@
       },
       "title": "Konfigurasiýanyň labyry"
     },
+    "costType": {
+      "FREE": "Mugt",
+      "PAID": "Tölegli",
+      "UNDEFINED": "Kesgitlenmedik"
+    },
     "securityServer": {
       "addressChangeInProgress": "ÜÝTGETME DOWAM EDIP DUR",
       "editDialog": {
@@ -818,6 +827,24 @@
       "securityServer": "Howpsuz serwer",
       "serverAddress": "Seweriň salgysy",
       "updateSubmitted": "Howpsuzlyk Serweriniň salgysynyň üýtgemegi üstünlikli iberildi"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Wagty bellige alyş hyzmatlarynyň ileri tutulma strategiýasy: ",
+        "ONLY_FREE": "diňe mugt wagty bellige alyş hyzmatlaryny ulanyň",
+        "ONLY_PAID": "diňe tölegli wagty bellige alyş hyzmatlaryny ulanyň",
+        "FREE_FIRST": "ilki mugt wagty bellige alyş hyzmatlaryny ulanyň, hemmesi işlemeýän bolsa ýa-da elýeterli däl bolsa, tölegli hyzmatlary ulanyň",
+        "PAID_FIRST": "ilki tölegli wagty bellige alyş hyzmatlaryny ulanyň, hemmesi işlemeýän bolsa ýa-da elýeterli däl bolsa, mugt hyzmatlary ulanyň",
+        "NONE": "prioritetleşdirilmezden ähli wagty bellige alyş hyzmatlaryny ulanyň"
+      },
+      "ocsp": {
+        "label": "OCSP ileri tutulma strategiýasy: ",
+        "ONLY_FREE": "diňe mugt OCSP hyzmatlaryny ulanyň",
+        "ONLY_PAID": "diňe tölegli OCSP hyzmatlaryny ulanyň",
+        "FREE_FIRST": "ilki mugt OCSP hyzmatlaryny ulanyň, hemmesi işlemeýän bolsa ýa-da elýeterli däl bolsa, tölegli hyzmatlary ulanyň",
+        "PAID_FIRST": "ilki tölegli OCSP hyzmatlaryny ulanyň, hemmesi işlemeýän bolsa ýa-da elýeterli däl bolsa, mugt hyzmatlary ulanyň",
+        "NONE": "prioritetleşdirilmezden ähli OCSP hyzmatlaryny ulanyň"
+      }
     },
     "timestampingServices": {
       "action": {
@@ -842,9 +869,9 @@
           }
         },
         "header": {
+          "costType": "Nagt töleg görnüşi",
           "serviceURL": "URL gullugy",
-          "timestampingService": "Wagt belleme gullugy",
-          "costType": "Nagt töleg görnüşi"
+          "timestampingService": "Wagt belleme gullugy"
         }
       },
       "title": "Wagt belleme gulluklary"
@@ -860,9 +887,9 @@
       "services": "Gulluklary"
     },
     "diagnostics": {
+      "connectionTesting": "Bağlantı testi",
       "overview": "Syn",
-      "traffic": "Trafik",
-      "connectionTesting": "Bağlantı testi"
+      "traffic": "Trafik"
     },
     "keys": {
       "apiKey": "API açarlary",

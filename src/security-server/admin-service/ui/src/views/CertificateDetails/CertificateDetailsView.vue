@@ -25,18 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewFixedWidth
-    title="cert.certificate"
-    closeable
-    :loading="loading"
-    :breadcrumbs="breadcrumbs"
-    @close="close"
-  >
-    <XrdCertificate
-      v-if="certificate"
-      :certificate="certificate.certificate_details"
-    >
-    </XrdCertificate>
+  <XrdElevatedViewFixedWidth title="cert.certificate" closeable :loading="loading" :breadcrumbs="breadcrumbs" @close="close">
+    <XrdCertificate v-if="certificate" :certificate="certificate.certificate_details"> </XrdCertificate>
     <template v-if="certificate" #append-header>
       <CertificateStatusChip class="ml-4" :active="certificate.active" />
     </template>
@@ -116,22 +106,11 @@
 <script lang="ts" setup>
 import { ref, computed, watchEffect } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import {
-  KeyUsageType,
-  PossibleAction,
-  TokenCertificate,
-} from '@/openapi-types';
+import { KeyUsageType, PossibleAction, TokenCertificate } from '@/openapi-types';
 import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
 import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 import { useUser } from '@/store/modules/user';
-import {
-  XrdElevatedViewFixedWidth,
-  XrdCertificate,
-  XrdBtn,
-  useNotifications,
-  useHistory,
-  XrdConfirmDialog,
-} from '@niis/shared-ui';
+import { XrdElevatedViewFixedWidth, XrdCertificate, XrdBtn, useNotifications, useHistory, XrdConfirmDialog } from '@niis/shared-ui';
 import { useRouter } from 'vue-router';
 import { useTokenCertificates } from '@/store/modules/token-certificates';
 import { BreadcrumbItem } from 'vuetify/lib/components/VBreadcrumbs/VBreadcrumbs';
@@ -164,9 +143,7 @@ const possibleActions = ref<PossibleActions>([]);
 const confirmUnregisterCertificate = ref(false);
 const confirmUnregisterError = ref(false);
 const unregistering = ref(false);
-const unregisterErrorResponse = ref<Record<string, unknown> | undefined>(
-  undefined,
-);
+const unregisterErrorResponse = ref<Record<string, unknown> | undefined>(undefined);
 
 const { t } = useI18n();
 const router = useRouter();
@@ -199,10 +176,7 @@ const showDelete = computed(() => {
 });
 
 const showUnregister = computed(() => {
-  return !!(
-    possibleActions.value.includes(PossibleAction.UNREGISTER) &&
-    hasPermission(Permissions.SEND_AUTH_CERT_DEL_REQ)
-  );
+  return !!(possibleActions.value.includes(PossibleAction.UNREGISTER) && hasPermission(Permissions.SEND_AUTH_CERT_DEL_REQ));
 });
 
 const showActivate = computed(() => {
@@ -239,18 +213,14 @@ const showDisable = computed(() => {
   return false;
 });
 
-const fromSignAndAuthKeys = computed(
-  () => previousPage?.location.name === RouteName.SignAndAuthKeys,
-);
+const fromSignAndAuthKeys = computed(() => previousPage?.location.name === RouteName.SignAndAuthKeys);
 
 const breadcrumbs = computed(() => {
   const crumbs: BreadcrumbItem[] = [];
 
   if (certificate.value) {
     if (clientId.value && clientStore.client) {
-      const routeName = history.state.subsystem
-        ? RouteName.SubsystemDetails
-        : RouteName.MemberDetails;
+      const routeName = history.state.subsystem ? RouteName.SubsystemDetails : RouteName.MemberDetails;
       crumbs.push(
         {
           title: t('tab.main.clients'),
@@ -360,10 +330,7 @@ async function unregisterCert() {
       return fetchData(props.hash);
     })
     .catch((error) => {
-      if (
-        error?.response?.data?.error?.code ===
-        'management_request_sending_failed'
-      ) {
+      if (error?.response?.data?.error?.code === 'management_request_sending_failed') {
         unregisterErrorResponse.value = error.response;
       } else {
         addError(error);

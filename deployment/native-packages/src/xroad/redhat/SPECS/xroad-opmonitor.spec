@@ -43,7 +43,6 @@ mkdir -p %{buildroot}/etc/xroad/services/
 mkdir -p %{buildroot}/usr/share/xroad/bin/
 mkdir -p %{buildroot}/etc/xroad/conf.d/
 mkdir -p %{buildroot}/etc/xroad/backup.d/
-mkdir -p %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor.service %{buildroot}%{_unitdir}
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor-initdb.sh %{buildroot}/usr/share/xroad/scripts/
@@ -55,7 +54,6 @@ cp -p %{srcdir}/common/op-monitor/usr/share/xroad/bin/xroad-opmonitor %{buildroo
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/scripts/setup_opmonitor_db.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
-cp -p %{srcdir}/../../../../src/systemtest/op-monitoring/zabbix_api/examples/zabbix/* %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{srcdir}/common/op-monitor/etc/xroad/backup.d/??_xroad-opmonitor %{buildroot}/etc/xroad/backup.d/
 
@@ -83,7 +81,6 @@ rm -rf %{buildroot}
 
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
-%doc /usr/share/doc/%{name}/examples/zabbix/*
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
 %pre -p /bin/bash

@@ -32,16 +32,14 @@
     :class="{ disabled: !messageLogEnabled }"
   >
     <template v-if="!messageLogEnabled" #append-title>
-      <XrdStatusChip
-        type="inactive"
-        text="diagnostics.addOnStatus.messageLogDisabled"
-      />
+      <XrdStatusChip type="inactive" text="diagnostics.addOnStatus.messageLogDisabled" />
     </template>
     <v-table class="xrd">
       <thead>
         <tr>
           <th class="status-column">{{ $t('diagnostics.status') }}</th>
           <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
+          <th class="cost-type-column">{{ $t('diagnostics.costType') }}</th>
           <th>{{ $t('diagnostics.message') }}</th>
           <th class="time-column">
             {{ $t('diagnostics.previousUpdate') }}
@@ -50,26 +48,17 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="timestampingService in timestampingServices"
-          :key="timestampingService.url"
-        >
+        <tr v-for="timestampingService in timestampingServices" :key="timestampingService.url">
           <td>
-            <StatusAvatar
-              :status="statusIconTypeTSP(timestampingService.status_class)"
-            />
+            <StatusAvatar :status="statusIconTypeTSP(timestampingService.status_class)" />
           </td>
-          <td
-            class="url-column"
-            :class="{ disabled: !messageLogEnabled }"
-            data-test="service-url"
-          >
+          <td class="url-column" :class="{ disabled: !messageLogEnabled }" data-test="service-url">
             {{ timestampingService.url }}
           </td>
-          <td
-            :class="{ disabled: !messageLogEnabled }"
-            data-test="timestamping-message"
-          >
+          <td class="cost-type-column" :class="{ disabled: !messageLogEnabled }" data-test="service-cost-type">
+            {{ $t('systemParameters.costType.' + timestampingService.cost_type) }}
+          </td>
+          <td :class="{ disabled: !messageLogEnabled }" data-test="timestamping-message">
             {{ getStatusMessage(timestampingService) }}
           </td>
           <td class="time-column" :class="{ disabled: !messageLogEnabled }">
@@ -91,18 +80,8 @@
 import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { defineComponent } from 'vue';
-import {
-  DiagnosticStatusClass,
-  TimestampingServiceDiagnostics,
-} from '@/openapi-types';
-import {
-  i18n,
-  XrdCard,
-  XrdStatusChip,
-  Status,
-  useNotifications,
-  XrdEmptyPlaceholderRow,
-} from '@niis/shared-ui';
+import { DiagnosticStatusClass, TimestampingServiceDiagnostics } from '@/openapi-types';
+import { i18n, XrdCard, XrdStatusChip, Status, useNotifications, XrdEmptyPlaceholderRow } from '@niis/shared-ui';
 import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
 export default defineComponent({
@@ -148,9 +127,7 @@ export default defineComponent({
         return (type + '-disabled') as Status;
       }
     },
-    statusIconType(
-      status: string,
-    ): 'ok' | 'error' | 'progress-register' | undefined {
+    statusIconType(status: string): 'ok' | 'error' | 'progress-register' | undefined {
       if (!status) {
         return undefined;
       }
@@ -165,18 +142,11 @@ export default defineComponent({
           return 'error';
       }
     },
-    getStatusMessage(
-      timestampingService: TimestampingServiceDiagnostics,
-    ): string {
+    getStatusMessage(timestampingService: TimestampingServiceDiagnostics): string {
       if (timestampingService.status_class === DiagnosticStatusClass.FAIL) {
-        return this.$t(
-          `error_code.${timestampingService.error?.code}`,
-          timestampingService.error?.metadata,
-        );
+        return this.$t(`error_code.${timestampingService.error?.code}`, timestampingService.error?.metadata);
       } else {
-        return i18n.global.t(
-          `diagnostics.timestamping.timestampingStatus.${timestampingService.status_class}`,
-        );
+        return i18n.global.t(`diagnostics.timestamping.timestampingStatus.${timestampingService.status_class}`);
       }
     },
   },

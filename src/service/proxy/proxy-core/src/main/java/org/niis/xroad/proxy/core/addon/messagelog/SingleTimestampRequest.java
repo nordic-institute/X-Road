@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.messagelog.LogRecord;
-import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.signature.Signature;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -36,6 +34,8 @@ import org.apache.xml.security.signature.XMLSignatureException;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.LogRecord;
+import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 
 import javax.xml.transform.TransformerException;

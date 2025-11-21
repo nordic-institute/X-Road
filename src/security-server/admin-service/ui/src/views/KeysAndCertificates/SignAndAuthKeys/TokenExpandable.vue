@@ -25,26 +25,12 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdExpandable
-    class="expandable"
-    :is-open="tokenExpanded(token.id)"
-    @open="toggleToken"
-  >
+  <XrdExpandable class="expandable" :is-open="tokenExpanded(token.id)" @open="toggleToken">
     <template #link="{ toggle, opened }">
-      <div
-        data-test="token-name"
-        class="d-flex flex-row align-center cursor-pointer"
-        @click="toggle"
-      >
+      <div data-test="token-name" class="d-flex flex-row align-center cursor-pointer" @click="toggle">
         <div
           class="token-name font-weight-medium"
-          :class="
-            tokenStatusClass
-              ? tokenStatusClass
-              : opened
-                ? 'on-surface'
-                : 'on-surface-variant'
-          "
+          :class="tokenStatusClass ? tokenStatusClass : opened ? 'on-surface' : 'on-surface-variant'"
         >
           {{ $t('keys.token.label') }} {{ token.name }}
         </div>
@@ -84,12 +70,7 @@
               :disabled="!token.logged_in"
               @click="addKey()"
             />
-            <XrdFileUpload
-              v-if="canImportCertificate"
-              v-slot="{ upload }"
-              accepts=".pem, .cer, .der"
-              @file-changed="importCert"
-            >
+            <XrdFileUpload v-if="canImportCertificate" v-slot="{ upload }" accepts=".pem, .cer, .der" @file-changed="importCert">
               <XrdBtn
                 data-test="token-import-cert-button"
                 variant="text"
@@ -116,10 +97,7 @@
       <div class="mt-2 mr-4 ml-4">
         <!-- AUTH keys table -->
         <div class="border xrd-rounded-12 pa-0">
-          <div
-            v-if="hasAuthKeys"
-            :class="{ 'border-b': hasSignKeys || hasOtherKeys }"
-          >
+          <div v-if="hasAuthKeys" :class="{ 'border-b': hasSignKeys || hasOtherKeys }">
             <KeysTableTitle
               :title="$t('keys.authKeyCert')"
               :keys="authKeys"
@@ -204,10 +182,7 @@ import KeysTableTitle from './KeysTableTitle.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import TokenLoggingButton from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenLoggingButton.vue';
-import {
-  getTokenUIStatus,
-  TokenUIStatus,
-} from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
+import { getTokenUIStatus, TokenUIStatus } from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useTokens } from '@/store/modules/tokens';
@@ -256,10 +231,7 @@ export default defineComponent({
       return this.hasPermission(Permissions.ACTIVATE_DEACTIVATE_TOKEN);
     },
     canImportCertificate(): boolean {
-      return (
-        this.hasPermission(Permissions.IMPORT_AUTH_CERT) ||
-        this.hasPermission(Permissions.IMPORT_SIGN_CERT)
-      );
+      return this.hasPermission(Permissions.IMPORT_AUTH_CERT) || this.hasPermission(Permissions.IMPORT_SIGN_CERT);
     },
     canAddKey(): boolean {
       return this.hasPermission(Permissions.GENERATE_KEY);
@@ -305,10 +277,7 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useTokens, ['setSelectedToken', 'hideToken', 'expandToken']),
-    ...mapActions(useTokenCertificates, [
-      'importTokenCertificate',
-      'importTokenCertificateByHash',
-    ]),
+    ...mapActions(useTokenCertificates, ['importTokenCertificate', 'importTokenCertificateByHash']),
     addKey(): void {
       this.setSelectedToken(this.token);
       this.$emit('add-key');
@@ -349,11 +318,7 @@ export default defineComponent({
     },
     getOtherKeys(keys: Key[]): Key[] {
       // Keys that don't have assigned usage type
-      return keys.filter(
-        (key: Key) =>
-          key.usage !== KeyUsageType.SIGNING &&
-          key.usage !== KeyUsageType.AUTHENTICATION,
-      );
+      return keys.filter((key: Key) => key.usage !== KeyUsageType.SIGNING && key.usage !== KeyUsageType.AUTHENTICATION);
     },
     toggleToken(opened: boolean): void {
       if (opened) {
@@ -363,7 +328,7 @@ export default defineComponent({
       }
     },
     importCert(event: FileUploadResult) {
-      this.importTokenCertificate(event.buffer)
+      this.importTokenCertificate(event.file)
         .then((certificate) => {
           if (certificate.ocsp_verify_before_activation_error) {
             this.addError(

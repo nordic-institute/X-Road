@@ -5,13 +5,13 @@
     "addServiceClientsTitle": "Agregar permisos",
     "addSubjectsSuccess": "Permisos de acceso agregados con éxito",
     "id": "ID",
-    "memberName": "Nombre del miembro / Descripción del grupo",
     "removeAllText": "¿Estás seguro de que deseas eliminar los permisos de acceso de todos los clientes?",
     "removeAllTitle": "Eliminar todos los permisos de acceso?",
     "removeSuccess": "Permisos de acceso eliminados con éxito",
     "removeText": "¿Estás seguro de que deseas eliminar los permisos de acceso de este cliente?",
     "removeTitle": "Eliminar los permisos de acceso?",
     "rightsGiven": "Permisos de acceso dados",
+    "subsystemName": "Nombre del subsistema / Descripción del grupo",
     "title": "Permisos de acceso"
   },
   "action": {
@@ -112,6 +112,7 @@
     "member": "Miembro",
     "memberClass": "Clase del miembro",
     "memberCode": "Código del miembro",
+    "memberInParenthesis": "(@:client.member)",
     "memberName": "Nombre del miembro",
     "name": "Nombre",
     "owner": "Propietario",
@@ -167,6 +168,18 @@
     "addOnStatus": {
       "messageLogDisabled": "Deshabilitado por configuración"
     },
+    "connection": {
+      "centralServer": {
+        "authCertRequest": "Servicio de registro de certificados de autenticación",
+        "globalConf": "Descarga de configuración global",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Servidor Central"
+      },
+      "ok": "Ok",
+      "test": "Prueba"
+    },
+    "costType": "Tipo de costo",
     "encryption": {
       "backup": {
         "configuredKeyId": "Clave de ID configurada",
@@ -279,17 +292,6 @@
       "success": "Éxito",
       "successfulRequests": "Solicitudes exitosas",
       "time": "Hora"
-    },
-    "connection": {
-      "ok": "Ok",
-      "test": "Prueba",
-      "centralServer": {
-        "title": "Servidor Central",
-        "globalConf": "Descarga de configuración global",
-        "globalConfHttp": "http",
-        "globalConfHttps": "https",
-        "authCertRequest": "Servicio de registro de certificados de autenticación"
-      }
     }
   },
   "endpoints": {
@@ -379,6 +381,7 @@
     "global_conf_outdated": "La configuración global está desactualizada",
     "gpg_key_generation_failed": "Falló en la generación del GPG KeyPair",
     "gpg_key_generation_interrupted": "Generación del GPG interrupida",
+    "http_error": "Error HTTP",
     "identifier_not_found": "Identificador no encontrado",
     "illegal_generated_endpoint_remove": "No está permitido eliminar el endpoint generado",
     "illegal_generated_endpoint_update": "No está permitido actualizar el endpoint generado",
@@ -412,7 +415,6 @@
     "member_code_not_provided": "No has proporcionado el código de miembro",
     "missing_parameter": "Parámetro faltante",
     "network_error": "Error de red",
-    "http_error": "Error HTTP",
     "ocsp_connection_error": "Incapaz de conectarse al servicio OCSP Responder",
     "ocsp_failed": "No se puede obtener la respuesta del servicio OCSP Responder",
     "ocsp_response_parsing_failure": "Incapaz de analizar la respuesta OCSP",
@@ -715,7 +717,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Miembro/código de grupo",
     "memberGroupStep": "Miembro / grupo",
-    "name": "Nombre del miembro / Descripción del grupo",
+    "name": "Nombre del subsistema / Descripción del grupo",
     "noAccessRights": "Sin permisos de acceso a este cliente",
     "noAvailableServices": "No hay servicios disponibles",
     "removeAll": "Eliminar todo",
@@ -745,7 +747,6 @@
     "enableSuccess": "Descripción del servicio habilitado",
     "idGroupCode": "ID / Código de grupo",
     "lastRefreshed": "Última actualización:",
-    "memberNameGroupDesc": "Nombre del miembro / Descripción del grupo",
     "noMatches": "Sin registros coincidentes",
     "openApi3Added": "Servicio OpenApi3 agregado",
     "openapiDetails": "Detalles OpenAPI 3",
@@ -763,6 +764,7 @@
       "internal_server_ssl_error": "La verificación de los certificados del servidor interno falló. ¿Es correcta y accesible la URL del servidor de origen desde el Servidor de Seguridad?",
       "internal_server_ssl_handshake_error": "El TLS handshake con el servidor de origen falló. Falta el certificado del servidor en la configuración:"
     },
+    "subsystemNameGroupDesc": "Nombre del subsistema / Descripción del grupo",
     "timeout": "Tiempo de espera agotado",
     "timeoutSec": "Tiempo de espera (s)",
     "timeoutTooltip": "Duración máxima del tiempo de espera de una solicitud, en segundos",
@@ -796,6 +798,7 @@
           "acmeIpAddresses": "IP del servidor ACME",
           "distinguishedName": "Nombre distinguido",
           "expires": "Expira",
+          "ocspCostType": "Tipo de coste OCSP",
           "ocspResponse": "Respuesta OCSP"
         },
         "notAvailable": "No disponible",
@@ -834,6 +837,11 @@
       },
       "title": "Ancla de configuración"
     },
+    "costType": {
+      "FREE": "Gratis",
+      "PAID": "De pago",
+      "UNDEFINED": "Indefinido"
+    },
     "securityServer": {
       "addressChangeInProgress": "Cambio en proceso",
       "editDialog": {
@@ -842,6 +850,24 @@
       "securityServer": "Servidor de seguridad",
       "serverAddress": "Dirección del servidor",
       "updateSubmitted": "Cambio de dirección del servidor de seguridad enviado correctamente"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Estrategia de priorización de sellado de tiempo: ",
+        "ONLY_FREE": "usar solo servicios de sellado de tiempo gratuitos",
+        "ONLY_PAID": "usar solo servicios de sellado de tiempo de pago",
+        "FREE_FIRST": "usar primero los servicios gratuitos de sellado de tiempo, si todos fallan o no hay disponibles, usar los de pago",
+        "PAID_FIRST": "usar primero los servicios de pago de sellado de tiempo, si todos fallan o no hay disponibles, usar los gratuitos",
+        "NONE": "usar todos los servicios de sellado de tiempo sin priorización"
+      },
+      "ocsp": {
+        "label": "Estrategia de priorización OCSP: ",
+        "ONLY_FREE": "usar solo servicios OCSP gratuitos",
+        "ONLY_PAID": "usar solo servicios OCSP de pago",
+        "FREE_FIRST": "usar primero los servicios OCSP gratuitos, si todos fallan o no hay disponibles, usar los de pago",
+        "PAID_FIRST": "usar primero los servicios OCSP de pago, si todos fallan o no hay disponibles, usar los gratuitos",
+        "NONE": "usar todos los servicios OCSP sin priorización"
+      }
     },
     "timestampingServices": {
       "action": {
@@ -866,9 +892,9 @@
           }
         },
         "header": {
+          "costType": "Tipo de costo",
           "serviceURL": "URL de servicio",
-          "timestampingService": "Servicio de marca de tiempo",
-          "costType": "Tipo de costo"
+          "timestampingService": "Servicio de marca de tiempo"
         }
       },
       "title": "Servicios de marca de tiempo"
@@ -884,9 +910,9 @@
       "services": "Servicios"
     },
     "diagnostics": {
+      "connectionTesting": "Prueba de conexión",
       "overview": "Resumen",
-      "traffic": "Tráfico",
-      "connectionTesting": "Prueba de conexión"
+      "traffic": "Tráfico"
     },
     "keys": {
       "apiKey": "Clave de API",

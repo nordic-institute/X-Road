@@ -35,6 +35,7 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -114,11 +115,13 @@ final class ProxyTestUtil {
         });
     }
 
-    static SoapMessageImpl createMessage() throws Exception {
+    @SneakyThrows
+    static SoapMessageImpl createMessage() {
         return createMessage("123456789");
     }
 
-    static SoapMessageImpl createMessage(String queryId) throws Exception {
+    @SneakyThrows
+    static SoapMessageImpl createMessage(String queryId) {
         if (message == null) {
             try (InputStream in = new FileInputStream("src/test/queries/simple.query")) {
                 message = IOUtils.toString(in, StandardCharsets.UTF_8);
@@ -145,7 +148,8 @@ final class ProxyTestUtil {
         );
     }
 
-    static SignatureData createSignature() throws Exception {
+    @SneakyThrows
+    static SignatureData createSignature() {
         if (signature == null) {
             try (InputStream in = new FileInputStream("src/test/resources/signature.xml")) {
                 signature = IOUtils.toString(in, StandardCharsets.UTF_8);

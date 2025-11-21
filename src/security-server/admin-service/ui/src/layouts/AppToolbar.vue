@@ -55,13 +55,8 @@ const userStore = useUser();
 const systemStore = useSystem();
 
 const nodeName = computed(() => {
-  if (
-    userStore.authenticated &&
-    systemStore.securityServerNodeType !== NodeType.STANDALONE
-  ) {
-    return t(
-      `toolbar.securityServerNodeType.${systemStore.securityServerNodeType}`,
-    );
+  if (userStore.authenticated && systemStore.securityServerNodeType !== NodeType.STANDALONE) {
+    return t(`toolbar.securityServerNodeType.${systemStore.securityServerNodeType}`);
   }
   return '';
 });

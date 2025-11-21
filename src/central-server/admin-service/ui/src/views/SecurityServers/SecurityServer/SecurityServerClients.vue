@@ -28,12 +28,7 @@
   <XrdSubView data-test="security-server-clients-view">
     <template #header>
       <div>
-        <XrdRoundedSearchField
-          v-model="search"
-          data-test="search-query-field"
-          width="320"
-          :label="$t('action.search')"
-        />
+        <XrdRoundedSearchField v-model="search" data-test="search-query-field" width="320" :label="$t('action.search')" />
       </div>
     </template>
 

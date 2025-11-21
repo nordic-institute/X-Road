@@ -26,15 +26,14 @@
  */
 package org.niis.xroad.messagelog.archiver.core.config;
 
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
-
 import lombok.Setter;
-import org.niis.xroad.common.messagelog.archive.MessageLogEncryptionConfig;
-import org.niis.xroad.common.messagelog.archive.VaultArchivalPgpKeyProvider;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
+import org.niis.xroad.messagelog.archive.MessageLogEncryptionConfig;
+import org.niis.xroad.messagelog.archive.VaultArchivalPgpKeyProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
 import org.niis.xroad.messagelog.archiver.core.MessageLogArchiverService;
@@ -52,8 +51,9 @@ public class MessageLogArchiverConfiguration extends MessageLogEncryptionConfig 
 
     @Bean
     public LogArchiver logArchiver(GlobalConfProvider globalConfProvider, MessageLogDatabaseCtx databaseCtx,
-                                   PgpKeyManager keyManager, BouncyCastlePgpEncryptionService encryptionService) {
-        return new LogArchiver(keyManager, encryptionService, globalConfProvider, databaseCtx);
+                                   PgpKeyManager keyManager, BouncyCastlePgpEncryptionService encryptionService,
+                                   VaultClient vaultClient) {
+        return new LogArchiver(keyManager, encryptionService, globalConfProvider, databaseCtx, vaultClient);
     }
 
     @Bean

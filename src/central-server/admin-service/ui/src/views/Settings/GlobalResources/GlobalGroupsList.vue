@@ -53,24 +53,13 @@
         :loader-height="2"
       >
         <template #[`item.code`]="{ item }">
-          <XrdLabelWithIcon
-            data-test="group-code"
-            icon="group"
-            semi-bold
-            clickable
-            :label="item.code"
-            @navigate="toDetails(item)"
-          />
+          <XrdLabelWithIcon data-test="group-code" icon="group" semi-bold clickable :label="item.code" @navigate="toDetails(item)" />
         </template>
         <template #[`item.updated_at`]="{ item }">
           <XrdDateTime :value="item.updated_at" />
         </template>
       </v-data-table>
-      <add-group-dialog
-        v-if="showAddGroupDialog"
-        @cancel="closeAddGroupDialog()"
-        @save="groupAdded()"
-      />
+      <add-group-dialog v-if="showAddGroupDialog" @cancel="closeAddGroupDialog()" @save="groupAdded()" />
     </XrdSubView>
   </XrdView>
 </template>
@@ -80,14 +69,7 @@ import { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { mapState, mapStores } from 'pinia';
 
-import {
-  useNotifications,
-  XrdBtn,
-  XrdDateTime,
-  XrdLabelWithIcon,
-  XrdSubView,
-  XrdView,
-} from '@niis/shared-ui';
+import { useNotifications, XrdBtn, XrdDateTime, XrdLabelWithIcon, XrdSubView, XrdView } from '@niis/shared-ui';
 
 import { Permissions, RouteName } from '@/global';
 import { GlobalGroupResource } from '@/openapi-types';

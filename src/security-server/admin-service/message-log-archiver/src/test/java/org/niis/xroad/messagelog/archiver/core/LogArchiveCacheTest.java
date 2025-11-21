@@ -27,7 +27,6 @@ package org.niis.xroad.messagelog.archiver.core;
 
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
@@ -38,15 +37,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfig;
-import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
-import org.niis.xroad.common.messagelog.archive.VaultServerEncryptionConfigProvider;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyGenerator;
 import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
+import org.niis.xroad.messagelog.MessageRecord;
+import org.niis.xroad.messagelog.archive.EncryptionConfig;
+import org.niis.xroad.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.messagelog.archive.VaultServerEncryptionConfigProvider;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 import org.niix.xroad.common.pgp.test.StreamingPgpDecryptor;
 
@@ -311,14 +311,12 @@ class LogArchiveCacheTest {
                 GroupingStrategy.NONE,
                 Map.of()
         );
-        
+
         var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
                 false,
-                null,
-                null,
                 null
         );
-        
+
         return new LogArchiverExecutionProperties(
                 archiveEncryption,
                 databaseEncryption,

@@ -59,6 +59,17 @@
             :hint="$t('trustServices.certProfileInputExplanation')"
           />
         </XrdFormBlockRow>
+        <XrdFormBlockRow full-length>
+          <v-select
+            v-model="defaultCsrFormat"
+            v-bind="defaultCsrFormatAttrs"
+            data-test="default-csr-format-select"
+            class="xrd mt-6"
+            variant="outlined"
+            :label="$t('trustServices.defaultCsrFormat')"
+            :items="csrFormatList"
+          ></v-select>
+        </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
   </XrdSimpleDialog>
@@ -68,13 +79,8 @@
 import { ref, PropType } from 'vue';
 import { useForm } from 'vee-validate';
 import { useCertificationService } from '@/store/modules/trust-services';
-import { ApprovedCertificationService } from '@/openapi-types';
-import {
-  XrdSimpleDialog,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { ApprovedCertificationService, CsrFormat } from '@/openapi-types';
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
 
 const props = defineProps({
   certificationService: {
@@ -89,10 +95,12 @@ const { handleSubmit, meta, defineField } = useForm({
   validationSchema: {
     certProfile: { required: true },
     tlsAuth: {},
+    defaultCsrFormat: { required: true },
   },
   initialValues: {
     certProfile: props.certificationService.certificate_profile_info,
     tlsAuth: props.certificationService.tls_auth,
+    defaultCsrFormat: props.certificationService.default_csr_format,
   },
 });
 
@@ -101,6 +109,12 @@ const [certProfile, certProfileAttrs] = defineField('certProfile', {
 });
 
 const [tlsAuth, tlsAuthAttrs] = defineField('tlsAuth');
+
+const csrFormatList = Object.values(CsrFormat).map((csrFormat) => ({
+  title: csrFormat,
+  value: csrFormat,
+}));
+const [defaultCsrFormat, defaultCsrFormatAttrs] = defineField('defaultCsrFormat');
 
 const { addSuccessMessage, addError } = useNotifications();
 
@@ -115,6 +129,7 @@ const updateCertificationServiceSettings = handleSubmit((values) => {
   loading.value = true;
   updateCertificationService(props.certificationService.id, {
     certificate_profile_info: values.certProfile,
+    default_csr_format: values.defaultCsrFormat,
     tls_auth: values.tlsAuth.toString(),
   })
     .then(() => {

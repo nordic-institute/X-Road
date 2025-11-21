@@ -19,7 +19,7 @@ xmlUnit = "2.10.4"
 bouncyCastle = "1.82"
 slf4j = "2.0.17"
 testAutomationFramework = "0.2.21"
-selenide="7.11.1"
+selenide="7.12.0"
 allureSelenide = "2.28.0"
 protoc = "4.32.1"
 grpc = "1.76.0"
@@ -41,7 +41,6 @@ microprofile = "3.1"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
-metrics-jmx = { module = "io.dropwizard.metrics:metrics-jmx", version.ref = "metrics" }
 
 jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
 jetty-http = { module = "org.eclipse.jetty:jetty-http", version.ref = "jetty" }
@@ -208,7 +207,7 @@ protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradl
 quarkusGradlePlugin = { module = "io.quarkus:gradle-application-plugin", version.ref = "quarkus" }
 
 [bundles]
-metrics = ["metrics-core", "metrics-jmx"]
+metrics = ["metrics-core"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
 testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAutomation-feign"]
 

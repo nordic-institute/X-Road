@@ -43,9 +43,7 @@ export const useApiKeys = defineStore('api-keys', {
     },
     updateApiKey(apiKeyId: number, roles: string[]) {
       const encoded = encodePathParameter(apiKeyId);
-      return api
-        .put<ApiKey>(`/api-keys/${encoded}`, roles)
-        .then((res) => res.data);
+      return api.put<ApiKey>(`/api-keys/${encoded}`, roles).then((res) => res.data);
     },
     async deleteApiKey(apiKeyId: number) {
       const encoded = encodePathParameter(apiKeyId);

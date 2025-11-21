@@ -128,9 +128,7 @@ public class LegacyConfigPathMapping {
 
         // message-log - database encryption properties (moved to database-encryption sub-section)
         addMapping("message-log.messagelog-encryption-enabled", "proxy.message-log.database-encryption.enabled");
-        addMapping("message-log.messagelog-keystore", "proxy.message-log.database-encryption.messagelog-keystore");
-        addMapping("message-log.messagelog-keystore-password", "proxy.message-log.database-encryption.messagelog-keystore-password");
-        addMapping("message-log.messagelog-key-id", "proxy.message-log.database-encryption.messagelog-key-id");
+        addMapping("message-log.messagelog-key-id", "proxy.message-log.database-encryption.key-id");
 
         // op-monitor
         addMapping("op-monitor-service.socket-timeout-seconds", "proxy.addon.op-monitor.connection.socket-timeout-seconds");
@@ -159,6 +157,9 @@ public class LegacyConfigPathMapping {
         REMOVED_KEYS.add("proxy.configuration-anchor-file");
         REMOVED_KEYS.add("proxy.database-properties");
         REMOVED_KEYS.add("signer.device-configuration-file");
+        REMOVED_KEYS.add("message-log.messagelog-keystore");
+        REMOVED_KEYS.add("message-log.messagelog-keystore-password");
+        REMOVED_KEYS.add("message-log.archive-gpg-home-directory");
     }
 
     private static void addMapping(String oldKey, String... newKeys) {

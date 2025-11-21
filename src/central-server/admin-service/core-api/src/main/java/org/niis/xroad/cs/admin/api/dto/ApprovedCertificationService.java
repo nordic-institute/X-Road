@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.api.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.globalconf.model.CsrFormat;
 
 @Getter
 @RequiredArgsConstructor
@@ -35,6 +36,7 @@ public class ApprovedCertificationService {
     private final byte[] certificate;
     private final String certificateProfileInfo;
     private final Boolean tlsAuth;
+    private final CsrFormat defaultCsrFormat;
     private final String acmeServerDirectoryUrl;
     private final String acmeServerIpAddress;
     private final String authenticationCertificateProfileId;

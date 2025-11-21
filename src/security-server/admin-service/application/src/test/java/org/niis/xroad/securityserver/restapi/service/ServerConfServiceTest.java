@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Test;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
+import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,9 +65,9 @@ public class ServerConfServiceTest extends AbstractServiceTestContext {
     @Test
     public void getConfiguredTimestampingServices() {
         List<TimestampingServiceEntity> configuredTimestampingServices = new ArrayList<>();
-        configuredTimestampingServices.add(TestUtils.createTspTypeEntity("https://tsa3.com", "TSA 3"));
-        configuredTimestampingServices.add(TestUtils.createTspTypeEntity("https://tsa2.com", "TSA 2"));
-        configuredTimestampingServices.add(TestUtils.createTspTypeEntity("https://tsa1.com", "TSA 1"));
+        configuredTimestampingServices.add(TestUtils.createTspTypeEntity("https://tsa3.com", "TSA 3", CostType.UNDEFINED.name()));
+        configuredTimestampingServices.add(TestUtils.createTspTypeEntity("https://tsa2.com", "TSA 2", CostType.FREE.name()));
+        configuredTimestampingServices.add(TestUtils.createTspTypeEntity("https://tsa1.com", "TSA 1", CostType.PAID.name()));
 
         when(serverConfRepository.getServerConf()).thenReturn(serverConfEntity);
         when(serverConfEntity.getTimestampingServices()).thenReturn(configuredTimestampingServices);

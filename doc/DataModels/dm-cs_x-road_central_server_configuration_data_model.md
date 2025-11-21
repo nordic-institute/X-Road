@@ -1,6 +1,6 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.17
+Version: 1.18
 Doc. ID: DM-CS
 
 | Date       | Version | Description                                                                      | Author               |
@@ -31,6 +31,7 @@ Doc. ID: DM-CS
 | 21.03.2025 | 1.15    | Syntax dand styling fixes                                                        | Pauline Dimmek       |
 | 30.04.2025 | 1.16    | Added maintenance mode related fields to security_servers table                  | Ovidijus Narkevičius |
 | 28.10.2025 | 1.17    | Added cost type columns to ocsp_infos and approved_tsas                          | Mikk-Erik Bachmann   |
+| 05.11.2025 | 1.18    | Added default csr format column to approved_cas                                  | Mikk-Erik Bachmann   |
 
 
 
@@ -278,15 +279,16 @@ New record creation process starts when an X-Road system administrator receives 
 
 #### 2.5.2 Attributes
 
-| Name                                              | Type           | Modifiers        | Description           |
-|:--------------------------------------------------|:-----------------:|:----------- |:-----------------:|
-| id [PK]                                           | integer | NOT NULL | Primary key |
-| name                                              | character varying(255) |  | Name of the CA, used in user interfaces. Technically this is the subject name of the top level certification authority certificate. |
-| top_ca_id [FK]                                    | integer |  | ID of the top level CA certificate entry of the record. See also documentation of the table ca_infos. Cannot be NULL. |
-| authentication_only                               | boolean |  | If true, this CA can only issue authentication certificates. If false, this CA can issue all certificates. |                                                                                                          |
-| cert_profile_info                                 | character varying(255) |  | Fully qualified Java class name that implements the CertificateProfileInfoProvider interface. The implementing class is used for extracting subject information from certificates. The implementing class must be present in classpath of both Central Server and securitys servers. Cannot be NULL. |
-| created_at                                        | timestamp without time zone | NOT NULL | Record creation time, managed automatically. |
-| updated_at                                        | timestamp without time zone | NOT NULL | Record last modified time, managed automatically. |
+| Name                |            Type             | Modifiers |                                                                                                                                             Description                                                                                                                                              |
+|:--------------------|:---------------------------:|:----------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]             |           integer           | NOT NULL  |                                                                                                                                             Primary key                                                                                                                                              |
+| name                |   character varying(255)    |           |                                                                                 Name of the CA, used in user interfaces. Technically this is the subject name of the top level certification authority certificate.                                                                                  |
+| top_ca_id [FK]      |           integer           |           |                                                                                        ID of the top level CA certificate entry of the record. See also documentation of the table ca_infos. Cannot be NULL.                                                                                         |
+| authentication_only |           boolean           |           |                                                                                              If true, this CA can only issue authentication certificates. If false, this CA can issue all certificates.                                                                                              |                                                                                                          |
+| cert_profile_info   |   character varying(255)    |           | Fully qualified Java class name that implements the CertificateProfileInfoProvider interface. The implementing class is used for extracting subject information from certificates. The implementing class must be present in classpath of both Central Server and securitys servers. Cannot be NULL. |
+| created_at          | timestamp without time zone | NOT NULL  |                                                                                                                             Record creation time, managed automatically.                                                                                                                             |
+| updated_at          | timestamp without time zone | NOT NULL  |                                                                                                                          Record last modified time, managed automatically.                                                                                                                           |
+| default_csr_format  |   character varying(255)    | NOT NULL  |                                                                                                                         The default CSR format (PEM or DER). Cannot be NULL.                                                                                                                         |
 
 ### 2.6 APPROVED_TSAS
 

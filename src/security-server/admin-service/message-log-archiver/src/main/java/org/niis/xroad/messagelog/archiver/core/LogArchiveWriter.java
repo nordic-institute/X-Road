@@ -26,13 +26,13 @@
 package org.niis.xroad.messagelog.archiver.core;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.messagelog.archive.EncryptionConfigProvider;
-import org.niis.xroad.common.messagelog.archive.Grouping;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.MessageRecord;
+import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
+import org.niis.xroad.messagelog.archive.Grouping;
 import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
 
 import java.io.Closeable;

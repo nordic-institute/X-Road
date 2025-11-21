@@ -50,24 +50,24 @@ public class ExecListingSensor {
         log.info("Creating sensor, measurement interval: {}", envMonitorProperties.execListingSensorInterval());
     }
 
-    private void createOrUpdateMetricPair(String parsedName, String jmxName, JmxStringifiedData data) {
+    private void createOrUpdateMetricPair(String parsedName, String stringName, StringifiedData data) {
         createOrUpdateParsedMetric(parsedName, data);
-        createJmxMetric(jmxName, data);
+        createStringMetric(stringName, data);
     }
 
-    private void createOrUpdateParsedMetric(String metricName, JmxStringifiedData data) {
-        SimpleSensor<JmxStringifiedData> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
+    private void createOrUpdateParsedMetric(String metricName, StringifiedData data) {
+        SimpleSensor<StringifiedData> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
         sensor.update(data);
     }
 
-    private void createJmxMetric(String metricName, JmxStringifiedData data) {
+    private void createStringMetric(String metricName, StringifiedData data) {
         SimpleSensor<ArrayList> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
-        sensor.update(data.getJmxStringData());
+        sensor.update(data.getStringData());
     }
 
-    private void createOsStringMetric(String metricName, JmxStringifiedData<String> data) {
+    private void createOsStringMetric(String metricName, StringifiedData<String> data) {
         SimpleSensor<String> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
-        sensor.update(data.getJmxStringData().getFirst());
+        sensor.update(data.getStringData().getFirst());
     }
 
     private void updateMetrics() {

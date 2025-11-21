@@ -44,9 +44,7 @@
       :loading="loading"
       :headers="headers"
       :items="securityServerStore.securityServers"
-      :items-length="
-        securityServerStore.securityServerPagingOptions.total_items
-      "
+      :items-length="securityServerStore.securityServerPagingOptions.total_items"
       :must-sort="true"
       :items-per-page="10"
       :no-data-text="emptyListReasoning"
@@ -54,21 +52,10 @@
       @update:options="findServers"
     >
       <template #[`item.server_id.server_code`]="{ item }">
-        <XrdLabelWithIcon
-          icon="dns"
-          semi-bold
-          clickable
-          :label="item.server_id.server_code"
-          @navigate="toDetails(item)"
-        />
+        <XrdLabelWithIcon icon="dns" semi-bold clickable :label="item.server_id.server_code" @navigate="toDetails(item)" />
       </template>
       <template #[`item.in_maintenance_mode`]="{ item }">
-        <v-icon
-          v-if="item.in_maintenance_mode"
-          class="mr-2"
-          icon="check_circle filled"
-          color="success"
-        />
+        <v-icon v-if="item.in_maintenance_mode" class="mr-2" icon="check_circle filled" color="success" />
         {{ item.maintenance_mode_message }}
       </template>
       <template #bottom>
@@ -168,21 +155,12 @@ export default defineComponent({
       });
     },
 
-    findServers: async function ({
-                                   itemsPerPage,
-                                   page,
-                                   sortBy,
-                                 }: PagingOptions) {
+    findServers: async function ({ itemsPerPage, page, sortBy }: PagingOptions) {
       this.dataQuery.itemsPerPage = itemsPerPage;
       this.dataQuery.page = page;
       this.dataQuery.sortBy = sortBy[0]?.key;
       const order = sortBy[0]?.order;
-      this.dataQuery.sortOrder =
-        order === undefined
-          ? undefined
-          : order === true || order === 'asc'
-            ? 'asc'
-            : 'desc';
+      this.dataQuery.sortOrder = order === undefined ? undefined : order === true || order === 'asc' ? 'asc' : 'desc';
       this.fetchServers();
     },
     fetchServers: async function () {

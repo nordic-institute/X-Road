@@ -28,7 +28,6 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.jmx.JmxReporter;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -76,7 +75,6 @@ public final class OpMonitorDaemon {
     private static final int SSL_SESSION_TIMEOUT = 600;
 
     // The start timestamp is saved once the server has been started.
-    // This value is reported over JMX.
     @Getter(AccessLevel.PRIVATE)
     private long startTimestamp;
 
@@ -92,7 +90,6 @@ public final class OpMonitorDaemon {
             Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
 
     private final MetricRegistry healthMetricRegistry = new MetricRegistry();
-    private final JmxReporter reporter = JmxReporter.forRegistry(healthMetricRegistry).build();
 
     @PostConstruct
     @ArchUnitSuppressed("NoVanillaExceptions")
@@ -103,7 +100,6 @@ public final class OpMonitorDaemon {
         createConnector();
         createHandler();
         registerHealthMetrics();
-        reporter.start();
         server.start();
         log.info("OpMonitorDaemon started.");
     }
@@ -113,7 +109,6 @@ public final class OpMonitorDaemon {
     public void destroy() throws Exception {
         tlsClientCertificateRefreshScheduler.shutdown();
         server.stop();
-        reporter.stop();
     }
 
     private void createConnector()
@@ -142,7 +137,7 @@ public final class OpMonitorDaemon {
     }
 
     private ServerConnector createDaemonSslConnector()
-            throws NoSuchAlgorithmException, KeyManagementException, CertificateException, IOException, InvalidKeySpecException {
+            throws NoSuchAlgorithmException, KeyManagementException {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);

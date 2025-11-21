@@ -16,12 +16,12 @@ Feature: 2300 - SS Proxy: healthcheck
     And healthcheck has errors and error message is "No certificate chain available in authentication key."
     When HSM tokens are deleted
     And All Signer keys are deleted
-    And authentication key "E67CCA8E9B3DA52DB740CDCDC0926F356F431063" named "Auth key" is added to softtoken
-    And authentication certificate "D7D15F0ED1A1320EBA0190C838506B60EC07C994" is added for key "E67CCA8E9B3DA52DB740CDCDC0926F356F431063"
-    And signing key "056A952E76B40A46C07628C7B13E5934E39A9C78" named "Sign key" is added to softtoken
-    And signing certificate "E3DC911F8E2EB7AD3BE2D65748F6B7048936EDFE" is added for member "DEV:COM:1234" under key "056A952E76B40A46C07628C7B13E5934E39A9C78"
-    And signing key "A1B0BEB1E088E3A291AEEC57FB04400BF17D3E0D" named "TestClient SIGN" is added to softtoken
-    And signing certificate "84E4773AFCC4051226ACAEF9AC256AAE4059EE93" is added for member "DEV:COM:4321" under key "A1B0BEB1E088E3A291AEEC57FB04400BF17D3E0D"
+    And authentication key "DF9242D3CBDE6DAC8058D2878340C3B527041FD0" named "Auth key" is added to softtoken
+    And authentication certificate "5BC622B62052EE89F2020C2FA91872CB49EB1502" is added for key "DF9242D3CBDE6DAC8058D2878340C3B527041FD0"
+    And signing key "1342B84B4829BB79226AB268B4D8E70B01068613" named "Sign key" is added to softtoken
+    And signing certificate "15A0AFEE2602D2846621118997E268F5FA843C94" is added for member "DEV:COM:1234" under key "1342B84B4829BB79226AB268B4D8E70B01068613"
+    And signing key "FA73509F9E9DFB7A3D92B3D34DA6BD20374A24B0" named "TestClient SIGN" is added to softtoken
+    And signing certificate "2383ECC7DCE9C81826F99FC79FE96393A342FE42" is added for member "DEV:COM:4321" under key "FA73509F9E9DFB7A3D92B3D34DA6BD20374A24B0"
     And signer service is restarted
     And User logs in token: softToken-0 with PIN: Secret1234
     Then Token: softToken-0 is logged-in

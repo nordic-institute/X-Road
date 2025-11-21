@@ -26,13 +26,7 @@
  -->
 <template>
   <div>
-    <XrdBtn
-      data-test="delete-client-button"
-      variant="outlined"
-      text="action.delete"
-      prepend-icon="cancel"
-      @click="confirmDelete = true"
-    />
+    <XrdBtn data-test="delete-client-button" variant="outlined" text="action.delete" prepend-icon="cancel" @click="confirmDelete = true" />
 
     <!-- Confirm dialog for delete client -->
     <XrdConfirmDialog

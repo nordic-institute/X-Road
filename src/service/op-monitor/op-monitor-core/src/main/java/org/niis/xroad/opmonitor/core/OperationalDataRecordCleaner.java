@@ -100,11 +100,9 @@ public final class OperationalDataRecordCleaner {
             int removed = session.createMutationQuery(hql).executeUpdate();
 
             if (removed == 0) {
-                log.info("No outdated operational data records to remove from"
-                        + " the database");
+                log.info("No outdated operational data records to remove from the database");
             } else {
-                log.info("Removed {} outdated operational data records from"
-                        + " the database", removed);
+                log.info("Removed {} outdated operational data records from the database", removed);
             }
 
             return removed;

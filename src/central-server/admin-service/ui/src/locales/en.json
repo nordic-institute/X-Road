@@ -631,6 +631,7 @@
     "certProfileInput": "Certificate profile info",
     "certProfileInputExplanation": "Fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "certificationServices": "Certification Services",
+    "defaultCsrFormat": "Default CSR format",
     "timestampingService": {
       "addedSuccessfully": "Timestamping service added successfully",
       "dialog": {
@@ -715,6 +716,7 @@
         "acmeCapable": "This CA can be used for ACME",
         "acmeNotCapable": "This CA can not be used for ACME",
         "certProfile": "Certificate profile info (fully qualified class name that implements the ee.ria.xroad.common.CertificateProfileInfoProvider interface)",
+        "defaultCsrFormat": "Default CSR format (selected automatically when creating new authentication and signing keys with this CA; can still be manually changed)",
         "saveSuccess": "CA Settings successfully saved",
         "tlsAuth": "This CA can only be used for TLS authentication"
       },

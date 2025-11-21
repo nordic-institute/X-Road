@@ -49,10 +49,8 @@ message MessageLogConfig {
   string digest_algorithm = 11;
   int64 archive_max_filesize = 12;
   string tmp_dir = 13;
-  bool messagelog_encryption_enabled = 14;
-  optional string messagelog_keystore = 15;
-  optional string messagelog_keystore_password = 16;
-  optional string messagelog_key_id = 17;
+  bool database_encryption_enabled = 14;
+  optional string database_encryption_key_id = 15;
 }
 
 // Message log archive configuration request

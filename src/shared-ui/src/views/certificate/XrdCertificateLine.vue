@@ -59,7 +59,7 @@ import { computed, PropType, ref } from 'vue';
 
 import { XrdHashValue } from '../../components';
 
-import { helper } from '../../utils';
+import { toClipboard } from '../../utils';
 
 const props = defineProps({
   label: {
@@ -102,7 +102,7 @@ const formattedValue = computed(() => {
 
 function copyValue() {
   copying.value = true;
-  helper.toClipboard(props.value as string).finally(() => (copying.value = false));
+  toClipboard(props.value as string).finally(() => (copying.value = false));
 }
 </script>
 

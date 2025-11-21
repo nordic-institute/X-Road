@@ -67,10 +67,7 @@ export default defineComponent({
     ...mapState(useUser, ['hasPermission']),
 
     showDownloadButton(): boolean {
-      return (
-        this.hasPermission(Permissions.DOWNLOAD_CONFIGURATION_PART) &&
-        (this.configurationPart.file_updated_at?.length || 0) > 0
-      );
+      return this.hasPermission(Permissions.DOWNLOAD_CONFIGURATION_PART) && (this.configurationPart.file_updated_at?.length || 0) > 0;
     },
   },
   methods: {

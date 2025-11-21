@@ -48,10 +48,7 @@
         />
       </template>
       <template #[`item.createdAt`]="{ item }">
-        <XrdDateTime
-          :class="{ 'opacity-60': isInactive(item) }"
-          :value="item.created_at"
-        />
+        <XrdDateTime :class="{ 'opacity-60': isInactive(item) }" :value="item.created_at" />
       </template>
       <template #[`item.key_algorithm`]="{ item }">
         <span :class="{ 'opacity-60': isInactive(item) }">
@@ -125,12 +122,8 @@ const selectedKey = ref<ConfigurationSigningKey | null>(null),
   showDeleteKeyDialog = ref(false),
   showActivateKeyDialog = ref(false);
 
-const canDeleteKeys = computed(() =>
-    hasPermission(Permissions.DELETE_SIGNING_KEY),
-  ),
-  canActivateKeys = computed(() =>
-    hasPermission(Permissions.ACTIVATE_SIGNING_KEY),
-  ),
+const canDeleteKeys = computed(() => hasPermission(Permissions.DELETE_SIGNING_KEY)),
+  canActivateKeys = computed(() => hasPermission(Permissions.ACTIVATE_SIGNING_KEY)),
   headers = computed(
     () =>
       [
@@ -162,10 +155,7 @@ function keyLabel(key: ConfigurationSigningKey): string {
 }
 
 function canDeleteKey(key: ConfigurationSigningKey): boolean {
-  return (
-    canDeleteKeys.value &&
-    key.possible_actions.includes(PossibleKeyAction.DELETE)
-  );
+  return canDeleteKeys.value && key.possible_actions.includes(PossibleKeyAction.DELETE);
 }
 
 function isInactive(key: ConfigurationSigningKey): boolean {

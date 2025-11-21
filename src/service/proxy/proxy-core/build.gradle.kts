@@ -9,7 +9,7 @@ dependencies {
 
   implementation(project(":common:common-vault-quarkus"))
   implementation(project(":common:common-jetty"))
-  implementation(project(":common:common-messagelog"))
+  implementation(project(":lib:messagelog-core"))
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:signer:signer-client"))
   implementation(project(":service:monitor:monitor-rpc-client"))
@@ -23,10 +23,8 @@ dependencies {
   implementation(project(":lib:keyconf-impl"))
 
 
-  implementation(project(":addons:proxymonitor-common"))
+  implementation(project(":service::proxy:proxy-monitoring-api"))
   implementation(project(":service:monitor:monitor-api"))
-
-  implementation(project(":addons:messagelog:messagelog-db"))
 
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation(libs.jetty.xml)
@@ -53,7 +51,7 @@ dependencies {
 
   testFixturesImplementation(project(":common:common-test"))
   testFixturesImplementation(project(":common:common-jetty"))
-  testFixturesImplementation(project(":common:common-messagelog"))
+  testFixturesImplementation(project(":lib:messagelog-core"))
   testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))
   testFixturesImplementation(project(":service:monitor:monitor-rpc-client"))
   testFixturesImplementation(testFixtures(project(":common:common-properties")))
@@ -65,18 +63,4 @@ dependencies {
 tasks.test {
   systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
   jvmArgs("-Xmx2G")
-}
-
-val runMetaserviceTest by tasks.registering(JavaExec::class) {
-// empty task for pipelines backwards compatibility. can be removed after 7.9 release.
-  group = "verification"
-  logger.warn("WARNING: The 'runMetaserviceTest' task is deprecated and does nothing. It will be removed in the future versions.")
-  enabled = false
-}
-
-tasks.register<JavaExec>("runProxymonitorMetaserviceTest") {
-// empty task for pipelines backwards compatibility. can be removed after 7.9 release.
-  group = "verification"
-  logger.warn("WARNING: The 'runProxymonitorMetaserviceTest' task is deprecated and does nothing. It will be removed in the future versions.")
-  enabled = false
 }

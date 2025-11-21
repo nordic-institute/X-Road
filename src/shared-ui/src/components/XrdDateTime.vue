@@ -31,7 +31,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 
-import { helper } from '../utils';
+import { formatDateTime } from '../utils';
 
 const props = defineProps({
   value: {
@@ -44,5 +44,5 @@ const props = defineProps({
   },
 });
 
-const formatted = computed(() => helper.formatDateTime(props.value, props.withSeconds));
+const formatted = computed(() => formatDateTime(props.value, props.withSeconds));
 </script>

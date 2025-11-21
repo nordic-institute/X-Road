@@ -27,12 +27,7 @@
 <template>
   <XrdSubView>
     <template #header>
-      <XrdRoundedSearchField
-        v-model="search"
-        data-test="local-group-search-input"
-        autofocus
-        :label="$t('action.search')"
-      />
+      <XrdRoundedSearchField v-model="search" data-test="local-group-search-input" autofocus :label="$t('action.search')" />
       <v-spacer />
       <XrdBtn
         v-if="showAddGroup"
@@ -57,12 +52,7 @@
       :loader-height="2"
     >
       <template #[`item.code`]="{ item }">
-        <XrdLabelWithIcon
-          icon="group"
-          :label="item.code"
-          clickable
-          @navigate="viewGroup(item)"
-        />
+        <XrdLabelWithIcon icon="group" :label="item.code" clickable @navigate="viewGroup(item)" />
       </template>
 
       <template #[`item.updated_at`]="{ item }">
@@ -70,12 +60,7 @@
       </template>
     </v-data-table>
 
-    <newGroupDialog
-      v-if="addGroupDialog"
-      :id="id"
-      @cancel="closeDialog()"
-      @group-added="groupAdded()"
-    />
+    <newGroupDialog v-if="addGroupDialog" :id="id" @cancel="closeDialog()" @group-added="groupAdded()" />
   </XrdSubView>
 </template>
 
@@ -89,13 +74,7 @@ import { LocalGroup } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
-import {
-  XrdDate,
-  XrdSubView,
-  XrdBtn,
-  XrdLabelWithIcon,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdDate, XrdSubView, XrdBtn, XrdLabelWithIcon, useNotifications } from '@niis/shared-ui';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { useLocalGroups } from '@/store/modules/local-groups';
 

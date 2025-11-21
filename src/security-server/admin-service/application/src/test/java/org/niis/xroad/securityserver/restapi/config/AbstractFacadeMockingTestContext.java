@@ -25,13 +25,13 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
 import org.junit.runner.RunWith;
 import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;

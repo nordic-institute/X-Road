@@ -38,7 +38,8 @@
       <XrdFormBlock>
         <XrdFormBlockRow full-length>
           <v-text-field
-            v-bind="keyLabel"
+            v-model="keyLabelMdl"
+            v-bind="keyLabelRef"
             data-test="signing-key-label-input"
             class="xrd"
             name="keyLabel"
@@ -59,12 +60,7 @@ import { defineComponent, PropType } from 'vue';
 import { mapStores } from 'pinia';
 import { useForm } from 'vee-validate';
 
-import {
-  useNotifications,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { useNotifications, XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '@niis/shared-ui';
 
 import { ConfigurationSigningKey, ConfigurationType } from '@/openapi-types';
 import { useSigningKey } from '@/store/modules/signing-keys';
@@ -88,11 +84,11 @@ export default defineComponent({
   emits: ['cancel', 'key-add'],
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    const { defineComponentBinds, errors, values, meta } = useForm({
+    const { defineField, errors, values, meta } = useForm({
       validationSchema: { keyLabel: 'required|min:1|max:255' },
     });
-    const keyLabel = defineComponentBinds('keyLabel');
-    return { errors, values, meta, keyLabel, addError, addSuccessMessage };
+    const [keyLabelMdl, keyLabelRef] = defineField('keyLabel');
+    return { errors, values, meta, keyLabelMdl, keyLabelRef, addError, addSuccessMessage };
   },
   data() {
     return {

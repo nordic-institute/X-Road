@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi;
 
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
 import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.Nested;
@@ -35,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;

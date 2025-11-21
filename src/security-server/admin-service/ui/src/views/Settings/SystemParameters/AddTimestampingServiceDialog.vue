@@ -55,22 +55,15 @@
               v-model="selectedTimestampingServiceName"
               data-test="system-parameters-add-timestamping-service-dialog-radio-group"
               class="xrd"
-              :label="
-                $t(
-                  'systemParameters.timestampingServices.action.add.dialog.info',
-                )
-              "
+              :label="$t('systemParameters.timestampingServices.action.add.dialog.info')"
             >
               <div
                 v-for="timestampingService in selectableTimestampingServices"
                 :key="timestampingService.name"
+                class="d-flex align-center"
               >
-                <v-radio
-                  class="xrd"
-                  :name="timestampingService.name"
-                  :label="timestampingService.name"
-                  :value="timestampingService.name"
-                />
+                <v-radio class="xrd" :name="timestampingService.name" :label="timestampingService.name" :value="timestampingService.name" />
+                <span class="mr-16">{{ $t('systemParameters.costType.' + timestampingService.cost_type) }}</span>
               </div>
             </v-radio-group>
           </XrdFormBlockRow>
@@ -86,13 +79,7 @@ import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import { TimestampingService } from '@/openapi-types';
 import { sortTimestampingServices } from '@/util/sorting';
-import {
-  XrdSimpleDialog,
-  XrdBtn,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  useNotifications,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, XrdBtn, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
@@ -128,17 +115,11 @@ export default defineComponent({
     selectableTimestampingServices(): TimestampingService[] {
       return [...this.approvedTimestampingServices].filter(
         (approvedService) =>
-          !this.configuredTimestampingServices.some(
-            (configuredService) =>
-              approvedService.name === configuredService.name,
-          ),
+          !this.configuredTimestampingServices.some((configuredService) => approvedService.name === configuredService.name),
       );
     },
     selectedTimestampingService(): TimestampingService | undefined {
-      return this.approvedTimestampingServices.find(
-        (approvedService) =>
-          approvedService.name === this.selectedTimestampingServiceName,
-      );
+      return this.approvedTimestampingServices.find((approvedService) => approvedService.name === this.selectedTimestampingServiceName);
     },
   },
   created(): void {
@@ -151,12 +132,7 @@ export default defineComponent({
     fetchApprovedTimestampingServices(): void {
       api
         .get<TimestampingService[]>('/timestamping-services')
-        .then(
-          (resp) =>
-            (this.approvedTimestampingServices = sortTimestampingServices(
-              resp.data,
-            )),
-        )
+        .then((resp) => (this.approvedTimestampingServices = sortTimestampingServices(resp.data)))
         .catch((error) => this.addError(error));
     },
     add(): void {
@@ -164,9 +140,7 @@ export default defineComponent({
       api
         .post('/system/timestamping-services', this.selectedTimestampingService)
         .then(() => {
-          this.addSuccessMessage(
-            'systemParameters.timestampingServices.action.add.dialog.success',
-          );
+          this.addSuccessMessage('systemParameters.timestampingServices.action.add.dialog.success');
           this.$emit('added');
           this.close();
         })

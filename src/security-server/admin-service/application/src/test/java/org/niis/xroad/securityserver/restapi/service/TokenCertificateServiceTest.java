@@ -28,7 +28,6 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.impl.DnFieldDescriptionImpl;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +43,7 @@ import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
@@ -364,8 +364,8 @@ public class TokenCertificateServiceTest {
             return switch (certHash) {
                 case NOT_FOUND_CERT_HASH -> throw XrdRuntimeException.systemException(CERT_NOT_FOUND).build();
                 case EXISTING_CERT_HASH, EXISTING_CERT_IN_AUTH_KEY_HASH, EXISTING_CERT_IN_SIGN_KEY_HASH,
-                     SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, SIGNER_EX_INTERNAL_ERROR_HASH, SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH,
-                     SIGNER_EX_TOKEN_READONLY_HASH, HASH_FOR_ACME_IMPORT ->
+                        SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, SIGNER_EX_INTERNAL_ERROR_HASH, SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH,
+                        SIGNER_EX_TOKEN_READONLY_HASH, HASH_FOR_ACME_IMPORT ->
                     // cert will have same id as hash
                         new CertificateTestUtils.CertificateInfoBuilder().id(certHash).build();
                 case MISSING_CERTIFICATE_HASH -> createCertificateInfo(null, false, false, "status", "certID",
@@ -425,7 +425,7 @@ public class TokenCertificateServiceTest {
                         new TokenInfoAndKeyId(tokenInfo, authKey.getId());
                 case EXISTING_CERT_IN_SIGN_KEY_HASH -> new TokenInfoAndKeyId(tokenInfo, signKey.getId());
                 case NOT_FOUND_CERT_HASH, EXISTING_CERT_HASH, SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, SIGNER_EX_INTERNAL_ERROR_HASH,
-                     SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH, SIGNER_EX_TOKEN_READONLY_HASH, CertificateTestUtils.MOCK_CERTIFICATE_HASH ->
+                        SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH, SIGNER_EX_TOKEN_READONLY_HASH, CertificateTestUtils.MOCK_CERTIFICATE_HASH ->
                         new TokenInfoAndKeyId(tokenInfo, goodKey.getId());
                 default -> throw new CertificateNotFoundException("unknown cert: " + hash);
             };

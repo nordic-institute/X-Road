@@ -63,12 +63,7 @@
 import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
 
-import {
-  useBasicForm,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  XrdSimpleDialog,
-} from '@niis/shared-ui';
+import { useBasicForm, XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '@niis/shared-ui';
 
 import { useGlobalGroups } from '@/store/modules/global-groups';
 
@@ -87,12 +82,9 @@ const [description, descriptionAttrs] = defineField('description', {
 });
 
 const { add } = useGlobalGroups();
-const { loading, addSuccessMessage, showOrTranslateErrors } = useBasicForm(
-  setFieldError,
-  {
-    code: 'globalGroupCodeAndDescriptionDto.code',
-  },
-);
+const { loading, addSuccessMessage, showOrTranslateErrors } = useBasicForm(setFieldError, {
+  code: 'globalGroupCodeAndDescriptionDto.code',
+});
 
 const save = handleSubmit((values) => {
   loading.value = true;

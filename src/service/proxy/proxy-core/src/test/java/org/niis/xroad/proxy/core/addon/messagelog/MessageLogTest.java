@@ -31,17 +31,10 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.messagelog.LogRecord;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.RestLogMessage;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.messagelog.database.entity.AbstractLogRecordEntity;
-import ee.ria.xroad.messagelog.database.entity.ArchiveDigestEntity;
-import ee.ria.xroad.messagelog.database.entity.DigestEntryEmbeddable;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -52,14 +45,19 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.assertj.core.api.Assertions;
 import org.hibernate.Hibernate;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.messagelog.LogRecord;
+import org.niis.xroad.messagelog.MessageRecord;
+import org.niis.xroad.messagelog.RestLogMessage;
+import org.niis.xroad.messagelog.TimestampRecord;
+import org.niis.xroad.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.messagelog.entity.AbstractLogRecordEntity;
+import org.niis.xroad.messagelog.entity.ArchiveDigestEntity;
+import org.niis.xroad.messagelog.entity.DigestEntryEmbeddable;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampFailed;
@@ -84,13 +82,14 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.common.core.exception.ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.assertTaskQueueSize;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.cleanUpDatabase;
@@ -102,23 +101,15 @@ import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.createSig
  * Contains tests to verify correct message log behavior.
  */
 @Slf4j
-@RunWith(Parameterized.class)
-public class MessageLogTest extends AbstractMessageLogTest {
+class MessageLogTest extends AbstractMessageLogTest {
     private static final String LAST_LOG_ARCHIVE_FILE = "mlog-20150520112233-20150520123344-asdlfjlasa.zip";
     private static final String LAST_DIGEST = "123567890abcdef";
+    private static final String TEST_KEY_ID = "test-key-1";
 
-    @BeforeClass
-    public static void beforeClass() {
+    @BeforeAll
+    static void beforeAll() {
         TimeUtils.setClock(Clock.systemDefaultZone());
     }
-
-    @Parameterized.Parameters(name = "encrypted = {0}")
-    public static Object[] params() {
-        return new Object[]{Boolean.FALSE, Boolean.TRUE};
-    }
-
-    @Parameterized.Parameter()
-    public boolean encrypted;
 
     static Date logRecordTime;
 
@@ -127,15 +118,18 @@ public class MessageLogTest extends AbstractMessageLogTest {
      *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void timestampingForced() throws Exception {
-        log.trace("timestampingForced()");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void timestampingForced(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("timestampingForced(encrypted={})", encrypted);
 
         log("02-04-2014 12:34:56.100", createMessage("forced"));
         assertTaskQueueSize(databaseCtx, 1);
 
         MessageRecord messageRecord = findByQueryId("forced");
         assertMessageRecord(messageRecord, "forced");
+        assertEncryptionState(messageRecord, encrypted);
 
         TimestampRecord timestamp = timestamp(messageRecord);
         assertNotNull(timestamp);
@@ -151,15 +145,18 @@ public class MessageLogTest extends AbstractMessageLogTest {
      *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void timestampingDouble() throws Exception {
-        log.trace("timestampingDouble()");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void timestampingDouble(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("timestampingDouble(encrypted={})", encrypted);
 
         log("02-04-2014 12:34:56.100", createMessage("forced"));
         assertTaskQueueSize(databaseCtx, 1);
 
         MessageRecord messageRecord = findByQueryId("forced");
         assertMessageRecord(messageRecord, "forced");
+        assertEncryptionState(messageRecord, encrypted);
 
         TimestampRecord timestamp1 = timestamp(messageRecord);
         assertNotNull(timestamp1);
@@ -176,9 +173,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
      *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void logThreeMessagesAndTimestamp() throws Exception {
-        log.trace("logThreeMessagesAndTimestamp())");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void logThreeMessagesAndTimestamp(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("logThreeMessagesAndTimestamp(encrypted={})", encrypted);
 
         log(createMessage(), createSignature());
         log(createMessage(), createSignature());
@@ -202,9 +201,13 @@ public class MessageLogTest extends AbstractMessageLogTest {
     /**
      * Log message
      */
-    @Test
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
     @SuppressWarnings("squid:S2699")
-    public void logRestMessage() throws Exception {
+    void logRestMessage(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("logRestMessage(encrypted={})", encrypted);
+
         final String requestId = UUID.randomUUID().toString();
         final RestRequest message = createRestRequest("q-" + requestId, requestId);
 
@@ -213,17 +216,22 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(atDate, message, createSignature(), body);
         final MessageRecord logRecord = findByQueryId(message.getQueryId(), ClientId.Conf.create("XRD", "Class", "Member", "SubSystem"));
 
+        assertEncryptionState(logRecord, encrypted);
         messageRecordEncryption.prepareDecryption(logRecord);
         assertEquals(logRecord.getXRequestId(), requestId);
         assertEquals(logRecord.getQueryId(), message.getQueryId());
         final AsicContainer asic = logRecord.toAsicContainer();
-        Assert.assertArrayEquals(asic.getMessage().getBytes(StandardCharsets.UTF_8), message.getMessageBytes());
+        assertArrayEquals(asic.getMessage().getBytes(StandardCharsets.UTF_8), message.getMessageBytes());
         final byte[] attachment = IOUtils.readFully(asic.getAttachments().getFirst(), body.length);
         assertArrayEquals(body, attachment);
     }
 
-    @Test
-    public void logSoapWithAttachments() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void logSoapWithAttachments(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("logSoapWithAttachments(encrypted={})", encrypted);
+
         final String requestId = UUID.randomUUID().toString();
         final var message = createMessage(requestId);
         var attachment1 = "ONE".getBytes(StandardCharsets.UTF_8);
@@ -232,12 +240,13 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(message, createSignature(), List.of(attachment1, attachment2));
 
         final MessageRecord logRecord = findByQueryId(message.getQueryId());
+        assertEncryptionState(logRecord, encrypted);
         messageRecordEncryption.prepareDecryption(logRecord);
         assertEquals(logRecord.getXRequestId(), requestId);
         assertEquals(logRecord.getQueryId(), message.getQueryId());
 
         final AsicContainer asic = logRecord.toAsicContainer();
-        Assert.assertEquals(asic.getMessage(), message.getXml());
+        assertEquals(asic.getMessage(), message.getXml());
         var attachments = asic.getAttachments().stream().map(MessageLogTest::readAllBytes).toList();
         Assertions.assertThat(attachments).containsExactly(attachment1, attachment2);
     }
@@ -245,13 +254,13 @@ public class MessageLogTest extends AbstractMessageLogTest {
     /**
      * Test for system property timestamp-records-limit
      */
-    @Test
-    public void testTimestampRecordsLimit() throws Exception {
-        log.trace("testTimestampRecordsLimit()");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testTimestampRecordsLimit(boolean encrypted) throws Exception {
+        log.trace("testTimestampRecordsLimit(encrypted={})", encrypted);
 
         // Reinitialize with custom timestamp-records-limit
-        testTearDown();
-        testSetUp(Map.of("xroad.proxy.message-log.timestamper.records-limit", "2"));
+        setupTestWithConfig(Map.of("xroad.proxy.message-log.timestamper.records-limit", "2"), encrypted);
 
         TestTaskQueue.successfulMessageSizes.clear();
         log(createMessage(), createSignature());
@@ -271,13 +280,13 @@ public class MessageLogTest extends AbstractMessageLogTest {
      *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void timestampImmediately() throws Exception {
-        log.trace("timestampImmediately()");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void timestampImmediately(boolean encrypted) throws Exception {
+        log.trace("timestampImmediately(encrypted={})", encrypted);
 
         // Reinitialize with timestamp-immediately enabled
-        testTearDown();
-        testSetUp(true);
+        setupTestWithConfig(Map.of("xroad.proxy.message-log.timestamper.timestamp-immediately", "true"), encrypted);
 
         log(createMessage(), createSignature());
         assertTaskQueueSize(databaseCtx, 0);
@@ -288,23 +297,17 @@ public class MessageLogTest extends AbstractMessageLogTest {
      *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void timestampImmediatelyFail() throws Exception {
-        log.trace("timestampImmediatelyFail()");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void timestampImmediatelyFail(boolean encrypted) throws Exception {
+        log.trace("timestampImmediatelyFail(encrypted={})", encrypted);
 
         // Reinitialize with timestamp-immediately enabled
-        testTearDown();
-        testSetUp(true);
+        setupTestWithConfig(Map.of("xroad.proxy.message-log.timestamper.timestamp-immediately", "true"), encrypted);
 
         TestTimestamperWorker.failNextTimestamping(true);
 
-        try {
-            log(createMessage(), createSignature());
-
-            fail("Should fail to timestamp immediately");
-        } catch (Exception expected) {
-            log.info("Expected exception: " + expected);
-        }
+        assertThrows(Exception.class, () -> log(createMessage(), createSignature()), "Should fail to timestamp immediately");
     }
 
     /**
@@ -316,9 +319,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
      *                   depends on external
      *                   utilities), consider moving this test apart from unit tests.
      */
-    @Test
-    public void logTimestampArchiveAndClean() throws Exception {
-        log.trace("logTimestampArchiveAndClean()");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void logTimestampArchiveAndClean(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("logTimestampArchiveAndClean(encrypted={})", encrypted);
 
         assertTaskQueueSize(databaseCtx, 0);
         log("01-09-2021 12:34:55.100", createMessage(), createSignature());
@@ -350,9 +355,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
      *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void timestampingFailed() throws Exception {
-        log.trace("timestampingFailed()");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void timestampingFailed(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("timestampingFailed(encrypted={})", encrypted);
 
         TestTimestamperWorker.failNextTimestamping(true);
 
@@ -364,7 +371,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         startTimestamping();
 
         Object result = waitForMessageInTaskQueue();
-        assertTrue("Got " + result, result instanceof TimestampFailed);
+        assertInstanceOf(TimestampFailed.class, result, "Got " + result);
 
         log(createMessage(), createSignature());
         assertTaskQueueSize(databaseCtx, 4);
@@ -375,13 +382,13 @@ public class MessageLogTest extends AbstractMessageLogTest {
      *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void timestampingFailedStopLogging() throws Exception {
-        log.trace("timestampingFailedStopLogging()");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void timestampingFailedStopLogging(boolean encrypted) throws Exception {
+        log.trace("timestampingFailedStopLogging(encrypted={})", encrypted);
 
         // Reinitialize with short acceptable timestamp failure period
-        testTearDown();
-        testSetUp(Map.of("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1"));
+        setupTestWithConfig(Map.of("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1"), encrypted);
 
         TestTimestamperWorker.failNextTimestamping(true);
 
@@ -404,9 +411,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
      *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void failedToSaveTimestampToDatabase() throws Exception {
-        log.trace("failedToSaveTimestampToDatabase()");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void failedToSaveTimestampToDatabase(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("failedToSaveTimestampToDatabase(encrypted={})", encrypted);
 
         TestTaskQueue.throwWhenSavingTimestamp = XrdRuntimeException.systemInternalError("expected");
 
@@ -443,9 +452,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
      *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void findByQueryId() throws Exception {
-        log.trace("findByQueryId()");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void findByQueryId(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("findByQueryId(encrypted={})", encrypted);
 
         log("02-04-2014 12:34:56.100", createMessage("message1"));
         log("02-04-2014 12:34:57.100", createMessage("message2"));
@@ -465,27 +476,157 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Wants to time-stamp, but no TSP urls configured.
+     *
+     * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void timestampNoTspUrls() {
-        log.trace("timestampNoTspUrls()");
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void timestampNoTspUrls(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("timestampNoTspUrls(encrypted={})", encrypted);
 
         serverConfProvider.setServerConfProvider(new EmptyServerConf());
 
-        XrdRuntimeException xrdRuntimeException = assertThrows(XrdRuntimeException.class, () -> log(createMessage(), createSignature()));
+        XrdRuntimeException exception = assertThrows(XrdRuntimeException.class, () -> log(createMessage(), createSignature()));
+        assertEquals(ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND.code(), exception.getErrorCode());
+    }
 
-        assertEquals(NO_TIMESTAMPING_PROVIDER_FOUND.code(), xrdRuntimeException.getErrorCode());
+
+    /**
+     * Test that verifies actual encryption state in database.
+     * When encrypted=true, cipherMessage should be set and different from plaintext.
+     * When encrypted=false, message should be set in plaintext.
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void shouldStoreMessagesAccordingToEncryptionMode(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("shouldStoreMessagesAccordingToEncryptionMode(encrypted={})", encrypted);
+
+        SoapMessageImpl soapMessage = createMessage("encryption-test");
+
+        log(soapMessage, createSignature());
+
+        MessageRecord messageRecord = findByQueryId("encryption-test");
+        assertNotNull(messageRecord);
+
+        if (encrypted) {
+            // Verify encrypted storage
+            assertNotNull(messageRecord.getCipherMessage(), "Encrypted message should have cipherMessage");
+            assertNull(messageRecord.getMessage(), "Encrypted message should have null plaintext message");
+            assertEquals(TEST_KEY_ID, messageRecord.getKeyId(), "Encrypted message should have correct key ID");
+
+            // Verify ciphertext is different from plaintext
+            assertFalse(
+                    java.util.Arrays.equals(soapMessage.getXml().getBytes(StandardCharsets.UTF_8),
+                            messageRecord.getCipherMessage()),
+                    "Ciphertext should be different from plaintext"
+            );
+        } else {
+            // Verify plaintext storage
+            assertNotNull(messageRecord.getMessage(), "Unencrypted message should have plaintext message");
+            assertNull(messageRecord.getCipherMessage(), "Unencrypted message should have null cipherMessage");
+            assertEquals(soapMessage.getXml(), messageRecord.getMessage(), "Plaintext message should match original");
+        }
+    }
+
+    /**
+     * Test that verifies attachment encryption works correctly.
+     * Encrypted attachments should be different from plaintext but preserve length.
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void shouldEncryptAttachmentsCorrectly(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("shouldEncryptAttachmentsCorrectly(encrypted={})", encrypted);
+
+        String requestId = UUID.randomUUID().toString();
+        SoapMessageImpl message = createMessage(requestId);
+        byte[] attachment1 = "First attachment data".getBytes(StandardCharsets.UTF_8);
+        byte[] attachment2 = "Second attachment with more content".getBytes(StandardCharsets.UTF_8);
+
+        log(message, createSignature(), List.of(attachment1, attachment2));
+
+        MessageRecord logRecord = findByQueryId(message.getQueryId());
+        assertNotNull(logRecord);
+        assertEncryptionState(logRecord, encrypted);
+
+        if (encrypted) {
+            // Verify attachments are encrypted in storage
+            assertEquals(TEST_KEY_ID, logRecord.getKeyId(), "Encrypted record should have correct key ID");
+            assertEquals(2, logRecord.getAttachments().size(), "Should have 2 attachments");
+
+            // Get raw attachment data from database (before decryption)
+            var att1 = logRecord.getAttachments().get(0);
+            var att2 = logRecord.getAttachments().get(1);
+
+            assertNotNull(att1.getAttachment(), "Attachment 1 should have encrypted data");
+            assertNotNull(att2.getAttachment(), "Attachment 2 should have encrypted data");
+
+            // CTR mode preserves length
+            assertEquals(attachment1.length, att1.getAttachment().length(), "CTR mode should preserve attachment 1 length");
+            assertEquals(attachment2.length, att2.getAttachment().length(), "CTR mode should preserve attachment 2 length");
+        }
+
+        // Verify decryption works correctly
+        messageRecordEncryption.prepareDecryption(logRecord);
+        AsicContainer asic = logRecord.toAsicContainer();
+        var decryptedAttachments = asic.getAttachments().stream().map(MessageLogTest::readAllBytes).toList();
+
+        assertArrayEquals(attachment1, decryptedAttachments.get(0), "Attachment 1 should decrypt correctly");
+        assertArrayEquals(attachment2, decryptedAttachments.get(1), "Attachment 2 should decrypt correctly");
+    }
+
+    /**
+     * Test that verifies key ID is correctly stored and retrieved.
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void shouldStoreAndRetrieveKeyIdCorrectly(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+        log.trace("shouldStoreAndRetrieveKeyIdCorrectly(encrypted={})", encrypted);
+
+        // Log multiple messages
+        log(createMessage("msg1"), createSignature());
+        log(createMessage("msg2"), createSignature());
+        log(createMessage("msg3"), createSignature());
+
+        // Verify all messages have correct key ID
+        MessageRecord msg1 = findByQueryId("msg1");
+        MessageRecord msg2 = findByQueryId("msg2");
+        MessageRecord msg3 = findByQueryId("msg3");
+
+        assertNotNull(msg1);
+        assertNotNull(msg2);
+        assertNotNull(msg3);
+
+        if (encrypted) {
+            assertEquals(TEST_KEY_ID, msg1.getKeyId(), "Message 1 should have correct key ID");
+            assertEquals(TEST_KEY_ID, msg2.getKeyId(), "Message 2 should have correct key ID");
+            assertEquals(TEST_KEY_ID, msg3.getKeyId(), "Message 3 should have correct key ID");
+
+            // Verify all messages are encrypted
+            assertNotNull(msg1.getCipherMessage());
+            assertNotNull(msg2.getCipherMessage());
+            assertNotNull(msg3.getCipherMessage());
+        } else {
+            // When not encrypted, key ID may be null or not set
+            // Just verify messages are in plaintext
+            assertNotNull(msg1.getMessage());
+            assertNotNull(msg2.getMessage());
+            assertNotNull(msg3.getMessage());
+        }
     }
 
     // ------------------------------------------------------------------------
 
     /**
-     * Set up configuration.
+     * Set up test with specific encryption mode.
      *
+     * @param encrypted whether to enable encryption
      * @throws Exception in case of any unexpected errors
      */
-    @Before
-    public void setUp() throws Exception {
+    protected void setupTest(boolean encrypted) throws Exception {
         // Initialize with test-specific configuration
         Map<String, String> config = new java.util.HashMap<>();
         config.put("xroad.proxy.message-log.timestamper.timestamp-immediately", "false");
@@ -494,11 +635,36 @@ public class MessageLogTest extends AbstractMessageLogTest {
         config.put("xroad.proxy.message-log.archiver.archive-path", "build/archive");
         config.put("xroad.proxy.message-log.archiver.clean-keep-records-for", "0");
         config.put("xroad.proxy.message-log.database-encryption.enabled", String.valueOf(encrypted));
-        config.put("xroad.proxy.message-log.database-encryption.messagelog-keystore-password", "password");
-        config.put("xroad.proxy.message-log.database-encryption.messagelog-keystore", "build/resources/test/messagelog.p12");
-        config.put("xroad.proxy.message-log.database-encryption.messagelog-key-id", "key1");
 
-        testSetUp(config);
+        if (encrypted) {
+            config.put("xroad.proxy.message-log.database-encryption.key-id", TEST_KEY_ID);
+        }
+
+        testSetUp(config, encrypted);
+
+        initLastHashStep();
+
+        // initialize states
+        initLogManager();
+        TestLogManager.initSetTimestampingStatusLatch();
+        TestTaskQueue.initGateLatch();
+        TestTaskQueue.initTimestampSavedLatch();
+
+        logRecordTime = null;
+        TestTaskQueue.throwWhenSavingTimestamp = null;
+
+        TestTimestamperWorker.failNextTimestamping(false);
+    }
+
+    protected void setupTestWithConfig(Map<String, String> additionalConfig, boolean encrypted) throws Exception {
+        Map<String, String> config = new java.util.HashMap<>(additionalConfig);
+        config.put("xroad.proxy.message-log.database-encryption.enabled", String.valueOf(encrypted));
+
+        if (encrypted) {
+            config.put("xroad.proxy.message-log.database-encryption.key-id", TEST_KEY_ID);
+        }
+
+        testSetUp(config, encrypted);
 
         initLastHashStep();
 
@@ -533,10 +699,14 @@ public class MessageLogTest extends AbstractMessageLogTest {
      *
      * @throws Exception in case of any unexpected errors
      */
-    @After
-    public void tearDown() throws Exception {
-        testTearDown();
-        cleanUpDatabase(databaseCtx);
+    @AfterEach
+    void tearDown() throws Exception {
+        if (databaseCtx != null) {
+            cleanUpDatabase(databaseCtx);
+        }
+        if (logManager != null) {
+            testTearDown();
+        }
     }
 
     @Override
@@ -594,7 +764,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
             while ((ze = zis.getNextEntry()) != null) {
                 digest.reset();
                 final byte[] buf = new byte[4096];
-                int len = 0;
+                int len;
                 if ("linkinginfo".equals(ze.getName())) {
                     StringBuilder builder = new StringBuilder();
                     while ((len = zis.read(buf)) > 0) {
@@ -611,6 +781,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         }
 
         String prevHash = null;
+        assert linkinginfo != null;
         for (final String line : linkinginfo.split("\n")) {
             final String[] parts = line.split("\\s+");
             if (prevHash == null) {
@@ -621,16 +792,16 @@ public class MessageLogTest extends AbstractMessageLogTest {
                 digest.reset();
                 digest.update(prevHash.getBytes());
                 final byte[] d = digests.get(parts[1]);
-                assertNotNull("Archive did not contain file " + parts[1], d);
+                assertNotNull(d, "Archive did not contain file " + parts[1]);
                 digest.update(EncoderUtils.encodeHex(d).getBytes());
                 prevHash = EncoderUtils.encodeHex(digest.digest());
-                assertEquals("Digest does not match", parts[0], prevHash);
+                assertEquals(parts[0], prevHash, "Digest does not match");
             }
         }
 
         String lastStepInDatabase = getLastHashStepInDatabase();
 
-        assertEquals("Last hash step file must start with last hash step result", lastStepInDatabase, prevHash);
+        assertEquals(lastStepInDatabase, prevHash, "Last hash step file must start with last hash step result");
     }
 
     private String getLastHashStepInDatabase() {
@@ -655,6 +826,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
         File latestModifiedZip = null;
 
+        assert files != null;
         for (File eachFile : files) {
             if (changesLatestModified(latestModifiedZip, eachFile)) {
                 latestModifiedZip = eachFile;
@@ -696,6 +868,25 @@ public class MessageLogTest extends AbstractMessageLogTest {
     @SneakyThrows
     private static byte[] readAllBytes(InputStream is) {
         return is.readAllBytes();
+    }
+
+    /**
+     * Assert that the message record has the correct encryption state.
+     *
+     * @param messageRecord the message record to check
+     * @param encrypted     whether encryption should be enabled
+     */
+    private void assertEncryptionState(MessageRecord messageRecord, boolean encrypted) {
+        if (encrypted) {
+            // When encrypted, cipherMessage should be set and message should be null
+            assertNotNull(messageRecord.getCipherMessage(), "Encrypted record should have cipherMessage");
+            assertNull(messageRecord.getMessage(), "Encrypted record should have null message");
+            assertEquals(TEST_KEY_ID, messageRecord.getKeyId(), "Encrypted record should have correct key ID");
+        } else {
+            // When not encrypted, message should be set and cipherMessage should be null
+            assertNotNull(messageRecord.getMessage(), "Unencrypted record should have message");
+            assertNull(messageRecord.getCipherMessage(), "Unencrypted record should have null cipherMessage");
+        }
     }
 
 }

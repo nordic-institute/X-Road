@@ -116,6 +116,11 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public String getTspCostType(String tspUrl) {
+        return null;
+    }
+
+    @Override
     public DescriptionType getDescriptionType(ServiceId serviceId) {
         return null;
     }
