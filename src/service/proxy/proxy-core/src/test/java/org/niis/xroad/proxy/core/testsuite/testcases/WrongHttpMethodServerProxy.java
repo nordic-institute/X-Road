@@ -28,7 +28,6 @@ package org.niis.xroad.proxy.core.testsuite.testcases;
 
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
-import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
@@ -45,7 +44,7 @@ public class WrongHttpMethodServerProxy extends MessageTestCase {
     public WrongHttpMethodServerProxy() {
         requestFileName = "getstate.query";
         httpMethod = "GET";
-        url = "http://127.0.0.1:" + ProxyTestSuiteHelper.proxyProperties.serverProxyPort();
+        url = () -> "http://127.0.0.1:" + proxyTestSuiteHelper.proxyProperties.serverProxyPort();
     }
 
     @Override

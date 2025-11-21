@@ -23,7 +23,7 @@ on:
 jobs:
   test-central-server:
     name: Run Central Server system tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -57,7 +57,7 @@ jobs:
       - name: Run Central Server system tests
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx2g \
           :central-server:admin-service:ui-system-test:systemTest \
           -PsystemTestCsImageName=${{ inputs.image_registry }}/central-server-dev:${{ inputs.service_image_tag }}
 

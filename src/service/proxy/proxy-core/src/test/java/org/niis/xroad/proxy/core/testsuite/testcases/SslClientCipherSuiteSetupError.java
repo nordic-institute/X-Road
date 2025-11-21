@@ -26,15 +26,12 @@
  */
 package org.niis.xroad.proxy.core.testsuite.testcases;
 
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.proxy.core.test.Message;
-import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestContext;
 import org.niis.xroad.proxy.core.testsuite.SslMessageTestCase;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
-
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -62,16 +59,19 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
     @Override
     public boolean execute(TestContext testContext) throws Exception {
         try {
-            // Set not accepted cipher in use
-            String[] origCipherSuites = ProxyTestSuiteHelper.proxyProperties.xroadTlsCiphers();
-            when(ProxyTestSuiteHelper.proxyProperties.xroadTlsCiphers()).thenReturn(getNotAcceptedCipher(origCipherSuites));
-
             // execute test
             return super.execute(testContext);
         } finally {
             // Restore cipher suite setup for rest of the tests
-            reset(ProxyTestSuiteHelper.proxyProperties);
+            reset(proxyTestSuiteHelper.proxyProperties);
         }
+    }
+
+    @Override
+    protected void postInitExecHook() {
+        // Set not accepted cipher in use
+        String[] origCipherSuites = proxyTestSuiteHelper.proxyProperties.xroadTlsCiphers();
+        when(proxyTestSuiteHelper.proxyProperties.xroadTlsCiphers()).thenReturn(getNotAcceptedCipher(origCipherSuites));
     }
 
     /**
@@ -86,8 +86,8 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
         // fault expected
     }
 
-    private String[] getNotAcceptedCipher(String[] acceptedCiphers) throws NoSuchAlgorithmException,
-            KeyManagementException {
+    @SneakyThrows
+    private String[] getNotAcceptedCipher(String[] acceptedCiphers) {
         var sslCtx = SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider);
         for (String cipher : sslCtx.createSSLEngine().getSupportedCipherSuites()) {
             if (cipher.contains("_RSA_") && !ArrayUtils.contains(acceptedCiphers, cipher)) {

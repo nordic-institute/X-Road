@@ -54,6 +54,7 @@ import org.niis.xroad.monitor.common.SystemMetricsResp;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
@@ -126,13 +127,14 @@ public class ProxyMonitorServiceHandlerMetricsTest {
      */
     @Before
     public void init() throws IOException {
-        serverConfProvider = new TestSuiteServerConf() {
+        var proxyTestSuiteHelper = new ProxyTestSuiteHelper();
+        serverConfProvider = new TestSuiteServerConf(proxyTestSuiteHelper) {
             @Override
             public SecurityServerId.Conf getIdentifier() {
                 return DEFAULT_OWNER_SERVER;
             }
         };
-        globalConfProvider = new TestSuiteGlobalConf();
+        globalConfProvider = new TestSuiteGlobalConf(proxyTestSuiteHelper);
         mockRequest = mock(RequestWrapper.class);
         mockProxyMessage = mock(ProxyMessage.class);
 

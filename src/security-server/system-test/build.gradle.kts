@@ -20,6 +20,7 @@ intTestComposeEnv {
 
   images(
     "OPENBAO_DEV_IMG" to "openbao-dev",
+    "POSTGRES_DEV_IMG" to "postgres-dev",
     "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
     "MESSAGELOG_INIT_IMG" to "ss-db-messagelog-init",
     "OP_MONITOR_INIT_IMG" to "ss-db-opmonitor-init",
@@ -63,9 +64,7 @@ tasks.register<Test>("systemTest") {
   if (project.hasProperty("systemTestSsServeReport")) {
     systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=${project.property("systemTestSsServeReport")}"
   }
-  if (project.hasProperty("systemTestSsImageName")) {
-    systemTestArgs += "-Dtest-automation.custom.image-name=${project.property("systemTestSsImageName")}"
-  }
+
 
   jvmArgs(systemTestArgs)
 

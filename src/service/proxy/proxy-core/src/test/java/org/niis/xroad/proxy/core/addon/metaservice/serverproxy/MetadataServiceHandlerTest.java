@@ -63,6 +63,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.addon.metaservice.common.WsdlRequestData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -148,6 +149,7 @@ public class MetadataServiceHandlerTest {
     private static MessageFactory messageFactory;
     private static Marshaller marshaller;
 
+    private ProxyTestSuiteHelper proxyTestSuiteHelper = new ProxyTestSuiteHelper();
     private RequestWrapper mockRequest;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
@@ -173,7 +175,7 @@ public class MetadataServiceHandlerTest {
     @Before
     public void init() {
 
-        serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf() {
+        serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf(proxyTestSuiteHelper) {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
                 if (service.toString().equals("SERVICE:EE/GOV/1234TEST_CLIENT/SUBCODE5/someServiceWithWsdl122")) {
@@ -192,7 +194,7 @@ public class MetadataServiceHandlerTest {
                 }
             }
         });
-        globalConfProvider = new TestSuiteGlobalConf();
+        globalConfProvider = new TestSuiteGlobalConf(proxyTestSuiteHelper);
 
         mockRequest = mock(RequestWrapper.class);
         mockProxyMessage = mock(ProxyMessage.class);
@@ -292,7 +294,7 @@ public class MetadataServiceHandlerTest {
         final ClientId expectedClient = DEFAULT_CLIENT;
         final ServiceId serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
-        serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf(proxyTestSuiteHelper) {
             @Override
             public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClient));
@@ -349,7 +351,7 @@ public class MetadataServiceHandlerTest {
         final ClientId expectedClient = DEFAULT_CLIENT;
         final ServiceId serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
-        serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf(proxyTestSuiteHelper) {
 
             @Override
             public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,

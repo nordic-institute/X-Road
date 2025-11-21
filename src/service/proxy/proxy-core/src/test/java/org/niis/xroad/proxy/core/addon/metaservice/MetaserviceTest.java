@@ -57,9 +57,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
-import static org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper.PROXY_PORT;
 
 class MetaserviceTest {
+    private static final ProxyTestSuiteHelper PROXY_TEST_SUITE_HELPER = new ProxyTestSuiteHelper();
 
     @BeforeAll
     static void beforeAll() throws Exception {
@@ -74,22 +74,22 @@ class MetaserviceTest {
         props.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
         props.put("xroad.proxy.server.listen-address", "127.0.0.1");
 
-        props.put("xroad.proxy.server.listen-port", valueOf(PROXY_PORT));
-        props.put("xroad.proxy.server-port", valueOf(PROXY_PORT));
+        props.put("xroad.proxy.server.listen-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
+        props.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
         props.put("xroad.proxy.ssl-enabled", "false");
         props.put("xroad.proxy.client-proxy.client-timeout", "15000");
 
-        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, props);
-        ProxyTestSuiteHelper.commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
+        PROXY_TEST_SUITE_HELPER.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, props);
+        PROXY_TEST_SUITE_HELPER.commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
                 "xroad.common.temp-files-path", "build/"
         ));
 
-        ProxyTestSuiteHelper.startTestServices();
+        PROXY_TEST_SUITE_HELPER.startTestServices();
     }
 
     @AfterAll
     static void afterAll() {
-        ProxyTestSuiteHelper.destroyTestServices();
+        PROXY_TEST_SUITE_HELPER.destroyTestServices();
     }
 
     TestContext ctx;
@@ -100,7 +100,7 @@ class MetaserviceTest {
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getAllTestCases(getClass().getPackageName() + ".testcases.");
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, ProxyTestSuiteHelper.commonProperties);
+        ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
 
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),

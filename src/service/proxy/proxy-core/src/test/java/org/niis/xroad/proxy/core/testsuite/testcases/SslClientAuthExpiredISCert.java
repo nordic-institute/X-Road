@@ -57,7 +57,7 @@ public class SslClientAuthExpiredISCert extends SslMessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf(proxyTestSuiteHelper) {
             @Override
             public IsAuthentication getIsAuthentication(
                     ClientId client) {

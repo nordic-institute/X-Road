@@ -41,6 +41,7 @@ import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.MessageRecordEncryption;
 import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteKeyConf;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
@@ -74,13 +75,14 @@ class MetadataHandlerTest {
     private MessageProcessorFactory messageProcessorFactory;
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
     private final CommonProperties commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
+    private final ProxyTestSuiteHelper proxyTestSuiteHelper = new ProxyTestSuiteHelper();
 
     /**
      * Init common data for tests
      */
     @BeforeEach
     void init() {
-        globalConfProvider = new TestSuiteGlobalConf();
+        globalConfProvider = new TestSuiteGlobalConf(proxyTestSuiteHelper);
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
         clientAuthenticationService = mock(ClientAuthenticationService.class);

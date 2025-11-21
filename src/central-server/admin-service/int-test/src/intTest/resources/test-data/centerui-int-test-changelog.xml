@@ -5,6 +5,10 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
+    <changeSet id="create-hstore" author="niis" context="int-test">
+        <sql>CREATE EXTENSION IF NOT EXISTS hstore;</sql>
+    </changeSet>
+
     <!-- Inject default schema.-->
     <include file="liquibase/centerui-changelog.xml" relativeToChangelogFile="false"/>
 

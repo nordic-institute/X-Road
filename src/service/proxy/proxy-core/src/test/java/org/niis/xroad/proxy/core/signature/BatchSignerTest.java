@@ -54,6 +54,7 @@ import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -87,7 +88,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class BatchSignerTest {
 
-    private final GlobalConfProvider globalConf = new TestSuiteGlobalConf();
+    private final GlobalConfProvider globalConf = new TestSuiteGlobalConf(new ProxyTestSuiteHelper());
     private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     private final TestCertUtil.PKCS12 producerP12 = TestCertUtil.getProducer();
     private final ClientId.Conf producerClientId = ClientId.Conf.create("EE", "BUSINESS", "producer");

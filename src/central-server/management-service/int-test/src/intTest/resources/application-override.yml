@@ -19,6 +19,7 @@ test-automation:
       tags: "not @Skip"
   containers:
     testable-container:
+      internal-network-alias: management-service-int-test
       reuse-between-runs: false
       spring-boot:
         base-image: eclipse-temurin:21-noble
@@ -28,6 +29,7 @@ test-automation:
           enabled: true
         jar-build-dir: ../application/build/libs/
         spring-profiles-to-activate: int-test
+
     context-containers:
       mock-server:
         enabled: true

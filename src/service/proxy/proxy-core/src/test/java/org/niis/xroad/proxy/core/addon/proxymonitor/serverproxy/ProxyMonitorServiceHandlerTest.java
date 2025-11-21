@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -79,13 +80,14 @@ public class ProxyMonitorServiceHandlerTest {
      */
     @Before
     public void init() throws IOException {
-        serverConfProvider = new TestSuiteServerConf() {
+        var proxyTestSuiteHelper = new ProxyTestSuiteHelper();
+        serverConfProvider = new TestSuiteServerConf(proxyTestSuiteHelper) {
             @Override
             public SecurityServerId.Conf getIdentifier() {
                 return DEFAULT_OWNER_SERVER;
             }
         };
-        globalConfProvider = new TestSuiteGlobalConf("src/test/resources/");
+        globalConfProvider = new TestSuiteGlobalConf("src/test/resources/", proxyTestSuiteHelper);
 
         mockProxyMessage = mock(ProxyMessage.class);
 
