@@ -25,15 +25,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-tabs bg-color="surface-container-low" class="rounded-xl" grow :class="{ border: bordered }">
+  <v-tabs bg-color="surface-container-low" class="xrd-sub-tabs rounded-xl" grow :class="{ border: bordered }">
     <v-tab
       v-for="tab in allowedTabs"
       :key="tab.key"
-      class="xrd-tab body-regular font-weight-medium"
+      class="xrd xrd-tab body-regular font-weight-medium"
       variant="text"
       rounded="xl"
       draggable="false"
       hide-slider
+      tabindex="0"
       :to="tab.to"
       :data-test="tab.key"
       :text="$t(tab.name)"

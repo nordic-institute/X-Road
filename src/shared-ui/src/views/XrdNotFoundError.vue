@@ -44,7 +44,7 @@
             <p class="body-large font-weight-regular mb-12">{{ $t('404.text2') }}</p>
             <v-btn
               data-test="error-404-button"
-              class="go-home bg-special"
+              class="xrd go-home bg-special"
               variant="flat"
               rounded="pill"
               size="large"

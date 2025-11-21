@@ -35,7 +35,7 @@
         <div>
           <v-btn
             data-test="go-back-button"
-            class="go-back bg-special ma-2"
+            class="xrd go-back bg-special ma-2"
             prepend-icon="arrow_back"
             variant="flat"
             rounded="pill"
@@ -47,7 +47,7 @@
           </v-btn>
           <v-btn
             data-test="go-to-front-page-button"
-            class="go-home ma-2"
+            class="xrd go-home ma-2"
             color="primary"
             variant="flat"
             rounded="pill"

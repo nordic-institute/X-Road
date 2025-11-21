@@ -27,6 +27,7 @@
 <template>
   <v-btn
     ref="button"
+    class="xrd"
     rounded="xl"
     height="40"
     :color="color"

@@ -124,7 +124,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
         identifiers.asList()
                 .forEach(identifier -> globalGroupDetailsPage.getAddMembersDialogObj().rowCheckbox(identifier)
                         .$("i")
-                        .shouldHave(cssClass("check_box")));
+                        .shouldHave(cssClass("check_box__filled")));
     }
 
     @Step("user filters selectable members list with query: {string}")

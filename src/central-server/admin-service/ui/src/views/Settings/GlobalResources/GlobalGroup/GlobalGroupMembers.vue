@@ -44,7 +44,7 @@
           :label="$t('action.search')"
           @update:model-value="debouncedFetchItems"
         />
-        <v-btn class="ml-4 mb-2" size="x-small" variant="outlined" icon="tune" color="primary" @click="showFilterDialog = true" />
+        <v-btn class="xrd ml-4 mb-2" size="x-small" variant="outlined" icon="tune" color="primary" @click="showFilterDialog = true" />
       </div>
     </template>
     <template #title-actions>

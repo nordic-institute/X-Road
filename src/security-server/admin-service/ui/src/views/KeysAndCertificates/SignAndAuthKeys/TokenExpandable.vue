@@ -37,7 +37,7 @@
 
         <v-btn
           data-test="token-icon-button"
-          class="ml-2"
+          class="xrd ml-2"
           icon="edit"
           density="compact"
           variant="text"

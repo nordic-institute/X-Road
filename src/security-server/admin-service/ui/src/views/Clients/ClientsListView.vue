@@ -72,7 +72,7 @@
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
           <XrdLabelWithIcon
             data-test="btn-client-details"
-            icon="folder_open filled"
+            icon="folder_open__filled"
             semi-bold
             :label="item.visibleName"
             :clickable="canOpenClient"

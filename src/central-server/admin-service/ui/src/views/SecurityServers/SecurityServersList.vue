@@ -55,7 +55,7 @@
         <XrdLabelWithIcon icon="dns" semi-bold clickable :label="item.server_id.server_code" @navigate="toDetails(item)" />
       </template>
       <template #[`item.in_maintenance_mode`]="{ item }">
-        <v-icon v-if="item.in_maintenance_mode" class="mr-2" icon="check_circle filled" color="success" />
+        <v-icon v-if="item.in_maintenance_mode" class="mr-2" icon="check_circle" color="success" filled />
         {{ item.maintenance_mode_message }}
       </template>
       <template #bottom>
