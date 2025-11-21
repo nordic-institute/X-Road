@@ -34,6 +34,7 @@ ENVIRONMENT VARIABLES:
 IMAGES BUILT:
     - openbao-dev:<tag>     OpenBao secret store for development
     - testca-dev:<tag>      Test CA with ACME/OCSP/TSA support
+    - postgres-dev:<tag>    PostgreSQL 16 optimized for test workloads
 
 EXAMPLES:
     # Build for local development
@@ -197,6 +198,39 @@ else
 fi
 
 # =============================================================================
+# Build PostgreSQL Development Image
+# =============================================================================
+log_info "Building postgres-dev..."
+build_start=$(date +%s)
+
+POSTGRES_DEV_IMAGE="${REGISTRY}/postgres-dev:${IMAGE_TAG}"
+POSTGRES_DEV_DOCKERFILE="${SCRIPT_DIR}/postgres-dev/Dockerfile"
+POSTGRES_DEV_CONTEXT="${SCRIPT_DIR}/postgres-dev"
+
+build_cmd=(
+  docker buildx build
+  --file "$POSTGRES_DEV_DOCKERFILE"
+  --tag "$POSTGRES_DEV_IMAGE"
+)
+
+if [[ "$PUSH" == "true" ]]; then
+  build_cmd+=(--push)
+else
+  build_cmd+=(--load)
+fi
+
+build_cmd+=("$POSTGRES_DEV_CONTEXT")
+
+if "${build_cmd[@]}"; then
+  build_end=$(date +%s)
+  build_duration=$((build_end - build_start))
+  log_success "Built postgres-dev in $(format_duration $build_duration)"
+else
+  log_error "Failed to build postgres-dev"
+  exit 1
+fi
+
+# =============================================================================
 # Summary
 # =============================================================================
 BUILD_END_TIME=$(date +%s)
@@ -208,5 +242,6 @@ log_info "Total time: $(format_duration $TOTAL_DURATION)"
 log_info "Images built:"
 echo "  - $OPENBAO_IMAGE"
 echo "  - $TESTCA_IMAGE"
+echo "  - $POSTGRES_DEV_IMAGE"
 echo
 

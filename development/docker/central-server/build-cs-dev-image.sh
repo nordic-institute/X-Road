@@ -115,6 +115,8 @@ if [[ -z "$PACKAGES_PATH" ]]; then
   PACKAGES_PATH="${XROAD_HOME}/deployment/native-packages/build/ubuntu24.04"
 fi
 
+PERF_PATH="${XROAD_HOME}/development/docker/postgres-dev/files/"
+
 # Validate packages directory
 if [[ ! -d "$PACKAGES_PATH" ]] || [[ ! "$(ls -A "$PACKAGES_PATH")" ]]; then
   log_error "Cannot find packages in $PACKAGES_PATH"
@@ -177,6 +179,7 @@ build_cmd=(
   docker buildx build
   --file "$SCRIPT_DIR/Dockerfile"
   --build-arg PACKAGE_SOURCE=internal
+  --build-context "perf=$PERF_PATH"
   --build-context "packages=$PACKAGES_PATH"
 )
 

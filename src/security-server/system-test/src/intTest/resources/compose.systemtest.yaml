@@ -51,7 +51,8 @@ services:
       - ./container-files/etc/xroad/backup-keys:/etc/xroad/backup-keys
 
   db-opmonitor:
-    image: postgres:16
+    image: ${POSTGRES_DEV_IMG}
+    pull_policy: always
     environment:
       - POSTGRES_DB=op-monitor
       - POSTGRES_PASSWORD=secret
