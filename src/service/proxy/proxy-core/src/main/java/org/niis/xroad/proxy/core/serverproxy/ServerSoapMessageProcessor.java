@@ -425,6 +425,10 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         }
     }
 
+    private List<AttachmentStream> getAttachments() {
+        return attachmentCache.stream().map(Attachment::getAttachmentStream).toList();
+    }
+
     private void sendRequest(String serviceAddress, HttpSender httpSender) {
         log.trace("sendRequest({})", serviceAddress);
 
@@ -776,9 +780,5 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
             bufferedLength = length;
             bufferFlushed = false;
         }
-    }
-
-    private List<AttachmentStream> getAttachments() {
-        return attachmentCache.stream().map(Attachment::getAttachmentStream).toList();
     }
 }

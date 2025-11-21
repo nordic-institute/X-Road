@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-public class SimpleSignerTest extends AbstractSignerTest {
+class SimpleSignerTest extends AbstractSignerTest {
 
     @BeforeEach
     void beforeEach() {

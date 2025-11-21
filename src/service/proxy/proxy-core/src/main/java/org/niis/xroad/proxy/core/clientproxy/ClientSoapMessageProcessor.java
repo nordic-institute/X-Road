@@ -557,6 +557,10 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             MessageLog.log(requestSoap, request.getSignature(), getAttachments(), true, xRequestId);
         }
 
+        private List<AttachmentStream> getAttachments() {
+            return attachmentCache.stream().map(Attachment::getAttachmentStream).toList();
+        }
+
         @Override
         @ArchUnitSuppressed("NoVanillaExceptions")
         public void onError(Exception e) throws Exception {
@@ -586,10 +590,6 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
                 }
             }
         }
-    }
-
-    private List<AttachmentStream> getAttachments() {
-        return attachmentCache.stream().map(Attachment::getAttachmentStream).toList();
     }
 
 }
