@@ -38,7 +38,7 @@
     @update:model-value="fileChange"
   >
     <template #append-inner>
-      <v-btn v-if="file" class="on-surface-variant" icon="close" density="compact" variant="text" size="small" @click.stop="clear" />
+      <v-btn v-if="file" class="xrd on-surface-variant" icon="close" density="compact" variant="text" size="small" @click.stop="clear" />
     </template>
   </v-file-input>
 </template>

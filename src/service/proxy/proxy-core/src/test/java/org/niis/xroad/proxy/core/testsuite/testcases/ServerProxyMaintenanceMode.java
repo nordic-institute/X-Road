@@ -53,8 +53,8 @@ public class ServerProxyMaintenanceMode extends MessageTestCase {
 
     @Override
     protected void startUp() throws Exception {
-        serverConfProvider.setServerConfProvider(new TestSuiteServerConf());
-        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf(proxyTestSuiteHelper));
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf(proxyTestSuiteHelper) {
             @Override
             public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress) {
                 return Optional.of(SharedParameters.MaintenanceMode.enabled("Maintenance mode is on"));

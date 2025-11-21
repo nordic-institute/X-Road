@@ -48,9 +48,9 @@ const serviceIcon = computed(() => {
     case undefined:
       return 'lock_open';
     case true:
-      return 'lock filled';
+      return 'lock__filled';
     case false:
-      return 'lock filled';
+      return 'lock__filled';
     default:
       return '';
   }

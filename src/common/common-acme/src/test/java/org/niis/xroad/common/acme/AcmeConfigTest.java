@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.nii.xroad.common.acme;
+package org.niis.xroad.common.acme;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -32,8 +32,6 @@ import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.acme.AcmeCommonConfig;
-import org.niis.xroad.common.acme.AcmeConfig;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AcmeConfigTest {
+class AcmeConfigTest {
     private AcmeCommonConfig acmeCommonConfig;
 
     private ListAppender<ILoggingEvent> appender;
@@ -49,7 +47,7 @@ public class AcmeConfigTest {
     private final AcmeConfig config = mock(AcmeConfig.class);
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         acmeCommonConfig = new AcmeCommonConfig();
 
         appender = new ListAppender<>();
@@ -58,7 +56,7 @@ public class AcmeConfigTest {
     }
 
     @AfterEach
-    public void teardown() {
+    void teardown() {
         logger.detachAppender(appender);
         appender.stop();
     }

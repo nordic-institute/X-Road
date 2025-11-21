@@ -144,13 +144,13 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
                 builder -> builder.addService(new MockMetricsProvider()));
         monitorRpcServer.init();
 
-        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf(proxyTestSuiteHelper) {
             @Override
             public String getInstanceIdentifier() {
                 return EXPECTED_XR_INSTANCE;
             }
         });
-        serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf(proxyTestSuiteHelper) {
             @Override
             public SecurityServerId.Conf getIdentifier() {
                 return DEFAULT_OWNER_SERVER;

@@ -77,7 +77,7 @@
           }"
         >
           <v-col cols="11" sm="8" md="7" lg="6" xl="5">
-            <v-card variant="text" :hover="false" class="login-form w-100">
+            <v-card variant="text" :hover="false" class="login-form w-100 px-2">
               <v-card-title class="font-weight-bold title-page opacity-100 pt-0 pl-0">
                 {{ $t('login.logIn') }}
               </v-card-title>
@@ -121,7 +121,7 @@
                 <v-btn
                   id="submit-button"
                   data-test="login-button"
-                  class="body-large font-weight-medium"
+                  class="xrd body-large font-weight-medium"
                   variant="flat"
                   color="special"
                   rounded="xl"

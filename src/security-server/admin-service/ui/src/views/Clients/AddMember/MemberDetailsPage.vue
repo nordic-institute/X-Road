@@ -69,7 +69,7 @@
         :text="$t('wizard.member.memberExists')"
         class="my-4 border border-s-xl"
         variant="outlined"
-        icon="error filled"
+        icon="error__filled"
         color="error"
         border="error"
         bg-color="background"

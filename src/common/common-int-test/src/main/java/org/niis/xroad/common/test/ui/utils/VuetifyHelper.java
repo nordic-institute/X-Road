@@ -40,6 +40,9 @@ import static com.codeborne.selenide.Condition.tagName;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.ScrollIntoViewOptions.Block.end;
+import static com.codeborne.selenide.ScrollIntoViewOptions.Block.start;
+import static com.codeborne.selenide.ScrollIntoViewOptions.instant;
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
 
@@ -94,12 +97,12 @@ public final class VuetifyHelper {
         }
 
         public Checkbox shouldBeChecked() {
-            controlElement.$x(".//i").shouldHave(cssClass("check_box"));
+            controlElement.$x(".//i").shouldHave(cssClass("check_box__filled"));
             return this;
         }
 
         public boolean isChecked() {
-            return controlElement.$x(".//i").has(cssClass("check_box"));
+            return controlElement.$x(".//i").has(cssClass("check_box__filled"));
         }
 
         public Checkbox shouldBeUnchecked() {
@@ -113,7 +116,7 @@ public final class VuetifyHelper {
         }
 
         public Checkbox scrollIntoView(boolean alignToTop) {
-            controlElement.scrollIntoView(alignToTop);
+            controlElement.scrollIntoView(instant().block(alignToTop ? start : end));
             return this;
         }
 

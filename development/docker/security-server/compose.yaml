@@ -13,7 +13,8 @@ services:
     networks:
       - xrd-ss-network
   db-serverconf:
-    image: postgres:16
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
     environment:
       - POSTGRES_PASSWORD=admin_secret
       - POSTGRES_USER=postgres
@@ -55,7 +56,8 @@ services:
         wait
       "
   db-messagelog:
-    image: postgres:16
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
     environment:
       - POSTGRES_PASSWORD=admin_secret
       - POSTGRES_USER=postgres

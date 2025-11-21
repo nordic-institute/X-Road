@@ -76,8 +76,11 @@ public class DummyService extends Server {
     private static X509Certificate[] serverCertChain;
     private static PrivateKey serverKey;
 
-    public DummyService() {
+    private final ProxyTestSuiteHelper proxyTestSuiteHelper;
+
+    public DummyService(ProxyTestSuiteHelper proxyTestSuiteHelper) {
         super();
+        this.proxyTestSuiteHelper = proxyTestSuiteHelper;
         try {
             setupConnectors();
             setHandler(new ServiceHandler());
@@ -98,12 +101,12 @@ public class DummyService extends Server {
     private void setupConnectors() throws Exception {
         ServerConnector connector = new ServerConnector(this);
         connector.setName("httpConnector");
-        connector.setPort(ProxyTestSuiteHelper.SERVICE_PORT);
+        connector.setPort(proxyTestSuiteHelper.servicePort);
         addConnector(connector);
 
         ServerConnector sslConnector = createSslConnector();
         sslConnector.setName("httpsConnector");
-        sslConnector.setPort(ProxyTestSuiteHelper.SERVICE_SSL_PORT);
+        sslConnector.setPort(proxyTestSuiteHelper.serviceSslPort);
         sslConnector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)
                 .map(HttpConnectionFactory.class::cast)
@@ -136,7 +139,7 @@ public class DummyService extends Server {
         return new ServerConnector(this, cf);
     }
 
-    private static final class ServiceHandler extends Handler.Abstract {
+    private final class ServiceHandler extends Handler.Abstract {
         @Override
         public boolean handle(Request request, Response response, Callback callback) {
             var target = getTarget(request);
@@ -233,8 +236,8 @@ public class DummyService extends Server {
         }
     }
 
-    private static MessageTestCase currentTestCase() {
-        return ProxyTestSuiteHelper.currentTestCase;
+    private MessageTestCase currentTestCase() {
+        return proxyTestSuiteHelper.currentTestCase;
     }
 
     private static final class DummyServiceKeyManager extends X509ExtendedKeyManager {

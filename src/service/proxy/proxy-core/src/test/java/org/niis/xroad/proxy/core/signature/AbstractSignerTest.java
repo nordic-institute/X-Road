@@ -45,6 +45,7 @@ import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.test.keyconf.TestKeyConf;
@@ -68,7 +69,7 @@ import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_RSA_PKCS;
 @Slf4j
 public abstract class AbstractSignerTest {
 
-    protected final GlobalConfProvider globalConf = new TestSuiteGlobalConf();
+    protected final GlobalConfProvider globalConf = new TestSuiteGlobalConf(new ProxyTestSuiteHelper());
     protected final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     protected final TestCertUtil.PKCS12 producerP12 = TestCertUtil.getProducer();
     protected final ClientId.Conf producerClientId = ClientId.Conf.create("EE", "BUSINESS", "producer");

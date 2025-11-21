@@ -18,7 +18,7 @@ sonarqube {
     property("sonar.exclusions", "**/build/generated-sources/**")
     property(
       "sonar.coverage.jacoco.xmlReportPaths",
-      "${rootProject.layout.buildDirectory.get().asFile}/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"
+      "${rootProject.layout.buildDirectory.get().asFile}/reports/jacoco/jacocoAggregatedReport/jacocoAggregatedReport.xml"
     )
 
     property("sonar.issue.ignore.multicriteria", "e1")
@@ -106,6 +106,6 @@ tasks.named("assemble") {
 }
 
 tasks.named("sonar") {
-  dependsOn("testCodeCoverageReport")
+  dependsOn(tasks.named("jacocoAggregatedReport"))
   onlyIf { System.getenv("SONAR_TOKEN") != null }
 }

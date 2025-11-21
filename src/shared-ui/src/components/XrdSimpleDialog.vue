@@ -43,11 +43,12 @@
         <template #append>
           <v-icon
             v-if="!hideClose"
-            :disabled="cancelDisabled"
-            icon="close"
             data-test="dlg-close-x"
+            class="close-x xrd"
+            icon="close"
             color="primary"
             size="default"
+            :disabled="cancelDisabled"
             @click="cancel"
           />
         </template>

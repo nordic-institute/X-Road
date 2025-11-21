@@ -79,6 +79,7 @@
             >
               <template #append-inner>
                 <v-btn
+                  class="xrd"
                   prepend-icon="content_copy"
                   size="x-small"
                   rounded="xl"

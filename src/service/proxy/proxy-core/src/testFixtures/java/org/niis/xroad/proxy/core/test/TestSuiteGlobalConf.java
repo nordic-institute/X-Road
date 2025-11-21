@@ -50,12 +50,16 @@ import static java.util.Collections.singleton;
  * Test globalconf implementation.
  */
 public class TestSuiteGlobalConf extends EmptyGlobalConf {
+    private final ProxyTestSuiteHelper proxyTestSuiteHelper;
 
-    public TestSuiteGlobalConf() {
+    public TestSuiteGlobalConf(ProxyTestSuiteHelper proxyTestSuiteHelper) {
         super();
+        this.proxyTestSuiteHelper = proxyTestSuiteHelper;
     }
-    public TestSuiteGlobalConf(String confPath) {
+
+    public TestSuiteGlobalConf(String confPath, ProxyTestSuiteHelper proxyTestSuiteHelper) {
         super(confPath);
+        this.proxyTestSuiteHelper = proxyTestSuiteHelper;
     }
 
     @Override
@@ -67,7 +71,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     public Collection<String> getProviderAddress(ClientId provider) {
         if (currentTestCase() == null || provider == null) {
             return singleton("http://127.0.0.1:"
-                    + ProxyTestSuiteHelper.proxyProperties.serverProxyPort());
+                    + proxyTestSuiteHelper.proxyProperties.serverProxyPort());
         }
 
         String addr = currentTestCase().getProviderAddress(
@@ -94,7 +98,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     private MessageTestCase currentTestCase() {
-        return ProxyTestSuiteHelper.currentTestCase;
+        return proxyTestSuiteHelper.currentTestCase;
     }
 
     @Override

@@ -49,7 +49,7 @@
       <template #[`item.member_name`]="{ item }">
         <XrdLabelWithIcon
           semi-bold
-          :icon="item.client_id.subsystem_code ? 'id_card' : 'folder filled'"
+          :icon="item.client_id.subsystem_code ? 'id_card' : 'folder__filled'"
           :label="item.member_name"
           :clickable="hasPermissionToMemberDetails"
           @navigate="toMemberDetails(item)"

@@ -26,7 +26,7 @@
  -->
 <template>
   <div class="help-wrap">
-    <v-btn icon="help" variant="text" density="compact" @click="helpClick()" />
+    <v-btn class="xrd" icon="help" variant="text" density="compact" @click="helpClick()" />
 
     <XrdHelpDialog v-if="showHelp" :title="helpTitle" :text="helpText" @cancel="closeHelp">
       <v-img v-if="helpImage" class="border xrd-rounded-12" :src="helpImage" />

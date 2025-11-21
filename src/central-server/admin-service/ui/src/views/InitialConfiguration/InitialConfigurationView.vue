@@ -89,8 +89,9 @@
                 v-if="pinConfirmValid"
                 class="mr-1"
                 color="success"
-                icon="check_circle filled"
+                icon="check_circle"
                 data-test="confirm-pin-append-input-icon"
+                filled
               />
               <v-icon color="primary" :icon="passwordIcon" @click.stop="togglePasswordType" />
             </template>

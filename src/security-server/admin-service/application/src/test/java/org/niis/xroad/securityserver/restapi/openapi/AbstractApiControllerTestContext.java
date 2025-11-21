@@ -27,6 +27,8 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.niis.xroad.common.mail.MailService;
 import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
@@ -145,11 +147,13 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
      * (e.g. request scoped beans will not work without an existing request)
      */
     @Before
+    @BeforeEach
     public void mockServlet() {
         TestUtils.mockServletRequestAttributes();
     }
 
     @After
+    @AfterEach
     public void cleanUpServlet() {
         RequestContextHolder.resetRequestAttributes();
     }

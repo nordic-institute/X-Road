@@ -28,7 +28,6 @@
 package org.niis.xroad.proxy.core.test;
 
 import org.apache.http.client.HttpClient;
-import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
@@ -45,9 +44,7 @@ import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
-import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.proxy.core.serverproxy.ClientProxyVersionVerifier;
@@ -68,27 +65,35 @@ import java.util.List;
 import static org.mockito.Mockito.mock;
 
 public class TestContext {
-    TestGlobalConfWrapper globalConfProvider = new TestGlobalConfWrapper(new TestSuiteGlobalConf());
-    OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
-    KeyConfProvider keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
-    TestServerConfWrapper serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf());
+    final TestGlobalConfWrapper globalConfProvider;
+    final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
+    final KeyConfProvider keyConfProvider;
+    final TestServerConfWrapper serverConfProvider;
+    final ProxyTestSuiteHelper proxyTestSuiteHelper;
 
     public ServerProxy serverProxy;
     ClientProxy clientProxy;
 
-    public TestContext(ProxyProperties proxyProperties, CommonProperties commonProperties) {
-        this(proxyProperties, commonProperties, true);
+    public TestContext(ProxyTestSuiteHelper proxyTestSuiteHelper) {
+        this(proxyTestSuiteHelper, true);
     }
 
-    public TestContext(ProxyProperties proxyProperties, CommonProperties commonProperties, boolean startServerProxy) {
-        this(proxyProperties, commonProperties, startServerProxy, mock(MonitorRpcClient.class));
+    public TestContext(ProxyTestSuiteHelper proxyTestSuiteHelper, boolean startServerProxy) {
+        this(proxyTestSuiteHelper, startServerProxy, mock(MonitorRpcClient.class));
     }
 
-    public TestContext(ProxyProperties proxyProperties, CommonProperties commonProperties,
-                       boolean startServerProxy, MonitorRpcClient monitorRpcClient) {
+    public TestContext(ProxyTestSuiteHelper proxyTestSuiteHelper, boolean startServerProxy, MonitorRpcClient monitorRpcClient) {
         try {
             org.apache.xml.security.Init.init();
-            SigningCtxProvider signingCtxProvider = new TestSuiteSigningCtxProvider(globalConfProvider, keyConfProvider);
+
+            this.proxyTestSuiteHelper = proxyTestSuiteHelper;
+            this.serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf(proxyTestSuiteHelper));
+            this.globalConfProvider = new TestGlobalConfWrapper(new TestSuiteGlobalConf(proxyTestSuiteHelper));
+            keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
+
+            var signingCtxProvider = new TestSuiteSigningCtxProvider(globalConfProvider, keyConfProvider, proxyTestSuiteHelper);
+            var commonProperties = proxyTestSuiteHelper.commonProperties;
+            var proxyProperties = proxyTestSuiteHelper.proxyProperties;
 
             CertHelper certHelper = new CertHelper(globalConfProvider, ocspVerifierFactory);
             AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),

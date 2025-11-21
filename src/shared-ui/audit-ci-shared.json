@@ -3,6 +3,7 @@
   "skip-dev": false,
   "package-manager": "auto",
   "allowlist": [
-    "GHSA-37j7-fg3j-429f"
+    "GHSA-37j7-fg3j-429f",
+    "GHSA-5j98-mcp5-4vw2"
   ]
 }

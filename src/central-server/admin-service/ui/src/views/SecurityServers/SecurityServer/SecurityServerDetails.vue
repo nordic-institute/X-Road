@@ -54,7 +54,7 @@
 
         <XrdCardTableRow data-test="security-server-maintenance-mode" label="securityServers.maintenanceMode">
           <template v-if="securityServer?.in_maintenance_mode" #value>
-            <v-icon class="mr-2" icon="check_circle filled" color="success" />
+            <v-icon class="mr-2" icon="check_circle" color="success" filled />
             {{ securityServer.maintenance_mode_message }}
           </template>
         </XrdCardTableRow>

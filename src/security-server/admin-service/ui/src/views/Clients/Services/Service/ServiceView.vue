@@ -83,7 +83,7 @@ export default defineComponent({
         {
           key: 'endpoints',
           name: 'tab.services.endpoints',
-          icon: 'graph_2 filled',
+          icon: 'graph_2__filled',
           to: {
             name: RouteName.Endpoints,
             params: {

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,21 +23,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-/* Overrides for Vuetify variables
-"Once installed, create a folder called sass, scss or styles in your src directory with
-a file named variables.scss or variables.sass. The vuetify-loader will automatically
-bootstrap your variables into Vue CLI’s compilation process, overwriting the framework defaults."
-https://vuetifyjs.com/en/features/sass-variables/#vue-cli-install
+package org.niis.xroad.cs.test.api.configuration;
+
+import com.nortal.test.feign.interceptor.FeignClientInterceptor;
+import jakarta.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import okhttp3.Interceptor;
+import okhttp3.Response;
+import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.cs.test.container.CsAdminServiceIntTestSetup;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+
+@Component
+@RequiredArgsConstructor
+public class HostFeignClientInterceptor implements FeignClientInterceptor {
+    private static final int EXECUTION_ORDER = 10;
+
+    private final CsAdminServiceIntTestSetup intTestSetup;
+
+    @Override
+    public int getOrder() {
+        return EXECUTION_ORDER;
+    }
+
+    @NotNull
+    @Override
+    public Response intercept(@Nonnull Interceptor.Chain chain) throws IOException {
+        var request = chain.request();
+        var csContainer = intTestSetup.getContainerMapping(CsAdminServiceIntTestSetup.CS, CsAdminServiceIntTestSetup.Port.UI);
+
+        var newUrl = request.url().newBuilder()
+                .host(csContainer.host())
+                .port(csContainer.port())
+                .build();
+
+        request = request.newBuilder()
+                .url(newUrl)
+                .build();
 
 
-List of Vuetify SASS variables: https://vuetifyjs.com/en/api/vuetify/#sass-variables
-*/
+        return chain.proceed(request);
+    }
 
-// Globals
-$body-font-family: 'Open Sans', sans-serif;
-$container-max-widths: (
-  'md': 1600px,
-  // containers are as wide as viewport even on smaller screens
-  'lg': 1600px,
-  'xl': 1600px,
-);
+}
