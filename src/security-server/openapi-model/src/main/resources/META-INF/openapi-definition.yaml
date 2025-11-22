@@ -6689,6 +6689,8 @@ components:
           example: org.example.TestCertificateInfoProvider
           minLength: 1
           maxLength: 1024
+        default_csr_format:
+          $ref: '#/components/schemas/CsrFormat'
         acme_capable:
           type: boolean
           description: if certificate authority supports ACME

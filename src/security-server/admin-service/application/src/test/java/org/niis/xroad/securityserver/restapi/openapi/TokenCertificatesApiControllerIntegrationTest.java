@@ -36,7 +36,6 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageDto;
@@ -93,6 +92,7 @@ import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.MO
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getMockAuthCertificate;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getMockCertificate;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getMockCertificateWithoutExtensions;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCa;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.assertLocationHeader;
 
 /**
@@ -114,7 +114,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         doAnswer(answer -> TestUtils.INSTANCE_FI).when(globalConfProvider).getInstanceIdentifier();
         doAnswer(answer -> TestUtils.getM1Ss1ClientId()).when(globalConfProvider).getSubjectName(any(), any());
         when(globalConfProvider.getApprovedCA(any(), any()))
-                .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", null, null, null, null));
+                .thenReturn(approvedCa("testca", false, "ee.test.Profile"));
         CertificateInfo signCertificateInfo = new CertificateInfoBuilder().certificate(getMockCertificate())
                 .certificateStatus("SAVED").build();
         CertificateInfo authCertificateInfo = new CertificateInfoBuilder().certificate(getMockAuthCertificate())

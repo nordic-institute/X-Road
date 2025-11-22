@@ -189,6 +189,7 @@ public class CertificateAuthorityService {
         builder.certificateProfileInfo(approvedCAInfo.getCertificateProfileInfo());
         builder.acmeServerIpAddress(approvedCAInfo.getAcmeServerIpAddress());
         builder.acmeCapable(approvedCAInfo.getAcmeServerDirectoryUrl() != null);
+        builder.defaultCsrFormat(approvedCAInfo.getDefaultCsrFormat());
 
         // properties from X509Certificate
         builder.notAfter(FormatUtils.fromDateToOffsetDateTime(certificate.getNotAfter()));

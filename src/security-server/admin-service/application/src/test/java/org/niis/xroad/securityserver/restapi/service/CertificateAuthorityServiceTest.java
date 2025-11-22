@@ -37,6 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -63,6 +64,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCa;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCaWithAcme;
 
 /**
  * test CertificateAuthorityService
@@ -89,17 +92,16 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
     public void setup() throws Exception {
         evictCache(); // start with empty cache
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
-        approvedCAInfos.add(new ApprovedCAInfo("fi-not-auth-only", false,
-                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",
-                "http://ca-with-acme", null, null, null));
+        approvedCAInfos.add(approvedCaWithAcme("fi-not-auth-only", false,
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
         // @deprecated The {@link SkEsteIdCertificateProfileInfoProvider} profile has been marked deprecated starting
         // from X-Road 7.2.0 and will be removed in a future version. This test should then also be cleaned up.
-        approvedCAInfos.add(new ApprovedCAInfo("est-auth-only", true,
-                "ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider", null, null, null, null));
-        approvedCAInfos.add(new ApprovedCAInfo("mock-top-ca", false,
-                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", null, null, null, null));
-        approvedCAInfos.add(new ApprovedCAInfo("mock-intermediate-ca", false,
-                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", null, null, null, null));
+        approvedCAInfos.add(approvedCa("est-auth-only", true,
+                "ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider"));
+        approvedCAInfos.add(approvedCa("mock-top-ca", false,
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
+        approvedCAInfos.add(approvedCa("mock-intermediate-ca", false,
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
         when(globalConfProvider.getApprovedCAs(any())).thenReturn(approvedCAInfos);
         when(globalConfProvider.getOcspResponderAddressesAndCostTypes(any(), any())).thenReturn(Map.of(MOCK_OCSP_RESPONDER_ADDRESS,
                 CostType.FREE));
@@ -267,6 +269,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertTrue(ca.isTopCa());
         assertEquals("good", ca.getOcspResponse());
         assertEquals(CostType.FREE, ca.getOcspUrlsAndCostTypes().get(MOCK_OCSP_RESPONDER_ADDRESS));
+        assertEquals(CsrFormat.PEM, ca.getDefaultCsrFormat());
         assertEquals(OffsetDateTime.parse("2038-01-01T00:00Z"), ca.getNotAfter());
         assertTrue(ca.isAcmeCapable());
 
@@ -281,6 +284,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertTrue(ca2.isTopCa());
         assertEquals("not available", ca2.getOcspResponse());
         assertEquals(CostType.FREE, ca.getOcspUrlsAndCostTypes().get(MOCK_OCSP_RESPONDER_ADDRESS));
+        assertEquals(CsrFormat.PEM, ca.getDefaultCsrFormat());
         assertEquals(OffsetDateTime.parse("2039-11-23T09:20:27Z"), ca2.getNotAfter());
         assertFalse(ca2.isAcmeCapable());
 
@@ -353,8 +357,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
         // cant instantiate
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
-        approvedCAInfos.add(new ApprovedCAInfo("provider-class-does-not-exist", false,
-                "ee.ria.xroad.common.certificateprofile.impl.NonExistentProvider", null, null, null, null));
+        approvedCAInfos.add(approvedCa("provider-class-does-not-exist", false,
+                "ee.ria.xroad.common.certificateprofile.impl.NonExistentProvider"));
         when(globalConfProvider.getApprovedCAs(any())).thenReturn(approvedCAInfos);
 
         assertThrows(CertificateProfileInstantiationException.class, () ->

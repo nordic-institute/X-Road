@@ -28,9 +28,11 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import com.google.common.collect.Streams;
 import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrFormatDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDto;
 import org.springframework.stereotype.Component;
 
@@ -65,12 +67,17 @@ public class CertificateAuthorityConverter {
         ca.setTopCa(approvedCaDto.isTopCa());
         ca.acmeCapable(approvedCaDto.isAcmeCapable());
         ca.certificateProfileInfo(approvedCaDto.getCertificateProfileInfo());
+        ca.setDefaultCsrFormat(convertCsrFormat(approvedCaDto.getDefaultCsrFormat()));
         ca.acmeServerIpAddresses(ofNullable(approvedCaDto.getAcmeServerIpAddress())
                 .map(ips -> ips.split(","))
                 .map(List::of)
                 .orElse(null));
         ca.setOcspResponders(convertOcspResponders(approvedCaDto.getOcspUrlsAndCostTypes()));
         return ca;
+    }
+
+    private static CsrFormatDto convertCsrFormat(CsrFormat csrFormat) {
+        return csrFormat != null ? CsrFormatDto.valueOf(csrFormat.name()) : null;
     }
 
     private List<OcspResponderDto> convertOcspResponders(Map<String, CostType> ocspUrlsAndCostTypes) {
