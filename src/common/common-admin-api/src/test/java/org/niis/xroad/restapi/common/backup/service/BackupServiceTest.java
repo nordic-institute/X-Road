@@ -93,6 +93,7 @@ class BackupServiceTest {
 
     @BeforeEach
     void setUp() {
+        when(commonProperties.confBackupPath()).thenReturn(CommonProperties.DEFAULT_CONF_BACKUP_PATH);
         backupRepository = spy(new BackupRepository(backupValidator, commonProperties));
         backupService = new BackupService(backupRepository, auditDataHelper);
     }
