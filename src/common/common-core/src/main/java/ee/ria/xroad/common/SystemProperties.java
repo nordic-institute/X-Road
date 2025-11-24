@@ -73,9 +73,6 @@ public final class SystemProperties {
 
     public static final String CENTER_DATABASE_PROPERTIES = CENTER_PREFIX + "database-properties";
 
-    /** Property name of the path where conf backups are created. */
-    public static final String CONF_BACKUP_PATH = CENTER_PREFIX + "conf-backup-path";
-
     /** Property name of enabling automatic approval of auth cert registration requests. */
     public static final String CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = CENTER_PREFIX + "auto-approve-auth-cert-reg-requests";
 
@@ -160,13 +157,6 @@ public final class SystemProperties {
      */
     public static String getTempFilesPath() {
         return getProperty(TEMP_FILES_PATH, DefaultFilepaths.TEMP_FILES_PATH);
-    }
-
-    /**
-     * @return path to the directory where configuration backups are stored, '/var/lib/xroad/backup/' by default.
-     */
-    public static String getConfBackupPath() {
-        return getProperty(CONF_BACKUP_PATH, DefaultFilepaths.CONF_BACKUP_PATH);
     }
 
     /**

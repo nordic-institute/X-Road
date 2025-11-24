@@ -32,14 +32,15 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.restapi.common.backup.service.BackupValidator;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_BACKUP_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BackupRepositoryTest {
@@ -48,6 +49,8 @@ class BackupRepositoryTest {
 
     @Mock
     private BackupValidator backupValidator;
+    @Mock
+    private CommonProperties commonProperties;
 
     @TempDir
     Path backupDir;
@@ -56,8 +59,8 @@ class BackupRepositoryTest {
 
     @BeforeEach
     void beforeEach() {
-        System.setProperty(CONF_BACKUP_PATH, backupDir.toAbsolutePath().toString());
-        repository = new BackupRepository(backupValidator);
+        when(commonProperties.confBackupPath()).thenReturn(backupDir.toAbsolutePath().toString());
+        repository = new BackupRepository(backupValidator, commonProperties);
     }
 
     @Test

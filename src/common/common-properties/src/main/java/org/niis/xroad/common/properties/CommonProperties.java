@@ -37,9 +37,14 @@ import static org.niis.xroad.common.properties.CommonProperties.PREFIX;
 public interface CommonProperties {
     String PREFIX = "xroad.common";
     String DEFAULT_TEMP_FILES_PATH = "/var/tmp/xroad/";
+    String DEFAULT_CONF_BACKUP_PATH = "/var/lib/xroad/backup/";
 
     @WithName("temp-files-path")
     @WithDefault(DEFAULT_TEMP_FILES_PATH)
     String tempFilesPath();
+
+    @WithName("conf-backup-path")
+    @WithDefault(DEFAULT_CONF_BACKUP_PATH)
+    String confBackupPath();
 
 }

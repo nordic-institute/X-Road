@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -81,6 +82,8 @@ class BackupServiceTest {
     AuditDataHelper auditDataHelper;
     @Mock
     BackupValidator backupValidator;
+    @Mock
+    CommonProperties commonProperties;
 
     BackupRepository backupRepository;
     BackupService backupService;
@@ -90,7 +93,7 @@ class BackupServiceTest {
 
     @BeforeEach
     void setUp() {
-        backupRepository = spy(new BackupRepository(backupValidator));
+        backupRepository = spy(new BackupRepository(backupValidator, commonProperties));
         backupService = new BackupService(backupRepository, auditDataHelper);
     }
 

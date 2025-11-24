@@ -154,6 +154,7 @@ public class LegacyConfigPathMapping {
         addMapping("center.external-directory", "admin-service.global-conf-generator.external-directory");
         addMapping("center.generated-conf-dir", "admin-service.global-conf-generator.generated-conf-dir");
         addMapping("center.trusted-anchors-allowed", "admin-service.trusted-anchors-allowed");
+        addMapping("center.conf-backup-path", "common.conf-backup-path");
 
         MAPPING.putAll(addDatabaseMapping("serverconf"));
         MAPPING.putAll(addDatabaseMapping("messagelog"));
