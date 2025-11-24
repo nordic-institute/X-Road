@@ -27,7 +27,6 @@
 
 package org.niis.xroad.common.test.ui.utils;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
 
@@ -40,7 +39,6 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.tagName;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
 
@@ -246,12 +244,7 @@ public final class VuetifyHelper {
         }
 
         public void selectCombobox(final String val) {
-            controlElement.$("input").setValue(val);
-
-            $$("div.v-list-item-title")
-                    .findBy(Condition.exactText(val))
-                    .shouldBe(Condition.visible)
-                    .click();
+            selectorComboboxOf(val).click();
         }
 
         public void clickAndSelect(final String val) {

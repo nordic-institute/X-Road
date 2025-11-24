@@ -44,7 +44,7 @@
             item-title="id"
             item-value="id"
             :return-object="false"
-            label="Client"
+            :label="$t('diagnostics.connection.securityServer.client')"
             variant="outlined"
             data-test="other-security-server-client-id"
           ></v-combobox>
@@ -104,7 +104,7 @@
             item-title="id"
             item-value="id"
             :return-object="false"
-            label="Target Client"
+            :label="$t('diagnostics.connection.securityServer.targetClient')"
             variant="outlined"
             data-test="other-security-server-target-client-id"
           ></v-combobox>
@@ -116,7 +116,7 @@
             item-title="server_code"
             item-value="id"
             :return-object="false"
-            label="Security server"
+            :label="$t('diagnostics.connection.securityServer.securityServer')"
             variant="outlined"
             data-test="other-security-server-id"
           ></v-combobox>

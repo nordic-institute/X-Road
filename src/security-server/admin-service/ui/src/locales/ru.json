@@ -260,11 +260,24 @@
       "ok": "Все в порядке",
       "test": "Тест",
       "centralServer": {
-        "title": "Центральный сервер",
+        "authCertRequest": "Сервис регистрации сертификатов аутентификации",
         "globalConf": "Загрузка глобальной конфигурации",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Сервис регистрации сертификатов аутентификации"
+        "title": "Центральный сервер"
+      },
+      "management": {
+        "title": "Управляющий сервер безопасности"
+      },
+      "securityServer": {
+        "client": "Клиент",
+        "current": "Текущий клиент",
+        "rest": "REST",
+        "securityServer": "Сервер безопасности",
+        "soap": "SOAP",
+        "title": "Другой сервер безопасности",
+        "target": "Цель",
+        "targetClient": "Целевой клиент"
       }
     }
   },

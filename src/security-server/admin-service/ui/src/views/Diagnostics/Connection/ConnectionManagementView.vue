@@ -103,7 +103,7 @@
             item-title="id"
             item-value="id"
             :return-object="false"
-            label="Target Client"
+            :label="$t('diagnostics.connection.securityServer.targetClient')"
             variant="outlined"
             :disabled="true"
           ></v-combobox>
@@ -115,7 +115,7 @@
             item-title="server_code"
             item-value="id"
             :return-object="false"
-            label="Security server"
+            :label="$t('diagnostics.connection.securityServer.securityServer')"
             variant="outlined"
           ></v-combobox>
         </v-col>

@@ -260,11 +260,24 @@
       "ok": "Her şey yolunda",
       "test": "Test",
       "centralServer": {
-        "title": "Merkezi Sunucu",
+        "authCertRequest": "Kimlik doğrulama sertifikası kayıt servisi",
         "globalConf": "Küresel yapılandırma indirme",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Kimlik doğrulama sertifikası kayıt servisi"
+        "title": "Merkezi Sunucu"
+      },
+      "management": {
+        "title": "Yönetim Güvenlik Sunucusu"
+      },
+      "securityServer": {
+        "client": "İstemci",
+        "current": "Geçerli istemci",
+        "rest": "REST",
+        "securityServer": "Güvenlik Sunucusu",
+        "soap": "SOAP",
+        "title": "Diğer Güvenlik Sunucusu",
+        "target": "Hedef",
+        "targetClient": "Hedef İstemci"
       }
     }
   },

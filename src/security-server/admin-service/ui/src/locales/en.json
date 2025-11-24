@@ -343,20 +343,17 @@
         "title": "Central Server"
       },
       "management": {
-        "party": "Security server",
-        "partyInfo": "Instance, client, security server",
-        "rest": "REST",
-        "soap": "SOAP",
         "title": "Management Security Server"
       },
       "securityServer": {
+        "client": "Client",
         "current": "Current Client",
-        "currentInfo": "Client",
         "rest": "REST",
+        "securityServer":  "Security Server",
         "soap": "SOAP",
         "title": "Other Security Server",
         "target": "Target",
-        "targetInfo": "Instance, client, security server"
+        "targetClient": "Target Client"
       }
     }
   },
