@@ -31,14 +31,10 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.signer.client.SignerRpcChannelProperties;
-import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.security.Signature;
 import java.util.ArrayList;
@@ -55,31 +51,18 @@ import static org.mockito.Mockito.when;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-class BatchSignerTest extends AbstractSignerTest {
-
-    @Mock
-    private SignerRpcClient signerClient;
-    @Mock
-    private SignerRpcChannelProperties signerRpcChannelProperties;
+class SimpleSignerTest extends AbstractSignerTest {
 
     @BeforeEach
     void beforeEach() {
         org.apache.xml.security.Init.init();
-        when(signerRpcChannelProperties.deadlineAfter()).thenReturn(60_000);
-        signer = new BatchSigner(signerClient, signerSignClient, signerRpcChannelProperties);
-    }
-
-    @AfterEach
-    void afterEach() {
-        ((BatchSigner) signer).destroy();
-        signer = null;
+        signer = new SimpleSigner(signerSignClient);
     }
 
     @Test
     void shouldSignAllTheMessagesReceivedInParallel() throws Exception {
         final int count = 500;
 
-        when(signerClient.isTokenBatchSigningEnabled(any())).thenReturn(true);
         // Sign with producer private key
         when(signerSignClient.sign(any(), any(), any())).thenAnswer(invocation -> {
             var args = invocation.getArguments();
@@ -113,6 +96,7 @@ class BatchSignerTest extends AbstractSignerTest {
 
                 assertThat(signResult.signatureData()).isNotNull();
                 assertThat(signResult.signatureData().getSignatureXml()).isNotEmpty();
+                assertThat(signResult.signatureData().isBatchSignature()).isFalse();
 
                 verify(signResult);
 
@@ -120,14 +104,13 @@ class BatchSignerTest extends AbstractSignerTest {
                     batchSignatureDetectCounter.incrementAndGet();
                 }
             } catch (Throwable e) {
+                log.error("Verification has failed.", e);
                 fail("Verification has failed.", e);
             }
         }
 
-        if (batchSignatureDetectCounter.get() < 1) {
-            fail("Not a single batch signature was detected.");
-        } else {
-            log.info("Batch signature was triggered {} times", batchSignatureDetectCounter.get());
+        if (batchSignatureDetectCounter.get() > 0) {
+            fail("0 batch signatures expected, but " + batchSignatureDetectCounter.get() + " got produced");
         }
     }
 

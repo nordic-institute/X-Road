@@ -29,10 +29,43 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import jakarta.xml.bind.JAXBException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.exceptions.XMLSecurityException;
+import org.niis.xroad.signer.client.SignerSignClient;
 
-@ArchUnitSuppressed("NoVanillaExceptions")
-public interface MessageSigner {
-    SignatureData sign(String keyId, SignAlgorithm signatureAlgorithm, SigningRequest request) throws Exception;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+
+@Slf4j
+@RequiredArgsConstructor
+public class SimpleSigner implements MessageSigner {
+    private final SignerSignClient signerSignClient;
+
+    @Override
+    public SignatureData sign(String keyId, SignAlgorithm signatureAlgorithm, SigningRequest request)
+            throws JAXBException,
+            GeneralSecurityException,
+            ParserConfigurationException,
+            IOException,
+            XMLSecurityException,
+            TransformerException {
+        log.trace("processing sign request");
+
+        final var ctx = new SignatureCtx(signatureAlgorithm);
+        ctx.add(request);
+
+        final byte[] digest = calculateDigest(signatureAlgorithm.digest(), ctx.getDataToBeSigned());
+        final byte[] response = signerSignClient.sign(keyId, signatureAlgorithm, digest);
+
+        String signature = ctx.createSignatureXml(response);
+        return new SignatureData(signature);
+    }
 
 }

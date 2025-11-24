@@ -29,6 +29,8 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Data;
 
+import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+
 
 /**
  * Encapsulates part of the input that will be added to the signature.
@@ -47,6 +49,10 @@ public final class MessagePart {
 
     /** Optionally holds the message if this is a message part */
     private final byte[] message;
+
+    public static MessagePart hashChainMessagePart() {
+        return new MessagePart(SIG_HASH_CHAIN_RESULT, null, null, null);
+    }
 
     /**
      * @return the raw data
