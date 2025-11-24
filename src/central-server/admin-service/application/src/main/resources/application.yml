@@ -109,6 +109,7 @@ xroad:
       internal-directory: internalconf
       external-directory: externalconf
       generated-conf-dir: /var/lib/xroad/public
+    trusted-anchors-allowed: true
     authentication-provider: PAM
     global-configuration-generation-rate-in-seconds: 60
     rate-limit-enabled: true

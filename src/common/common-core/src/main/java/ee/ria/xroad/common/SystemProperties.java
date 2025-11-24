@@ -65,8 +65,6 @@ public final class SystemProperties {
 
     // Center -----------------------------------------------------------------
 
-    private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
-
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = FALSE;
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = FALSE;
@@ -74,8 +72,6 @@ public final class SystemProperties {
     private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = FALSE;
 
     public static final String CENTER_DATABASE_PROPERTIES = CENTER_PREFIX + "database-properties";
-
-    public static final String CENTER_TRUSTED_ANCHORS_ALLOWED = CENTER_PREFIX + "trusted-anchors-allowed";
 
     /** Property name of the path where conf backups are created. */
     public static final String CONF_BACKUP_PATH = CENTER_PREFIX + "conf-backup-path";
@@ -179,14 +175,6 @@ public final class SystemProperties {
     public static String getCenterDatabasePropertiesFile() {
         return getProperty(CENTER_DATABASE_PROPERTIES,
                 getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
-    }
-
-    /**
-     * @return whether configuration of trusted anchors is enabled in the central server UI, 'true' by default.
-     */
-    public static boolean getCenterTrustedAnchorsAllowed() {
-        return Boolean.parseBoolean(getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED,
-                DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED));
     }
 
     /**

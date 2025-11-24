@@ -76,6 +76,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         UserRoleConfig,
         KeyAlgorithmConfig,
         UserAuthenticationConfig,
+        FederationConfig,
         AllowListConfig {
 
     /**
@@ -176,6 +177,9 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     private AuthenticationProviderType authenticationProvider;
 
     private boolean enforceUserPasswordPolicy;
+
+    /** Whether configuration of trusted anchors is enabled in the central server UI, 'true' by default. */
+    private boolean trustedAnchorsAllowed;
 
     /** Default whitelist for key management API (allow only localhost access, ipv4 and ipv6) */
     private String keyManagementApiWhitelist = "127.0.0.0/8, ::1";
