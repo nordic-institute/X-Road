@@ -51,8 +51,10 @@ import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
 public class DummyServerProxy extends Server {
+    private final ProxyTestSuiteHelper proxyTestSuiteHelper;
 
-    public DummyServerProxy(int port) {
+    public DummyServerProxy(int port, ProxyTestSuiteHelper proxyTestSuiteHelper) {
+        this.proxyTestSuiteHelper = proxyTestSuiteHelper;
         ServerConnector connector = new ServerConnector(this);
 
         connector.setName("ClientConnector");
@@ -73,7 +75,7 @@ public class DummyServerProxy extends Server {
         }
     }
 
-    private static final class ServiceHandler extends Handler.Abstract {
+    private final class ServiceHandler extends Handler.Abstract {
         @Override
         public boolean handle(Request request, Response response, Callback callback) throws Exception {
             var target = getTarget(request);
@@ -125,7 +127,7 @@ public class DummyServerProxy extends Server {
         }
     }
 
-    private static MessageTestCase currentTestCase() {
-        return ProxyTestSuiteHelper.currentTestCase;
+    private MessageTestCase currentTestCase() {
+        return proxyTestSuiteHelper.currentTestCase;
     }
 }

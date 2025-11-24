@@ -54,8 +54,8 @@ public class SslAuthTrustManagerError extends IsolatedSslMessageTestCase {
 
     @Override
     protected void startUp() throws Exception {
-        serverConfProvider.setServerConfProvider(new TestSuiteServerConf());
-        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf(proxyTestSuiteHelper));
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf(proxyTestSuiteHelper) {
             @Override
             public SecurityServerId.Conf getServerId(X509Certificate cert) {
                 return null;

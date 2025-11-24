@@ -23,7 +23,7 @@ on:
 jobs:
   test-e2e:
     name: Run E2E tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -59,7 +59,7 @@ jobs:
         working-directory: ./src
         run: |
           docker network create xroad-network
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx2g \
             :security-server:e2e-test:e2eTest \
             -PxroadImageRegistry=${{ inputs.image_registry }} \
             -PxroadImageTag=${{ inputs.service_image_tag }}

@@ -28,7 +28,6 @@ package org.niis.xroad.proxy.core.testsuite.testcases;
 
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
-import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SOAP;
@@ -48,7 +47,7 @@ public class ServerProxyProcessingError extends MessageTestCase {
         requestFileName = "getstate.query";
         requestContentType = "multipart/mixed; boundary=foobar";
 
-        url = "http://127.0.0.1:" + ProxyTestSuiteHelper.proxyProperties.serverProxyPort();
+        url = () -> "http://127.0.0.1:" + proxyTestSuiteHelper.proxyProperties.serverProxyPort();
     }
 
     @Override

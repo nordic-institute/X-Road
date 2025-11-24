@@ -94,7 +94,7 @@ public class ListMethodsMessage extends MessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf(proxyTestSuiteHelper) {
             @Override
             public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClientId));

@@ -42,7 +42,6 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
-import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.util.MetadataRequests;
 
@@ -92,7 +91,7 @@ public class GetListClientsMessage extends MessageTestCase {
     protected URI getClientUri() throws URISyntaxException {
         return new URIBuilder()
                 .setScheme("http").setHost("localhost")
-                .setPort(ProxyTestSuiteHelper.proxyProperties.clientProxy().clientHttpPort())
+                .setPort(proxyTestSuiteHelper.proxyProperties.clientProxy().clientHttpPort())
                 .setPath(MetadataRequests.LIST_CLIENTS)
                 .setParameter(PARAM_INSTANCE_IDENTIFIER, EXPECTED_XR_INSTANCE)
                 .build();
@@ -127,7 +126,7 @@ public class GetListClientsMessage extends MessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf(proxyTestSuiteHelper) {
 
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {

@@ -30,7 +30,6 @@ import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.apache.commons.io.IOUtils;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.openapi.model.ConfigurationAnchorContainerDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationPartDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
@@ -108,7 +107,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(4, "body.size()", "Response contains 2 items"))
+                .assertion(equalsAssertion(5, "body.size()", "Response contains 5 items"))
 
                 .assertion(equalsAssertion("shared-params.xml",
                         "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileName", "File name matches"))
@@ -228,7 +227,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
         return switch (contentIdentifier) {
             case "SHARED-PARAMETERS" -> "shared-params";
             case "PRIVATE-PARAMETERS" -> "private-params";
-            default -> throw XrdRuntimeException.systemInternalError("Unknown content identifier: " + contentIdentifier);
+            default -> throw new IllegalArgumentException("Unknown content identifier: " + contentIdentifier);
         };
     }
 

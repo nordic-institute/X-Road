@@ -27,35 +27,22 @@ package org.niis.xroad.proxy.core.signature;
 
 import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.common.hashchain.HashChainBuilder;
-import ee.ria.xroad.common.signature.MessagePart;
-import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.signature.SignatureResourceResolver;
 import ee.ria.xroad.common.signature.SigningRequest;
-import ee.ria.xroad.common.util.MessageFileNames;
 
 import jakarta.xml.bind.JAXBException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.exceptions.XMLSecurityException;
-import org.apache.xml.security.signature.XMLSignatureByteInput;
-import org.apache.xml.security.signature.XMLSignatureInput;
-import org.apache.xml.security.utils.resolver.ResourceResolverContext;
-import org.apache.xml.security.utils.resolver.ResourceResolverException;
-import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
-import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN;
-import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
 
 /**
  * This class handles the (batch) signature creation. After requests
@@ -69,15 +56,12 @@ import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
 @Slf4j
 public class SignatureCtx {
 
-    private final List<SigningRequest> requests = new ArrayList<>();
+    protected final List<SigningRequest> requests = new ArrayList<>();
 
     @Getter
-    private final SignAlgorithm signatureAlgorithmId;
+    protected final SignAlgorithm signatureAlgorithmId;
 
-    private String hashChainResult;
-    private String[] hashChains;
-
-    private SignatureXmlBuilder builder;
+    protected SignatureXmlBuilder builder;
 
     public SignatureCtx(SignAlgorithm signatureAlgorithmId) {
         this.signatureAlgorithmId = signatureAlgorithmId;
@@ -98,14 +82,6 @@ public class SignatureCtx {
     }
 
     /**
-     * Returns the signature data for a given signer -- either normal signature
-     * or batch signature with corresponding hash chain and hash chain result.
-     */
-    public synchronized SignatureData createSignatureData(String signature, int signerIndex) {
-        return new SignatureData(signature, hashChainResult, hashChains != null ? hashChains[signerIndex] : null);
-    }
-
-    /**
      * Returns the data to be signed -- if there is only one signing request
      * and the request is simple message (no attachments), then no hash chain is used.
      */
@@ -119,66 +95,9 @@ public class SignatureCtx {
 
         SigningRequest firstRequest = requests.getFirst();
 
-        builder = new SignatureXmlBuilder(firstRequest, signatureAlgorithmId.digest());
+        builder = new SignatureXmlBuilder(firstRequest, signatureAlgorithmId);
 
-        // If only one single hash (message), then no hash chain
-        if (requests.size() == 1 && firstRequest.isSingleMessage()) {
-            return builder.createDataToBeSigned(MESSAGE, createResourceResolver(
-                    firstRequest.getParts().getFirst().getMessage()), signatureAlgorithmId);
-        }
-
-        buildHashChain();
-
-        byte[] hashChainResultBytes = hashChainResult.getBytes(StandardCharsets.UTF_8);
-
-        return builder.createDataToBeSigned(SIG_HASH_CHAIN_RESULT, createResourceResolver(hashChainResultBytes),
-                signatureAlgorithmId);
-    }
-
-    private void buildHashChain() throws IOException, JAXBException {
-        log.trace("buildHashChain()");
-
-        HashChainBuilder hashChainBuilder = new HashChainBuilder(signatureAlgorithmId.digest());
-
-        for (SigningRequest request : requests) {
-            hashChainBuilder.addInputHash(getHashChainInputs(request));
-        }
-
-        hashChainBuilder.finishBuilding();
-
-        hashChainResult = hashChainBuilder.getHashChainResult(SIG_HASH_CHAIN);
-        hashChains = hashChainBuilder.getHashChains(MESSAGE);
-    }
-
-    private static byte[][] getHashChainInputs(SigningRequest request) {
-        return request.getParts().stream()
-                .map(MessagePart::getData)
-                .toArray(byte[][]::new);
-    }
-
-    /**
-     * This resource resolver will provide the message or hash chain data to be digested.
-     */
-    private ResourceResolverSpi createResourceResolver(final byte[] data) {
-        if (data == null) {
-            throw new IllegalArgumentException("Data must not be null");
-        }
-
-        return new ResourceResolverSpi() {
-            @Override
-            public boolean engineCanResolveURI(ResourceResolverContext context) {
-                return switch (context.attr.getValue()) {
-                    case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
-                    default -> false;
-                };
-            }
-
-            @Override
-            public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
-                    throws ResourceResolverException {
-                return new XMLSignatureByteInput(data);
-            }
-        };
+        return builder.addAndCalculateDataToBeSigned(new SignatureResourceResolver(firstRequest.getParts(), null));
     }
 
 }

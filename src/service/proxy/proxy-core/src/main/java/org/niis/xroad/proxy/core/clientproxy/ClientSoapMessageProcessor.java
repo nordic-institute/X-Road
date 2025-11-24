@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.core.clientproxy;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RequestHash;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.SoapFault;
@@ -35,6 +36,7 @@ import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -45,6 +47,7 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.input.TeeInputStream;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
@@ -60,6 +63,7 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
+import org.niis.xroad.proxy.core.protocol.Attachment;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
@@ -73,6 +77,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URI;
 import java.security.cert.CertificateEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -155,6 +160,8 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
     private final KeyConfProvider keyConfProvider;
     private final SigningCtxProvider signingCtxProvider;
     private final String tempFilesPath;
+
+    private final List<Attachment> attachmentCache = new ArrayList<>();
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
 
@@ -504,7 +511,11 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
                 throws IOException {
             log.trace("attachment()");
 
-            request.attachment(contentType, content, additionalHeaders);
+            CachingStream attachmentCacheStream = new CachingStream(tempFilesPath);
+            try (TeeInputStream tis = new TeeInputStream(content, attachmentCacheStream)) {
+                request.attachment(contentType, tis, additionalHeaders);
+                attachmentCache.add(new Attachment(contentType, attachmentCacheStream, additionalHeaders));
+            }
         }
 
         @Override
@@ -557,9 +568,11 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
 
         private void logRequestMessage() {
             log.trace("logRequestMessage()");
+            MessageLog.log(requestSoap, request.getSignature(), getAttachments(), true, xRequestId);
+        }
 
-            // Not logging request attachments, as they are always batch-signed in X-Road 7
-            MessageLog.log(requestSoap, request.getSignature(), List.of(), true, xRequestId);
+        private List<AttachmentStream> getAttachments() {
+            return attachmentCache.stream().map(Attachment::getAttachmentStream).toList();
         }
 
         @Override

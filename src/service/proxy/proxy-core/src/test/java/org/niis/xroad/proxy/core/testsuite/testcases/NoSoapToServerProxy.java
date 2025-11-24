@@ -28,7 +28,6 @@ package org.niis.xroad.proxy.core.testsuite.testcases;
 
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
-import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SOAP;
@@ -51,7 +50,7 @@ public class NoSoapToServerProxy extends MessageTestCase {
         requestContentType = "multipart/mixed; charset=UTF-8; "
                 + "boundary=jetty771207119h3h10dty";
 
-        url = "http://127.0.0.1:" + ProxyTestSuiteHelper.proxyProperties.serverProxyPort();
+        url = () -> "http://127.0.0.1:" + proxyTestSuiteHelper.proxyProperties.serverProxyPort();
     }
 
     @Override

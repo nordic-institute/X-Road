@@ -1,21 +1,20 @@
 /*
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,59 +23,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.test.api.configuration;
 
-package org.niis.xroad.cs.test.container;
-
-import com.nortal.test.testcontainers.AbstractAuxiliaryContainer;
+import com.nortal.test.feign.interceptor.FeignClientInterceptor;
+import jakarta.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import okhttp3.Interceptor;
+import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
-import org.mockserver.client.MockServerClient;
+import org.niis.xroad.cs.test.container.CsAdminServiceIntTestSetup;
 import org.springframework.stereotype.Component;
-import org.testcontainers.containers.MockServerContainer;
-import org.testcontainers.utility.DockerImageName;
 
-import java.util.Objects;
-
+import java.io.IOException;
 
 @Component
-public class ExtMockServerContainer extends AbstractAuxiliaryContainer<MockServerContainer> {
+@RequiredArgsConstructor
+public class HostFeignClientInterceptor implements FeignClientInterceptor {
+    private static final int EXECUTION_ORDER = 10;
 
-    private static final String DOCKER_IMAGE = "mockserver/mockserver";
-    private static final String NETWORK_ALIAS = "mock-server";
-    private static final String SCHEME = "http";
+    private final CsAdminServiceIntTestSetup intTestSetup;
 
-    @NotNull
     @Override
-    @SuppressWarnings("checkstyle:magicnumber")
-    public MockServerContainer configure() {
-        final DockerImageName mockserverImage = DockerImageName
-                .parse(DOCKER_IMAGE)
-                .withTag("mockserver-" + MockServerClient.class.getPackage().getImplementationVersion());
-
-        return new MockServerContainer(mockserverImage)
-                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(512 * 1024 * 1024L))
-                .withNetworkAliases(NETWORK_ALIAS);
+    public int getOrder() {
+        return EXECUTION_ORDER;
     }
 
     @NotNull
     @Override
-    public String getConfigurationKey() {
-        return "mock-server";
-    }
+    public Response intercept(@Nonnull Interceptor.Chain chain) throws IOException {
+        var request = chain.request();
+        var csContainer = intTestSetup.getContainerMapping(CsAdminServiceIntTestSetup.CS, CsAdminServiceIntTestSetup.Port.UI);
 
-    public String getEndpoint() {
-        return SCHEME + "://" + NETWORK_ALIAS + ":" + MockServerContainer.PORT;
-    }
+        var newUrl = request.url().newBuilder()
+                .host(csContainer.host())
+                .port(csContainer.port())
+                .build();
 
-    public String getScheme() {
-        return SCHEME;
-    }
+        request = request.newBuilder()
+                .url(newUrl)
+                .build();
 
-    public String getHost() {
-        return NETWORK_ALIAS;
-    }
 
-    public String getPort() {
-        return String.valueOf(MockServerContainer.PORT);
+        return chain.proceed(request);
     }
 
 }

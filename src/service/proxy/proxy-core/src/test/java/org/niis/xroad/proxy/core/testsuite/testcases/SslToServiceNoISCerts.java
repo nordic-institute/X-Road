@@ -29,7 +29,6 @@ package org.niis.xroad.proxy.core.testsuite.testcases;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.niis.xroad.proxy.core.test.Message;
-import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.proxy.core.testsuite.SslMessageTestCase;
 
@@ -57,7 +56,7 @@ public class SslToServiceNoISCerts extends SslMessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf(proxyTestSuiteHelper) {
             @Override
             public boolean isSslAuthentication(ServiceId service) {
                 return true;
@@ -67,7 +66,7 @@ public class SslToServiceNoISCerts extends SslMessageTestCase {
 
     @Override
     public String getServiceAddress(ServiceId service) {
-        return "https://127.0.0.1:" + ProxyTestSuiteHelper.SERVICE_SSL_PORT;
+        return "https://127.0.0.1:" + proxyTestSuiteHelper.serviceSslPort;
     }
 
     @Override

@@ -27,7 +27,6 @@
 
 package org.niis.xroad.proxy.core.test;
 
-import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
@@ -37,41 +36,40 @@ import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 
-@UtilityClass
 public class ProxyTestSuiteHelper {
-    public static final int SERVICE_PORT = findRandomPort();
-    public static final int SERVICE_SSL_PORT = findRandomPort();
-    public static final int PROXY_PORT = findRandomPort();
-    public static final int DUMMY_SERVER_PROXY_PORT = findRandomPort();
+    public final int servicePort = findRandomPort();
+    public final int serviceSslPort = findRandomPort();
+    public final int proxyPort = findRandomPort();
+    public final int dummyServerProxyPort = findRandomPort();
 
-    public static volatile MessageTestCase currentTestCase;
-    public static ProxyProperties proxyProperties;
-    public static CommonProperties commonProperties;
+    public volatile MessageTestCase currentTestCase;
+    public ProxyProperties proxyProperties;
+    public CommonProperties commonProperties;
 
-    private static DummyService dummyService;
-    private static DummyServerProxy dummyServerProxy;
+    private DummyService dummyService;
+    private DummyServerProxy dummyServerProxy;
 
-    public static void startTestServices() throws Exception {
-        dummyService = new DummyService();
+    public void startTestServices() throws Exception {
+        dummyService = new DummyService(this);
         dummyService.start();
     }
 
-    public static void startDummyProxy() throws Exception {
-        dummyServerProxy = new DummyServerProxy(DUMMY_SERVER_PROXY_PORT);
+    public void startDummyProxy() throws Exception {
+        dummyServerProxy = new DummyServerProxy(dummyServerProxyPort, this);
         dummyServerProxy.start();
     }
 
-    public static void destroyTestServices() {
+    public void destroyTestServices() {
         ofNullable(dummyService).ifPresent(DummyService::destroy);
         ofNullable(dummyServerProxy).ifPresent(DummyServerProxy::destroy);
     }
 
-    public static void setPropsIfNotSet(Map<String, String> properties) {
+    public void setPropsIfNotSet(Map<String, String> properties) {
         properties.putIfAbsent("xroad.proxy.client-proxy.client-http-port", valueOf(findRandomPort()));
         properties.putIfAbsent("xroad.proxy.client-proxy.client-https-port", valueOf(findRandomPort()));
         properties.putIfAbsent("xroad.proxy.server.listen-address", "127.0.0.1");
-        properties.putIfAbsent("xroad.proxy.server.listen-port", valueOf(PROXY_PORT));
-        properties.putIfAbsent("xroad.proxy.server-port", valueOf(PROXY_PORT));
+        properties.putIfAbsent("xroad.proxy.server.listen-port", valueOf(proxyPort));
+        properties.putIfAbsent("xroad.proxy.server-port", valueOf(proxyPort));
         properties.putIfAbsent("xroad.proxy.client-proxy.client-timeout", "15000");
     }
 

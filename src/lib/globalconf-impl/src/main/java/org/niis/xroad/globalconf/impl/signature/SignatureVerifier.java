@@ -34,6 +34,7 @@ import ee.ria.xroad.common.signature.IdResolver;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.Signature;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.signature.SignatureResourceResolver;
 import ee.ria.xroad.common.signature.SignatureSchemaValidator;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
@@ -44,12 +45,7 @@ import org.apache.xml.security.keys.keyresolver.KeyResolverException;
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
 import org.apache.xml.security.signature.XMLSignature;
-import org.apache.xml.security.signature.XMLSignatureByteInput;
-import org.apache.xml.security.signature.XMLSignatureDigestInput;
 import org.apache.xml.security.signature.XMLSignatureException;
-import org.apache.xml.security.signature.XMLSignatureInput;
-import org.apache.xml.security.signature.XMLSignatureStreamInput;
-import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -72,7 +68,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -342,7 +337,7 @@ public class SignatureVerifier {
         s.addResourceResolver(new IdResolver(signature.getDocument()));
 
         if (resourceResolver == null) {
-            s.addResourceResolver(new SignatureResourceResolverImpl());
+            s.addResourceResolver(new SignatureResourceResolver(parts, hashChainResult));
         } else {
             s.addResourceResolver(resourceResolver);
         }
@@ -408,38 +403,6 @@ public class SignatureVerifier {
         }
 
         return null;
-    }
-
-    private final class SignatureResourceResolverImpl extends ResourceResolverSpi {
-
-        @Override
-        public boolean engineCanResolveURI(ResourceResolverContext context) {
-            return switch (context.attr.getValue()) {
-                case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
-                default -> MessageFileNames.isAttachment(context.attr.getValue()); // only attachments can be resolved
-            };
-        }
-
-        @Override
-        public XMLSignatureInput engineResolveURI(ResourceResolverContext context) {
-            if (MessageFileNames.MESSAGE.equals(context.attr.getValue())) {
-                MessagePart part = getPart(MessageFileNames.MESSAGE);
-
-                if (part != null && part.getMessage() != null) {
-                    return new XMLSignatureByteInput(part.getMessage());
-                }
-            } else if (MessageFileNames.SIG_HASH_CHAIN_RESULT.equals(context.attr.getValue())) {
-                return new XMLSignatureStreamInput(is(hashChainResult));
-            } else if (MessageFileNames.isAttachment(context.attr.getValue())) {
-                MessagePart part = getPart(context.attr.getValue());
-
-                if (part != null && part.getData() != null) {
-                    return new XMLSignatureDigestInput(Base64.getEncoder().encodeToString(part.getData()));
-                }
-            }
-
-            return null;
-        }
     }
 
     private final class HashChainReferenceResolverImpl
