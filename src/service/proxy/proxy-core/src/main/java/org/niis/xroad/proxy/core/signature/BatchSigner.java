@@ -285,7 +285,7 @@ public class BatchSigner implements MessageSigner {
             log.trace("getDataToBeSigned(requests = {})", requests.size());
 
             if (requests.isEmpty()) {
-                throw new CodedException(X_INTERNAL_ERROR, "No requests in signing context");
+                throw XrdRuntimeException.systemInternalError("No requests in signing context");
             }
 
             SigningRequest firstRequest = requests.getFirst();
