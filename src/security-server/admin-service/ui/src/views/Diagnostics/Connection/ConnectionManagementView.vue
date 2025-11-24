@@ -44,7 +44,7 @@
             item-title="id"
             item-value="id"
             :return-object="false"
-            label="Client"
+            :label="$t('diagnostics.connection.securityServer.client')"
             variant="outlined"
             :disabled="true"
           ></v-combobox>
@@ -99,7 +99,7 @@
         <v-col cols="5">
           <v-combobox
             v-model="selectedTargetSubsystemId"
-            :items="allSubsystems"
+            :items="localAllSubsystems"
             item-title="id"
             item-value="id"
             :return-object="false"
@@ -111,7 +111,7 @@
         <v-col cols="2">
           <v-combobox
             v-model="selectedSecurityServerId"
-            :items="securityServers"
+            :items="localSecurityServers"
             item-title="server_code"
             item-value="id"
             :return-object="false"
@@ -158,6 +158,7 @@ import { useClients } from "@/store/modules/clients";
 import { useClient } from "@/store/modules/client";
 import { useDiagnostics } from "@/store/modules/diagnostics";
 import { formatErrorForUi, statusIconType } from "@/util/formatting";
+import { Client, SecurityServer } from "@/openapi-types";
 
 const initialState = () => {
   return {
@@ -166,6 +167,8 @@ const initialState = () => {
     selectedInstance: '',
     selectedTargetSubsystemId: '',
     selectedSecurityServerId: '',
+    localAllSubsystems: [] as Client[],
+    localSecurityServers: [] as SecurityServer[],
   };
 };
 
@@ -192,7 +195,7 @@ export default defineComponent({
       return local ? local.id : '';
     },
     managementService(): string | undefined {
-      const managementService = this.allSubsystems.find(i => i.is_management_services_provider);
+      const managementService = this.localAllSubsystems.find(i => i.is_management_services_provider);
       return managementService ? managementService.id : '';
     },
     otherSecurityServerErrorMessage() {
@@ -202,48 +205,30 @@ export default defineComponent({
   },
 
   async created() {
+    this.clearManagementServiceStatus();
     this.selectedClientId = this.localOwner || '';
     this.selectedServiceType = 'SOAP';
     this.selectedInstance = this.localInstance || '';
 
     if (this.selectedInstance) {
       await this.fetchAllSubsystems(this.selectedInstance);
+      this.localAllSubsystems = this.allSubsystems.map(
+        (c: Client) => ({ ...c }),
+      );
       this.selectedTargetSubsystemId = this.managementService || '';
     }
 
     if (this.selectedTargetSubsystemId) {
       await this.fetchSecurityServers(this.selectedTargetSubsystemId);
+      this.localSecurityServers = this.securityServers.map(
+        (s: SecurityServer) => ({ ...s }),
+      );
       if (this.securityServers.length === 1) {
-        this.selectedSecurityServerId = this.securityServers[0].id;
+        this.selectedSecurityServerId = this.localSecurityServers[0].id;
       }
     }
 
     this.testManagementServiceStatus();
-  },
-
-  watch: {
-    localInstance: {
-      immediate: true,
-      async handler(newInstance: string) {
-
-        this.selectedInstance = '';
-        this.selectedTargetSubsystemId = '';
-        this.selectedSecurityServerId = '';
-
-        if (newInstance) {
-          await this.fetchAllSubsystems(newInstance);
-        }
-      },
-    },
-    async selectedTargetSubsystemId(newSubsystemId: string | null) {
-      this.selectedSecurityServerId = '';
-      if (newSubsystemId) {
-        await this.fetchSecurityServers(newSubsystemId);
-        if (this.securityServers.length === 1) {
-          this.selectedSecurityServerId = this.securityServers[0].id;
-        }
-      }
-    },
   },
 
   methods: {
@@ -251,10 +236,11 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError']),
     ...mapActions(useClients, ['fetchAllSubsystems']),
     ...mapActions(useClient, ['fetchSecurityServers']),
-    ...mapActions(useDiagnostics, ['fetchManagementServiceStatus']),
+    ...mapActions(useDiagnostics, ['fetchManagementServiceStatus', 'clearManagementServiceStatus']),
 
     testManagementServiceStatus() {
       this.otherSecurityServerLoading = true;
+      this.clearManagementServiceStatus();
       this.fetchManagementServiceStatus(this.selectedServiceType, this.selectedClientId, this.selectedTargetSubsystemId,
         this.selectedSecurityServerId)
         .catch((error) => {

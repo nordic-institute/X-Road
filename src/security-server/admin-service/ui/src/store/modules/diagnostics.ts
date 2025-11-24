@@ -171,6 +171,9 @@ export const useDiagnostics = defineStore('diagnostics', {
           this.managementServiceStatus = res.data;
         });
     },
+    clearManagementServiceStatus() {
+      this.managementServiceStatus = undefined;
+    },
     async fetchGlobalConfStatuses() {
       return api
         .get<GlobalConfConnectionStatus[]>('/diagnostics/global-conf-status')

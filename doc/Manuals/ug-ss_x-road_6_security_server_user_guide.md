@@ -2646,7 +2646,7 @@ Tests ports `80` and `443` to verify that the Global Configuration can be downlo
 
 Examples of error messages:
 - Connection error, unknown host : ... — the Central Server hostname cannot be resolved. Check DNS configuration.
-- IO error : PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException ... — the CA must be trusted by the Security Server's Java installation. For the guidelines on Publish global configuration over HTTPS, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
+- IO error : PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException ... — the CA must be trusted by the Security Servers Java installation. For the guidelines on Publish global configuration over HTTPS, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
 
 **Authentication Certificate Registration Service**
 
@@ -2672,16 +2672,16 @@ Examples of error messages:
 
 ## 14.3.3 Testing the connection to Management Security Server
 
-This block tests communication with the Management Security Server, including capability to send management requests (such as client registration, client disable, ...).
+This block tests communication with the Management Security Server, including capability to send management requests (such as client register, client disable, ...).
 
 Field descriptions:
 - **Current Client** - the current Security Server owner.
 - **REST/SOAP** - `SOAP`.
 - **Target Instance** - the local Security Server instance. 
-- **Target Client** - the Management Security Server client. 
+- **Target Client** - the Management Security Server Provider. 
 - **Target Security server** - if management services are registered on multiple Security Servers, the user is able to select the desired target Security Server.
 
-✔ Everything ok - indicates that there are no network, configuration, or certificate issues preventing communication with the Management Security Server client.
+✔ Everything ok - indicates that there are no network, configuration, or certificate issues preventing communication with the Management Security Server Provider.
 
 ## 15 Operational Monitoring
 

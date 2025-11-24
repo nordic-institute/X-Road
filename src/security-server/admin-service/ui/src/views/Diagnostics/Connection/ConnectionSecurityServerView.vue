@@ -233,6 +233,7 @@ export default defineComponent({
 
     testOtherSecurityServerStatus() {
       this.otherSecurityServerLoading = true;
+      this.cleanOtherSecurityServerStatus();
       this.fetchOtherSecurityServerStatus(this.selectedServiceType, this.selectedClientId,
         this.selectedTargetSubsystemId, this.selectedSecurityServerId)
         .catch((error) => {
