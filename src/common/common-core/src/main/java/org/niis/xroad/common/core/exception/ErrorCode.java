@@ -286,6 +286,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
     // ===== GPG ERRORS =====
     GPG_KEY_GENERATION_FAILED("gpg_key_generation_failed"),
+    GPG_KEY_GENERATION_INTERRUPTED("gpg_key_generation_interrupted"),
 
     // ===== INTERNAL_CERT ERRORS =====
     IMPORT_INTERNAL_CERT_FAILED("import_internal_cert_failed"),
@@ -326,5 +327,15 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
             return INTERNAL_ERROR.code();
         }
         return code.toLowerCase();
+    }
+
+    public static ErrorCode fromCode(String code) {
+        for (ErrorCode errorCode : values()) {
+            if (errorCode.code.equals(code)) {
+                return errorCode;
+            }
+        }
+        log.warn("Unknown error code '{}'", code);
+        return null;
     }
 }

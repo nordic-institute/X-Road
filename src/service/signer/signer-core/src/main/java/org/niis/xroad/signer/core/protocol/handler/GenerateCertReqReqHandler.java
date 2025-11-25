@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
-
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +41,7 @@ import org.niis.xroad.signer.proto.GenerateCertRequestReq;
 import org.niis.xroad.signer.proto.GenerateCertRequestResp;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static org.niis.xroad.common.core.exception.ErrorCode.WRONG_CERT_USAGE;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
 
 /**
@@ -67,8 +65,7 @@ public class GenerateCertReqReqHandler extends AbstractRpcHandler<GenerateCertRe
 
         if (request.getKeyUsage() == KeyUsageInfo.AUTHENTICATION
                 && !SoftwareTokenDefinition.ID.equals(tokenAndKey.tokenId())) {
-            throw CodedException.tr(X_WRONG_CERT_USAGE,
-                    "auth_cert_under_softtoken",
+            throw XrdRuntimeException.systemException(WRONG_CERT_USAGE,
                     "Authentication certificate requests can only be created under software tokens");
         }
 

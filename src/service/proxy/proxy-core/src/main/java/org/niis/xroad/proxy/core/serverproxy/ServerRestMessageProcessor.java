@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -96,22 +95,21 @@ import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_REST;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MISSING_URL;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SERVICE_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_REST;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_DISABLED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_MISSING_URL;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions")
@@ -271,7 +269,7 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
                 getHashAlgoId(jRequest));
         try {
             decoder.parse(jRequest.getInputStream());
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e.withPrefix(X_SERVICE_FAILED_X);
         }
 
@@ -291,10 +289,10 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
     private void checkRequest() {
         final RestRequest rest = requestMessage.getRest();
         if (rest == null) {
-            throw new CodedException(X_MISSING_REST, "Request does not have REST message");
+            throw XrdRuntimeException.systemException(MISSING_REST, "Request does not have REST message");
         }
         if (requestMessage.getSignature() == null) {
-            throw new CodedException(X_MISSING_SIGNATURE, "Request does not have signature");
+            throw XrdRuntimeException.systemException(MISSING_SIGNATURE, "Request does not have signature");
         }
 
         IdentifierValidator.checkIdentifier(rest.getClientId());
@@ -308,13 +306,13 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
         String status = serverConfProvider.getMemberStatus(client);
 
         if (!Client.STATUS_REGISTERED.equals(status)) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
+            throw XrdRuntimeException.systemException(UNKNOWN_MEMBER, "Client '%s' not found".formatted(client));
         }
     }
 
     private void verifySslClientCert() throws CertificateEncodingException, IOException {
         if (requestMessage.getOcspResponses().isEmpty()) {
-            throw new CodedException(X_SSL_AUTH_FAILED,
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
                     "Cannot verify TLS certificate, corresponding OCSP response is missing");
         }
 
@@ -332,7 +330,7 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
             certHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(),
                     requestMessage.getRest().getClientId());
         } catch (Exception e) {
-            throw new CodedException(X_SSL_AUTH_FAILED, e);
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, e);
         }
     }
 
@@ -340,13 +338,13 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
         log.trace("verifyAccess()");
 
         if (!serverConfProvider.serviceExists(requestServiceId)) {
-            throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
+            throw XrdRuntimeException.systemException(UNKNOWN_SERVICE, "Unknown service: %s".formatted(requestServiceId));
         }
 
         DescriptionType descriptionType = serverConfProvider.getDescriptionType(requestServiceId);
         if (descriptionType != null && descriptionType != DescriptionType.REST
                 && descriptionType != DescriptionType.OPENAPI3) {
-            throw new CodedException(X_INVALID_SERVICE_TYPE,
+            throw XrdRuntimeException.systemException(INVALID_SERVICE_TYPE,
                     "Service is a SOAP service and cannot be called using REST interface");
         }
 
@@ -355,14 +353,14 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
                 requestServiceId,
                 requestMessage.getRest().getVerb().name(),
                 requestMessage.getRest().getServicePath())) {
-            throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
+            throw XrdRuntimeException.systemException(ACCESS_DENIED, "Request is not allowed: %s".formatted(requestServiceId));
         }
 
         String disabledNotice = serverConfProvider.getDisabledNotice(requestServiceId);
 
         if (disabledNotice != null) {
-            throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,
-                    disabledNotice);
+            throw XrdRuntimeException.systemException(SERVICE_DISABLED, "Service %s is disabled: %s".formatted(requestServiceId,
+                    disabledNotice));
         }
     }
 
@@ -404,9 +402,9 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
         log.debug("Request failed", ex);
 
         if (encoder != null) {
-            CodedException exception;
-            if (ex instanceof CodedException.Fault fault) {
-                exception = fault;
+            XrdRuntimeException exception;
+            if (ex instanceof XrdRuntimeException xrdEx && xrdEx.hasSoapFault()) {
+                exception = xrdEx;
             } else {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }
@@ -426,7 +424,7 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
         String hashAlgoId = request.getHeaders().get(HEADER_HASH_ALGO_ID);
 
         if (hashAlgoId == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Could not get hash algorithm identifier from message");
+            throw XrdRuntimeException.systemInternalError("Could not get hash algorithm identifier from message");
         }
 
         return DigestAlgorithm.ofName(hashAlgoId);
@@ -475,8 +473,8 @@ public class ServerRestMessageProcessor extends MessageProcessorBase {
                                   HttpClient restClient, OpMonitoringData monitoringData) throws IOException {
             String address = serverConfProvider.getServiceAddress(requestProxyMessage.getRest().getServiceId());
             if (address == null || address.isEmpty()) {
-                throw new CodedException(X_SERVICE_MISSING_URL, "Service address not specified for '%s'",
-                        requestProxyMessage.getRest().getServiceId());
+                throw XrdRuntimeException.systemException(SERVICE_MISSING_URL, "Service address not specified for '%s'".formatted(
+                        requestProxyMessage.getRest().getServiceId()));
             }
 
             address = concatPath(address, requestProxyMessage.getRest().getServicePath());

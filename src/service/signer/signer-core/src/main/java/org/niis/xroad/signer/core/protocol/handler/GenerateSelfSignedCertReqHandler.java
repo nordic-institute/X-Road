@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
@@ -68,7 +67,6 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Date;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
@@ -96,7 +94,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
         }
 
         if (tokenAndKey.key().getPublicKey() == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", request.getKeyId());
+            throw XrdRuntimeException.systemInternalError("Key '%s' has no public key".formatted(request.getKeyId()));
         }
 
         try {

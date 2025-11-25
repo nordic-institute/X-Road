@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
@@ -43,6 +42,7 @@ import jakarta.xml.bind.Marshaller;
 import jakarta.xml.soap.SOAPException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
@@ -54,8 +54,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.OUTPUT_FIELDS;
 
 /**
@@ -125,25 +124,25 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
     static void checkTimestamps(long recordsFrom, long recordsTo,
                                 long recordsAvailableBefore) {
         if (recordsFrom < 0) {
-            throw new CodedException(X_INVALID_REQUEST,
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
                     "Records from timestamp is a negative number")
                     .withPrefix(CLIENT_X);
         }
 
         if (recordsTo < 0) {
-            throw new CodedException(X_INVALID_REQUEST,
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
                     "Records to timestamp is a negative number")
                     .withPrefix(CLIENT_X);
         }
 
         if (recordsTo < recordsFrom) {
-            throw new CodedException(X_INVALID_REQUEST,
-                    "Records to timestamp is earlier than records from"
-                            + " timestamp").withPrefix(CLIENT_X);
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
+                    "Records to timestamp is earlier than records from timestamp")
+                    .withPrefix(CLIENT_X);
         }
 
         if (recordsFrom >= recordsAvailableBefore) {
-            throw new CodedException(X_INVALID_REQUEST,
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
                     "Records not available from " + recordsFrom + " yet")
                     .withPrefix(CLIENT_X);
         }
@@ -152,7 +151,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
     protected static void checkOutputFields(Set<String> outputFields) {
         for (String field : outputFields) {
             if (!OUTPUT_FIELDS.contains(field)) {
-                throw new CodedException(X_INVALID_REQUEST,
+                throw XrdRuntimeException.systemException(INVALID_REQUEST,
                         "Unknown output field in search criteria: " + field)
                         .withPrefix(CLIENT_X);
             }
@@ -172,8 +171,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
                         .createGetSecurityServerOperationalDataResponseType();
 
         if (recordsTo >= recordsAvailableBefore) {
-            log.debug("recordsTo({}) >= recordsAvailableBefore({}),"
-                            + " set nextRecordsFrom to {}", recordsTo,
+            log.debug("recordsTo({}) >= recordsAvailableBefore({}), set nextRecordsFrom to {}", recordsTo,
                     recordsAvailableBefore, recordsAvailableBefore);
 
             recordsTo = recordsAvailableBefore - 1;
@@ -218,7 +216,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
         } catch (Exception e) {
             log.error("Failed to get records for response", e);
 
-            throw new CodedException(X_INTERNAL_ERROR,
+            throw XrdRuntimeException.systemInternalError(
                     "Failed to get records for response: " + e.getMessage());
         }
     }

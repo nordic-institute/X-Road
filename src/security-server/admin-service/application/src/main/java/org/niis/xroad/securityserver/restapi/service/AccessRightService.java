@@ -27,7 +27,6 @@
 
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
@@ -38,6 +37,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
@@ -678,7 +678,7 @@ public class AccessRightService {
         List<ServiceClient> globalGroups = new ArrayList<>();
         Set<String> globalGroupInstances = globalConfProvider.getInstanceIdentifiers();
         List<GlobalGroupInfo> globalGroupInfos = null;
-        // core throws CodedException if nothing is found for the provided instance/instances
+        // core throws XrdRuntimeException if nothing is found for the provided instance/instances
         try {
             if (!StringUtils.isEmpty(instance)) {
                 List<String> globalGroupInstancesMatchingSearch = globalGroupInstances.stream()
@@ -691,7 +691,7 @@ public class AccessRightService {
             } else {
                 globalGroupInfos = globalConfProvider.getGlobalGroups();
             }
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             // no GlobalGroups found for the provided instance -> GlobalGroups are just ignored in the results
         }
         if (globalGroupInfos != null && !globalGroupInfos.isEmpty()) {

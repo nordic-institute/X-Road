@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.common.managementrequest.verify;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
@@ -44,6 +43,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.decode.AddressChangeRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.AuthCertDeletionRequestDecoderCallback;
@@ -66,9 +66,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.core.exception.ErrorCode.GLOBAL_CONF_OUTDATED;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 /**
  * Reads and verifies management requests.
@@ -114,7 +114,7 @@ public final class ManagementRequestVerifier {
     public Result readRequest(String contentType, InputStream inputStream) throws Exception {
 
         if (!globalConfProvider.isValid()) {
-            throw new CodedException(X_OUTDATED_GLOBALCONF, "Global configuration is not valid");
+            throw XrdRuntimeException.systemException(GLOBAL_CONF_OUTDATED, "Global configuration is not valid");
         }
 
         DecoderCallback cb = new DecoderCallback(globalConfProvider, ocspVerifierFactory);
@@ -127,18 +127,18 @@ public final class ManagementRequestVerifier {
 
     private static Result buildResult(DecoderCallback cb) {
         if (cb.getManagementRequestDecoderCallback() == null) {
-            throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request. Decoder was not fully initialized.");
+            throw XrdRuntimeException.systemException(INVALID_REQUEST, "Failed to parse SOAP request. Decoder was not fully initialized.");
         }
         var request = cb.getManagementRequestDecoderCallback().getRequest();
 
         if (request == null) {
-            throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request");
+            throw XrdRuntimeException.systemException(INVALID_REQUEST, "Failed to parse SOAP request");
         }
         if (MANAGEMENT_REQUEST_CLASSES.contains(request.getClass())) {
             return new Result(cb.getSoapMessage(), cb.getRequestType(), request);
         }
 
-        throw new CodedException(X_INVALID_REQUEST, "Unrecognized soap request of type '%s'",
+        throw XrdRuntimeException.systemException(INVALID_REQUEST, "Unrecognized soap request of type '%s'",
                 request.getClass().getSimpleName());
     }
 
@@ -196,7 +196,7 @@ public final class ManagementRequestVerifier {
 
         @Override
         public void fault(SoapFault fault) {
-            onError(fault.toCodedException());
+            onError(fault.toXrdRuntimeException());
         }
 
         @Override

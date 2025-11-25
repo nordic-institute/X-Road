@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.globalconf.impl.signature;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.hashchain.DigestValue;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
@@ -51,6 +50,7 @@ import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
@@ -73,11 +73,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REFERENCE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REFERENCE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SIGNATURE_VALUE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SIGNATURE;
 
 /**
  * Encapsulates the AsiC XAdES signature profile. This class verifies the
@@ -227,14 +228,14 @@ public class SignatureVerifier {
     public X509Certificate getSigningCertificate() throws KeyResolverException {
         X509Certificate cert = signature.getSigningCertificate();
         if (cert == null) {
-            throw new CodedException(X_MALFORMED_SIGNATURE,
+            throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE,
                     "Signature does not contain signing certificate");
         }
 
         if (!CertUtils.isSigningCert(cert)) {
-            throw new CodedException(X_MALFORMED_SIGNATURE,
-                    "Certificate %s is not a signing certificate",
-                    cert.getSubjectX500Principal().getName());
+            throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE,
+                    "Certificate %s is not a signing certificate".formatted(
+                    cert.getSubjectX500Principal().getName()));
         }
 
         return cert;
@@ -325,9 +326,8 @@ public class SignatureVerifier {
                 ),
                 signingCert);
         if (!signer.memberEquals(cn)) {
-            throw new CodedException(X_INCORRECT_CERTIFICATE,
-                    "Name in certificate (%s) does not match "
-                            + "name in message (%s)", cn, signer);
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
+                    "Name in certificate (%s) does not match name in message (%s)".formatted(cn, signer));
         }
     }
 
@@ -343,7 +343,7 @@ public class SignatureVerifier {
         }
 
         if (!s.checkSignatureValue(signingCert)) {
-            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Signature is not valid");
+            throw XrdRuntimeException.systemException(INVALID_SIGNATURE_VALUE, "Signature is not valid");
         }
     }
 
@@ -356,12 +356,12 @@ public class SignatureVerifier {
                     new IdResolver(signature.getDocument()));
             try {
                 if (!manifest.verifyReferences()) {
-                    throw new CodedException(X_INVALID_REFERENCE,
+                    throw XrdRuntimeException.systemException(INVALID_REFERENCE,
                             "Timestamp manifest verification failed for "
                                     + manifest.getId());
                 }
             } catch (MissingResourceFailureException e) {
-                throw new CodedException(X_INVALID_REFERENCE,
+                throw XrdRuntimeException.systemException(INVALID_REFERENCE,
                         "Could not find " + e.getReference().getURI());
             }
         }

@@ -30,7 +30,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
 
 /**
  * Test connects directly to SP thus impersonating the CP. It sends
@@ -54,6 +54,6 @@ public class NoSignatureToServerProxy extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_MISSING_SIGNATURE);
+        assertErrorCode(SERVER_SERVERPROXY_X, MISSING_SIGNATURE.code());
     }
 }

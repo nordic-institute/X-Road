@@ -30,7 +30,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HTTP_METHOD;
 
 /**
  * Connect directly to SP, impersonating CP. Send HTTP GET request.
@@ -49,6 +49,6 @@ public class WrongHttpMethodServerProxy extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_INVALID_HTTP_METHOD);
+        assertErrorCode(SERVER_SERVERPROXY_X, INVALID_HTTP_METHOD.code());
     }
 }

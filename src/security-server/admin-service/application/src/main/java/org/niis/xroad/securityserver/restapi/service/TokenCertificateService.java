@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
@@ -212,7 +211,7 @@ public class TokenCertificateService {
         try {
             generatedCertRequestInfo = signerRpcClient.generateCertRequest(keyId, memberId,
                     keyUsage, subjectName, subjectAltName, format, caInfo.getCertificateProfileInfo());
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new InternalServerErrorException("Generate cert request failed", e, INTERNAL_ERROR.build());
@@ -296,7 +295,7 @@ public class TokenCertificateService {
 
         try {
             return signerRpcClient.regenerateCertRequest(csrId, format);
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new InternalServerErrorException("Regenerate cert request failed", e, INTERNAL_ERROR.build());
@@ -425,8 +424,8 @@ public class TokenCertificateService {
             }
             setNextPlannedAcmeAutomaticRenewalDate(memberId, x509Certificate, keyUsageInfo, certificateInfo);
         } catch (XrdRuntimeException e) {
-            translateCodedExceptions(e);
-        } catch (ClientNotFoundException | AccessDeniedException | AuthCertificateNotSupportedException | CodedException e) {
+            translateXrdRuntimeExceptions(e);
+        } catch (ClientNotFoundException | AccessDeniedException | AuthCertificateNotSupportedException e) {
             throw e;
         } catch (Exception e) {
             // something went really wrong
@@ -722,7 +721,7 @@ public class TokenCertificateService {
             auditDataHelper.putManagementRequestId(requestId);
             auditDataHelper.put(RestApiAuditProperty.CERT_STATUS, CertificateInfo.STATUS_REGINPROG);
             signerRpcClient.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
-        } catch (DeviationAwareRuntimeException | CodedException e) {
+        } catch (DeviationAwareRuntimeException | XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new InternalServerErrorException("Could not register auth cert", e, INTERNAL_ERROR.build());
@@ -759,7 +758,7 @@ public class TokenCertificateService {
         try {
             auditDataHelper.put(RestApiAuditProperty.CERT_STATUS, CertificateInfo.STATUS_DELINPROG);
             signerRpcClient.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             // this means that cert was not found (which has been handled already) or some Akka error
@@ -808,7 +807,7 @@ public class TokenCertificateService {
     }
 
     /**
-     * Helper to translate caught {@link CodedException CodedExceptions}
+     * Helper to translate caught {@link XrdRuntimeException XrdRuntimeExceptions}
      *
      * @param e
      * @throws CertificateAlreadyExistsException
@@ -817,7 +816,7 @@ public class TokenCertificateService {
      * @throws CsrNotFoundException
      * @throws KeyNotFoundException
      */
-    private void translateCodedExceptions(XrdRuntimeException e)
+    private void translateXrdRuntimeExceptions(XrdRuntimeException e)
             throws CertificateAlreadyExistsException, InvalidCertificateException,
             WrongCertificateUsageException, CsrNotFoundException,
             KeyNotFoundException {

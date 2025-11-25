@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.db;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Interceptor;
@@ -156,14 +154,14 @@ public class DatabaseCtx {
         }
     }
 
-    private CodedException customizeException(Exception e) {
+    private XrdRuntimeException customizeException(Exception e) {
         if (e instanceof JDBCException) {
             return XrdRuntimeException.systemException(ErrorCode.DATABASE_ERROR)
                     .details("Error accessing database")
                     .metadataItems(name)
                     .build();
-        } else if (e instanceof CodedException codedException) {
-            return codedException;
+        } else if (e instanceof XrdRuntimeException xrdRuntimeException) {
+            return xrdRuntimeException;
         }
 
         return XrdRuntimeException.systemException(ErrorCode.DATABASE_ERROR)

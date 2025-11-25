@@ -25,22 +25,21 @@
  */
 package org.niis.xroad.signer.core.util;
 
-import ee.ria.xroad.common.CodedException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
-import static ee.ria.xroad.common.ErrorCodes.X_LOGOUT_FAILED;
-import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_AVAILABLE;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_INITIALIZED;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.CERT_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.CSR_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.LOGIN_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.LOGOUT_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_ACTIVE;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_INITIALIZED;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_PIN_INCORRECT;
 
 /**
- * Contains helper methods for constructing CodedExceptions which are used in
+ * Contains helper methods for constructing XrdRuntimeExceptions which are used in
  * multiple places.
  */
 public final class ExceptionHelper {
@@ -52,112 +51,98 @@ public final class ExceptionHelper {
      * @param tokenId the token id
      * @return exception indicating a token is not found
      */
-    public static CodedException tokenNotFound(String tokenId) {
-        return CodedException.tr(X_TOKEN_NOT_FOUND,
-                "token_not_found", "Token '%s' not found", tokenId);
+    public static XrdRuntimeException tokenNotFound(String tokenId) {
+        return XrdRuntimeException.systemException(TOKEN_NOT_FOUND,
+                "Token '%s' not found".formatted(tokenId));
     }
 
     /**
      * @param tokenId the token id
      * @return exception indicating a token is not active
      */
-    public static CodedException tokenNotActive(String tokenId) {
-        return CodedException.tr(X_TOKEN_NOT_ACTIVE,
-                "token_not_active", "Token '%s' not active", tokenId);
+    public static XrdRuntimeException tokenNotActive(String tokenId) {
+        return XrdRuntimeException.systemException(TOKEN_NOT_ACTIVE,
+                "Token '%s' not active".formatted(tokenId));
     }
 
-    public static CodedException writeNotAvailable() {
-        return new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+    public static XrdRuntimeException writeNotAvailable() {
+        return XrdRuntimeException.systemException(ACCESS_DENIED, "Write operations are not allowed on secondary node");
     }
 
     /**
      * @param tokenId the token id
      * @return exception indicating a token is not initialized
      */
-    public static CodedException tokenNotInitialized(String tokenId) {
-        return CodedException.tr(X_TOKEN_NOT_INITIALIZED,
-                "token_not_initialized", "Token '%s' not initialized", tokenId);
-    }
-
-    /**
-     * @param tokenId the token id
-     * @return exception indicating a token is not available
-     */
-    public static CodedException tokenNotAvailable(String tokenId) {
-        return CodedException.tr(X_TOKEN_NOT_AVAILABLE,
-                "token_not_available", "Token '%s' not available", tokenId);
+    public static XrdRuntimeException tokenNotInitialized(String tokenId) {
+        return XrdRuntimeException.systemException(TOKEN_NOT_INITIALIZED,
+                "Token '%s' not initialized".formatted(tokenId));
     }
 
     /**
      * @param keyId the key id
      * @return exception indicating a key is not found
      */
-    public static CodedException keyNotFound(String keyId) {
-        return CodedException.tr(X_KEY_NOT_FOUND,
-                "key_not_found", "Key '%s' not found", keyId);
+    public static XrdRuntimeException keyNotFound(String keyId) {
+        return XrdRuntimeException.systemException(KEY_NOT_FOUND,
+                "Key '%s' not found".formatted(keyId));
     }
 
     /**
      * @param keyId the key id
      * @return exception indicating a key is not available
      */
-    public static CodedException keyNotAvailable(String keyId) {
-        return CodedException.tr(X_KEY_NOT_FOUND,
-                "key_not_available", "Key '%s' not available", keyId);
+    public static XrdRuntimeException keyNotAvailable(String keyId) {
+        return XrdRuntimeException.systemException(KEY_NOT_FOUND, "Key '%s' not available".formatted(keyId));
     }
 
     /**
      * @param certId the certificate id
      * @return exception indicating a certificate is not found
      */
-    public static CodedException certWithIdNotFound(String certId) {
-        return CodedException.tr(X_CERT_NOT_FOUND,
-                "cert_with_id_not_found",
-                "Certificate with id '%s' not found", certId);
+    public static XrdRuntimeException certWithIdNotFound(String certId) {
+        return XrdRuntimeException.systemException(CERT_NOT_FOUND, "Certificate with id '%s' not found".formatted(certId));
     }
 
     /**
      * @param certHash the certificate hash
      * @return exception indicating a certificate is not found
      */
-    public static CodedException certWithHashNotFound(String certHash) {
-        return CodedException.tr(X_CERT_NOT_FOUND,
-                "certificate_with_hash_not_found",
-                "Certificate with hash '%s' not found", certHash);
+    public static XrdRuntimeException certWithHashNotFound(String certHash) {
+        return XrdRuntimeException.systemException(CERT_NOT_FOUND,
+                "Certificate with hash '%s' not found".formatted(certHash));
     }
 
     /**
      * @param certRequestId the certificate request id
      * @return exception indicating a csr is not found
      */
-    public static CodedException csrWithIdNotFound(String certRequestId) {
-        return CodedException.tr(X_CSR_NOT_FOUND,
-                "csr_not_found",
-                "Certificate request '%s' not found", certRequestId);
+    public static XrdRuntimeException csrWithIdNotFound(String certRequestId) {
+        return XrdRuntimeException.systemException(CSR_NOT_FOUND,
+                "Certificate request '%s' not found".formatted(certRequestId));
     }
 
     /**
      * @param message the message
      * @return exception indicating login to token failed
      */
-    public static CodedException loginFailed(String message) {
-        return CodedException.tr(X_LOGIN_FAILED,
-                "login_failed", "Login failed: %s", message);
+    public static XrdRuntimeException loginFailed(String message) {
+        return XrdRuntimeException.systemException(LOGIN_FAILED,
+                "Login failed: %s".formatted(message));
     }
 
     /**
      * @param message the message
      * @return exception indicating logout of a token failed
      */
-    public static CodedException logoutFailed(String message) {
-        return CodedException.tr(X_LOGOUT_FAILED,
-                "logout_failed", "Logout failed: %s", message);
+    public static XrdRuntimeException logoutFailed(String message) {
+        return XrdRuntimeException.systemException(LOGOUT_FAILED,
+                "Logout failed: %s".formatted(message));
     }
 
     /**
      * @return exception indicating the provided pin code was incorrect
      */
-    public static CodedException pinIncorrect() {
-        return CodedException.tr(X_PIN_INCORRECT, "pin_incorrect", "PIN incorrect");
+    public static XrdRuntimeException pinIncorrect() {
+        return XrdRuntimeException.systemException(TOKEN_PIN_INCORRECT, "PIN incorrect");
     }
 }

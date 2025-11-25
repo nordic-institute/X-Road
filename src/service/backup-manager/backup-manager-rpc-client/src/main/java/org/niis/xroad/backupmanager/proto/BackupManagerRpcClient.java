@@ -28,7 +28,6 @@
 package org.niis.xroad.backupmanager.proto;
 
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.CodedException;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -39,7 +38,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.rpc.common.Empty;
@@ -81,113 +79,65 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
     }
 
     public Collection<BackupInfo> listBackups() {
-        try {
-            var response = exec(() -> backupServiceBlockingStub.listBackups(Empty.getDefaultInstance()));
-            return response.getBackupItemsList().stream()
-                    .map(item -> new BackupInfo(item.getName(), toInstant(item.getCreatedAt())))
-                    .toList();
-        } catch (CodedException ce) {
-            throw ce;
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to list backups", e);
-        }
+        var response = exec(() -> backupServiceBlockingStub.listBackups(Empty.getDefaultInstance()));
+        return response.getBackupItemsList().stream()
+                .map(item -> new BackupInfo(item.getName(), toInstant(item.getCreatedAt())))
+                .toList();
     }
 
     public void deleteBackup(String name) {
-        try {
-            exec(() -> backupServiceBlockingStub.deleteBackup(DeleteBackupReq.newBuilder().setBackupName(name).build()));
-        } catch (CodedException ce) {
-            throw ce;
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to delete backup", e);
-        }
+        exec(() -> backupServiceBlockingStub.deleteBackup(DeleteBackupReq.newBuilder().setBackupName(name).build()));
     }
 
     public byte[] downloadBackup(String name) {
-        try {
-            var response = exec(
-                    () -> backupServiceBlockingStub.downloadBackup(DownloadBackupReq.newBuilder()
-                            .setBackupName(name)
-                            .build()));
-            return response.getBackupFile().toByteArray();
-        } catch (CodedException ce) {
-            throw ce;
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to download backup", e);
-        }
+        var response = exec(
+                () -> backupServiceBlockingStub.downloadBackup(DownloadBackupReq.newBuilder()
+                        .setBackupName(name)
+                        .build()));
+        return response.getBackupFile().toByteArray();
     }
 
     public BackupInfo uploadBackup(String name, byte[] data, boolean ignoreWarnings) {
-        try {
-            var response = exec(() -> backupServiceBlockingStub
-                    .uploadBackup(UploadBackupReq.newBuilder()
-                            .setBackupName(name)
-                            .setBackupFile(ByteString.copyFrom(data))
-                            .setIgnoreWarnings(ignoreWarnings)
-                            .build()));
+        var response = exec(() -> backupServiceBlockingStub
+                .uploadBackup(UploadBackupReq.newBuilder()
+                        .setBackupName(name)
+                        .setBackupFile(ByteString.copyFrom(data))
+                        .setIgnoreWarnings(ignoreWarnings)
+                        .build()));
 
-            return new BackupInfo(response.getName(), toInstant(response.getCreatedAt()));
-        } catch (CodedException ce) {
-            throw ce;
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to upload backup", e);
-        }
+        return new BackupInfo(response.getName(), toInstant(response.getCreatedAt()));
     }
 
     public BackupInfo createBackup(String securityServerId) {
-        try {
-            CreateBackupReq request = CreateBackupReq.newBuilder()
-                    .setSecurityServerId(securityServerId)
-                    .build();
+        CreateBackupReq request = CreateBackupReq.newBuilder()
+                .setSecurityServerId(securityServerId)
+                .build();
 
-            var response = exec(() -> backupServiceBlockingStub.createBackup(request));
-            return new BackupInfo(response.getName(), toInstant(response.getCreatedAt()));
-        } catch (CodedException ce) {
-            throw ce;
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to create backup", e);
-        }
+        var response = exec(() -> backupServiceBlockingStub.createBackup(request));
+        return new BackupInfo(response.getName(), toInstant(response.getCreatedAt()));
     }
 
     public void restoreFromBackup(String name, String securityServerId) {
-        try {
-            RestoreBackupReq request = RestoreBackupReq.newBuilder()
-                    .setBackupName(name)
-                    .setSecurityServerId(securityServerId)
-                    .build();
-            exec(() -> backupServiceBlockingStub.restoreFromBackup(request));
-        } catch (CodedException ce) {
-            throw ce;
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to restore from backup", e);
-        }
+        RestoreBackupReq request = RestoreBackupReq.newBuilder()
+                .setBackupName(name)
+                .setSecurityServerId(securityServerId)
+                .build();
+        exec(() -> backupServiceBlockingStub.restoreFromBackup(request));
     }
 
     public void generateGpgKey(String keyName) {
-        try {
-            GenerateGpgKeyReq request = GenerateGpgKeyReq.newBuilder()
-                    .setKeyName(keyName)
-                    .build();
-            exec(() -> backupServiceBlockingStub.generateGgpKey(request));
-        } catch (CodedException ce) {
-            throw ce;
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to generate GPG key", e);
-        }
+        GenerateGpgKeyReq request = GenerateGpgKeyReq.newBuilder()
+                .setKeyName(keyName)
+                .build();
+        exec(() -> backupServiceBlockingStub.generateGgpKey(request));
     }
 
     public BackupEncryptionStatusDiagnostics getEncryptionStatus() {
-        try {
-            var response = exec(() -> backupServiceBlockingStub.getBackupEncryptionStatus(Empty.getDefaultInstance()));
-            return new BackupEncryptionStatusDiagnostics(
-                    response.getBackupEncryptionStatus(),
-                    response.getBackupEncryptionKeysList().stream().toList()
-            );
-        } catch (CodedException ce) {
-            throw ce;
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to get backup encryption status", e);
-        }
+        var response = exec(() -> backupServiceBlockingStub.getBackupEncryptionStatus(Empty.getDefaultInstance()));
+        return new BackupEncryptionStatusDiagnostics(
+                response.getBackupEncryptionStatus(),
+                response.getBackupEncryptionKeysList().stream().toList()
+        );
     }
 
     private Instant toInstant(Timestamp timestamp) {

@@ -31,7 +31,7 @@ import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.testsuite.UsingDummyServerProxy;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
 
 /**
  * Client sends normal request. We emulate server proxy and send multipart
@@ -53,6 +53,6 @@ public class UnsignedMessageFromServerProxy extends MessageTestCase implements U
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_MISSING_SIGNATURE);
+        assertErrorCode(SERVER_CLIENTPROXY_X, MISSING_SIGNATURE.code());
     }
 }

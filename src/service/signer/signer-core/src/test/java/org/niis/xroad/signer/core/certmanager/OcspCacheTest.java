@@ -31,8 +31,8 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
@@ -42,9 +42,9 @@ import java.security.cert.X509Certificate;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Tests the OCSP cache.
@@ -61,7 +61,7 @@ public class OcspCacheTest {
     /**
      * Sets up an empty global configuration and loads test certificates.
      */
-    @BeforeClass
+    @BeforeAll
     public static void loadCerts() {
         globalConfProvider = new EmptyGlobalConf();
 

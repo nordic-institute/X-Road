@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.serverconf.impl;
 
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -50,13 +50,13 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 import static org.niis.xroad.serverconf.impl.TestUtil.BASE64_CERT;
 import static org.niis.xroad.serverconf.impl.TestUtil.CLIENT_CODE;
 import static org.niis.xroad.serverconf.impl.TestUtil.MEMBER_CLASS;
@@ -85,7 +85,7 @@ import static org.niis.xroad.serverconf.impl.TestUtil.service;
 public class ServerConfTest {
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     private static ServerConfProvider serverConfProvider;
 
@@ -295,7 +295,7 @@ public class ServerConfTest {
                 createTestServiceId(client(1), service(1, 1),
                         SERVICE_VERSION)));
 
-        thrown.expectError(X_UNKNOWN_SERVICE);
+        thrown.expectError(UNKNOWN_SERVICE.code());
         assertFalse(serverConfProvider.isSslAuthentication(
                 createTestServiceId(client(1), service(1, NUM_SERVICES),
                         SERVICE_VERSION)));

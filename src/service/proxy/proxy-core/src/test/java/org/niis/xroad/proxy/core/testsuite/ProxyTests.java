@@ -54,13 +54,13 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Mockito.spy;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 class ProxyTests {
 
@@ -151,7 +151,7 @@ class ProxyTests {
 
             @Override
             protected void validateFaultResponse(Message receivedResponse) {
-                assertErrorCode(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
+                assertErrorCode(SERVER_CLIENTPROXY_X, NETWORK_ERROR.code());
             }
         };
 

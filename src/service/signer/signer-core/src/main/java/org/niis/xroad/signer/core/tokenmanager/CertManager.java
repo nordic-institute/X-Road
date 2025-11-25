@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -46,7 +45,7 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import java.time.Instant;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static org.niis.xroad.common.core.exception.ErrorCode.WRONG_CERT_USAGE;
 
 @Slf4j
 @ApplicationScoped
@@ -68,7 +67,7 @@ public class CertManager {
             try {
                 var key = ctx.findKey(keyId);
                 tokenKeyCertWriteService.save(key.id(), id, memberId, initialStatus, certificate);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to add certificate to key " + keyId, e);
@@ -111,7 +110,7 @@ public class CertManager {
 
             try {
                 tokenKeyCertWriteService.setActive(cert.id(), active);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to set certificate active status for " + certId, e);
@@ -139,7 +138,7 @@ public class CertManager {
 
             try {
                 tokenKeyCertWriteService.updateStatus(cert.id(), status);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to set certificate status for " + certId, e);
@@ -166,7 +165,7 @@ public class CertManager {
 
             try {
                 tokenKeyCertWriteService.updateRenewedCertHash(cert.id(), hash);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to set renewed certificate hash for " + certId, e);
@@ -194,7 +193,7 @@ public class CertManager {
 
             try {
                 tokenKeyCertWriteService.updateRenewalError(cert.id(), errorMessage);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to set renewal error for " + certId, e);
@@ -222,7 +221,7 @@ public class CertManager {
 
             try {
                 tokenKeyCertWriteService.updateNextAutomaticRenewalTime(cert.id(), nextRenewalTime);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to set next planned renewal time for " + certId, e);
@@ -250,7 +249,7 @@ public class CertManager {
             }
             try {
                 return tokenKeyCertWriteService.delete(cert.get().id());
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to remove certificate " + certId, e);
@@ -280,10 +279,9 @@ public class CertManager {
             var key = ctx.findKey(externalKeyId);
 
             if (key.usage() != null && key.usage() != keyUsage) {
-                throw CodedException.tr(X_WRONG_CERT_USAGE,
-                        "cert_request_wrong_usage",
-                        "Cannot add %s certificate request to %s key", keyUsage,
-                        key.usage());
+                throw XrdRuntimeException.systemException(WRONG_CERT_USAGE,
+                        "Cannot add %s certificate request to %s key".formatted(keyUsage,
+                                key.usage()));
             }
             try {
                 updateKeyUsage(key, keyUsage);
@@ -305,7 +303,7 @@ public class CertManager {
     private void updateKeyUsage(RuntimeKey key, KeyUsageInfo keyUsage) {
         try {
             tokenKeyWriteService.updateKeyUsage(key.id(), keyUsage);
-        } catch (CodedException signerException) {
+        } catch (XrdRuntimeException signerException) {
             throw signerException;
         } catch (Exception e) {
             throw XrdRuntimeException.systemInternalError("Failed to update key usage for key " + key.externalId(), e);
@@ -337,7 +335,7 @@ public class CertManager {
             log.info("Added new certificate request [{}] (memberId: {}, subjectId: {}) under key {}",
                     certReqId, memberId, subjectName, key.externalId());
             return certReqId;
-        } catch (CodedException signerException) {
+        } catch (XrdRuntimeException signerException) {
             throw signerException;
         } catch (Exception e) {
             throw XrdRuntimeException.systemInternalError("Failed to add certificate request for key " + key.externalId(), e);
@@ -361,7 +359,7 @@ public class CertManager {
             }
             try {
                 return tokenKeyCertRequestWriteService.delete(certReq.get().id());
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to remove certificate request " + certReqId, e);

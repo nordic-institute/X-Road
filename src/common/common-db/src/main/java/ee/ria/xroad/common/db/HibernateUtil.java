@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.db;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Interceptor;
@@ -35,10 +33,11 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.internal.util.config.ConfigurationHelper;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.DATABASE_ERROR;
 
 /**
  * Hibernate utility methods.
@@ -62,13 +61,13 @@ public final class HibernateUtil {
             if (hibernateProperties != null) {
                 hibernateProperties.forEach((key, value) -> configuration.setProperty("hibernate." + key, value));
             } else {
-                throw new CodedException(X_DATABASE_ERROR, "Database (%s) properties not found.", name);
+                throw XrdRuntimeException.systemException(DATABASE_ERROR, "Database (%s) properties not found.", name);
             }
             return configuration.buildSessionFactory();
         } catch (Exception e) {
             log.error("Failed to create session factory", e);
 
-            throw new CodedException(X_DATABASE_ERROR, e, "Error accessing database (%s)", name);
+            throw XrdRuntimeException.systemException(DATABASE_ERROR, e, "Error accessing database (%s)", name);
         }
     }
 

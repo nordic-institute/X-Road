@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -60,7 +59,7 @@ public class KeyManager {
                 var token = ctx.findToken(tokenId);
                 tokenKeyWriteService.save(token.id(), keyId, publicKeyBase64, keyStore,
                         signMechanism, friendlyName, label, true);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to add key " + keyId + " to token " + tokenId, e);
@@ -87,7 +86,7 @@ public class KeyManager {
 
                 tokenKeyWriteService.save(token.id(), keyId, publicKeyBase64, null, signMechanism,
                         friendlyName, label, false);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to add key " + keyId + " to token " + tokenId, e);
@@ -125,7 +124,7 @@ public class KeyManager {
             try {
                 var key = ctx.findKey(keyId);
                 tokenKeyWriteService.updateFriendlyName(key.id(), friendlyName);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to update friendly name for key " + keyId, e);
@@ -149,7 +148,7 @@ public class KeyManager {
             try {
                 var key = ctx.findKey(keyId);
                 tokenKeyWriteService.updateLabel(key.id(), label);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to update key label for key " + keyId, e);
@@ -172,7 +171,7 @@ public class KeyManager {
             try {
                 var key = ctx.findKey(keyId);
                 tokenKeyWriteService.updateKeyUsage(key.id(), keyUsage);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to update key usage for key " + keyId, e);
@@ -196,7 +195,7 @@ public class KeyManager {
             try {
                 var key = ctx.findKey(keyId);
                 return tokenKeyWriteService.delete(key.id());
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to delete key " + keyId, e);
@@ -221,7 +220,7 @@ public class KeyManager {
             try {
                 var key = ctx.findKey(keyId);
                 tokenKeyWriteService.updatePublicKey(key.id(), publicKeyBase64);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to update public key for key " + keyId, e);

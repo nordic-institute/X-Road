@@ -39,9 +39,9 @@ import javax.xml.namespace.QName;
  */
 @Slf4j
 public class OverwriteAttributeFilter extends XMLFilterImpl {
-    private String newValue;
-    private QName element;
-    private QName attributeToOverwrite;
+    private final String newValue;
+    private final QName element;
+    private final QName attributeToOverwrite;
 
     private static final QName WSDL_SOAP_ADDRESS_ELEMENT = new QName(
             "http://schemas.xmlsoap.org/wsdl/soap/", "address");

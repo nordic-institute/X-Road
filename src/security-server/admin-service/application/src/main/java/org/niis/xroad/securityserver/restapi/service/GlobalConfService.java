@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -53,7 +52,7 @@ import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
+import static org.niis.xroad.common.core.exception.ErrorCode.GLOBAL_CONF_OUTDATED;
 
 /**
  * Global configuration service.
@@ -75,7 +74,7 @@ public class GlobalConfService {
     public boolean securityServerExists(SecurityServerId securityServerId) {
         if (!globalConfProvider.getInstanceIdentifiers().contains(securityServerId.getXRoadInstance())) {
             // unless we check instance existence like this, we will receive
-            // CodedException: InternalError: Invalid instance identifier: x -exception
+            // XrdRuntimeException: InternalError: Invalid instance identifier: x -exception
             // which is hard to turn correctly into http 404 instead of 500
             return false;
         }
@@ -127,7 +126,7 @@ public class GlobalConfService {
     public void verifyGlobalConfValidity() throws GlobalConfOutdatedException {
         try {
             globalConfProvider.verifyValidity();
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             if (isCausedByOutdatedGlobalconf(e)) {
                 throw new GlobalConfOutdatedException(e);
             } else {
@@ -138,8 +137,8 @@ public class GlobalConfService {
         }
     }
 
-    static boolean isCausedByOutdatedGlobalconf(CodedException e) {
-        return X_OUTDATED_GLOBALCONF.equals(e.getFaultCode());
+    static boolean isCausedByOutdatedGlobalconf(XrdRuntimeException e) {
+        return GLOBAL_CONF_OUTDATED.code().equals(e.getErrorCode());
     }
 
     /**

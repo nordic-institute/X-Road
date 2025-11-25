@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.messagelog.archiver.core;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -38,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.vault.VaultClient;
@@ -63,6 +62,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * Reads all non-archived time-stamped records from the database, writes them
@@ -142,7 +143,7 @@ public class LogArchiver {
                 }
                 session.flush();
             } catch (Exception e) {
-                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+                throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
             } finally {
                 if (recordsArchived > 0) {
                     executionProperties.archiveTransferCommandOpt().ifPresent(this::runTransferCommand);

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.metaservice.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CachingStream;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -35,13 +34,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /*
  * Class for parsing Openapi3 description and replacing strings in servers.url-node with anonymised value
@@ -76,7 +74,7 @@ public class Openapi3Anonymiser {
 
         // Check openapi version
         if (openapiVersion != null && !openapiVersion.toString().startsWith("\"3.")) {
-            throw new CodedException(X_INTERNAL_ERROR,
+            throw XrdRuntimeException.systemInternalError(
                     String.format("Incompatible openapi version. Openapi version 3 or greater expected. "
                             + "Given openapi document is of version %s", openapiVersion));
         }
@@ -90,8 +88,7 @@ public class Openapi3Anonymiser {
                         URI uri = new URI(url);
                         ((ObjectNode) server).put(URL, uri.getPath());
                     } catch (URISyntaxException e) {
-                        throw new CodedException(X_INTERNAL_ERROR,
-                                String.format("Can't parse url string: %s", url));
+                        throw XrdRuntimeException.systemInternalError(String.format("Can't parse url string: %s", url));
                     }
                 }
             });

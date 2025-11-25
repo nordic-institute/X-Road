@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +64,7 @@ public class TokenManager {
                         tokenDefinition.label(),
                         tokenDefinition.serialNumber());
 
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to create token " + tokenDefinition.getId(), e);
@@ -130,7 +128,7 @@ public class TokenManager {
             try {
                 var token = ctx.findToken(tokenId);
                 tokenWriteService.updateFriendlyName(token.id(), friendlyName);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to update friendly name for token " + tokenId, e);
@@ -166,7 +164,7 @@ public class TokenManager {
             try {
                 var token = ctx.findToken(tokenId);
                 tokenWriteService.delete(token.id());
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to delete token " + tokenId, e);

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.common.vault.quarkus;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import io.quarkus.vault.VaultPKISecretEngine;
@@ -34,6 +33,7 @@ import io.quarkus.vault.VaultPKISecretEngineFactory;
 import io.quarkus.vault.pki.DataFormat;
 import io.quarkus.vault.pki.GenerateCertificateOptions;
 import io.quarkus.vault.pki.PrivateKeyEncoding;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
@@ -44,8 +44,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 public class QuarkusVaultKeyClient implements VaultKeyClient {
     private final VaultPKISecretEngine pkiSecretEngine;
@@ -67,7 +65,7 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
         var vaultResponse = pkiSecretEngine.generateCertificate(properties.issuanceRoleName(), request);
 
         if (vaultResponse == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Failed to get certificate from Vault. Response is null.");
+            throw XrdRuntimeException.systemInternalError("Failed to get certificate from Vault. Response is null.");
         }
 
         if (vaultResponse.privateKey.getData() instanceof String privateKeyData) {
@@ -78,7 +76,7 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
                     privateKey,
                     new X509Certificate[]{certTrustChain});
         } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Failed to get certificate from Vault. Data is not readable. Null? "
+            throw XrdRuntimeException.systemInternalError("Failed to get certificate from Vault. Data is not readable. Null? "
                     + (vaultResponse.privateKey.getData() == null));
         }
     }

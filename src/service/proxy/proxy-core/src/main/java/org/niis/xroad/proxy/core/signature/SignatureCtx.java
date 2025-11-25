@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.signature;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.signature.SignatureResourceResolver;
@@ -35,6 +34,7 @@ import jakarta.xml.bind.JAXBException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.exceptions.XMLSecurityException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -43,8 +43,6 @@ import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
  * This class handles the (batch) signature creation. After requests
@@ -92,7 +90,7 @@ public class SignatureCtx {
         log.trace("getDataToBeSigned(requests = {})", requests.size());
 
         if (requests.isEmpty()) {
-            throw new CodedException(X_INTERNAL_ERROR, "No requests in signing context");
+            throw XrdRuntimeException.systemInternalError("No requests in signing context");
         }
 
         SigningRequest firstRequest = requests.getFirst();

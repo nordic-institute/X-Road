@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.db;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.hibernate.HibernateException;
 import org.hibernate.cfg.Configuration;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.HashMap;
 
@@ -71,7 +70,7 @@ class HibernateUtilTest {
             }
         } catch (Exception e) {
             assertThat(e)
-                    .isInstanceOf(CodedException.class)
+                    .isInstanceOf(XrdRuntimeException.class)
                     .hasMessageContaining("database_error: Error accessing database (testSessionFactory)");
         }
 

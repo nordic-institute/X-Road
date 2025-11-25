@@ -26,17 +26,15 @@
  */
 package org.niis.xroad.cs.registrationservice.testutil;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.security.cert.X509Certificate;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 public class TestGlobalConf extends EmptyGlobalConf {
 
@@ -60,8 +58,7 @@ public class TestGlobalConf extends EmptyGlobalConf {
                 return ca;
             }
         }
-        throw new CodedException(X_INTERNAL_ERROR, "Certificate is not issued by approved "
-                + "certification service provider.");
+        throw XrdRuntimeException.systemInternalError("Certificate is not issued by approved certification service provider.");
     }
 
     @Override

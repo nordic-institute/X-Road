@@ -38,6 +38,8 @@ import org.niis.xroad.serverconf.IsAuthentication;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
+
 /**
  * The simplest case -- normal message and normal response.
  * Result: client receives message.
@@ -73,6 +75,6 @@ public class SslClientAuthWrongISCert extends SslMessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message response) throws Exception {
-        assertErrorCode(ErrorCodes.SERVER_CLIENTPROXY_X, ErrorCodes.X_SSL_AUTH_FAILED);
+        assertErrorCode(ErrorCodes.SERVER_CLIENTPROXY_X, SSL_AUTH_FAILED.code());
     }
 }

@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
-
 import iaik.pkcs.pkcs11.Token;
 import iaik.pkcs.pkcs11.TokenException;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +40,6 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
@@ -93,7 +90,7 @@ class HardwareTokenSessionPool implements SessionProvider {
         log.info("Initializing Apache Commons session pool with settings {} for token {}", properties, tokenId);
 
         if (token == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Token is null for pool initialization");
+            throw XrdRuntimeException.systemInternalError("Token is null for pool initialization");
         }
 
         var factory = new ManagedPKCS11SessionFactory(token, tokenId);
@@ -143,7 +140,8 @@ class HardwareTokenSessionPool implements SessionProvider {
 
             var pin = PasswordStore.getPassword(tokenId);
             if (pin.isEmpty()) {
-                throw new CodedException("PIN not available in PasswordStore for auto-login of pooled session on token " + tokenId);
+                throw XrdRuntimeException.systemInternalError(
+                        "PIN not available in PasswordStore for auto-login of pooled session on token " + tokenId);
             }
             if (session.login()) {
                 log.debug("Immediate login successful for new pooled session {} on token {}", session.getSessionHandle(), tokenId);

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.CryptoException;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
@@ -51,6 +50,7 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -79,13 +79,12 @@ import java.util.Map;
 import java.util.Objects;
 
 import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.crypto.identifier.KeyAlgorithm.EC;
 import static ee.ria.xroad.common.crypto.identifier.KeyAlgorithm.RSA;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_READONLY;
 import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPrivateKey;
 import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPrivateKeys;
 import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPublicKey;
@@ -265,13 +264,13 @@ public class HardwareTokenWorkerFactory {
                 var privateKey = generatedKP.getPrivateKey();
 
                 if (privateKey == null) {
-                    throw new CodedException(X_INTERNAL_ERROR, "Could not generate private key");
+                    throw XrdRuntimeException.systemInternalError("Could not generate private key");
                 }
 
                 var publicKey = generatedKP.getPublicKey();
 
                 if (publicKey == null) {
-                    throw new CodedException(X_INTERNAL_ERROR, "Could not generate public key");
+                    throw XrdRuntimeException.systemInternalError("Could not generate public key");
                 }
 
                 byte[] keyIdBytes = privateKey.getId().getByteArrayValue();
@@ -302,8 +301,8 @@ public class HardwareTokenWorkerFactory {
                         rawSession.destroyObject(privateKey);
                         privateKeyCache.remove(keyId);
                     } catch (Exception e) {
-                        throw new CodedException(X_INTERNAL_ERROR, "Failed to delete private key '%s' on token '%s': %s",
-                                keyId, getWorkerId(), e);
+                        throw XrdRuntimeException.systemInternalError("Failed to delete private key '%s' on token '%s': %s".formatted(
+                                keyId, getWorkerId(), e));
                     }
                 } else {
                     log.warn("Could not find private key '{}' on token '{}'", keyId, getWorkerId());
@@ -318,8 +317,8 @@ public class HardwareTokenWorkerFactory {
                     try {
                         rawSession.destroyObject(publicKey);
                     } catch (Exception e) {
-                        throw new CodedException(X_INTERNAL_ERROR, "Failed to delete public key '%s' on token '%s': %s",
-                                keyId, getWorkerId(), e);
+                        throw XrdRuntimeException.systemInternalError("Failed to delete public key '%s' on token '%s': %s".formatted(
+                                keyId, getWorkerId(), e));
                     }
                 } else {
                     log.warn("Could not find public key '{}' on token '{}'", keyId, getWorkerId());
@@ -686,7 +685,7 @@ public class HardwareTokenWorkerFactory {
 
         private BlockingPKCS11SessionManager getActiveManagementSessionProvider() {
             if (managementSessionProvider == null) {
-                throw new CodedException(X_INTERNAL_ERROR, "No active session on token %s", tokenId);
+                throw XrdRuntimeException.systemInternalError("No active session on token %s".formatted(tokenId));
             }
 
             return managementSessionProvider;
@@ -694,7 +693,7 @@ public class HardwareTokenWorkerFactory {
 
         private void assertTokenWritable() {
             if (tokenDefinition.readOnly()) {
-                throw CodedException.tr(X_TOKEN_READONLY, "token_is_readonly", "Token '%s' is read only", tokenId);
+                throw XrdRuntimeException.systemException(TOKEN_READONLY, "Token '%s' is read only".formatted(tokenId));
             }
         }
 

@@ -27,11 +27,10 @@
 
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -60,7 +59,7 @@ class SoapUtilsTest {
         boolean valid = true;
         try {
             SoapUtils.validateSoapActionHeader(header);
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             valid = false;
         }
         assertEquals(expected, valid);
