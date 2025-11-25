@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.common.backup.repository;
+package org.niis.xroad.cs.admin.core.repository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,8 +32,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.restapi.common.backup.service.BackupValidator;
+import org.niis.xroad.cs.admin.core.config.BackupConfig;
+import org.niis.xroad.cs.admin.core.service.BackupValidator;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -50,7 +50,7 @@ class BackupRepositoryTest {
     @Mock
     private BackupValidator backupValidator;
     @Mock
-    private CommonProperties commonProperties;
+    private BackupConfig backupConfig;
 
     @TempDir
     Path backupDir;
@@ -59,8 +59,8 @@ class BackupRepositoryTest {
 
     @BeforeEach
     void beforeEach() {
-        when(commonProperties.confBackupPath()).thenReturn(backupDir.toAbsolutePath().toString());
-        repository = new BackupRepository(backupValidator, commonProperties);
+        when(backupConfig.getConfBackupPath()).thenReturn(backupDir.toAbsolutePath().toString());
+        repository = new BackupRepository(backupValidator, backupConfig);
     }
 
     @Test

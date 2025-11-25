@@ -1,6 +1,5 @@
 /*
  * The MIT License
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -23,17 +22,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.common.backup.dto;
+package org.niis.xroad.cs.admin.api.service;
 
-import lombok.Value;
+import org.niis.xroad.cs.admin.api.dto.BackupFile;
 
-import java.time.OffsetDateTime;
-
-/**
- * DTO for backup files
- */
-@Value
-public class BackupFile {
-    String filename;
-    OffsetDateTime createdAt;
+public interface ConfigurationBackupGenerator {
+    BackupFile generateBackup() throws InterruptedException;
 }

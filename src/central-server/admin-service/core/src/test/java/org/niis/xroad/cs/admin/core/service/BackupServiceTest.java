@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.common.backup.service;
+package org.niis.xroad.cs.admin.core.service;
 
 
 import com.google.common.collect.Lists;
@@ -34,9 +34,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
+import org.niis.xroad.cs.admin.api.dto.BackupFile;
+import org.niis.xroad.cs.admin.api.service.BackupService;
+import org.niis.xroad.cs.admin.core.config.BackupConfig;
+import org.niis.xroad.cs.admin.core.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.mock.web.MockMultipartFile;
@@ -77,13 +78,14 @@ class BackupServiceTest {
     private static final String BACKUP_FILE_2_CREATED_AT = "2020-02-12T03:15:02.684Z";
 
     private static final Long BACKUP_FILE_2_CREATED_AT_MILLIS = 1581477302684L;
+    private static final String CONF_BACKUP_PATH = "/var/lib/xroad/backup/";
 
     @Mock
     AuditDataHelper auditDataHelper;
     @Mock
     BackupValidator backupValidator;
     @Mock
-    CommonProperties commonProperties;
+    BackupConfig backupConfig;
 
     BackupRepository backupRepository;
     BackupService backupService;
@@ -93,9 +95,9 @@ class BackupServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(commonProperties.confBackupPath()).thenReturn(CommonProperties.DEFAULT_CONF_BACKUP_PATH);
-        backupRepository = spy(new BackupRepository(backupValidator, commonProperties));
-        backupService = new BackupService(backupRepository, auditDataHelper);
+        when(backupConfig.getConfBackupPath()).thenReturn(CONF_BACKUP_PATH);
+        backupRepository = spy(new BackupRepository(backupValidator, backupConfig));
+        backupService = new BackupServiceImpl(backupRepository, auditDataHelper);
     }
 
     @Test

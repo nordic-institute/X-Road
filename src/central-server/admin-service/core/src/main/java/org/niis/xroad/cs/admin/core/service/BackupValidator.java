@@ -1,21 +1,20 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,22 +23,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.core.service;
 
-package org.niis.xroad.common.properties;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import java.util.regex.Pattern;
 
-import static org.niis.xroad.common.properties.CommonProperties.PREFIX;
+@Component
+public class BackupValidator implements InitializingBean {
+    /**
+     * Default criteria for a valid backup file name:
+     * 1) cannot start with "."
+     * 2) must contain one or more word characters ([a-zA-Z_0-9.-]),
+     * 3) must end with ".gpg" or ".tar" depending on env.
+     */
+    private final String backupFileNamePatternStr;
 
-@ConfigMapping(prefix = PREFIX)
-public interface CommonProperties {
-    String PREFIX = "xroad.common";
-    String DEFAULT_TEMP_FILES_PATH = "/var/tmp/xroad/";
+    private Pattern backupFileNamePattern;
 
-    @WithName("temp-files-path")
-    @WithDefault(DEFAULT_TEMP_FILES_PATH)
-    String tempFilesPath();
+    public BackupValidator(@Value("${script.generate-backup.valid-filename-pattern}") String backupFileNamePatternStr) {
+        this.backupFileNamePatternStr = backupFileNamePatternStr;
+    }
 
+    public void afterPropertiesSet() {
+        backupFileNamePattern = Pattern.compile(backupFileNamePatternStr);
+    }
+
+    /**
+     * Check if the given filename is valid and meets the defined criteria
+     *
+     * @param filename backup filename to validate
+     * @return validity status
+     */
+    public boolean isValidBackupFilename(String filename) {
+        return backupFileNamePattern.matcher(filename).matches();
+    }
 }

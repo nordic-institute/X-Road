@@ -154,7 +154,11 @@ public class LegacyConfigPathMapping {
         addMapping("center.external-directory", "admin-service.global-conf-generator.external-directory");
         addMapping("center.generated-conf-dir", "admin-service.global-conf-generator.generated-conf-dir");
         addMapping("center.trusted-anchors-allowed", "admin-service.trusted-anchors-allowed");
-        addMapping("center.conf-backup-path", "common.conf-backup-path");
+        addMapping("center.conf-backup-path", "admin-service.conf-backup-path");
+
+        addMapping("center.auto-approve-owner-change-requests", "management-requests.auto-approve-owner-change-requests");
+        addMapping("center.auto-approve-client-reg-requests", "management-requests.auto-approve-client-reg-requests");
+        addMapping("center.auto-approve-auth-cert-reg-requests", "management-requests.auto-approve-auth-cert-reg-requests");
 
         MAPPING.putAll(addDatabaseMapping("serverconf"));
         MAPPING.putAll(addDatabaseMapping("messagelog"));

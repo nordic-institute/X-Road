@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.transaction.Transactional;
@@ -39,6 +38,7 @@ import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationR
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
+import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -89,6 +89,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     private final GlobalGroupMemberService groupMemberService;
     private final RequestMapper requestMapper;
     private final MemberHelper memberHelper;
+    private final ManagementServiceConfigProperties managementServiceConfigProperties;
 
     /**
      * Creates an authentication certificate registration request.
@@ -162,7 +163,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     }
 
     public boolean canAutoApprove(AuthenticationCertificateRegistrationRequest request) {
-        return (SystemProperties.getCenterAutoApproveAuthCertRegRequests()
+        return (managementServiceConfigProperties.isAutoApproveAuthCertRegRequests()
                 || request.getProcessingStatus().equals(SUBMITTED_FOR_APPROVAL))
                 && request.getOrigin() == SECURITY_SERVER
                 && members.count(request.getSecurityServerId().getOwner()) > 0;

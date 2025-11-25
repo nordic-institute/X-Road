@@ -23,23 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.common.backup.service;
+package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.AllArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
+import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.niis.xroad.cs.admin.api.service.ConfigurationRestorationService;
+import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.repository.BackupRepository;
+import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.ApiKeyService;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 
@@ -50,19 +56,22 @@ import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_
  * service class for restoring security server configuration from a backup
  */
 @Slf4j
+@Service
 @PreAuthorize("isAuthenticated()")
 @AllArgsConstructor
-public abstract class ConfigurationRestorationService {
+public class ConfigurationRestorationServiceImpl implements ConfigurationRestorationService {
 
+    private final SystemParameterService systemParameterService;
     private final ExternalProcessRunner externalProcessRunner;
     private final BackupRepository backupRepository;
     private final ApiKeyService apiKeyService;
     private final AuditDataHelper auditDataHelper;
     private final PersistenceUtils persistenceUtils;
     private final ApplicationEventPublisher eventPublisher;
+    private final HAConfigStatus currentHaConfigStatus;
 
-    @Setter
-    private String configurationRestoreScriptPath;
+    @Value("${script.restore-configuration.path}")
+    private final String configurationRestoreScriptPath;
 
     /**
      * Restores the security server configuration from a backup. Any tokens that are not software tokens are logged
@@ -71,6 +80,7 @@ public abstract class ConfigurationRestorationService {
      * @throws InterruptedException         execution of the restore script was interrupted
      * @throws InternalServerErrorException if the restore script fails or does not execute
      */
+    @Override
     public synchronized void restoreFromBackup(String fileName) throws
                                                                 InterruptedException, InternalServerErrorException {
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(fileName));
@@ -108,10 +118,27 @@ public abstract class ConfigurationRestorationService {
         }
     }
 
-    /**
-     * Encodes args with base64 and returns all options and args as an array
-     * @param backupFilePath
-     * @return
-     */
-    protected abstract String[] buildArguments(String backupFilePath);
+    protected String[] buildArguments(String backupFilePath) {
+        String encodedInstanceIdentifier = FormatUtils.encodeStringToBase64(systemParameterService.getInstanceIdentifier());
+        String encodedBackupPath = FormatUtils.encodeStringToBase64(backupFilePath);
+
+        String configurationRestoreScriptArgs = "-b -i %s -f %s";
+        String argumentsString = String
+                .format(configurationRestoreScriptArgs, encodedInstanceIdentifier, encodedBackupPath)
+                .trim();
+
+        if (currentHaConfigStatus.isHaConfigured()) {
+            String encodedHaNodeName = FormatUtils.encodeStringToBase64(currentHaConfigStatus.getCurrentHaNodeName());
+
+            String haNodeNameArg = "-n %s";
+            String haNodeNameArgumentString = String
+                    .format(haNodeNameArg, encodedHaNodeName)
+                    .trim();
+
+            argumentsString = argumentsString + " " + haNodeNameArgumentString;
+        }
+
+        return argumentsString.split("\\s+");
+    }
+
 }

@@ -24,22 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.core.config;
 
-package org.niis.xroad.common.properties;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+@Configuration
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "xroad.admin-service.management-requests")
+public class ManagementServiceConfigProperties {
 
-import static org.niis.xroad.common.properties.CommonProperties.PREFIX;
+    /** whether automatic approval of auth cert registration requests is enabled, 'false' by default. */
+    private boolean autoApproveAuthCertRegRequests;
 
-@ConfigMapping(prefix = PREFIX)
-public interface CommonProperties {
-    String PREFIX = "xroad.common";
-    String DEFAULT_TEMP_FILES_PATH = "/var/tmp/xroad/";
+    /** whether automatic approval of client registration requests is enabled, 'false' by default. */
+    private boolean autoApproveClientRegRequests;
 
-    @WithName("temp-files-path")
-    @WithDefault(DEFAULT_TEMP_FILES_PATH)
-    String tempFilesPath();
+    /** whether automatic approval of owner change requests is enabled, 'false' by default. */
+    private boolean autoApproveOwnerChangeRequests;
 
 }

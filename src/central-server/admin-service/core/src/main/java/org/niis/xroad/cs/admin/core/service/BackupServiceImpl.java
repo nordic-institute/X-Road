@@ -23,15 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.common.backup.service;
+package org.niis.xroad.cs.admin.core.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
+import org.niis.xroad.cs.admin.api.dto.BackupFile;
+import org.niis.xroad.cs.admin.api.service.BackupService;
+import org.niis.xroad.cs.admin.core.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,7 +52,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALRE
 @Service
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
-public class BackupService {
+public class BackupServiceImpl implements BackupService {
     private final BackupRepository backupRepository;
     private final AuditDataHelper auditDataHelper;
 
@@ -59,6 +60,7 @@ public class BackupService {
      * Return a list of available backup files
      * @return list of backup files
      */
+    @Override
     public List<BackupFile> getBackupFiles() {
         return backupRepository.getBackupFiles();
     }
@@ -68,6 +70,7 @@ public class BackupService {
      * @param filename backup file name to delete
      * @throws NotFoundException if backup file is not found
      */
+    @Override
     public void deleteBackup(String filename) throws NotFoundException {
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
         if (getBackup(filename).isEmpty()) {
@@ -82,6 +85,7 @@ public class BackupService {
      * @return raw contents of file
      * @throws NotFoundException if backup file is not found
      */
+    @Override
     public byte[] readBackupFile(String filename) throws NotFoundException {
         if (getBackup(filename).isEmpty()) {
             throw new NotFoundException(BACKUP_FILE_NOT_FOUND.build(filename));
@@ -102,6 +106,7 @@ public class BackupService {
      *                                    or the first entry of the tar file
      *                                    does not match to the first entry if the Security Server generated backup tar files
      */
+    @Override
     public BackupFile uploadBackup(boolean ignoreWarnings, String filename, byte[] fileBytes)
             throws UnhandledWarningsException, BadRequestException {
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
@@ -120,6 +125,7 @@ public class BackupService {
      * @param filename backup file name
      * @return backup, if available
      */
+    @Override
     public Optional<BackupFile> getBackup(String filename) {
         return getBackupFiles().stream()
                 .filter(b -> b.getFilename().equals(filename))

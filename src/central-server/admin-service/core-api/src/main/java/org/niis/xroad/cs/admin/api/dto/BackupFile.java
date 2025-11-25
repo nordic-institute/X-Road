@@ -23,37 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.common.backup.service;
+package org.niis.xroad.cs.admin.api.dto;
 
+import lombok.Value;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import java.time.OffsetDateTime;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-@RunWith(MockitoJUnitRunner.class)
-class BackupValidatorTest {
-    private static final String PATTERN = "^(?!\\.)[\\w\\.\\-]+\\.gpg";
-
-    private final BackupValidator validator = new BackupValidator(PATTERN);
-
-    @BeforeEach
-    void setUp() {
-        validator.afterPropertiesSet();
-    }
-
-    @Test
-    void invalidBackupFilename() {
-        assertThat(validator.isValidBackupFilename("/b.gpg")).isFalse();
-        assertThat(validator.isValidBackupFilename("../b.gpg")).isFalse();
-        assertThat(validator.isValidBackupFilename("a/b.gpg")).isFalse();
-    }
-
-    @Test
-    void validBackupFilename() {
-        assertThat(validator.isValidBackupFilename("b.gpg")).isTrue();
-    }
-
+/**
+ * DTO for backup files
+ */
+@Value
+public class BackupFile {
+    String filename;
+    OffsetDateTime createdAt;
 }

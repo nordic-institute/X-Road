@@ -46,18 +46,26 @@ public final class SystemProperties {
 
     // Common -----------------------------------------------------------------
 
-    /** Property name of the temporary files path. */
+    /**
+     * Property name of the temporary files path.
+     */
     public static final String TEMP_FILES_PATH =
             PREFIX + "common.temp-files-path";
 
-    /** Property name of the downloaded global configuration directory. */
+    /**
+     * Property name of the downloaded global configuration directory.
+     */
     public static final String CONFIGURATION_PATH =
             PREFIX + "common.configuration-path";
 
-    /** Default minimum supported global conf version on configuration proxy */
+    /**
+     * Default minimum supported global conf version on configuration proxy
+     */
     public static final String DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION = "2";
 
-    /** Minimum supported global conf version on configuration proxy **/
+    /**
+     * Minimum supported global conf version on configuration proxy
+     **/
     private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
             PREFIX + "configuration-proxy.minimum-global-configuration-version";
 
@@ -65,51 +73,50 @@ public final class SystemProperties {
 
     // Center -----------------------------------------------------------------
 
-    private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = FALSE;
-
-    private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = FALSE;
-
-    private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = FALSE;
-
     public static final String CENTER_DATABASE_PROPERTIES = CENTER_PREFIX + "database-properties";
-
-    /** Property name of enabling automatic approval of auth cert registration requests. */
-    public static final String CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = CENTER_PREFIX + "auto-approve-auth-cert-reg-requests";
-
-    /** Property name of enabling automatic approval of client registration requests. */
-    public static final String CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = CENTER_PREFIX + "auto-approve-client-reg-requests";
-
-    /** Property name of enabling automatic approval of owner change requests. */
-    public static final String CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = CENTER_PREFIX + "auto-approve-owner-change-requests";
 
     // Misc -------------------------------------------------------------------
 
-    /** Property name of the configuration files path. */
+    /**
+     * Property name of the configuration files path.
+     */
     public static final String CONF_PATH = PREFIX + "conf.path";
 
     // Configuration proxy ------------------------------------------------- //
 
-    /** Property name of the confproxy download script path. */
+    /**
+     * Property name of the confproxy download script path.
+     */
     public static final String CONFIGURATION_PROXY_DOWNLOAD_SCRIPT =
             PREFIX + "configuration-proxy.download-script";
 
-    /** Property name of the confproxy configuration path. */
+    /**
+     * Property name of the confproxy configuration path.
+     */
     public static final String CONFIGURATION_PROXY_CONF_PATH =
             PREFIX + "configuration-proxy.configuration-path";
 
-    /** Property name of the confproxy public configuration distribution path. */
+    /**
+     * Property name of the confproxy public configuration distribution path.
+     */
     public static final String CONFIGURATION_PROXY_GENERATED_CONF_PATH =
             PREFIX + "configuration-proxy.generated-conf-path";
 
-    /** Property name of the confproxy configuration signature digest algorithm. */
+    /**
+     * Property name of the confproxy configuration signature digest algorithm.
+     */
     public static final String CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID =
             PREFIX + "configuration-proxy.signature-digest-algorithm-id";
 
-    /** Property name of the confproxy configuration file hashing algorithm. */
+    /**
+     * Property name of the confproxy configuration file hashing algorithm.
+     */
     public static final String CONFIGURATION_PROXY_HASH_ALGORITHM_URI =
             PREFIX + "configuration-proxy.hash-algorithm-uri";
 
-    /** Property name of the confproxy webserver address. */
+    /**
+     * Property name of the confproxy webserver address.
+     */
     public static final String CONFIGURATION_PROXY_ADDRESS =
             PREFIX + "configuration-proxy.address";
 
@@ -165,30 +172,6 @@ public final class SystemProperties {
     public static String getCenterDatabasePropertiesFile() {
         return getProperty(CENTER_DATABASE_PROPERTIES,
                 getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
-    }
-
-    /**
-     * @return whether automatic approval of auth cert registration requests is enabled, 'false' by default.
-     */
-    public static boolean getCenterAutoApproveAuthCertRegRequests() {
-        return Boolean.parseBoolean(getProperty(CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS,
-                DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS));
-    }
-
-    /**
-     * @return whether automatic approval of client registration requests is enabled, 'false' by default.
-     */
-    public static boolean getCenterAutoApproveClientRegRequests() {
-        return Boolean.parseBoolean(getProperty(CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS,
-                DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS));
-    }
-
-    /**
-     * @return whether automatic approval of owner change requests is enabled, 'false' by default.
-     */
-    public static boolean getCenterAutoApproveOwnerChangeRequests() {
-        return Boolean.parseBoolean(getProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS,
-                DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS));
     }
 
     /**

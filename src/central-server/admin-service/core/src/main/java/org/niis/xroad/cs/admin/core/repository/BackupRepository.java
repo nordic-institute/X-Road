@@ -23,16 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.common.backup.repository;
+package org.niis.xroad.cs.admin.core.repository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.service.BackupValidator;
+import org.niis.xroad.cs.admin.api.dto.BackupFile;
+import org.niis.xroad.cs.admin.core.config.BackupConfig;
+import org.niis.xroad.cs.admin.core.service.BackupValidator;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
@@ -64,17 +64,17 @@ public class BackupRepository {
     private static final int DIR_MAX_DEPTH = 1;
 
     private final BackupValidator backupValidator;
-    private final CommonProperties commonProperties;
+    private final BackupConfig backupConfig;
 
     /**
      * Read backup files from configuration backup path
      * @return list of backup files
      */
     public List<BackupFile> getBackupFiles() {
-        var backupPath = Paths.get(commonProperties.confBackupPath());
+        var backupPath = Paths.get(backupConfig.getConfBackupPath());
         if (!Files.exists(backupPath)) {
             log.warn("Backup directory [{}] does not exist.",
-                    commonProperties.confBackupPath());
+                    backupConfig.getConfBackupPath());
             return Collections.emptyList();
         }
 
@@ -87,7 +87,7 @@ public class BackupRepository {
                     })
                     .collect(Collectors.toList());
         } catch (IOException ioe) {
-            log.error("can't read backup files from configuration path ({})", commonProperties.confBackupPath(), ioe);
+            log.error("can't read backup files from configuration path ({})", backupConfig.getConfBackupPath(), ioe);
             return Collections.emptyList();
         }
     }
@@ -166,7 +166,7 @@ public class BackupRepository {
      * Return configuration backup path with a trailing slash
      */
     public String getConfigurationBackupPath() {
-        return commonProperties.confBackupPath() + (commonProperties.confBackupPath().endsWith(File.separator) ? "" : File.separator);
+        return backupConfig.getConfBackupPath() + (backupConfig.getConfBackupPath().endsWith(File.separator) ? "" : File.separator);
     }
 
     /**
@@ -175,8 +175,8 @@ public class BackupRepository {
      * @return path to the file
      */
     public Path getAbsoluteBackupFilePath(String filename) {
-        final var resolved = Paths.get(commonProperties.confBackupPath()).resolve(filename);
-        if (!resolved.normalize().startsWith(Paths.get(commonProperties.confBackupPath()))) {
+        final var resolved = Paths.get(backupConfig.getConfBackupPath()).resolve(filename);
+        if (!resolved.normalize().startsWith(Paths.get(backupConfig.getConfBackupPath()))) {
             throw new BadRequestException(INVALID_FILENAME.build(filename));
         }
         return resolved;

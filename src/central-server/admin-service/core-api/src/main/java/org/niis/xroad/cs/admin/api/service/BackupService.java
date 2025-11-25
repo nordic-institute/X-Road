@@ -1,6 +1,5 @@
 /*
  * The MIT License
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -23,41 +22,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.common.backup.service;
+package org.niis.xroad.cs.admin.api.service;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.dto.BackupFile;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 
-import java.util.regex.Pattern;
+import java.util.List;
+import java.util.Optional;
 
-@Component
-public class BackupValidator implements InitializingBean {
-    /**
-     * Default criteria for a valid backup file name:
-     * 1) cannot start with "."
-     * 2) must contain one or more word characters ([a-zA-Z_0-9.-]),
-     * 3) must end with ".gpg" or ".tar" depending on env.
-     */
-    private final String backupFileNamePatternStr;
+public interface BackupService {
+    List<BackupFile> getBackupFiles();
 
-    private Pattern backupFileNamePattern;
+    void deleteBackup(String filename) throws NotFoundException;
 
-    public BackupValidator(@Value("${script.generate-backup.valid-filename-pattern}") String backupFileNamePatternStr) {
-        this.backupFileNamePatternStr = backupFileNamePatternStr;
-    }
+    byte[] readBackupFile(String filename) throws NotFoundException;
 
-    public void afterPropertiesSet() {
-        backupFileNamePattern = Pattern.compile(backupFileNamePatternStr);
-    }
+    BackupFile uploadBackup(boolean ignoreWarnings, String filename, byte[] fileBytes)
+            throws UnhandledWarningsException, BadRequestException;
 
-    /**
-     * Check if the given filename is valid and meets the defined criteria
-     *
-     * @param filename backup filename to validate
-     * @return validity status
-     */
-    public boolean isValidBackupFilename(String filename) {
-        return backupFileNamePattern.matcher(filename).matches();
-    }
+    Optional<BackupFile> getBackup(String filename);
 }

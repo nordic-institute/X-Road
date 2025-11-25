@@ -38,13 +38,14 @@ import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
-import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
+import org.niis.xroad.cs.admin.core.repository.BackupRepository;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.nio.file.Paths;
 import java.util.List;
@@ -54,7 +55,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CentralServerConfigurationRestorationServiceTest {
+class ConfigurationRestorationServiceTest {
 
     @Mock
     private ExternalProcessRunner externalProcessRunner;
@@ -74,11 +75,12 @@ class CentralServerConfigurationRestorationServiceTest {
     private HAConfigStatus haConfigStatus;
 
     @InjectMocks
-    private CentralServerConfigurationRestorationService configurationRestorationService;
+    private ConfigurationRestorationServiceImpl configurationRestorationService;
 
     @Test
     void shouldSuccessfullyRestoreFromBackupWithHaConfigured() throws Exception {
         String configurationRestoreScriptPath = "/path/to/restore/script.sh";
+        ReflectionTestUtils.setField(configurationRestorationService, "configurationRestoreScriptPath", configurationRestoreScriptPath);
         String configurationBackupPath = "src/test/resources/backup/";
         String backupFileName = "backup.tar";
         String currentHaNodeName = "node";
@@ -88,7 +90,6 @@ class CentralServerConfigurationRestorationServiceTest {
                 + " -n " + FormatUtils.encodeStringToBase64(currentHaNodeName), 0, List.of()
         );
 
-        configurationRestorationService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
         when(backupRepository.getAbsoluteBackupFilePath(backupFileName))
                 .thenReturn(Paths.get(configurationBackupPath + backupFileName));
         when(backupRepository.getConfigurationBackupPath()).thenReturn(configurationBackupPath);
@@ -114,6 +115,7 @@ class CentralServerConfigurationRestorationServiceTest {
     @Test
     void shouldSuccessfullyRestoreFromBackupWithoutHaConfigured() throws Exception {
         String configurationRestoreScriptPath = "/path/to/restore/script.sh";
+        ReflectionTestUtils.setField(configurationRestorationService, "configurationRestoreScriptPath", configurationRestoreScriptPath);
         String configurationBackupPath = "src/test/resources/backup/";
         String backupFileName = "backup.tar";
         String instanceIdentifier = "TEST";
@@ -122,7 +124,6 @@ class CentralServerConfigurationRestorationServiceTest {
                 0, List.of()
         );
 
-        configurationRestorationService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
         when(backupRepository.getAbsoluteBackupFilePath(backupFileName))
                 .thenReturn(Paths.get(configurationBackupPath + backupFileName));
         when(backupRepository.getConfigurationBackupPath()).thenReturn(configurationBackupPath);
@@ -158,11 +159,11 @@ class CentralServerConfigurationRestorationServiceTest {
     @Test
     void shouldFailWhenExternalProcessFails() throws Exception {
         String configurationRestoreScriptPath = "/path/to/restore/script.sh";
+        ReflectionTestUtils.setField(configurationRestorationService, "configurationRestoreScriptPath", configurationRestoreScriptPath);
         String configurationBackupPath = "src/test/resources/backup/";
         String backupFileName = "backup.tar";
         String instanceIdentifier = "TEST";
 
-        configurationRestorationService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
         when(backupRepository.getAbsoluteBackupFilePath(backupFileName))
                 .thenReturn(Paths.get(configurationBackupPath + backupFileName));
         when(backupRepository.getConfigurationBackupPath()).thenReturn(configurationBackupPath);

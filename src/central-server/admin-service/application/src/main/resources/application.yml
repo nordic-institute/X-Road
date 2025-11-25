@@ -109,6 +109,10 @@ xroad:
       internal-directory: internalconf
       external-directory: externalconf
       generated-conf-dir: /var/lib/xroad/public
+    management-requests:
+      auto-approve-owner-change-requests: false
+      auto-approve-client-reg-requests: false
+      auto-approve-auth-cert-reg-requests: false
     trusted-anchors-allowed: true
     authentication-provider: PAM
     global-configuration-generation-rate-in-seconds: 60
@@ -122,6 +126,7 @@ xroad:
     certificate-allowed-extensions: der,crt,pem,cer
     certificate-allowed-content-types: application/x-x509-cert,text/plain
     backup-allowed-content-types: application/pgp-encrypted
+    conf-backup-path: /var/lib/xroad/backup/
     xml-allowed-extensions: xml
     xml-allowed-content-types: text/xml,application/xml
     strict-identifier-checks: true
