@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.dto;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.model.CsrFormat;
 
 import java.time.OffsetDateTime;

@@ -102,7 +102,7 @@ public final class OcspClient {
     OCSPResp fetchResponse(X509Certificate subject, X509Certificate issuer, PrivateKey signerKey,
                            X509Certificate signer, SignAlgorithm signAlgoId)
             throws CertificateEncodingException, IOException, OCSPException {
-        List<String> responderURIs = globalConfProvider.getOcspResponderAddresses(subject);
+        List<String> responderURIs = globalConfProvider.getOrderedOcspResponderAddresses(subject);
 
         log.trace("responder URIs: {}", responderURIs);
 

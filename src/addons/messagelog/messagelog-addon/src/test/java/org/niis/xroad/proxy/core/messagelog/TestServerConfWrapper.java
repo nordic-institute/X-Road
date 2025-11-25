@@ -34,6 +34,7 @@ import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import lombok.Setter;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
@@ -157,12 +158,17 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public List<String> getTspUrl() {
-        return serverConfProvider.getTspUrl();
+    public List<String> getTspUrls() {
+        return serverConfProvider.getTspUrls();
     }
 
     @Override
-    public String getTspCostType(String tspUrl) {
+    public List<String> getOrderedTspUrls() {
+        return serverConfProvider.getOrderedTspUrls();
+    }
+
+    @Override
+    public CostType getTspCostType(String tspUrl) {
         return serverConfProvider.getTspCostType(tspUrl);
     }
 

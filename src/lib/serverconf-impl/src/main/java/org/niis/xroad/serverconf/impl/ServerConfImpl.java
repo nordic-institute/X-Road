@@ -26,6 +26,7 @@
 package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.db.TransactionCallback;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -50,8 +51,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hibernate.Session;
 import org.hibernate.SharedSessionContract;
+import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.CostTypeSorter;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -353,17 +357,29 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<String> getTspUrl() {
+    public List<String> getTspUrls() {
         return tx(session -> getConf(session).getTimestampingServices().stream()
                 .map(TimestampingService::getUrl)
                 .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toList()));
+                .toList());
     }
 
     @Override
-    public String getTspCostType(String tspUrl) {
+    public List<String> getOrderedTspUrls() {
+        return tx(session -> {
+            CostTypeSorter<TimestampingService> sorter =
+                    new CostTypeSorter<>(getConf(session).getTimestampingServices());
+            SystemProperties.ServicePrioritizationStrategy prioritizationStrategy =
+                    SystemProperties.getTimestampingPrioritizationStrategy();
+            log.debug("Timestamping urls will be sorted based on prioritization strategy: {}", prioritizationStrategy);
+            return sorter.sort(prioritizationStrategy);
+        });
+    }
+
+    @Override
+    public CostType getTspCostType(String tspUrl) {
         return tx(session -> getConf(session).getTimestampingServices().stream()
-                    .filter(t -> StringUtils.equals(t.getUrl(), tspUrl))
+                    .filter(t -> Strings.CS.equals(t.getUrl(), tspUrl))
                     .findFirst()
                     .map(TimestampingService::getCostType)
                     .orElse(null));

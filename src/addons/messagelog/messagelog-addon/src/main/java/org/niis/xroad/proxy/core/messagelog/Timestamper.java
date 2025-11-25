@@ -95,7 +95,7 @@ public class Timestamper {
     }
 
     protected TimestamperWorker getWorkerImpl() {
-        return new TimestamperWorker(globalConfProvider, serverConfProvider.getTspUrl());
+        return new TimestamperWorker(globalConfProvider, serverConfProvider.getOrderedTspUrls());
     }
 
     public TimestampResult handleTimestampTask(TimestampTask timestampTask) {

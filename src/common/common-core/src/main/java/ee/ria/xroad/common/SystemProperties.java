@@ -374,8 +374,8 @@ public final class SystemProperties {
     private static final String PROXY_MESSAGE_SIGN_DIGEST_NAME = PROXY_PREFIX + "message-sign-digest-name";
     public static final String PROXY_MEMORY_USAGE_THRESHOLD = PROXY_PREFIX + "memory-usage-threshold";
 
-    private static final String PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY = PROXY_PREFIX + "timestamping_prioritization_strategy";
-    private static final String PROXY_OCSP_PRIORITIZATION_STRATEGY = PROXY_PREFIX + "ocsp_prioritization_strategy";
+    public static final String PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY = PROXY_PREFIX + "timestamping_prioritization_strategy";
+    public static final String PROXY_OCSP_PRIORITIZATION_STRATEGY = PROXY_PREFIX + "ocsp_prioritization_strategy";
 
     public enum ServicePrioritizationStrategy { ONLY_FREE, ONLY_PAID, FREE_FIRST, PAID_FIRST, NONE }
 

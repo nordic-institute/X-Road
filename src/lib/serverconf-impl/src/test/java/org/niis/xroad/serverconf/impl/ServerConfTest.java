@@ -38,8 +38,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
@@ -332,7 +332,7 @@ public class ServerConfTest {
      */
     @Test
     public void getTsps() throws Exception {
-        List<String> tspUrls = serverConfProvider.getTspUrl();
+        List<String> tspUrls = serverConfProvider.getTspUrls();
         assertEquals(NUM_TSPS, tspUrls.size());
         for (int i = 0; i < NUM_TSPS; i++) {
             assertEquals(String.format("tspUrl%d", i), tspUrls.get(i));
@@ -340,11 +340,60 @@ public class ServerConfTest {
     }
 
     @Test
+    public void getOrderedTspUrls() {
+        System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
+                SystemProperties.ServicePrioritizationStrategy.ONLY_FREE.name());
+        List<String> tspUrls = serverConfProvider.getOrderedTspUrls();
+        assertEquals(2, tspUrls.size());
+        assertEquals("tspUrl1", tspUrls.get(0));
+        assertEquals("tspUrl4", tspUrls.get(1));
+
+        System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
+                SystemProperties.ServicePrioritizationStrategy.FREE_FIRST.name());
+        tspUrls = serverConfProvider.getOrderedTspUrls();
+        assertEquals(5, tspUrls.size());
+        assertEquals("tspUrl1", tspUrls.get(0));
+        assertEquals("tspUrl4", tspUrls.get(1));
+        assertEquals("tspUrl0", tspUrls.get(2));
+        assertEquals("tspUrl3", tspUrls.get(3));
+        assertEquals("tspUrl2", tspUrls.get(4));
+
+        System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
+                SystemProperties.ServicePrioritizationStrategy.ONLY_PAID.name());
+        tspUrls = serverConfProvider.getOrderedTspUrls();
+        assertEquals(2, tspUrls.size());
+        assertEquals("tspUrl0", tspUrls.get(0));
+        assertEquals("tspUrl3", tspUrls.get(1));
+
+        System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
+                SystemProperties.ServicePrioritizationStrategy.PAID_FIRST.name());
+        tspUrls = serverConfProvider.getOrderedTspUrls();
+        assertEquals(5, tspUrls.size());
+        assertEquals("tspUrl0", tspUrls.get(0));
+        assertEquals("tspUrl3", tspUrls.get(1));
+        assertEquals("tspUrl1", tspUrls.get(2));
+        assertEquals("tspUrl4", tspUrls.get(3));
+        assertEquals("tspUrl2", tspUrls.get(4));
+
+        System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
+                SystemProperties.ServicePrioritizationStrategy.NONE.name());
+        tspUrls = serverConfProvider.getOrderedTspUrls();
+        assertEquals(5, tspUrls.size());
+        assertEquals("tspUrl0", tspUrls.get(0));
+        assertEquals("tspUrl1", tspUrls.get(1));
+        assertEquals("tspUrl2", tspUrls.get(2));
+        assertEquals("tspUrl3", tspUrls.get(3));
+        assertEquals("tspUrl4", tspUrls.get(4));
+    }
+
+    @Test
     public void getTspCostType() {
-        String costType0 = serverConfProvider.getTspCostType("tspUrl0");
-        String costType2 = serverConfProvider.getTspCostType("tspUrl2");
-        assertEquals(CostType.UNDEFINED.name(), costType0);
-        assertEquals(CostType.FREE.name(), costType2);
+        CostType costType0 = serverConfProvider.getTspCostType("tspUrl0");
+        CostType costType1 = serverConfProvider.getTspCostType("tspUrl1");
+        CostType costType2 = serverConfProvider.getTspCostType("tspUrl2");
+        assertEquals(CostType.PAID, costType0);
+        assertEquals(CostType.FREE, costType1);
+        assertEquals(CostType.UNDEFINED, costType2);
     }
 
     /**

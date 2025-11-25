@@ -27,7 +27,7 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthorityDto;
