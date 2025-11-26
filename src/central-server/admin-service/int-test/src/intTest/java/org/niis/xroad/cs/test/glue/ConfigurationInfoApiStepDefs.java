@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.apache.commons.io.IOUtils;
@@ -37,6 +36,7 @@ import org.niis.xroad.cs.openapi.model.GlobalConfDownloadUrlDto;
 import org.niis.xroad.cs.test.api.FeignConfigurationPartsApi;
 import org.niis.xroad.cs.test.api.FeignConfigurationSourceAnchorApi;
 import org.niis.xroad.cs.test.api.FeignConfigurationSourcesApi;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -46,18 +46,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static com.nortal.test.asserts.Assertions.notNullAssertion;
-import static java.lang.ClassLoader.getSystemResource;
-import static java.nio.file.Files.readAllBytes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.niis.xroad.cs.openapi.model.ConfigurationTypeDto.EXTERNAL;
 import static org.niis.xroad.cs.openapi.model.ConfigurationTypeDto.INTERNAL;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.notNullAssertion;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -90,7 +87,8 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                         "Response contains content identifier"))
                 .assertion(equalsAssertion("shared-params.xml", "body[0].fileName",
                         "Response contains file name "))
-                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"), "body[0].fileUpdatedAt",
+                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
+                        "body[0].fileUpdatedAt",
                         "Response contains date at which file was updated"))
                 .assertion(equalsAssertion(2, "body[0].version",
                         "Response contains version "))
@@ -110,37 +108,50 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(5, "body.size()", "Response contains 5 items"))
 
                 .assertion(equalsAssertion("shared-params.xml",
-                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileName", "File name matches"))
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileName",
+                        "File name matches"))
                 .assertion(equalsAssertion(2,
-                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].version", "Version matches"))
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].version",
+                        "Version matches"))
                 .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
-                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileUpdatedAt", "UpdatedAt matches"))
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileUpdatedAt",
+                        "UpdatedAt matches"))
                 .assertion(equalsAssertion(false,
-                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].optional", "Part is mandatory"))
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].optional",
+                        "Part is mandatory"))
 
                 .assertion(equalsAssertion("private-params.xml",
-                        "body.^[contentIdentifier=='PRIVATE-PARAMETERS'].fileName", "File name matches"))
+                        "body.^[contentIdentifier=='PRIVATE-PARAMETERS'].fileName",
+                        "File name matches"))
                 .assertion(equalsAssertion(2,
-                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].version", "Version matches"))
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].version",
+                        "Version matches"))
                 .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
-                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileUpdatedAt", "UpdatedAt matches"))
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileUpdatedAt",
+                        "UpdatedAt matches"))
                 .assertion(equalsAssertion(false,
-                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].optional", "Part is mandatory"))
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].optional",
+                        "Part is mandatory"))
 
                 .assertion(equalsAssertion("test-monitoring-part.xml",
-                        "body.^[contentIdentifier=='MONITORING'].fileName", "File name matches"))
+                        "body.^[contentIdentifier=='MONITORING'].fileName",
+                        "File name matches"))
                 .assertion(isNull("body.^[contentIdentifier=='MONITORING'].version"))
                 .assertion(isNull("body.^[contentIdentifier=='MONITORING'].fileUpdatedAt"))
                 .assertion(equalsAssertion(true,
                         "body.^[contentIdentifier=='MONITORING'].optional", "Part is optional"))
 
                 .assertion(equalsAssertion("test-fetchinterval-part.xml",
-                        "body.^[contentIdentifier=='FETCHINTERVAL'].fileName", "File name matches"))
-                .assertion(equalsAssertion(0, "body.^[contentIdentifier=='FETCHINTERVAL'].version", "Version matches"))
+                        "body.^[contentIdentifier=='FETCHINTERVAL'].fileName",
+                        "File name matches"))
+                .assertion(equalsAssertion(0, "body.^[contentIdentifier=='FETCHINTERVAL'].version",
+                        "Version matches"))
                 .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
-                        "body.^[contentIdentifier=='FETCHINTERVAL'].fileUpdatedAt", "UpdatedAt matches"))
+                        "body.^[contentIdentifier=='FETCHINTERVAL'].fileUpdatedAt",
+                        "UpdatedAt matches"))
                 .assertion(equalsAssertion(true,
-                        "body.^[contentIdentifier=='FETCHINTERVAL'].optional", "Part is optional"))
+                        "body.^[contentIdentifier=='FETCHINTERVAL'].optional",
+                        "Part is optional"))
 
                 .execute();
     }
@@ -152,10 +163,12 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion("4D:72:A8:60:90:88:A2:5B:9C:6B:91:86:3C:D7:44:CE:9E:E1:1C:27:8E:33:F4:E5:31:68:F2:EC",
+                .assertion(equalsAssertion(
+                        "4D:72:A8:60:90:88:A2:5B:9C:6B:91:86:3C:D7:44:CE:9E:E1:1C:27:8E:33:F4:E5:31:68:F2:EC",
                         "body.anchor.hash",
                         "Response contains file hash"))
-                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"), "body.anchor.createdAt",
+                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
+                        "body.anchor.createdAt",
                         "Response contains created at date"))
                 .execute();
     }
@@ -168,7 +181,8 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
         String expectedDownloadUrl = "https://cs/" + configurationType.toLowerCase() + "conf";
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(expectedDownloadUrl, "body.url", "Response contains global download url"))
+                .assertion(equalsAssertion(expectedDownloadUrl, "body.url",
+                        "Response contains global download url"))
                 .execute();
     }
 
@@ -246,12 +260,20 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
     }
 
     @Step("user uploads {} configuration {} file {}")
-    public void userUploadsConfigurationPart(String configurationType, String contentIdentifier, String filename) throws Exception {
-        MultipartFile file = new MockMultipartFile("file", "file.xml", null,
-                readAllBytes(Paths.get(getSystemResource("files/" + filename).toURI())));
+    public void userUploadsConfigurationPart(String configurationType, String contentIdentifier, String filename)
+            throws Exception {
+        byte[] fileContent;
+        try (var inputStream = ClassLoader.getSystemResourceAsStream("files/" + filename)) {
+            if (inputStream == null) {
+                throw new IOException("Resource not found: files/" + filename);
+            }
+            fileContent = inputStream.readAllBytes();
+        }
+        MultipartFile file = new MockMultipartFile("file", "file.xml", null, fileContent);
 
         final ResponseEntity<Void> response = configurationPartsApi
-                .uploadConfigurationParts(ConfigurationTypeDto.fromValue(configurationType), contentIdentifier, file);
+                .uploadConfigurationParts(ConfigurationTypeDto.fromValue(configurationType),
+                        contentIdentifier, file);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(NO_CONTENT))

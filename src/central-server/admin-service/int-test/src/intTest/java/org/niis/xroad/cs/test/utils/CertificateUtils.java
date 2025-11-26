@@ -27,8 +27,7 @@
 
 package org.niis.xroad.cs.test.utils;
 
-import ee.ria.xroad.common.util.TimeUtils;
-
+import lombok.experimental.UtilityClass;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -46,6 +45,7 @@ import java.security.PrivateKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
@@ -53,10 +53,8 @@ import java.util.regex.Pattern;
 
 import static java.lang.ClassLoader.getSystemResourceAsStream;
 
+@UtilityClass
 public final class CertificateUtils {
-
-    private CertificateUtils() {
-    }
 
     public static byte[] generateAuthCert(String certDistinguishedName) throws Exception {
         return generateAuthCertHolder(certDistinguishedName).getEncoded();
@@ -91,8 +89,8 @@ public final class CertificateUtils {
         return new JcaX509v3CertificateBuilder(
                 issuerCertificate.getSubjectX500Principal(),
                 BigInteger.ONE,
-                Date.from(TimeUtils.now().minus(1, ChronoUnit.MINUTES)),
-                Date.from(TimeUtils.now().plus(365, ChronoUnit.DAYS)),
+                Date.from(Instant.now().minus(1, ChronoUnit.MINUTES)),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
                 subject,
                 issuerCertificate.getPublicKey())
                 .addExtension(Extension.create(

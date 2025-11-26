@@ -42,8 +42,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.String.format;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.CERTIFICATION_SERVICE_ID;
@@ -52,6 +50,8 @@ import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.OCSP_RESPONDE
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE_STATUS;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.notNullAssertion;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;

@@ -45,10 +45,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.APPLICATION_JSON;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -153,7 +153,8 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(values.get("$securityServerId"), "body.securityServerId"))
-                .assertion(equalsAssertion(values.get("$securityServerOwnersGlobalGroupCode"), "body.securityServerOwnersGlobalGroupCode"))
+                .assertion(equalsAssertion(values.get("$securityServerOwnersGlobalGroupCode"),
+                        "body.securityServerOwnersGlobalGroupCode"))
                 .assertion(equalsAssertion(values.get("$serviceProviderName"), "body.serviceProviderName"))
                 .assertion(equalsAssertion(values.get("$servicesAddress"), "body.servicesAddress"))
                 .assertion(equalsAssertion(values.get("$wsdlAddress"), "body.wsdlAddress"))
@@ -184,7 +185,8 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
                 .respond(response()
                         .withStatusCode(OK.value())
                         .withContentType(APPLICATION_JSON)
-                        .withBody(IOUtils.toByteArray(getClass().getResourceAsStream("/test-data/vault-issue-tls-creds-response.json"))));
+                        .withBody(IOUtils.toByteArray(
+                                getClass().getResourceAsStream("/test-data/vault-issue-tls-creds-response.json"))));
 
         mockServerService.client()
                 .when(request()
@@ -204,7 +206,8 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
                 .respond(response()
                         .withStatusCode(OK.value())
                         .withContentType(APPLICATION_JSON)
-                        .withBody(IOUtils.toByteArray(getClass().getResourceAsStream("/test-data/vault-issue-tls-creds-response.json"))));
+                        .withBody(IOUtils.toByteArray(
+                                getClass().getResourceAsStream("/test-data/vault-issue-tls-creds-response.json"))));
 
         mockServerService.client()
                 .when(request()
@@ -224,6 +227,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
                 .respond(response()
                         .withStatusCode(OK.value())
                         .withContentType(APPLICATION_JSON)
-                        .withBody(IOUtils.toByteArray(getClass().getResourceAsStream("/test-data/vault-get-tls-creds.response.json"))));
+                        .withBody(IOUtils.toByteArray(
+                                getClass().getResourceAsStream("/test-data/vault-get-tls-creds.response.json"))));
     }
 }

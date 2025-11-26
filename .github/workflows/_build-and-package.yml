@@ -153,6 +153,13 @@ jobs:
         run: |
           ./build-images.sh --platforms linux/amd64,linux/arm64 --push
 
+      - name: Upload CS Admin int test jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: cs-admin-int-test-jar
+          path: src/central-server/admin-service/int-test/build/libs/central-server-admin-int-test-1.0.jar
+          compression-level: '0'
+
       - name: Log storage after build
         if: always()
         uses: ./.github/actions/log-storage
