@@ -133,7 +133,7 @@ public class SignerRepository {
 
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt("id");
+                    return rs.getLong("id");
                 } else {
                     throw new SQLException("Failed to insert key.");
                 }
