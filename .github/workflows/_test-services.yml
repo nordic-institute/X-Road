@@ -233,7 +233,7 @@ jobs:
           reporter: java-junit
 
       - name: Generate Allure Report
-        uses: simple-elf/allure-report-action@v1.7
+        uses: simple-elf/allure-report-action@v1.13
         if: always()
         with:
           gh_pages: ''
