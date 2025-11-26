@@ -1,5 +1,7 @@
 /*
  * The MIT License
+ * <p>
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -22,56 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.test.ui.page.component;
 
+package org.niis.xroad.test.framework.core.ui.utils;
+
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import org.apache.commons.lang3.StringUtils;
+import lombok.experimental.UtilityClass;
 
-import static com.codeborne.selenide.Selenide.$x;
+import static org.openqa.selenium.Keys.COMMAND;
+import static org.openqa.selenium.Keys.CONTROL;
+import static org.openqa.selenium.Keys.DELETE;
 
-public class Dialog {
+@UtilityClass
+public final class SeleniumUtils {
 
-    private static final String SELECTOR_TPL = "(//div[@data-test='dialog-simple' %s])[last()]";
+    public static SelenideElement clearInput(SelenideElement element) {
+        element.sendKeys(isMacOsBrowser() ? COMMAND : CONTROL, "a");
+        element.sendKeys(DELETE);
 
-    private final String selector;
-
-    public Dialog(String criteria) {
-        if (StringUtils.isEmpty(criteria)) {
-            this.selector = SELECTOR_TPL.formatted("");
-        } else {
-            this.selector = SELECTOR_TPL.formatted("and " + criteria);
-        }
+        return element;
     }
 
-    public Dialog() {
-        this(null);
+    private static boolean isMacOsBrowser() {
+        return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
     }
 
-    public SelenideElement self() {
-        return $x(selector);
-    }
-
-    public SelenideElement title() {
-        return self().$x(".//span[@data-test='dialog-title']");
-    }
-
-    public SelenideElement btnCancel() {
-        return self().$x(".//button[@data-test='dialog-cancel-button']");
-    }
-
-    public SelenideElement btnSave() {
-        return self().$x(".//button[@data-test='dialog-save-button']");
-    }
-
-    public SelenideElement btnConfirm() {
-        return btnSave();
-    }
-
-    public SelenideElement btnDelete() {
-        return btnSave();
-    }
-
-    public SelenideElement btnClose() {
-        return self().$x(".//i[@data-test='dlg-close-x']");
-    }
 }

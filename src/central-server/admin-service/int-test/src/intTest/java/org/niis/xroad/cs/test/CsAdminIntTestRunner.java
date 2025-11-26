@@ -23,12 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.test.ui;
+package org.niis.xroad.cs.test;
 
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.context.annotation.Configuration;
+import org.junit.platform.suite.api.SelectClasspathResource;
+import org.niis.xroad.test.framework.core.BaseTestRunner;
 
-@Configuration
-@EnableFeignClients(basePackages = {"org.niis.xroad.cs.test.ui.api"})
-public class CsAdminServiceTestConfiguration {
+@SelectClasspathResource("/behavior/api")
+public class CsAdminIntTestRunner extends BaseTestRunner {
 }

@@ -23,11 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.test;
+package org.niis.xroad.cs.test.ui;
 
 import org.junit.platform.suite.api.SelectClasspathResource;
 import org.niis.xroad.test.framework.core.BaseTestRunner;
 
-@SelectClasspathResource("/behavior/api")
-public class IntTestRunner extends BaseTestRunner {
+@SelectClasspathResource("/behavior/ui")
+public class CsSystemTestRunner extends BaseTestRunner {
 }

@@ -10,6 +10,9 @@
 
     <logger name="liquibase" level="OFF"/>
     <logger name="org.niis.xroad.test.framework.core.feign.FeignReportLogger" level="OFF"/>
+    <logger name="org.openqa.selenium.devtools" level="OFF"/>
+    <logger name="com.codeborne.selenide" level="WARN"/>
+    <logger name="org.littleshoot" level="WARN"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

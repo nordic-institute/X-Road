@@ -41,8 +41,11 @@ import feign.jackson.JacksonEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Timeout;
 import org.niis.xroad.test.framework.core.feign.ResourceAwareDecoder;
 import org.niis.xroad.test.framework.core.report.ResourceSerializingModule;
@@ -52,6 +55,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 
 @Slf4j
 @Configuration
@@ -82,7 +89,7 @@ public class TestFrameworkCoreConfig {
     }
 
     @Bean
-    Client feignClient(TestFrameworkCoreProperties properties) {
+    Client feignClient(TestFrameworkCoreProperties properties) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         var connectionConfig = ConnectionConfig.custom()
                 .setConnectTimeout(Timeout.of(properties.feign().connectTimeout()))
                 .build();
@@ -91,12 +98,20 @@ public class TestFrameworkCoreConfig {
                 .setSoTimeout(Timeout.of(properties.feign().readTimeout()))
                 .build();
 
-        var connectionManager = new PoolingHttpClientConnectionManager();
-        connectionManager.setDefaultConnectionConfig(connectionConfig);
-        connectionManager.setDefaultSocketConfig(socketConfig);
+        var sslcontext = SSLContexts.custom()
+                .loadTrustMaterial((chain, authType) -> true)
+                .build();
+
+        var connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setTlsSocketStrategy(new DefaultClientTlsStrategy(sslcontext, NoopHostnameVerifier.INSTANCE))
+                .setDefaultConnectionConfig(connectionConfig)
+                .setDefaultSocketConfig(socketConfig)
+                .build();
 
         var httpClient = HttpClients.custom()
                 .setConnectionManager(connectionManager)
+                .disableCookieManagement()
+                .disableRedirectHandling()
                 .build();
 
         return new ApacheHttp5Client(httpClient);

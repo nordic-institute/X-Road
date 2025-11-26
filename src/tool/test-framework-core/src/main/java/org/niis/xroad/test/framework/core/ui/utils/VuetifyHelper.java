@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.test.ui.utils;
+package org.niis.xroad.test.framework.core.ui.utils;
 
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;

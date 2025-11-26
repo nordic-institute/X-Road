@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 import org.niis.xroad.test.framework.core.logging.LogbackAppenderFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import static io.cucumber.core.options.Constants.ANSI_COLORS_DISABLED_PROPERTY_NAME;
 import static io.cucumber.core.options.Constants.EXECUTION_DRY_RUN_PROPERTY_NAME;
@@ -70,6 +71,8 @@ public class TestConfigurationSessionListener implements LauncherSessionListener
             setCucumberProperties(props.cucumber());
             setAllureProperties(props.allure());
 
+            SLF4JBridgeHandler.removeHandlersForRootLogger();
+            SLF4JBridgeHandler.install();
             log.info("Test framework configuration loaded successfully");
         } catch (Exception e) {
             log.error("Failed to load test framework configuration", e);

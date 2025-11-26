@@ -24,12 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.test.ui.page;
+package org.niis.xroad.test.framework.core.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.common.test.ui.page.component.Dialog;
-import org.niis.xroad.common.test.ui.page.component.Menu;
-import org.niis.xroad.common.test.ui.page.component.SubMenu;
+import org.niis.xroad.test.framework.core.ui.page.component.Dialog;
+import org.niis.xroad.test.framework.core.ui.page.component.Menu;
+import org.niis.xroad.test.framework.core.ui.page.component.SubMenu;
 
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;

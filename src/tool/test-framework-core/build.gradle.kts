@@ -8,6 +8,7 @@ dependencies {
 
   api(libs.slf4j.api)
   api(libs.logback.classic)
+  api(libs.julOverSlf4j)
 
   api(libs.cucumber.java)
   api(libs.cucumber.spring)
@@ -30,10 +31,16 @@ dependencies {
   api(libs.springFramework.test)
   api(libs.springFramework.jdbc)
 
-  api("org.springframework.cloud:spring-cloud-starter-openfeign")
+  api("org.springframework.cloud:spring-cloud-starter-openfeign"){
+    exclude(group = "org.springframework.boot")
+  }
 
   api(libs.test.allure.cucumber7)
   api(libs.test.allure.selenide)
+  api(libs.test.selenide.core)
+  api(libs.test.selenide.proxy)
+
+  api(libs.assertj.core)
 }
 
 archUnit {

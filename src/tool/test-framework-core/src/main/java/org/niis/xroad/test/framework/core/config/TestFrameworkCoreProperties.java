@@ -135,6 +135,108 @@ public interface TestFrameworkCoreProperties {
         boolean publishQuiet();
     }
 
+    @WithName("selenide")
+    Selenide selenide();
+
+    interface Selenide {
+        @WithDefault("false")
+        @WithName("enabled")
+        boolean enabled();
+
+        @WithDefault("15000")
+        @WithName("timeout")
+        long timeout();
+
+        @WithDefault("100")
+        @WithName("polling-interval")
+        long pollingInterval();
+
+        @WithDefault("true")
+        @WithName("reopen-browser-on-fail")
+        boolean reopenBrowserOnFail();
+
+        @WithName("remote")
+        Optional<String> remote();
+
+        @WithDefault("1920x1080")
+        @WithName("browser-size")
+        String browserSize();
+
+        @WithDefault("--guest,--disable-sync,--disable-background-networking,--disable-features=SafeBrowsing,"
+                + "--disable-client-side-phishing-detection,--disable-component-update,--disable-domain-reliability,"
+                + "--disable-features=OptimizationGuideModelDownloading,OptimizationHintsFetching,"
+                + "OptimizationTargetPrediction,OptimizationHints,--no-first-run,--no-default-browser-check,"
+                + "--disable-search-engine-choice-screen,--disable-default-apps,--disable-extensions,"
+                + "--disable-translate,--disable-popup-blocking,--disable-prompt-on-repost,--password-store=basic,"
+                + "--use-mock-keychain,")
+        @WithName("chrome-options-args")
+        String chromeOptionsArgs();
+
+        @WithDefault("normal")
+        @WithName("page-load-strategy")
+        String pageLoadStrategy();
+
+        @WithDefault("20000")
+        @WithName("page-load-timeout")
+        long pageLoadTimeout();
+
+        @WithDefault("false")
+        @WithName("click-via-js")
+        boolean clickViaJs();
+
+        @WithDefault("true")
+        @WithName("screenshots")
+        boolean screenshots();
+
+        @WithDefault("true")
+        @WithName("save-page-source")
+        boolean savePageSource();
+
+        @WithDefault("build/reports/test-automation/selenide-failures")
+        @WithName("reports-folder")
+        String reportsFolder();
+
+        @WithDefault("build/reports/test-automation/selenide-downloads")
+        @WithName("downloads-folder")
+        String downloadsFolder();
+
+        @WithDefault("false")
+        @WithName("fast-set-value")
+        boolean fastSetValue();
+
+        @WithDefault("CSS")
+        @WithName("selector-mode")
+        String selectorMode();
+
+        @WithDefault("STRICT")
+        @WithName("assertion-mode")
+        String assertionMode();
+
+        @WithDefault("HTTPGET")
+        @WithName("file-download")
+        String fileDownload();
+
+        @WithDefault("false")
+        @WithName("proxy-enabled")
+        boolean proxyEnabled();
+
+        @WithDefault("127.0.0.1")
+        @WithName("proxy-host")
+        String proxyHost();
+
+        @WithDefault("0")
+        @WithName("proxy-port")
+        int proxyPort();
+
+        @WithDefault("false")
+        @WithName("webdriver-logs-enabled")
+        boolean webdriverLogsEnabled();
+
+        @WithDefault("true")
+        @WithName("headless")
+        boolean headless();
+    }
+
     interface Allure {
         @WithDefault("build/allure-results")
         @WithName("results-directory")

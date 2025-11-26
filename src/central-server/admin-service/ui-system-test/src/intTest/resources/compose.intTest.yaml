@@ -1,0 +1,20 @@
+services:
+  cs:
+    build:
+      context: ./container-files/
+      args:
+        - CS_IMG=${CS_IMG}
+      dockerfile: Dockerfile
+    pull_policy: always
+    ports:
+      - "0:4000" # Frontend
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 768M
+        limits:
+          memory: 2048M

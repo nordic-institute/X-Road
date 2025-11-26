@@ -1,21 +1,20 @@
 /*
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,29 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.test.ui;
 
-package org.niis.xroad.common.test.ui.utils;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.test.ui.api.FeignManagementRequestsApi;
+import org.niis.xroad.test.framework.core.feign.FeignFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
-import lombok.experimental.UtilityClass;
+import static org.niis.xroad.cs.test.ui.CsSystemTestContainerSetup.CS;
+import static org.niis.xroad.cs.test.ui.CsSystemTestContainerSetup.Port.UI;
 
-import static org.openqa.selenium.Keys.COMMAND;
-import static org.openqa.selenium.Keys.CONTROL;
-import static org.openqa.selenium.Keys.DELETE;
 
-@UtilityClass
-public final class SeleniumUtils {
+@Configuration
+@RequiredArgsConstructor
+public class CsSystemTestConfiguration {
+    private final FeignFactory feignFactory;
+    private final CsSystemTestContainerSetup testSetup;
 
-    public static SelenideElement clearInput(SelenideElement element) {
-        element.sendKeys(isMacOsBrowser() ? COMMAND : CONTROL, "a");
-        element.sendKeys(DELETE);
+    private String getBaseUrl() {
+        var container = testSetup.getContainerMapping(CS, UI);
 
-        return element;
+        return "https://" + container.host() + ":" + container.port() + "/api/v1";
     }
 
-    private static boolean isMacOsBrowser() {
-        return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
+    @Bean
+    public FeignManagementRequestsApi feignManagementRequestsApi() {
+        return feignFactory.createClient(FeignManagementRequestsApi.class, getBaseUrl());
     }
 
 }

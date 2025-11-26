@@ -29,14 +29,14 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.WebElementCondition;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.common.test.ui.utils.VuetifyHelper;
 import org.niis.xroad.cs.test.ui.glue.mappers.ParameterMappers.SelenideValidation;
 import org.niis.xroad.cs.test.ui.page.SettingsApiKeysPageObj;
+import org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vCheckbox;
 
 public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
     private final SettingsApiKeysPageObj apiKeysPage = new SettingsApiKeysPageObj();

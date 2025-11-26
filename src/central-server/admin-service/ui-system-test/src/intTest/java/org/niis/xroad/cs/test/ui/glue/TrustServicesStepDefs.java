@@ -32,7 +32,6 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.constants.Constants;
 import org.niis.xroad.cs.test.ui.page.TrustServicesPageObj;
 import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
-import org.niis.xroad.globalconf.model.CsrFormat;
 
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
@@ -44,14 +43,16 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vSelect;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class TrustServicesStepDefs extends BaseUiStepDefs {
     private static final String CERTIFICATE_PROFILE = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";
     private static final String NEW_CERTIFICATE_PROFILE = "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider";
+    private static final String PEM = "PEM";
+    private static final String DER = "DER";
 
     private final TrustServicesPageObj trustServicesPageObj = new TrustServicesPageObj();
 
@@ -74,7 +75,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         vTextField(trustServicesPageObj.addCaSettingsDialog.inputCertificateProfile())
                 .setValue(CERTIFICATE_PROFILE);
         vSelect(trustServicesPageObj.addCaSettingsDialog.selectDefaultCsrFormat())
-                .clickAndSelect(CsrFormat.DER.name());
+                .clickAndSelect(DER);
         commonPageObj.dialog.btnSave().shouldBe(enabled);
         commonPageObj.dialog.btnSave().click();
 
@@ -214,14 +215,14 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         trustServicesPageObj.certServiceDetails.caSettings.btnEditCa().click();
 
         vSelect(trustServicesPageObj.certServiceDetails.editCaSettings.selectDefaultCsrFormat())
-                .clickAndSelect(CsrFormat.PEM.name());
+                .clickAndSelect(PEM);
 
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         commonPageObj.snackBar.btnClose().click();
 
-        trustServicesPageObj.certServiceDetails.caSettings.defaultCsrFormat().shouldHave(text(CsrFormat.PEM.name()));
+        trustServicesPageObj.certServiceDetails.caSettings.defaultCsrFormat().shouldHave(text(PEM));
     }
 
     @Step("user can change the TLS Auth setting")
