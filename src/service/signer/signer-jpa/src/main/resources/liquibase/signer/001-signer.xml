@@ -67,7 +67,9 @@
             <column name="label" type="VARCHAR(1024)" remarks="Label of the key."/>
             <column name="public_key" type="VARCHAR(4096)" remarks="Base64 encoded public key corresponding to the private key."/>
             <column name="keystore" type="BYTEA" remarks="Encrypted PKCS#12 key store."/>
-            <column name="sign_mechanism_name" type="VARCHAR(255)" remarks="Signing (PKCS#11) mechanism name."/>
+            <column name="sign_mechanism_name" type="VARCHAR(255)" remarks="Signing (PKCS#11) mechanism name.">
+                <constraints nullable="false"/>
+            </column>
             <column name="usage" type="VARCHAR(255)" remarks="Usage type of the key (e.g., SIGNING, AUTHENTICATION)."/>
             <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
                 <constraints nullable="false"/>

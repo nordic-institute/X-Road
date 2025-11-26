@@ -128,7 +128,7 @@ public class SignerRepository {
             statement.setString(5, keyType.getLabel()); // label
             statement.setString(6, toBase64(keyType.getPublicKey())); // public_key
             statement.setObject(7, keystore, Types.BINARY); // keystore
-            statement.setString(8, keyType.getSignMechanismName()); // sign_mechanism_name
+            statement.setString(8, StringUtils.defaultIfBlank(keyType.getSignMechanismName(), "CKM_RSA_PKCS"));
             statement.setString(9, keyType.getUsage().name()); // usage
 
             try (ResultSet rs = statement.executeQuery()) {
