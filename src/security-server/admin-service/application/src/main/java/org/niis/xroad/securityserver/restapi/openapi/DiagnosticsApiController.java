@@ -51,6 +51,7 @@ import org.niis.xroad.securityserver.restapi.converter.OperationalInfoConverter;
 import org.niis.xroad.securityserver.restapi.converter.ProxyMemoryUsageStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
+import org.niis.xroad.securityserver.restapi.dto.ServiceProtocolType;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CaOcspDiagnosticsDto;
@@ -205,11 +206,11 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<ConnectionStatusDto> getOtherSecurityServerStatus(String serviceType, String clientId, String targetClientId,
+    public ResponseEntity<ConnectionStatusDto> getOtherSecurityServerStatus(String protocolType, String clientId, String targetClientId,
                                                                             String securityServerId) {
         return new ResponseEntity<>(connectionStatusConverter.convert(
                 diagnosticConnectionService.getOtherSecurityServerStatus(
-                        serviceType,
+                        ServiceProtocolType.valueOf(protocolType),
                         clientIdConverter.convertId(clientId),
                         clientIdConverter.convertId(targetClientId),
                         securityServerIdConverter.convertId(securityServerId)

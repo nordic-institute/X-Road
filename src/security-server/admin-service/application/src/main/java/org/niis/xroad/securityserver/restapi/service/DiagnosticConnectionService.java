@@ -63,6 +63,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.util.HttpUrlConnectionConfigurer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
+import org.niis.xroad.securityserver.restapi.dto.ServiceProtocolType;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -204,48 +205,50 @@ public class DiagnosticConnectionService {
         }
     }
 
-    public ConnectionStatus getOtherSecurityServerStatus(String serviceType, ClientId clientId,
+    public ConnectionStatus getOtherSecurityServerStatus(ServiceProtocolType protocolType, ClientId clientId,
                                                          ClientId targetClientId,
                                                          SecurityServerId securityServerId) {
-        if (!"REST".equals(serviceType) && !"SOAP".equals(serviceType)) {
-            throw new IllegalStateException("should not get here");
+        if (!ServiceProtocolType.REST.equals(protocolType) && !ServiceProtocolType.SOAP.equals(protocolType)) {
+            throw new IllegalStateException("Unsupported protocol type: " + protocolType);
         }
 
         try (CloseableHttpClient proxyHttpClient = createProxyHttpClient()) {
+            switch (protocolType) {
+                case REST -> {
+                    HttpGet request = getRestHttpGet(clientId, targetClientId, securityServerId);
 
-            if ("REST".equals(serviceType)) {
-                HttpGet request = getRestHttpGet(clientId, targetClientId, securityServerId);
+                    try (CloseableHttpResponse response = proxyHttpClient.execute(request)) {
+                        if (response.getStatusLine().getStatusCode() != HTTP_200) {
+                            ObjectMapper mapper = new ObjectMapper();
+                            String body = EntityUtils.toString(response.getEntity());
+                            JsonNode json = mapper.readTree(body);
 
-                try (CloseableHttpResponse response = proxyHttpClient.execute(request)) {
-                    if (response.getStatusLine().getStatusCode() != HTTP_200) {
-                        ObjectMapper mapper = new ObjectMapper();
-                        String body = EntityUtils.toString(response.getEntity());
-                        JsonNode json = mapper.readTree(body);
+                            String errorCode = json.has("type") ? json.get("type").asText() : "Error";
+                            String details = json.has("message") ? json.get("message").asText() : body;
 
-                        String errorCode = json.has("type") ? json.get("type").asText() : "Error";
-                        String details = json.has("message") ? json.get("message").asText() : body;
+                            return ConnectionStatus.error(errorCode, List.of(details));
+                        }
+                    }
 
-                        return ConnectionStatus.error(errorCode, List.of(details));
+                }
+                case SOAP -> {
+                    try (HttpSender sender = createSender(proxyHttpClient)) {
+                        SoapMessageImpl soapMessage = buildListMethodsSoapMessage(
+                                clientId, targetClientId, securityServerId);
+
+                        send(sender, new URI(SystemProperties.getProxyUiSecurityServerUrl()), soapMessage);
                     }
                 }
-
-            } else { // SOAP
-                try (HttpSender sender = createSender(proxyHttpClient)) {
-                    SoapMessageImpl soapMessage = buildListMethodsSoapMessage(
-                            clientId, targetClientId, securityServerId);
-
-                    send(sender, new URI(SystemProperties.getProxyUiSecurityServerUrl()), soapMessage);
-                }
+                default -> throw new IllegalStateException("should not get here");
             }
-
-            return ConnectionStatus.ok();
 
         } catch (Exception e) {
             XrdRuntimeException result = XrdRuntimeException.systemException(e);
             return ConnectionStatus.error(result.getErrorCode(), List.of(result.getDetails()));
         }
-    }
 
+        return ConnectionStatus.ok();
+    }
 
     private CloseableHttpClient createProxyHttpClient() {
         try {

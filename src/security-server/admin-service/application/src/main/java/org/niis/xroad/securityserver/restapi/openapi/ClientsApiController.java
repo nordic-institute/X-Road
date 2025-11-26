@@ -458,11 +458,9 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
     public ResponseEntity<Set<SecurityServerDto>> getClientSecurityServers(String encodedClientId) {
         ClientId clientId = clientIdConverter.convertId(encodedClientId);
-        List<SecurityServerId.Conf> securityServerIds = globalConfProvider.getSecurityServers().stream()
+        Set<SecurityServerId.Conf> securityServerIds = globalConfProvider.getSecurityServers().stream()
                 .filter(ssId -> globalConfProvider.isSecurityServerClient(clientId, ssId))
-                .collect(toSet())
-                .stream()
-                .toList();
+                .collect(toSet());
         return new ResponseEntity<>(securityServerConverter.convert(securityServerIds), HttpStatus.OK);
     }
 

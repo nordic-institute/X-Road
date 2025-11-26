@@ -331,7 +331,7 @@
       "ok": "Kõik on korras",
       "test": "Test",
       "centralServer": {
-        "authCertRequest": "Autentimise sertifikaadid registreerimise teenus",
+        "authCertRequest": "Autentimise sertifikaadi registreerimise teenus",
         "globalConf": "Globaalse konfiguratsiooni allalaadimine",
         "globalConfHttp": "http",
         "globalConfHttps": "https",

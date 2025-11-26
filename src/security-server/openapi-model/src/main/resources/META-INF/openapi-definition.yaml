@@ -2501,13 +2501,15 @@ paths:
       description: <h3>Administrator views the other security server connection status.</h3>
       parameters:
         - in: query
-          name: service_type
-          description: service type, REST or SOAP
+          name: protocol_type
+          description: service protocol type, must be REST or SOAP
           required: true
           schema:
             type: string
-            format: text
-            example: 'REST'
+            enum:
+              - REST
+              - SOAP
+            example: REST
         - in: query
           name: client_id
           description: clientId of the current security server. <instance_id>:<member_class>:<member_code>:<subsystem_code>. Subsystem code is optional.

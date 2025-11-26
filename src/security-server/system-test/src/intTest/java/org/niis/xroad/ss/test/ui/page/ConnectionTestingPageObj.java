@@ -37,7 +37,7 @@ public class ConnectionTestingPageObj {
 
     public SelenideElement centralServerGlobalConfMessage(String url) {
         var xpath = "//tr[td/span[contains(text(),'%s')]]/td[@data-test='central-server-global-conf-message']";
-        return $x(String.format(xpath, url));
+        return $x(xpath.formatted(url));
     }
 
     public SelenideElement centralServerGlobalConfTestButton() {

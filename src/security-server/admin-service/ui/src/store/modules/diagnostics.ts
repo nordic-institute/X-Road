@@ -49,7 +49,6 @@ export interface DiagnosticsState {
   authCertReqStatus?: ConnectionStatus;
   globalConfStatuses: GlobalConfConnectionStatus[];
   otherSecurityServerStatus?: ConnectionStatus;
-  managementServiceStatus?: ConnectionStatus;
 }
 
 export const useDiagnostics = defineStore('diagnostics', {
@@ -65,7 +64,6 @@ export const useDiagnostics = defineStore('diagnostics', {
       authCertReqStatus: undefined,
       globalConfStatuses: [],
       otherSecurityServerStatus: undefined,
-      managementServiceStatus: undefined,
     };
   },
   persist: {
@@ -138,12 +136,12 @@ export const useDiagnostics = defineStore('diagnostics', {
           this.authCertReqStatus = res.data;
         });
     },
-    async fetchOtherSecurityServerStatus(serviceType: string, clientId: string, targetClientId: string,
+    async fetchOtherSecurityServerStatus(protocolType: string, clientId: string, targetClientId: string,
       securityServerId: string) {
       return api
         .get<ConnectionStatus>('/diagnostics/other-security-server-status', {
           params: {
-            service_type: serviceType,
+            protocol_type: protocolType,
             client_id: clientId,
             target_client_id: targetClientId,
             security_server_id: securityServerId
@@ -152,27 +150,6 @@ export const useDiagnostics = defineStore('diagnostics', {
         .then((res) => {
           this.otherSecurityServerStatus = res.data;
         });
-    },
-    cleanOtherSecurityServerStatus() {
-      this.otherSecurityServerStatus = undefined;
-    },
-    async fetchManagementServiceStatus(serviceType: string, clientId: string, targetClientId: string,
-                                       securityServerId: string) {
-      return api
-        .get<ConnectionStatus>('/diagnostics/other-security-server-status', {
-          params: {
-            service_type: serviceType,
-            client_id: clientId,
-            target_client_id: targetClientId,
-            security_server_id: securityServerId
-          }
-        })
-        .then((res) => {
-          this.managementServiceStatus = res.data;
-        });
-    },
-    clearManagementServiceStatus() {
-      this.managementServiceStatus = undefined;
     },
     async fetchGlobalConfStatuses() {
       return api

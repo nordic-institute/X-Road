@@ -51,8 +51,8 @@
         </v-col>
         <v-col cols="2">
           <v-radio-group
-            v-model="selectedServiceType"
-            name="serviceType"
+            v-model="selectedProtocolType"
+            name="protocolType"
             inline
             class="dlg-row-input"
             :disabled="true"
@@ -129,7 +129,7 @@
         <v-col cols="11" data-test="management-server-status-message">
           <span v-if="otherSecurityServerLoading">
           </span>
-          <span v-else-if="managementServiceStatus?.status_class === 'OK'">
+          <span v-else-if="managementServiceStatus && managementServiceStatus?.status_class === 'OK'">
            {{ $t('diagnostics.connection.ok') }}
            </span>
           <span v-else>
@@ -158,17 +158,18 @@ import { useClients } from "@/store/modules/clients";
 import { useClient } from "@/store/modules/client";
 import { useDiagnostics } from "@/store/modules/diagnostics";
 import { formatErrorForUi, statusIconType } from "@/util/formatting";
-import { Client, SecurityServer } from "@/openapi-types";
+import { Client, ConnectionStatus, SecurityServer } from "@/openapi-types";
 
 const initialState = () => {
   return {
     selectedClientId: '',
-    selectedServiceType: '',
+    selectedProtocolType: '',
     selectedInstance: '',
     selectedTargetSubsystemId: '',
     selectedSecurityServerId: '',
     localAllSubsystems: [] as Client[],
     localSecurityServers: [] as SecurityServer[],
+    managementServiceStatus: undefined as ConnectionStatus | undefined,
   };
 };
 
@@ -184,11 +185,10 @@ export default defineComponent({
     ...mapState(useGeneral, ['xRoadInstances', 'xRoadInstanceIdentifiers']),
     ...mapState(useClients, ['clients', 'allSubsystems']),
     ...mapState(useClient, ['securityServers']),
-    ...mapState(useDiagnostics, ['managementServiceStatus']),
+    ...mapState(useDiagnostics, ['otherSecurityServerStatus']),
 
     localInstance(): string {
-      const local = this.xRoadInstances.find(i => i.local);
-      return local ? local.identifier : '';
+      return this.xRoadInstances.find(i => i.local)?.identifier ?? '';
     },
     localOwner(): string | undefined {
       const local = this.clients.find(i => i.owner);
@@ -205,9 +205,8 @@ export default defineComponent({
   },
 
   async created() {
-    this.clearManagementServiceStatus();
     this.selectedClientId = this.localOwner || '';
-    this.selectedServiceType = 'SOAP';
+    this.selectedProtocolType = 'SOAP';
     this.selectedInstance = this.localInstance || '';
 
     if (this.selectedInstance) {
@@ -236,13 +235,15 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError']),
     ...mapActions(useClients, ['fetchAllSubsystems']),
     ...mapActions(useClient, ['fetchSecurityServers']),
-    ...mapActions(useDiagnostics, ['fetchManagementServiceStatus', 'clearManagementServiceStatus']),
+    ...mapActions(useDiagnostics, ['fetchOtherSecurityServerStatus']),
 
     testManagementServiceStatus() {
       this.otherSecurityServerLoading = true;
-      this.clearManagementServiceStatus();
-      this.fetchManagementServiceStatus(this.selectedServiceType, this.selectedClientId, this.selectedTargetSubsystemId,
-        this.selectedSecurityServerId)
+      this.fetchOtherSecurityServerStatus(this.selectedProtocolType, this.selectedClientId,
+        this.selectedTargetSubsystemId, this.selectedSecurityServerId)
+        .then(() => {
+          this.managementServiceStatus = this.otherSecurityServerStatus;
+        })
         .catch((error) => {
           this.showError(error);
         })

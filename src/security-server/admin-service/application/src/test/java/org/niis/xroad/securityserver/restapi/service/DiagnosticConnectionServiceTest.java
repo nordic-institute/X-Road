@@ -54,6 +54,7 @@ import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.ExceptionCategory;
 import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.securityserver.restapi.dto.ServiceProtocolType;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -337,7 +338,7 @@ class DiagnosticConnectionServiceTest {
             doReturn(builder).when(builder).disableAutomaticRetries();
             doReturn(httpClient).when(builder).build();
 
-            var status = service.getOtherSecurityServerStatus("REST", CLIENT_ID, TARGET_CLIENT_ID, SECURITY_SERVER_ID);
+            var status = service.getOtherSecurityServerStatus(ServiceProtocolType.REST, CLIENT_ID, TARGET_CLIENT_ID, SECURITY_SERVER_ID);
 
             assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.OK);
             assertThat(status.getErrorCode()).isNull();
@@ -369,7 +370,7 @@ class DiagnosticConnectionServiceTest {
             doReturn(builder).when(builder).disableAutomaticRetries();
             doReturn(httpClient).when(builder).build();
 
-            var status = service.getOtherSecurityServerStatus("SOAP", CLIENT_ID, TARGET_CLIENT_ID, SECURITY_SERVER_ID);
+            var status = service.getOtherSecurityServerStatus(ServiceProtocolType.SOAP, CLIENT_ID, TARGET_CLIENT_ID, SECURITY_SERVER_ID);
 
             assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.OK);
             assertThat(status.getErrorCode()).isNull();
@@ -380,10 +381,10 @@ class DiagnosticConnectionServiceTest {
     @Test
     void getOtherSecurityServerStatusWithWrongTypeThenReturnIllegalStateException() {
         assertThatThrownBy(() ->
-                service.getOtherSecurityServerStatus("WRONG_TYPE", CLIENT_ID, TARGET_CLIENT_ID, SECURITY_SERVER_ID)
+                service.getOtherSecurityServerStatus(null, CLIENT_ID, TARGET_CLIENT_ID, SECURITY_SERVER_ID)
         )
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("should not get here");
+                .hasMessage("Unsupported protocol type: null");
     }
 
     private static String getMockSoapResponse() {

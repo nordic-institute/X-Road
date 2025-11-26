@@ -51,8 +51,8 @@
         </v-col>
         <v-col cols="2">
           <v-radio-group
-            v-model="selectedServiceType"
-            name="serviceType"
+            v-model="selectedProtocolType"
+            name="protocolType"
             inline
             class="dlg-row-input"
           >
@@ -72,7 +72,7 @@
           <xrd-button
             large
             variant="text"
-            :disabled="!selectedClientId || !selectedSecurityServerId || !selectedServiceType || otherSecurityServerLoading"
+            :disabled="!selectedClientId || !selectedSecurityServerId || !selectedProtocolType || otherSecurityServerLoading"
             @click="testOtherSecurityServerStatus()"
             data-test="other-security-server-test-button"
           >
@@ -125,13 +125,13 @@
       <v-row dense>
         <v-col>
           <span v-if="!otherSecurityServerLoading">
-            <xrd-status-icon :status="statusIconType(otherSecurityServerStatus?.status_class)"/>
+            <xrd-status-icon :status="statusIconType(localOtherStatus?.status_class)"/>
           </span>
         </v-col>
         <v-col cols="11" data-test="other-security-server-status-message">
           <span v-if="otherSecurityServerLoading">
           </span>
-          <span v-else-if="otherSecurityServerStatus?.status_class === 'OK'">
+          <span v-else-if="localOtherStatus && localOtherStatus?.status_class === 'OK'">
            {{ $t('diagnostics.connection.ok') }}
            </span>
           <span v-else>
@@ -160,14 +160,16 @@ import { useClients } from "@/store/modules/clients";
 import { useClient } from "@/store/modules/client";
 import { useDiagnostics } from "@/store/modules/diagnostics";
 import { formatErrorForUi, statusIconType } from "@/util/formatting";
+import { ConnectionStatus } from "@/openapi-types";
 
 const initialState = () => {
   return {
     selectedClientId: '',
-    selectedServiceType: '',
+    selectedProtocolType: '',
     selectedInstance: '',
     selectedTargetSubsystemId: '',
-    selectedSecurityServerId: ''
+    selectedSecurityServerId: '',
+    localOtherStatus: undefined as ConnectionStatus | undefined,
   };
 };
 
@@ -181,7 +183,7 @@ export default defineComponent({
   },
 
   created() {
-    this.cleanOtherSecurityServerStatus();
+    this.localOtherStatus = undefined;
   },
 
   computed: {
@@ -229,13 +231,16 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError']),
     ...mapActions(useClients, ['fetchAllSubsystems']),
     ...mapActions(useClient, ['fetchSecurityServers']),
-    ...mapActions(useDiagnostics, ['fetchOtherSecurityServerStatus', 'cleanOtherSecurityServerStatus']),
+    ...mapActions(useDiagnostics, ['fetchOtherSecurityServerStatus']),
 
     testOtherSecurityServerStatus() {
       this.otherSecurityServerLoading = true;
-      this.cleanOtherSecurityServerStatus();
-      this.fetchOtherSecurityServerStatus(this.selectedServiceType, this.selectedClientId,
+      this.localOtherStatus = undefined;
+      this.fetchOtherSecurityServerStatus(this.selectedProtocolType, this.selectedClientId,
         this.selectedTargetSubsystemId, this.selectedSecurityServerId)
+        .then(() => {
+          this.localOtherStatus = this.otherSecurityServerStatus;
+        })
         .catch((error) => {
           this.showError(error);
         })
