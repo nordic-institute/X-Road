@@ -38,85 +38,54 @@ public final class SystemProperties {
     private SystemProperties() {
     }
 
-    /**
-     * The prefix for all properties.
-     */
+    /** The prefix for all properties. */
     public static final String PREFIX = "xroad.";
-    private static final String CENTER_PREFIX = PREFIX + "center.";
 
     // Common -----------------------------------------------------------------
 
-    /**
-     * Property name of the temporary files path.
-     */
+    /** Property name of the temporary files path. */
     public static final String TEMP_FILES_PATH =
             PREFIX + "common.temp-files-path";
 
-    /**
-     * Property name of the downloaded global configuration directory.
-     */
+    /** Property name of the downloaded global configuration directory. */
     public static final String CONFIGURATION_PATH =
             PREFIX + "common.configuration-path";
 
-    /**
-     * Default minimum supported global conf version on configuration proxy
-     */
+    /** Default minimum supported global conf version on configuration proxy */
     public static final String DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION = "2";
 
-    /**
-     * Minimum supported global conf version on configuration proxy
-     **/
+    /** Minimum supported global conf version on configuration proxy **/
     private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
             PREFIX + "configuration-proxy.minimum-global-configuration-version";
 
-    private static final String FALSE = Boolean.FALSE.toString();
-
-    // Center -----------------------------------------------------------------
-
-    public static final String CENTER_DATABASE_PROPERTIES = CENTER_PREFIX + "database-properties";
-
     // Misc -------------------------------------------------------------------
 
-    /**
-     * Property name of the configuration files path.
-     */
+    /** Property name of the configuration files path. */
     public static final String CONF_PATH = PREFIX + "conf.path";
 
     // Configuration proxy ------------------------------------------------- //
 
-    /**
-     * Property name of the confproxy download script path.
-     */
+    /** Property name of the confproxy download script path. */
     public static final String CONFIGURATION_PROXY_DOWNLOAD_SCRIPT =
             PREFIX + "configuration-proxy.download-script";
 
-    /**
-     * Property name of the confproxy configuration path.
-     */
+    /** Property name of the confproxy configuration path. */
     public static final String CONFIGURATION_PROXY_CONF_PATH =
             PREFIX + "configuration-proxy.configuration-path";
 
-    /**
-     * Property name of the confproxy public configuration distribution path.
-     */
+    /** Property name of the confproxy public configuration distribution path. */
     public static final String CONFIGURATION_PROXY_GENERATED_CONF_PATH =
             PREFIX + "configuration-proxy.generated-conf-path";
 
-    /**
-     * Property name of the confproxy configuration signature digest algorithm.
-     */
+    /** Property name of the confproxy configuration signature digest algorithm. */
     public static final String CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID =
             PREFIX + "configuration-proxy.signature-digest-algorithm-id";
 
-    /**
-     * Property name of the confproxy configuration file hashing algorithm.
-     */
+    /** Property name of the confproxy configuration file hashing algorithm. */
     public static final String CONFIGURATION_PROXY_HASH_ALGORITHM_URI =
             PREFIX + "configuration-proxy.hash-algorithm-uri";
 
-    /**
-     * Property name of the confproxy webserver address.
-     */
+    /** Property name of the confproxy webserver address. */
     public static final String CONFIGURATION_PROXY_ADDRESS =
             PREFIX + "configuration-proxy.address";
 
@@ -164,14 +133,6 @@ public final class SystemProperties {
      */
     public static String getTempFilesPath() {
         return getProperty(TEMP_FILES_PATH, DefaultFilepaths.TEMP_FILES_PATH);
-    }
-
-    /**
-     * @return path to the central server database configuration file, '/etc/xroad/db.properties' by default.
-     */
-    public static String getCenterDatabasePropertiesFile() {
-        return getProperty(CENTER_DATABASE_PROPERTIES,
-                getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
     }
 
     /**

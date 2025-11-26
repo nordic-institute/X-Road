@@ -155,6 +155,7 @@ public class LegacyConfigPathMapping {
         addMapping("center.generated-conf-dir", "admin-service.global-conf-generator.generated-conf-dir");
         addMapping("center.trusted-anchors-allowed", "admin-service.trusted-anchors-allowed");
         addMapping("center.conf-backup-path", "admin-service.conf-backup-path");
+        addMapping("center.database-properties", "admin-service.database-properties");
 
         addMapping("center.auto-approve-owner-change-requests", "management-requests.auto-approve-owner-change-requests");
         addMapping("center.auto-approve-client-reg-requests", "management-requests.auto-approve-client-reg-requests");

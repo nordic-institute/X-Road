@@ -104,6 +104,7 @@ file-upload-endpoints:
 
 xroad:
   admin-service:
+    database-properties: /etc/xroad/db.properties
     global-conf-generator:
       minimum-global-configuration-version: 2
       internal-directory: internalconf

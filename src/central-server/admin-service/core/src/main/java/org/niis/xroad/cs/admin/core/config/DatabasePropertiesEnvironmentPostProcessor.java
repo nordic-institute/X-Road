@@ -25,15 +25,19 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.config.PropertyFileReadingEnvironmentPostProcessor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 
 @Profile("nontest")
+@RequiredArgsConstructor
 public class DatabasePropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
 
     private static final String SPRING_DATA_SOURCE_CFG_PREFIX = "spring.datasource.";
+
+    @Value("${xroad.admin-service.database-properties}")
+    private final String dbPropertiesFile;
 
     @Override
     protected void initialize() {
@@ -48,7 +52,7 @@ public class DatabasePropertiesEnvironmentPostProcessor extends PropertyFileRead
 
     @Override
     protected String getPropertyFilePath() {
-        return SystemProperties.getCenterDatabasePropertiesFile();
+        return dbPropertiesFile;
     }
 
     @Override
