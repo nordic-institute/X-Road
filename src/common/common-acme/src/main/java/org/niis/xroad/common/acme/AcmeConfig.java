@@ -27,6 +27,8 @@
 
 package org.niis.xroad.common.acme;
 
+import ee.ria.xroad.common.SystemProperties;
+
 public interface AcmeConfig {
 
     /**
@@ -93,4 +95,7 @@ public interface AcmeConfig {
     int getAcmeChallengePort();
 
     int getAcmeKeyLength();
+
+    String getAcmeAccountKeystorePath();
+    String getAcmeChallengePath();
 }
