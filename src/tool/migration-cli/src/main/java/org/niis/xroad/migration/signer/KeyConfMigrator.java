@@ -60,6 +60,8 @@ import java.util.Optional;
 @Slf4j
 public class KeyConfMigrator {
 
+    private static final String SOFT_TOKEN = "softtoken";
+
     public void migrate(String keyconfPath, String dbPropertiesPath) throws SQLException {
         KeyConfType keyConf = parseKeyConf(Path.of(keyconfPath, "keyconf.xml"));
 
@@ -67,7 +69,7 @@ public class KeyConfMigrator {
 
         for (DeviceType deviceType : keyConf.getDevice()) {
             log.info("Processing token {}", deviceType.getId());
-            boolean isSoftToken = deviceType.getDeviceType().equalsIgnoreCase("softtoken");
+            boolean isSoftToken = SOFT_TOKEN.equalsIgnoreCase(deviceType.getDeviceType());
             long tokenId = handleToken(deviceType, repo, isSoftToken, keyconfPath);
 
             log.info("  Processing token keys({})", deviceType.getKey().size());
@@ -144,7 +146,7 @@ public class KeyConfMigrator {
             try {
                 KeyStore keystore = KeyStore.getInstance("pkcs12");
                 try (FileInputStream fis = new FileInputStream(Paths.get(
-                        keyconfPath, "softtoken", ".softtoken.p12").toFile())) {
+                        keyconfPath, SOFT_TOKEN, ".softtoken.p12").toFile())) {
                     keystore.load(fis, pin);
                 }
                 PrivateKey privateKey = (PrivateKey) keystore.getKey("pin", pin);
@@ -170,7 +172,7 @@ public class KeyConfMigrator {
 
     private byte[] readKey(String id, String keyconfPath) {
         try {
-            Path keyFile = Paths.get(keyconfPath, "softtoken", id + ".p12");
+            Path keyFile = Paths.get(keyconfPath, SOFT_TOKEN, id + ".p12");
             if (!Files.exists(keyFile)) {
                 log.warn("Key file does not exist: {}", keyFile);
                 return null;
