@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.keyconf.impl;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -36,6 +35,7 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
@@ -58,7 +58,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.CANNOT_CREATE_SIGNATURE;
 
 /**
  * Encapsulates KeyConf related functionality.
@@ -113,7 +113,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
             return signingInfo;
 
         } catch (ExecutionException e) {
-            throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
+            throw XrdRuntimeException.systemException(CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
                     clientId, e);
         }
     }

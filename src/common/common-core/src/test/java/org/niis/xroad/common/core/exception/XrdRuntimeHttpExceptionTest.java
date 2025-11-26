@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
+package org.niis.xroad.common.core.exception;
 
-/**
- * This is exception for errors caused by the client, for example,
- * client auth failure, invalid XML, etc.
- */
-class ClientException extends CodedException {
+import ee.ria.xroad.common.HttpStatus;
 
-    ClientException(CodedException ex) {
-        super(ex.getFaultCode(), ex.getFaultString());
+import org.junit.jupiter.api.Test;
 
-        faultActor = ex.getFaultActor();
-        faultDetail = ex.getFaultDetail();
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-        // All the client messages have prefix Client...
-        withPrefix(ErrorCodes.CLIENT_X);
+public class XrdRuntimeHttpExceptionTest {
+
+    @Test
+    void shouldCreateExceptionWithHttpStatus() {
+        String identifier = "http-test";
+        var errorDeviation = ErrorCode.NOT_FOUND;
+        String details = "Resource not found";
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+
+        XrdRuntimeHttpException exception = XrdRuntimeHttpException.builder(errorDeviation)
+                .identifier(identifier)
+                .details(details)
+                .httpStatus(httpStatus)
+                .build();
+
+        assertEquals(identifier, exception.getIdentifier());
+        assertEquals(errorDeviation.code(), exception.getCode());
+        assertEquals(details, exception.getDetails());
+        assertEquals(httpStatus, exception.getHttpStatus().orElse(null));
+
+        String expectedMessage = "[http-test] not_found: Resource not found";
+        assertEquals(expectedMessage, exception.toString());
     }
 
-
-
-    ClientException(String faultCode, String format, Object... args) {
-        super(faultCode, format, args);
-
-        // All the client messages have prefix Client...
-        withPrefix(ErrorCodes.CLIENT_X);
-    }
 }

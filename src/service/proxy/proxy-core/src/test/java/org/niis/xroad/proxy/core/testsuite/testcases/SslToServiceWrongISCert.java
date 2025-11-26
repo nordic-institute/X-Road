@@ -38,9 +38,9 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static java.util.Collections.singletonList;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 /**
  * ServerProxy connects to Service using SSL, serverconf contains wrong
@@ -84,8 +84,8 @@ public class SslToServiceWrongISCert extends SslMessageTestCase {
     @Override
     protected void validateFaultResponse(Message receivedResponse)
             throws Exception {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_SERVICE_FAILED_X,
-                X_SSL_AUTH_FAILED);
+        assertErrorCode(SERVER_SERVERPROXY_X, SERVICE_FAILED.code(),
+                SSL_AUTH_FAILED.code());
     }
 
 

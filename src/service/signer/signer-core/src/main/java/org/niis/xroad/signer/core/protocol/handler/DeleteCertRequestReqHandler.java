@@ -25,17 +25,16 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.CSR_NOT_FOUND;
 
 /**
  * Handles certificate request deletions.
@@ -57,7 +56,7 @@ public class DeleteCertRequestReqHandler extends AbstractRpcHandler<DeleteCertRe
         if (certManager.removeCertRequest(certReqId)) {
             log.info("Deleted certificate request '{}'", certReqId);
         } else {
-            throw CodedException.tr(X_CSR_NOT_FOUND, "csr_not_found", "Certificate request '%s' not found", certReqId);
+            throw XrdRuntimeException.systemException(CSR_NOT_FOUND, "Certificate request '%s' not found".formatted(certReqId));
         }
     }
 }

@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.globalconf.impl.cert;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -60,10 +59,10 @@ import java.util.List;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_CERT_PATH;
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CERT_PATH_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.CERT_VALIDATION;
 import static org.niis.xroad.globalconf.impl.cert.CertHelper.getOcspResponseForCert;
 
 /**
@@ -155,7 +154,7 @@ public class CertChainVerifier {
      * intermediate certificates if provided. Then the certificate path is
      * validated. Lastly, for each certificate in the chain, the corresponding
      * OCSP response is found and verified.
-     * If verification fails, throws CodedException with error code
+     * If verification fails, throws XrdRuntimeException with error code
      * InvalidCertPath...
      *
      * @param ocspResponses list of OCSP responses that are used to
@@ -209,7 +208,7 @@ public class CertChainVerifier {
             X509Certificate issuer = globalConfProvider.getCaCert(certChain.getInstanceIdentifier(), subject);
             OCSPResp response = getOcspResponseForCert(subject, issuer, ocspResponses);
             if (response == null) {
-                throw new CodedException(X_CERT_VALIDATION,
+                throw XrdRuntimeException.systemException(CERT_VALIDATION,
                         "Unable to find OCSP response for certificate " + subject.getSubjectX500Principal().getName());
             }
 

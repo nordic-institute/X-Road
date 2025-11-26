@@ -26,11 +26,11 @@
  */
 package org.niis.xroad.common.vault.spring;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 import org.springframework.vault.core.VaultTemplate;
@@ -42,8 +42,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -70,7 +68,7 @@ public class SpringVaultKeyClient implements VaultKeyClient {
                     certTrustChain.toArray(new X509Certificate[0])
             );
         } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Failed to get certificate from Vault. Data is null.");
+            throw XrdRuntimeException.systemInternalError("Failed to get certificate from Vault. Data is null.");
         }
     }
 

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.Getter;
@@ -52,7 +51,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static org.niis.xroad.globalconf.model.ConfigurationUtils.escapeInstanceIdentifier;
 
 /**
@@ -400,7 +398,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         } catch (Exception e) {
             log.error("Failed to read instance identifier from " + file, e);
 
-            throw new CodedException(X_INTERNAL_ERROR,
+            throw XrdRuntimeException.systemInternalError(
                     "Could not read instance identifier of this security server");
         }
     }

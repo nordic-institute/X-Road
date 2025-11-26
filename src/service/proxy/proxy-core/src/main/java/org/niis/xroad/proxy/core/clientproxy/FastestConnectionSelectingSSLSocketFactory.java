@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.google.common.cache.Cache;
@@ -34,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.FastestSocketSelector.SocketInfo;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -51,9 +51,8 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 /**
  * This is a custom SSL socket factory that connects to the fastest target
@@ -253,7 +252,7 @@ public class FastestConnectionSelectingSSLSocketFactory
         try {
             sslSocket.startHandshake();
         } catch (IOException e) {
-            throw new CodedException(X_SSL_AUTH_FAILED, e, "TLS handshake failed");
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, e, "TLS handshake failed");
         }
 
         authTrustVerifier.verify(context, sslSocket.getSession(), selectedAddress);
@@ -274,7 +273,7 @@ public class FastestConnectionSelectingSSLSocketFactory
             return (SSLSocket) sslSocket;
         }
 
-        throw new CodedException(X_INTERNAL_ERROR, "Failed to create SSL socket");
+        throw XrdRuntimeException.systemInternalError("Failed to create SSL socket");
     }
 
     private static URI[] getAddressesFromContext(HttpContext context) {
@@ -282,16 +281,16 @@ public class FastestConnectionSelectingSSLSocketFactory
         if (targets instanceof URI[] && ((URI[]) targets).length > 0) {
             return (URI[]) targets;
         }
-        throw new CodedException(X_INTERNAL_ERROR, "Target hosts not specified in http context");
+        throw XrdRuntimeException.systemInternalError("Target hosts not specified in http context");
     }
 
-    private static CodedException couldNotConnectException(URI[] addresses, Exception cause) {
+    private static XrdRuntimeException couldNotConnectException(URI[] addresses, Exception cause) {
         log.error("Could not connect to any target host ({})", (Object) addresses);
-        if (cause instanceof CodedException) {
-            return (CodedException) cause;
+        if (cause instanceof XrdRuntimeException ex) {
+            return ex;
         } else {
-            return new CodedException(X_NETWORK_ERROR, cause, "Could not connect to any target host (%s)",
-                    Arrays.toString(addresses));
+            return XrdRuntimeException.systemException(NETWORK_ERROR, cause,
+                    "Could not connect to any target host (%s)".formatted(Arrays.toString(addresses)));
         }
     }
 

@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -39,6 +37,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
@@ -48,7 +47,6 @@ import org.niis.xroad.proxy.core.util.PerformanceLogger;
 import java.io.IOException;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
@@ -97,41 +95,7 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
                     log.info("Request successfully handled");
                 }
             }
-        } catch (XrdRuntimeException e) {
-            handled = true;
-
-            String errorMessage;
-            CodedException cex = e;
-            if (!e.originatesFrom(ErrorOrigin.CLIENT)) {
-                errorMessage = "Request processing error (" + e.getFaultDetail() + ")";
-                cex = translateWithPrefix(SERVER_CLIENTPROXY_X, e);
-            } else {
-                errorMessage = DEFAULT_ERROR_MESSAGE;
-            }
-
-            log.error(errorMessage, cex);
-
-            updateOpMonitoringSoapFault(opMonitoringData, cex);
-
-            // Exceptions caused by incoming message and exceptions derived from faults sent by serverproxy already
-            // contain full error code. Thus, we must not attach additional error code prefixes to them.
-
-            failure(request, response, callback, cex, opMonitoringData);
-        } catch (CodedException.Fault | ClientException e) {
-            handled = true;
-
-            String errorMessage = e instanceof ClientException
-                    ? "Request processing error (" + e.getFaultDetail() + ")" : DEFAULT_ERROR_MESSAGE;
-
-            log.error(errorMessage, e);
-
-            updateOpMonitoringSoapFault(opMonitoringData, e);
-
-            // Exceptions caused by incoming message and exceptions derived from faults sent by serverproxy already
-            // contain full error code. Thus, we must not attach additional error code prefixes to them.
-
-            failure(request, response, callback, e, opMonitoringData);
-        } catch (CodedExceptionWithHttpStatus e) {
+        } catch (XrdRuntimeHttpException e) {
             handled = true;
 
             // No need to log faultDetail hence not sent to client.
@@ -141,13 +105,35 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
             // No need to update operational monitoring fields here either.
 
             failure(response, callback, e, opMonitoringData);
+        } catch (XrdRuntimeException e) {
+            handled = true;
+
+            String errorMessage;
+            XrdRuntimeException exception = e;
+            if (e.hasSoapFault()) {
+                errorMessage = DEFAULT_ERROR_MESSAGE;
+            } else {
+                errorMessage = "Request processing error (" + e.getDetails() + ")";
+                if (!e.originatesFrom(ErrorOrigin.CLIENT)) {
+                    exception = e.withPrefix(SERVER_CLIENTPROXY_X);
+                }
+            }
+
+            log.error(errorMessage, exception);
+
+            updateOpMonitoringSoapFault(opMonitoringData, exception);
+
+            // Exceptions caused by incoming message and exceptions derived from faults sent by serverproxy already
+            // contain full error code. Thus, we must not attach additional error code prefixes to them.
+
+            failure(request, response, callback, exception, opMonitoringData);
         } catch (Throwable e) { // We want to catch serious errors as well
             handled = true;
 
             // All the other exceptions get prefix Server.ClientProxy...
-            CodedException cex = translateWithPrefix(SERVER_CLIENTPROXY_X, e);
+            XrdRuntimeException cex = XrdRuntimeException.systemException(e).withPrefix(SERVER_CLIENTPROXY_X);
 
-            log.error("Request processing error ({})", cex.getFaultDetail(), e);
+            log.error("Request processing error ({})", cex.getIdentifier(), e);
 
             updateOpMonitoringSoapFault(opMonitoringData, cex);
 
@@ -171,19 +157,19 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     protected void failure(Request request, Response response, Callback callback,
-                           CodedException e, OpMonitoringData opMonitoringData) throws IOException {
+                           XrdRuntimeException e, OpMonitoringData opMonitoringData) throws IOException {
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 
         sendErrorResponse(request, response, callback, e);
     }
 
-    protected void failure(Response response, Callback callback, CodedExceptionWithHttpStatus e,
+    protected void failure(Response response, Callback callback, XrdRuntimeHttpException e,
                            OpMonitoringData opMonitoringData) {
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 
-        sendPlainTextErrorResponse(response, callback, e.getStatus(), e.getFaultString());
+        sendPlainTextErrorResponse(response, callback, e.getHttpStatus().get().getCode(), e.getDetails());
     }
 
     protected boolean isGetRequest(RequestWrapper request) {
@@ -217,7 +203,7 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
         }
     }
 
-    private static void updateOpMonitoringSoapFault(OpMonitoringData opMonitoringData, CodedException e) {
+    private static void updateOpMonitoringSoapFault(OpMonitoringData opMonitoringData, XrdRuntimeException e) {
         if (opMonitoringData != null) {
             opMonitoringData.setFaultCodeAndString(e);
         }

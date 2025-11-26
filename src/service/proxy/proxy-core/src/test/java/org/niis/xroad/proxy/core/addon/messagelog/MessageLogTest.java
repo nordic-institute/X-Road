@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -51,6 +50,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.messagelog.LogRecord;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.RestLogMessage;
@@ -400,8 +400,8 @@ class MessageLogTest extends AbstractMessageLogTest {
         startTimestamping();
         waitForMessageInTaskQueue();
 
-        CodedException exception = assertThrows(CodedException.class, () -> log(createMessage(), createSignature()));
-        assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), exception.getFaultCode());
+        XrdRuntimeException xrdRuntimeException = assertThrows(XrdRuntimeException.class, () -> log(createMessage(), createSignature()));
+        assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), xrdRuntimeException.getErrorCode());
     }
 
     /**
@@ -415,7 +415,7 @@ class MessageLogTest extends AbstractMessageLogTest {
         setupTest(encrypted);
         log.trace("failedToSaveTimestampToDatabase(encrypted={})", encrypted);
 
-        TestTaskQueue.throwWhenSavingTimestamp = new CodedException("expected");
+        TestTaskQueue.throwWhenSavingTimestamp = XrdRuntimeException.systemInternalError("expected");
 
         log(createMessage(), createSignature());
         log(createMessage(), createSignature());
@@ -485,8 +485,8 @@ class MessageLogTest extends AbstractMessageLogTest {
 
         serverConfProvider.setServerConfProvider(new EmptyServerConf());
 
-        CodedException exception = assertThrows(CodedException.class, () -> log(createMessage(), createSignature()));
-        assertEquals(ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND.code(), exception.getFaultCode());
+        XrdRuntimeException exception = assertThrows(XrdRuntimeException.class, () -> log(createMessage(), createSignature()));
+        assertEquals(ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND.code(), exception.getErrorCode());
     }
 
 

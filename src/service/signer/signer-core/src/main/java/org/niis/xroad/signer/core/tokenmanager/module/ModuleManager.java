@@ -25,13 +25,12 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.module;
 
-import ee.ria.xroad.common.CodedException;
-
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
@@ -43,7 +42,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotFound;
 
 /**
@@ -119,7 +117,7 @@ public class ModuleManager implements TokenWorkerProvider {
         if (module instanceof SoftwareModuleType softwareModuleType) {
             return createSoftwareModule(softwareModuleType);
         }
-        throw new CodedException(X_INTERNAL_ERROR, "unrecognized module type found!");
+        throw XrdRuntimeException.systemInternalError("unrecognized module type found!");
     }
 
     private SoftwareModuleWorkerFactory.SoftwareModuleWorker createSoftwareModule(SoftwareModuleType softwareModule) {

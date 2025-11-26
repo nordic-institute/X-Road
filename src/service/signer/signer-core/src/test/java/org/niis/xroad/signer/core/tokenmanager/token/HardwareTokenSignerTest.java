@@ -27,7 +27,6 @@
 
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
@@ -75,7 +74,7 @@ class HardwareTokenSignerTest {
     SignerHwTokenAddonProperties properties;
 
     @Test
-    void testSignNoSessionProvider() throws Exception {
+    void testSignNoSessionProvider() {
         try (var signer = HardwareTokenSigner.create(privateKeyProvider, tokenDefinition, token, TOKEN_ID, properties)) {
 
             var thrown = assertThrows(XrdRuntimeException.class,
@@ -101,8 +100,9 @@ class HardwareTokenSignerTest {
 
         try (var signer = HardwareTokenSigner.create(privateKeyProvider, tokenDefinition, token, TOKEN_ID, properties)) {
 
-            var thrown = assertThrows(CodedException.class, () -> signer.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "data".getBytes()));
-            assertEquals("Key 'keyId' not found on token 'null'", thrown.getFaultString());
+            var thrown = assertThrows(XrdRuntimeException.class,
+                    () -> signer.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "data".getBytes()));
+            assertEquals("Key 'keyId' not found on token 'null'", thrown.getDetails());
         }
     }
 

@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.core.globalconf.FileBasedProvider;
@@ -195,7 +196,7 @@ public class ConfigurationClientActionExecutor {
                 return;
             }
 
-            valid.set(StringUtils.isBlank(expectedContentId) || StringUtils.equals(expectedContentId, contentId));
+            valid.set(StringUtils.isBlank(expectedContentId) || Strings.CS.equals(expectedContentId, contentId));
         }
 
         int getExitCode() {

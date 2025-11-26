@@ -27,7 +27,6 @@
 
 package org.niis.xroad.proxy.core.util;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.RequestWrapper;
 
@@ -37,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.proxy.core.clientproxy.IsAuthenticationData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -51,8 +51,6 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -62,6 +60,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 @ExtendWith(MockitoExtension.class)
 class ClientAuthenticationServiceTest {
@@ -106,11 +106,11 @@ class ClientAuthenticationServiceTest {
         ClientId clientId = mock(ClientId.class);
         when(serverConfProvider.getIsAuthentication(clientId)).thenReturn(null);
 
-        CodedException ex = assertThrows(CodedException.class,
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
                 () -> clientAuthenticationService.verifyClientAuthentication(clientId,
                         new IsAuthenticationData(null, false)));
 
-        assertEquals(X_INTERNAL_ERROR, ex.getFaultCode());
+        assertEquals(INTERNAL_ERROR.code(), ex.getErrorCode());
     }
 
     @Test
@@ -119,10 +119,10 @@ class ClientAuthenticationServiceTest {
         when(serverConfProvider.getIsAuthentication(clientId)).thenReturn(IsAuthentication.SSLNOAUTH);
 
         IsAuthenticationData auth = new IsAuthenticationData(null, true);
-        CodedException ex = assertThrows(CodedException.class,
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
                 () -> clientAuthenticationService.verifyClientAuthentication(clientId, auth));
 
-        assertEquals(X_SSL_AUTH_FAILED, ex.getFaultCode());
+        assertEquals(SSL_AUTH_FAILED.code(), ex.getErrorCode());
     }
 
     @Test
@@ -132,10 +132,10 @@ class ClientAuthenticationServiceTest {
 
         IsAuthenticationData auth = new IsAuthenticationData(null, false);
 
-        CodedException ex = assertThrows(CodedException.class,
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
                 () -> clientAuthenticationService.verifyClientAuthentication(clientId, auth));
 
-        assertEquals(X_SSL_AUTH_FAILED, ex.getFaultCode());
+        assertEquals(SSL_AUTH_FAILED.code(), ex.getErrorCode());
     }
 
     @Test
@@ -176,10 +176,10 @@ class ClientAuthenticationServiceTest {
 
         IsAuthenticationData auth = new IsAuthenticationData(cert, false);
 
-        CodedException ex = assertThrows(CodedException.class,
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
                 () -> clientAuthenticationService.verifyClientAuthentication(clientId, auth));
 
-        assertEquals(X_SSL_AUTH_FAILED, ex.getFaultCode());
+        assertEquals(SSL_AUTH_FAILED.code(), ex.getErrorCode());
     }
 
     @Test
@@ -191,11 +191,11 @@ class ClientAuthenticationServiceTest {
         when(serverConfProvider.getIsAuthentication(clientId)).thenReturn(IsAuthentication.SSLAUTH);
         when(serverConfProvider.getIsCerts(clientId)).thenReturn(List.of(cert));
 
-        CodedException ex = assertThrows(CodedException.class,
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
                 () -> clientAuthenticationService.verifyClientAuthentication(clientId,
                         new IsAuthenticationData(cert, false)));
 
-        assertEquals(X_SSL_AUTH_FAILED, ex.getFaultCode());
+        assertEquals(SSL_AUTH_FAILED.code(), ex.getErrorCode());
     }
 
     @Test

@@ -25,8 +25,7 @@
  */
 package org.niis.xroad.globalconf.impl.signature;
 
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.TestSecurityUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -53,7 +52,7 @@ import static org.junit.Assert.assertNotNull;
 public class TimestampVerifierTest {
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     private static GlobalConfProvider globalConfProvider;
 
@@ -86,7 +85,7 @@ public class TimestampVerifierTest {
      */
     @Test
     public void hashMismatch() throws Exception {
-        thrown.expectError(ErrorCodes.X_MALFORMED_SIGNATURE);
+        thrown.expectError(ErrorCode.MALFORMED_SIGNATURE.code());
         TimeStampToken token = getTimestampFromFile("valid");
         byte[] stampedData = getBytesFromFile("stamped-data");
         stampedData[42] = 0x01; // change a byte

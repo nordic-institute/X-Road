@@ -27,7 +27,6 @@
 
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
@@ -37,6 +36,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -56,7 +56,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_RSA_PKCS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -73,6 +72,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_PIN_POLICY_FAILURE;
 
 class SoftwareTokenWorkerFactoryTest {
 
@@ -184,9 +184,9 @@ class SoftwareTokenWorkerFactoryTest {
     void testInitializeTokenPolicyFail() {
         when(signerProperties.enforceTokenPinPolicy()).thenReturn(true);
 
-        var thrown = assertThrows(CodedException.class, () -> tokenWorker.initializeToken(new char[]{'p', 'i', 'n'}));
-        assertEquals("Token PIN does not meet complexity requirements", thrown.getFaultString());
-        assertEquals(X_TOKEN_PIN_POLICY_FAILURE, thrown.getFaultCode());
+        var thrown = assertThrows(XrdRuntimeException.class, () -> tokenWorker.initializeToken(new char[]{'p', 'i', 'n'}));
+        assertEquals("Token PIN does not meet complexity requirements", thrown.getDetails());
+        assertEquals(TOKEN_PIN_POLICY_FAILURE.code(), thrown.getErrorCode());
 
         verifyNoInteractions(pinManager, tokenManager);
     }
@@ -218,9 +218,10 @@ class SoftwareTokenWorkerFactoryTest {
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
             passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(oldPIN));
 
-            var thrown = assertThrows(CodedException.class, () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), new char[0]));
+            var thrown = assertThrows(XrdRuntimeException.class,
+                    () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), new char[0]));
 
-            assertEquals("PIN incorrect", thrown.getFaultString());
+            assertEquals("PIN incorrect", thrown.getDetails());
 
             verify(tokenManager).setTokenStatus(TOKEN_ID, TokenStatusInfo.USER_PIN_INCORRECT);
         }
@@ -232,12 +233,12 @@ class SoftwareTokenWorkerFactoryTest {
         char[] newPIN = "newPin".toCharArray();
 
         when(pinManager.verifyTokenPin(TOKEN_ID, oldPIN)).thenReturn(true);
-        doThrow(new CodedException("fail")).when(pinManager).updateTokenPin(TOKEN_ID, oldPIN, newPIN);
+        doThrow(XrdRuntimeException.systemInternalError("fail")).when(pinManager).updateTokenPin(TOKEN_ID, oldPIN, newPIN);
 
         try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
             passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of((oldPIN)));
 
-            assertThrows(CodedException.class, () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), newPIN));
+            assertThrows(XrdRuntimeException.class, () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), newPIN));
 
             passwordStoreMock.verify(() -> PasswordStore.storePassword(TOKEN_ID, null), never());
             verify(tokenManager, never()).setTokenActive(TOKEN_ID, false);
@@ -284,8 +285,9 @@ class SoftwareTokenWorkerFactoryTest {
     void testSignTokenNotActive() {
         when(tokenLookup.isTokenActive(TOKEN_ID)).thenReturn(false);
 
-        var thrown = assertThrows(CodedException.class, () -> tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3}));
-        assertEquals("Token 'token-id' not active", thrown.getFaultString());
+        var thrown = assertThrows(XrdRuntimeException.class,
+                () -> tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3}));
+        assertEquals("Token 'token-id' not active", thrown.getDetails());
     }
 
     @Test
@@ -293,8 +295,9 @@ class SoftwareTokenWorkerFactoryTest {
         when(tokenLookup.isTokenActive(TOKEN_ID)).thenReturn(true);
         when(tokenLookup.isKeyAvailable(KEY_ID)).thenReturn(false);
 
-        var thrown = assertThrows(CodedException.class, () -> tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3}));
-        assertEquals("Key 'key-id' not available", thrown.getFaultString());
+        var thrown = assertThrows(XrdRuntimeException.class,
+                () -> tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3}));
+        assertEquals("Key 'key-id' not available", thrown.getDetails());
     }
 
     @Test
@@ -303,8 +306,9 @@ class SoftwareTokenWorkerFactoryTest {
         when(tokenLookup.isKeyAvailable(KEY_ID)).thenReturn(true);
         when(tokenLookup.getSoftwareTokenKeyStore(KEY_ID)).thenReturn(Optional.empty());
 
-        var thrown = assertThrows(CodedException.class, () -> tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3}));
-        assertEquals("Key 'key-id' not found", thrown.getFaultString());
+        var thrown = assertThrows(XrdRuntimeException.class,
+                () -> tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3}));
+        assertEquals("Key 'key-id' not found", thrown.getDetails());
     }
 
     @Test

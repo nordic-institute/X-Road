@@ -27,13 +27,12 @@
 
 package org.niis.xroad.backupmanager.core.repository;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.niis.xroad.backupmanager.core.BackupManagerProperties;
 import org.niis.xroad.backupmanager.core.BackupValidator;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.ConfigUtils;
 
 import java.io.File;
@@ -51,14 +50,13 @@ class FileSystemBackupRepositoryTest {
     private Path backupDir;
 
     private BackupManagerProperties backupManagerProperties;
-    private BackupValidator backupValidator;
     private BackupRepository backupRepository;
 
     @BeforeEach
     void beforeEach() {
         backupManagerProperties = ConfigUtils.initConfiguration(BackupManagerProperties.class,
                 Map.of("xroad.backup-manager.backup-location", backupDir.toString()));
-        backupValidator = new BackupValidator(backupManagerProperties);
+        BackupValidator backupValidator = new BackupValidator(backupManagerProperties);
         backupValidator.init();
         backupRepository = new FileSystemBackupRepository(backupManagerProperties, backupValidator);
     }
@@ -77,11 +75,11 @@ class FileSystemBackupRepositoryTest {
     @Test
     void readBackupFile() {
         assertThatThrownBy(() -> backupRepository.readBackupFile("not-existing-file.gpg"))
-                .isInstanceOf(CodedException.class)
+                .isInstanceOf(XrdRuntimeException.class)
                 .hasMessageContaining("backup_file_not_found: not-existing-file.gpg");
 
         assertThatThrownBy(() -> backupRepository.readBackupFile("file-name-not-valid"))
-                .isInstanceOf(CodedException.class)
+                .isInstanceOf(XrdRuntimeException.class)
                 .hasMessageContaining("backup_file_not_found: file-name-not-valid");
 
         createBackupFile("backup.gpg");
@@ -92,7 +90,7 @@ class FileSystemBackupRepositoryTest {
     void getAbsoluteBackupFilePath() {
         var name = "../secret/folder/file.txt";
         assertThatThrownBy(() -> backupRepository.getAbsoluteBackupFilePath(name))
-                .isInstanceOf(CodedException.class)
+                .isInstanceOf(XrdRuntimeException.class)
                 .hasMessageContaining("invalid_filename: %s".formatted(name));
 
         createBackupFile("backup.gpg");

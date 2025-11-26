@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -34,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -49,8 +49,7 @@ import org.niis.xroad.signer.proto.GetMemberSigningInfoResp;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 import static org.niis.xroad.signer.api.dto.CertificateInfo.STATUS_REGISTERED;
 
 /**
@@ -74,16 +73,17 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
         List<KeyInfo> memberKeys = tokenLookup.getKeyInfo(memberId);
 
         if (memberKeys.isEmpty()) {
-            throw CodedException.tr(X_UNKNOWN_MEMBER, "member_certs_not_found",
-                    "Could not find any certificates for member '%s'. "
-                            + "Are you sure tokens containing the certificates are logged in?", memberId);
+            throw XrdRuntimeException.systemException(UNKNOWN_MEMBER)
+                    .metadataItems("member_certs_not_found")
+                    .details("Could not find any certificates for member '%s'. ".formatted(memberId)
+                            + "Are you sure tokens containing the certificates are logged in?")
+                    .build();
         }
 
         SelectedCertificate memberCert = selectMemberCert(memberKeys, memberId);
 
         if (memberCert == null) {
-            throw CodedException.tr(X_INTERNAL_ERROR, "member_has_no_suitable_certs",
-                    "Member '%s' has no suitable certificates", memberId);
+            throw XrdRuntimeException.systemInternalError("Member '%s' has no suitable certificates".formatted(memberId));
         }
 
         return GetMemberSigningInfoResp.newBuilder()

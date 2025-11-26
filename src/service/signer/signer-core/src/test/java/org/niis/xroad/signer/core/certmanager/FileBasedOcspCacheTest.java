@@ -31,8 +31,8 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -46,10 +46,11 @@ import java.security.cert.X509Certificate;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 /**
  * Tests the file based OCSP cache.
  */
@@ -163,7 +164,7 @@ public class FileBasedOcspCacheTest {
     /**
      * Loads test certificates.
      */
-    @BeforeClass
+    @BeforeAll
     public static void loadCerts() {
         globalConfProvider = new EmptyGlobalConf();
 

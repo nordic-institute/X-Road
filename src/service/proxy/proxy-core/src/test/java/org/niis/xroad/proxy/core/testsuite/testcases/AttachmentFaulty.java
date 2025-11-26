@@ -30,7 +30,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
 
 /**
  * Client sends multipart with one part that does not have
@@ -50,6 +50,6 @@ public class AttachmentFaulty extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(CLIENT_X, X_INVALID_CONTENT_TYPE);
+        assertErrorCode(CLIENT_X, INVALID_CONTENT_TYPE.code());
     }
 }

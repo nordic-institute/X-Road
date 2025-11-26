@@ -25,18 +25,18 @@
  */
 package org.niis.xroad.signer.core.passwordstore;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.niis.xroad.signer.core.passwordstore.PasswordStore.getPassword;
 import static org.niis.xroad.signer.core.passwordstore.PasswordStore.storePassword;
 
 public class PasswordStoreTest {
 
     @Test
-    public void runTest() throws Exception {
+    public void runTest() {
         getPassword("foo"); // Just check if get on empty DB works.
 
         storePassword("foo", null);

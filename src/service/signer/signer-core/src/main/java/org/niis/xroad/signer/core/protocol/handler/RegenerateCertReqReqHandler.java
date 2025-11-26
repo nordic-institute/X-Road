@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
-
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
@@ -46,9 +44,8 @@ import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
 import org.niis.xroad.signer.proto.RegenerateCertRequestResp;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static java.util.Optional.ofNullable;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.csrWithIdNotFound;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
 
 /**
@@ -71,7 +68,7 @@ public class RegenerateCertReqReqHandler extends AbstractRpcHandler<RegenerateCe
 
         if (tokenAndKey.key().getUsage() == KeyUsageInfo.AUTHENTICATION
                 && !SoftwareTokenDefinition.ID.equals(tokenAndKey.tokenId())) {
-            throw new CodedException(X_INTERNAL_ERROR,
+            throw XrdRuntimeException.systemInternalError(
                     "Authentication keys are only supported for software tokens");
         }
 
@@ -79,8 +76,7 @@ public class RegenerateCertReqReqHandler extends AbstractRpcHandler<RegenerateCe
 
         CertRequestInfo certRequestInfo = tokenLookup.getCertRequestInfo(csrId);
         if (certRequestInfo == null) {
-            throw CodedException.tr(X_CSR_NOT_FOUND,
-                    "csr_not_found", "Certificate request '%s' not found", csrId);
+            throw csrWithIdNotFound(csrId);
         }
 
         String subjectName = certRequestInfo.getSubjectName();

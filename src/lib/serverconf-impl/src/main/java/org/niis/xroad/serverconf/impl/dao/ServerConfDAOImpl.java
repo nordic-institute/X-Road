@@ -25,13 +25,12 @@
  */
 package org.niis.xroad.serverconf.impl.dao;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.persistence.criteria.CriteriaQuery;
 import org.hibernate.Session;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 
 /**
  * Server conf data access object implementation.
@@ -44,7 +43,7 @@ public class ServerConfDAOImpl {
     public ServerConfEntity getConf(Session session) {
         ServerConfEntity confType = getFirst(session, ServerConfEntity.class);
         if (confType == null) {
-            throw new CodedException(X_MALFORMED_SERVERCONF,
+            throw XrdRuntimeException.systemException(MALFORMED_SERVERCONF,
                     "Server conf is not initialized!");
         }
 

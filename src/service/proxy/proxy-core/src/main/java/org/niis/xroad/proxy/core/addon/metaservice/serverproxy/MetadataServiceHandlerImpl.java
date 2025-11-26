@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.metaservice.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.JaxbUtils;
 import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
@@ -56,6 +55,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -94,9 +94,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SERVICE_TYPE;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.ALLOWED_METHODS;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.GET_WSDL;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
@@ -262,17 +261,15 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
                 WsdlRequestData.class).getValue();
 
         if (StringUtils.isBlank(requestData.getServiceCode())) {
-            throw new CodedException(X_INVALID_REQUEST,
-                    "Missing serviceCode in message body");
+            throw XrdRuntimeException.systemException(INVALID_REQUEST, "Missing serviceCode in message body");
         }
 
         ServiceId serviceId = requestData.toServiceId(request.getService().getClientId());
         String url = getWsdlUrl(serviceId);
         if (url == null) {
-            throw new CodedException(X_UNKNOWN_SERVICE,
-                    "Could not find wsdl URL for service %s",
-                    requestData.toServiceId(
-                            request.getService().getClientId()));
+            throw XrdRuntimeException.systemException(ErrorCode.UNKNOWN_SERVICE,
+                    "Could not find wsdl URL for service %s".formatted(
+                            requestData.toServiceId(request.getService().getClientId())));
         }
 
         log.info("Downloading WSDL from URL: {}", url);
@@ -290,7 +287,7 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     private String getWsdlUrl(ServiceId service) {
         DescriptionType type = serverConfProvider.getDescriptionType(service);
         if (type != null && type != DescriptionType.WSDL) {
-            throw new CodedException(X_INVALID_SERVICE_TYPE,
+            throw XrdRuntimeException.systemException(INVALID_SERVICE_TYPE,
                     "Service is a REST service and does not have a WSDL");
         }
         return type != null ? serverConfProvider.getServiceDescriptionURL(service) : null;

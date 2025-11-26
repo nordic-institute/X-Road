@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -49,6 +48,7 @@ import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.util.io.TeeInputStream;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -75,10 +75,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_REST;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.util.HeaderValueUtils.getBoundary;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
@@ -86,6 +82,10 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPONSE;
+import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_REST;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
 
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions")
@@ -207,7 +207,7 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                 getHashAlgoId(httpSender));
         try {
             decoder.parse(httpSender.getResponseContent());
-        } catch (CodedException ex) {
+        } catch (XrdRuntimeException ex) {
             throw ex.withPrefix(X_SERVICE_FAILED_X);
         }
         updateOpMonitoringDataByResponse(decoder);
@@ -226,28 +226,28 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void checkResponse() {
         if (response.getFault() != null) {
-            throw response.getFault().toCodedException();
+            throw response.getFault().toXrdRuntimeException();
         }
         if (response.getRestResponse() == null) {
-            throw new CodedException(X_MISSING_REST, "Response does not have REST message");
+            throw XrdRuntimeException.systemException(MISSING_REST, "Response does not have REST message");
         }
         if (response.getSignature() == null) {
-            throw new CodedException(X_MISSING_SIGNATURE, "Response does not have signature");
+            throw XrdRuntimeException.systemException(MISSING_SIGNATURE, "Response does not have signature");
         }
     }
 
     private void checkConsistency(DigestAlgorithm hashAlgoId) throws IOException {
         if (!Objects.equals(restRequest.getClientId(), response.getRestResponse().getClientId())) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response client id does not match request message");
+            throw XrdRuntimeException.systemException(INCONSISTENT_RESPONSE, "Response client id does not match request message");
         }
         if (!Objects.equals(restRequest.getQueryId(), response.getRestResponse().getQueryId())) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message id does not match request message");
+            throw XrdRuntimeException.systemException(INCONSISTENT_RESPONSE, "Response message id does not match request message");
         }
         if (!Objects.equals(restRequest.getServiceId(), response.getRestResponse().getServiceId())) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response service id does not match request message");
+            throw XrdRuntimeException.systemException(INCONSISTENT_RESPONSE, "Response service id does not match request message");
         }
         if (!Objects.equals(restRequest.getXRequestId(), response.getRestResponse().getXRequestId())) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE,
+            throw XrdRuntimeException.systemException(INCONSISTENT_RESPONSE,
                     "Response message request id does not match request message");
         }
 
@@ -265,7 +265,7 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         if (!Arrays.equals(requestDigest, response.getRestResponse().getRequestHash())) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message hash does not match request message");
+            throw XrdRuntimeException.systemException(INCONSISTENT_RESPONSE, "Response message hash does not match request message");
         }
     }
 
@@ -360,7 +360,7 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                 enc.close();
 
             } catch (Exception e) {
-                throw new CodedException(X_IO_ERROR, e);
+                throw XrdRuntimeException.systemException(IO_ERROR, e);
             }
         }
 

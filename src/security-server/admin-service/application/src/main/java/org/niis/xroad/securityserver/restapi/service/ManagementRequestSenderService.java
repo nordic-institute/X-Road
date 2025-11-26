@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -79,8 +78,8 @@ public class ManagementRequestSenderService {
             return sender.sendAuthCertRegRequest(currentSecurityServerId.getServerId(), address, authCert, dryRun);
         } catch (Exception e) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
-            if (e instanceof CodedException) {
-                throw (CodedException) e;
+            if (e instanceof XrdRuntimeException xrdRuntimeException) {
+                throw xrdRuntimeException;
             }
             throw XrdRuntimeException.systemException(e);
         }
@@ -144,7 +143,7 @@ public class ManagementRequestSenderService {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendClientRegRequest(currentSecurityServerId.getServerId(), clientId, subsystemName);
-        } catch (CodedException ce) {
+        } catch (XrdRuntimeException ce) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, ce);
             throw ce;
         } catch (Exception e) {
@@ -166,7 +165,7 @@ public class ManagementRequestSenderService {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendClientDeletionRequest(currentSecurityServerId.getServerId(), clientId);
-        } catch (CodedException ce) {
+        } catch (XrdRuntimeException ce) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, ce);
             throw ce;
         } catch (Exception e) {
@@ -188,7 +187,7 @@ public class ManagementRequestSenderService {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendOwnerChangeRequest(currentSecurityServerId.getServerId(), clientId);
-        } catch (CodedException ce) {
+        } catch (XrdRuntimeException ce) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, ce);
             throw ce;
         } catch (Exception e) {

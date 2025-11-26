@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -103,17 +101,6 @@ public class TokenService {
     }
 
     /**
-     * get all certificates for a given client.
-     *
-     * @param client client whose member certificates need to be
-     *               linked to
-     * @return
-     */
-    public List<CertificateInfo> getAllCertificates(Client client) {
-        return getCertificates(client, false);
-    }
-
-    /**
      * Get all certificates for a given client
      *
      * @param client
@@ -163,8 +150,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -195,8 +180,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -217,8 +200,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -250,8 +231,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -270,8 +249,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -292,8 +269,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -352,8 +327,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -401,8 +374,6 @@ public class TokenService {
             } else {
                 throw se;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -422,7 +393,7 @@ public class TokenService {
             signerRpcClient.deleteToken(id);
         } catch (ActionNotPossibleException e) {
             throw new ConflictException(e, ACTION_NOT_POSSIBLE.build());
-        } catch (CodedException ce) {
+        } catch (XrdRuntimeException ce) {
             throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
@@ -433,7 +404,7 @@ public class TokenService {
         if (e.isCausedBy(TOKEN_PIN_INCORRECT)) {
             return true;
         } else if (e.isCausedBy(LOGIN_FAILED)) {
-            // only way to detect HSM pin incorrect is by matching to codedException
+            // only way to detect HSM pin incorrect is by matching to xrdRuntimeException
             // fault string.
             return e.getMessage().contains(ERROR_CKR_PIN_INCORRECT);
         }

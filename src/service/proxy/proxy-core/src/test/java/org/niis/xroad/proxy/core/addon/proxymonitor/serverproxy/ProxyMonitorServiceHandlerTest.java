@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -35,6 +34,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
@@ -45,7 +45,6 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
@@ -53,6 +52,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 
 /**
  * Unit tests for {@link ProxyMonitorServiceHandlerImpl}
@@ -183,9 +183,9 @@ public class ProxyMonitorServiceHandlerTest {
 
         // execution
 
-        var ce = assertThrows(CodedException.class, handlerToTest::shouldVerifyAccess);
+        var ce = assertThrows(XrdRuntimeException.class, handlerToTest::shouldVerifyAccess);
 
-        assertEquals(X_ACCESS_DENIED, ce.getFaultCode());
+        assertEquals(ACCESS_DENIED.code(), ce.getErrorCode());
         assertTrue(ce.getMessage().contains("Request is not allowed"));
 
         // expecting an exception..

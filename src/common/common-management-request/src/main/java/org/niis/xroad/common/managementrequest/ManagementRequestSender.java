@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.common.managementrequest;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -41,6 +40,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.AddressChangeRequest;
 import org.niis.xroad.common.managementrequest.model.AuthCertRegRequest;
 import org.niis.xroad.common.managementrequest.model.AuthCertRegWithoutCertRequest;
@@ -64,12 +64,11 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
+import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
 
 /**
  * Sends various management requests. Authentication certificate registration
@@ -349,7 +348,7 @@ public final class ManagementRequestSender {
                 getBaseContentType(sender.getResponseContentType());
         if (baseContentType == null
                 || !baseContentType.equalsIgnoreCase(expectedContentType)) {
-            throw new CodedException(X_HTTP_ERROR,
+            throw XrdRuntimeException.systemException(HTTP_ERROR,
                     "Unexpected or no content type (%s) in response",
                     baseContentType);
         }
@@ -358,16 +357,16 @@ public final class ManagementRequestSender {
                 sender.getResponseContent());
         if (response instanceof SoapFault soapFault) {
             // Server responded with fault
-            throw soapFault.toCodedException();
+            throw soapFault.toXrdRuntimeException();
         }
 
         if (!(response instanceof SoapMessageImpl responseMessage)) {
-            throw new CodedException(X_INTERNAL_ERROR,
+            throw XrdRuntimeException.systemInternalError(
                     "Got unexpected response message " + response);
         }
 
         if (!responseMessage.isResponse()) {
-            throw new CodedException(X_INTERNAL_ERROR,
+            throw XrdRuntimeException.systemInternalError(
                     "Expected response message");
         }
 

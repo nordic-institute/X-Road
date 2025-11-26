@@ -25,12 +25,12 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.SignerProtoUtils;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
@@ -38,7 +38,7 @@ import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * Handles requests for software token initialization.
@@ -60,13 +60,13 @@ public class InitSoftwareTokenReqHandler extends AbstractRpcHandler<InitSoftware
                 try {
                     tokenWorker.initializeToken(SignerProtoUtils.byteToChar(request.getPin().toByteArray()));
                     return Empty.getDefaultInstance();
-                } catch (CodedException e) {
+                } catch (XrdRuntimeException e) {
                     throw e;
                 } catch (Exception e) {
-                    throw new CodedException(X_INTERNAL_ERROR, e); //todo move to worker
+                    throw XrdRuntimeException.systemException(INTERNAL_ERROR, e); //todo move to worker
                 }
             }
         }
-        throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
+        throw XrdRuntimeException.systemInternalError("Software token not found");
     }
 }

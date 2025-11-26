@@ -25,10 +25,9 @@
  */
 package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -62,7 +61,7 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * Contains various XML-related utility methods.
@@ -288,7 +287,7 @@ public final class XmlUtils {
         try {
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         } catch (ParserConfigurationException e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
         return dbf;
     }

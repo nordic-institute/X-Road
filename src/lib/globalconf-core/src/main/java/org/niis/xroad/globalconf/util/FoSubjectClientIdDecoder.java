@@ -25,18 +25,18 @@
  */
 package org.niis.xroad.globalconf.util;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.security.auth.x500.X500Principal;
 
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.util.CertUtils.getRDNValue;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_CERTIFICATE;
 
 /**
  * Helper class for decoding ClientId from the Faroe Islands's
@@ -61,46 +61,46 @@ public final class FoSubjectClientIdDecoder {
 
     /**
      * The encoding for clientID:
-     *
-     *  C  = FO (country code must be 'FO' when using this decoder)
-     *  O  = instance identifier (must be present)
-     *  OU = memberClass
-     *  CN = memberCode
-     *  serialNumber = serverId, not used
+     * <p>
+     * C  = FO (country code must be 'FO' when using this decoder)
+     * O  = instance identifier (must be present)
+     * OU = memberClass
+     * CN = memberCode
+     * serialNumber = serverId, not used
      */
     private static ClientId.Conf parseClientId(X500Name x500name) {
 
         // Country Code Identifier
         String memberCountry = getRDNValue(x500name, BCStyle.C);
         if (!"FO".equals(memberCountry)) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain valid country code");
         }
 
         // Instance Identifier
         String memberInstance = getRDNValue(x500name, BCStyle.O);
         if (memberInstance == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain organization");
         }
 
         // Member Class Identifier
         String memberClass = getRDNValue(x500name, BCStyle.OU);
         if (memberClass == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain organization unit");
         }
 
         // Member Class Identifier
         String memberCode = getRDNValue(x500name, BCStyle.CN);
         if (memberCode == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain common name");
         }
 
         // Check if the Serial Number is present
         if (getRDNValue(x500name, BCStyle.SERIALNUMBER) == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain serial number");
         }
 

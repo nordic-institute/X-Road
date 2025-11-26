@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.confclient.core.globalconf;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -33,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.core.dto.InMemoryFile;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.proto.GetGlobalConfResp;
 import org.niis.xroad.confclient.proto.GlobalConfFile;
@@ -50,10 +50,9 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.crypto.Digests.hexDigest;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_GLOBALCONF;
 import static org.niis.xroad.globalconf.model.ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE;
 import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.getVersion;
 
@@ -80,7 +79,7 @@ public class GetGlobalConfRespFactory {
                 builder.addInstances(loadParameters(instanceDir));
             }
         } catch (IOException e) {
-            throw new CodedException(X_MALFORMED_GLOBALCONF, "Failed to read configuration directory", e);
+            throw XrdRuntimeException.systemException(MALFORMED_GLOBALCONF, e, "Failed to read configuration directory");
         }
         return builder
                 .setInstanceIdentifier(loadInstanceIdentifier())
@@ -125,8 +124,7 @@ public class GetGlobalConfRespFactory {
         } catch (Exception e) {
             log.error("Failed to read instance identifier from {}", file, e);
 
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Could not read instance identifier of this security server");
+            throw XrdRuntimeException.systemInternalError("Could not read instance identifier of this security server");
         }
     }
 

@@ -25,14 +25,13 @@
  */
 package org.niis.xroad.cs.admin.api.globalconf;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 
@@ -49,6 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_OPTIONAL_PARTS_CONF;
 
 /**
  * Encapsulates optional parts configuration of central server.
@@ -152,7 +153,7 @@ public class OptionalPartsConf {
                 .filter(part -> part.contentIdentifier().equals(contentIdentifier))
                 .findFirst()
                 .map(OptionalConfPart::fileName)
-                .orElseThrow(() -> new CodedException(ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF,
+                .orElseThrow(() -> XrdRuntimeException.systemException(MALFORMED_OPTIONAL_PARTS_CONF,
                         "Part file name not found for content identifier " + contentIdentifier));
 
         log.debug("Part filename for content identifier '{}': '{}'", contentIdentifier, partFileName);
@@ -196,15 +197,13 @@ public class OptionalPartsConf {
 
     private void validatePartFileName(String partFileName) {
         if (RESERVED_FILE_NAMES.contains(partFileName)) {
-            throw new CodedException(
-                    ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF,
+            throw XrdRuntimeException.systemException(MALFORMED_OPTIONAL_PARTS_CONF,
                     "Optional parts configuration contains reserved filename'"
                             + partFileName + "'.");
         }
 
         if (!existingPartFileNames.add(partFileName)) {
-            throw new CodedException(
-                    ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF,
+            throw XrdRuntimeException.systemException(MALFORMED_OPTIONAL_PARTS_CONF,
                     "Part file name'" + partFileName + "' occurs more than "
                             + "once in optional parts configuration. "
                             + "Part file names must be unique.");
@@ -213,8 +212,7 @@ public class OptionalPartsConf {
 
     private void validateContentIdentifier(String contentId) {
         if (RESERVED_CONTENT_IDENTIFIERS.contains(contentId)) {
-            throw new CodedException(
-                    ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF,
+            throw XrdRuntimeException.systemException(MALFORMED_OPTIONAL_PARTS_CONF,
                     "Optional parts configuration contains reserved content "
                             + "identifier'" + contentId + "'.");
         }

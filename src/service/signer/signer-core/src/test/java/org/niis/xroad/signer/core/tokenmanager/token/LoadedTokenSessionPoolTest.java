@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
-
 import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.SessionInfo;
 import iaik.pkcs.pkcs11.State;
@@ -123,7 +121,7 @@ class LoadedTokenSessionPoolTest {
     @Test
     void shouldFailInitializationIfTokenIsNull() {
         // When & Assert
-        CodedException thrown = assertThrows(CodedException.class, () -> {
+        XrdRuntimeException thrown = assertThrows(XrdRuntimeException.class, () -> {
             new HardwareTokenSessionPool(properties, null, TOKEN_ID);
         });
         assertThat(thrown.getMessage()).contains("Token is null for pool initialization");
@@ -183,7 +181,7 @@ class LoadedTokenSessionPoolTest {
         });
         assertThat(thrown.getMessage()).contains("Failed to pre-fill session pool for token " + TOKEN_ID);
         // Check the underlying cause reported by the factory is about the missing PIN
-        assertThat(thrown.getCause()).isInstanceOf(CodedException.class);
+        assertThat(thrown.getCause()).isInstanceOf(XrdRuntimeException.class);
         assertThat(thrown.getCause().getMessage()).contains("PIN not available in PasswordStore");
 
     }

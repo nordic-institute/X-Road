@@ -25,9 +25,6 @@
  */
 package org.niis.xroad.common.core.exception;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.HttpStatus;
-
 import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.soap.SOAPException;
 import lombok.Getter;
@@ -38,6 +35,7 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -46,73 +44,47 @@ import java.nio.channels.UnresolvedAddressException;
 import java.security.cert.CertificateException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * A highly customizable exception class for X-Road use cases.
- * <p>
- * TODO Until migration from CodedException is complete, this class
- *       extends CodedException. In the future, it will be a standalone.
  */
 @Getter
 @Slf4j
-public final class XrdRuntimeException extends CodedException implements HttpStatusAware {
+public sealed class XrdRuntimeException extends RuntimeException
+        permits XrdRuntimeHttpException {
 
     private final String identifier;
-    private final ExceptionCategory category;
 
     private final String errorCode;
     private final List<String> errorCodeMetadata;
 
     private final String details;
-    private final HttpStatus httpStatus;
     private final ErrorOrigin origin;
+    private final SoapFaultInfo soapFaultInfo;
 
-    XrdRuntimeException(@NonNull String identifier,
-                        @NonNull ExceptionCategory category,
-                        @NonNull String errorCode,
-                        @NonNull List<String> errorCodeMetadata,
-                        ErrorOrigin origin,
-                        String details,
-                        HttpStatus httpStatus) {
-        super(errorCode, details);
-        this.identifier = identifier;
-        this.translationCode = errorCode;
-        this.category = category;
-        this.errorCode = errorCode;
-        this.errorCodeMetadata = errorCodeMetadata;
-        this.origin = origin;
-        this.details = details;
-        this.httpStatus = httpStatus;
-    }
-
-    XrdRuntimeException(@NonNull Throwable cause,
+    XrdRuntimeException(Throwable cause,
                         @NonNull String identifier,
-                        @NonNull ExceptionCategory category,
                         @NonNull String errorCode,
                         @NonNull List<String> errorCodeMetadata,
                         ErrorOrigin origin,
                         String details,
-                        HttpStatus httpStatus) {
-        super(errorCode, cause, details);
+                        SoapFaultInfo soapFaultInfo) {
+        super(details, cause);
         this.identifier = identifier;
-        this.translationCode = errorCode;
-        this.category = category;
         this.errorCode = errorCode;
         this.errorCodeMetadata = errorCodeMetadata;
         this.origin = origin;
         this.details = details;
-        this.httpStatus = httpStatus;
+        this.soapFaultInfo = soapFaultInfo;
     }
 
     @Override
     public String toString() {
         String id = identifier != null ? identifier : "unknown";
-        String cat = category != null ? category.toString() : "UNKNOWN";
 
-        var message = "[%s] [%s] %s".formatted(id, cat, getCode());
+        var message = "[%s] %s".formatted(id, getCode());
 
         if (errorCodeMetadata != null && !errorCodeMetadata.isEmpty()) {
             message += " (%s)".formatted(String.join(", ", errorCodeMetadata));
@@ -128,11 +100,6 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
     @Override
     public String getMessage() {
         return toString();
-    }
-
-    @Override
-    public String getFaultString() {
-        return details;
     }
 
     public String getCode() {
@@ -155,45 +122,22 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         return errorCode.startsWith(expectedOrigin.toPrefix());
     }
 
-    @Override
-    public String getFaultCode() {
-        return getCode();
-    }
-
-    @Override
-    public CodedException withPrefix(String... prefixes) {
+    public XrdRuntimeException withPrefix(String... prefixes) {
         //TODO consider keeping prefix separately instead of modifying the code
         var prefix = StringUtils.join(prefixes, ".");
 
         if (!getCode().startsWith(prefix)) {
-            if (getCause() != null) {
-                return new XrdRuntimeException(
-                        getCause(),
-                        getIdentifier(),
-                        getCategory(),
-                        prefix + "." + getCode(),
-                        errorCodeMetadata,
-                        getOrigin(),
-                        getDetails(),
-                        getHttpStatus().orElse(null));
-            } else {
-                return new XrdRuntimeException(
-                        getIdentifier(),
-                        getCategory(),
-                        prefix + "." + getCode(),
-                        errorCodeMetadata,
-                        getOrigin(),
-                        getDetails(),
-                        getHttpStatus().orElse(null));
-            }
+            return new XrdRuntimeException(
+                    getCause(),
+                    getIdentifier(),
+                    prefix + "." + getCode(),
+                    getErrorCodeMetadata(),
+                    getOrigin(),
+                    getDetails(),
+                    getSoapFaultInfo());
         }
         return this;
     }
-
-    public Optional<HttpStatus> getHttpStatus() {
-        return Optional.ofNullable(httpStatus);
-    }
-
 
     /**
      * Creates a system exception builder for system-level errors.
@@ -206,35 +150,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         if (error == null) {
             throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
         }
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, error);
-    }
-
-    /**
-     * Creates a business exception builder for business logic errors.
-     *
-     * @param error the error deviation builder
-     * @return a new builder instance
-     * @throws IllegalArgumentException if error is null
-     */
-    public static XrdRuntimeExceptionBuilder businessException(DeviationBuilder.ErrorDeviationBuilder error) {
-        if (error == null) {
-            throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
-        }
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.BUSINESS, error);
-    }
-
-    /**
-     * Creates a validation exception builder for validation errors.
-     *
-     * @param error the error deviation builder
-     * @return a new builder instance
-     * @throws IllegalArgumentException if error is null
-     */
-    public static XrdRuntimeExceptionBuilder validationException(DeviationBuilder.ErrorDeviationBuilder error) {
-        if (error == null) {
-            throw new IllegalArgumentException("ErrorDeviationBuilder cannot be null");
-        }
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.VALIDATION, error);
+        return new XrdRuntimeExceptionBuilder(error);
     }
 
     /**
@@ -245,24 +161,39 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
      * @return translated XrdRuntimeException
      * @throws IllegalArgumentException if ex is null
      */
-    @SuppressWarnings("squid:S1872")
     public static XrdRuntimeException systemException(Throwable ex) {
         return switch (ex) {
             case null -> throw new IllegalArgumentException("Exception cannot be null");
             case XrdRuntimeException xrdEx -> xrdEx;
-            case CodedException cex -> new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, ErrorCode.withCode(cex.getFaultCode()))
-                    .cause(ex)
-                    .details(cex.getFaultString())
-                    .build();
-            default -> new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, resolveExceptionCode(ex))
+            default -> new XrdRuntimeExceptionBuilder(resolveExceptionCode(ex))
                     .cause(ex)
                     .details(ex.getMessage())
                     .build();
         };
     }
 
+    public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, String details, Object... params) {
+        return new XrdRuntimeExceptionBuilder(errorCode)
+                .details(details.formatted(params))
+                .build();
+    }
+
+    public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, Throwable cause, String details,
+                                                      Object... params) {
+        return new XrdRuntimeExceptionBuilder(errorCode)
+                .cause(cause)
+                .details(details.formatted(params))
+                .build();
+    }
+
+    public static XrdRuntimeException systemException(DeviationBuilder.ErrorDeviationBuilder errorCode, Throwable cause) {
+        return new XrdRuntimeExceptionBuilder(errorCode)
+                .cause(cause)
+                .build();
+    }
+
     public static XrdRuntimeException systemInternalError(String details) {
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, INTERNAL_ERROR)
+        return new XrdRuntimeExceptionBuilder(INTERNAL_ERROR)
                 .details(details)
                 .build();
     }
@@ -271,7 +202,7 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
         if (ex instanceof XrdRuntimeException xrdEx) {
             return xrdEx;
         }
-        return new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, INTERNAL_ERROR)
+        return new XrdRuntimeExceptionBuilder(INTERNAL_ERROR)
                 .details(details)
                 .cause(ex)
                 .build();
@@ -287,7 +218,6 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
     @ArchUnitSuppressed("NoVanillaExceptions")
     private static DeviationBuilder.ErrorDeviationBuilder resolveExceptionCode(Throwable ex) {
         return switch (ex) {
-            case CodedException cex -> ErrorCode.withCode(cex.getFaultCode());
             case UnknownHostException ignored -> ErrorCode.UNKNOWN_HOST;
             case MalformedURLException ignored -> ErrorCode.NETWORK_ERROR;
             case SocketException ignored -> ErrorCode.NETWORK_ERROR;
@@ -300,8 +230,8 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
             case SAXException ignored -> ErrorCode.INVALID_XML;
             case UnmarshalException ue when isAccessorException(ue.getCause()) -> resolveExceptionCode(ue.getCause());
             case Exception me when isMimeException(me) -> ErrorCode.MIME_PARSING_FAILED;
-            case Exception ae when isAccessorException(ae) && ae.getCause() instanceof CodedException cex ->
-                    ErrorCode.withCode(cex.getFaultCode());
+            case Exception ae when isAccessorException(ae) && ae.getCause() instanceof XrdRuntimeException cex ->
+                    ErrorCode.withCode(cex.getErrorCode());
             default -> INTERNAL_ERROR;
         };
     }
@@ -324,6 +254,17 @@ public final class XrdRuntimeException extends CodedException implements HttpSta
      */
     private static boolean isMimeException(Throwable ex) {
         return ex != null && ex.getClass().getName().equals("org.apache.james.mime4j.MimeException");
+    }
+
+    public boolean hasSoapFault() {
+        return soapFaultInfo != null;
+    }
+
+    public record SoapFaultInfo(String faultCode,
+                                String faultString,
+                                String faultActor,
+                                String faultDetail,
+                                String faultXml) implements Serializable {
     }
 
 }
