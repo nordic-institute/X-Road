@@ -1,31 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<!--
-  ~ The MIT License
-  ~
-  ~ Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
-  ~ Copyright (c) 2018 Estonian Information System Authority (RIA),
-  ~ Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
-  ~ Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
-  ~
-  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
-  ~ of this software and associated documentation files (the "Software"), to deal
-  ~ in the Software without restriction, including without limitation the rights
-  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  ~ copies of the Software, and to permit persons to whom the Software is
-  ~ furnished to do so, subject to the following conditions:
-  ~
-  ~ The above copyright notice and this permission notice shall be included in
-  ~ all copies or substantial portions of the Software.
-  ~
-  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-  ~ THE SOFTWARE.
-  -->
-
 <ns3:keyConf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
     <device>
         <deviceType>softToken</deviceType>
@@ -66,6 +39,16 @@
             <label>TestClient</label>
             <keyId>A1B0BEB1E088E3A291AEEC57FB04400BF17D3E0D</keyId>
             <publicKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzNqJJoIa1hcPGnY2768V8b/xLcgjdQQ9Dk7KQmAtKj/7EwqfFGbVyaltXZwCWE82yVtHlPToz1Mr73qXz+twZ/+j6SxWNBmJLlHpP0E7RV9OI6e7YuJWh4GgaCe5VT7Rywwrfp3vrtSM4C1Lg2dml32W1gX58Xd3fMHVGqh7GgtKQOVWpB4+8aq1NJEJp1F5+dSn+5039oV7iWyOSyJvWam4kXq/fgl93IiH0yfEuv/a+qUJEO5lG5v5tCHXPSmCMd83sfTqRL7O69AozagH5gEkCVg9m570SuL+OmSxh8PuZ3FyFW3Y2ibPruw9CnYMIJJPjcsEIpVXI3bftsx3LQIDAQAB</publicKey>
+            <certRequest id="7335B22C6337FA2502C027C7F6E4FF30D62E0534">
+                <memberId ns2:objectType="MEMBER">
+                    <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+                    <ns2:memberClass>COM</ns2:memberClass>
+                    <ns2:memberCode>4321</ns2:memberCode>
+                </memberId>
+                <subjectName>C=FI, O=Organization Test, serialNumber=DEV/SS1/COM, CN=1234</subjectName>
+                <subjectAlternativeName>ss1</subjectAlternativeName>
+                <certificateProfile>ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider</certificateProfile>
+            </certRequest>
             <cert active="true" id="84E4773AFCC4051226ACAEF9AC256AAE4059EE93">
                 <memberId ns2:objectType="MEMBER">
                     <ns2:xRoadInstance>DEV</ns2:xRoadInstance>

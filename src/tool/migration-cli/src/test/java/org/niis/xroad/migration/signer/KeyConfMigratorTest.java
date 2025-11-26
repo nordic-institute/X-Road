@@ -45,7 +45,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -99,7 +98,7 @@ class KeyConfMigratorTest {
         verify(signerRepositoryMock, times(2)).saveToken(any(), any());
         verify(signerRepositoryMock, times(4)).saveKey(any(), anyLong(), anyBoolean(), any());
         verify(signerRepositoryMock, times(4)).saveCertificate(any(), anyLong());
-        verify(signerRepositoryMock, never()).saveCertificateRequest(any(), anyLong());
+        verify(signerRepositoryMock).saveCertificateRequest(any(), anyLong());
     }
 
     class TestKeyConfMigrator extends KeyConfMigrator {
