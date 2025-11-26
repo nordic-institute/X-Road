@@ -188,14 +188,14 @@ jobs:
           task: start-measurement
           label: 'CS Admin service integration tests'
 
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
       - name: Download CS Admin int test jar
         uses: actions/download-artifact@v4
         with:
           name: cs-admin-int-test-jar
-
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ inputs.ref }}
 
 
       - name: Setup Java
