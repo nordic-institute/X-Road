@@ -229,17 +229,8 @@ jobs:
         if: success() || failure()
         with:
           name: CS Admin service integration tests
-          path: test-framework-working-dir/test-results/**/TEST-*.xml
+          path: test-framework-working-dir/test-results/TEST-*.xml
           reporter: java-junit
-
-      - name: Generate Allure Report
-        uses: simple-elf/allure-report-action@v1.13
-        if: always()
-        with:
-          gh_pages: ''
-          allure_results: test-framework-working-dir/allure-results
-          allure_history: test-framework-working-dir/allure-report
-          keep_reports: 0
 
       - name: Upload CS Admin test report
         uses: actions/upload-artifact@v4
@@ -247,7 +238,6 @@ jobs:
         with:
           name: CS Admin Integration Test report
           path: |
-            test-framework-working-dir/allure-report/
             test-framework-working-dir/allure-results/
             test-framework-working-dir/container-logs/
             test-framework-working-dir/test-automation-exec.log
