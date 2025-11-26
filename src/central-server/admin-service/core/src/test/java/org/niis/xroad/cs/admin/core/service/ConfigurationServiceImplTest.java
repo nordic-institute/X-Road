@@ -36,7 +36,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -50,6 +49,7 @@ import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.globalconf.OptionalPartsConf;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.api.service.config.ConfigurationPartsConfig;
 import org.niis.xroad.cs.admin.core.config.AdminServiceGlobalConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
@@ -77,7 +77,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -109,6 +108,8 @@ class ConfigurationServiceImplTest {
     private SystemParameterService systemParameterService;
     @Mock
     private AdminServiceGlobalConfigProperties adminServiceGlobalConfigProperties;
+    @Mock
+    private ConfigurationPartsConfig configurationPartsConfig;
     @Mock
     private ConfigurationSourceRepository configurationSourceRepository;
     @Mock
@@ -150,40 +151,38 @@ class ConfigurationServiceImplTest {
             when(distributedFileRepository.findAllByContentIdentifierAndHaNodeName(CONTENT_ID_SHARED_PARAMETERS, HA_NODE_NAME))
                     .thenReturn(Set.of(new DistributedFileEntity(VERSION, FILE_NAME, CONTENT_ID_SHARED_PARAMETERS, FILE_UPDATED_AT)));
 
-            try (MockedStatic<OptionalPartsConf> mockedConfParts = mockStatic(OptionalPartsConf.class)) {
-                mockedConfParts.when(OptionalPartsConf::getOptionalPartsConf).thenReturn(new OptionalPartsConf(CONF_PARTS_DIR));
+            when(configurationPartsConfig.getOptionalPartsConf()).thenReturn(new OptionalPartsConf(CONF_PARTS_DIR));
 
-                final Set<ConfigurationParts> result = configurationService.getConfigurationParts(INTERNAL);
+            final Set<ConfigurationParts> result = configurationService.getConfigurationParts(INTERNAL);
 
-                assertThat(result).hasSize(3);
+            assertThat(result).hasSize(3);
 
-                assertThat(result).filteredOn("fileName", FILE_NAME_PRIVATE_PARAMS)
-                        .hasSize(1)
-                        .satisfiesExactly(item -> assertAll(
-                                () -> assertThat(item.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT),
-                                () -> assertThat(item.getContentIdentifier()).isEqualTo(CONTENT_ID_PRIVATE_PARAMETERS),
-                                () -> assertThat(item.getVersion()).isEqualTo(VERSION),
-                                () -> assertThat(item.isOptional()).isFalse()
-                        ));
+            assertThat(result).filteredOn("fileName", FILE_NAME_PRIVATE_PARAMS)
+                    .hasSize(1)
+                    .satisfiesExactly(item -> assertAll(
+                            () -> assertThat(item.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT),
+                            () -> assertThat(item.getContentIdentifier()).isEqualTo(CONTENT_ID_PRIVATE_PARAMETERS),
+                            () -> assertThat(item.getVersion()).isEqualTo(VERSION),
+                            () -> assertThat(item.isOptional()).isFalse()
+                    ));
 
-                assertThat(result).filteredOn("fileName", FILE_NAME)
-                        .hasSize(1)
-                        .satisfiesExactly(item -> assertAll(
-                                () -> assertThat(item.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT),
-                                () -> assertThat(item.getContentIdentifier()).isEqualTo(CONTENT_ID_SHARED_PARAMETERS),
-                                () -> assertThat(item.getVersion()).isEqualTo(VERSION),
-                                () -> assertThat(item.isOptional()).isFalse()
-                        ));
+            assertThat(result).filteredOn("fileName", FILE_NAME)
+                    .hasSize(1)
+                    .satisfiesExactly(item -> assertAll(
+                            () -> assertThat(item.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT),
+                            () -> assertThat(item.getContentIdentifier()).isEqualTo(CONTENT_ID_SHARED_PARAMETERS),
+                            () -> assertThat(item.getVersion()).isEqualTo(VERSION),
+                            () -> assertThat(item.isOptional()).isFalse()
+                    ));
 
-                assertThat(result).filteredOn("fileName", "test-configuration-part.xml")
-                        .hasSize(1)
-                        .satisfiesExactly(item -> assertAll(
-                                () -> assertThat(item.getFileUpdatedAt()).isNull(),
-                                () -> assertThat(item.getContentIdentifier()).isEqualTo(TEST_CONFIGURATION_PART),
-                                () -> assertThat(item.getVersion()).isNull(),
-                                () -> assertThat(item.isOptional()).isTrue()
-                        ));
-            }
+            assertThat(result).filteredOn("fileName", "test-configuration-part.xml")
+                    .hasSize(1)
+                    .satisfiesExactly(item -> assertAll(
+                            () -> assertThat(item.getFileUpdatedAt()).isNull(),
+                            () -> assertThat(item.getContentIdentifier()).isEqualTo(TEST_CONFIGURATION_PART),
+                            () -> assertThat(item.getVersion()).isNull(),
+                            () -> assertThat(item.isOptional()).isTrue()
+                    ));
         }
 
         @Test
@@ -194,18 +193,14 @@ class ConfigurationServiceImplTest {
             when(distributedFileRepository.findAllByContentIdentifierAndHaNodeName(CONTENT_ID_SHARED_PARAMETERS, HA_NODE_NAME))
                     .thenReturn(Set.of(new DistributedFileEntity(VERSION, FILE_NAME, CONTENT_ID_SHARED_PARAMETERS, FILE_UPDATED_AT)));
 
-            try (MockedStatic<OptionalPartsConf> mockedConfParts = mockStatic(OptionalPartsConf.class)) {
-                mockedConfParts.when(OptionalPartsConf::getOptionalPartsConf).thenReturn(new OptionalPartsConf(CONF_PARTS_DIR));
+            final Set<ConfigurationParts> result = configurationService.getConfigurationParts(EXTERNAL);
 
-                final Set<ConfigurationParts> result = configurationService.getConfigurationParts(EXTERNAL);
-
-                assertThat(result).hasSize(1);
-                final ConfigurationParts configurationPart = result.iterator().next();
-                assertThat(configurationPart.getVersion()).isEqualTo(VERSION);
-                assertThat(configurationPart.getFileName()).isEqualTo(FILE_NAME);
-                assertThat(configurationPart.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT);
-                assertThat(configurationPart.isOptional()).isFalse();
-            }
+            assertThat(result).hasSize(1);
+            final ConfigurationParts configurationPart = result.iterator().next();
+            assertThat(configurationPart.getVersion()).isEqualTo(VERSION);
+            assertThat(configurationPart.getFileName()).isEqualTo(FILE_NAME);
+            assertThat(configurationPart.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT);
+            assertThat(configurationPart.isOptional()).isFalse();
         }
 
         @Test
@@ -278,7 +273,8 @@ class ConfigurationServiceImplTest {
                 auditDataHelper,
                 configurationPartValidator,
                 configurationSigningKeyMapper,
-                adminServiceGlobalConfigProperties
+                adminServiceGlobalConfigProperties,
+                configurationPartsConfig
         );
     }
 
@@ -385,42 +381,38 @@ class ConfigurationServiceImplTest {
 
         @Test
         void shouldUploadConfigurationPart() {
-            try (MockedStatic<OptionalPartsConf> mockedConfParts = mockStatic(OptionalPartsConf.class)) {
-                mockedConfParts.when(OptionalPartsConf::getOptionalPartsConf).thenReturn(new OptionalPartsConf(CONF_PARTS_DIR));
+            when(configurationPartsConfig.getOptionalPartsConf()).thenReturn(new OptionalPartsConf(CONF_PARTS_DIR));
 
-                configurationService.uploadConfigurationPart(INTERNAL, TEST_CONFIGURATION_PART,
-                        "original-filename.xml", FILE_DATA);
+            configurationService.uploadConfigurationPart(INTERNAL, TEST_CONFIGURATION_PART,
+                    "original-filename.xml", FILE_DATA);
 
-                verify(auditDataHelper).put(SOURCE_TYPE, "INTERNAL");
-                verify(auditDataHelper).put(RestApiAuditProperty.CONTENT_IDENTIFIER, TEST_CONFIGURATION_PART);
-                verify(auditDataHelper).put(RestApiAuditProperty.PART_FILE_NAME, PART_FILE_NAME);
-                verify(auditDataHelper).put(UPLOAD_FILE_NAME, "original-filename.xml");
-                verify(auditDataHelper).put(UPLOAD_FILE_HASH_ALGORITHM, DEFAULT_UPLOAD_FILE_HASH_ALGORITHM);
-                verify(auditDataHelper).put(UPLOAD_FILE_HASH, "8ffeeed59eae93366fdbb7805821b5f99da7ccdacd718056ddd740d4");
+            verify(auditDataHelper).put(SOURCE_TYPE, "INTERNAL");
+            verify(auditDataHelper).put(RestApiAuditProperty.CONTENT_IDENTIFIER, TEST_CONFIGURATION_PART);
+            verify(auditDataHelper).put(RestApiAuditProperty.PART_FILE_NAME, PART_FILE_NAME);
+            verify(auditDataHelper).put(UPLOAD_FILE_NAME, "original-filename.xml");
+            verify(auditDataHelper).put(UPLOAD_FILE_HASH_ALGORITHM, DEFAULT_UPLOAD_FILE_HASH_ALGORITHM);
+            verify(auditDataHelper).put(UPLOAD_FILE_HASH, "8ffeeed59eae93366fdbb7805821b5f99da7ccdacd718056ddd740d4");
 
-                verify(configurationPartValidator).validate(TEST_CONFIGURATION_PART, FILE_DATA);
+            verify(configurationPartValidator).validate(TEST_CONFIGURATION_PART, FILE_DATA);
 
-                verify(distributedFileRepository).save(distributedFileCaptor.capture());
-                final DistributedFileEntity distributedFileEntity = distributedFileCaptor.getValue();
+            verify(distributedFileRepository).save(distributedFileCaptor.capture());
+            final DistributedFileEntity distributedFileEntity = distributedFileCaptor.getValue();
 
-                assertThat(distributedFileEntity.getFileData()).isEqualTo(FILE_DATA);
-                assertThat(distributedFileEntity.getContentIdentifier()).isEqualTo(TEST_CONFIGURATION_PART);
-                assertThat(distributedFileEntity.getFileName()).isEqualTo(PART_FILE_NAME);
-                assertThat(distributedFileEntity.getVersion()).isEqualTo(0);
-            }
+            assertThat(distributedFileEntity.getFileData()).isEqualTo(FILE_DATA);
+            assertThat(distributedFileEntity.getContentIdentifier()).isEqualTo(TEST_CONFIGURATION_PART);
+            assertThat(distributedFileEntity.getFileName()).isEqualTo(PART_FILE_NAME);
+            assertThat(distributedFileEntity.getVersion()).isEqualTo(0);
         }
 
         @Test
         void shouldThrowException() {
-            try (MockedStatic<OptionalPartsConf> mockedConfParts = mockStatic(OptionalPartsConf.class)) {
-                mockedConfParts.when(OptionalPartsConf::getOptionalPartsConf).thenReturn(new OptionalPartsConf(CONF_PARTS_DIR));
+            when(configurationPartsConfig.getOptionalPartsConf()).thenReturn(new OptionalPartsConf(CONF_PARTS_DIR));
 
-                assertThrows(XrdRuntimeException.class, () -> configurationService.uploadConfigurationPart(INTERNAL,
-                        "NON-EXISTING", "fn", FILE_DATA));
+            assertThrows(XrdRuntimeException.class, () -> configurationService.uploadConfigurationPart(INTERNAL,
+                    "NON-EXISTING", "fn", FILE_DATA));
 
-                assertThrows(InternalServerErrorException.class, () -> configurationService.uploadConfigurationPart(EXTERNAL,
-                        "TEST-CONFIGURATION-PART", "fn", FILE_DATA));
-            }
+            assertThrows(InternalServerErrorException.class, () -> configurationService.uploadConfigurationPart(EXTERNAL,
+                    "TEST-CONFIGURATION-PART", "fn", FILE_DATA));
         }
     }
 }

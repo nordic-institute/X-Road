@@ -46,6 +46,7 @@ import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
 import org.niis.xroad.cs.admin.api.globalconf.OptionalPartsConf;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.api.service.config.ConfigurationPartsConfig;
 import org.niis.xroad.cs.admin.core.config.AdminServiceGlobalConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
@@ -104,6 +105,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final ConfigurationPartValidator configurationPartValidator;
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
     private final AdminServiceGlobalConfigProperties adminServiceGlobalConfigProperties;
+    private final ConfigurationPartsConfig configurationPartsConfig;
 
     @Override
     public Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithOrderedConfigurationSigningKeys() {
@@ -150,7 +152,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private Set<ConfigurationParts> getOptionalParts(String haNodeName) {
-        final List<OptionalConfPart> allParts = OptionalPartsConf.getOptionalPartsConf().getAllParts();
+        final List<OptionalConfPart> allParts = configurationPartsConfig.getOptionalPartsConf().getAllParts();
         final Set<ConfigurationParts> configurationParts = new HashSet<>();
 
         for (OptionalConfPart part : allParts) {
@@ -242,7 +244,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void uploadConfigurationPart(ConfigurationSourceType sourceType,
                                         String contentIdentifier, String originalFileName, byte[] data) {
 
-        final OptionalPartsConf optionalPartsConf = OptionalPartsConf.getOptionalPartsConf();
+        final OptionalPartsConf optionalPartsConf = configurationPartsConfig.getOptionalPartsConf();
         final String partFileName = optionalPartsConf.getPartFileName(contentIdentifier);
 
         auditDataHelper.put(SOURCE_TYPE, sourceType.name());

@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.cs.admin.api.globalconf;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
@@ -84,10 +82,6 @@ public class OptionalPartsConf {
     private final List<String> errors = new ArrayList<>();
 
     private final Set<String> existingPartFileNames = new HashSet<>();
-
-    public static OptionalPartsConf getOptionalPartsConf() {
-        return new OptionalPartsConf(SystemProperties.getConfPath() + "/configuration-parts");
-    }
 
     /**
      * Creates optional parts configuration.

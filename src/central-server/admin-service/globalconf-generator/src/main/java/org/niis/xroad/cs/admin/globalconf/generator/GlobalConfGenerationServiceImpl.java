@@ -35,11 +35,11 @@ import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
-import org.niis.xroad.cs.admin.api.globalconf.OptionalPartsConf;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.api.service.config.ConfigurationPartsConfig;
 import org.niis.xroad.globalconf.impl.config.GlobalConfProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -81,6 +81,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private final ApplicationEventPublisher eventPublisher;
     private final GlobalConfGenerationProperties generationProperties;
     private final GlobalConfProperties globalConfProperties;
+    private final ConfigurationPartsConfig configurationPartsConfig;
 
     private final List<ConfigurationPartsGenerator> configurationPartsGenerators;
 
@@ -168,7 +169,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
         }
     }
 
-    private static Set<ConfigurationPart> internalConfigurationParts(Set<ConfigurationPart> configurationParts) {
+    private Set<ConfigurationPart> internalConfigurationParts(Set<ConfigurationPart> configurationParts) {
         var contentIdentifiers = getInternalSourceContentIdentifiers();
         return configurationParts.stream()
                 .filter(cp -> contentIdentifiers.contains(cp.getContentIdentifier()))
@@ -231,9 +232,9 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     }
 
 
-    private static Set<String> getInternalSourceContentIdentifiers() {
+    private Set<String> getInternalSourceContentIdentifiers() {
         return concat(INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS.stream(),
-                OptionalPartsConf.getOptionalPartsConf().getAllParts().stream()
+                configurationPartsConfig.getOptionalPartsConf().getAllParts().stream()
                         .map(OptionalConfPart::contentIdentifier))
                 .collect(toSet());
     }
