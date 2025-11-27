@@ -94,19 +94,20 @@ public class KeyConfMigrator {
         Optional<Long> dbId = repo.getCertificateRequestId(certReq.getId());
         if (dbId.isPresent()) {
             log.warn("        Certificate request {} already exists", certReq.getId());
+        } else {
+            repo.saveCertificateRequest(certReq, keyId);
+            log.info("        Certificate request {} saved", certReq.getId());
         }
-        repo.saveCertificateRequest(certReq, keyId);
-        log.info("        Certificate request {} saved", certReq.getId());
     }
 
     private void handleCertificate(CertificateType cert, long keyId, SignerRepository repo) throws SQLException {
         Optional<Long> dbId = repo.getCertificateId(cert.getId());
         if (dbId.isPresent()) {
             log.warn("        Certificate {} already exists", cert.getId());
-            return;
+        } else {
+            repo.saveCertificate(cert, keyId);
+            log.info("        Certificate {} saved", cert.getId());
         }
-        repo.saveCertificate(cert, keyId);
-        log.info("        Certificate {} saved", cert.getId());
     }
 
     private long handleToken(DeviceType deviceType, SignerRepository repo, boolean isSoftToken, String keyconfPath) throws SQLException {
