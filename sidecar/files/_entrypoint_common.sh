@@ -113,10 +113,6 @@ else
   warn "Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)"
 fi
 
-if dpkg --compare-versions "$CONFIG_VERSION" lt-nl "7.6.0"; then
-  /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
-fi
-
 # Create database properties and configure remote db address if necessary
 if [ ! -f ${DB_PROPERTIES} ]; then
   XROAD_DB_PORT="${XROAD_DB_PORT:-5432}"

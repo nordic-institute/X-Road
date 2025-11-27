@@ -22,7 +22,6 @@ ensure_local_config_exists() {
   if [ ! -s "$FILE" ]; then
     log "Creating or initializing $FILE..."
     mkdir -p "$(dirname "$FILE")"  # Ensure directory exists
-    echo "xroad:" > "$FILE"
   fi
 }
 
