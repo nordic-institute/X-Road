@@ -26,6 +26,8 @@ dependencies {
   api(libs.feign.jackson)
   api(libs.feign.slf4j)
 
+  api(libs.hikariCP)
+
   api(libs.springFramework.context)
   api(libs.springFramework.web)
   api(libs.springFramework.test)

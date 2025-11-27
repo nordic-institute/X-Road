@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,13 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.signer.test;
 
-import org.junit.platform.suite.api.SelectClasspathResource;
-import org.niis.xroad.test.framework.core.BaseTestRunner;
+import org.niis.xroad.test.framework.core.BaseConsoleTestRunner;
 
-@SelectClasspathResource("behavior")
-public class SignerIntTest extends BaseTestRunner {
+public class ConsoleIntTestRunner extends BaseConsoleTestRunner {
+
+    public static void main(String[] args) {
+        new ConsoleIntTestRunner().run();
+    }
+
+    @Override
+    protected String getTestClassName() {
+        return SignerIntTest.class.getName();
+    }
+
+    @Override
+    protected String[] getResourcesToExtract() {
+        return new String[]{
+                "compose.intTest.yaml",
+                ".env",
+                "signer-container-files/"
+        };
+    }
 }
-

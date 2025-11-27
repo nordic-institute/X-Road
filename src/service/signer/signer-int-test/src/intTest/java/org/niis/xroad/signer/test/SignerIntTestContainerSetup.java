@@ -25,19 +25,14 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.signer.test.container;
+package org.niis.xroad.signer.test;
 
-import com.nortal.test.testcontainers.TestableContainerInitializer;
-import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.context.annotation.Primary;
+import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
+import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.springframework.stereotype.Service;
 import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.Container;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
@@ -48,9 +43,8 @@ import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
 import static org.awaitility.Awaitility.await;
 
 @Slf4j
-@Primary
 @Service
-public class SignerIntTestSetup implements TestableContainerInitializer, DisposableBean {
+public class SignerIntTestContainerSetup extends BaseComposeSetup {
     private static final Duration SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
 
     public static final String SIGNER = "signer";
@@ -58,31 +52,22 @@ public class SignerIntTestSetup implements TestableContainerInitializer, Disposa
     public static final String TESTCA = "testca";
     public static final String DB_SERVERCONF = "db-serverconf";
 
-    private static final String COMPOSE_FILE = "build/resources/intTest/compose.intTest.yaml";
+    private static final String COMPOSE_FILE = "/compose.intTest.yaml";
 
-    private ComposeContainer env;
+    public SignerIntTestContainerSetup(TestFrameworkCoreProperties coreProperties) {
+        super(coreProperties);
+    }
 
     @Override
-    public void initialize() {
-        env = new ComposeContainer("signer-",
-                new File(COMPOSE_FILE))
-                .withLocalCompose(true)
-
+    public ComposeContainer initEnv() {
+        return new ComposeContainer("signer-",
+                new File(coreProperties.resourceDir() + COMPOSE_FILE))
                 .withExposedService(SIGNER, SIGNER_GRPC_PORT, Wait.forHealthcheck().withStartupTimeout(SIGNER_STARTUP_TIMEOUT))
                 .withExposedService(SIGNER_SECONDARY, SIGNER_GRPC_PORT, Wait.forHealthcheck().withStartupTimeout(SIGNER_STARTUP_TIMEOUT))
                 .withExposedService(DB_SERVERCONF, Port.DB, Wait.forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, Wait.forLogMessage(".*nginx entered RUNNING state.*", 1))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
                 .withLogConsumer(SIGNER_SECONDARY, createLogConsumer(SIGNER_SECONDARY));
-
-        env.start();
-    }
-
-    @Override
-    public void destroy() {
-        if (env != null) {
-            env.stop();
-        }
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -94,26 +79,6 @@ public class SignerIntTestSetup implements TestableContainerInitializer, Disposa
         dockerClient.stopContainerCmd(containerState.getContainerId()).exec();
         dockerClient.startContainerCmd(containerState.getContainerId()).exec();
         await().atMost(20, TimeUnit.SECONDS).until(containerState::isHealthy);
-    }
-
-    private Slf4jLogConsumer createLogConsumer(String containerName) {
-        return new Slf4jLogConsumer(new ComposeLoggerFactory().create("%s-".formatted(containerName)));
-    }
-
-    public ContainerMapping getContainerMapping(String service, int originalPort) {
-        return new ContainerMapping(
-                env.getServiceHost(service, originalPort),
-                env.getServicePort(service, originalPort)
-        );
-    }
-
-    @SneakyThrows
-    public Container.ExecResult execInContainer(String container, String... command) {
-        return env.getContainerByServiceName(container).orElseThrow()
-                .execInContainer(command);
-    }
-
-    public record ContainerMapping(String host, int port) {
     }
 
     @UtilityClass

@@ -40,7 +40,6 @@ import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.ThrowableAssert;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -61,12 +60,11 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
-import org.niis.xroad.signer.test.container.SignerIntTestSetup;
+import org.niis.xroad.signer.test.SignerIntTestContainerSetup;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.nio.file.Path;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -89,7 +87,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.readAllBytes;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
@@ -141,7 +138,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
     @Step("signer service is restarted")
     public void signerIsRestarted() {
-        signerIntTestSetup.restartContainer(SignerIntTestSetup.SIGNER);
+        signerIntTestSetup.restartContainer(SignerIntTestContainerSetup.SIGNER);
     }
 
     @Step("token {string} is not active")
@@ -303,8 +300,8 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
     @Step("Wrong Certificate is not imported for client {string}")
-    public void certImportFails(String client) throws Exception {
-        byte[] certBytes = fileToBytes("src/intTest/resources/cert-01.pem");
+    public void certImportFails(String client) {
+        byte[] certBytes = classpathFileResolver.getFileAsBytes("cert-01.pem");
         try {
             clientHolder.get().importCert(certBytes, CertificateInfo.STATUS_REGISTERED, getClientId(client));
         } catch (CodedException codedException) {
@@ -314,14 +311,8 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         }
     }
 
-    private byte[] fileToBytes(String fileName) throws Exception {
-        try (FileInputStream in = new FileInputStream(fileName)) {
-            return IOUtils.toByteArray(in);
-        }
-    }
-
     @Step("self signed cert generated for token {string} key {string}, client {string}")
-    public void selfSignedCertGeneratedForTokenKeyForClient(String friendlyName, String keyName, String client) throws Exception {
+    public void selfSignedCertGeneratedForTokenKeyForClient(String friendlyName, String keyName, String client) throws IOException {
         final KeyInfo keyInToken = findKeyInToken(friendlyName, keyName);
 
         scenarioCert = clientHolder.get().generateSelfSignedCert(keyInToken.getId(), getClientId(client), KeyUsageInfo.SIGNING,
@@ -395,7 +386,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
     @Step("sign mechanism for token {string} key {string} is not null")
-    public void signMechanismForTokenKeyIsNotNull(String friendlyName, String keyName) throws Exception {
+    public void signMechanismForTokenKeyIsNotNull(String friendlyName, String keyName) {
         signMechanismForTokenKeyIsNotNull(friendlyName, keyName, NodeProperties.NodeType.PRIMARY);
     }
 
@@ -704,14 +695,15 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void ocspResponsesAreSetUnknown() throws Exception {
         CertificateStatus certificateStatus = new RevokedStatus(Date.from(Instant.parse("2022-01-01T00:00:00Z")));
         X509Certificate subject = readCertificate(certInfo.getCertificateBytes());
-        String caHomePath = "./build/resources/intTest/META-INF/ca-container/files/home/ca/CA";
+        String caHomePath = "/files/home/ca/CA";
         X509Certificate caCert =
-                readCertificate(readAllBytes(Path.of(caHomePath + "/certs/ca.cert.pem")));
+                readCertificate(classpathFileResolver.getFileAsBytes(caHomePath + "/certs/ca.cert.pem"));
         X509Certificate ocspCert =
-                readCertificate(readAllBytes(Path.of(caHomePath + "/certs/ocsp.cert.pem")));
-        try (FileReader keyReader = new FileReader(caHomePath + "/private/ocsp.key.pem")) {
+                readCertificate(classpathFileResolver.getFileAsBytes(caHomePath + "/certs/ocsp.cert.pem"));
+        try (var reader =
+                     new InputStreamReader(classpathFileResolver.getFileAsStream(caHomePath + "/private/ocsp.key.pem"))) {
 
-            PEMParser pemParser = new PEMParser(keyReader);
+            PEMParser pemParser = new PEMParser(reader);
             JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
             PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(pemParser.readObject());
 
@@ -847,7 +839,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
     @Step("new key with id {string} and certificate magically appears on HSM")
     public void newKeyMagicallyAppearsOnHsm(String keyId) {
-        var result = signerIntTestSetup.execInContainer(SignerIntTestSetup.SIGNER, "/add-key-into-hsm.sh", keyId);
+        var result = signerIntTestSetup.execInContainer(SignerIntTestContainerSetup.SIGNER, "/add-key-into-hsm.sh", keyId);
         testReportService.attachText("result", result.toString());
         assertThat(result.getExitCode()).isEqualTo(0);
     }

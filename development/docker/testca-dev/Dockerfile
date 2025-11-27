@@ -1,7 +1,7 @@
 FROM ubuntu:24.04
 
 # ACME
-ARG A2C_VER=0.35
+ARG A2C_VER=0.40.1
 ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2certifier_${A2C_VER}-1_all.deb /tmp/
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -43,6 +43,8 @@ RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/
     && echo "plugins = python3" >> /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
     && cp /var/www/acme2certifier/examples/nginx/acme2certifier.ini /var/www/acme2certifier \
     && sed -i s/level=log_mode\)/level=log_mode,filename=\'logs\\/a2c_logs\'\)/g /var/www/acme2certifier/acme_srv/helper.py \
+    && mkdir -p /var/www/acme2certifier/logs \
+    && chown -R www-data:www-data /var/www/acme2certifier/logs \
     #&& sed -i "61i \            if serial.startswith(\'00\'\): serial = serial[2:]" /var/www/acme2certifier/acme_srv/renewalinfo.py \
     && sed -i "4i import base64" /var/www/acme2certifier/acme_srv/renewalinfo.py \
     && sed -i s/b64_decode\(self.logger,\ /base64.b64decode\(/g /var/www/acme2certifier/acme_srv/renewalinfo.py \

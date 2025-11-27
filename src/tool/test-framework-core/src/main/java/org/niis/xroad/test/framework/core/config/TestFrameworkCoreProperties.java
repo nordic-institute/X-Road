@@ -99,9 +99,8 @@ public interface TestFrameworkCoreProperties {
 
     interface Cucumber {
 
-        @WithDefault("")
         @WithName("glue")
-        String glue();
+        Optional<List<String>> glue();
 
         @WithDefault("io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm")
         @WithName("plugin")

@@ -52,9 +52,14 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
     public void afterPropertiesSet() {
         env = initEnv();
         env.start();
+        onPostStart();
     }
 
     protected abstract ComposeContainer initEnv();
+
+    protected void onPostStart() {
+        // can be overridden
+    }
 
     @Override
     public void destroy() {
