@@ -93,10 +93,10 @@ public class KeyConfMigrator {
     private void handleCertificateRequest(CertRequestType certReq, long keyId, SignerRepository repo) throws SQLException {
         Optional<Long> dbId = repo.getCertificateRequestId(certReq.getId());
         if (dbId.isPresent()) {
-            log.warn("     Certificate request {} already exists", certReq.getId());
+            log.warn("        Certificate request {} already exists", certReq.getId());
         }
         repo.saveCertificateRequest(certReq, keyId);
-        log.info("     Certificate request {} saved", certReq.getId());
+        log.info("        Certificate request {} saved", certReq.getId());
     }
 
     private void handleCertificate(CertificateType cert, long keyId, SignerRepository repo) throws SQLException {
