@@ -31,22 +31,18 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ClientTypeDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.test.api.FeignClientsApi;
-import org.niis.xroad.cs.test.api.FeignGlobalGroupsApi;
 import org.niis.xroad.cs.test.utils.ScenarioValueEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ClientsStepDefs extends BaseStepDefs {
     @Autowired
     private FeignClientsApi clientsApi;
-
-    @Autowired
-    private FeignGlobalGroupsApi globalGroupsApi;
 
     @Step("Clients are queried and validated with following parameters")
     public void listClients(DataTable table) {

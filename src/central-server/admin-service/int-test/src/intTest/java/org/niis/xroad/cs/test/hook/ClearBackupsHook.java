@@ -26,15 +26,15 @@
  */
 package org.niis.xroad.cs.test.hook;
 
-import com.nortal.test.core.services.CucumberScenarioProvider;
-import com.nortal.test.core.services.hooks.AfterScenarioHook;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.test.container.CsAdminServiceIntTestSetup;
+import org.niis.xroad.cs.test.IntTestContainerSetup;
+import org.niis.xroad.test.framework.core.context.CucumberScenarioProvider;
+import org.niis.xroad.test.framework.core.hooks.AfterScenarioHook;
 import org.springframework.stereotype.Component;
 
-import static org.niis.xroad.cs.test.container.CsAdminServiceIntTestSetup.CS;
+import static org.niis.xroad.cs.test.IntTestContainerSetup.CS;
 
 @Slf4j
 @Component
@@ -42,7 +42,7 @@ import static org.niis.xroad.cs.test.container.CsAdminServiceIntTestSetup.CS;
 public class ClearBackupsHook implements AfterScenarioHook {
     private static final String TAG_CLEAR_BACKUPS = "@ClearBackups";
 
-    private final CsAdminServiceIntTestSetup intTestSetup;
+    private final IntTestContainerSetup containerSetup;
 
     @Override
     public void after(CucumberScenarioProvider cucumberScenarioProvider) {
@@ -62,6 +62,6 @@ public class ClearBackupsHook implements AfterScenarioHook {
 
     @SneakyThrows
     private void clearBackupsDir() {
-        intTestSetup.execInContainer(CS, "rm", "-rf", "/var/lib/xroad/backup/");
+        containerSetup.execInContainer(CS, "rm", "-rf", "/var/lib/xroad/backup/");
     }
 }
