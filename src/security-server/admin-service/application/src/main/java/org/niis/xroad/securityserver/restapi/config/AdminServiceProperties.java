@@ -189,8 +189,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     private boolean acmeChallengePortEnabled;
     private int acmeChallengePort;
     private int acmeKeyLength;
-    private int acmeAccountKeystorePath;
-    private int acmeChallengePath;
+    private String acmeAccountKeystorePath;
+    private String acmeChallengePath;
 
     // whether generating CSR is allowed for with existing certificate, 'false' by default
     private boolean allowCsrForKeyWithCertificate;
