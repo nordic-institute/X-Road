@@ -130,7 +130,7 @@ Doc. ID: UG-SS
 | 18.06.2025 | 2.99    | ACME-related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
 | 01.07.2025 | 2.100   | Added configuration notes for external op-monitor's gRPC                                                                                                                                                                                                                                                                                                                                                    | Mikk-Erik Bachmann   |
 | 07.07.2025 | 2.101   | Added chapter on Security Server Traffic visualisation                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa        |
-| 24.11.2015 | 2.102   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
+| 27.11.2015 | 2.102   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -2660,9 +2660,9 @@ This block enables testing communication with any other Security Server in the s
 
 Field descriptions:
 - **Current Client** — a dropdown listing subsystems and members of the current Security Server (from the global configuration).
-- **REST/SOAP** - selects the service type.
+- **REST/SOAP** - selects whether the service uses the REST or SOAP protocol.
 - **Target Instance** — the local Security Server instance or federated instances. 
-- **Target Client** — a list of clients on other Security Servers, derived from the global configuration. Clients on the same server are included to allow internal tests. If a federation instance exists, its clients should also be included.
+- **Target Client** — a list of clients on other Security Servers, derived from the global configuration. Clients on the same server are included to allow internal tests. If a federation instance exists, then all its clients are included as well.
 - **Target Security Server** — the Security Servers where the target client is registered. If the target client is registered on multiple Security Servers, all of them should be listed for selection.
 
 ✔ Everything ok — indicates that there are no network, configuration, or certificate issues preventing communication between the two Security Server client.
