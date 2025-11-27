@@ -96,9 +96,18 @@ class KeyConfMigratorTest {
         keyConfMigrator.migrate(keyconfPath, "not/used/in/test");
 
         verify(signerRepositoryMock, times(2)).saveToken(any(), any());
-        verify(signerRepositoryMock, times(4)).saveKey(any(), anyLong(), anyBoolean(), any());
-        verify(signerRepositoryMock, times(4)).saveCertificate(any(), anyLong());
+        verify(signerRepositoryMock, times(3)).saveKey(any(), anyLong(), anyBoolean(), any());
+        verify(signerRepositoryMock, times(3)).saveCertificate(any(), anyLong());
         verify(signerRepositoryMock).saveCertificateRequest(any(), anyLong());
+    }
+
+    @Test
+    void testMalformedKeyConf() throws Exception {
+        Path keyConfPath = Paths.get(getClass().getClassLoader().getResource("signer-malformed").toURI());
+
+        var exception = assertThrows(IllegalStateException.class, () -> migrator.migrate(keyConfPath.toString(),
+                "not/used/in/test"));
+        assertTrue(exception.getMessage().startsWith("Unable to parse keyconf.xml file"));
     }
 
     class TestKeyConfMigrator extends KeyConfMigrator {

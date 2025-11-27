@@ -58,9 +58,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
+@SuppressWarnings("checkstyle:MagicNumber")
 public class KeyConfMigrator {
 
     private static final String SOFT_TOKEN = "softtoken";
+    private static final String INDENT_UNIT = "  ";
 
     public void migrate(String keyconfPath, String dbPropertiesPath) throws SQLException {
         KeyConfType keyConf = parseKeyConf(Path.of(keyconfPath, "keyconf.xml"));
@@ -68,23 +70,27 @@ public class KeyConfMigrator {
         SignerRepository repo = getSignerRepository(dbPropertiesPath);
 
         for (DeviceType deviceType : keyConf.getDevice()) {
-            log.info("Processing token {}", deviceType.getId());
+            logInfo(0, "Processing token {}", deviceType.getId());
             boolean isSoftToken = SOFT_TOKEN.equalsIgnoreCase(deviceType.getDeviceType());
             long tokenId = handleToken(deviceType, repo, isSoftToken, keyconfPath);
 
-            log.info("  Processing token keys({})", deviceType.getKey().size());
+            logInfo(1, "Processing token keys({})", deviceType.getKey().size());
             for (KeyType keyType : deviceType.getKey()) {
-                log.info("    Processing key {}", keyType.getKeyId());
-                long keyId = handleKey(keyType, repo, isSoftToken, tokenId, keyconfPath);
+                logInfo(2, "Processing key {}", keyType.getKeyId());
+                Optional<Long> keyId = handleKey(keyType, repo, isSoftToken, tokenId, keyconfPath);
+                if (keyId.isPresent()) {
+                    logInfo(3, "Processing key certificates({})", keyType.getCert().size());
+                    for (CertificateType cert : keyType.getCert()) {
+                        handleCertificate(cert, keyId.get(), repo);
+                    }
 
-                log.info("      Processing key certificates({})", keyType.getCert().size());
-                for (CertificateType cert : keyType.getCert()) {
-                    handleCertificate(cert, keyId, repo);
-                }
+                    logInfo(3, "Processing key certificate requests({})", keyType.getCertRequest().size());
+                    for (CertRequestType certReq : keyType.getCertRequest()) {
+                        handleCertificateRequest(certReq, keyId.get(), repo);
+                    }
+                } else {
+                    logWarn(3, "⚠ Key certificates and certificate requests skipped for key {}", keyType.getKeyId());
 
-                log.info("      Processing key certificate requests({})", keyType.getCertRequest().size());
-                for (CertRequestType certReq : keyType.getCertRequest()) {
-                    handleCertificateRequest(certReq, keyId, repo);
                 }
             }
         }
@@ -93,46 +99,50 @@ public class KeyConfMigrator {
     private void handleCertificateRequest(CertRequestType certReq, long keyId, SignerRepository repo) throws SQLException {
         Optional<Long> dbId = repo.getCertificateRequestId(certReq.getId());
         if (dbId.isPresent()) {
-            log.warn("        Certificate request {} already exists", certReq.getId());
+            logWarn(4, "⚠ Certificate request {} already exists", certReq.getId());
         } else {
             repo.saveCertificateRequest(certReq, keyId);
-            log.info("        Certificate request {} saved", certReq.getId());
+            logInfo(4, "✅ Certificate request {} saved", certReq.getId());
         }
     }
 
     private void handleCertificate(CertificateType cert, long keyId, SignerRepository repo) throws SQLException {
         Optional<Long> dbId = repo.getCertificateId(cert.getId());
         if (dbId.isPresent()) {
-            log.warn("        Certificate {} already exists", cert.getId());
+            logWarn(4, "⚠ Certificate {} already exists", cert.getId());
         } else {
             repo.saveCertificate(cert, keyId);
-            log.info("        Certificate {} saved", cert.getId());
+            logInfo(4, "✅ Certificate {} saved", cert.getId());
         }
     }
 
     private long handleToken(DeviceType deviceType, SignerRepository repo, boolean isSoftToken, String keyconfPath) throws SQLException {
         Optional<Long> dbId = repo.getTokenId(deviceType.getId());
         if (dbId.isPresent()) {
-            log.warn("  Token {} already exists", deviceType.getId());
+            logWarn(1, "⚠ Token {} already exists", deviceType.getId());
             return dbId.get();
         }
         byte[] pinHash = isSoftToken ? getPinHashFromInput(keyconfPath) : null;
         long tokenId = repo.saveToken(deviceType, pinHash);
-        log.info("  Token {} saved", deviceType.getId());
+        logInfo(1, "✅ Token {} saved", deviceType.getId());
         return tokenId;
     }
 
-    private long handleKey(KeyType keyType, SignerRepository repo, boolean isSoftToken, long tokenId,
-                           String keyconfPath) throws SQLException {
+    private Optional<Long> handleKey(KeyType keyType, SignerRepository repo, boolean isSoftToken, long tokenId,
+                                     String keyconfPath) throws SQLException {
         Optional<Long> keyDbId = repo.getKeyId(keyType.getKeyId());
         if (keyDbId.isPresent()) {
-            log.info("      Key {} already exists", keyType.getKeyId());
-            return keyDbId.get();
+            logInfo(3, "⚠ Key {} already exists", keyType.getKeyId());
+            return keyDbId;
         }
-        byte[] keystore = isSoftToken ? readKey(keyType.getKeyId(), keyconfPath) : null;
-        long keyId = repo.saveKey(keyType, tokenId, isSoftToken, keystore);
-        log.info("      Key {} saved", keyType.getKeyId());
-        return keyId;
+        byte[] keystore = isSoftToken ? readKey(keyType.getKeyId(), keyconfPath).orElse(null) : null;
+        if (isSoftToken && keystore == null) {
+            return Optional.empty();
+        } else {
+            long keyId = repo.saveKey(keyType, tokenId, isSoftToken, keystore);
+            logInfo(3, "✅ Key {} saved", keyType.getKeyId());
+            return Optional.of(keyId);
+        }
     }
 
     protected SignerRepository getSignerRepository(String dbPropertiesPath) {
@@ -152,18 +162,30 @@ public class KeyConfMigrator {
                 }
                 PrivateKey privateKey = (PrivateKey) keystore.getKey("pin", pin);
                 if (privateKey == null) {
-                    log.error("Provided pin is invalid, try again.");
+                    logWarn(0, "Provided pin is invalid, try again.");
                     pin = null;
                 }
             } catch (Exception e) {
-                log.error("Provided pin is invalid, try again.");
+                logWarn(0, "Provided pin is invalid, try again.");
                 pin = null;
             }
 
         } while (pin == null || pin.length == 0);
 
-        log.info("  pin ok");
+        logInfo(1, "pin ok");
         return hashPin(pin);
+    }
+
+    private void logInfo(int indentLevel, String message, Object... args) {
+        log.info(indent(indentLevel) + message, args);
+    }
+
+    private void logWarn(int indentLevel, String message, Object... args) {
+        log.warn(indent(indentLevel) + message, args);
+    }
+
+    private String indent(int indentLevel) {
+        return INDENT_UNIT.repeat(Math.max(0, indentLevel));
     }
 
     protected char[] readPinFromConsole() {
@@ -171,17 +193,17 @@ public class KeyConfMigrator {
         return console.readPassword("Enter softtoken pin:");
     }
 
-    private byte[] readKey(String id, String keyconfPath) {
+    private Optional<byte[]> readKey(String id, String keyconfPath) {
         try {
             Path keyFile = Paths.get(keyconfPath, SOFT_TOKEN, id + ".p12");
             if (!Files.exists(keyFile)) {
-                log.warn("Key file does not exist: {}", keyFile);
-                return null;
+                logWarn(3, "❌ Key file does not exist: {}", keyFile);
+                return Optional.empty();
             }
-            return Files.readAllBytes(keyFile);
+            return Optional.of(Files.readAllBytes(keyFile));
         } catch (IOException e) {
-            log.error("Error reading key file: {}", id, e);
-            return null;
+            logWarn(3, "❌ Error reading key file: {}", id, e);
+            return Optional.empty();
         }
     }
 
@@ -208,11 +230,14 @@ public class KeyConfMigrator {
             throw new IllegalStateException("Unexpected payload when parsing keyconf.xml: "
                     + unmarshalled.getClass().getName());
         } catch (IOException | JAXBException e) {
-            throw new IllegalStateException("Unable to parse keyconf file " + keyConfPath.toAbsolutePath(), e);
+            throw new IllegalStateException("Unable to parse keyconf.xml file " + keyConfPath.toAbsolutePath(), e);
         }
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
+    /**
+     * Hashes the pin. The same implementation as org.niis.xroad.signer.core.tokenmanager.token.SoftwarePinHasher
+     * with default parameter values.
+     */
     private byte[] hashPin(char[] pin) {
         var params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
                 .withIterations(3)
