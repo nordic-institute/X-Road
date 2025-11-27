@@ -16,6 +16,7 @@ xroad:
   proxy:
     ssl-enabled: false # Can be removed once UI system tests configure a functional AUTH certificate
     health-check-port: 5558
+    hsm-health-check-enabled: false
     message-log:
       timestamping-prioritization-strategy: PAID_FIRST
       database-encryption:
@@ -37,8 +38,8 @@ xroad:
   proxy-ui-api:
     enforce-user-password-policy: true
     rate-limit-enabled: true
-    rate-limit-requests-per-second: 100
-    rate-limit-requests-per-minute: 1000
+    rate-limit-requests-per-second: 10000
+    rate-limit-requests-per-minute: 10000
     acme-challenge-port-enabled: true
     automatic-activate-acme-sign-certificate: true
   op-monitor:

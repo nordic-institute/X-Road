@@ -47,13 +47,13 @@ import org.niis.xroad.opmonitor.core.OperationalDataRecords;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.w3c.dom.Element;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -62,10 +62,10 @@ import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_SOAP_RESPONSE;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -76,8 +76,8 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     @Autowired
     private FeignXRoadRestRequestsApi xRoadRestRequestsApi;
 
-    private static final String OPERATIONAL_DATA_REQUEST = "src/intTest/resources/files/soap-requests/operational-data.request";
-    private static final String HEALTH_DATA_REQUEST = "src/intTest/resources/files/soap-requests/health-data.request";
+    private static final String OPERATIONAL_DATA_REQUEST = "files/soap-requests/operational-data.request";
+    private static final String HEALTH_DATA_REQUEST = "files/soap-requests/health-data.request";
     private static final String OPERATIONAL_DATA_JSON = "operational-monitoring-data.json.gz";
     private static final String OP_MONITORING_XSD = "http://x-road.eu/xsd/op-monitoring.xsd";
 
@@ -85,10 +85,10 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     @Step("Security Server Operational Data request was sent")
     public void executeGetSecurityServerOperationalData() throws Exception {
         Thread.sleep(2000); // make sure that messages are processed
-        InputStream is = new FileInputStream(OPERATIONAL_DATA_REQUEST);
+        InputStream is = classpathFileResolver.getFileAsStream(OPERATIONAL_DATA_REQUEST);
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(MimeTypes.TEXT_XML_UTF8, is);
-        ResponseEntity<byte[]> response = xRoadSoapRequestsApi.getXRoadSoapResponseAsBytes(request.getBytes());
+        var response = xRoadSoapRequestsApi.getXRoadSoapResponse(request.getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
@@ -120,23 +120,24 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     }
 
     @Step("Security Server Health Data request was sent")
-    public void executeGetSecurityServerHealthData() throws Exception {
-        InputStream is = new FileInputStream(HEALTH_DATA_REQUEST);
+    public void executeGetSecurityServerHealthData() {
+        InputStream is = classpathFileResolver.getFileAsStream(HEALTH_DATA_REQUEST);
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(MimeTypes.TEXT_XML_UTF8, is);
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getXRoadSoapResponse(request.getBytes());
+        var response = xRoadSoapRequestsApi.getXRoadSoapResponse(request.getBytes());
+        assert response.getBody() != null;
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
     @Step("Valid Security Server Health Data response is returned")
-    public void validHealthDataResponseIsReturned() throws Exception {
+    public void validHealthDataResponseIsReturned() throws IOException {
         @SuppressWarnings("unchecked")
-        ResponseEntity<String> response = (ResponseEntity<String>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
+        ResponseEntity<Resource> response = (ResponseEntity<Resource>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
         validate(response).assertion(equalsStatusCodeAssertion(HttpStatus.OK)).execute();
 
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl soupMessage = (SoapMessageImpl) parser
-                .parse(MimeTypes.TEXT_XML, IOUtils.toInputStream(Objects.requireNonNull(response.getBody()), UTF_8));
+                .parse(MimeTypes.TEXT_XML, IOUtils.toInputStream(response.getBody().getContentAsString(UTF_8)));
 
         assertEquals("600", findHealthDataRecordsContentId(soupMessage.getSoap(), "statisticsPeriodSeconds"));
         assertEquals("1", findHealthDataRecordsContentId(soupMessage.getSoap(), "successfulRequestCount"));
@@ -145,7 +146,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     @Step("Valid Security Server Operational data response is returned")
     public void validOperationalDataIsReturned() throws Exception {
         @SuppressWarnings("unchecked")
-        ResponseEntity<byte[]> response = (ResponseEntity<byte[]>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
+        ResponseEntity<Resource> response = (ResponseEntity<Resource>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
         validate(response).assertion(equalsStatusCodeAssertion(HttpStatus.OK)).execute();
 
         SoapMessageDecoder decoder = new SoapMessageDecoder(Objects.requireNonNull(response.getHeaders().getContentType()).toString(),
@@ -199,7 +200,8 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                     }
                 });
 
-        decoder.parse(new ByteArrayInputStream(Objects.requireNonNull(response.getBody())));
+        assert response.getBody() != null;
+        decoder.parse(new ByteArrayInputStream(response.getBody().getContentAsByteArray()));
     }
 
     private OperationalDataRecord getRecord(OperationalDataRecords monitoringData, String securityServerType,
@@ -250,8 +252,8 @@ public class OpMonitorStepDefs extends BaseStepDefs {
 
     private static String readGzipContent(InputStream inputStream) throws IOException {
         try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(inputStream.readAllBytes()));
-                InputStreamReader inputStreamReader = new InputStreamReader(gzipInputStream);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+             InputStreamReader inputStreamReader = new InputStreamReader(gzipInputStream);
+             BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 
             StringBuilder stringBuilder = new StringBuilder();
             String line;

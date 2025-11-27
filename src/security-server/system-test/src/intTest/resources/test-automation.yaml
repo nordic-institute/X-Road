@@ -1,10 +1,12 @@
 test-framework:
   component-scan:
     additional-packages:
-      - org.niis.xroad.cs.test
+      - org.niis.xroad.ss.test
   cucumber:
     glue:
-      - "org.niis.xroad.cs.test"
+      - "org.niis.xroad.ss.test.ui.glue"
+      - "org.niis.xroad.ss.test.addons.glue"
+      - "org.niis.xroad.ss.test.globalconf.glue"
       - "org.niis.xroad.test.framework"
     filter-tags: "not @Skip"
   selenide:

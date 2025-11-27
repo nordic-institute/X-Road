@@ -25,9 +25,10 @@
  */
 package org.niis.xroad.ss.test;
 
-import com.nortal.test.TestRunner;
+
 import org.junit.platform.suite.api.SelectClasspathResource;
+import org.niis.xroad.test.framework.core.BaseTestRunner;
 
 @SelectClasspathResource("/behavior")
-public class SecurityServerUiBehavioralTest extends TestRunner {
+public class SsSystemTestRunner extends BaseTestRunner {
 }

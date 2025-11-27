@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,17 +23,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.addons.api;
+package org.niis.xroad.ss.test;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.niis.xroad.test.framework.core.BaseConsoleTestRunner;
 
-@FeignClient
-public interface FeignXRoadSoapRequestsApi {
+public class ConsoleSystemTestRunner extends BaseConsoleTestRunner {
 
-    @PostMapping
-    ResponseEntity<Resource> getXRoadSoapResponse(byte[] requestBody);
+    public static void main(String[] args) {
+        new ConsoleSystemTestRunner().run();
+    }
 
+    @Override
+    protected String getTestClassName() {
+        return SsSystemTestRunner.class.getName();
+    }
+
+    @Override
+    protected String[] getResourcesToExtract() {
+        return new String[]{
+                "compose.main.yaml",
+                "compose.systemtest.yaml",
+                ".env",
+                "container-files/",
+                "nginx-container-files/",
+                "mail-server-container-files/"
+        };
+    }
 }

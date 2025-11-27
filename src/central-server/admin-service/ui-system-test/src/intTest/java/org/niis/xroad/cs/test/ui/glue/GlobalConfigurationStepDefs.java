@@ -33,8 +33,8 @@ import com.codeborne.selenide.SelenideElement;
 import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.tuple.Pair;
-import org.awaitility.core.EvaluatedCondition;
 import org.niis.xroad.cs.test.ui.page.GlobalConfigurationPageObj;
+import org.testcontainers.shaded.org.awaitility.core.EvaluatedCondition;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -53,8 +53,8 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.ClassLoader.getSystemResource;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.given;
 import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
 public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     private static final DocumentBuilderFactory DBF = DocumentBuilderFactory.newInstance();

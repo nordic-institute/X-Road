@@ -122,16 +122,13 @@ services:
         condition: service_completed_successfully
 
   testca:
-    build:
-      context: ../../../../../common/common-int-test/src/main/resources/META-INF/ca-container
+    image: ${CA_IMG}
     healthcheck:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "http://localhost:8888/testca/certs/" ]
     networks:
       - xrd-ss-network
-    volumes:
-      - ../../a2c_logs:/var/www/acme2certifier/logs
 
   nginx:
     image: nginx:latest
@@ -154,4 +151,4 @@ services:
     networks:
       - xrd-ss-network
     volumes:
-      - ../../../../../common/common-int-test/src/main/resources/META-INF/mail-server-container:/tls
+      - ./mail-server-container-files:/tls

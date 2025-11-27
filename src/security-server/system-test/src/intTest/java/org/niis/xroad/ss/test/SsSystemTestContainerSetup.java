@@ -25,33 +25,25 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.ss.test.ui.container;
+package org.niis.xroad.ss.test;
 
-import com.nortal.test.testcontainers.TestableContainerInitializer;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SystemUtils;
-import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
+import org.niis.xroad.ss.test.ui.container.Port;
+import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
+import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.springframework.stereotype.Component;
 import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.Container;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.concurrent.TimeUnit;
 
-import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @Slf4j
 @Component
-public class EnvSetup implements TestableContainerInitializer, DisposableBean {
+public class SsSystemTestContainerSetup extends BaseComposeSetup {
 
     public static final String UI = "ui";
     public static final String SIGNER = "signer";
@@ -67,20 +59,18 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     public static final String DB_SERVERCONF_INIT = "db-serverconf-init";
     public static final String OPENBAO = "openbao";
 
-    private static final String COMPOSE_SS_FILE = "build/resources/intTest/compose.main.yaml";
-    private static final String COMPOSE_SYSTEMTEST_FILE = "build/resources/intTest/compose.systemtest.yaml";
+    private static final String COMPOSE_SS_FILE = "/compose.main.yaml";
+    private static final String COMPOSE_SYSTEMTEST_FILE = "/compose.systemtest.yaml";
 
-    private ComposeContainer env;
+    public SsSystemTestContainerSetup(TestFrameworkCoreProperties coreProperties) {
+        super(coreProperties);
+    }
 
     @Override
-    public void initialize() {
-        // Creating directories for volume mounts with full permissions
-        // to ensure containers have the necessary access to modify their contents.
-        prepareDirectories("build/a2c_logs");
-        env = new ComposeContainer("ss-",
-                new File(COMPOSE_SS_FILE), new File(COMPOSE_SYSTEMTEST_FILE))
-                .withLocalCompose(true)
-
+    public ComposeContainer initEnv() {
+        return new ComposeContainer("ss-",
+                new File(coreProperties.resourceDir() +  COMPOSE_SS_FILE),
+                new File(coreProperties.resourceDir() +  COMPOSE_SYSTEMTEST_FILE))
                 .withExposedService(PROXY, Port.PROXY_HTTP, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
@@ -95,33 +85,17 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                 .withLogConsumer(MONITOR, createLogConsumer(MONITOR))
                 .withLogConsumer(BACKUP_MANAGER, createLogConsumer(BACKUP_MANAGER))
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR))
-                .withLogConsumer(OPENBAO, createLogConsumer(OPENBAO));
+                .withLogConsumer(OPENBAO, createLogConsumer(OPENBAO))
+                .withLogConsumer(TESTCA, createLogConsumer(TESTCA));
+    }
 
-        env.start();
-
+    @Override
+    protected void onPostStart() {
         //copy nginx files to container to prevent changing local files
         var nginxFiles = MountableFile.forClasspathResource("nginx-container-files/var/lib");
         copyFilesToContainer(NGINX, nginxFiles, "/var/lib");
         execInContainer(BACKUP_MANAGER, "/etc/xroad/backup-keys/init_backup_encryption.sh");
 
-    }
-
-    @SneakyThrows
-    private void prepareDirectories(String... paths) {
-        if (SystemUtils.IS_OS_UNIX) {
-            for (String path : paths) {
-                Path dirPath = Paths.get(path);
-                dirPath.toFile().mkdirs();
-                Files.setPosixFilePermissions(dirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
-            }
-        }
-    }
-
-    @Override
-    public void destroy() {
-        if (env != null) {
-            env.stop();
-        }
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -150,28 +124,9 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         }
     }
 
-    private Slf4jLogConsumer createLogConsumer(String containerName) {
-        return new Slf4jLogConsumer(new ComposeLoggerFactory().create("%s-".formatted(containerName)));
-    }
-
-    @SneakyThrows
-    public Container.ExecResult execInContainer(String container, String... command) {
-        return env.getContainerByServiceName(container).orElseThrow()
-                .execInContainer(command);
-    }
-
     public void copyFilesToContainer(String container, MountableFile mountableFile, String location) {
         env.getContainerByServiceName(container).orElseThrow()
                 .copyFileToContainer(mountableFile, location);
     }
 
-    public ContainerMapping getContainerMapping(String service, int originalPort) {
-        return new ContainerMapping(
-                env.getServiceHost(service, originalPort),
-                env.getServicePort(service, originalPort)
-        );
-    }
-
-    public record ContainerMapping(String host, int port) {
-    }
 }

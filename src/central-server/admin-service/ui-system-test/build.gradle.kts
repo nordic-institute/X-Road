@@ -7,11 +7,9 @@ plugins {
 
 dependencies {
   intTestImplementation(project(":central-server:openapi-model"))
-//  intTestImplementation(project(":common:common-int-test"))
   intTestImplementation(project(":tool:test-framework-core"))
-//  intTestImplementation(libs.bundles.testAutomation)
+
   intTestImplementation(libs.bouncyCastle.bcpkix)
-  intTestImplementation(libs.awaitility)
 }
 
 tasks.register<Test>("intTest") {
@@ -86,6 +84,7 @@ tasks.shadowJar {
 tasks.build {
   dependsOn(tasks.shadowJar)
 }
+
 archUnit {
   setSkip(true)
 }

@@ -28,13 +28,13 @@ package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.common.test.ui.page.component.Dialog;
-import org.niis.xroad.common.test.ui.utils.VuetifyHelper.Select;
+import org.niis.xroad.test.framework.core.ui.page.component.Dialog;
+import org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.Select;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vSelect;
 
 public class ClientInfoPageObj {
     private static final String GROUP_TRS = "//div[contains(@data-test, 'local-groups-table')]//tbody//tr";

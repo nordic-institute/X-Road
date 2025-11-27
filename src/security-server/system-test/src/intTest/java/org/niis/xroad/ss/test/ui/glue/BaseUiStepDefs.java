@@ -27,13 +27,18 @@ package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.common.test.glue.BaseStepDefs;
-import org.niis.xroad.common.test.ui.SelenideManager;
-import org.niis.xroad.ss.test.ui.container.EnvSetup;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.ui.page.CommonPageObj;
+import org.niis.xroad.test.framework.core.context.CucumberScenarioProvider;
+import org.niis.xroad.test.framework.core.context.ScenarioContext;
+import org.niis.xroad.test.framework.core.file.ClasspathFileResolver;
+import org.niis.xroad.test.framework.core.report.TestReportService;
+import org.niis.xroad.test.framework.core.ui.SelenideManager;
 import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+
+import java.util.Optional;
 
 import static com.codeborne.selenide.Condition.empty;
 import static org.openqa.selenium.Keys.COMMAND;
@@ -41,13 +46,21 @@ import static org.openqa.selenium.Keys.CONTROL;
 import static org.openqa.selenium.Keys.DELETE;
 
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
-public abstract class BaseUiStepDefs extends BaseStepDefs {
+public abstract class BaseUiStepDefs {
     protected final CommonPageObj commonPageObj = new CommonPageObj();
 
     @Autowired
-    protected EnvSetup envSetup;
+    protected SsSystemTestContainerSetup systemTestContainerSetup;
     @Autowired
     protected SelenideManager selenideManager;
+    @Autowired
+    protected CucumberScenarioProvider scenarioProvider;
+    @Autowired
+    protected ScenarioContext scenarioContext;
+    @Autowired
+    protected TestReportService testReportService;
+    @Autowired
+    protected ClasspathFileResolver classpathFileResolver;
 
     /**
      * Vue.JS adds additional elements on top of input and simple clear just does not work.
@@ -78,4 +91,33 @@ public abstract class BaseUiStepDefs extends BaseStepDefs {
         return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
     }
 
+    /**
+     * Put a value in scenario context. Value can be accessed through getStepData.
+     *
+     * @param key   value key. Non-null.
+     * @param value value
+     */
+    protected void putStepData(StepDataKey key, Object value) {
+        scenarioContext.putStepData(key.name(), value);
+    }
+
+    /**
+     * Get value from scenario context.
+     *
+     * @param key value key
+     * @return value from the context
+     */
+    protected <T> Optional<T> getStepData(StepDataKey key) {
+        return Optional.ofNullable(scenarioContext.getStepData(key.name()));
+    }
+
+    /**
+     * An enumerated key for data transfer between steps.
+     */
+    public enum StepDataKey {
+        TOKEN_TYPE,
+        MANAGEMENT_REQUEST_ID,
+        DOWNLOADED_FILE,
+        CERT_FILE
+    }
 }

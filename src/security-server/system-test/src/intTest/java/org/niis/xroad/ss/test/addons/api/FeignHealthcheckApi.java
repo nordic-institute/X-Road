@@ -28,12 +28,13 @@
 package org.niis.xroad.ss.test.addons.api;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 
-@FeignClient(name = "healthcheckApi", path = "/", url = "http://localhost:5588")
+@FeignClient
 public interface FeignHealthcheckApi {
 
     @GetMapping
-    ResponseEntity<String> getHealthcheck();
+    ResponseEntity<Resource> getHealthcheck();
 }

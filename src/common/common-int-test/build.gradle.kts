@@ -8,9 +8,7 @@ dependencies {
   api(project(":service:signer:signer-client"))
 
   api(libs.bundles.testAutomation)
-  api(libs.test.selenide.core)
-  api(libs.test.selenide.proxy)
-  api(libs.test.allure.selenide)
+
   api(libs.feign.hc5)
   api(libs.bouncyCastle.bcpkix)
   api(libs.awaitility)
