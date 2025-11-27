@@ -25,15 +25,15 @@
  */
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Assertion;
-import com.nortal.test.asserts.JsonPathAssertions;
 import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.utils.ScenarioValueEvaluator;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
+import org.niis.xroad.test.framework.core.asserts.JsonPathAssertions;
 
 import java.util.List;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESULT_LIST;
 import static org.niis.xroad.cs.test.utils.AssertionUtils.isTheListSorted;
 
