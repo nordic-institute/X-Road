@@ -34,7 +34,7 @@
       <v-row dense>
         <v-col cols="2">
           <xrd-form-label
-            :label-text="$t('diagnostics.connection.securityServer.current')"
+            :label-text="$t('diagnostics.connection.securityServer.sourceClient')"
           />
         </v-col>
         <v-col cols="7">
@@ -112,7 +112,7 @@
         <v-col cols="2">
           <v-combobox
             v-model="selectedSecurityServerId"
-            :items="securityServers"
+            :items="localSecurityServers"
             item-title="server_code"
             item-value="id"
             :return-object="false"
@@ -123,13 +123,28 @@
         </v-col>
       </v-row>
       <v-row dense>
-        <v-col>
-          <span v-if="!otherSecurityServerLoading">
+        <v-col cols="1">
+          <xrd-form-label
+            :label-text="$t('diagnostics.status')"
+          />
+        </v-col>
+        <v-col cols="1">
+          <span v-if="!localOtherStatus">
+            <xrd-status-icon :status="statusIconType(undefined)"/>
+          </span>
+          <span v-else>
             <xrd-status-icon :status="statusIconType(localOtherStatus?.status_class)"/>
           </span>
         </v-col>
-        <v-col cols="11" data-test="other-security-server-status-message">
+        <v-col cols="10" data-test="other-security-server-status-message">
           <span v-if="otherSecurityServerLoading">
+            <XrdEmptyPlaceholder
+              :data="xRoadInstances"
+              :loading="otherSecurityServerLoading"
+              :no-items-text="$t('noData.noData')"
+              skeleton-type="list-item"
+              :skeleton-count="1"
+            />
           </span>
           <span v-else-if="localOtherStatus && localOtherStatus?.status_class === 'OK'">
            {{ $t('diagnostics.connection.ok') }}
@@ -139,14 +154,6 @@
           </span>
         </v-col>
       </v-row>
-
-      <XrdEmptyPlaceholder
-        :data="xRoadInstances"
-        :loading="otherSecurityServerLoading"
-        :no-items-text="$t('noData.noData')"
-        skeleton-type="list-item"
-        :skeleton-count="1"
-      />
     </v-card-text>
   </v-card>
 </template>
@@ -160,7 +167,7 @@ import { useClients } from "@/store/modules/clients";
 import { useClient } from "@/store/modules/client";
 import { useDiagnostics } from "@/store/modules/diagnostics";
 import { formatErrorForUi, statusIconType } from "@/util/formatting";
-import { ConnectionStatus } from "@/openapi-types";
+import {ConnectionStatus, SecurityServer} from "@/openapi-types";
 
 const initialState = () => {
   return {
@@ -169,6 +176,7 @@ const initialState = () => {
     selectedInstance: '',
     selectedTargetSubsystemId: '',
     selectedSecurityServerId: '',
+    localSecurityServers: [] as SecurityServer[],
     localOtherStatus: undefined as ConnectionStatus | undefined,
   };
 };
@@ -197,7 +205,7 @@ export default defineComponent({
       return local ? local.identifier : '';
     },
     otherSecurityServerErrorMessage() {
-      const err = this.otherSecurityServerStatus?.error
+      const err = this.localOtherStatus?.error
       return formatErrorForUi(err)
     },
   },
@@ -220,8 +228,11 @@ export default defineComponent({
       this.selectedSecurityServerId = '';
       if (newSubsystemId) {
         await this.fetchSecurityServers(newSubsystemId);
-        if (this.securityServers.length === 1) {
-          this.selectedSecurityServerId = this.securityServers[0].id;
+        this.localSecurityServers = this.securityServers.map(
+          (s: SecurityServer) => ({ ...s }),
+        );
+        if (this.localSecurityServers.length === 1) {
+          this.selectedSecurityServerId = this.localSecurityServers[0].id;
         }
       }
     },

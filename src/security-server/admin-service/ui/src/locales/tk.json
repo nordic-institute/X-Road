@@ -271,7 +271,7 @@
       },
       "securityServer": {
         "client": "İstemci",
-        "current": "Geçerli istemci",
+        "sourceClient": "Kaynak İstemci",
         "rest": "REST",
         "securityServer": "Güvenlik Sunucusu",
         "soap": "SOAP",

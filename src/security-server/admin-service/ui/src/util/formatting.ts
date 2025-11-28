@@ -44,7 +44,7 @@ export function formatErrorForUi(err?: CodeWithDetails): string {
   const codeKey = buildKey(code);
   const codeText = codeKey ? t(codeKey) : '';
   const metaText = metadata.length ? metadata.join(', ') : '';
-  const header = [codeText, metaText].filter(Boolean).join(' : ');
+  const header = [codeText, metaText].filter(Boolean).join(' - ');
 
   const veEntries = Object.entries(validation_errors);
   const veText = veEntries.length
@@ -63,7 +63,7 @@ export function formatErrorForUi(err?: CodeWithDetails): string {
 
 export function statusIconType(status: string | undefined): string {
   if (!status) {
-    return '';
+    return 'progress-register';
   }
   switch (status) {
     case 'OK':
@@ -71,6 +71,6 @@ export function statusIconType(status: string | undefined): string {
     case 'FAIL':
       return 'error';
     default:
-      return 'error';
+      return 'progress-register';
   }
 }

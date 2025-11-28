@@ -34,7 +34,7 @@
       <v-row dense>
         <v-col cols="2">
           <xrd-form-label
-            :label-text="$t('diagnostics.connection.securityServer.current')"
+            :label-text="$t('diagnostics.connection.securityServer.sourceClient')"
           />
         </v-col>
         <v-col cols="7">
@@ -121,13 +121,28 @@
         </v-col>
       </v-row>
       <v-row dense>
-        <v-col>
-          <span v-if="!otherSecurityServerLoading">
+        <v-col cols="1">
+          <xrd-form-label
+            :label-text="$t('diagnostics.status')"
+          />
+        </v-col>
+        <v-col cols="1">
+          <span v-if="!managementServiceStatus">
+            <xrd-status-icon :status="statusIconType(undefined)"/>
+          </span>
+          <span v-else>
             <xrd-status-icon :status="statusIconType(managementServiceStatus?.status_class)"/>
           </span>
         </v-col>
-        <v-col cols="11" data-test="management-server-status-message">
+        <v-col cols="10" data-test="management-server-status-message">
           <span v-if="otherSecurityServerLoading">
+            <XrdEmptyPlaceholder
+              :data="managementServiceStatus"
+              :loading="otherSecurityServerLoading"
+              :no-items-text="$t('noData.noData')"
+              skeleton-type="list-item"
+              :skeleton-count="1"
+            />
           </span>
           <span v-else-if="managementServiceStatus && managementServiceStatus?.status_class === 'OK'">
            {{ $t('diagnostics.connection.ok') }}
@@ -137,14 +152,6 @@
           </span>
         </v-col>
       </v-row>
-
-      <XrdEmptyPlaceholder
-        :data="managementServiceStatus"
-        :loading="otherSecurityServerLoading"
-        :no-items-text="$t('noData.noData')"
-        skeleton-type="list-item"
-        :skeleton-count="1"
-      />
     </v-card-text>
   </v-card>
 </template>

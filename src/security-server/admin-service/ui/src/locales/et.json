@@ -342,7 +342,7 @@
       },
       "securityServer": {
         "client": "Klient",
-        "current": "Kehtiv klient",
+        "sourceClient": "Lähteklient",
         "rest": "REST",
         "securityServer":  "Turvaserver",
         "soap": "SOAP",

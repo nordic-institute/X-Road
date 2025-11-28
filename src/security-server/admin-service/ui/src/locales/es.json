@@ -296,7 +296,7 @@
       },
       "securityServer": {
         "client": "Cliente",
-        "current": "Cliente actual",
+        "sourceClient": "Cliente de origen",
         "rest": "REST",
         "securityServer": "Servidor de Seguridad",
         "soap": "SOAP",

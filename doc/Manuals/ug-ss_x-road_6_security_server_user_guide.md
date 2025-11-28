@@ -2642,46 +2642,50 @@ This block allows verifying that the Security Server can reach the Central Serve
 
 Tests ports `80` and `443` to verify that the Global Configuration can be downloaded from the Central Server.
 
-✔ Everything ok — indicates that the Central Server global configuration access via `HTTP`/`HTTPS` on ports `80`/`443` is reachable.
+✔ `Everything ok` — indicates that the Central Server global configuration access via `HTTP`/`HTTPS` on ports `80`/`443` is reachable.
 
 Examples of error messages:
-- Connection error, unknown host : ... — the Central Server hostname cannot be resolved. Check DNS configuration.
-- IO error : PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException ... — the CA must be trusted by the Security Servers Java installation. For the guidelines on Publish global configuration over HTTPS, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
+- `Connection error, unknown host - cs: Name or service not known` — the Central Server hostname cannot be resolved. Check DNS configuration.
+- `IO error - (certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException...` — the Security Server doesn't trust the CA that issued Central Server's TLS certificate. The root certificate of the CA that was used to issue Central Server's TLS certificate must be added to the Security Server's Java truststore. For the guidelines on Publish global configuration over HTTPS, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
 
 **Authentication Certificate Registration Service**
 
-Tests connectivity to the Central Server on port `4001` (used by the registration service and must be publicly accessible).
+Tests connectivity to the Central Server on port `4001` (used by the registration service and must be accessible by every Security Server registered to the ecosystem).
 
-✔ Everything ok — indicates that the Authentication Certificate Registration Service is reachable and there are no authentication certificate issues.
+✔ `Everything ok` — indicates that the Authentication Certificate Registration Service is reachable and that the Security Server's authentication certificate has been added.
+
+Examples of error messages:
+- `Connection error, unknown host - cs: Name or service not known | Certificate not found - No auth cert found` — the Central Server hostname cannot be resolved, and the Security Server has no authentication certificate added.
+- `Certificate not found - No auth cert found` —  there are no connection issues, but the Security Server's authentication certificate has not been added.
 
 ## 14.3.2 Testing the connection to other Security Servers
 
-This block enables testing communication with any other Security Server in the same X-Road instance (or federated instances). Functionality is added to the Security Server to allow checking connectivity issues using the `listMethods` service.
+This block enables testing communication with any other Security Server in the same X-Road instance (or federated instances). The functionality uses the `listMethods` meta service to test communication with other Security Servers. Passing the test requires that the target Security Server allows incoming connections to ports `5500` and `5577` from the source Security Server.
 
 Field descriptions:
-- **Current Client** — a dropdown listing subsystems and members of the current Security Server (from the global configuration).
-- **REST/SOAP** - selects whether the service uses the REST or SOAP protocol.
-- **Target Instance** — the local Security Server instance or federated instances. 
-- **Target Client** — a list of clients on other Security Servers, derived from the global configuration. Clients on the same server are included to allow internal tests. If a federation instance exists, then all its clients are included as well.
-- **Target Security Server** — the Security Servers where the target client is registered. If the target client is registered on multiple Security Servers, all of them should be listed for selection.
+- **Source Client** — a list of members and subsystems registered on the client Security Server that can be used as a Source Client. 
+- **REST/SOAP** - the protocol (`REST` or `SOAP`) that's used to complete the connection test. 
+- **Target Instance** - the X-Road instance where the Target Client is registered. This can be the same instance where the Source Client is registered or a federated instance. 
+- **Target Client** - a list of clients registered on other Security Servers. Also, clients registered on the same Security Server with the Source Client are included to allow local testing. If federation is enabled and federated instances exist in the configuration, registered clients of federated instances are included as well. 
+- **Target Security Server** — a list of Security Servers where the Target Client is registered. If the Target Client is registered on multiple Security Servers, all of them are listed for selection.
 
-✔ Everything ok — indicates that there are no network, configuration, or certificate issues preventing communication between the two Security Server client.
+✔ `Everything ok` — indicates that there are no network, configuration, or certificate issues preventing communication between the two Security Server client.
 
 Examples of error messages:
-- server.clientproxy.ssl_authentication_failed : Security server has no valid authentication certificate.
+- `server.clientproxy.ssl_authentication_failed - Security server has no valid authentication certificate`.
 
 ## 14.3.3 Testing the connection to Management Security Server
 
 This block tests communication with the Management Security Server, including capability to send management requests (such as client register, client disable, ...).
 
 Field descriptions:
-- **Current Client** - the current Security Server owner.
-- **REST/SOAP** - `SOAP`.
-- **Target Instance** - the local Security Server instance. 
-- **Target Client** - the Management Security Server Provider. 
-- **Target Security server** - if management services are registered on multiple Security Servers, the user is able to select the desired target Security Server.
+- **Source Client** - the owner member of the client Security Server. 
+- **REST/SOAP** - `SOAP` since management services only support `SOAP`. 
+- **Target Instance** - the same instance where the Source Client is registered. 
+- **Target Client** - the subsystem providing the management services. 
+- **Target Security Server** - if management services are registered on multiple Security Servers, the user is able to select the desired target Security Server.
 
-✔ Everything ok - indicates that there are no network, configuration, or certificate issues preventing communication with the Management Security Server Provider.
+✔ `Everything ok` - indicates that there are no network, configuration, or certificate issues preventing communication with the management Security Server.
 
 ## 15 Operational Monitoring
 
