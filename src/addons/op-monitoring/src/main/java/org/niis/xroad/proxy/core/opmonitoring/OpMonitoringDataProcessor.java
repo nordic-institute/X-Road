@@ -34,21 +34,25 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataRequest;
 
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
-import static java.net.NetworkInterface.getNetworkInterfaces;
-import static java.util.Collections.list;
+import static java.net.NetworkInterface.networkInterfaces;
 
 @Slf4j
 public class OpMonitoringDataProcessor {
-    private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
+    private static final String NO_ADDRESS_FOUND = "No suitable IP address is bound to network interfaces";
 
-    private static final String NO_ADDRESS_FOUND = "No suitable IP address is bound to the network interface ";
-    private static final String NO_INTERFACE_FOUND = "No non-loopback network interface found";
+    private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
+    private static final Duration IP_RESOLUTION_CACHE_DURATION = Duration.ofMinutes(10);
 
     private String ipAddress;
+    private Instant ipAddressLastResolutionAt;
 
     String prepareMonitoringMessage(List<OpMonitoringData> dataToProcess) throws JsonProcessingException {
         StoreOpMonitoringDataRequest request = new StoreOpMonitoringDataRequest();
@@ -62,30 +66,31 @@ public class OpMonitoringDataProcessor {
 
     String getIpAddress() {
         try {
-            if (ipAddress == null) {
-                NetworkInterface ni = list(getNetworkInterfaces()).stream()
-                        .filter(OpMonitoringDataProcessor::isNonLoopback)
-                        .findFirst()
-                        .orElseThrow(() -> XrdRuntimeException.systemInternalError(NO_INTERFACE_FOUND));
-
-                Exception addressNotFound = XrdRuntimeException.systemInternalError(NO_ADDRESS_FOUND + ni.getDisplayName());
-
-                ipAddress = list(ni.getInetAddresses()).stream()
-                        .filter(addr -> !addr.isLinkLocalAddress())
-                        .findFirst()
-                        .orElseThrow(() -> addressNotFound)
-                        .getHostAddress();
-
-                if (ipAddress == null) {
-                    throw addressNotFound;
-                }
+            if (ipAddress != null && ipAddressLastResolutionAt != null
+                    && !ipAddressLastResolutionAt.isBefore(Instant.now().minus(IP_RESOLUTION_CACHE_DURATION))) {
+                return ipAddress;
             }
+
+            ipAddress = networkInterfaces()
+                    .filter(OpMonitoringDataProcessor::isNonLoopback)
+                    .filter(OpMonitoringDataProcessor::hasAnyUsableAddress)
+                    .min(OpMonitoringDataProcessor::compareNetworkInterfaces)
+                    .stream()
+                    .flatMap(NetworkInterface::inetAddresses)
+                    .filter(OpMonitoringDataProcessor::isUsableAddress)
+                    .min(OpMonitoringDataProcessor::compareInetAddresses)
+                    .map(InetAddress::getHostAddress)
+                    .orElseThrow(OpMonitoringDataProcessor::addressNotFoundException);
+
+            ipAddressLastResolutionAt = Instant.now();
 
             return ipAddress;
         } catch (Exception e) {
             log.error("Cannot get IP address of a non-loopback network interface", e);
-
-            return "0.0.0.0";
+            // keep the failed resolution cached for resolution cache duration as well.
+            ipAddressLastResolutionAt = Instant.now();
+            ipAddress = "0.0.0.0";
+            return ipAddress;
         }
     }
 
@@ -95,5 +100,28 @@ public class OpMonitoringDataProcessor {
         } catch (SocketException e) {
             throw XrdRuntimeException.systemException(e);
         }
+    }
+
+    private static boolean hasAnyUsableAddress(NetworkInterface ni) {
+        return ni.inetAddresses().anyMatch(OpMonitoringDataProcessor::isUsableAddress);
+    }
+
+    private static int compareNetworkInterfaces(NetworkInterface ni1, NetworkInterface ni2) {
+        return Integer.compare(ni1.getIndex(), ni2.getIndex());
+    }
+
+    private static boolean isUsableAddress(InetAddress addr) {
+        return !addr.isLoopbackAddress()
+                && !addr.isLinkLocalAddress()
+                && addr.getHostAddress() != null;
+    }
+
+    private static int compareInetAddresses(InetAddress a1, InetAddress a2) {
+        // prefer IPv4 addresses
+        return Boolean.compare(a1 instanceof Inet6Address, a2 instanceof Inet6Address);
+    }
+
+    private static XrdRuntimeException addressNotFoundException() {
+        return XrdRuntimeException.systemInternalError(NO_ADDRESS_FOUND);
     }
 }
