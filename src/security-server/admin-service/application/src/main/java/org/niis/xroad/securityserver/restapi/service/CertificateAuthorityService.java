@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeProperties;
 import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
@@ -47,6 +48,7 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.OcspUtils;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -61,6 +63,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CA_CERT_PROCESSING;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_CSR_FORMAT;
 
 /**
  * Service that handles approved certificate authorities
@@ -308,6 +311,13 @@ public class CertificateAuthorityService {
                 .findFirst()
                 .orElseThrow(() -> new CertificateAuthorityNotFoundException("certificate authority "
                         + caName + " not_found"));
+    }
+
+    public void validateCsrFormat(String caName, CertificateRequestFormat csrFormat) throws BadRequestException {
+        ApprovedCAInfo ca = getCertificateAuthorityInfo(caName);
+        if (ca.getDefaultCsrFormat() != null && !ca.getDefaultCsrFormat().name().equals(csrFormat.name())) {
+            throw new BadRequestException(INVALID_CSR_FORMAT.build());
+        }
     }
 
     /**

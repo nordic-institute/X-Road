@@ -32,21 +32,36 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.CsrFormat;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrFormatDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrGenerateDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabelDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabelWithCsrGenerateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyWithCertificateSigningRequestIdDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatusDto;
+import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
+import org.niis.xroad.securityserver.restapi.service.KeyAndCertificateRequestService;
 import org.niis.xroad.securityserver.restapi.service.TokenNotFoundException;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -54,10 +69,15 @@ import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * test tokens api
@@ -75,6 +95,12 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
     public static final String NOT_ACTIVE_TOKEN_KEY_ID = "token-not-active-key";
 
     private List<TokenInfo> allTokens;
+
+    @MockitoBean
+    private KeyAndCertificateRequestService keyAndCertificateRequestService;
+
+    @Autowired
+    private CertificateAuthorityService certificateAuthorityService;
 
     @Before
     public void setUp() throws Exception {
@@ -179,5 +205,57 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
             fail("should have thrown exception");
         } catch (ConflictException expected) {
         }
+    }
+
+    @Test
+    @WithMockUser(authorities = {"GENERATE_KEY", "GENERATE_AUTH_CERT_REQ"})
+    public void addKeyAndCsrSucceedsWhenCsrFormatMatchesCaDefault() {
+        String caName = "test-ca";
+        mockCa(caName, CsrFormat.PEM);
+        KeyAndCertificateRequestService.KeyAndCertRequestInfo info = mockKeyAndCertRequestResponse();
+        when(keyAndCertificateRequestService.addKeyAndCertRequest(any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(info);
+
+        ResponseEntity<KeyWithCertificateSigningRequestIdDto> response = tokensApiController.addKeyAndCsr(
+                GOOD_TOKEN_ID,
+                createKeyLabelWithCsrGenerateDto(caName, CsrFormatDto.PEM));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(info.getCertReqId(), response.getBody().getCsrId());
+        assertNotNull(response.getBody().getKey());
+        verify(certificateAuthorityService).validateCsrFormat(caName, CertificateRequestFormat.PEM);
+        verify(keyAndCertificateRequestService).addKeyAndCertRequest(any(), any(), any(), any(), any(), any(), any(), any());
+    }
+
+
+    private void mockCa(String caName, CsrFormat csrFormat) {
+        ApprovedCAInfo approvedCAInfo = new ApprovedCAInfo(caName, false, "profile", csrFormat,
+                null, null, null, null);
+        when(certificateAuthorityService.getCertificateAuthorityInfo(caName)).thenReturn(approvedCAInfo);
+    }
+
+    private KeyAndCertificateRequestService.KeyAndCertRequestInfo mockKeyAndCertRequestResponse() {
+        KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().build();
+        return new KeyAndCertificateRequestService.KeyAndCertRequestInfo(
+                keyInfo,
+                "csr-id",
+                new byte[]{0x01},
+                org.niis.xroad.signer.proto.CertificateRequestFormat.PEM,
+                TestUtils.getM1Ss1ClientId(),
+                KeyUsageInfo.AUTHENTICATION);
+    }
+
+    private KeyLabelWithCsrGenerateDto createKeyLabelWithCsrGenerateDto(String caName, CsrFormatDto csrFormatDto) {
+        CsrGenerateDto csrGenerateDto = new CsrGenerateDto()
+                .caName(caName)
+                .csrFormat(csrFormatDto)
+                .keyUsageType(KeyUsageTypeDto.AUTHENTICATION)
+                .subjectFieldValues(new HashMap<>())
+                .memberId(TestUtils.CLIENT_ID_SS1)
+                .acmeOrder(false);
+        return new KeyLabelWithCsrGenerateDto()
+                .keyLabel(KEY_LABEL)
+                .csrGenerateRequest(csrGenerateDto);
     }
 }

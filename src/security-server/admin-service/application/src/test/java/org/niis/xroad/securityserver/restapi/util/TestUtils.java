@@ -396,6 +396,10 @@ public final class TestUtils {
         return approvedCa(name, authenticationOnly, certificateProfileInfo, CsrFormat.PEM, "http://test-ca/acme", "123.4.5.6", "5", "6");
     }
 
+    public static ApprovedCAInfo approvedCaWithoutDefaultCsrFormat(String name, boolean authenticationOnly, String certificateProfileInfo) {
+        return approvedCa(name, authenticationOnly, certificateProfileInfo, null, null, null, null, null);
+    }
+
     private static ApprovedCAInfo approvedCa(String name, boolean authenticationOnly, String certificateProfileInfo,
                                              CsrFormat csrFormat, String acmeServerDirectoryUrl, String acmeServerIpAddress,
                                              String retryDelay, String renewalInterval) {

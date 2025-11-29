@@ -35,12 +35,14 @@ import ee.ria.xroad.common.util.EncoderUtils;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -59,6 +61,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -66,6 +69,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCa;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCaWithAcme;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCaWithoutDefaultCsrFormat;
 
 /**
  * test CertificateAuthorityService
@@ -101,6 +105,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         approvedCAInfos.add(approvedCa("mock-top-ca", false,
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
         approvedCAInfos.add(approvedCa("mock-intermediate-ca", false,
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
+        approvedCAInfos.add(approvedCaWithoutDefaultCsrFormat("ca-no-default-csr", false,
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
         when(globalConfProvider.getApprovedCAs(any())).thenReturn(approvedCAInfos);
         when(globalConfProvider.getOcspResponderAddressesAndCostTypes(any(), any())).thenReturn(Map.of(MOCK_OCSP_RESPONDER_ADDRESS,
@@ -364,6 +370,34 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertThrows(CertificateProfileInstantiationException.class, () ->
                 certificateAuthorityService.getCertificateProfile("provider-class-does-not-exist",
                         KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false));
+    }
+
+    @Test
+    public void validateCsrFormat_withMatchingFormat() {
+        assertDoesNotThrow(() ->
+                certificateAuthorityService.validateCsrFormat("fi-not-auth-only", CertificateRequestFormat.PEM));
+    }
+
+    @Test
+    public void validateCsrFormat_withNullDefaultFormat() {
+        assertDoesNotThrow(() ->
+                certificateAuthorityService.validateCsrFormat("ca-no-default-csr", CertificateRequestFormat.PEM));
+        assertDoesNotThrow(() ->
+                certificateAuthorityService.validateCsrFormat("ca-no-default-csr", CertificateRequestFormat.DER));
+    }
+
+    @Test
+    public void validateCsrFormat_withMismatchingFormat() {
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+                certificateAuthorityService.validateCsrFormat("fi-not-auth-only", CertificateRequestFormat.DER));
+
+        assertEquals("invalid_csr_format", exception.getErrorDeviation().code());
+    }
+
+    @Test
+    public void validateCsrFormat_withNonExistentCA() {
+        assertThrows(CertificateAuthorityNotFoundException.class, () ->
+                certificateAuthorityService.validateCsrFormat("non-existent-ca", CertificateRequestFormat.PEM));
     }
 
 }
