@@ -60,7 +60,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
-import static org.niis.xroad.signer.proto.CertificateRequestFormat.*;
+import static org.niis.xroad.signer.proto.CertificateRequestFormat.PEM;
 
 /**
  * test keys api

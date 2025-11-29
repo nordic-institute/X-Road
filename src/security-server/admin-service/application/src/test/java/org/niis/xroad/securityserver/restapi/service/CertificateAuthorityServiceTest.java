@@ -373,13 +373,13 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
     }
 
     @Test
-    public void validateCsrFormat_withMatchingFormat() {
+    public void validateCsrFormatWithMatchingFormat() {
         assertDoesNotThrow(() ->
                 certificateAuthorityService.validateCsrFormat("fi-not-auth-only", CertificateRequestFormat.PEM));
     }
 
     @Test
-    public void validateCsrFormat_withNullDefaultFormat() {
+    public void validateCsrFormatWithNullDefaultFormat() {
         assertDoesNotThrow(() ->
                 certificateAuthorityService.validateCsrFormat("ca-no-default-csr", CertificateRequestFormat.PEM));
         assertDoesNotThrow(() ->
@@ -387,7 +387,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
     }
 
     @Test
-    public void validateCsrFormat_withMismatchingFormat() {
+    public void validateCsrFormatWithMismatchingFormat() {
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
                 certificateAuthorityService.validateCsrFormat("fi-not-auth-only", CertificateRequestFormat.DER));
 
@@ -395,7 +395,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
     }
 
     @Test
-    public void validateCsrFormat_withNonExistentCA() {
+    public void validateCsrFormatWithNonExistentCA() {
         assertThrows(CertificateAuthorityNotFoundException.class, () ->
                 certificateAuthorityService.validateCsrFormat("non-existent-ca", CertificateRequestFormat.PEM));
     }
