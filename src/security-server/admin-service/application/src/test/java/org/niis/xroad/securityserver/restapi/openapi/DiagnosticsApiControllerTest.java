@@ -524,7 +524,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void getGlobalConfStatus() {
-        when(globalConfProvider.findAllInstancesSourceAddresses()).thenReturn(Set.of("one-host"));
+        when(globalConfProvider.getSourceAddresses()).thenReturn(Set.of("one-host"));
 
         ResponseEntity<List<GlobalConfConnectionStatusDto>> response = diagnosticsApiController.getGlobalConfStatus();
 

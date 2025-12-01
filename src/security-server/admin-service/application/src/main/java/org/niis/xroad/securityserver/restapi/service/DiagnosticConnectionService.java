@@ -121,7 +121,11 @@ public class DiagnosticConnectionService {
     private final ServerConfProvider serverConfProvider;
 
     public List<DownloadUrlConnectionStatus> getGlobalConfStatus() {
-        Set<String> addresses = globalConfProvider.findAllInstancesSourceAddresses();
+        var addresses = globalConfProvider.getSourceAddresses();
+        var allowedFederationSourceAddresses = globalConfProvider.getAllowedFederationSourceAddresses();
+        if (!allowedFederationSourceAddresses.isEmpty()) {
+            addresses.addAll(allowedFederationSourceAddresses);
+        }
 
         return addresses.stream()
                 .flatMap(address -> Stream.of(

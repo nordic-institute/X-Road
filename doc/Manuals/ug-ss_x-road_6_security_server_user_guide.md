@@ -130,7 +130,7 @@ Doc. ID: UG-SS
 | 18.06.2025 | 2.99    | ACME-related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
 | 01.07.2025 | 2.100   | Added configuration notes for external op-monitor's gRPC                                                                                                                                                                                                                                                                                                                                                    | Mikk-Erik Bachmann   |
 | 07.07.2025 | 2.101   | Added chapter on Security Server Traffic visualisation                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa        |
-| 27.11.2015 | 2.102   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
+| 01.12.2025 | 2.102   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -2640,7 +2640,7 @@ This block allows verifying that the Security Server can reach the Central Serve
 
 **Global Configuration Download**
 
-Tests ports `80` and `443` to verify that the Global Configuration can be downloaded from the Central Server.
+Tests ports `80` and `443` to verify that the Global Configuration can be downloaded from the Central Server. If the Central Server is clustered, then all clustered node addresses are included in the test. For federated instances, if the `configuration-client.allowed-federations` property is enabled, the configuration download URLs for the allowed federated instances are also included. Note that even if the global configuration contains multiple federated instances, not all of them may be enabled on the Security Server.
 
 ✔ `Everything ok` — indicates that the Central Server global configuration access via `HTTP`/`HTTPS` on ports `80`/`443` is reachable.
 

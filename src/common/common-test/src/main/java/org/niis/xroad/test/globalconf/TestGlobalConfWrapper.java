@@ -282,7 +282,12 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> findAllInstancesSourceAddresses() {
+    public Set<String> getSourceAddresses() {
+        return Set.of();
+    }
+
+    @Override
+    public Set<String> getAllowedFederationSourceAddresses() {
         return Set.of();
     }
 

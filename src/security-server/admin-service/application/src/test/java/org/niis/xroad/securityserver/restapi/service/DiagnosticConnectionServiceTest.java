@@ -135,8 +135,7 @@ class DiagnosticConnectionServiceTest {
 
     @Test
     void getGlobalConfStatusThenReturnUnknownHostErrors() {
-        when(globalConfProvider.findAllInstancesSourceAddresses())
-                .thenReturn(Set.of("unknown-host"));
+        when(globalConfProvider.getSourceAddresses()).thenReturn(Set.of("unknown-host"));
 
         var statuses = service.getGlobalConfStatus();
 

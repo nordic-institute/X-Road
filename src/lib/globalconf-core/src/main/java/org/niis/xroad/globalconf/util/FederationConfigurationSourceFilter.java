@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.core;
+package org.niis.xroad.globalconf.util;
 
 import ee.ria.xroad.common.SystemProperties;
 
@@ -54,7 +54,7 @@ import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.NONE;
  *
  */
 @Slf4j
-public class FederationConfigurationSourceFilterImpl implements FederationConfigurationSourceFilter {
+public class FederationConfigurationSourceFilter {
 
     private static final String COMMA_SEPARATOR = "\\s*,\\s*";
 
@@ -63,7 +63,7 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
     private SystemProperties.AllowedFederationMode allowedFederationMode = null;
     private Set<String> allowedFederationPartners = null;
 
-    FederationConfigurationSourceFilterImpl(String ownInstance) {
+    public FederationConfigurationSourceFilter(String ownInstance) {
         this.ownInstance = ownInstance;
         String filterString = SystemProperties.getConfigurationClientAllowedFederations();
         log.info("The federation filter system property value is: '{}'", filterString);
@@ -72,7 +72,6 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
                 allowedFederationMode, allowedFederationPartners);
     }
 
-    @Override
     public boolean shouldDownloadConfigurationFor(String instanceIdentifier) {
         if (ownInstance.equalsIgnoreCase(instanceIdentifier)) {
             return true;
