@@ -13,6 +13,7 @@ if ! grep -q "\[softhsm2\]" /etc/xroad/devices.ini 2>/dev/null; then
   printf "\n[softhsm2]\n\
     library = /usr/lib/softhsm/libsofthsm2.so\n\
     slot_ids = %s\n\
+    token_id_format = 1\n\
     os_locking_ok = true\n\
     library_cant_create_os_threads = true\n" "$slot_id" >> /etc/xroad/devices.ini
 fi
