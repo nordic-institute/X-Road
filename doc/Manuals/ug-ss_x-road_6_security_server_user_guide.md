@@ -2652,7 +2652,7 @@ Examples of error messages:
 
 Tests connectivity to the Central Server on port `4001` (used by the registration service and must be accessible by every Security Server registered to the ecosystem).
 
-✔ `Everything ok` — indicates that the Authentication Certificate Registration Service is reachable and that the Security Server's authentication certificate has been added.
+✔ `Everything ok` — indicates that the Authentication Certificate Registration Service is reachable and that the Security Server’s authentication certificate has been added. However, only the existence of the authentication certificate is checked, not its validity.
 
 Examples of error messages:
 - `Connection error, unknown host - cs: Name or service not known | Certificate not found - No auth cert found` — the Central Server hostname cannot be resolved, and the Security Server has no authentication certificate added.

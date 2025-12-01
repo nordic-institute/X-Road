@@ -667,8 +667,10 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> findSourceAddresses() {
-        return getSharedParameters(getInstanceIdentifier()).getSources().stream()
+    public Set<String> findAllInstancesSourceAddresses() {
+        return getInstanceIdentifiers().stream()
+                .map(id -> getSharedParameters(id).getSources())
+                .flatMap(List::stream)
                 .map(SharedParameters.ConfigurationSource::getAddress)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toSet());

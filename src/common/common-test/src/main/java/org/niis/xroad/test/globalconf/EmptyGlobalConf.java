@@ -185,7 +185,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> findSourceAddresses() {
+    public Set<String> findAllInstancesSourceAddresses() {
         return Set.of();
     }
 
