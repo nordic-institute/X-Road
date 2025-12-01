@@ -15,18 +15,8 @@ split_ip_dns() {
   echo "$ip_list" "$dns_list"
 }
 
-ensure_local_config_exists() {
-  local FILE="/etc/xroad/conf.d/local.yaml"
-
-  # Check if file exists and is non-empty
-  if [ ! -s "$FILE" ]; then
-    log "Creating or initializing $FILE..."
-    mkdir -p "$(dirname "$FILE")"  # Ensure directory exists
-  fi
-}
-
 prepare_tls_settings() {
-  CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
+  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
   if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.op-monitor.tls.certificate-provisioning.common-name') && \
           -z $(get_prop "$CONFIG_FILE" 'xroad.op-monitor.tls.certificate-provisioning.alt-names') && \
           -z $(get_prop "$CONFIG_FILE" 'xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names') ]]; then
@@ -63,7 +53,6 @@ prepare_tls_settings() {
       read ip_list dns_list < <(split_ip_dns "$altn")
 
       log "Writing op-monitor TLS settings to $CONFIG_FILE"
-      ensure_local_config_exists
       /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.op-monitor.tls.certificate-provisioning.common-name" "$cn"
       /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.op-monitor.tls.certificate-provisioning.alt-names" "$dns_list"
       /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"

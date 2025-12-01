@@ -21,18 +21,8 @@ split_ip_dns() {
   echo "$ip_list" "$dns_list"
 }
 
-ensure_local_config_exists() {
-  local FILE="/etc/xroad/conf.d/local.yaml"
-
-  # Check if file exists and is non-empty
-  if [ ! -s "$FILE" ]; then
-    log "Creating or initializing $FILE..."
-    mkdir -p "$(dirname "$FILE")"  # Ensure directory exists
-  fi
-}
-
 prepare_tls_settings() {
-  CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
+  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
 
   if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.common-name') && \
         -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.alt-names') && \
@@ -171,11 +161,10 @@ case "$1" in
     fi
   done
 
-  ensure_local_config_exists
-
   prepare_tls_settings
 
   # Keep batch signatures enabled for upgrades from version < 8.0.0
+  # todo: do not edit local.yaml file, should be moved to migration scripts
   if dpkg --compare-versions "$2" lt-nl "8.0.0"; then
     CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
     if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.batch-signing-enabled') ]]; then

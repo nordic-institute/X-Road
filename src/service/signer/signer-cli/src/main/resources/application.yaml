@@ -9,9 +9,9 @@ quarkus:
 #      enabled: false
   config:
     locations:
-      - /etc/xroad/conf.d/local.yaml
       - xroad-common.yaml
       - xroad-logging.yaml
+      - /etc/xroad/conf.d/local.yaml
 
   log:
     console:

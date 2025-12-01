@@ -4,16 +4,6 @@ set -e
 
 log () { echo >&2 "$@"; }
 
-ensure_local_config_exists() {
-  local FILE="/etc/xroad/conf.d/local.yaml"
-
-  # Check if file exists and is non-empty
-  if [ ! -s "$FILE" ]; then
-    log "Creating or initializing $FILE..."
-    mkdir -p "$(dirname "$FILE")"  # Ensure directory exists
-  fi
-}
-
 get_prop() {
   /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
 }
@@ -27,7 +17,7 @@ split_ip_dns() {
 }
 
 prepare_tls_settings() {
-  CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
+  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
 
   if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.common-name') && \
         -z $(get_prop "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.alt-names') && \
@@ -64,7 +54,6 @@ prepare_tls_settings() {
       read ip_list dns_list < <(split_ip_dns "$altn")
 
       log "Writing proxy-ui-api TLS settings to $CONFIG_FILE"
-      ensure_local_config_exists
       /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.common-name" "$cn"
       /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.alt-names" "$dns_list"
       /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
