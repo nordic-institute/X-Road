@@ -50,12 +50,18 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
 
     @Override
     public void afterPropertiesSet() {
+        init();
+    }
+
+    protected void init() {
         env = initEnv();
         env.start();
         onPostStart();
     }
 
-    protected abstract ComposeContainer initEnv();
+    protected ComposeContainer initEnv() {
+        throw new UnsupportedOperationException("initEnv() not implemented");
+    }
 
     protected void onPostStart() {
         // can be overridden
@@ -71,6 +77,11 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
     protected Slf4jLogConsumer createLogConsumer(String containerName) {
         return new Slf4jLogConsumer(
                 new ComposeLoggerFactory().create("%s-".formatted(containerName), coreProperties.workingDir()));
+    }
+
+    protected Slf4jLogConsumer createLogConsumer(String env, String containerName) {
+        return new Slf4jLogConsumer(
+                new ComposeLoggerFactory().create("%s-%s".formatted(env, containerName), coreProperties.workingDir()));
     }
 
     public ContainerMapping getContainerMapping(String service, int originalPort) {

@@ -1,13 +1,13 @@
 plugins {
   id("xroad.java-conventions")
   id("xroad.int-test-conventions")
+  alias(libs.plugins.shadow)
+  alias(libs.plugins.allure)
 }
 
 dependencies {
-  intTestImplementation(project(":common:common-int-test"))
-  intTestImplementation(libs.testAutomation.assert)
-  intTestImplementation(libs.testAutomation.restassured)
-  intTestImplementation(libs.feign.hc5)
+  intTestImplementation(project(":tool:test-framework-core"))
+  intTestImplementation(libs.test.restassured)
   intTestImplementation(libs.postgresql)
 }
 
@@ -28,23 +28,30 @@ intTestComposeEnv {
     "PROXY_IMG" to "ss-proxy",
     "PROXY_UI_IMG" to "ss-proxy-ui-api",
     "BACKUP_MANAGER_IMG" to "ss-backup-manager",
-    "OP_MONITOR_IMG" to "ss-op-monitor"
+    "OP_MONITOR_IMG" to "ss-op-monitor",
+    "CA_IMG" to "testca-dev"
   )
 }
 
 val copyComposeFiles by tasks.registering(Copy::class) {
-  description = "Copies compose files to build directory for e2e tests"
+  description = "Copies compose files and related resources to build directory for e2e tests"
   group = "verification"
 
   from("../../../development/docker/security-server/compose.yaml") {
     rename { "compose.main.yaml" }
+  }
+  from("../../../development/hurl") {
+    into("hurl")
+  }
+  from("../../../development/docker/security-server/signer-with-hsm") {
+    into("signer-with-hsm")
   }
   into("build/resources/intTest")
 }
 
 tasks.register<Test>("e2eTest") {
   dependsOn(provider { tasks.named("generateIntTestEnv") })
-  dependsOn(copyComposeFiles)
+  dependsOn(provider { tasks.named("copyComposeFiles") })
   useJUnitPlatform()
 
   description = "Runs e2e tests."
@@ -69,6 +76,53 @@ tasks.register<Test>("e2eTest") {
     showCauses = true
     showStandardStreams = true
   }
+}
+
+allure {
+  adapter {
+    frameworks {
+      cucumber7Jvm
+    }
+  }
+}
+
+tasks.named<Checkstyle>("checkstyleIntTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+  dependsOn(provider { tasks.named("copyComposeFiles") })
+}
+
+tasks.shadowJar {
+  archiveBaseName.set("e2e-test")
+  archiveClassifier.set("")
+  isZip64 = true
+
+  from(sourceSets["intTest"].output.classesDirs)
+
+  from("${layout.buildDirectory.get().asFile}/resources/intTest") {
+    into("")
+  }
+  from("${layout.buildDirectory.get().asFile}/resources/intTest/.env") {
+    into("")
+  }
+  from(sourceSets["intTest"].runtimeClasspath.filter { it.name.endsWith(".jar") })
+
+  mergeServiceFiles()
+  exclude("**/module-info.class")
+
+  manifest {
+    attributes(
+      "Main-Class" to "org.niis.xroad.e2e.ConsoleE2ETestRunner"
+    )
+  }
+
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+  dependsOn(provider { tasks.named("copyComposeFiles") })
+  dependsOn(tasks.named("intTestClasses"))
+  dependsOn(tasks.named("processIntTestResources"))
+}
+
+tasks.build {
+  dependsOn(tasks.shadowJar)
 }
 
 archUnit {

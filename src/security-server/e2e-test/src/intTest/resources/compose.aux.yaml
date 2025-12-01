@@ -21,6 +21,7 @@ services:
       - xroad-network
   testca:
     image: ${CA_IMG}
+    pull_policy: always
     deploy:
       resources:
         reservations:
@@ -50,7 +51,7 @@ services:
     networks:
       - xroad-network
   isopenapi:
-    image: ${IS_OPENAPI_IMG}
+    image: "ghcr.io/nordic-institute/xrddev-example-restapi:latest"
     deploy:
       resources:
         reservations:
@@ -64,7 +65,7 @@ services:
     networks:
       - xroad-network
   issoap:
-    image: ${IS_SOAP_IMG}
+    image: "niis/example-adapter:latest"
     deploy:
       resources:
         reservations:
@@ -96,7 +97,7 @@ services:
       - ./wiremock_mappings:/home/wiremock/mappings
   hurl:
     build:
-        context: ../../../../../../development/hurl
+        context: hurl
         dockerfile: ./Dockerfile
     command: >
       --insecure

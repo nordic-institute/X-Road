@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.e2e;
 
-import com.nortal.test.TestRunner;
 import org.junit.platform.suite.api.SelectClasspathResource;
+import org.niis.xroad.test.framework.core.BaseTestRunner;
 
 @SelectClasspathResource("/behavior")
-public class E2EBehavioralTest extends TestRunner {
+public class E2EBehavioralTest extends BaseTestRunner {
 }

@@ -27,30 +27,22 @@ package org.niis.xroad.e2e.glue;
 
 import io.cucumber.java.en.Step;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.e2e.CustomProperties;
-import org.niis.xroad.e2e.container.EnvSetup;
+import org.niis.xroad.e2e.EnvSetup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.containers.ContainerState;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.niis.xroad.e2e.container.EnvSetup.HURL;
+import static org.niis.xroad.e2e.EnvSetup.HURL;
 
 @Slf4j
 @SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
 public class CsInitStepDefs extends BaseE2EStepDefs {
     @Autowired
     private EnvSetup envSetup;
-    @Autowired
-    private CustomProperties customProperties;
 
     @SuppressWarnings("squid:S5960")
     @Step("Environment is initialized")
     public void csIsInitialized() {
-        if (customProperties.isUseCustomEnv()) {
-            testReportService.attachText("Using custom environment. Docker compose is not used.", "Step was ignored.");
-            return;
-        }
-
         var hulRunning = envSetup.getContainerByServiceName("aux", HURL)
                 .map(ContainerState::isRunning)
                 .orElse(true);

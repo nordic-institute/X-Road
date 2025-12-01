@@ -24,14 +24,13 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.e2e.container.service;
+package org.niis.xroad.e2e.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.niis.xroad.e2e.container.EnvSetup;
-import org.niis.xroad.e2e.container.Port;
+import org.niis.xroad.e2e.EnvSetup;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -68,7 +67,7 @@ public class TestDatabaseService implements DisposableBean {
     }
 
     private String getJdbcUrl(String env, String service, String database) {
-        var mapping = envSetup.getContainerMapping(env, service, Port.DB);
+        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.DB);
         return String.format("jdbc:postgresql://%s:%d/%s",
                 mapping.host(),
                 mapping.port(),

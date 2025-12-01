@@ -1,7 +1,7 @@
 FROM ubuntu:24.04
 
 # ACME
-ARG A2C_VER=0.40.1
+ARG A2C_VER=0.35
 ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2certifier_${A2C_VER}-1_all.deb /tmp/
 
 ENV DEBIAN_FRONTEND=noninteractive

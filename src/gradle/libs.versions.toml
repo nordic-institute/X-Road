@@ -136,6 +136,7 @@ test-selenide-proxy = { module = "com.codeborne:selenide-proxy", version.ref = "
 test-allure-selenide = { module = "io.qameta.allure:allure-selenide", version.ref = "testAllure" }
 test-allure-cucumber7 = { module = "io.qameta.allure:allure-cucumber7-jvm", version.ref = "testAllure" }
 test-allure-junitPlatform = { module = "io.qameta.allure:allure-junit-platform", version.ref = "testAllure" }
+test-restassured = { module = "io.rest-assured:rest-assured", version = "5.5.6" }
 
 cucumber-java = { module = "io.cucumber:cucumber-java", version.ref= "testCucumber" }
 cucumber-spring = { module = "io.cucumber:cucumber-spring", version.ref= "testCucumber" }

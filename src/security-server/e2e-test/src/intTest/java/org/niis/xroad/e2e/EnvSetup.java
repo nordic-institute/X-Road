@@ -23,38 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e.container;
+package org.niis.xroad.e2e;
 
-import com.nortal.test.testcontainers.TestableContainerInitializer;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
-import org.niis.xroad.e2e.CustomProperties;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
+import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
+import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
+import org.springframework.stereotype.Component;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.ContainerState;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
-import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
-@Primary
-@Service
 @Slf4j
-@RequiredArgsConstructor
-public class EnvSetup implements TestableContainerInitializer, DisposableBean {
+@Component
+public class EnvSetup extends BaseComposeSetup {
 
-    private static final String COMPOSE_AUX_FILE = "build/resources/intTest/compose.aux.yaml";
-    private static final String COMPOSE_SS_FILE = "build/resources/intTest/compose.main.yaml";
-    private static final String COMPOSE_SS_E2E_FILE = "build/resources/intTest/compose.e2e.yaml";
-    private static final String COMPOSE_SS_HSM_FILE = "build/resources/intTest/compose.ss-hsm.e2e.yaml";
+    private static final String COMPOSE_AUX_FILE = "/compose.aux.yaml";
+    private static final String COMPOSE_SS_FILE = "compose.main.yaml";
+    private static final String COMPOSE_SS_E2E_FILE = "compose.e2e.yaml";
+    private static final String COMPOSE_SS_HSM_FILE = "compose.ss-hsm.e2e.yaml";
 
     private static final String CS = "cs";
     private static final String OPENBAO = "openbao";
@@ -67,38 +60,38 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     public static final String DB_MESSAGELOG = "db-messagelog";
     public static final String HURL = "hurl";
 
-    private final CustomProperties customProperties;
-
     private ComposeContainer envSs0;
     private ComposeContainer envSs1;
     private ComposeContainer envAux;
 
+    public EnvSetup(TestFrameworkCoreProperties coreProperties) {
+        super(coreProperties);
+    }
+
     @Override
-    public void initialize() {
-        if (customProperties.isUseCustomEnv()) {
-            log.warn("Using custom environment. Docker compose is not used.");
-        } else {
-            envSs0 = createSSEnvironment("ss0", false);
+    public void init() {
+        envSs0 = createSSEnvironment("ss0", false);
 
-            envSs1 = createSSEnvironment("ss1", true);
+        envSs1 = createSSEnvironment("ss1", true);
 
-            envAux = new ComposeContainer("aux-", new File(COMPOSE_AUX_FILE))
-                    .withLocalCompose(true)
-                    .withExposedService(CS, Port.UI, forListeningPort())
-                    .withEnv("CA_IMG", customProperties.getCaImage())
-                    .withEnv("IS_OPENAPI_IMG", customProperties.getIsopenapiImage())
-                    .withEnv("IS_SOAP_IMG", customProperties.getIssoapImage())
-                    .withEnv("PROXY_UI_0", getContainerName(envSs0, UI))
-                    .withEnv("PROXY_0", getContainerName(envSs0, PROXY))
-                    .withEnv("PROXY_UI_1", getContainerName(envSs1, UI))
-                    .withEnv("PROXY_1", getContainerName(envSs1, PROXY))
-                    .withLogConsumer(HURL, createLogConsumer("aux", HURL))
-                    .withLogConsumer(CS, createLogConsumer("aux", CS))
-                    .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
-            envAux.start();
+        envAux = new ComposeContainer("aux-", getComposeFilePath(COMPOSE_AUX_FILE))
 
-            waitForHurl();
-        }
+                .withExposedService(CS, Port.UI, forListeningPort())
+                .withEnv("PROXY_UI_0", getContainerName(envSs0, UI))
+                .withEnv("PROXY_0", getContainerName(envSs0, PROXY))
+                .withEnv("PROXY_UI_1", getContainerName(envSs1, UI))
+                .withEnv("PROXY_1", getContainerName(envSs1, PROXY))
+                .withLogConsumer(HURL, createLogConsumer("aux", HURL))
+                .withLogConsumer(CS, createLogConsumer("aux", CS))
+                .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
+        envAux.start();
+
+        waitForHurl();
+    }
+
+    @Override
+    protected ComposeContainer initEnv() {
+        return null;
     }
 
     private void connectToExternalNetwork(ComposeContainer env, String... serviceNames) {
@@ -121,11 +114,11 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
     private ComposeContainer createSSEnvironment(String name, boolean enableHsm) {
         var files = enableHsm
-                ? new File[]{new File(COMPOSE_SS_FILE), new File(COMPOSE_SS_E2E_FILE), new File(COMPOSE_SS_HSM_FILE)}
-                : new File[]{new File(COMPOSE_SS_FILE), new File(COMPOSE_SS_E2E_FILE)};
+                ? new File[]{getComposeFilePath(COMPOSE_SS_FILE), getComposeFilePath(COMPOSE_SS_E2E_FILE),
+                getComposeFilePath(COMPOSE_SS_HSM_FILE)}
+                : new File[]{getComposeFilePath(COMPOSE_SS_FILE), getComposeFilePath(COMPOSE_SS_E2E_FILE)};
 
         var env = new ComposeContainer(name + "-", files)
-                .withLocalCompose(true)
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
@@ -141,13 +134,13 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         return env;
     }
 
+    private File getComposeFilePath(String fileName) {
+        return new File(coreProperties.resourceDir() + fileName);
+    }
+
     private String getContainerName(ComposeContainer env, String container) {
         return env.getContainerByServiceName(container)
                 .map(c -> c.getContainerInfo().getName().substring(1)).orElseThrow();
-    }
-
-    private Slf4jLogConsumer createLogConsumer(String env, String containerName) {
-        return new Slf4jLogConsumer(new ComposeLoggerFactory().create("%s-%s".formatted(env, containerName)));
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
@@ -169,32 +162,22 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     }
 
     public void destroy() {
-        if (!customProperties.isUseCustomEnv()) {
+        if (envSs0 != null) {
             envSs0.stop();
+        }
+        if (envSs1 != null) {
             envSs1.stop();
+        }
+        if (envAux != null) {
             envAux.stop();
         }
     }
 
     public Optional<ContainerState> getContainerByServiceName(String env, String serviceName) {
-        if (customProperties.isUseCustomEnv()) {
-            return Optional.empty();
-        }
         return mapEnvironment(env).getContainerByServiceName(serviceName);
     }
 
     public ContainerMapping getContainerMapping(String env, String serviceName, int originalPort) {
-        if (customProperties.isUseCustomEnv()) {
-            // todo should be refactored if needed
-            String key = serviceName + "_" + originalPort;
-            var mappedValue = customProperties.getCustomEnvMapping().get(key);
-            if (mappedValue == null) {
-                throw new IllegalArgumentException("No mapping found for " + key);
-            }
-            var splittedStr = mappedValue.split("_");
-            return new ContainerMapping(splittedStr[0], Integer.parseInt(splittedStr[1]));
-        }
-
         ComposeContainer environment = mapEnvironment(env);
         return new ContainerMapping(
                 environment.getServiceHost(serviceName, originalPort),
@@ -211,6 +194,10 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         };
     }
 
-    public record ContainerMapping(String host, int port) {
+    public static class Port {
+        public static final int UI = 4000;
+        public static final int PROXY = 8080;
+        public static final int DB = 5432;
+
     }
 }

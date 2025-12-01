@@ -25,22 +25,30 @@
  */
 package org.niis.xroad.e2e;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.niis.xroad.test.framework.core.BaseConsoleTestRunner;
 
-import java.util.Map;
+public class ConsoleE2ETestRunner extends BaseConsoleTestRunner {
 
-@Getter
-@Setter
-@Component
-@ConfigurationProperties(prefix = "test-automation.custom")
-public class CustomProperties {
-    private boolean useCustomEnv;
-    private Map<String, String> customEnvMapping;
+    public static void main(String[] args) {
+        new ConsoleE2ETestRunner().run();
+    }
 
-    private String caImage;
-    private String isopenapiImage;
-    private String issoapImage;
+    @Override
+    protected String getTestClassName() {
+        return E2EBehavioralTest.class.getName();
+    }
+
+    @Override
+    protected String[] getResourcesToExtract() {
+        return new String[]{
+                "compose.aux.yaml",
+                "compose.main.yaml",
+                "compose.e2e.yaml",
+                "compose.ss-hsm.e2e.yaml",
+                ".env",
+                "wiremock_mappings/",
+                "signer-with-hsm/",
+                "hurl/"
+        };
+    }
 }

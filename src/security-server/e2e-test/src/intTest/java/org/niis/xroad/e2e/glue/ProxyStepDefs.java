@@ -31,9 +31,9 @@ import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponseOptions;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.niis.xroad.e2e.container.EnvSetup;
-import org.niis.xroad.e2e.container.Port;
-import org.niis.xroad.e2e.container.service.TestDatabaseService;
+import org.niis.xroad.e2e.EnvSetup;
+import org.niis.xroad.e2e.database.TestDatabaseService;
+import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
@@ -46,7 +46,6 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.XmlConfig.xmlConfig;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,16 +54,20 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 
 @SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
 public class ProxyStepDefs extends BaseE2EStepDefs {
+    private static final String HEADER_CLIENT_ID = "x-road-client";
+
     @Autowired
     private EnvSetup envSetup;
     @Autowired
     private TestDatabaseService testDatabaseService;
+    @Autowired
+    private TestFrameworkCoreProperties coreProperties;
 
     private ValidatableResponseOptions<?, ?> response;
 
     @Step("SOAP request is sent to {string} {string}")
     public void requestSoapIsSentToProxy(String env, String service, DocString docString) {
-        var mapping = envSetup.getContainerMapping(env, service, Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
 
         response = given()
                 .config(RestAssured.config()
@@ -93,7 +96,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("REST request is sent to {string} {string}")
     public void requestRestIsSentToProxy(String env, String service, DocString docString) {
-        var mapping = envSetup.getContainerMapping(env, service, Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
 
         response = given()
                 .body(docString.getContent())
@@ -105,7 +108,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("REST request targeted at {string} API endpoint is sent to {string} {string}")
     public void requestOpenapiRestIsSentToProxy(String apiEndpoint, String env, String service) {
-        var mapping = envSetup.getContainerMapping(env, service, Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
 
         response = given()
                 .header(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -123,7 +126,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
     @Step("{string}'s {string} service has {int} messagelogs present in the archives")
     public void serviceHasMessagelogArchivePresent(String env, String service, int expectedMessagelogCount)
             throws IOException, InterruptedException {
-        var localCompressedArchivesPath = "build/tmp/e2eTest/messagelog-archives.tar.gz";
+        var localCompressedArchivesPath = coreProperties.resourceDir() + "messagelog-archives.tar.gz";
         var container = envSetup.getContainerByServiceName(env, service).orElseThrow();
         container.execInContainer("tar", "czf", "/tmp/messagelog-archives.tar.gz", "-C", "/var/lib/xroad", ".");
         container.copyFileFromContainer("/tmp/messagelog-archives.tar.gz", localCompressedArchivesPath);
@@ -138,7 +141,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                 }
                 assertThat(entry.getName()).matches("\\./mlog-.*\\.zip");
                 try (ByteArrayInputStream bais = new ByteArrayInputStream(tis.readAllBytes());
-                        ZipInputStream zis = new ZipInputStream(bais)) {
+                     ZipInputStream zis = new ZipInputStream(bais)) {
                     ZipEntry archiveEntry;
                     while ((archiveEntry = zis.getNextEntry()) != null) {
                         if (archiveEntry.getName().equals("linkinginfo")) {

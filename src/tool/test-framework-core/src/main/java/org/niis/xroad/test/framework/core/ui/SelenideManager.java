@@ -46,8 +46,13 @@ public class SelenideManager {
         var stopWatch = StopWatch.createStarted();
 
         if (Selenide.webdriver().driver().hasWebDriverStarted()) {
-            Selenide.clearBrowserCookies();
-            Selenide.clearBrowserLocalStorage();
+            try {
+                Selenide.clearBrowserCookies();
+                Selenide.clearBrowserLocalStorage();
+                Selenide.sessionStorage().clear();
+            } catch (Exception e) {
+                log.warn("Failed to clear browser storage", e);
+            }
             log.debug("Clearing Selenide browser cookies and storage took {} ms", stopWatch.getTime());
         }
 
