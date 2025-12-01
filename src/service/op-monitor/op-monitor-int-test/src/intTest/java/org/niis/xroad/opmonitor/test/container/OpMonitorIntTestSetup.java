@@ -25,12 +25,11 @@
  */
 package org.niis.xroad.opmonitor.test.container;
 
-import com.nortal.test.testcontainers.TestableContainerInitializer;
-import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
+import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
+import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
@@ -40,42 +39,29 @@ import static ee.ria.xroad.common.PortNumbers.OP_MONITOR_DAEMON_GRPC_PORT;
 
 @Primary
 @Service
-public class OpMonitorIntTestSetup implements TestableContainerInitializer {
+public class OpMonitorIntTestSetup extends BaseComposeSetup {
 
     private static final Duration OP_MONITOR_STARTUP_TIMEOUT = Duration.ofSeconds(45);
     public static final String OP_MONITOR = "op-monitor";
     public static final String DB_OP_MONITOR = "db-opmonitor";
     public static final String DB_OP_MONITOR_INIT = "db-opmonitor-init";
     public static final Integer DB_OP_MONITOR_PORT = 5432;
-    private static final String COMPOSE_FILE = "build/resources/intTest/compose.intTest.yaml";
-    private ComposeContainer env;
+    private static final String COMPOSE_FILE = "/compose.intTest.yaml";
+
+    public OpMonitorIntTestSetup(TestFrameworkCoreProperties coreProperties) {
+        super(coreProperties);
+    }
 
     @Override
-    public void initialize() {
-        env = new ComposeContainer("op-monitor-",
-                new File(COMPOSE_FILE))
-                .withLocalCompose(true)
+    protected ComposeContainer initEnv() {
+        return new ComposeContainer("op-monitor-",
+                new File(coreProperties.resourceDir() + COMPOSE_FILE))
                 .withExposedService(OP_MONITOR,
                         OP_MONITOR_DAEMON_GRPC_PORT,
                         Wait.forHealthcheck().withStartupTimeout(OP_MONITOR_STARTUP_TIMEOUT))
                 .withExposedService(DB_OP_MONITOR, DB_OP_MONITOR_PORT, Wait.forListeningPort())
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR))
                 .withLogConsumer(DB_OP_MONITOR_INIT, createLogConsumer(DB_OP_MONITOR_INIT));
-
-        env.start();
     }
 
-    private Slf4jLogConsumer createLogConsumer(String containerName) {
-        return new Slf4jLogConsumer(new ComposeLoggerFactory().create("%s-".formatted(containerName)));
-    }
-
-    public ContainerMapping getContainerMapping(String service, int originalPort) {
-        return new ContainerMapping(
-                env.getServiceHost(service, originalPort),
-                env.getServicePort(service, originalPort)
-        );
-    }
-
-    public record ContainerMapping(String host, int port) {
-    }
 }

@@ -30,7 +30,6 @@ package org.niis.xroad.opmonitor.test.glue;
 import io.cucumber.java.en.Step;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.test.container.OpMonitorClientHolder;
@@ -45,7 +44,7 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 
-public class OpMonitorStepDefs extends BaseStepDefs {
+public class OpMonitorStepDefs {
 
     @Autowired
     protected OpMonitorClientHolder clientHolder;

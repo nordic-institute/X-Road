@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,29 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.test.api;
+package org.niis.xroad.opmonitor.test;
 
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.multipart.MultipartFile;
+import org.niis.xroad.test.framework.core.BaseConsoleTestRunner;
 
-public interface TestCaFeignApi {
+public class ConsoleIntTestRunner extends BaseConsoleTestRunner {
 
-    @PostMapping(value = "/sign", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<byte[]> signCert(
-            @RequestPart("certreq") MultipartFile certReq,
-            @RequestParam("type") CsrType type
-    );
+    public static void main(String[] args) {
+        new ConsoleIntTestRunner().run();
+    }
 
-    enum CsrType {
-        SIGN, AUTH, AUTO;
+    @Override
+    protected String getTestClassName() {
+        return OpMonitorIntTest.class.getName();
+    }
 
-        @Override
-        public String toString() {
-            return name().toLowerCase();
-        }
+    @Override
+    protected String[] getResourcesToExtract() {
+        return new String[]{
+                "compose.intTest.yaml",
+                ".env",
+                "container-container-files/",
+                "test-data/"
+        };
     }
 }
