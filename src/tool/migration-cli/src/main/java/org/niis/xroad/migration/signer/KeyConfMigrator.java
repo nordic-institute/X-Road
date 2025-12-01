@@ -240,8 +240,8 @@ public class KeyConfMigrator {
      */
     private byte[] hashPin(char[] pin) {
         var params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
-                .withIterations(3)
-                .withMemoryAsKB(12)
+                .withIterations(4)
+                .withMemoryAsKB(19456)
                 .withParallelism(4)
                 .build();
         byte[] pinBytes = new String(pin).getBytes(StandardCharsets.UTF_8);
