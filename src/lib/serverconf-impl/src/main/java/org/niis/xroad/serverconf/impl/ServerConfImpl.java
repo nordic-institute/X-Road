@@ -55,7 +55,7 @@ import org.apache.commons.lang3.Strings;
 import org.hibernate.Session;
 import org.hibernate.SharedSessionContract;
 import org.niis.xroad.common.CostType;
-import org.niis.xroad.common.CostTypeSorter;
+import org.niis.xroad.common.CostTypePrioritizer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -367,12 +367,12 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public List<String> getOrderedTspUrls() {
         return tx(session -> {
-            CostTypeSorter<TimestampingService> sorter =
-                    new CostTypeSorter<>(getConf(session).getTimestampingServices());
+            CostTypePrioritizer<TimestampingService> sorter =
+                    new CostTypePrioritizer<>(getConf(session).getTimestampingServices());
             SystemProperties.ServicePrioritizationStrategy prioritizationStrategy =
                     SystemProperties.getTimestampingPrioritizationStrategy();
             log.debug("Timestamping urls will be sorted based on prioritization strategy: {}", prioritizationStrategy);
-            return sorter.sort(prioritizationStrategy);
+            return sorter.prioritize(prioritizationStrategy);
         });
     }
 

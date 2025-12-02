@@ -44,7 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.CostType;
-import org.niis.xroad.common.CostTypeSorter;
+import org.niis.xroad.common.CostTypePrioritizer;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
@@ -76,7 +76,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
@@ -295,12 +295,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException {
         List<SharedParameters.OcspInfo> sharedParamsOcspResponders = getSharedParamsOcspResponders(member);
-        List<String> ocspResponderUrls = getOrderedSharedParamsOcspResponderUrls(sharedParamsOcspResponders);
+        Stream<String> ocspResponderUrls = getOrderedSharedParamsOcspResponderUrls(sharedParamsOcspResponders);
         String uri = CertUtils.getOcspResponderUriFromCert(member);
-        if (uri != null) {
-            ocspResponderUrls.add(uri.trim());
-        }
-        return ocspResponderUrls;
+        return Stream.concat(
+                ocspResponderUrls,
+                Optional.ofNullable(uri).map(String::trim).stream()
+        ).toList();
     }
 
     private List<SharedParameters.OcspInfo> getSharedParamsOcspResponders(X509Certificate member)
@@ -326,17 +326,17 @@ public class GlobalConfImpl implements GlobalConfProvider {
         return sharedParamsOcspResponders;
     }
 
-    private List<String> getOrderedSharedParamsOcspResponderUrls(List<SharedParameters.OcspInfo> responders) {
+    private Stream<String> getOrderedSharedParamsOcspResponderUrls(List<SharedParameters.OcspInfo> responders) {
         OptionalInt gcVersion = getVersion();
         boolean globalConfSupportsCostTypes = gcVersion.isPresent() && gcVersion.getAsInt() >= GLOBAL_CONF_VERSION_WITH_COST_TYPE;
 
         if (globalConfSupportsCostTypes) {
-            CostTypeSorter<SharedParameters.OcspInfo> sorter = new CostTypeSorter<>(responders);
+            CostTypePrioritizer<SharedParameters.OcspInfo> sorter = new CostTypePrioritizer<>(responders);
             SystemProperties.ServicePrioritizationStrategy prioritizationStrategy = SystemProperties.getOcspPrioritizationStrategy();
             log.debug("OCSP responder urls will be sorted based on prioritization strategy: {}", prioritizationStrategy);
-            return sorter.sort(prioritizationStrategy);
+            return sorter.prioritize(prioritizationStrategy).stream();
         } else {
-            return responders.stream().map(SharedParameters.OcspInfo::getUrl).collect(Collectors.toList());
+            return responders.stream().map(SharedParameters.OcspInfo::getUrl);
         }
     }
 
@@ -716,7 +716,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 .filter(instance -> !localInstance.equals(instance))
                 .filter(sourceFilter::shouldDownloadConfigurationFor)
                 .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     @Override

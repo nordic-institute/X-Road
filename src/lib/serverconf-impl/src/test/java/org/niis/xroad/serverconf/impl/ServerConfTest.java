@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -344,46 +345,47 @@ public class ServerConfTest {
         System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.ONLY_FREE.name());
         List<String> tspUrls = serverConfProvider.getOrderedTspUrls();
-        assertEquals(2, tspUrls.size());
-        assertEquals("tspUrl1", tspUrls.get(0));
-        assertEquals("tspUrl4", tspUrls.get(1));
+        assertThat(tspUrls).containsExactly(
+                "tspUrl1",
+                "tspUrl4");
 
         System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.FREE_FIRST.name());
         tspUrls = serverConfProvider.getOrderedTspUrls();
-        assertEquals(5, tspUrls.size());
-        assertEquals("tspUrl1", tspUrls.get(0));
-        assertEquals("tspUrl4", tspUrls.get(1));
-        assertEquals("tspUrl0", tspUrls.get(2));
-        assertEquals("tspUrl3", tspUrls.get(3));
-        assertEquals("tspUrl2", tspUrls.get(4));
+        assertThat(tspUrls).containsExactly(
+                "tspUrl1",
+                "tspUrl4",
+                "tspUrl0",
+                "tspUrl3",
+                "tspUrl2");
 
         System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.ONLY_PAID.name());
         tspUrls = serverConfProvider.getOrderedTspUrls();
-        assertEquals(2, tspUrls.size());
-        assertEquals("tspUrl0", tspUrls.get(0));
-        assertEquals("tspUrl3", tspUrls.get(1));
+        assertThat(tspUrls).containsExactly(
+                "tspUrl0",
+                "tspUrl3");
+
 
         System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.PAID_FIRST.name());
         tspUrls = serverConfProvider.getOrderedTspUrls();
-        assertEquals(5, tspUrls.size());
-        assertEquals("tspUrl0", tspUrls.get(0));
-        assertEquals("tspUrl3", tspUrls.get(1));
-        assertEquals("tspUrl1", tspUrls.get(2));
-        assertEquals("tspUrl4", tspUrls.get(3));
-        assertEquals("tspUrl2", tspUrls.get(4));
+        assertThat(tspUrls).containsExactly(
+                "tspUrl0",
+                "tspUrl3",
+                "tspUrl1",
+                "tspUrl4",
+                "tspUrl2");
 
         System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.NONE.name());
         tspUrls = serverConfProvider.getOrderedTspUrls();
-        assertEquals(5, tspUrls.size());
-        assertEquals("tspUrl0", tspUrls.get(0));
-        assertEquals("tspUrl1", tspUrls.get(1));
-        assertEquals("tspUrl2", tspUrls.get(2));
-        assertEquals("tspUrl3", tspUrls.get(3));
-        assertEquals("tspUrl4", tspUrls.get(4));
+        assertThat(tspUrls).containsExactly(
+                "tspUrl0",
+                "tspUrl1",
+                "tspUrl2",
+                "tspUrl3",
+                "tspUrl4");
     }
 
     @Test
