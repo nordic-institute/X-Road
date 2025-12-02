@@ -128,14 +128,14 @@ public class DiagnosticConnectionService {
         ));
 
         var allowedFederationInstances = globalConfProvider.getAllowedFederationInstances();
-        allowedFederationInstances
-                .forEach(allowedFederationInstance -> {
-                    downloadUrls.addAll(
-                            getDownloadUrls(
-                                    globalConfProvider.getSourceAddresses(allowedFederationInstance),
-                                    globalConfProvider.getConfigurationDirectoryPath(allowedFederationInstance
-                                    )));
-                });
+        allowedFederationInstances.forEach(allowedFederationInstance ->
+                downloadUrls.addAll(
+                        getDownloadUrls(
+                                globalConfProvider.getSourceAddresses(allowedFederationInstance),
+                                globalConfProvider.getConfigurationDirectoryPath(allowedFederationInstance)
+                        )
+                )
+        );
 
         return downloadUrls.stream()
                 .map(this::checkAndGetConnectionStatus)
@@ -143,13 +143,12 @@ public class DiagnosticConnectionService {
     }
 
     private static List<URL> getDownloadUrls(Set<String> addresses, String configurationDirectory) {
-        var vastus = addresses.stream()
+        return addresses.stream()
                 .flatMap(address -> Stream.of(
                         getUrl(HTTP, address, PORT_80, configurationDirectory),
                         getUrl(HTTPS, address, PORT_443, configurationDirectory)
                 ))
                 .toList();
-        return vastus;
     }
 
     private static String getCenterInternalDirectory() {
