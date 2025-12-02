@@ -21,58 +21,59 @@ on:
         type: string
 
 jobs:
-  test-security-server:
-    name: Run Security Server system tests
+  test-ss-system:
+    name: SS System Tests
     runs-on: ubuntu-24.04
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: start-measurement
-          label: 'Security Server system tests'
+          label: 'ss-system-test'
 
       - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Setup build environment
-        uses: ./.github/actions/setup-build-env
+      - name: Download ss-system-test
+        uses: actions/download-artifact@v4
         with:
-          gradle-cache-read-only: true
-          free-disk-space: false
+          name: ss-system-test-jar
 
-      - name: Login to GitHub Container Registry
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Security Server test setup measurement
+      - name: Setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
-          label: 'Set up Security Server tests'
+          label: 'ss-system-test setup'
 
-      - name: Run Security Server system tests
-        working-directory: ./src
-        run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx2g :security-server:system-test:systemTest \
-            -PxroadImageRegistry=${{ inputs.image_registry }} \
-            -PxroadImageTag=${{ inputs.service_image_tag }}
+      - name: Run ss-system-test
+        run: java -jar security-server-system-test.jar
 
-      - name: Log storage after tests
+      - name: Log storage
         if: always()
         uses: ./.github/actions/log-storage
         with:
-          label: 'Storage After Security Server Tests'
+          label: 'ss-system-test storage'
           show-docker-images: 'true'
 
-      - name: Test Security Server measurement
+      - name: Test measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
         with:
           task: get-measurement
-          label: 'Test Security Server'
+          label: 'ss-system-test'
 
       - name: Test report
         env:
@@ -80,20 +81,20 @@ jobs:
         uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
-          name: Security Server system tests
-          path: src/security-server/system-test/build/test-results/**/TEST-*.xml
+          name: ss-system-test
+          path: test-framework-working-dir/test-results/TEST-*.xml
           reporter: java-junit
 
-      - name: Upload SS report
-        uses: actions/upload-artifact@v5
-        if: failure()
+      - name: Upload ss-system-test report
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: SS System Test report
+          name: ss-system-test-report
           path: |
-            src/security-server/system-test/build/a2c_logs/
-            src/security-server/system-test/build/allure-report/
-            src/security-server/system-test/build/container-logs/
-            src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
+            test-framework-working-dir/allure-results/
+            test-framework-working-dir/container-logs/
+            test-framework-working-dir/test-automation-exec.log
+            test-framework-working-dir/selenide-failures/*.png
 
       - name: Show Energy Results
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
