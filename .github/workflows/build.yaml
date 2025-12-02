@@ -32,7 +32,7 @@ concurrency:
 
 jobs:
   build-and-package:
-    name: Build, test and package code
+    name: build & package
     uses: ./.github/workflows/_build-and-package.yml
     secrets: inherit
     with:
@@ -40,7 +40,7 @@ jobs:
       sha: ${{ github.sha }}
 
   test-central-server:
-    name: Run Central Server system tests
+    name: cs-system-tests
     needs: build-and-package
     uses: ./.github/workflows/_test-central-server.yml
     secrets: inherit
@@ -51,7 +51,7 @@ jobs:
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
   test-security-server:
-    name: Run Security Server system tests
+    name: ss-system-tests
     needs: build-and-package
     uses: ./.github/workflows/_test-security-server.yml
     secrets: inherit
@@ -62,7 +62,7 @@ jobs:
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
   test-e2e:
-    name: Run E2E tests
+    name: e2e-tests
     needs: build-and-package
     uses: ./.github/workflows/_test-e2e.yml
     secrets: inherit
@@ -73,7 +73,7 @@ jobs:
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
   test-services:
-    name: Run Service integration tests
+    name: service-int-tests
     needs: build-and-package
     uses: ./.github/workflows/_test-services.yml
     secrets: inherit

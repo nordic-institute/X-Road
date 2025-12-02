@@ -22,7 +22,7 @@ on:
 
 jobs:
   test-cs-system:
-    name: CS System Tests
+    name: cs-system-test
     runs-on: ubuntu-24.04
     steps:
       - name: Start Measurement

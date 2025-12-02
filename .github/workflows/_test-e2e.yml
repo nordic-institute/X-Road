@@ -22,7 +22,7 @@ on:
 
 jobs:
   test-e2e:
-    name: E2E Tests
+    name: e2e-test
     runs-on: ubuntu-24.04
     steps:
       - name: Start Measurement
