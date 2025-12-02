@@ -163,15 +163,6 @@ case "$1" in
 
   prepare_tls_settings
 
-  # Keep batch signatures enabled for upgrades from version < 8.0.0
-  # todo: do not edit local.yaml file, should be moved to migration scripts
-  if dpkg --compare-versions "$2" lt-nl "8.0.0"; then
-    CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
-    if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.batch-signing-enabled') ]]; then
-      /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.batch-signing-enabled" "true"
-    fi
-  fi
-
   db_stop
 
   invoke-rc.d --quiet rsyslog try-restart || true

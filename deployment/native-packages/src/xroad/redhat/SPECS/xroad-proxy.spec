@@ -156,19 +156,6 @@ if [ $1 -gt 1 ] ; then
     if [ ! -e /etc/sysconfig/xroad-proxy ]; then
         echo 'DISABLE_PORT_REDIRECT=false' >>/etc/sysconfig/xroad-proxy
     fi
-
-    prev_version=$(cat %{_localstatedir}/lib/rpm-state/%{name}/prev-version)
-
-    # Keep batch signatures enabled for upgrades from version < 8.0.0
-    # todo: do not edit local.yaml file, should be moved to migration scripts
-    if ! echo -e "8.0.0\n$prev_version" | sort -V -C; then
-        CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
-        if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.batch-signing-enabled') ]]; then
-            /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.batch-signing-enabled" "true"
-        fi
-    fi
-
-    rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :
 fi
 
 # create TLS certificate provisioning properties
