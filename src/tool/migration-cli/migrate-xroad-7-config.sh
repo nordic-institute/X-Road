@@ -48,7 +48,7 @@ save_value_to_db() {
 
 
 keep_batch_signatures() {
-  read -p "Keep batch signing enabled (disabled by default)? [y/N]" confirm
+  read -p "Keep batch signing enabled (disabled by default)? [y/N] " confirm
   case "$confirm" in
     [yY][eE][sS]|[yY])
       save_value_to_db "xroad.proxy.batch-signing-enabled" "true"
