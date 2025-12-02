@@ -24,6 +24,7 @@ jobs:
   test-signer:
     name: signer-int-test
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -104,6 +105,7 @@ jobs:
   test-opmonitor:
     name: opmonitor-int-test
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -184,6 +186,7 @@ jobs:
   test-cs-admin:
     name: cs-admin-int-test
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -257,6 +260,7 @@ jobs:
   test-cs-management:
     name: cs-management-int-test
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Start Measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0

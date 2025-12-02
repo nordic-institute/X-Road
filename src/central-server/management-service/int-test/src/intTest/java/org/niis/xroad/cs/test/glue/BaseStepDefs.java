@@ -141,6 +141,10 @@ public abstract class BaseStepDefs {
         try {
             responseEntity = managementRequestsApi.addManagementRequest(payload.getContentType(), payload.getPayload());
         } catch (FeignException e) {
+            if (e.status() <= 0) {
+                log.error("Feign client failed to connect to management request endpoint.", e);
+                throw new AssertionFailedError("Feign client failed to connect to management request endpoint.", e);
+            }
             responseEntity = ResponseEntity
                     .status(e.status())
                     .body(new NamedByteArrayResource(e.contentUTF8().getBytes(StandardCharsets.UTF_8), "error-response"));

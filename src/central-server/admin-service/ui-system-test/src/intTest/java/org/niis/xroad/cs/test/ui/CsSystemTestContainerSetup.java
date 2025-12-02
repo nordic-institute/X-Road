@@ -39,7 +39,7 @@ import java.time.Duration;
 
 @Component
 public class CsSystemTestContainerSetup extends BaseComposeSetup {
-    private static final Duration STARTUP_TIMEOUT = Duration.ofSeconds(45);
+    private static final Duration STARTUP_TIMEOUT = Duration.ofSeconds(90);
 
     public static final String CS = "cs";
 
