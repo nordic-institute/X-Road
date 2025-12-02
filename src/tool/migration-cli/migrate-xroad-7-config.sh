@@ -24,7 +24,7 @@ migrate_file() {
   local property_key="$5"
 
   if [[ -f "$file" ]]; then
-    read -p "$description ($file) exists. Migrate? [y/N]" confirm
+    read -p "$description ($file) exists. Migrate? [y/N] " confirm
     case "$confirm" in
       [yY][eE][sS]|[yY])
         java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration."$class" "$file" \
