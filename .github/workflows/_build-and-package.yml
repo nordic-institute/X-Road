@@ -159,49 +159,49 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: signer-int-test-jar
-          path: src/service/signer/signer-int-test/build/libs/signer-int-test.jar
+          path: src/service/signer/signer-int-test/build/libs/signer-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload opmonitor-int-test
         uses: actions/upload-artifact@v4
         with:
           name: opmonitor-int-test-jar
-          path: src/service/op-monitor/op-monitor-int-test/build/libs/opmonitor-int-test.jar
+          path: src/service/op-monitor/op-monitor-int-test/build/libs/opmonitor-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload cs-admin-int-test
         uses: actions/upload-artifact@v4
         with:
           name: cs-admin-int-test-jar
-          path: src/central-server/admin-service/int-test/build/libs/central-server-admin-int-test.jar
+          path: src/central-server/admin-service/int-test/build/libs/central-server-admin-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload cs-management-int-test
         uses: actions/upload-artifact@v4
         with:
           name: cs-management-int-test-jar
-          path: src/central-server/management-service/int-test/build/libs/central-server-management-int-test.jar
+          path: src/central-server/management-service/int-test/build/libs/central-server-management-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload ss-system-test
         uses: actions/upload-artifact@v4
         with:
           name: ss-system-test-jar
-          path: src/security-server/system-test/build/libs/security-server-system-test.jar
+          path: src/security-server/system-test/build/libs/security-server-system-test-1.0.jar
           compression-level: '0'
 
       - name: Upload cs-system-test
         uses: actions/upload-artifact@v4
         with:
           name: cs-system-test-jar
-          path: src/central-server/admin-service/ui-system-test/build/libs/central-server-system-test.jar
+          path: src/central-server/admin-service/ui-system-test/build/libs/central-server-system-test-1.0.jar
           compression-level: '0'
 
       - name: Upload e2e-test
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-jar
-          path: src/security-server/e2e-test/build/libs/e2e-test.jar
+          path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
           compression-level: '0'
 
       - name: Log storage after build

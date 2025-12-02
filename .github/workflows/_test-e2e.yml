@@ -62,7 +62,7 @@ jobs:
       - name: Run e2e-test
         run: |
           docker network create xroad-network
-          java -jar e2e-test.jar
+          java -jar e2e-test-1.0.jar
 
       - name: Log storage
         if: always()

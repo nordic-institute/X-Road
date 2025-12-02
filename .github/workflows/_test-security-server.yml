@@ -60,7 +60,7 @@ jobs:
           label: 'ss-system-test setup'
 
       - name: Run ss-system-test
-        run: java -jar security-server-system-test.jar
+        run: java -jar security-server-system-test-1.0.jar
 
       - name: Log storage
         if: always()

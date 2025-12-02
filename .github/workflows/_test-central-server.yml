@@ -60,7 +60,7 @@ jobs:
           label: 'cs-system-test setup'
 
       - name: Run cs-system-test
-        run: java -jar central-server-system-test.jar
+        run: java -jar central-server-system-test-1.0.jar
 
       - name: Log storage
         if: always()

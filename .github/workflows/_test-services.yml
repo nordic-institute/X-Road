@@ -60,7 +60,7 @@ jobs:
           label: 'signer-int-test setup'
 
       - name: Run signer-int-test
-        run: java -jar signer-int-test.jar
+        run: java -jar signer-int-test-1.0.jar
 
       - name: Log storage
         if: always()
@@ -140,7 +140,7 @@ jobs:
           label: 'opmonitor-int-test setup'
 
       - name: Run opmonitor-int-test
-        run: java -jar opmonitor-int-test.jar
+        run: java -jar opmonitor-int-test-1.0.jar
 
       - name: Log storage
         if: always()
@@ -220,7 +220,7 @@ jobs:
           label: 'cs-admin-int-test setup'
 
       - name: Run cs-admin-int-test
-        run: java -jar central-server-admin-int-test.jar
+        run: java -jar central-server-admin-int-test-1.0.jar
 
       - name: Test measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
@@ -293,7 +293,7 @@ jobs:
           label: 'cs-management-int-test setup'
 
       - name: Run cs-management-int-test
-        run: java -jar central-server-management-int-test.jar
+        run: java -jar central-server-management-int-test-1.0.jar
 
       - name: Test measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
