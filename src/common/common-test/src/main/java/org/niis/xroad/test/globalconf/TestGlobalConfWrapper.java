@@ -282,13 +282,18 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> getSourceAddresses() {
+    public Set<String> getSourceAddresses(String instanceIdentifier) {
         return Set.of();
     }
 
     @Override
-    public Set<String> getAllowedFederationSourceAddresses() {
+    public Set<String> getAllowedFederationInstances() {
         return Set.of();
+    }
+
+    @Override
+    public String getConfigurationDirectoryPath(String instanceIdentifier) {
+        return "";
     }
 
     @Override
