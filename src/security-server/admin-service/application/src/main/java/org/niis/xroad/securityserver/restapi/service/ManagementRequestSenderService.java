@@ -71,7 +71,9 @@ public class ManagementRequestSenderService {
         try {
             return sender.sendAuthCertRegRequest(currentSecurityServerId.getServerId(), address, authCert, dryRun);
         } catch (Exception e) {
-            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            if (!dryRun) {
+                log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            }
             if (e instanceof CodedException) {
                 throw (CodedException) e;
             }

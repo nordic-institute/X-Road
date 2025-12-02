@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,17 +24,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.core;
+package org.niis.xroad.securityserver.restapi.dto;
 
-/**
- * A small interface for deciding if the additional configuration for a given X-Road instance should be downloaded.
- * Not downloading the configuration prevents federation with that instance for this security server.
- */
-public interface FederationConfigurationSourceFilter {
-
-    /**
-     * @param instanceIdentifier the instance identifier of an existing federation partner
-     * @return <code>true</code> if the configuration should be downloaded, <code>false</code> otherwise
-     */
-    boolean shouldDownloadConfigurationFor(String instanceIdentifier);
+public enum ServiceProtocolType {
+    REST, SOAP
 }

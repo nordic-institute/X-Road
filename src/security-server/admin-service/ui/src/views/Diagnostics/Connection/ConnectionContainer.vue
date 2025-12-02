@@ -28,18 +28,69 @@
 
     <ConnectionCentralServerView class="mt-0" />
 
+    <XrdEmptyPlaceholder
+      :data="xRoadInstances"
+      :loading="loading"
+      :no-items-text="$t('noData.noData')"
+      skeleton-type="table-heading"
+      :skeleton-count="2"
+    />
+
+    <template v-if="!loading">
+      <ConnectionSecurityServerView class="mt-0" />
+      <ConnectionManagementView class="mt-0" />
+    </template>
+
   </XrdTitledView>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { XrdTitledView } from '@niis/shared-ui';
-import ConnectionCentralServerView from "@/views/Diagnostics/Connection/CentralServerConnectionTestingView.vue";
+import ConnectionCentralServerView from "@/views/Diagnostics/Connection/ConnectionCentralServerView.vue";
+import ConnectionSecurityServerView from "@/views/Diagnostics/Connection/ConnectionSecurityServerView.vue";
+import ConnectionManagementSSView from "@/views/Diagnostics/Connection/ConnectionManagementView.vue";
+import ConnectionManagementView from "@/views/Diagnostics/Connection/ConnectionManagementView.vue";
+import { mapActions, mapState } from "pinia";
+import { useGeneral } from "@/store/modules/general";
+import { useClients } from "@/store/modules/clients";
 
 export default defineComponent({
+  name: 'ConnectionTestingView',
   components: {
+    ConnectionManagementView,
+    ConnectionManagementSSView,
+    ConnectionSecurityServerView,
     XrdTitledView,
     ConnectionCentralServerView
   },
+
+  data() {
+    return {
+      loading: false
+    }
+  },
+
+  computed: {
+    ...mapState(useGeneral, ['xRoadInstances']),
+  },
+
+  async created() {
+    this.loading = true
+    try {
+      await Promise.all([
+        this.fetchXRoadInstances(),
+        this.fetchClients(),
+      ])
+
+    } finally {
+      this.loading = false
+    }
+  },
+
+  methods: {
+    ...mapActions(useGeneral, ['fetchXRoadInstances']),
+    ...mapActions(useClients, ['fetchClients'])
+  }
 });
 </script>

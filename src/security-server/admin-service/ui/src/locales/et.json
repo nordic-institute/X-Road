@@ -331,11 +331,24 @@
       "ok": "Kõik on korras",
       "test": "Test",
       "centralServer": {
-        "title": "Keskserver",
+        "authCertRequest": "Autentimise sertifikaadi registreerimise teenus",
         "globalConf": "Globaalse konfiguratsiooni allalaadimine",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Autentimise sertifikaadid registreerimise teenus"
+        "title": "Keskserver"
+      },
+      "management": {
+        "title": "Haldusteenuse pakkuja"
+      },
+      "securityServer": {
+        "client": "Klient",
+        "sourceClient": "Lähteklient",
+        "rest": "REST",
+        "securityServer":  "Turvaserver",
+        "soap": "SOAP",
+        "title": "Teine turvaserver",
+        "target": "Teine klient",
+        "targetClient": "Klient"
       }
     }
   },

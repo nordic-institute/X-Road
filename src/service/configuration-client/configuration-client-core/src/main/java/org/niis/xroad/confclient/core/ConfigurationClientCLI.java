@@ -33,6 +33,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
+import org.niis.xroad.globalconf.util.FederationConfigurationSourceFilter;
 
 import java.nio.file.Path;
 import java.util.Collections;

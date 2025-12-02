@@ -285,11 +285,24 @@
       "ok": "Ok",
       "test": "Prueba",
       "centralServer": {
-        "title": "Servidor Central",
+        "authCertRequest": "Servicio de registro de certificados de autenticación",
         "globalConf": "Descarga de configuración global",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Servicio de registro de certificados de autenticación"
+        "title": "Servidor Central"
+      },
+      "management": {
+        "title": "Servidor de Seguridad de Gestión"
+      },
+      "securityServer": {
+        "client": "Cliente",
+        "sourceClient": "Cliente de origen",
+        "rest": "REST",
+        "securityServer": "Servidor de Seguridad",
+        "soap": "SOAP",
+        "title": "Otro Servidor de Seguridad",
+        "target": "Destino",
+        "targetClient": "Cliente destino"
       }
     }
   },

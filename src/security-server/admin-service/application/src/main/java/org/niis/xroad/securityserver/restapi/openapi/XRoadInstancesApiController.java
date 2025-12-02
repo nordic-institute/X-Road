@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.securityserver.restapi.openapi.model.XRoadInstanceDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * controller for xroad instance identifiers
@@ -43,14 +45,17 @@ import java.util.Set;
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
-public class XroadInstancesApiController implements XroadInstancesApi {
+public class XRoadInstancesApiController implements XRoadInstancesApi {
 
     private final GlobalConfProvider globalConfProvider;
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_XROAD_INSTANCES')")
-    public ResponseEntity<Set<String>> getXroadInstances() {
-        Set<String> xroadInstances = globalConfProvider.getInstanceIdentifiers();
-        return new ResponseEntity<>(xroadInstances, HttpStatus.OK);
+    public ResponseEntity<Set<XRoadInstanceDto>> getXRoadInstances() {
+        Set<String> xRoadInstances = globalConfProvider.getInstanceIdentifiers();
+        String localInstance = globalConfProvider.getInstanceIdentifier();
+        return new ResponseEntity<>(xRoadInstances.stream()
+                .map(instance -> new XRoadInstanceDto(instance, localInstance.equals(instance)))
+                .collect(Collectors.toSet()), HttpStatus.OK);
     }
 }
