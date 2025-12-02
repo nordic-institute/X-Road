@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.openapi.model.InitialServerConfDto;
 import org.niis.xroad.cs.test.api.FeignInitializationApi;
-import org.niis.xroad.cs.test.container.service.MockServerService;
+import org.niis.xroad.cs.test.service.MockServerService;
 import org.springframework.stereotype.Component;
 
 import static org.mockserver.model.HttpRequest.request;

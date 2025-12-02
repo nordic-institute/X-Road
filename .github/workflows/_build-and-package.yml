@@ -142,7 +142,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -Pfrontend-npm-audit --parallel -Dorg.gradle.workers.max=6
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -Pfrontend-npm-audit --parallel -Dorg.gradle.workers.max=6 \
+          -PxroadImageRegistry=${{ env.IMAGE_REGISTRY }} \
+          -PxroadImageTag=${{ env.SERVICE_IMAGE_TAG }}
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road \
           -PsonarqubeOrganization=nordic-institute jacocoAggregatedReport sonar
       - name: Build Security Server images
@@ -152,6 +154,13 @@ jobs:
           IMAGE_TAG: ${{ env.SERVICE_IMAGE_TAG }}
         run: |
           ./build-images.sh --platforms linux/amd64,linux/arm64 --push
+
+      - name: Upload CS Admin int test jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: cs-admin-int-test-jar
+          path: src/central-server/admin-service/int-test/build/libs/central-server-admin-int-test-1.0.jar
+          compression-level: '0'
 
       - name: Log storage after build
         if: always()

@@ -27,9 +27,9 @@
 
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Assertion;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.api.FeignOpenapiApi;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
