@@ -48,7 +48,7 @@ public class FiVRKSignCertificateProfileInfo
      * @param params the parameters
      */
     public FiVRKSignCertificateProfileInfo(Parameters params) {
-        super(new DnFieldDescription[]{
+        super(new DnFieldDescription[] {
                 // Country Code
                 new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE,
                         "FI"
@@ -59,7 +59,7 @@ public class FiVRKSignCertificateProfileInfo
                         ""
                 ).setReadOnly(false),
 
-                // Serialnumber
+                // Serial number
                 new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
                         params.getClientId().getXRoadInstance() + "/"
                                 + params.getServerId().getServerCode() + "/"
