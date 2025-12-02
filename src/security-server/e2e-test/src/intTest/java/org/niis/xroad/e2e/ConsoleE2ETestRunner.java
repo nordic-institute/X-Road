@@ -45,6 +45,7 @@ public class ConsoleE2ETestRunner extends BaseConsoleTestRunner {
                 "compose.main.yaml",
                 "compose.e2e.yaml",
                 "compose.ss-hsm.e2e.yaml",
+                "compose.ss-batch-signature-enabled.e2e.yaml",
                 ".env",
                 "wiremock_mappings/",
                 "signer-with-hsm/",
