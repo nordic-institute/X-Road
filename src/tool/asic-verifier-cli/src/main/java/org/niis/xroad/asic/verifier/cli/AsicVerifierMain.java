@@ -25,12 +25,12 @@
  */
 package org.niis.xroad.asic.verifier.cli;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.asic.AsicContainerEntries;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
@@ -81,7 +81,7 @@ public final class AsicVerifierMain {
             var globalConfProvider = new GlobalConfImpl(source, new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
             verifyConfPathCorrectness(globalConfProvider);
             return globalConfProvider;
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             System.err.println("Unable to load configuration: " + e);
             throw e;
         }

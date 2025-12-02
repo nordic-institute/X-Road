@@ -37,10 +37,10 @@ import static org.junit.Assert.fail;
 
 /**
  * JUnit rule that verifies that given block of code throws
- * CodedException with given error code.
+ * XrdRuntimeException with given error code.
  *
  */
-public final class ExpectedCodedException implements TestRule {
+public final class ExpectedXrdRuntimeException implements TestRule {
     /** What do we expect? */
     private String expected;
 
@@ -51,16 +51,16 @@ public final class ExpectedCodedException implements TestRule {
      * @return a Rule that expects no exception to be thrown
      * (identical to behavior without this Rule)
      */
-    public static ExpectedCodedException none() {
-        return new ExpectedCodedException();
+    public static ExpectedXrdRuntimeException none() {
+        return new ExpectedXrdRuntimeException();
     }
 
     // Use only none() to construct instances.
-    private ExpectedCodedException() {
+    private ExpectedXrdRuntimeException() {
     }
 
     /**
-     * Expects code to throw CodedException with the exact error code.
+     * Expects code to throw XrdRuntimeException with the exact error code.
      * If given error code is null, expects nothing.
      * @param parts of the coded exception error code
      */
@@ -70,7 +70,7 @@ public final class ExpectedCodedException implements TestRule {
     }
 
     /**
-     * Expects code to throw CodedException whose error code ends with given
+     * Expects code to throw XrdRuntimeException whose error code ends with given
      * suffix. If given error code is null, expects nothing.
      * @param parts of the coded exception error code
      */
@@ -103,11 +103,7 @@ public final class ExpectedCodedException implements TestRule {
             try {
                 statement.evaluate();
             } catch (XrdRuntimeException e) {
-                handleException(e,  e.getCode(), "XrdRuntimeException with error code suffix ", "XrdRuntimeException with error code");
-
-                return;
-            } catch (CodedException e) {
-                handleException(e, e.getFaultCode(), "CodedException with error code suffix ", "CodedException with error code");
+                handleException(e,  e.getErrorCode(), "XrdRuntimeException with error code suffix ", "XrdRuntimeException with error code");
 
                 return;
             } catch (Throwable th) {
@@ -115,18 +111,17 @@ public final class ExpectedCodedException implements TestRule {
                     throw th;
                 }
 
-                fail("Expected test to throw CodedException, "
-                        + "but test threw: " + th);
+                fail("Expected test to throw XrdRuntimeException, but test threw: " + th);
             }
 
             if (expected != null) {
-                fail("Expected test to throw CodedException with "
+                fail("Expected test to throw XrdRuntimeException with "
                         + (expectedSuffix ? "error code suffix " : "error code ")
                         + expected);
             }
         }
 
-        private void handleException(CodedException exception, String code, String suffixAssertMessage, String assertMessage) {
+        private void handleException(XrdRuntimeException exception, String code, String suffixAssertMessage, String assertMessage) {
             if (expected == null) {
                 throw exception;
             }

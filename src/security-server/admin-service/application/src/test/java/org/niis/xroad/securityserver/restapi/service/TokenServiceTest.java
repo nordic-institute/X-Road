@@ -170,7 +170,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             fail("should have thrown exception");
         } catch (XrdRuntimeException expected) {
             Assert.assertTrue(expected.getCode().endsWith("." + ErrorCode.LOGIN_FAILED.code()));
-            assertEquals("dont know what happened", expected.getFaultString());
+            assertEquals("dont know what happened", expected.getDetails());
         }
 
         assertThrows(TokenNotFoundException.class, () ->

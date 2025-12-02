@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -42,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -62,13 +62,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
-import static ee.ria.xroad.common.ErrorCodes.X_MAINTENANCE_MODE;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CLIENT_IDENTIFIER;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SECURITY_SERVER;
+import static org.niis.xroad.common.core.exception.ErrorCode.MAINTENANCE_MODE;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
 @Slf4j
@@ -169,7 +169,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
         List<URI> addresses = new ArrayList<>(hostNames.size());
 
-        var maintenanceModeErrors = new LinkedList<CodedException>();
+        var maintenanceModeErrors = new LinkedList<XrdRuntimeException>();
 
         for (var host : hostNames) {
             var inMaintenance = globalConfProvider.getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
@@ -184,8 +184,9 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
         if (addresses.isEmpty()) {
             if (maintenanceModeErrors.isEmpty()) {
-                throw new CodedException(X_UNKNOWN_MEMBER, "Could not find suitable address for service provider \"%s\"",
-                        serviceProvider);
+                throw XrdRuntimeException.systemException(UNKNOWN_MEMBER,
+                        "Could not find suitable address for service provider \"%s\"".formatted(
+                        serviceProvider));
             } else {
                 throw maintenanceModeErrors.getFirst();
             }
@@ -207,8 +208,8 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         var hostNames = globalConfProvider.getProviderAddress(serviceProvider.getClientId());
 
         if (hostNames == null || hostNames.isEmpty()) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
-                    serviceProvider);
+            throw XrdRuntimeException.systemException(UNKNOWN_MEMBER,
+                    "Could not find addresses for service provider \"%s\"".formatted(serviceProvider));
         }
 
         return hostNames;
@@ -218,11 +219,11 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         final String securityServerAddress = globalConfProvider.getSecurityServerAddress(serverId);
 
         if (securityServerAddress == null) {
-            throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);
+            throw XrdRuntimeException.systemException(INVALID_SECURITY_SERVER, "Could not find security server \"%s\"".formatted(serverId));
         }
 
         if (!hostNamesByProvider.contains(securityServerAddress)) {
-            throw new CodedException(X_INVALID_SECURITY_SERVER, "Invalid security server \"%s\"", serverId);
+            throw XrdRuntimeException.systemException(INVALID_SECURITY_SERVER, "Invalid security server \"%s\"".formatted(serverId));
         }
 
         globalConfProvider.getMaintenanceMode(serverId)
@@ -234,7 +235,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         return Collections.singleton(securityServerAddress);
     }
 
-    private CodedException buildMaintenanceModeException(SecurityServerId serverId, String address, String maintenanceModeMessage) {
+    private XrdRuntimeException buildMaintenanceModeException(SecurityServerId serverId, String address, String maintenanceModeMessage) {
         var serverIdStr = serverId != null ? serverId.toString() : null;
         var message = new StringBuilder("Security server");
         if (serverId != null) {
@@ -258,7 +259,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
                     .append(maintenanceModeMessage);
         }
 
-        return new CodedException(X_MAINTENANCE_MODE, message.toString());
+        return XrdRuntimeException.systemException(MAINTENANCE_MODE, message.toString());
     }
 
     static DigestAlgorithm getHashAlgoId(HttpSender httpSender) {
@@ -267,12 +268,12 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
     protected void verifyClientStatus(ClientId client) {
         if (client == null) {
-            throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The client identifier is missing");
+            throw XrdRuntimeException.systemException(INVALID_CLIENT_IDENTIFIER, "The client identifier is missing");
         }
 
         String status = serverConfProvider.getMemberStatus(client);
         if (!Client.STATUS_REGISTERED.equals(status)) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
+            throw XrdRuntimeException.systemException(UNKNOWN_MEMBER, "Client '%s' not found".formatted(client));
         }
     }
 

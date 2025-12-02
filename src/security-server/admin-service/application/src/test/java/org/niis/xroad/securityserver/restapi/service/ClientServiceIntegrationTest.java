@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -38,6 +37,7 @@ import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -408,7 +408,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     /**
      * Given the client is registered on some other security server
-     *  And the client is member of local group Or client has access rights
+     * And the client is member of local group Or client has access rights
      * When client is deleted from local database
      * Then local group membership, access rights and identifier are preserved in database
      */
@@ -459,9 +459,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
      */
     private void addAndDeleteLocalClient(ClientId clientId, String status)
             throws ActionNotPossibleException,
-                   ClientService.CannotDeleteOwnerException, ClientNotFoundException,
-                   ClientService.AdditionalMemberAlreadyExistsException, UnhandledWarningsException,
-                   ClientService.ClientAlreadyExistsException, ClientService.InvalidMemberClassException {
+            ClientService.CannotDeleteOwnerException, ClientNotFoundException,
+            ClientService.AdditionalMemberAlreadyExistsException, UnhandledWarningsException,
+            ClientService.ClientAlreadyExistsException, ClientService.InvalidMemberClassException {
         ClientEntity addedClient = clientService.addLocalClientEntity(clientId.getMemberClass(),
                 clientId.getMemberCode(), clientId.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, true);
@@ -509,7 +509,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void deleteLocalClientWithStatusDisabledIsNotPossible() throws Exception {
+    public void deleteLocalClientWithStatusDisabledIsNotPossible() {
         String status = STATUS_DISABLED;
         var startMembers = countMembers();
         var startSubsystems = countSubsystems();
@@ -522,7 +522,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void deleteLocalClientWithStatusDisablingInProgressIsNotPossible() throws Exception {
+    public void deleteLocalClientWithStatusDisablingInProgressIsNotPossible() {
         String status = STATUS_DISABLING_INPROG;
         var startMembers = countMembers();
         var startSubsystems = countSubsystems();
@@ -544,7 +544,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void deleteLocalClientWithStatusRegisteringInProgressIsNotPossible() throws Exception {
+    public void deleteLocalClientWithStatusRegisteringInProgressIsNotPossible() {
         String status = STATUS_REGINPROG;
         var startMembers = countMembers();
         var startSubsystems = countSubsystems();
@@ -557,7 +557,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void deleteLocalClientWithStatusRegisteredIsNotPossible() throws Exception {
+    public void deleteLocalClientWithStatusRegisteredIsNotPossible() {
         String status = STATUS_REGISTERED;
         var startMembers = countMembers();
         var startSubsystems = countSubsystems();
@@ -570,7 +570,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void deleteLocalClientWithStatusEnablingInProgressIsNotPossible() throws Exception {
+    public void deleteLocalClientWithStatusEnablingInProgressIsNotPossible() {
         String status = STATUS_ENABLING_INPROG;
         var startMembers = countMembers();
         var startSubsystems = countSubsystems();
@@ -591,7 +591,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test(expected = ClientService.CannotDeleteOwnerException.class)
-    public void deleteOwnerNotPossible() throws Exception {
+    public void deleteOwnerNotPossible() {
         clientService.deleteLocalClient(getClientId("FI:GOV:M1"));
     }
 
@@ -652,7 +652,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void addLocalClientDuplicateFails() throws Exception {
+    public void addLocalClientDuplicateFails() {
         // try member, FI:GOV:M1
         ClientId member = getClientId("FI:GOV:M1");
         assertThrows(ClientService.ClientAlreadyExistsException.class,
@@ -667,7 +667,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void addLocalClientWithInvalidMemberClass() throws Exception {
+    public void addLocalClientWithInvalidMemberClass() {
         // try member, FI:INVALID:M1
         ClientId member = getClientId("FI:INVALID:M1");
         assertThrows(ClientService.InvalidMemberClassException.class,
@@ -802,12 +802,13 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void getAllLocalMembers() {
         List<ClientEntity> localMembers = clientService.getAllLocalMemberEntities();
         assertEquals(1, localMembers.size());
-        assertEquals(1, (long) localMembers.iterator().next().getId());
+        assertEquals(1, (long) localMembers.getFirst().getId());
     }
 
     /**
      * Test how IsAuthentication and also other properties behave when adding a new client,
      * and compare returned ClientType to one fetched separately so that they match
+     *
      * @throws Exception
      */
     @Test
@@ -863,7 +864,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void updateConnectionType() throws Exception {
+    public void updateConnectionType() {
         ClientId id = getM1Ss1ClientId();
         ClientEntity clientEntity = clientService.getLocalClientEntity(id);
         assertEquals("SSLNOAUTH", clientEntity.getIsAuthentication());
@@ -897,7 +898,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void addInvalidCertificate() throws Exception {
+    public void addInvalidCertificate() {
 
         ClientId id = getM1Ss1ClientId();
         ClientEntity clientEntity = clientService.getLocalClientEntity(id);
@@ -1204,6 +1205,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     /**
      * Convenience wrapper for clientService.findClients which takes only relevant params and returns client ids
+     *
      * @param hasValidLocalSignCert see {@link ClientService.SearchParameters#hasValidLocalSignCert}
      * @param excludeLocal          see {@link ClientService.SearchParameters#excludeLocal}
      * @param internalSearch        see {@link ClientService.SearchParameters#internalSearch}
@@ -1356,7 +1358,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void registerClient() throws Exception {
+    public void registerClient() {
         Client client = clientService.getLocalClient(existingSavedClientId);
         assertEquals(Client.STATUS_SAVED, client.getClientStatus());
         clientService.registerClient(existingSavedClientId);
@@ -1366,7 +1368,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void registerClientWithName() throws Exception {
+    public void registerClientWithName() {
         var name = "SS7 name";
         var id = getClientId("FI:GOV:M2:SS7");
         Client client = clientService.getLocalClient(id);
@@ -1381,35 +1383,35 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test(expected = ClientNotFoundException.class)
-    public void registerNonExistingClient() throws Exception {
+    public void registerNonExistingClient() {
         clientService.registerClient(ClientId.Conf.create("non", "existing", "client", null));
     }
 
     @Test(expected = ClientService.InvalidInstanceIdentifierException.class)
-    public void registerClientWithInvalidInstanceIdentifier() throws Exception {
+    public void registerClientWithInvalidInstanceIdentifier() {
         clientService.registerClient(ClientId.Conf.create("DUMMY", "PRO", "M2", "SS6"));
     }
 
     @Test(expected = ClientService.InvalidMemberClassException.class)
-    public void registerClientWithInvalidMemberClass() throws Exception {
+    public void registerClientWithInvalidMemberClass() {
         clientService.registerClient(ClientId.Conf.create("FI", "DUMMY", "M2", "SS6"));
     }
 
-    @Test(expected = CodedException.class)
-    public void registerClientCodedException() throws Exception {
-        when(managementRequestSenderService.sendClientRegisterRequest(any(), any())).thenThrow(CodedException.class);
+    @Test(expected = XrdRuntimeException.class)
+    public void registerClientXrdRuntimeException() {
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), any())).thenThrow(XrdRuntimeException.class);
         clientService.registerClient(existingSavedClientId);
     }
 
     @Test(expected = DeviationAwareRuntimeException.class)
-    public void registerClientRuntimeException() throws Exception {
+    public void registerClientRuntimeException() {
         when(managementRequestSenderService.sendClientRegisterRequest(any(), any()))
                 .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
         clientService.registerClient(existingSavedClientId);
     }
 
     @Test
-    public void unregisterClient() throws Exception {
+    public void unregisterClient() {
         Client client = clientService.getLocalClient(existingRegisteredClientId);
         assertEquals(Client.STATUS_REGISTERED, client.getClientStatus());
         clientService.unregisterClient(existingRegisteredClientId);
@@ -1418,32 +1420,32 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test(expected = ActionNotPossibleException.class)
-    public void unregisterClientNotPossible() throws Exception {
+    public void unregisterClientNotPossible() {
         Client client = clientService.getLocalClient(existingSavedClientId);
         assertEquals(Client.STATUS_SAVED, client.getClientStatus());
         clientService.unregisterClient(existingSavedClientId);
     }
 
     @Test(expected = ClientService.CannotUnregisterOwnerException.class)
-    public void unregisterOwnerClient() throws Exception {
+    public void unregisterOwnerClient() {
         clientService.unregisterClient(ownerClientId);
     }
 
-    @Test(expected = CodedException.class)
-    public void unregisterClientCodedException() throws Exception {
-        when(managementRequestSenderService.sendClientUnregisterRequest(any())).thenThrow(CodedException.class);
+    @Test(expected = XrdRuntimeException.class)
+    public void unregisterClientXrdRuntimeException() {
+        when(managementRequestSenderService.sendClientUnregisterRequest(any())).thenThrow(XrdRuntimeException.class);
         clientService.unregisterClient(existingRegisteredClientId);
     }
 
     @Test(expected = DeviationAwareRuntimeException.class)
-    public void unregisterClientRuntimeException() throws Exception {
+    public void unregisterClientRuntimeException() {
         when(managementRequestSenderService.sendClientUnregisterRequest(any()))
                 .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
         clientService.unregisterClient(existingRegisteredClientId);
     }
 
     @Test(expected = ClientNotFoundException.class)
-    public void unregisterNonExistingClient() throws Exception {
+    public void unregisterNonExistingClient() {
         clientService.unregisterClient(ClientId.Conf.create("non", "existing", "client", null));
     }
 
@@ -1462,14 +1464,14 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test(expected = ActionNotPossibleException.class)
-    public void changeOwnerNewOwnerSubsystem() throws Exception {
+    public void changeOwnerNewOwnerSubsystem() {
         // New owner ("existingClientId") is a subsystem which is not allowed
         clientService.changeOwner(existingRegisteredClientId.getMemberClass(),
                 existingRegisteredClientId.getMemberCode(), existingRegisteredClientId.getSubsystemCode());
     }
 
     @Test(expected = ClientNotFoundException.class)
-    public void changeOwnerNonExistingClient() throws Exception {
+    public void changeOwnerNonExistingClient() {
         clientService.changeOwner("existing", "client", null);
     }
 
@@ -1482,14 +1484,14 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test(expected = ClientService.MemberAlreadyOwnerException.class)
-    public void changeOwnerNewOwnerAlreadyOwner() throws Exception {
+    public void changeOwnerNewOwnerAlreadyOwner() {
         clientService.changeOwner(ownerClientId.getMemberClass(), ownerClientId.getMemberCode(),
                 ownerClientId.getSubsystemCode());
     }
 
-    @Test(expected = CodedException.class)
-    public void changeOwnerCodedException() throws Exception {
-        when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenThrow(CodedException.class);
+    @Test(expected = XrdRuntimeException.class)
+    public void changeOwnerXrdRuntimeException() throws Exception {
+        when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenThrow(XrdRuntimeException.class);
         clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
                 null, null, IsAuthentication.SSLAUTH, false);
         ClientEntity clientEntity = clientService.getLocalClientEntity(newOwnerClientId);

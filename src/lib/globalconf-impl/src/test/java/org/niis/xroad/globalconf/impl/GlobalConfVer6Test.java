@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.globalconf.impl;
 
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 
@@ -58,7 +58,7 @@ public class GlobalConfVer6Test {
     private static final Path GOOD_CONF_FILES = Paths.get(GOOD_CONF_DIR, "files");
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     private static GlobalConfProvider globalConfProvider;
 

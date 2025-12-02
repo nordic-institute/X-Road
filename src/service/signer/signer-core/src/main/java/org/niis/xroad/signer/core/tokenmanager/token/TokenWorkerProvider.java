@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
-
 public interface TokenWorkerProvider {
-    TokenWorker getTokenWorker(String tokenId) throws CodedException;
+    TokenWorker getTokenWorker(String tokenId);
 }

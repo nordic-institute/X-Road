@@ -35,6 +35,8 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
@@ -44,10 +46,11 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 @Component
 public class EnvSetup extends BaseComposeSetup {
 
-    private static final String COMPOSE_AUX_FILE = "/compose.aux.yaml";
+    private static final String COMPOSE_AUX_FILE = "compose.aux.yaml";
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SS_E2E_FILE = "compose.e2e.yaml";
     private static final String COMPOSE_SS_HSM_FILE = "compose.ss-hsm.e2e.yaml";
+    private static final String COMPOSE_SS_BATCH_SIGNATURES_FILE = "compose.ss-batch-signature-enabled.e2e.yaml";
 
     private static final String CS = "cs";
     private static final String OPENBAO = "openbao";
@@ -70,9 +73,9 @@ public class EnvSetup extends BaseComposeSetup {
 
     @Override
     public void init() {
-        envSs0 = createSSEnvironment("ss0", false);
+        envSs0 = createSSEnvironment("ss0", false, true);
 
-        envSs1 = createSSEnvironment("ss1", true);
+        envSs1 = createSSEnvironment("ss1", true, false);
 
         envAux = new ComposeContainer("aux-", getComposeFilePath(COMPOSE_AUX_FILE))
 
@@ -112,11 +115,16 @@ public class EnvSetup extends BaseComposeSetup {
         }
     }
 
-    private ComposeContainer createSSEnvironment(String name, boolean enableHsm) {
-        var files = enableHsm
-                ? new File[]{getComposeFilePath(COMPOSE_SS_FILE), getComposeFilePath(COMPOSE_SS_E2E_FILE),
-                getComposeFilePath(COMPOSE_SS_HSM_FILE)}
-                : new File[]{getComposeFilePath(COMPOSE_SS_FILE), getComposeFilePath(COMPOSE_SS_E2E_FILE)};
+    private ComposeContainer createSSEnvironment(String name, boolean enableHsm, boolean enableBatchSignatures) {
+        var files = new ArrayList<>(List.of(getComposeFilePath(COMPOSE_SS_FILE), getComposeFilePath(COMPOSE_SS_E2E_FILE)));
+
+        if (enableHsm) {
+            files.add(getComposeFilePath(COMPOSE_SS_HSM_FILE));
+        }
+
+        if (enableBatchSignatures) {
+            files.add(getComposeFilePath(COMPOSE_SS_BATCH_SIGNATURES_FILE));
+        }
 
         var env = new ComposeContainer(name + "-", files)
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())

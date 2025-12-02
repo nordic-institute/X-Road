@@ -30,7 +30,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SOAP;
 
 /**
  * We connect directly to SP and send message with multipart/mixed
@@ -52,6 +52,6 @@ public class ServerProxyProcessingError extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_MISSING_SOAP);
+        assertErrorCode(SERVER_SERVERPROXY_X, MISSING_SOAP.code());
     }
 }

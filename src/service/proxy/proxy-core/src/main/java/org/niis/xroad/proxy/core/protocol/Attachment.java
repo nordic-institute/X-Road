@@ -23,42 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.proxy.core.protocol;
 
-import lombok.Getter;
+import ee.ria.xroad.common.message.AttachmentStream;
+import ee.ria.xroad.common.util.CachingStream;
 
-/**
- * Exception thrown by proxy business logic. This exception forces to respond
- * with specified HTTP status code and plain text error message instead of
- * SOAP fault message.
- */
-public class CodedExceptionWithHttpStatus extends CodedException {
+import java.io.InputStream;
+import java.util.Map;
 
-    @Getter
-    private int status;
+public record Attachment(String contentType, CachingStream content, Map<String, String> additionalHeaders) {
+    public AttachmentStream getAttachmentStream() {
+        return new AttachmentStream() {
+            @Override
+            public InputStream getStream() {
+                return content.getCachedContents();
+            }
 
-    /**
-     * Creates new exception with HTTP status code, fault code and fault message.
-     * @param status the HTTP status code
-     * @param faultCode the fault code
-     * @param faultMessage the message
-     */
-    public CodedExceptionWithHttpStatus(
-            int status, String faultCode, String faultMessage) {
-        super(faultCode, faultMessage);
-
-        this.status = status;
-    }
-
-    /**
-     * Creates new exception with HTTP status code and coded exception.
-     * @param status the HTTP status code
-     * @param e the coded exception
-     */
-    public CodedExceptionWithHttpStatus(int status, CodedException e) {
-        super(e.getFaultCode(), e.getFaultString());
-
-        this.faultDetail = e.getFaultDetail();
-        this.status = status;
+            @Override
+            public long getSize() {
+                return content.size();
+            }
+        };
     }
 }

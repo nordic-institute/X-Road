@@ -25,18 +25,10 @@
  */
 package org.niis.xroad.proxy.core.signature;
 
-import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.SignDataPreparer;
-import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.signature.MessagePart;
-import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.MessageFileNames;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -45,40 +37,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
-import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
-import org.niis.xroad.keyconf.SigningInfo;
-import org.niis.xroad.proxy.core.conf.SigningCtx;
-import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
-import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
-import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.niis.xroad.signer.client.SignerSignClient;
-import org.niis.xroad.test.keyconf.TestKeyConf;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.Signature;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static ee.ria.xroad.common.TestCertUtil.getDefaultValidCertDate;
-import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
-import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_RSA_PKCS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -86,34 +55,24 @@ import static org.mockito.Mockito.when;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-class BatchSignerTest {
-
-    private final GlobalConfProvider globalConf = new TestSuiteGlobalConf(new ProxyTestSuiteHelper());
-    private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
-    private final TestCertUtil.PKCS12 producerP12 = TestCertUtil.getProducer();
-    private final ClientId.Conf producerClientId = ClientId.Conf.create("EE", "BUSINESS", "producer");
-    private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+class BatchSignerTest extends AbstractSignerTest {
 
     @Mock
     private SignerRpcClient signerClient;
     @Mock
-    private SignerSignClient signerSignClient;
-    @Mock
     private SignerRpcChannelProperties signerRpcChannelProperties;
-
-    private BatchSigner batchSigner;
 
     @BeforeEach
     void beforeEach() {
         org.apache.xml.security.Init.init();
         when(signerRpcChannelProperties.deadlineAfter()).thenReturn(60_000);
-        batchSigner = new BatchSigner(signerClient, signerSignClient, signerRpcChannelProperties);
+        signer = new BatchSigner(signerClient, signerSignClient, signerRpcChannelProperties);
     }
 
     @AfterEach
     void afterEach() {
-        batchSigner.destroy();
-        batchSigner = null;
+        ((BatchSigner) signer).destroy();
+        signer = null;
     }
 
     @Test
@@ -143,12 +102,12 @@ class BatchSignerTest {
             messages.add("random-msg:" + RandomStringUtils.secure().nextAlphabetic(100, 1000));
         }
 
-        List<Callable<BatchSignResult>> callables = getCallables(messages, signingCtx);
+        List<Callable<SignResult>> callables = getCallables(messages, signingCtx);
 
-        List<Future<BatchSignResult>> results = invokeCallables(callables, 50);
+        List<Future<SignResult>> results = invokeCallables(callables, 50);
 
         final AtomicInteger batchSignatureDetectCounter = new AtomicInteger();
-        for (Future<BatchSignResult> result : results) {
+        for (Future<SignResult> result : results) {
             try {
                 var signResult = result.get();
 
@@ -165,94 +124,11 @@ class BatchSignerTest {
             }
         }
 
-        if (batchSignatureDetectCounter.get() == 0) {
-            fail("Batch signature was not detected.");
+        if (batchSignatureDetectCounter.get() < 1) {
+            fail("Not a single batch signature was detected.");
         } else {
             log.info("Batch signature was triggered {} times", batchSignatureDetectCounter.get());
         }
-    }
-
-    private List<Callable<BatchSignResult>> getCallables(List<String> messages, SigningCtx signingCtx) {
-        List<Callable<BatchSignResult>> callables = new ArrayList<>();
-        for (final String message : messages) {
-            callables.add(() -> {
-                try {
-                    MessagePart hashPart = new MessagePart(MessageFileNames.MESSAGE, DigestAlgorithm.SHA512,
-                            calculateDigest(DigestAlgorithm.SHA512, message.getBytes()), message.getBytes());
-
-                    List<MessagePart> hashes = Collections.singletonList(hashPart);
-
-                    SignatureBuilder builder = new SignatureBuilder();
-                    builder.addPart(hashPart);
-                    SignatureData signatureData = signingCtx.buildSignature(builder);
-
-                    return new BatchSignResult(producerClientId, message, signatureData, hashes);
-
-                } catch (Exception e) {
-                    log.error("Error", e);
-                    return new BatchSignResult(producerClientId, message, null, null);
-                }
-
-            });
-        }
-        return callables;
-    }
-
-    @SneakyThrows
-    private SigningCtxProvider createSigningCtxProvider(ClientId subject) {
-        var keyConf = new TestKeyConf(globalConf) {
-            @Override
-            public SigningInfo getSigningInfo(ClientId clientId) {
-                return new SigningInfo("keyid", CKM_RSA_PKCS, subject, producerP12.certChain[0], null, null) {
-                    @Override
-                    public boolean verifyValidity(Date atDate) {
-                        return true;
-                    }
-                };
-            }
-        };
-
-        return new SigningCtxProviderImpl(globalConf, keyConf, batchSigner, proxyProperties);
-    }
-
-    private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)
-            throws InterruptedException {
-        try (ExecutorService executorService = Executors.newFixedThreadPool(threads)) {
-            return executorService.invokeAll(callables);
-        }
-    }
-
-    private record BatchSignResult(ClientId.Conf clientId, String message, SignatureData signatureData,
-                                   List<MessagePart> messageParts) {
-    }
-
-    private void verify(final BatchSignResult batchSignResult)
-            throws Exception {
-        SignatureVerifier verifier = new SignatureVerifier(globalConf, ocspVerifierFactory, batchSignResult.signatureData());
-        verifier.addParts(batchSignResult.messageParts());
-
-        HashChainReferenceResolver resolver = new HashChainReferenceResolver() {
-            @Override
-            public InputStream resolve(String uri) {
-                return switch (uri) {
-                    case MessageFileNames.SIG_HASH_CHAIN ->
-                            new ByteArrayInputStream(batchSignResult.signatureData().getHashChain().getBytes(StandardCharsets.UTF_8));
-                    case MessageFileNames.MESSAGE -> new ByteArrayInputStream(batchSignResult.message().getBytes(StandardCharsets.UTF_8));
-                    default -> null;
-                };
-            }
-
-            @Override
-            public boolean shouldResolve(String uri, byte[] digestValue) {
-                return true;
-            }
-        };
-
-        if (batchSignResult.signatureData().getHashChainResult() != null) {
-            verifier.setHashChainResourceResolver(resolver);
-        }
-
-        verifier.verify(batchSignResult.clientId(), getDefaultValidCertDate());
     }
 
 }

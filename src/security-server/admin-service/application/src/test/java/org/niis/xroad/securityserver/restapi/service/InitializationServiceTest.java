@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
@@ -298,10 +297,11 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        doThrow(new CodedException(GPG_KEY_GENERATION_FAILED.code())).when(securityServerBackupService).generateGpgKey(any());
+        doThrow(XrdRuntimeException.systemException(GPG_KEY_GENERATION_FAILED).build())
+                .when(securityServerBackupService).generateGpgKey(any());
 
         assertThrows(
-                CodedException.class, () ->
+                XrdRuntimeException.class, () ->
                         initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                                 SOFTWARE_TOKEN_PIN, true));
     }

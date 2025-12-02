@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.globalconf.impl.signature;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.hashchain.DigestValue;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
@@ -35,6 +34,7 @@ import ee.ria.xroad.common.signature.IdResolver;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.Signature;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.signature.SignatureResourceResolver;
 import ee.ria.xroad.common.signature.SignatureSchemaValidator;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
@@ -45,16 +45,12 @@ import org.apache.xml.security.keys.keyresolver.KeyResolverException;
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
 import org.apache.xml.security.signature.XMLSignature;
-import org.apache.xml.security.signature.XMLSignatureByteInput;
-import org.apache.xml.security.signature.XMLSignatureDigestInput;
 import org.apache.xml.security.signature.XMLSignatureException;
-import org.apache.xml.security.signature.XMLSignatureInput;
-import org.apache.xml.security.signature.XMLSignatureStreamInput;
-import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
@@ -72,17 +68,17 @@ import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REFERENCE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REFERENCE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SIGNATURE_VALUE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SIGNATURE;
 
 /**
  * Encapsulates the AsiC XAdES signature profile. This class verifies the
@@ -232,14 +228,14 @@ public class SignatureVerifier {
     public X509Certificate getSigningCertificate() throws KeyResolverException {
         X509Certificate cert = signature.getSigningCertificate();
         if (cert == null) {
-            throw new CodedException(X_MALFORMED_SIGNATURE,
+            throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE,
                     "Signature does not contain signing certificate");
         }
 
         if (!CertUtils.isSigningCert(cert)) {
-            throw new CodedException(X_MALFORMED_SIGNATURE,
-                    "Certificate %s is not a signing certificate",
-                    cert.getSubjectX500Principal().getName());
+            throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE,
+                    "Certificate %s is not a signing certificate".formatted(
+                    cert.getSubjectX500Principal().getName()));
         }
 
         return cert;
@@ -330,9 +326,8 @@ public class SignatureVerifier {
                 ),
                 signingCert);
         if (!signer.memberEquals(cn)) {
-            throw new CodedException(X_INCORRECT_CERTIFICATE,
-                    "Name in certificate (%s) does not match "
-                            + "name in message (%s)", cn, signer);
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
+                    "Name in certificate (%s) does not match name in message (%s)".formatted(cn, signer));
         }
     }
 
@@ -342,13 +337,13 @@ public class SignatureVerifier {
         s.addResourceResolver(new IdResolver(signature.getDocument()));
 
         if (resourceResolver == null) {
-            s.addResourceResolver(new SignatureResourceResolverImpl());
+            s.addResourceResolver(new SignatureResourceResolver(parts, hashChainResult));
         } else {
             s.addResourceResolver(resourceResolver);
         }
 
         if (!s.checkSignatureValue(signingCert)) {
-            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Signature is not valid");
+            throw XrdRuntimeException.systemException(INVALID_SIGNATURE_VALUE, "Signature is not valid");
         }
     }
 
@@ -361,12 +356,12 @@ public class SignatureVerifier {
                     new IdResolver(signature.getDocument()));
             try {
                 if (!manifest.verifyReferences()) {
-                    throw new CodedException(X_INVALID_REFERENCE,
+                    throw XrdRuntimeException.systemException(INVALID_REFERENCE,
                             "Timestamp manifest verification failed for "
                                     + manifest.getId());
                 }
             } catch (MissingResourceFailureException e) {
-                throw new CodedException(X_INVALID_REFERENCE,
+                throw XrdRuntimeException.systemException(INVALID_REFERENCE,
                         "Could not find " + e.getReference().getURI());
             }
         }
@@ -408,38 +403,6 @@ public class SignatureVerifier {
         }
 
         return null;
-    }
-
-    private final class SignatureResourceResolverImpl extends ResourceResolverSpi {
-
-        @Override
-        public boolean engineCanResolveURI(ResourceResolverContext context) {
-            return switch (context.attr.getValue()) {
-                case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
-                default -> MessageFileNames.isAttachment(context.attr.getValue()); // only attachments can be resolved
-            };
-        }
-
-        @Override
-        public XMLSignatureInput engineResolveURI(ResourceResolverContext context) {
-            if (MessageFileNames.MESSAGE.equals(context.attr.getValue())) {
-                MessagePart part = getPart(MessageFileNames.MESSAGE);
-
-                if (part != null && part.getMessage() != null) {
-                    return new XMLSignatureByteInput(part.getMessage());
-                }
-            } else if (MessageFileNames.SIG_HASH_CHAIN_RESULT.equals(context.attr.getValue())) {
-                return new XMLSignatureStreamInput(is(hashChainResult));
-            } else if (MessageFileNames.isAttachment(context.attr.getValue())) {
-                MessagePart part = getPart(context.attr.getValue());
-
-                if (part != null && part.getData() != null) {
-                    return new XMLSignatureDigestInput(Base64.getEncoder().encodeToString(part.getData()));
-                }
-            }
-
-            return null;
-        }
     }
 
     private final class HashChainReferenceResolverImpl

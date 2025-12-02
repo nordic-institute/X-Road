@@ -41,7 +41,6 @@ import jakarta.xml.soap.SOAPBody;
 import jakarta.xml.soap.SOAPMessage;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.niis.xroad.opmonitor.core.OperationalDataRecord;
 import org.niis.xroad.opmonitor.core.OperationalDataRecords;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
@@ -61,7 +60,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -129,15 +127,16 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
+    @SneakyThrows
     @Step("Valid Security Server Health Data response is returned")
-    public void validHealthDataResponseIsReturned() throws IOException {
+    public void validHealthDataResponseIsReturned() {
         @SuppressWarnings("unchecked")
         ResponseEntity<Resource> response = (ResponseEntity<Resource>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
         validate(response).assertion(equalsStatusCodeAssertion(HttpStatus.OK)).execute();
 
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl soupMessage = (SoapMessageImpl) parser
-                .parse(MimeTypes.TEXT_XML, IOUtils.toInputStream(response.getBody().getContentAsString(UTF_8)));
+                .parse(MimeTypes.TEXT_XML, response.getBody().getInputStream());
 
         assertEquals("600", findHealthDataRecordsContentId(soupMessage.getSoap(), "statisticsPeriodSeconds"));
         assertEquals("1", findHealthDataRecordsContentId(soupMessage.getSoap(), "successfulRequestCount"));
@@ -187,7 +186,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
 
                     @Override
                     public void fault(SoapFault fault) {
-                        throw fault.toCodedException();
+                        throw fault.toXrdRuntimeException();
                     }
 
                     @Override

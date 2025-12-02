@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.signer.core.protocol.handler.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
@@ -49,6 +48,7 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.core.util.TokenAndKey;
@@ -64,7 +64,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 
@@ -81,7 +80,7 @@ public class CertRequestCreationService {
             throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 
         if (tokenAndKey.key().getPublicKey() == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", tokenAndKey.getKeyId());
+            throw XrdRuntimeException.systemInternalError("Key '%s' has no public key".formatted(tokenAndKey.getKeyId()));
         }
 
         PublicKey publicKey = keyManagers.getFor(tokenAndKey.getSignMechanism())

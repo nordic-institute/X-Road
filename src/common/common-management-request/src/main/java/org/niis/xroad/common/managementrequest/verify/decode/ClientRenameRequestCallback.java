@@ -26,19 +26,19 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.request.ClientRenameRequestType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 @Slf4j
 public class ClientRenameRequestCallback extends BaseClientRequestCallback<ClientRenameRequestType> {
@@ -63,11 +63,11 @@ public class ClientRenameRequestCallback extends BaseClientRequestCallback<Clien
         super.verifyMessage();
 
         if (!getRequest().getClient().isSubsystem()) {
-            throw new CodedException(X_INVALID_REQUEST, "Only name of subsystem can be changed");
+            throw XrdRuntimeException.systemException(INVALID_REQUEST, "Only name of subsystem can be changed");
         }
 
         if (StringUtils.isBlank(getRequest().getSubsystemName())) {
-            throw new CodedException(X_INVALID_REQUEST, "Invalid subsystem name");
+            throw XrdRuntimeException.systemException(INVALID_REQUEST, "Invalid subsystem name");
         }
 
     }

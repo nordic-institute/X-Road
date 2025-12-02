@@ -27,7 +27,6 @@
 
 package org.niis.xroad.proxy.core.tls;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -131,7 +130,7 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
                     .setInternalTlsCertificate(ByteString.copyFrom(certificate.getEncoded()))
                     .build();
         } catch (CertificateEncodingException e) {
-            throw new CodedException(INVALID_CERTIFICATE.code(), e);
+            throw XrdRuntimeException.systemException(INVALID_CERTIFICATE, e);
         }
     }
 
@@ -166,9 +165,9 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
                     internalSslKey.getKey(), internalSslKey.getCertChain()[0].getPublicKey(), distinguishedName
             );
         } catch (IllegalArgumentException e) {
-            throw new CodedException(INVALID_DISTINGUISHED_NAME.code(), e);
+            throw XrdRuntimeException.systemException(INVALID_DISTINGUISHED_NAME, e);
         } catch (Exception e) {
-            throw new CodedException(INTERNAL_ERROR.code(), e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
     }
 
@@ -185,10 +184,10 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
             // the imported file can be a single certificate or a chain
             x509Certificates = CryptoUtils.readCertificates(certificateBytes);
             if (x509Certificates.isEmpty()) {
-                throw new CodedException(INVALID_CERTIFICATE.code());
+                throw XrdRuntimeException.systemException(INVALID_CERTIFICATE).build();
             }
         } catch (Exception e) {
-            throw new CodedException(INVALID_CERTIFICATE.code(), e);
+            throw XrdRuntimeException.systemException(INVALID_CERTIFICATE, e);
         }
         verifyInternalCertImportability(x509Certificates);
         try {
@@ -196,7 +195,7 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
             var internalSslKeyWithNewCert = new InternalSSLKey(internalSslKey.getKey(), x509Certificates.toArray(X509Certificate[]::new));
             vaultClient.createInternalTlsCredentials(internalSslKeyWithNewCert);
         } catch (Exception e) {
-            throw new CodedException(IMPORT_INTERNAL_CERT_FAILED.code(), e);
+            throw XrdRuntimeException.systemException(IMPORT_INTERNAL_CERT_FAILED, e);
         }
 
         serverConfProvider.clearCache();
@@ -216,9 +215,9 @@ public class InternalTlsService extends InternalTlsServiceGrpc.InternalTlsServic
 
         boolean found = newCertChain.stream().anyMatch(c -> c.getPublicKey().equals(internalPublicKey));
         if (!found) {
-            throw new CodedException(KEY_NOT_FOUND.code());
+            throw XrdRuntimeException.systemException(KEY_NOT_FOUND).build();
         } else if (Iterables.elementsEqual(internalCertChain, newCertChain)) {
-            throw new CodedException(CERTIFICATE_ALREADY_EXISTS.code());
+            throw XrdRuntimeException.systemException(CERTIFICATE_ALREADY_EXISTS).build();
         }
     }
 

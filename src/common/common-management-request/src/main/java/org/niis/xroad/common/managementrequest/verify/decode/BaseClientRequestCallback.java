@@ -26,12 +26,12 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -39,7 +39,7 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.security.cert.X509Certificate;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 @Slf4j
 public abstract class BaseClientRequestCallback<T> extends BaseServerRequestCallback<T> {
@@ -74,9 +74,8 @@ public abstract class BaseClientRequestCallback<T> extends BaseServerRequestCall
         // 2. When client is a member, idFromReq is the member code of the client
         // and idFromCert is the member code from the sign cert. The member codes must match.
         if (!idFromReq.subsystemContainsMember(idFromCert) && !idFromReq.equals(idFromCert)) {
-            throw new CodedException(X_INVALID_REQUEST,
-                    "Subject identifier (%s) in certificate does not match"
-                            + " client's member identifier (%s) in request",
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
+                    "Subject identifier (%s) in certificate does not match client's member identifier (%s) in request",
                     idFromCert, idFromReq);
         }
     }

@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -35,7 +33,7 @@ import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashReq;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashResp;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithHashNotFound;
 
 /**
  * Handles requests for key id based on certificate hashes.
@@ -50,8 +48,7 @@ public class GetKeyIdForCertHashReqHandler extends AbstractRpcHandler<GetKeyIdFo
         KeyInfo keyInfo = tokenLookup.getKeyInfoForCertHash(request.getCertHash());
 
         if (keyInfo == null) {
-            throw CodedException.tr(X_CERT_NOT_FOUND, "certificate_with_hash_not_found",
-                    "Certificate with hash '%s' not found", request.getCertHash());
+            throw certWithHashNotFound(request.getCertHash());
         }
 
         return GetKeyIdForCertHashResp.newBuilder()

@@ -23,33 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.clientproxy;
+package org.niis.xroad.e2e;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
+import org.junit.platform.suite.api.SelectClasspathResource;
+import org.niis.xroad.test.framework.core.BaseTestRunner;
 
-/**
- * This is exception for errors caused by the client, for example,
- * client auth failure, invalid XML, etc.
- */
-class ClientException extends CodedException {
-
-    ClientException(CodedException ex) {
-        super(ex.getFaultCode(), ex.getFaultString());
-
-        faultActor = ex.getFaultActor();
-        faultDetail = ex.getFaultDetail();
-
-        // All the client messages have prefix Client...
-        withPrefix(ErrorCodes.CLIENT_X);
-    }
-
-
-
-    ClientException(String faultCode, String format, Object... args) {
-        super(faultCode, format, args);
-
-        // All the client messages have prefix Client...
-        withPrefix(ErrorCodes.CLIENT_X);
-    }
+@SelectClasspathResource("/behavior")
+public class E2ETest extends BaseTestRunner {
 }

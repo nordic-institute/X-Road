@@ -79,9 +79,9 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
                 new ComposeLoggerFactory().create("%s-".formatted(containerName), coreProperties.workingDir()));
     }
 
-    protected Slf4jLogConsumer createLogConsumer(String env, String containerName) {
+    protected Slf4jLogConsumer createLogConsumer(String envStr, String containerName) {
         return new Slf4jLogConsumer(
-                new ComposeLoggerFactory().create("%s-%s".formatted(env, containerName), coreProperties.workingDir()));
+                new ComposeLoggerFactory().create("%s-%s".formatted(envStr, containerName), coreProperties.workingDir()));
     }
 
     public ContainerMapping getContainerMapping(String service, int originalPort) {

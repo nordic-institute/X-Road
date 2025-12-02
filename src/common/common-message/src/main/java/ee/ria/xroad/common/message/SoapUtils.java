@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
@@ -56,14 +55,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_HEADERS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP_ACTION;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
 import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_HEADERS;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_BODY;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SOAP_ACTION;
 
 /**
  * Contains utility methods for working with SOAP messages.
@@ -165,9 +164,8 @@ public final class SoapUtils {
     public static void validateServiceName(String serviceCode,
                                            String serviceName) {
         if (!serviceName.startsWith(serviceCode)) {
-            throw new CodedException(X_INCONSISTENT_HEADERS,
-                    "Malformed SOAP message: "
-                            + "service code does not match in header and body");
+            throw XrdRuntimeException.systemException(INCONSISTENT_HEADERS,
+                    "Malformed SOAP message: service code does not match in header and body");
         }
     }
 
@@ -180,9 +178,8 @@ public final class SoapUtils {
     public static String getServiceName(SOAPBody soapBody) {
         List<SOAPElement> children = getChildElements(soapBody);
         if (children.size() != 1) {
-            throw new CodedException(X_INVALID_BODY,
-                    "Malformed SOAP message: "
-                            + "body must have exactly one child element");
+            throw XrdRuntimeException.systemException(INVALID_BODY,
+                    "Malformed SOAP message: body must have exactly one child element");
         }
 
         return children.getFirst().getLocalName();
@@ -211,9 +208,8 @@ public final class SoapUtils {
                 Object value1 = getFieldValue(field, h1);
                 Object value2 = getFieldValue(field, h2);
                 if (ObjectUtils.notEqual(value1, value2)) {
-                    throw new CodedException(X_INCONSISTENT_HEADERS,
-                            "Field '%s' does not match in request and response",
-                            field.getName());
+                    throw XrdRuntimeException.systemException(INCONSISTENT_HEADERS,
+                            "Field '%s' does not match in request and response".formatted(field.getName()));
                 }
             }
         }
@@ -419,8 +415,8 @@ public final class SoapUtils {
 
     static void validateMimeType(String mimeType) {
         if (!ArrayUtils.contains(ALLOWED_MIMETYPES, mimeType.toLowerCase())) {
-            throw new CodedException(X_INVALID_CONTENT_TYPE,
-                    "Invalid content type: %s", mimeType);
+            throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE,
+                    "Invalid content type: %s".formatted(mimeType));
         }
     }
 
@@ -430,7 +426,7 @@ public final class SoapUtils {
      * In addition, this implementation allows missing (null) header.
      *
      * @return the argument as-is if it is valid
-     * @throws CodedException if the argument is invalid
+     * @throws XrdRuntimeException if the argument is invalid
      * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
      */
     public static String validateSoapActionHeader(String soapAction) {
@@ -446,9 +442,9 @@ public final class SoapUtils {
                 new URI(soapAction.substring(1, lastIndex));
                 return soapAction;
             } catch (URISyntaxException e) {
-                throw new CodedException(X_INVALID_SOAP_ACTION, e, "Malformed SOAPAction header");
+                throw XrdRuntimeException.systemException(INVALID_SOAP_ACTION, e, "Malformed SOAPAction header");
             }
         }
-        throw new CodedException(X_INVALID_SOAP_ACTION, "Malformed SOAPAction header");
+        throw XrdRuntimeException.systemException(INVALID_SOAP_ACTION, "Malformed SOAPAction header");
     }
 }

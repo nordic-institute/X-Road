@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.globalconf.impl.cert;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
@@ -35,6 +33,8 @@ import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -118,7 +118,7 @@ public class CertChainTest {
                     Arrays.asList(interCa1, interCa3));
             verifyChainOnly(chain, new Date());
             fail("Path creation should fail");
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             assertTrue(e.getCause() instanceof CertPathBuilderException);
         }
     }
@@ -143,7 +143,7 @@ public class CertChainTest {
         try {
             verifyChainOnly(chain, null);
             fail("Path creation should fail");
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             assertTrue(e.getCause() instanceof CertPathBuilderException);
         }
     }
@@ -174,7 +174,7 @@ public class CertChainTest {
         try {
             verify(chain, ocsp, null);
             fail("Path creation should fail");
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             assertTrue(e.getCause() instanceof CertPathBuilderException);
         }
     }
@@ -202,9 +202,9 @@ public class CertChainTest {
         try {
             verify(chain, ocsp, makeDate(rootCa.getNotBefore(), 1));
             fail("OCSP verification should fail");
-        } catch (CodedException e) {
-            assertTrue(e.getFaultCode().startsWith(
-                    ErrorCodes.X_INVALID_CERT_PATH_X));
+        } catch (XrdRuntimeException e) {
+            assertTrue(e.getErrorCode().startsWith(
+                    ErrorCode.INVALID_CERT_PATH.code()));
         }
     }
 
@@ -231,9 +231,9 @@ public class CertChainTest {
         try {
             verify(chain, ocsp, makeDate(rootCa.getNotBefore(), 1));
             fail("OCSP verification should fail");
-        } catch (CodedException e) {
-            assertTrue(e.getFaultCode().startsWith(
-                    ErrorCodes.X_INVALID_CERT_PATH_X));
+        } catch (XrdRuntimeException e) {
+            assertTrue(e.getErrorCode().startsWith(
+                    ErrorCode.INVALID_CERT_PATH.code()));
         }
     }
 

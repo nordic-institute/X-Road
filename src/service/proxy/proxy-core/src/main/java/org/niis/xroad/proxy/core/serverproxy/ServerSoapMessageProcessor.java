@@ -26,11 +26,11 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapHeader;
@@ -38,6 +38,7 @@ import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -47,6 +48,7 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
@@ -61,6 +63,7 @@ import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
+import org.niis.xroad.proxy.core.protocol.Attachment;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
@@ -90,20 +93,7 @@ import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MALFORMED_URL;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MISSING_URL;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -112,6 +102,18 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_MESSAGE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SECURITY_SERVER;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SERVICE_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SOAP;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_DISABLED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_MALFORMED_URL;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_MISSING_URL;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions")
@@ -139,6 +141,8 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
     private final OcspVerifierFactory ocspVerifierFactory;
     private final SigningCtxProvider signingCtxProvider;
     private final String tempFilesPath;
+
+    private final List<Attachment> attachmentCache = new ArrayList<>();
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     public ServerSoapMessageProcessor(RequestWrapper request, ResponseWrapper response,
@@ -293,7 +297,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
                 getHashAlgoId(jRequest));
         try {
             decoder.parse(jRequest.getInputStream());
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e.withPrefix(X_SERVICE_FAILED_X);
         }
 
@@ -316,11 +320,11 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
 
     private void checkRequest() {
         if (requestMessage.getSoap() == null) {
-            throw new CodedException(X_MISSING_SOAP, "Request does not have SOAP message");
+            throw XrdRuntimeException.systemException(MISSING_SOAP, "Request does not have SOAP message");
         }
 
         if (requestMessage.getSignature() == null) {
-            throw new CodedException(X_MISSING_SIGNATURE, "Request does not have signature");
+            throw XrdRuntimeException.systemException(MISSING_SIGNATURE, "Request does not have signature");
         }
         IdentifierValidator.checkIdentifier(requestMessage.getSoap().getClient());
         IdentifierValidator.checkIdentifier(requestMessage.getSoap().getService());
@@ -333,7 +337,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         String status = serverConfProvider.getMemberStatus(client);
 
         if (!Client.STATUS_REGISTERED.equals(status)) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
+            throw XrdRuntimeException.systemException(UNKNOWN_MEMBER, "Client '%s' not found".formatted(client));
         }
     }
 
@@ -341,7 +345,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         log.trace("verifySslClientCert()");
 
         if (requestMessage.getOcspResponses().isEmpty()) {
-            throw new CodedException(X_SSL_AUTH_FAILED,
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
                     "Cannot verify TLS certificate, corresponding OCSP response is missing");
         }
 
@@ -358,7 +362,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
             CertChain chain = CertChainFactory.create(instanceIdentifier, ArrayUtils.add(clientSslCerts, trustAnchor));
             certHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getSoap().getClient());
         } catch (Exception e) {
-            throw new CodedException(X_SSL_AUTH_FAILED, e);
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, e);
         }
     }
 
@@ -369,8 +373,8 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
             final SecurityServerId serverId = serverConfProvider.getIdentifier();
 
             if (!requestServerId.equals(serverId)) {
-                throw new CodedException(X_INVALID_SECURITY_SERVER,
-                        "Invalid security server identifier '%s' expected '%s'", requestServerId, serverId);
+                throw XrdRuntimeException.systemException(INVALID_SECURITY_SERVER,
+                        "Invalid security server identifier '%s' expected '%s'".formatted(requestServerId, serverId));
             }
         }
     }
@@ -379,24 +383,24 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         log.trace("verifyAccess()");
 
         if (!serverConfProvider.serviceExists(requestServiceId)) {
-            throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
+            throw XrdRuntimeException.systemException(UNKNOWN_SERVICE, "Unknown service: %s".formatted(requestServiceId));
         }
 
         DescriptionType descriptionType = serverConfProvider.getDescriptionType(requestServiceId);
         if (descriptionType != null && descriptionType != DescriptionType.WSDL) {
-            throw new CodedException(X_INVALID_SERVICE_TYPE,
+            throw XrdRuntimeException.systemException(INVALID_SERVICE_TYPE,
                     "Service is a REST service and cannot be called using SOAP interface");
         }
 
         if (!serverConfProvider.isQueryAllowed(requestMessage.getSoap().getClient(), requestServiceId)) {
-            throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
+            throw XrdRuntimeException.systemException(ACCESS_DENIED, "Request is not allowed: %s".formatted(requestServiceId));
         }
 
         String disabledNotice = serverConfProvider.getDisabledNotice(requestServiceId);
 
         if (disabledNotice != null) {
-            throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,
-                    disabledNotice);
+            throw XrdRuntimeException.systemException(SERVICE_DISABLED, "Service %s is disabled: %s".formatted(requestServiceId,
+                    disabledNotice));
         }
     }
 
@@ -415,9 +419,12 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
     private void logResponseMessage() {
         if (responseSoap != null && encoder != null) {
             log.trace("logResponseMessage()");
-            // Attachments are not logged here, because response from X-Road 7 server is always batch signed
-            MessageLog.log(responseSoap, encoder.getSignature(), List.of(), false, xRequestId);
+            MessageLog.log(responseSoap, encoder.getSignature(), getAttachments(), false, xRequestId);
         }
+    }
+
+    private List<AttachmentStream> getAttachments() {
+        return attachmentCache.stream().map(Attachment::getAttachmentStream).toList();
     }
 
     private void sendRequest(String serviceAddress, HttpSender httpSender) {
@@ -427,8 +434,8 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         try {
             uri = new URI(serviceAddress);
         } catch (URISyntaxException e) {
-            throw new CodedException(X_SERVICE_MALFORMED_URL, "Malformed service address '%s': %s", serviceAddress,
-                    e.getMessage());
+            throw XrdRuntimeException.systemException(SERVICE_MALFORMED_URL, "Malformed service address '%s': %s".formatted(serviceAddress,
+                    e.getMessage()));
         }
 
         log.info("Sending request to {}", uri);
@@ -437,7 +444,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
             httpSender.doPost(uri, new ProxyMessageSoapEntity(requestMessage));
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {
-            if (ex instanceof CodedException) {
+            if (ex instanceof XrdRuntimeException) {
                 opMonitoringData.setResponseInTs(getEpochMillisecond());
             }
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
@@ -463,13 +470,13 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         // If we received a fault from the service, we just send it back
         // to the client.
         if (responseFault != null) {
-            throw responseFault.toCodedException();
+            throw responseFault.toXrdRuntimeException();
         }
 
         // If we did not parse a response message (empty response
         // from server?), it is an error instead.
         if (responseSoap == null) {
-            throw new CodedException(X_INVALID_MESSAGE, "No response message received from service").withPrefix(
+            throw XrdRuntimeException.systemException(INVALID_MESSAGE, "No response message received from service").withPrefix(
                     X_SERVICE_FAILED_X);
         }
 
@@ -504,10 +511,9 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
 
     private void handleException(Exception ex) throws Exception {
         if (encoder != null) {
-            CodedException exception;
-
-            if (ex instanceof CodedException.Fault) {
-                exception = (CodedException.Fault) ex;
+            XrdRuntimeException exception;
+            if (ex instanceof XrdRuntimeException xrdEx && xrdEx.hasSoapFault()) {
+                exception = xrdEx;
             } else {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }
@@ -530,7 +536,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         String hashAlgoId = request.getHeaders().get(HEADER_HASH_ALGO_ID);
 
         if (hashAlgoId == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Could not get hash algorithm identifier from message");
+            throw XrdRuntimeException.systemInternalError("Could not get hash algorithm identifier from message");
         }
 
         return DigestAlgorithm.ofName(hashAlgoId);
@@ -574,8 +580,8 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
             String address = serverConfProvider.getServiceAddress(requestServiceId);
 
             if (address == null || address.isEmpty()) {
-                throw new CodedException(X_SERVICE_MISSING_URL, "Service address not specified for '%s'",
-                        requestServiceId);
+                throw XrdRuntimeException.systemException(SERVICE_MISSING_URL, "Service address not specified for '%s'".formatted(
+                        requestServiceId));
             }
 
             int timeout = TimeUtils.secondsToMillis(serverConfProvider.getServiceTimeout(requestServiceId));
@@ -620,7 +626,11 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         @Override
         public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
                 throws IOException {
-            encoder.attachment(contentType, content, additionalHeaders);
+            CachingStream attachmentCacheStream = new CachingStream(tempFilesPath);
+            try (TeeInputStream tis = new TeeInputStream(content, attachmentCacheStream)) {
+                encoder.attachment(contentType, tis, additionalHeaders);
+                attachmentCache.add(new Attachment(contentType, attachmentCacheStream, additionalHeaders));
+            }
         }
 
         @Override

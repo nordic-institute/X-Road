@@ -39,7 +39,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import static ee.ria.xroad.common.TestExceptionUtils.codedException;
+import static ee.ria.xroad.common.TestExceptionUtils.xrdRuntimeException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -75,7 +75,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(codedException(ErrorCode.GLOBAL_CONF_MISSING_SIGNED_DATA_EXPIRATION_DATE.code()));
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_MISSING_SIGNED_DATA_EXPIRATION_DATE));
     }
 
     /**
@@ -88,7 +88,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(codedException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_MISSING.code()));
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_MISSING));
     }
 
     /**
@@ -101,7 +101,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getProducer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(codedException(ErrorCode.GLOBAL_CONF_MISSING_VERIFICATION_CERT.code()));
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_MISSING_VERIFICATION_CERT));
     }
 
     /**
@@ -114,7 +114,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(codedException(ErrorCode.GLOBAL_CONF_SIGNATURE_DECODE_FAILURE.code()));
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_SIGNATURE_DECODE_FAILURE));
     }
 
     /**
@@ -127,7 +127,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(codedException(ErrorCode.GLOBAL_CONF_SIGNATURE_VERIFICATION_FAILURE.code()));
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_SIGNATURE_VERIFICATION_FAILURE));
     }
 
     // ------------------------------------------------------------------------
@@ -148,7 +148,7 @@ class ConfigurationParserTest {
     }
 
     private static List<ConfigurationFile> parse(final String path,
-                                                 ConfigurationSource source) throws Exception {
+                                                 ConfigurationSource source) {
         ConfigurationParser.HASH_TO_CERT.clear();
 
         if (!source.getLocations().isEmpty()) {
@@ -188,4 +188,5 @@ class ConfigurationParserTest {
             }
         };
     }
+
 }

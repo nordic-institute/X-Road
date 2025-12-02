@@ -30,7 +30,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_BODY;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_BODY;
 
 /**
  * Client makes a query that does not contain SOAP body.
@@ -48,6 +48,6 @@ public class MissingBody extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(CLIENT_X, X_MISSING_BODY);
+        assertErrorCode(CLIENT_X, MISSING_BODY.code());
     }
 }

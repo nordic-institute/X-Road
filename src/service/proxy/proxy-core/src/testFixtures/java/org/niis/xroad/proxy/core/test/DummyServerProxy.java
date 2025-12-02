@@ -117,10 +117,10 @@ public class DummyServerProxy extends Server {
                     IOUtils.copy(responseIs, asOutputStream(response));
                 }
             } catch (FileNotFoundException e) {
-                log.error("Could not find answer file: " + file, e);
+                log.error("Could not find answer file: {}", file, e);
                 return false;
             } catch (Exception e) {
-                log.error("An error has occured when sending response " + "from file " + file, e);
+                log.error("An error has occured when sending response from file {}", file, e);
             }
 
             return true;

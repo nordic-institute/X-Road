@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.globalconf;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -33,6 +32,7 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
@@ -377,10 +377,10 @@ public interface GlobalConfProvider {
      * @param instanceIdentifier instance id
      * @param cert               intermediate or top CA cert
      * @return ApprovedCAInfo (for the top CA)
-     * @throws CodedException if something went wrong, for example
+     * @throws XrdRuntimeException if something went wrong, for example
      *                        {@code cert} was not an approved CA cert
      */
-    ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException;
+    ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert);
 
     /**
      * Returns access to various GlobalConf extensions.

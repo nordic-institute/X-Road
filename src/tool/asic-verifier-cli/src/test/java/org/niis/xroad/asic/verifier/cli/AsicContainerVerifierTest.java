@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.asic.verifier.cli;
 
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 
@@ -44,10 +44,10 @@ import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.HASHCHAIN_UNUSED_INPUTS;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HASH_CHAIN_REF;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SIGNATURE_VALUE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SIGNATURE;
 
 /**
  * Tests to verify correct ASiC container verifier behavior.
@@ -63,7 +63,7 @@ public class AsicContainerVerifierTest {
     private final String containerFile;
     private final String errorCode;
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * Set up configuration.
@@ -84,15 +84,15 @@ public class AsicContainerVerifierTest {
                 {"valid-non-batch-soap-attachments.asice", null},
                 {"valid-signed-hashchain.asice", null},
                 {"valid-batch-ts.asice", null},
-                {"wrong-message.asice", X_INVALID_SIGNATURE_VALUE},
-                {"invalid-digest.asice", X_INVALID_SIGNATURE_VALUE},
-                {"invalid-signed-hashchain.asice", X_MALFORMED_SIGNATURE + "." + X_INVALID_HASH_CHAIN_REF},
-                {"invalid-hashchain-modified-message.asice", X_MALFORMED_SIGNATURE + "." + X_HASHCHAIN_UNUSED_INPUTS},
+                {"wrong-message.asice", INVALID_SIGNATURE_VALUE.code()},
+                {"invalid-digest.asice", INVALID_SIGNATURE_VALUE.code()},
+                {"invalid-signed-hashchain.asice", MALFORMED_SIGNATURE.code() + "." + INVALID_HASH_CHAIN_REF.code()},
+                {"invalid-hashchain-modified-message.asice", MALFORMED_SIGNATURE.code() + "." + HASHCHAIN_UNUSED_INPUTS.code()},
                 // This verification actually passes, since the hash chain
                 // is not verified and the signature is correct otherwise
                 {"invalid-not-signed-hashchain.asice", null},
-                {"invalid-incorrect-references.asice", X_MALFORMED_SIGNATURE},
-                {"invalid-ts-hashchainresult.asice", X_MALFORMED_SIGNATURE}
+                {"invalid-incorrect-references.asice", MALFORMED_SIGNATURE.code()},
+                {"invalid-ts-hashchainresult.asice", MALFORMED_SIGNATURE.code()}
         });
     }
 

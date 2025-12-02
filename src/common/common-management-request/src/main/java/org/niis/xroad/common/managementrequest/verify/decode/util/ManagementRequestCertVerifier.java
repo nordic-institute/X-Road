@@ -26,12 +26,12 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode.util;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
@@ -41,7 +41,7 @@ import java.security.GeneralSecurityException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
+import static org.niis.xroad.common.core.exception.ErrorCode.CERT_VALIDATION;
 
 @RequiredArgsConstructor
 public class ManagementRequestCertVerifier {
@@ -57,12 +57,12 @@ public class ManagementRequestCertVerifier {
             memberCert.verify(issuer.getPublicKey());
             memberCert.checkValidity();
         } catch (GeneralSecurityException e) {
-            throw new CodedException(X_CERT_VALIDATION,
+            throw XrdRuntimeException.systemException(CERT_VALIDATION,
                     "Member (owner/client) sign certificate is invalid: %s", e.getMessage());
         }
 
         if (!CertUtils.isSigningCert(memberCert)) {
-            throw new CodedException(X_CERT_VALIDATION, "Member (owner/client) sign certificate is invalid");
+            throw XrdRuntimeException.systemException(CERT_VALIDATION, "Member (owner/client) sign certificate is invalid");
         }
 
         ocspVerifierFactory.create(globalConfProvider,

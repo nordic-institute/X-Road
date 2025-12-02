@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
-
 import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.Token;
 import iaik.pkcs.pkcs11.TokenException;
@@ -36,9 +34,9 @@ import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
 
 @Slf4j
@@ -50,7 +48,7 @@ public class ManagedPKCS11Session {
 
     public static ManagedPKCS11Session openSession(Token token, String tokenId) throws TokenException {
         if (token == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Token is null");
+            throw XrdRuntimeException.systemInternalError("Token is null");
         }
 
         try {

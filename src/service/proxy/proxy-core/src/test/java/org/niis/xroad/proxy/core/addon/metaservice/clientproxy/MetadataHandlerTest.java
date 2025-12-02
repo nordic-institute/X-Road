@@ -26,13 +26,13 @@
  */
 package org.niis.xroad.proxy.core.addon.metaservice.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import org.eclipse.jetty.http.HttpURI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -49,7 +49,6 @@ import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,6 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 /**
  * Unit test for {@link MetadataHandler}
@@ -68,10 +68,6 @@ class MetadataHandlerTest {
     private HttpURI mockHttpUri;
     private ResponseWrapper mockResponse;
 
-    private GlobalConfProvider globalConfProvider;
-    private KeyConfProvider keyConfProvider;
-    private ServerConfProvider serverConfProvider;
-    private ClientAuthenticationService clientAuthenticationService;
     private MessageProcessorFactory messageProcessorFactory;
     private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
     private final CommonProperties commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
@@ -82,10 +78,10 @@ class MetadataHandlerTest {
      */
     @BeforeEach
     void init() {
-        globalConfProvider = new TestSuiteGlobalConf(proxyTestSuiteHelper);
-        keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
-        serverConfProvider = mock(ServerConfProvider.class);
-        clientAuthenticationService = mock(ClientAuthenticationService.class);
+        GlobalConfProvider globalConfProvider = new TestSuiteGlobalConf(proxyTestSuiteHelper);
+        KeyConfProvider keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
+        ServerConfProvider serverConfProvider = mock(ServerConfProvider.class);
+        ClientAuthenticationService clientAuthenticationService = mock(ClientAuthenticationService.class);
         EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
         var messageRecordEncryption = mock(MessageRecordEncryption.class);
 
@@ -135,9 +131,9 @@ class MetadataHandlerTest {
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn(null);
 
-        var ce = assertThrows(CodedException.class, () -> handlerToTest.createRequestProcessor(mockRequest, mockResponse, null));
+        var ce = assertThrows(XrdRuntimeException.class, () -> handlerToTest.createRequestProcessor(mockRequest, mockResponse, null));
 
-        assertEquals(X_INVALID_REQUEST, ce.getFaultCode());
+        assertEquals(INVALID_REQUEST.code(), ce.getErrorCode());
         assertTrue(ce.getMessage().contains("Target must not be null"));
     }
 

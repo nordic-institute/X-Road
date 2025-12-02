@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -43,6 +41,7 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -68,6 +67,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 
 /**
  * Service handler for proxy monitoring
@@ -216,9 +217,8 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
             return;
         }
 
-        throw new CodedException(ErrorCodes.X_ACCESS_DENIED,
-                "Request is not allowed: %s",
-                requestMessage.getSoap().getService());
+        throw XrdRuntimeException.systemException(ACCESS_DENIED,
+                "Request is not allowed: %s".formatted(requestMessage.getSoap().getService()));
     }
 
     private static SoapMessageImpl createResponse(SoapMessageImpl requestMessage, Object response)

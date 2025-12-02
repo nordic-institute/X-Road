@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
@@ -46,9 +45,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNSUPPORTED_SIGN_ALGORITHM;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.loginFailed;
 
 @Slf4j
@@ -71,7 +69,7 @@ public class HardwareTokenSigner implements Closeable {
                 try {
                     return sessionPool;
                 } catch (Exception e) {
-                    throw new CodedException(X_INTERNAL_ERROR, "Could not generate public key");
+                    throw XrdRuntimeException.systemInternalError("Could not generate public key");
                 }
             };
 
@@ -127,8 +125,8 @@ public class HardwareTokenSigner implements Closeable {
 
         PrivateKey key = privateKeyProvider.getPrivateKey(session, keyId);
         if (key == null) {
-            throw CodedException.tr(X_KEY_NOT_FOUND, "key_not_found_on_token", "Key '%s' not found on token '%s'",
-                    keyId, session.getTokenId());
+            throw XrdRuntimeException.systemException(KEY_NOT_FOUND, "Key '%s' not found on token '%s'".formatted(
+                    keyId, session.getTokenId()));
         }
 
         log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithm);
@@ -168,13 +166,13 @@ public class HardwareTokenSigner implements Closeable {
         Mechanism signMechanism = signMechanisms.get(signatureAlgorithmId);
 
         if (signMechanism == null) {
-            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
-                    "Unsupported signature algorithm '%s'", signatureAlgorithmId);
+            throw XrdRuntimeException.systemException(UNSUPPORTED_SIGN_ALGORITHM,
+                    "Unsupported signature algorithm '%s'".formatted(signatureAlgorithmId));
         }
 
         if (!algorithm.equals(signatureAlgorithmId.algorithm())) {
-            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
-                    "Unsupported signature algorithm '%s' for key algorithm '%s'", signatureAlgorithmId.name(), algorithm);
+            throw XrdRuntimeException.systemException(UNSUPPORTED_SIGN_ALGORITHM,
+                    "Unsupported signature algorithm '%s' for key algorithm '%s'".formatted(signatureAlgorithmId.name(), algorithm));
         }
 
         return signMechanism;

@@ -109,7 +109,7 @@ public class TestConfigurationSessionListener implements LauncherSessionListener
     private void setCucumberProperties(TestFrameworkCoreProperties.Cucumber cucumber) {
         log.debug("Configuring Cucumber properties");
 
-        cucumber.glue().ifPresent(glueList ->{
+        cucumber.glue().ifPresent(glueList -> {
             String glue = String.join(",", glueList);
             setProperty(GLUE_PROPERTY_NAME, glue);
         });

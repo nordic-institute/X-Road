@@ -35,7 +35,7 @@ public class ConsoleE2ETestRunner extends BaseConsoleTestRunner {
 
     @Override
     protected String getTestClassName() {
-        return E2EBehavioralTest.class.getName();
+        return E2ETest.class.getName();
     }
 
     @Override

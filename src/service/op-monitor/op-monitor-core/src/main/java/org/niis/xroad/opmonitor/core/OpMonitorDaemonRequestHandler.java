@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -52,14 +51,13 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.JettyUtils.getContentType;
 import static ee.ria.xroad.common.util.JettyUtils.setContentLength;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.http.MimeTypes.Type.APPLICATION_JSON_UTF_8;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HTTP_METHOD;
 import static org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints.QUERY_DATA_PATH;
 import static org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints.STORE_DATA_PATH;
 
@@ -104,15 +102,14 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
                                     Callback callback) throws IOException {
         try {
             if (!isPostRequest(request)) {
-                throw new CodedException(X_INVALID_HTTP_METHOD,
-                        invalidMethodError(request));
+                throw XrdRuntimeException.systemException(INVALID_HTTP_METHOD, invalidMethodError(request));
             }
 
             String contentType = MimeUtils.getBaseContentType(
                     getContentType(request));
 
             if (!MimeTypes.TEXT_XML.equalsIgnoreCase(contentType)) {
-                throw new CodedException(X_INVALID_CONTENT_TYPE,
+                throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE,
                         invalidContentTypeError(request,
                                 MimeTypes.TEXT_XML));
             }
@@ -124,8 +121,8 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling query request", t);
 
-            sendErrorResponse(request, response, callback, translateWithPrefix(
-                    SERVER_SERVER_PROXY_OPMONITOR_X, t));
+            XrdRuntimeException ex = XrdRuntimeException.systemException(t).withPrefix(SERVER_SERVER_PROXY_OPMONITOR_X);
+            sendErrorResponse(request, response, callback, ex);
         }
     }
 

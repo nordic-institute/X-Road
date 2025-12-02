@@ -27,7 +27,6 @@
 
 package org.niis.xroad.backupmanager.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
@@ -59,7 +58,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_INTERRUPTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.FILE_ALREADY_EXISTS;
 import static org.niis.xroad.common.core.exception.ErrorCode.GPG_KEY_GENERATION_FAILED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.GPG_KEY_GENERATION_INTERRUPTED;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -89,14 +88,14 @@ public class FileSystemBackupHandler {
             log.info(String.join("\n", processResult.getProcessOutput()));
             log.info(" --- Backup script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
-            throw new CodedException(BACKUP_GENERATION_FAILED.code(), e);
+            throw XrdRuntimeException.systemException(BACKUP_GENERATION_FAILED, e);
         } catch (InterruptedException e) {
-            throw new CodedException(BACKUP_GENERATION_INTERRUPTED.code(), e);
+            throw XrdRuntimeException.systemException(BACKUP_GENERATION_INTERRUPTED, e);
         }
 
         return getBackupItem(name)
                 .map(backupItem -> new BackupItem(backupItem.name(), backupItem.createdAt()))
-                .orElseThrow(() -> new CodedException(BACKUP_GENERATION_FAILED.code()));
+                .orElseThrow(() -> XrdRuntimeException.systemException(BACKUP_GENERATION_FAILED).build());
     }
 
     private String[] createBackupArgs(String securityServerId, String name) {
@@ -134,9 +133,9 @@ public class FileSystemBackupHandler {
                 log.info(" --- Restore script console output - END --- ");
             }
         } catch (ProcessFailedException | ProcessNotExecutableException e) {
-            throw new CodedException(BACKUP_RESTORATION_FAILED.code(), e);
+            throw XrdRuntimeException.systemException(BACKUP_RESTORATION_FAILED, e);
         } catch (InterruptedException e) {
-            throw new CodedException(BACKUP_RESTORATION_INTERRUPTED.code(), e);
+            throw XrdRuntimeException.systemException(BACKUP_RESTORATION_INTERRUPTED, e);
         }
     }
 
@@ -189,9 +188,9 @@ public class FileSystemBackupHandler {
             log.info(String.join("\n", processResult.getProcessOutput()));
             log.info(" --- Generate GPG keypair script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
-            throw new CodedException(GPG_KEY_GENERATION_FAILED.code(), e);
+            throw XrdRuntimeException.systemException(GPG_KEY_GENERATION_FAILED, e);
         } catch (InterruptedException e) {
-            throw new CodedException(ERROR_GPG_KEY_GENERATION_INTERRUPTED, e);
+            throw XrdRuntimeException.systemException(GPG_KEY_GENERATION_INTERRUPTED, e);
         }
     }
 

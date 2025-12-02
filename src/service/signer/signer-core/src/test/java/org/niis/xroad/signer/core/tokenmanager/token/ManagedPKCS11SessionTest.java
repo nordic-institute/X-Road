@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
-
 import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.Token;
 import iaik.pkcs.pkcs11.TokenException;
@@ -37,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 
 import java.util.Optional;
@@ -92,7 +91,7 @@ class ManagedPKCS11SessionTest {
     @Test
     void openSessionFailsWhenTokenIsNull() {
         // When & Assert
-        CodedException thrown = assertThrows(CodedException.class, () -> {
+        XrdRuntimeException thrown = assertThrows(XrdRuntimeException.class, () -> {
             ManagedPKCS11Session.openSession(null, TOKEN_ID);
         });
         assertThat(thrown.getMessage()).contains("Token is null");

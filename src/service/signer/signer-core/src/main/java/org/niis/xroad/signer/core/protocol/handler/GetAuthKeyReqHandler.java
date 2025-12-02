@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -60,7 +59,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotActive;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotInitialized;
 
@@ -115,9 +114,8 @@ public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, Auth
             }
         }
 
-        throw CodedException.tr(X_KEY_NOT_FOUND,
-                "auth_key_not_found_for_server",
-                "Could not find active authentication key for security server '%s'", securityServer);
+        throw XrdRuntimeException.systemException(KEY_NOT_FOUND,
+                "Could not find active authentication key for security server '%s'".formatted(securityServer));
     }
 
     private AuthKeyProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) {
@@ -197,7 +195,7 @@ public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, Auth
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
-    private void validateToken() throws CodedException {
+    private void validateToken() {
         if (!tokenPinManager.tokenHasPin(SoftwareTokenDefinition.ID)) {
             throw tokenNotInitialized(SoftwareTokenDefinition.ID);
         }

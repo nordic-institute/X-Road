@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.healthcheck;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ProxyMemory;
 
 import com.google.common.base.Supplier;
@@ -34,6 +33,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -46,7 +46,7 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HW_MODULE_NON_OPERATIONAL;
+import static org.niis.xroad.common.core.exception.ErrorCode.HW_MODULE_NON_OPERATIONAL;
 import static org.niis.xroad.proxy.core.healthcheck.HealthCheckResult.OK;
 import static org.niis.xroad.proxy.core.healthcheck.HealthCheckResult.failure;
 
@@ -250,7 +250,7 @@ public class HealthChecks {
 
     private void verifyAllHSMOperational() {
         if (!signerRpcClient.isHSMOperational()) {
-            throw new CodedException(X_HW_MODULE_NON_OPERATIONAL,
+            throw XrdRuntimeException.systemException(HW_MODULE_NON_OPERATIONAL,
                     "At least one HSM are non operational");
         }
     }

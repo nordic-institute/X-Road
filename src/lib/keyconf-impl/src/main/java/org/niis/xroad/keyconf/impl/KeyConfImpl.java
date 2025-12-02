@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.keyconf.impl;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -34,6 +33,7 @@ import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.SingleResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -52,12 +52,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 import static ee.ria.xroad.common.util.CertUtils.getHashes;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static org.niis.xroad.common.core.exception.ErrorCode.CANNOT_CREATE_SIGNATURE;
 
 /**
  * Encapsulates KeyConf related functionality.
@@ -95,7 +95,7 @@ class KeyConfImpl implements KeyConfProvider {
             return new SigningInfo(signingInfo.keyId(), signingInfo.signMechanismName(), clientId, cert, new Date(),
                     notAfter);
         } catch (Exception e) {
-            throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
+            throw XrdRuntimeException.systemException(CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
                     clientId, e);
         }
     }
@@ -106,8 +106,7 @@ class KeyConfImpl implements KeyConfProvider {
         CertChain certChain = null;
         try {
             SecurityServerId serverId = serverConfProvider.getIdentifier();
-            log.debug("Retrieving authentication info for security "
-                    + "server '{}'", serverId);
+            log.debug("Retrieving authentication info for security server '{}'", serverId);
 
             var keyInfo = signerRpcClient.getAuthKey(serverId);
 

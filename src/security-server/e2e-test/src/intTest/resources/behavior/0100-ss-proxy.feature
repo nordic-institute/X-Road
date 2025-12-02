@@ -49,7 +49,8 @@ Feature: 0100 - SS: Proxy
 
   Scenario: Messagelogs are successfully archived and removed from database
     When Waiting for 31 seconds to ensure that all messagelogs are archived and removed from database
-    Then "ss0"'s "ui" service has 18 messagelogs present in the archives
+    And Global configuration is fetched from "ss0"'s "proxy" for messagelog verification
+    Then "ss0"'s "ui" service has 18 messagelogs present in the archives and all are cryptographically valid
     And "ss0" contains 0 messagelog entries
-    And "ss1"'s "ui" service has 10 messagelogs present in the archives
+    And "ss1"'s "ui" service has 10 messagelogs present in the archives and all are cryptographically valid
     And "ss1" contains 0 messagelog entries

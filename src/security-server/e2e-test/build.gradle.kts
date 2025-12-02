@@ -9,6 +9,9 @@ dependencies {
   intTestImplementation(project(":tool:test-framework-core"))
   intTestImplementation(libs.test.restassured)
   intTestImplementation(libs.postgresql)
+  intTestImplementation(project(":lib:asic-core"))
+  intTestImplementation(project(":common:common-test"))
+  intTestImplementation(project(":lib:globalconf-impl"))
 }
 
 intTestComposeEnv {

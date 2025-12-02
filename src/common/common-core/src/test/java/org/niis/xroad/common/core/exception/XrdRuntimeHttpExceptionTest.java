@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,11 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e;
 
-import org.junit.platform.suite.api.SelectClasspathResource;
-import org.niis.xroad.test.framework.core.BaseTestRunner;
+package org.niis.xroad.common.core.exception;
 
-@SelectClasspathResource("/behavior")
-public class E2EBehavioralTest extends BaseTestRunner {
+import ee.ria.xroad.common.HttpStatus;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class XrdRuntimeHttpExceptionTest {
+
+    @Test
+    void shouldCreateExceptionWithHttpStatus() {
+        String identifier = "http-test";
+        var errorDeviation = ErrorCode.NOT_FOUND;
+        String details = "Resource not found";
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+
+        XrdRuntimeHttpException exception = XrdRuntimeHttpException.builder(errorDeviation)
+                .identifier(identifier)
+                .details(details)
+                .httpStatus(httpStatus)
+                .build();
+
+        assertEquals(identifier, exception.getIdentifier());
+        assertEquals(errorDeviation.code(), exception.getCode());
+        assertEquals(details, exception.getDetails());
+        assertEquals(httpStatus, exception.getHttpStatus().orElse(null));
+
+        String expectedMessage = "[http-test] not_found: Resource not found";
+        assertEquals(expectedMessage, exception.toString());
+    }
+
 }

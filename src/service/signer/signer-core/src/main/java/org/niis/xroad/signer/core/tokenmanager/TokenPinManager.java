@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -64,7 +63,7 @@ public final class TokenPinManager {
             try {
                 var token = ctx.findToken(tokenId);
                 tokenWriteService.setInitialTokenPin(token.id(), pinHash);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemInternalError("Failed to set PIN for token " + tokenId, e);
@@ -84,7 +83,7 @@ public final class TokenPinManager {
                 var updatedKeys = updateKeyStores(token, oldPin, newPin);
 
                 tokenWriteService.updateTokenPin(token.id(), updatedKeys, newPinHash);
-            } catch (CodedException signerException) {
+            } catch (XrdRuntimeException signerException) {
                 throw signerException;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemException(WRONG_CERT_USAGE)
@@ -128,7 +127,7 @@ public final class TokenPinManager {
                 newKeyStore.store(outputStream, newPin);
                 updatedKeys.put(key.id(), outputStream.toByteArray());
             }
-        } catch (CodedException signerException) {
+        } catch (XrdRuntimeException signerException) {
             throw signerException;
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(WRONG_CERT_USAGE)

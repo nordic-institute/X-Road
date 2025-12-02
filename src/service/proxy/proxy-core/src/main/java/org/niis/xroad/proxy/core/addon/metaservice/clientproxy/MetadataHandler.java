@@ -26,18 +26,18 @@
  */
 package org.niis.xroad.proxy.core.addon.metaservice.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 /**
  * MetadataHandler
@@ -66,8 +66,7 @@ public class MetadataHandler extends AbstractClientProxyHandler {
         }
 
         if (target == null) {
-            throw new CodedException(X_INVALID_REQUEST,
-                    "Target must not be null");
+            throw XrdRuntimeException.systemException(INVALID_REQUEST, "Target must not be null");
         }
 
         MetadataClientRequestProcessor processor = messageProcessorFactory
