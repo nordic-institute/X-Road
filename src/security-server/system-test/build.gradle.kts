@@ -1,8 +1,8 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
   id("xroad.java-conventions")
   id("xroad.int-test-conventions")
-  alias(libs.plugins.shadow)
-  alias(libs.plugins.allure)
 }
 
 dependencies {
@@ -38,6 +38,11 @@ intTestComposeEnv {
   )
 }
 
+intTestShadowJar {
+  archiveBaseName("security-server-system-test")
+  mainClass("org.niis.xroad.ss.test.ConsoleSystemTestRunner")
+}
+
 val copyMainComposeFile by tasks.registering(Copy::class) {
   description = "Copies main compose.yaml and required files to build directory"
   group = "verification"
@@ -70,56 +75,13 @@ tasks.register<Test>("intTest") {
   }
 }
 
-allure {
-  adapter {
-    frameworks {
-      cucumber7Jvm
-    }
-  }
-}
-
-
-tasks.jar {
-  enabled = false
-}
-
 tasks.named<Checkstyle>("checkstyleIntTest") {
   dependsOn(provider { tasks.named("generateIntTestEnv") })
   dependsOn(provider { tasks.named("copyMainComposeFile") })
 }
 
-tasks.shadowJar {
-  archiveBaseName.set("security-server-system-test")
-  archiveClassifier.set("")
-  isZip64 = true
-
-  from(sourceSets["intTest"].output.classesDirs)
-
-  from("${layout.buildDirectory.get().asFile}/resources/intTest") {
-    into("")
-  }
-  from("${layout.buildDirectory.get().asFile}/resources/intTest/.env") {
-    into("")
-  }
-  from(sourceSets["intTest"].runtimeClasspath.filter { it.name.endsWith(".jar") })
-
-  mergeServiceFiles()
-  exclude("**/module-info.class")
-
-  manifest {
-    attributes(
-      "Main-Class" to "org.niis.xroad.ss.test.ConsoleSystemTestRunner"
-    )
-  }
-
+tasks.named<ShadowJar>("shadowJar") {
   dependsOn(provider { tasks.named("copyMainComposeFile") })
-  dependsOn(provider { tasks.named("generateIntTestEnv") })
-  dependsOn(tasks.named("intTestClasses"))
-  dependsOn(tasks.named("processIntTestResources"))
-}
-
-tasks.build {
-  dependsOn(tasks.shadowJar)
 }
 
 archUnit {

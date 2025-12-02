@@ -17,6 +17,9 @@ dependencies {
   implementation(libs.archUnitGradlePlugin)
   implementation(libs.protobufGradlePlugin)
   implementation(libs.quarkusGradlePlugin)
+  implementation(libs.shadowGradlePlugin)
+  implementation(libs.allureGradlePlugin)
+
   testImplementation(libs.junit.jupiterEngine)
 }
 

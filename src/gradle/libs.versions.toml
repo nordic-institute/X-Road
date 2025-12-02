@@ -41,6 +41,8 @@ testCucumber = "7.32.0"
 testContainers = "2.0.2"
 testAllure="2.31.0"
 testSelenide="7.12.2"
+shadowPlugin = "8.3.9"
+allurePlugin = "3.0.1"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -225,6 +227,8 @@ licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:li
 archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
 protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref = "protobufPlugin" }
 quarkusGradlePlugin = { module = "io.quarkus:gradle-application-plugin", version.ref = "quarkus" }
+shadowGradlePlugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version.ref = "shadowPlugin" }
+allureGradlePlugin = { module = "io.qameta.allure:io.qameta.allure.gradle.plugin", version.ref = "allurePlugin" }
 
 [bundles]
 metrics = ["metrics-core"]
@@ -248,6 +252,6 @@ protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.2.0" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
-shadow = { id = "com.gradleup.shadow", version = "8.3.9" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadowPlugin" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
-allure = { id = "io.qameta.allure", version = "3.0.1" }
+allure = { id = "io.qameta.allure", version.ref = "allurePlugin" }

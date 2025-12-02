@@ -1,8 +1,8 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
   id("xroad.java-conventions")
   id("xroad.int-test-conventions")
-  alias(libs.plugins.shadow)
-  alias(libs.plugins.allure)
 }
 
 dependencies {
@@ -34,6 +34,11 @@ intTestComposeEnv {
     "OP_MONITOR_IMG" to "ss-op-monitor",
     "CA_IMG" to "testca-dev"
   )
+}
+
+intTestShadowJar {
+  archiveBaseName("e2e-test")
+  mainClass("org.niis.xroad.e2e.ConsoleE2ETestRunner")
 }
 
 val copyComposeFiles by tasks.registering(Copy::class) {
@@ -81,53 +86,16 @@ tasks.register<Test>("e2eTest") {
   }
 }
 
-allure {
-  adapter {
-    frameworks {
-      cucumber7Jvm
-    }
-  }
-}
-
 tasks.named<Checkstyle>("checkstyleIntTest") {
   dependsOn(provider { tasks.named("generateIntTestEnv") })
   dependsOn(provider { tasks.named("copyComposeFiles") })
 }
 
-tasks.shadowJar {
-  archiveBaseName.set("e2e-test")
-  archiveClassifier.set("")
-  isZip64 = true
-
-  from(sourceSets["intTest"].output.classesDirs)
-
-  from("${layout.buildDirectory.get().asFile}/resources/intTest") {
-    into("")
-  }
-  from("${layout.buildDirectory.get().asFile}/resources/intTest/.env") {
-    into("")
-  }
-  from(sourceSets["intTest"].runtimeClasspath.filter { it.name.endsWith(".jar") })
-
-  mergeServiceFiles()
-  exclude("**/module-info.class")
-
-  manifest {
-    attributes(
-      "Main-Class" to "org.niis.xroad.e2e.ConsoleE2ETestRunner"
-    )
-  }
-
-  dependsOn(provider { tasks.named("generateIntTestEnv") })
+tasks.named<ShadowJar>("shadowJar") {
   dependsOn(provider { tasks.named("copyComposeFiles") })
-  dependsOn(tasks.named("intTestClasses"))
-  dependsOn(tasks.named("processIntTestResources"))
-}
-
-tasks.build {
-  dependsOn(tasks.shadowJar)
 }
 
 archUnit {
   setSkip(true)
 }
+

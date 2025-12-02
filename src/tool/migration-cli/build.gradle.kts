@@ -1,6 +1,6 @@
 plugins {
   id("xroad.java-conventions")
-  alias(libs.plugins.shadow)
+  id("com.gradleup.shadow")
 }
 
 dependencies {
