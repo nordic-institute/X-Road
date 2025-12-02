@@ -25,28 +25,16 @@
  */
 package org.niis.xroad.cs.test;
 
-import feign.codec.Encoder;
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
-import org.niis.xroad.test.framework.core.feign.FeignFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.niis.xroad.test.framework.core.BaseConsoleTestRunner;
 
-import java.util.Collections;
+public class ConsoleIntTestRunner extends BaseConsoleTestRunner {
 
-import static org.niis.xroad.cs.test.IntTestComposeSetup.CS;
-import static org.niis.xroad.cs.test.IntTestComposeSetup.Port.API;
-
-@Configuration
-@RequiredArgsConstructor
-public class CsManagementServiceTestConfiguration {
-
-    @Bean
-    public FeignManagementRequestsApi feignManagementRequestsApi(FeignFactory feignFactory, final IntTestComposeSetup testSetup) {
-        var container = testSetup.getContainerMapping(CS, API);
-
-        var baseUrl = "http://" + container.host() + ":" + container.port();
-        return feignFactory.createClient(FeignManagementRequestsApi.class, baseUrl, new Encoder.Default(), Collections.emptyList());
+    public static void main(String[] args) {
+        new ConsoleIntTestRunner().run();
     }
 
+    @Override
+    protected String getTestClassName() {
+        return CSManagementTestRunner.class.getName();
+    }
 }

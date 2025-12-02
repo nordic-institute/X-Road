@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.cs.test;
 
-import com.nortal.test.TestRunner;
 import org.junit.platform.suite.api.SelectClasspathResource;
+import org.niis.xroad.test.framework.core.BaseTestRunner;
 
 @SelectClasspathResource("/behavior/api")
-public class CentralServerManagementApiBehavioralTest extends TestRunner {
+public class CSManagementTestRunner extends BaseTestRunner {
 }

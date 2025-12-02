@@ -28,22 +28,25 @@ package org.niis.xroad.cs.test.glue;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import com.nortal.test.asserts.Assertion;
-import com.nortal.test.asserts.AssertionOperation;
-import com.nortal.test.asserts.ValidationHelper;
-import com.nortal.test.asserts.ValidationService;
-import com.nortal.test.core.services.CucumberScenarioProvider;
-import com.nortal.test.core.services.ScenarioContext;
 import feign.FeignException;
 import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.SOAPException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.mockserver.client.MockServerClient;
+import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestPayload;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
+import org.niis.xroad.cs.test.api.service.MockServerService;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
+import org.niis.xroad.test.framework.core.asserts.AssertionOperation;
+import org.niis.xroad.test.framework.core.asserts.ValidationHelper;
+import org.niis.xroad.test.framework.core.asserts.ValidationService;
+import org.niis.xroad.test.framework.core.context.CucumberScenarioProvider;
+import org.niis.xroad.test.framework.core.context.ScenarioContext;
+import org.niis.xroad.test.framework.core.feign.NamedByteArrayResource;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +58,7 @@ import javax.xml.xpath.XPathFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
@@ -72,7 +76,7 @@ public abstract class BaseStepDefs {
     @Autowired
     protected ValidationService validationService;
     @Autowired
-    protected MockServerClient mockServerClient;
+    protected MockServerService mockServerClient;
     @Autowired
     private FeignManagementRequestsApi managementRequestsApi;
 
@@ -130,17 +134,22 @@ public abstract class BaseStepDefs {
         return xpathEvaluator.evaluate(xpath, inputSource);
     }
 
+    @SneakyThrows
     protected void executeRequest(TestManagementRequestPayload payload) {
-        ResponseEntity<String> responseEntity = null;
+        ResponseEntity<@NotNull Resource> responseEntity = null;
         cucumberScenarioProvider.getCucumberScenario().attach(new String(payload.getPayload()), MediaType.TEXT_PLAIN_VALUE, "request");
         try {
             responseEntity = managementRequestsApi.addManagementRequest(payload.getContentType(), payload.getPayload());
         } catch (FeignException e) {
-            responseEntity = ResponseEntity.status(e.status()).body(e.contentUTF8());
+            responseEntity = ResponseEntity
+                    .status(e.status())
+                    .body(new NamedByteArrayResource(e.contentUTF8().getBytes(StandardCharsets.UTF_8), "error-response"));
         } catch (Exception e) {
             log.error("Unexpected feign client failure.", e);
         }
-        cucumberScenarioProvider.getCucumberScenario().attach(responseEntity.getBody(), MediaType.TEXT_PLAIN_VALUE, "response");
+
+        cucumberScenarioProvider.getCucumberScenario()
+                .attach(responseEntity.getBody().getContentAsString(StandardCharsets.UTF_8), MediaType.TEXT_PLAIN_VALUE, "response");
         putStepData(StepDataKey.RESPONSE, responseEntity);
     }
 

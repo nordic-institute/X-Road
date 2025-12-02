@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,30 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.test;
 
-import feign.codec.Encoder;
+package org.niis.xroad.cs.test.api.service;
+
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
-import org.niis.xroad.test.framework.core.feign.FeignFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.mockserver.client.MockServerClient;
+import org.niis.xroad.cs.test.IntTestComposeSetup;
+import org.springframework.stereotype.Component;
 
-import java.util.Collections;
+import static org.niis.xroad.cs.test.IntTestComposeSetup.MOCKSERVER;
 
-import static org.niis.xroad.cs.test.IntTestComposeSetup.CS;
-import static org.niis.xroad.cs.test.IntTestComposeSetup.Port.API;
-
-@Configuration
+@Component
 @RequiredArgsConstructor
-public class CsManagementServiceTestConfiguration {
+public class MockServerService {
 
-    @Bean
-    public FeignManagementRequestsApi feignManagementRequestsApi(FeignFactory feignFactory, final IntTestComposeSetup testSetup) {
-        var container = testSetup.getContainerMapping(CS, API);
+    private final IntTestComposeSetup testSetup;
 
-        var baseUrl = "http://" + container.host() + ":" + container.port();
-        return feignFactory.createClient(FeignManagementRequestsApi.class, baseUrl, new Encoder.Default(), Collections.emptyList());
+    private MockServerClient mockServerClient;
+
+    @Nonnull
+    public MockServerClient client() {
+        if (this.mockServerClient == null) {
+            var mockServerContainer = testSetup.getContainerMapping(MOCKSERVER, IntTestComposeSetup.Port.MOCKSERVER);
+            this.mockServerClient = new MockServerClient(mockServerContainer.host(),
+                    mockServerContainer.port());
+        }
+        return this.mockServerClient;
     }
-
 }
