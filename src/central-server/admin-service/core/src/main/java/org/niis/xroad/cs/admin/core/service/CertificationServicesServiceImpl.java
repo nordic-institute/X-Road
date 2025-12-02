@@ -111,9 +111,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         final var approvedCaEntity = new ApprovedCaEntity();
         approvedCaEntity.setCertProfileInfo(certificationService.getCertificateProfileInfo());
         approvedCaEntity.setAuthenticationOnly(certificationService.getTlsAuth());
-        if (certificationService.getDefaultCsrFormat() != null) {
-            approvedCaEntity.setDefaultCsrFormat(certificationService.getDefaultCsrFormat().name());
-        }
+        approvedCaEntity.setDefaultCsrFormat(certificationService.getDefaultCsrFormat().name());
         X509Certificate certificate = handledCertificationChainRead(certificationService.getCertificate());
         approvedCaEntity.setName(CertUtils.getSubjectCommonName(certificate));
         approvedCaEntity.setAcmeServerDirectoryUrl(certificationService.getAcmeServerDirectoryUrl());
