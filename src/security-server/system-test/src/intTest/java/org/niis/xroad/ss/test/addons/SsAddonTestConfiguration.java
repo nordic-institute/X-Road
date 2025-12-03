@@ -44,6 +44,7 @@ import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
 import org.niis.xroad.ss.test.ui.container.Port;
 import org.niis.xroad.test.framework.core.feign.FeignFactory;
+import org.niis.xroad.test.framework.core.feign.FeignReportLogger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -54,6 +55,7 @@ import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.PROXY;
 @RequiredArgsConstructor
 public class SsAddonTestConfiguration {
     private final FeignFactory feignFactory;
+    private final FeignReportLogger feignReportLogger;
     private final SsSystemTestContainerSetup systemTestContainerSetup;
 
     @Bean
@@ -67,6 +69,7 @@ public class SsAddonTestConfiguration {
                 .client(client)
                 .encoder(new Encoder.Default())
                 .decoder(decoder)
+                .logger(feignReportLogger)
                 .requestInterceptor(requestTemplate -> requestTemplate
                         .header("Content-Type", MimeTypes.TEXT_XML_UTF8)
                         .header("x-hash-algorithm", "SHA-512")
@@ -85,6 +88,7 @@ public class SsAddonTestConfiguration {
                 .client(client)
                 .encoder(new JacksonEncoder())
                 .decoder(decoder)
+                .logger(feignReportLogger)
                 .requestInterceptor(requestTemplate -> {
                     requestTemplate.header("Content-Type", MimeTypes.JSON);
                 })
@@ -105,6 +109,7 @@ public class SsAddonTestConfiguration {
                 .encoder(new Encoder.Default())
                 .decoder(decoder)
                 .contract(contract)
+                .logger(feignReportLogger)
                 .target(FeignHealthcheckApi.class, "http://%s:%d".formatted(container.host(), container.port()));
     }
 
