@@ -559,6 +559,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         ConnectionStatusDto connectionStatusDto = response.getBody();
         assertNotNull(connectionStatusDto);
         assertEquals(DiagnosticStatusClassDto.FAIL, connectionStatusDto.getStatusClass());
+        assertEquals("network_error", connectionStatusDto.getError().getCode());
         assertThat(connectionStatusDto.getError().getMetadata().getFirst())
                 .contains("Connect to localhost:8443")
                 .contains("Connection refused");
