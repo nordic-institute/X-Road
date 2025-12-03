@@ -181,6 +181,12 @@ resolutions:
     - message: "property:advertising-clause license LicenseRef-scancode-rsa-md4 in Gradle:ee.ria.xroad:src:1.0."
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "The LicenseRef-scancode-rsa-md4 in src/libs/iaikPkcs11Wrapper.AUTHORS is taken into account, and therefore the license conditions are satisfied."
+    - message: "property:advertising-clause license LicenseRef-scancode-rsa-md4 in Gradle:org.niis.xroad:x-road-core:1.0."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The LicenseRef-scancode-rsa-md4 in src/libs/iaikPkcs11Wrapper.AUTHORS is taken into account, and therefore the license conditions are satisfied."
+    - message: "property:advertising-clause license LicenseRef-scancode-rsa-md4 in Unmanaged::X-Road:.*"
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The LicenseRef-scancode-rsa-md4 in src/libs/iaikPkcs11Wrapper.AUTHORS is taken into account, and therefore the license conditions are satisfied."
     - message: "commercial license LicenseRef-scancode-proprietary-license in Maven:org.apache.commons:commons-compress:1.26.*"
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "This PKWare technology is not in use, therefore license is sufficient."
@@ -196,6 +202,9 @@ resolutions:
     - message: "proprietary-free license LicenseRef-verbatim-no-modifications in Maven:org.hsqldb:hsqldb:2.7.*"
       reason: "NOT_MODIFIED_EXCEPTION"
       comment: "The license represented by LicenseRef-verbatim-no-modifications allows redistributing without modifications. As long as the files licensed with the said license are redistributed without modifications, the condition is satisfied."
+    - message: "copyleft-strong license CC-BY-SA-3.0 in Unmanaged::X-Road:.*"
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The files meant by this license hit are not distributed with X-Road."
 
 license_choices:
   repository_license_choices:
