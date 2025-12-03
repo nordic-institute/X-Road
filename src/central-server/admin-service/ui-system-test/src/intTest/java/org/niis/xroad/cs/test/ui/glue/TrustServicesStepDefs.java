@@ -289,7 +289,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
     @Step("user can remove CA ACME capability")
     public void userCanRemoveCaAcmeCapability() {
         vCheckbox(trustServicesPageObj.addCaSettingsDialog.checkboxAcme()).shouldBeChecked().click();
-        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
+        commonPageObj.dialog.btnSave().shouldBe(visible, enabled).click();
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         commonPageObj.snackBar.btnClose().click();
