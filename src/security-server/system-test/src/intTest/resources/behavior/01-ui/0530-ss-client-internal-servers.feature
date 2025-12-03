@@ -16,5 +16,4 @@ Feature: 0530 - SS: Client internal servers
     Then Internal server connection type is set to "HTTP"
     When Information System TLS certificate is uploaded
     Then Information System TLS certificate is deleted
-  # todo: no internal server certificate /etc/xroad/ssl/internal.crt in container
-#    And Internal server certificate is exported
+    And Internal server certificate is exported

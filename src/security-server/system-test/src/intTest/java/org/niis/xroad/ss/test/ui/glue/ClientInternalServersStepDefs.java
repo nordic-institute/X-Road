@@ -31,7 +31,6 @@ import org.niis.xroad.ss.test.ui.page.CertificatePageObj;
 import org.niis.xroad.ss.test.ui.page.ClientInfoPageObj;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -86,7 +85,7 @@ public class ClientInternalServersStepDefs extends BaseUiStepDefs {
     }
 
     @Step("Internal server certificate is exported")
-    public void exportCert() throws FileNotFoundException {
+    public void exportCert() {
         File file = clientInfoPageObj.internalServers.btnExport().download();
         assertTrue(file.exists());
     }
