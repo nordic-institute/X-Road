@@ -80,6 +80,7 @@ public class TestFrameworkCoreConfig {
     ObjectMapper objectMapper() {
         return new ObjectMapper()
                 .registerModules(new JavaTimeModule(), new ResourceSerializingModule())
+                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
                 .enable(SerializationFeature.INDENT_OUTPUT);
     }
 

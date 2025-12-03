@@ -80,8 +80,9 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     private static final String OP_MONITORING_XSD = "http://x-road.eu/xsd/op-monitoring.xsd";
 
     @SuppressWarnings({"checkstyle:OperatorWrap", "checkstyle:MagicNumber"})
+    @SneakyThrows
     @Step("Security Server Operational Data request was sent")
-    public void executeGetSecurityServerOperationalData() throws Exception {
+    public void executeGetSecurityServerOperationalData() {
         Thread.sleep(2000); // make sure that messages are processed
         InputStream is = classpathFileResolver.getFileAsStream(OPERATIONAL_DATA_REQUEST);
         SoapParser parser = new SoapParserImpl();
@@ -95,7 +96,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         try {
             xRoadRestRequestsApi.s3c2(xRoadClientId);
         } catch (Exception e) {
-            log.info("There was error in saved endpoint REST call: {}", e.getMessage());
+            log.info("There was error in saved endpoint REST call: {}", e.getMessage(), e);
         }
     }
 
@@ -104,7 +105,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         try {
             xRoadRestRequestsApi.testOas31(xRoadClientId);
         } catch (Exception e) {
-            log.info("There was error in saved endpoint OPENAPI3 call: {}", e.getMessage());
+            log.info("There was error in saved endpoint OPENAPI3 call: {}", e.getMessage(), e);
         }
     }
 
@@ -113,7 +114,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         try {
             xRoadRestRequestsApi.s4c2(xRoadClientId);
         } catch (Exception e) {
-            log.info("There was error in not saved endpoint OPENAPI3 call: {}", e.getMessage());
+            log.info("There was error in not saved endpoint OPENAPI3 call: {}", e.getMessage(), e);
         }
     }
 

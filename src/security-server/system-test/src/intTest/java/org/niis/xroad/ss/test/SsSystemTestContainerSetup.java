@@ -27,6 +27,8 @@
 
 package org.niis.xroad.ss.test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.ss.test.ui.container.Port;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
@@ -43,6 +45,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @Slf4j
 @Component
+@SuppressWarnings("checkstyle:magicnumber")
 public class SsSystemTestContainerSetup extends BaseComposeSetup {
 
     public static final String UI = "ui";
@@ -62,15 +65,18 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SYSTEMTEST_FILE = "compose.systemtest.yaml";
 
-    public SsSystemTestContainerSetup(TestFrameworkCoreProperties coreProperties) {
+    private final ObjectMapper objectMapper;
+
+    public SsSystemTestContainerSetup(TestFrameworkCoreProperties coreProperties, ObjectMapper objectMapper) {
         super(coreProperties);
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public ComposeContainer initEnv() {
         return new ComposeContainer("ss-",
-                new File(coreProperties.resourceDir() +  COMPOSE_SS_FILE),
-                new File(coreProperties.resourceDir() +  COMPOSE_SYSTEMTEST_FILE))
+                new File(coreProperties.resourceDir() + COMPOSE_SS_FILE),
+                new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_FILE))
                 .withExposedService(PROXY, Port.PROXY_HTTP, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
@@ -113,9 +119,9 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
         var containerState = env.getContainerByServiceName(service).orElseThrow();
         var dockerClient = containerState.getDockerClient();
         dockerClient.stopContainerCmd(containerState.getContainerId()).exec();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> !containerState.isRunning());
     }
 
-    @SuppressWarnings("checkstyle:magicnumber")
     public void start(String service, boolean waitForHealthy) {
         var containerState = env.getContainerByServiceName(service).orElseThrow();
         var dockerClient = containerState.getDockerClient();
@@ -123,6 +129,14 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
         if (waitForHealthy) {
             await().atMost(20, TimeUnit.SECONDS).until(containerState::isHealthy);
         }
+    }
+
+    @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
+    public String getContainerState(String service) {
+        var state = env.getContainerByServiceName(service).orElseThrow();
+
+        return objectMapper.writeValueAsString(state.getCurrentContainerInfo());
     }
 
     public void copyFilesToContainer(String container, MountableFile mountableFile, String location) {
