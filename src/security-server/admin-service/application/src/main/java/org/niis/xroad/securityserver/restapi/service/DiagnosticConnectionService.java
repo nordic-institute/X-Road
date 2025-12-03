@@ -87,6 +87,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -121,19 +122,32 @@ public class DiagnosticConnectionService {
     private final ServerConfProvider serverConfProvider;
 
     public List<DownloadUrlConnectionStatus> getGlobalConfStatus() {
-        var addresses = globalConfProvider.getSourceAddresses();
-        var allowedFederationSourceAddresses = globalConfProvider.getAllowedFederationSourceAddresses();
-        if (!allowedFederationSourceAddresses.isEmpty()) {
-            addresses.addAll(allowedFederationSourceAddresses);
-        }
+        List<URL> downloadUrls = new ArrayList<>(getDownloadUrls(
+                globalConfProvider.getSourceAddresses(globalConfProvider.getInstanceIdentifier()),
+                getCenterInternalDirectory()
+        ));
 
+        var allowedFederationInstances = globalConfProvider.getAllowedFederationInstances();
+        allowedFederationInstances.forEach(allowedFederationInstance ->
+                downloadUrls.addAll(
+                        getDownloadUrls(
+                                globalConfProvider.getSourceAddresses(allowedFederationInstance),
+                                globalConfProvider.getConfigurationDirectoryPath(allowedFederationInstance)
+                        )
+                )
+        );
+
+        return downloadUrls.stream()
+                .map(this::checkAndGetConnectionStatus)
+                .toList();
+    }
+
+    private static List<URL> getDownloadUrls(Set<String> addresses, String configurationDirectory) {
         return addresses.stream()
                 .flatMap(address -> Stream.of(
-                        getUrl(HTTP, address, PORT_80),
-                        getUrl(HTTPS, address, PORT_443)
+                        getUrl(HTTP, address, PORT_80, configurationDirectory),
+                        getUrl(HTTPS, address, PORT_443, configurationDirectory)
                 ))
-                .distinct()
-                .map(this::checkAndGetConnectionStatus)
                 .toList();
     }
 
@@ -141,21 +155,21 @@ public class DiagnosticConnectionService {
         return SystemProperties.getCenterInternalDirectory();
     }
 
-    private static URL getUrl(String protocol, String address, int port) {
+    private static URL getUrl(String protocol, String address, int port, String directory) {
         try {
-            return URI.create(getDownloadUrl(protocol, address, port)).toURL();
+            return URI.create(getDownloadUrl(protocol, address, port, directory)).toURL();
         } catch (MalformedURLException e) {
             log.error("Could not create URL from address {}", address, e);
         }
         return null;
     }
 
-    private static String getDownloadUrl(String protocol, String address, int port) {
-        return String.format("%s://%s:%d/%s", protocol, address, port, getCenterInternalDirectory());
+    private static String getDownloadUrl(String protocol, String address, int port, String directory) {
+        return String.format("%s://%s:%d/%s", protocol, address, port, directory);
     }
 
     private static String getDownloadUrl(URL url) {
-        return getDownloadUrl(url.getProtocol(), url.getHost(), url.getPort());
+        return getDownloadUrl(url.getProtocol(), url.getHost(), url.getPort(), url.getPath().replaceFirst("^/", ""));
     }
 
     private DownloadUrlConnectionStatus checkAndGetConnectionStatus(URL url) {

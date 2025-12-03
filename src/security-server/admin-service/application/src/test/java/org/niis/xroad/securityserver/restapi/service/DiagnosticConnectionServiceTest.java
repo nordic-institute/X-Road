@@ -135,12 +135,15 @@ class DiagnosticConnectionServiceTest {
 
     @Test
     void getGlobalConfStatusThenReturnUnknownHostErrors() {
-        when(globalConfProvider.getSourceAddresses()).thenReturn(Set.of("unknown-host"));
+        when(globalConfProvider.getSourceAddresses(globalConfProvider.getInstanceIdentifier())).thenReturn(Set.of("unknown-host"));
+        when(globalConfProvider.getAllowedFederationInstances()).thenReturn(Set.of("FED"));
+        when(globalConfProvider.getSourceAddresses("FED")).thenReturn(Set.of("fed-unknown-host"));
+        when(globalConfProvider.getConfigurationDirectoryPath("FED")).thenReturn("FED/conf");
 
         var statuses = service.getGlobalConfStatus();
 
         assertThat(statuses)
-                .hasSize(2)
+                .hasSize(4)
                 .extracting(
                         DownloadUrlConnectionStatus::getDownloadUrl,
                         s -> s.getConnectionStatus().getStatus(),
@@ -148,7 +151,9 @@ class DiagnosticConnectionServiceTest {
                 )
                 .containsExactlyInAnyOrder(
                         tuple("http://unknown-host:80/internalconf", DiagnosticStatus.ERROR, "unknown_host"),
-                        tuple("https://unknown-host:443/internalconf", DiagnosticStatus.ERROR, "unknown_host")
+                        tuple("https://unknown-host:443/internalconf", DiagnosticStatus.ERROR, "unknown_host"),
+                        tuple("http://fed-unknown-host:80/FED/conf", DiagnosticStatus.ERROR, "unknown_host"),
+                        tuple("https://fed-unknown-host:443/FED/conf", DiagnosticStatus.ERROR, "unknown_host")
                 );
     }
 

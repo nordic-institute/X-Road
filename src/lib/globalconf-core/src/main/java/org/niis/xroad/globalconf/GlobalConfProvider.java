@@ -347,17 +347,28 @@ public interface GlobalConfProvider {
     X509Certificate getCentralServerSslCertificate();
 
     /**
-     * @return a set of source addresses for the local instance
+     * Returns the set of source addresses for the given instance identifier.
+     *
+     * @param instanceIdentifier the instance identifier
+     * @return the set of source addresses for the given instance
      */
-    Set<String> getSourceAddresses();
+    Set<String> getSourceAddresses(String instanceIdentifier);
 
     /**
-     * Returns all source addresses configured for allowed federation instances.
-     * This also takes into account the value of the {@code configuration-client.allowed-federations} property.
+     * Returns all allowed federation instances.
+     * Also taking into account the value of the {@code configuration-client.allowed-federations} property.
      *
-     * @return a set of allowed federation source addresses
+     * @return a set of allowed federation instances
      */
-    Set<String> getAllowedFederationSourceAddresses();
+    Set<String> getAllowedFederationInstances();
+
+    /**
+     * Returns the configuration directory path for the given instance identifier.
+     *
+     * @param instanceIdentifier the instance identifier
+     * @return the configuration directory path for the given instance
+     */
+    String getConfigurationDirectoryPath(String instanceIdentifier);
 
     /**
      * @return maximum allowed validity time of OCSP responses. If thisUpdate

@@ -58,6 +58,7 @@ import org.niis.xroad.globalconf.model.PrivateParameters;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.SharedParametersCache;
 import org.niis.xroad.globalconf.util.FederationConfigurationSourceFilter;
+import org.niis.xroad.globalconf.util.GlobalConfUtils;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -668,26 +669,32 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> getSourceAddresses() {
-        return getSharedParameters(getInstanceIdentifier()).getSources().stream()
+    public Set<String> getSourceAddresses(String instanceIdentifier) {
+        return getSharedParameters(instanceIdentifier).getSources().stream()
                 .map(SharedParameters.ConfigurationSource::getAddress)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public Set<String> getAllowedFederationSourceAddresses() {
+    public Set<String> getAllowedFederationInstances() {
         var localInstance = getInstanceIdentifier();
         var sourceFilter = new FederationConfigurationSourceFilter(localInstance);
 
         return getInstanceIdentifiers().stream()
                 .filter(instance -> !localInstance.equals(instance))
                 .filter(sourceFilter::shouldDownloadConfigurationFor)
-                .map(id -> getSharedParameters(id).getSources())
-                .flatMap(List::stream)
-                .map(SharedParameters.ConfigurationSource::getAddress)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getConfigurationDirectoryPath(String instanceIdentifier) {
+        return getPrivateParameters().getConfigurationAnchors().stream()
+                .filter(configurationAnchor -> instanceIdentifier.equals(configurationAnchor.getInstanceIdentifier()))
+                .map(GlobalConfUtils::getConfigurationDirectory)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Configuration directory not found for instance " + instanceIdentifier));
     }
 
     @Override
