@@ -28,6 +28,7 @@
 package org.niis.xroad.test.framework.core.container;
 
 import lombok.RequiredArgsConstructor;
+ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.logging.ComposeLoggerFactory;
@@ -37,25 +38,38 @@ import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
-import java.util.concurrent.CompletableFuture;
+import java.time.Duration;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings("checkstyle:SneakyThrowsCheck")
 public abstract class BaseComposeSetup implements InitializingBean, DisposableBean {
     private static final int EXEC_TIMEOUT_SECONDS = 20;
+    private static final Duration DEFAULT_GRACE_PERIOD_SECONDS = Duration.ofSeconds(5);
+
     protected final TestFrameworkCoreProperties coreProperties;
     protected ComposeContainer env;
+    private DockerStatsMonitor dockerStatsMonitor;
 
     @Override
     public void afterPropertiesSet() {
         init();
     }
 
+    @SneakyThrows
     protected void init() {
         env = initEnv();
         env.start();
+
+        dockerStatsMonitor = new DockerStatsMonitor();
+        dockerStatsMonitor.start();
+        log.info("Waiting grace period of {} before continuing..", DEFAULT_GRACE_PERIOD_SECONDS);
+        Thread.sleep(DEFAULT_GRACE_PERIOD_SECONDS.toMillis());
         onPostStart();
     }
 
@@ -69,6 +83,9 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
 
     @Override
     public void destroy() {
+        if (dockerStatsMonitor != null) {
+            dockerStatsMonitor.close();
+        }
         if (env != null) {
             env.stop();
         }
@@ -90,39 +107,21 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
                 env.getServicePort(service, originalPort));
     }
 
+    @SneakyThrows
     public Container.ExecResult execInContainer(String container, String... command) {
-        final int maxAttempts = 2; // Initial attempt + 1 retry
+        log.debug("Executing command in container {}: {}", container, String.join(" ", command));
 
-        for (int attempt = 1; true; attempt++) {
-            try {
-                log.debug("Executing command in container {} (attempt {}/{}): {}",
-                        container, attempt, maxAttempts, String.join(" ", command));
+        Callable<Container.ExecResult> task = () -> env.getContainerByServiceName(container)
+                .orElseThrow(() -> new IllegalStateException("Container not found: " + container))
+                .execInContainer(command);
 
-                return CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return env.getContainerByServiceName(container).orElseThrow()
-                                .execInContainer(command);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Failed to execute command in container", e);
-                    }
-                }).orTimeout(EXEC_TIMEOUT_SECONDS, TimeUnit.SECONDS).get();
-
-            } catch (Exception e) {
-                boolean isTimeout = e.getCause() instanceof TimeoutException;
-                if (isTimeout && attempt == maxAttempts) {
-                    log.error("Command execution timed out after {} attempts in container {}: {}",
-                            maxAttempts, container, String.join(" ", command));
-                    throw new RuntimeException(
-                            String.format("Command execution timed out after %d attempts (%ds each) in container %s",
-                                    maxAttempts, EXEC_TIMEOUT_SECONDS, container),
-                            e);
-                } else if (isTimeout) {
-                    log.warn("Command execution timed out (attempt {}/{}), retrying...", attempt, maxAttempts);
-                } else {
-                    // Non-timeout exception, rethrow immediately
-                    throw new RuntimeException(e);
-                }
-            }
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            return executor.submit(task).get(EXEC_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            throw new TimeoutException("Command execution timed out after %ds in container %s: %s"
+                    .formatted(EXEC_TIMEOUT_SECONDS, container, String.join(" ", command)));
+        } catch (ExecutionException e) {
+            throw e.getCause();
         }
     }
 

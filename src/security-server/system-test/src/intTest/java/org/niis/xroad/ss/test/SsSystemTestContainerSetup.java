@@ -59,8 +59,8 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     public static final String DB_SERVERCONF_INIT = "db-serverconf-init";
     public static final String OPENBAO = "openbao";
 
-    private static final String COMPOSE_SS_FILE = "/compose.main.yaml";
-    private static final String COMPOSE_SYSTEMTEST_FILE = "/compose.systemtest.yaml";
+    private static final String COMPOSE_SS_FILE = "compose.main.yaml";
+    private static final String COMPOSE_SYSTEMTEST_FILE = "compose.systemtest.yaml";
 
     public SsSystemTestContainerSetup(TestFrameworkCoreProperties coreProperties) {
         super(coreProperties);

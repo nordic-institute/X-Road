@@ -52,7 +52,7 @@ public class SignerIntTestContainerSetup extends BaseComposeSetup {
     public static final String TESTCA = "testca";
     public static final String DB_SERVERCONF = "db-serverconf";
 
-    private static final String COMPOSE_FILE = "/compose.intTest.yaml";
+    private static final String COMPOSE_FILE = "compose.intTest.yaml";
 
     public SignerIntTestContainerSetup(TestFrameworkCoreProperties coreProperties) {
         super(coreProperties);

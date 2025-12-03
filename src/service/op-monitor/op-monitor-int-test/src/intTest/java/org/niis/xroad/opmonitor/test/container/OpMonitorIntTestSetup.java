@@ -46,7 +46,7 @@ public class OpMonitorIntTestSetup extends BaseComposeSetup {
     public static final String DB_OP_MONITOR = "db-opmonitor";
     public static final String DB_OP_MONITOR_INIT = "db-opmonitor-init";
     public static final Integer DB_OP_MONITOR_PORT = 5432;
-    private static final String COMPOSE_FILE = "/compose.intTest.yaml";
+    private static final String COMPOSE_FILE = "compose.intTest.yaml";
 
     public OpMonitorIntTestSetup(TestFrameworkCoreProperties coreProperties) {
         super(coreProperties);
