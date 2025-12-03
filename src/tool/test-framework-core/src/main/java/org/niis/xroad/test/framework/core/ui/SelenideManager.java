@@ -51,7 +51,7 @@ public class SelenideManager {
                 Selenide.clearBrowserLocalStorage();
                 Selenide.sessionStorage().clear();
             } catch (Exception e) {
-                log.warn("Failed to clear browser storage", e);
+                log.warn("Failed to clear browser cookies and storage", e);
             }
             log.debug("Clearing Selenide browser cookies and storage took {} ms", stopWatch.getTime());
         }

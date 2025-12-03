@@ -38,7 +38,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Monitors Docker container resource usage by periodically logging docker stats.
- * Uses Java 21 virtual threads for efficient resource utilization.
  */
 @Slf4j
 public final class DockerStatsMonitor implements AutoCloseable {

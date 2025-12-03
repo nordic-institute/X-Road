@@ -86,6 +86,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(BACKUP_MANAGER, createLogConsumer(BACKUP_MANAGER))
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR))
                 .withLogConsumer(OPENBAO, createLogConsumer(OPENBAO))
+                .withLogConsumer(NGINX, createLogConsumer(NGINX))
                 .withLogConsumer(TESTCA, createLogConsumer(TESTCA));
     }
 

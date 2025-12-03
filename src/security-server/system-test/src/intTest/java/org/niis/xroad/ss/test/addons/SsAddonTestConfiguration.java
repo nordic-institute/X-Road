@@ -72,7 +72,7 @@ public class SsAddonTestConfiguration {
                         .header("x-hash-algorithm", "SHA-512")
                 )
                 .contract(contract)
-                .target(FeignXRoadSoapRequestsApi.class, String.format("http://%s:%s".formatted(container.host(), container.port())));
+                .target(FeignXRoadSoapRequestsApi.class, "http://%s:%s".formatted(container.host(), container.port()));
     }
 
     @Bean
@@ -89,7 +89,7 @@ public class SsAddonTestConfiguration {
                     requestTemplate.header("Content-Type", MimeTypes.JSON);
                 })
                 .contract(contract)
-                .target(FeignXRoadRestRequestsApi.class, String.format("http://%s:%s".formatted(container.host(), container.port())));
+                .target(FeignXRoadRestRequestsApi.class, "http://%s:%s".formatted(container.host(), container.port()));
     }
 
     @Bean

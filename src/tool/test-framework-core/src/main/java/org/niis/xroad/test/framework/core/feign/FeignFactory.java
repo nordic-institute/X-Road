@@ -45,7 +45,7 @@ public class FeignFactory {
     private final Contract contract;
     private final Client client;
     private final Encoder defaultEncoder;
-    private final Decoder decoder;
+    private final Decoder defaultDecoder;
     private final Logger.Level loggerLevel;
     private final List<RequestInterceptor> requestInterceptors;
     private final FeignReportLogger feignReportLogger;
@@ -64,7 +64,7 @@ public class FeignFactory {
                 .contract(contract)
                 .client(client)
                 .encoder(encoder)
-                .decoder(decoder)
+                .decoder(defaultDecoder)
                 .logger(feignReportLogger)
                 .logLevel(loggerLevel);
 
