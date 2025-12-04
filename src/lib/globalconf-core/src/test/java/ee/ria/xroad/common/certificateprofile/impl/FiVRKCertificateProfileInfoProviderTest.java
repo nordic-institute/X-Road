@@ -122,7 +122,7 @@ public class FiVRKCertificateProfileInfoProviderTest {
     }
 
     /**
-     * Tests whether validating black subject field of sign profile fails
+     * Tests whether validating blank subject field of sign profile fails
      * as expected.
      * @throws Exception in case of any unexpected errors
      */
@@ -134,7 +134,7 @@ public class FiVRKCertificateProfileInfoProviderTest {
     }
 
     /**
-     * Tests whether creating subject Dn of sign profile succeeds as expected.
+     * Tests whether creating the subject Dn of sign profile succeeds as expected.
      */
     @Test
     public void signProfileCreateSubjectDn() {
