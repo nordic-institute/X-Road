@@ -25,27 +25,15 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import {
-  ConfigurationSigningKey,
-  ConfigurationSigningKeyAdd,
-  ConfigurationType,
-} from '@/openapi-types';
+import { ConfigurationSigningKey, ConfigurationSigningKeyAdd, ConfigurationType } from '@/openapi-types';
 import { defineStore } from 'pinia';
 
 export const useSigningKey = defineStore('signingKey', {
   actions: {
-    addSigningKey(
-      configurationType: ConfigurationType,
-      key: ConfigurationSigningKeyAdd,
-    ) {
-      return axios
-        .post<ConfigurationSigningKey>(
-          `/configuration-sources/${configurationType}/signing-keys`,
-          key,
-        )
-        .catch((error) => {
-          throw error;
-        });
+    addSigningKey(configurationType: ConfigurationType, key: ConfigurationSigningKeyAdd) {
+      return axios.post<ConfigurationSigningKey>(`/configuration-sources/${configurationType}/signing-keys`, key).catch((error) => {
+        throw error;
+      });
     },
     deleteSigningKey(keyId: string) {
       return axios.delete(`/signing-keys/${keyId}`).catch((error) => {

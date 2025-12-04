@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticStatus;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -36,8 +35,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
-import org.niis.xroad.common.core.exception.ExceptionCategory;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
+import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -45,23 +46,18 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.List;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 @ExtendWith(MockitoExtension.class)
 class DiagnosticConnectionServiceTest {
@@ -74,43 +70,78 @@ class DiagnosticConnectionServiceTest {
     AuthCertVerifier authCertVerifier;
     @Mock
     ManagementRequestSenderService managementRequestSenderService;
+    @Mock
+    ConfClientRpcClient confClientRpcClient;
 
     DiagnosticConnectionService service;
 
     @BeforeEach
     void setUp() {
-        service = new DiagnosticConnectionService(globalConfProvider, tokenService, authCertVerifier, managementRequestSenderService);
+        service = new DiagnosticConnectionService(globalConfProvider, tokenService, authCertVerifier, managementRequestSenderService,
+                confClientRpcClient);
     }
 
     @Test
-    void checkAndGetConnectionStatusThenReturnHttp200() throws Exception {
-        String downloadUrl = "http://unknown-host:80/internalconf";
-        HttpURLConnection mockConn = mock(HttpURLConnection.class);
-        when(mockConn.getResponseCode()).thenReturn(200);
+    void getGlobalConfStatusThenReturnHttp200() {
+        when(globalConfProvider.findSourceAddresses()).thenReturn(Set.of("valid-host"));
+        var requestHttp = CheckAndGetConnectionStatusRequest.newBuilder()
+                .setProtocol("http")
+                .setAddress("valid-host")
+                .setPort(80)
+                .build();
+        var requestHttps = CheckAndGetConnectionStatusRequest.newBuilder()
+                .setProtocol("https")
+                .setAddress("valid-host")
+                .setPort(443)
+                .build();
+        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttp)).thenReturn(
+                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("http://valid-host:80/internalconf")
+                        .build());
+        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttps)).thenReturn(
+                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("https://valid-host:443/internalconf")
+                        .build());
 
-        URLStreamHandler handler = new URLStreamHandler() {
-            @Override
-            protected URLConnection openConnection(URL u) {
-                return mockConn;
-            }
-        };
+        var statuses = service.getGlobalConfStatus();
 
-        URL fakeUrl = URL.of(URI.create(downloadUrl), handler);
-
-        var m = DiagnosticConnectionService.class.getDeclaredMethod("checkAndGetConnectionStatus", URL.class);
-        m.setAccessible(true);
-        var status = (DownloadUrlConnectionStatus) m.invoke(service, fakeUrl);
-
-        assertThat(status.getDownloadUrl()).isEqualTo(downloadUrl);
-        assertThat(status.getConnectionStatus().getStatus()).isEqualTo(DiagnosticStatus.OK);
-        assertThat(status.getConnectionStatus().getErrorCode()).isNull();
-        assertThat(status.getConnectionStatus().getErrorMetadata()).isEmpty();
+        assertThat(statuses)
+                .hasSize(2)
+                .extracting(
+                        DownloadUrlConnectionStatus::getDownloadUrl,
+                        s -> s.getConnectionStatus().getStatus(),
+                        s -> s.getConnectionStatus().getErrorCode()
+                )
+                .containsExactlyInAnyOrder(
+                        tuple("http://valid-host:80/internalconf", DiagnosticStatus.OK, null),
+                        tuple("https://valid-host:443/internalconf", DiagnosticStatus.OK, null)
+                );
     }
 
     @Test
     void getGlobalConfStatusThenReturnUnknownHostErrors() {
         when(globalConfProvider.findSourceAddresses())
                 .thenReturn(Set.of("unknown-host"));
+        var requestHttp = CheckAndGetConnectionStatusRequest.newBuilder()
+                .setProtocol("http")
+                .setAddress("unknown-host")
+                .setPort(80)
+                .build();
+        var requestHttps = CheckAndGetConnectionStatusRequest.newBuilder()
+                .setProtocol("https")
+                .setAddress("unknown-host")
+                .setPort(443)
+                .build();
+        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttp)).thenReturn(
+                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("http://unknown-host:80/internalconf")
+                        .setErrorCode("unknown_host")
+                        .build());
+        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttps)).thenReturn(
+                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                        .setDownloadUrl("https://unknown-host:443/internalconf")
+                        .setErrorCode("unknown_host")
+                        .build());
 
         var statuses = service.getGlobalConfStatus();
 
@@ -128,31 +159,6 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getGlobalConfStatusThenReturnGlobalConfGetVersionError() throws Exception {
-        String downloadUrl = "http://unknown-host:80/internalconf";
-        HttpURLConnection mockConn = mock(HttpURLConnection.class);
-        when(mockConn.getResponseCode()).thenReturn(404);
-
-        URLStreamHandler handler = new URLStreamHandler() {
-            @Override
-            protected URLConnection openConnection(URL u) {
-                return mockConn;
-            }
-        };
-
-        URL fakeUrl = URL.of(URI.create(downloadUrl), handler);
-
-        var m = DiagnosticConnectionService.class.getDeclaredMethod("checkAndGetConnectionStatus", URL.class);
-        m.setAccessible(true);
-        var status = (DownloadUrlConnectionStatus) m.invoke(service, fakeUrl);
-
-        assertThat(status.getDownloadUrl()).isEqualTo(downloadUrl);
-        assertThat(status.getConnectionStatus().getStatus()).isEqualTo(DiagnosticStatus.ERROR);
-        assertThat(status.getConnectionStatus().getErrorCode()).isEqualTo("global_conf_get_version_failed");
-        assertThat(status.getConnectionStatus().getErrorMetadata()).isEqualTo(List.of("http://unknown-host:80/internalconf — HTTP 404 "));
-    }
-
-    @Test
     void getAuthCertReqStatusThenReturnSystemErrorWhenCertOk() {
         TokenInfo token = mock(TokenInfo.class);
         KeyInfo key = mock(KeyInfo.class);
@@ -165,7 +171,7 @@ class DiagnosticConnectionServiceTest {
         doNothing().when(authCertVerifier).verify(any());
 
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
-                .thenThrow(new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, ErrorCode.withCode("management_service_error"))
+                .thenThrow(new XrdRuntimeExceptionBuilder(ErrorCode.withCode("management_service_error"))
                         .build());
 
         var status = service.getAuthCertReqStatus();
@@ -188,7 +194,7 @@ class DiagnosticConnectionServiceTest {
         doNothing().when(authCertVerifier).verify(any());
 
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
-                .thenThrow(new CodedException("InvalidRequest"));
+                .thenThrow(XrdRuntimeException.systemException(INVALID_REQUEST, "InvalidRequest"));
 
         var status = service.getAuthCertReqStatus();
 
@@ -211,7 +217,7 @@ class DiagnosticConnectionServiceTest {
         org.mockito.Mockito.doThrow(invalid).when(authCertVerifier).verify(any());
 
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
-                .thenThrow(new CodedException(X_INVALID_REQUEST));
+                .thenThrow(XrdRuntimeException.systemException(INVALID_REQUEST).build());
 
         var status = service.getAuthCertReqStatus();
 
@@ -222,7 +228,7 @@ class DiagnosticConnectionServiceTest {
     }
 
     @Test
-    void getAuthCertReqStatusThenReturnUnexpectedCodedExceptionMessageWhenCertOk() {
+    void getAuthCertReqStatusThenReturnUnexpectedXrdRuntimeExceptionionMessageWhenCertOk() {
         TokenInfo token = mock(TokenInfo.class);
         KeyInfo key = mock(KeyInfo.class);
         CertificateInfo cert = mock(CertificateInfo.class);
@@ -234,16 +240,15 @@ class DiagnosticConnectionServiceTest {
         doNothing().when(authCertVerifier).verify(any());
 
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
-                .thenThrow(new CodedException("SomeOtherCode", "random_message"));
+                .thenThrow(XrdRuntimeException.systemInternalError("random_message"));
 
         var status = service.getAuthCertReqStatus();
 
         assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.ERROR);
-        assertThat(status.getErrorCode()).isEqualTo("random_message");
+        assertThat(status.getErrorCode()).isEqualTo("internal_error");
         assertThat(status.getErrorMetadata()).isEqualTo(List.of("random_message"));
         assertThat(status.getValidationErrors()).isEmpty();
     }
-
 
     @Test
     void getAuthCertReqStatusThenReturnNetworkError() {
@@ -251,7 +256,7 @@ class DiagnosticConnectionServiceTest {
         when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
         when(token.getKeyInfo()).thenReturn(List.of());
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
-                .thenThrow(new XrdRuntimeExceptionBuilder(ExceptionCategory.SYSTEM, ErrorCode.withCode("network_error"))
+                .thenThrow(new XrdRuntimeExceptionBuilder(ErrorCode.withCode("network_error"))
                         .cause(new UnresolvedAddressException())
                         .build());
 
@@ -268,7 +273,7 @@ class DiagnosticConnectionServiceTest {
         when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
         when(token.getKeyInfo()).thenReturn(List.of());
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
-                .thenThrow(new CodedException(X_INTERNAL_ERROR));
+                .thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).build());
 
         var status = service.getAuthCertReqStatus();
 
@@ -283,7 +288,7 @@ class DiagnosticConnectionServiceTest {
         when(tokenService.getToken(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)).thenReturn(token);
         when(token.getKeyInfo()).thenReturn(List.of());
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any(Boolean.class)))
-                .thenThrow(new CodedException(X_INVALID_REQUEST));
+                .thenThrow(XrdRuntimeException.systemException(INVALID_REQUEST).build());
 
         var status = service.getAuthCertReqStatus();
 

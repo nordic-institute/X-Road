@@ -82,13 +82,13 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         column
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-up"))
+                .shouldHave(cssClass("arrow_upward"))
                 .click();
 
         column
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-down"))
+                .shouldHave(cssClass("arrow_downward"))
                 .click();
     }
 
@@ -113,7 +113,7 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         timestampingServicesPageObj.addEditDialog.btnViewCertificate().click();
         timestampingServicesPageObj.certificateView.certificateDetails().shouldBe(visible);
 
-        timestampingServicesPageObj.certificateView.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
         timestampingServicesPageObj.tableLoading().should(appear);
     }
 

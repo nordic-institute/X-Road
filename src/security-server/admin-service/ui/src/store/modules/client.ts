@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,24 +29,30 @@ import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
+import { multipartFormDataConfig, buildFileFormData } from '@niis/shared-ui';
 
 export interface ClientState {
-  client: Client | null;
+  client: Client | undefined;
   signCertificates: TokenCertificate[];
   connection_type: string | null;
   tlsCertificates: CertificateDetails[];
-  ssCertificate: CertificateDetails | null;
+  ssCertificate: CertificateDetails | undefined;
   clientLoading: boolean;
+}
+
+function clientBaseUrl(clientId: string, path = '') {
+  const encodedId = encodePathParameter(clientId);
+  return `/clients/${encodedId}` + path;
 }
 
 export const useClient = defineStore('client', {
   state: (): ClientState => {
     return {
-      client: null,
+      client: undefined,
       signCertificates: [],
       connection_type: null,
       tlsCertificates: [],
-      ssCertificate: null,
+      ssCertificate: undefined,
       clientLoading: false,
     };
   },
@@ -65,9 +72,9 @@ export const useClient = defineStore('client', {
       }
 
       this.clientLoading = true;
-      this.client = null;
+      this.client = undefined;
       return api
-        .get<Client>(`/clients/${encodePathParameter(id)}`)
+        .get<Client>(clientBaseUrl(id))
         .then((res) => {
           this.client = res.data;
         })
@@ -82,9 +89,7 @@ export const useClient = defineStore('client', {
       }
 
       return api
-        .get<TokenCertificate[]>(
-          `/clients/${encodePathParameter(id)}/sign-certificates`,
-        )
+        .get<TokenCertificate[]>(clientBaseUrl(id, '/sign-certificates'))
         .then((res) => {
           this.signCertificates = res.data;
         })
@@ -108,15 +113,13 @@ export const useClient = defineStore('client', {
         });
     },
 
-    async fetchTlsCertificates(id: string) {
-      if (!id) {
+    async fetchTlsCertificates(clientId: string) {
+      if (!clientId) {
         throw new Error('Missing id');
       }
 
       return api
-        .get<CertificateDetails[]>(
-          `/clients/${encodePathParameter(id)}/tls-certificates`,
-        )
+        .get<CertificateDetails[]>(clientBaseUrl(clientId, '/tls-certificates'))
         .then((res) => {
           this.tlsCertificates = res.data;
         })
@@ -125,10 +128,25 @@ export const useClient = defineStore('client', {
         });
     },
 
-    async saveConnectionType(params: { clientId: string; connType: string }) {
+    async fetchTlsCertificate(clientId: string, hash: string) {
+      const encodedHash = encodePathParameter(hash);
+      return api.get<CertificateDetails>(clientBaseUrl(clientId, `/tls-certificates/${encodedHash}`)).then((response) => response.data);
+    },
+
+    async deleteTlsCertificate(clientId: string, hash: string) {
+      const encodedHash = encodePathParameter(hash);
+
+      return api.remove(clientBaseUrl(clientId, `/tls-certificates/${encodedHash}`));
+    },
+
+    async uploadTlsCertificate(clientId: string, file: File) {
+      return api.post(clientBaseUrl(clientId, '/tls-certificates'), buildFileFormData('certificate', file), multipartFormDataConfig());
+    },
+
+    async saveConnectionType(clientId: string, connType: string) {
       return api
-        .patch<Client>(`/clients/${encodePathParameter(params.clientId)}`, {
-          connection_type: params.connType,
+        .patch<Client>(clientBaseUrl(clientId), {
+          connection_type: connType,
         })
         .then((res) => {
           if (res.data) {
@@ -141,9 +159,13 @@ export const useClient = defineStore('client', {
     },
 
     async renameClient(clientId: string, newName: string) {
-      return api.put(`/clients/${encodePathParameter(clientId)}/rename`, {
+      return api.put(clientBaseUrl(clientId, '/rename'), {
         client_name: newName,
       });
+    },
+
+    async registerClient(clientId: string) {
+      return api.put(clientBaseUrl(clientId, '/register'), {});
     },
   },
 });

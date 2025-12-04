@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,20 +25,15 @@
  * THE SOFTWARE.
  */
 
-import {
-  MaintenanceMode,
-  NodeType,
-  NodeTypeResponse,
-  SecurityServer,
-  VersionInfo,
-} from '@/openapi-types';
-import * as api from '@/util/api';
 import { defineStore } from 'pinia';
+
+import { MaintenanceMode, NodeType, NodeTypeResponse, VersionInfo, AuthProviderType, AuthProviderTypeResponse } from '@/openapi-types';
+import * as api from '@/util/api';
 
 export interface SystemState {
   securityServerVersion: VersionInfo;
-  securityServerNodeType: undefined | NodeType;
-  currentSecurityServer: SecurityServer;
+  securityServerNodeType?: NodeType;
+  securityServerAuthProviderType?: AuthProviderType;
 }
 
 export const useSystem = defineStore('system', {
@@ -45,7 +41,7 @@ export const useSystem = defineStore('system', {
     return {
       securityServerVersion: {} as VersionInfo,
       securityServerNodeType: undefined,
-      currentSecurityServer: {} as SecurityServer,
+      securityServerAuthProviderType: undefined,
     };
   },
   persist: {
@@ -59,10 +55,10 @@ export const useSystem = defineStore('system', {
       return state.securityServerVersion.global_configuration_version;
     },
     doesSupportSubsystemNames(): boolean {
-      return (
-        !!this.globalConfigurationVersion &&
-        this.globalConfigurationVersion >= 5
-      );
+      return !!this.globalConfigurationVersion && this.globalConfigurationVersion >= 5;
+    },
+    isDatabaseBasedAuthentication(): boolean {
+      return this.securityServerAuthProviderType === AuthProviderType.DATABASE;
     },
   },
 
@@ -82,6 +78,11 @@ export const useSystem = defineStore('system', {
         this.securityServerNodeType = res.data.node_type;
       });
     },
+    async fetchAuthenticationProviderType() {
+      return api.get<AuthProviderTypeResponse>('/system/auth-provider-type').then((res) => {
+        this.securityServerAuthProviderType = res.data.auth_provider_type;
+      });
+    },
     async enableMaintenanceMode(message?: string) {
       return api.put('/system/maintenance-mode/enable', { message });
     },
@@ -89,9 +90,12 @@ export const useSystem = defineStore('system', {
       return api.put('/system/maintenance-mode/disable', {});
     },
     async fetchMaintenanceModeState() {
-      return api
-        .get<MaintenanceMode>('/system/maintenance-mode')
-        .then((resp) => resp.data);
+      return api.get<MaintenanceMode>('/system/maintenance-mode').then((resp) => resp.data);
+    },
+    async changeSecurityServerAddress(address: string) {
+      return api.put('/system/server-address', {
+        address,
+      });
     },
   },
 });

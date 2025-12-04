@@ -42,13 +42,17 @@ service KeyService {
 
   rpc GetSignMechanism(GetSignMechanismReq) returns (GetSignMechanismResp) {}
 
+  rpc DeleteKey(DeleteKeyReq) returns (Empty) {}
+
+  rpc GetAuthKey(GetAuthKeyReq) returns (AuthKeyProto) {}
+}
+
+service SignService {
+
   rpc Sign(SignReq) returns (SignResp) {}
 
   rpc SignCertificate(SignCertificateReq) returns (SignCertificateResp) {}
 
-  rpc DeleteKey(DeleteKeyReq) returns (Empty) {}
-
-  rpc GetAuthKey(GetAuthKeyReq) returns (AuthKeyInfoProto) {}
 }
 
 enum Algorithm {
@@ -116,9 +120,14 @@ message GetAuthKeyReq {
   SecurityServerIdProto security_server = 1;
 }
 
-message AuthKeyInfoProto {
+message AuthKeyCertInfoProto {
   string alias = 1;
-  string key_store_file_name = 2;
+  CertificateInfoProto cert = 2;
+}
+
+message AuthKeyProto {
+  string alias = 1;
+  bytes keyStore = 2; // PKCS#12 keystore
   string password = 3;
   CertificateInfoProto cert = 4;
 }

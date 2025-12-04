@@ -129,7 +129,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     }
 
     @Step("Valid Security Server Health Data response is returned")
-    public void validHealthDataResponseIsReturned() throws Exception {
+    public void validHealthDataResponseIsReturned() {
         @SuppressWarnings("unchecked")
         ResponseEntity<String> response = (ResponseEntity<String>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
         validate(response).assertion(equalsStatusCodeAssertion(HttpStatus.OK)).execute();
@@ -186,7 +186,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
 
                     @Override
                     public void fault(SoapFault fault) {
-                        throw fault.toCodedException();
+                        throw fault.toXrdRuntimeException();
                     }
 
                     @Override

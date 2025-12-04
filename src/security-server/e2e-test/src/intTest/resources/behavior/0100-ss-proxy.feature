@@ -5,7 +5,7 @@ Feature: 0100 - SS: Proxy
     Given Environment is initialized
 
   Scenario: Soap request is successful over proxy
-    When SOAP request is sent to "ss1" proxy
+    When SOAP request is sent to "ss1" "proxy"
     """xml
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xro="http://x-road.eu/xsd/xroad.xsd" xmlns:iden="http://x-road.eu/xsd/identifiers" >
         <soapenv:Header>
@@ -34,16 +34,23 @@ Feature: 0100 - SS: Proxy
         </soapenv:Body>
     </soapenv:Envelope>
     """
-    Then response is received with http status code 200 and body path "Envelope.Body" is not empty
-
+    Then response is received with http status code 200 and body path "Envelope.Body.getRandomResponse" is not empty
 
   Scenario: REST request is successfully transferred over X-Road proxy
-    When REST request is sent to "ss1" proxy
+    When REST request is sent to "ss1" "proxy"
     """json
     {"data": 1.0, "service": "random"}
     """
     Then response is received with http status code 200 and body path "message" is equal to "Hello, world from POST service!"
 
   Scenario: REST request with valid API path permission is successfully transferred over X-Road proxy
-    When REST request targeted at "/api/members" API endpoint is sent to "ss1" proxy
+    When REST request targeted at "/api/members" API endpoint is sent to "ss1" "proxy"
     Then response is received with http status code 200 and body path "[0].name" is equal to "MTÜ Nordic Institute for Interoperability Solutions"
+
+  Scenario: Messagelogs are successfully archived and removed from database
+    When Waiting for 31 seconds to ensure that all messagelogs are archived and removed from database
+    And Global configuration is fetched from "ss0"'s "proxy" for messagelog verification
+    Then "ss0"'s "ui" service has 18 messagelogs present in the archives and all are cryptographically valid
+    And "ss0" contains 0 messagelog entries
+    And "ss1"'s "ui" service has 10 messagelogs present in the archives and all are cryptographically valid
+    And "ss1" contains 0 messagelog entries

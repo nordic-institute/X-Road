@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,87 +25,74 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="wizard-step-form-content">
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('csr.usage')"
-          :help-text="$t('csr.helpUsage')"
-        />
+  <XrdWizardStep>
+    <XrdFormBlock>
+      <XrdFormBlockRow description="csr.helpUsage" adjust-against-content>
         <v-select
-          v-bind="usageRef"
+          v-model="selectedUsage"
+          v-bind="selectedUsageAttr"
           :items="usageList"
-          class="wizard-form-input"
+          class="xrd"
           :disabled="isUsageReadOnly || !permissionForUsage"
           data-test="csr-usage-select"
-          variant="outlined"
-        ></v-select>
-      </div>
-
-      <div v-show="showClient" key="csr-client-field" class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('csr.client')"
-          :help-text="$t('csr.helpClient')"
+          :label="$t('csr.usage')"
         />
-        <v-combobox
-          v-bind="csrClientRef"
-          :items="memberIdItems"
-          :return-object="false"
-          auto-select-first
-          class="wizard-form-input"
-          data-test="csr-client-select"
-          variant="outlined"
-        ></v-combobox>
-      </div>
+      </XrdFormBlockRow>
 
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('csr.certificationService')"
-          :help-text="$t('csr.helpCertificationService')"
-        />
+      <v-slide-y-transition>
+        <XrdFormBlockRow v-if="showClient" key="csr-client-field" description="csr.helpClient" adjust-against-content>
+          <v-combobox
+            v-model="selectedCsrClient"
+            v-bind="selectedCsrClientAttr"
+            variant="underlined"
+            :items="memberIdItems"
+            :return-object="false"
+            auto-select-first
+            class="xrd"
+            data-test="csr-client-select"
+            :label="$t('csr.client')"
+          />
+        </XrdFormBlockRow>
+      </v-slide-y-transition>
+      <XrdFormBlockRow description="csr.helpCertificationService" adjust-against-content>
         <v-select
-          v-bind="certServiceRef"
+          v-model="selectedCertService"
+          v-bind="selectedCertServiceAttr"
           :items="filteredServiceList"
           item-title="name"
           item-value="name"
-          class="wizard-form-input"
+          class="xrd"
           data-test="csr-certification-service-select"
-          variant="outlined"
-        ></v-select>
-      </div>
-
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('csr.csrFormat')"
-          :help-text="$t('csr.helpCsrFormat')"
+          :label="$t('csr.certificationService')"
         />
-        <v-select
-          v-bind="csrFormatRef"
-          :items="csrFormatList"
-          class="wizard-form-input"
-          data-test="csr-format-select"
-          variant="outlined"
-        ></v-select>
-      </div>
-    </div>
-    <div class="button-footer">
-      <xrd-button outlined data-test="cancel-button" @click="cancel"
-        >{{ $t('action.cancel') }}
-      </xrd-button>
+      </XrdFormBlockRow>
 
-      <xrd-button
+      <XrdFormBlockRow description="csr.helpCsrFormat" adjust-against-content>
+        <v-select
+          v-model="selectedCsrFormat"
+          v-bind="selectedCsrFormatAttr"
+          :items="csrFormatList"
+          class="xrd"
+          data-test="csr-format-select"
+          :label="$t('csr.csrFormat')"
+        />
+      </XrdFormBlockRow>
+    </XrdFormBlock>
+    <template #footer>
+      <XrdBtn data-test="cancel-button" variant="text" text="action.cancel" @click="cancel" />
+      <v-spacer />
+      <XrdBtn
         v-if="showPreviousButton"
-        outlined
-        class="previous-button"
         data-test="previous-button"
+        variant="outlined"
+        text="action.previous"
+        prepend-icon="arrow_back"
+        class="mr-2"
         @click="previous"
-        >{{ $t('action.previous') }}
-      </xrd-button>
-      <xrd-button :disabled="!meta.valid" data-test="save-button" @click="done">
-        {{ $t(saveButtonText) }}
-      </xrd-button>
-    </div>
-  </div>
+      />
+      <XrdBtn data-test="save-button" :text="saveButtonText" append-icon="arrow_forward" :disabled="!meta.valid" @click="done" />
+    </template>
+  </XrdWizardStep>
 </template>
 
 <script lang="ts">
@@ -115,25 +103,27 @@ import { CsrFormat, KeyUsageType } from '@/openapi-types';
 import { mapActions, mapState, mapWritableState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import { defineRule, PublicPathState, useForm } from 'vee-validate';
+import { defineRule, useForm } from 'vee-validate';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
-import { i18n } from '@niis/shared-ui';
-import { useNotifications } from '@/store/modules/notifications';
+import { i18n, XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, useNotifications, veeDefaultFieldConfig } from '@niis/shared-ui';
 
-defineRule(
-  'requiredIfSigning',
-  (value: string, _, ctx: FieldValidationMetaInfo): string | boolean => {
-    const usage = (ctx.form.csr as Record<string, never>).usage;
-    if (usage === KeyUsageType.SIGNING && (!value || !value.length)) {
-      return i18n.global.t('customValidation.requiredIf', {
-        fieldName: i18n.global.t(`fields.${ctx.field}`),
-      });
-    }
-    return true;
-  },
-);
+defineRule('requiredIfSigning', (value: string, _, ctx: FieldValidationMetaInfo): string | boolean => {
+  const usage = (ctx.form.csr as Record<string, never>).usage;
+  if (usage === KeyUsageType.SIGNING && (!value || !value.length)) {
+    return i18n.global.t('customValidation.requiredIf', {
+      fieldName: i18n.global.t(`fields.${ctx.field}`),
+    });
+  }
+  return true;
+});
 
 export default defineComponent({
+  components: {
+    XrdWizardStep,
+    XrdBtn,
+    XrdFormBlock,
+    XrdFormBlockRow,
+  },
   props: {
     saveButtonText: {
       type: String,
@@ -146,8 +136,9 @@ export default defineComponent({
   },
   emits: ['done', 'previous', 'cancel'],
   setup() {
+    const { addError } = useNotifications();
     const { usage, csrClient, certificationService, csrFormat } = useCsr();
-    const { meta, values, setFieldValue, defineComponentBinds } = useForm({
+    const { meta, values, setFieldValue, defineField } = useForm({
       validationSchema: {
         'csr.usage': 'required',
         'csr.client': 'requiredIfSigning',
@@ -163,26 +154,24 @@ export default defineComponent({
         },
       },
     });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
-      },
-    });
-    const usageRef = defineComponentBinds('csr.usage', componentConfig);
-    const csrClientRef = defineComponentBinds('csr.client', componentConfig);
-    const certServiceRef = defineComponentBinds(
-      'csr.certificationService',
-      componentConfig,
-    );
-    const csrFormatRef = defineComponentBinds('csr.csrFormat', componentConfig);
+    const componentConfig = veeDefaultFieldConfig();
+    const [selectedUsage, selectedUsageAttr] = defineField('csr.usage', componentConfig);
+    const [selectedCsrClient, selectedCsrClientAttr] = defineField('csr.client', componentConfig);
+    const [selectedCertService, selectedCertServiceAttr] = defineField('csr.certificationService', componentConfig);
+    const [selectedCsrFormat, selectedCsrFormatAttr] = defineField('csr.csrFormat', componentConfig);
     return {
       meta,
       values,
       setFieldValue,
-      usageRef,
-      csrClientRef,
-      certServiceRef,
-      csrFormatRef,
+      selectedUsage,
+      selectedUsageAttr,
+      selectedCsrClient,
+      selectedCsrClientAttr,
+      selectedCertService,
+      selectedCertServiceAttr,
+      selectedCsrFormat,
+      selectedCsrFormatAttr,
+      addError,
     };
   },
   data() {
@@ -200,17 +189,8 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useCsr, [
-      'memberIds',
-      'filteredServiceList',
-      'isUsageReadOnly',
-    ]),
-    ...mapWritableState(useCsr, [
-      'usage',
-      'csrClient',
-      'csrFormat',
-      'certificationService',
-    ]),
+    ...mapState(useCsr, ['memberIds', 'filteredServiceList', 'isUsageReadOnly']),
+    ...mapWritableState(useCsr, ['usage', 'csrClient', 'csrFormat', 'certificationService']),
     ...mapState(useUser, ['hasPermission']),
     memberIdItems() {
       return this.memberIds.map((id) => ({ title: id, value: id }));
@@ -243,12 +223,8 @@ export default defineComponent({
     this.fetchAllMemberIds();
 
     // Check if the user has permission for only one type of CSR
-    const signPermission = this.hasPermission(
-      Permissions.GENERATE_SIGN_CERT_REQ,
-    );
-    const authPermission = this.hasPermission(
-      Permissions.GENERATE_AUTH_CERT_REQ,
-    );
+    const signPermission = this.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ);
+    const authPermission = this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ);
 
     if (signPermission && !authPermission) {
       // lock usage type to sign
@@ -264,14 +240,13 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useCsr, ['fetchAllMemberIds', 'hasAcmeEabCredentials']),
-    ...mapActions(useNotifications, ['showError']),
     done(): void {
       this.usage = this.values.csr.usage;
       this.csrClient = this.values.csr.client;
       this.certificationService = this.values.csr.certificationService;
       this.csrFormat = this.values.csr.csrFormat;
       this.hasAcmeEabCredentials()
-        .catch((error) => this.showError(error, true))
+        .catch((error) => this.addError(error, { navigate: true }))
         .finally(() => this.$emit('done'));
     },
     previous(): void {
@@ -284,6 +259,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/wizards';
-</style>
+<style lang="scss" scoped></style>

@@ -25,14 +25,13 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
@@ -40,18 +39,21 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
+import org.niis.xroad.signer.core.certmanager.OcspResponseLookup;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.core.tokenmanager.CertManager;
+import org.niis.xroad.signer.core.tokenmanager.CertOcspManager;
+import org.niis.xroad.signer.core.tokenmanager.KeyManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.ImportCertResp;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -60,24 +62,28 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Date;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_IMPORT_FAILED;
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
-import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static org.niis.xroad.common.core.exception.ErrorCode.CERT_EXISTS;
+import static org.niis.xroad.common.core.exception.ErrorCode.CERT_IMPORT_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCode.WRONG_CERT_USAGE;
 
 /**
  * Handles certificate import requests.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, ImportCertResp> {
     private final DeleteCertRequestReqHandler deleteCertRequestReqHandler;
     private final GlobalConfProvider globalConfProvider;
-    private final OcspResponseManager ocspResponseManager;
-    private final CertChainFactory certChainFactory;
+    private final OcspVerifierFactory ocspVerifierFactory;
+    private final OcspResponseLookup ocspResponseLookup;
+    private final CertOcspManager certOcspManager;
+    private final TokenLookup tokenLookup;
+    private final KeyManager keyManager;
+    private final CertManager certManager;
 
     @Override
     protected ImportCertResp handle(ImportCertReq request) {
@@ -85,9 +91,8 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
         try {
             cert = CryptoUtils.readCertificate(request.getCertData().toByteArray());
         } catch (Exception e) {
-            throw CodedException.tr(X_INCORRECT_CERTIFICATE,
-                    "failed_to_parse_cert",
-                    "Failed to parse certificate: %s", e.getMessage());
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
+                    "Failed to parse certificate: %s".formatted(e.getMessage()));
         }
 
         try {
@@ -104,18 +109,17 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
 
     public String importCertificate(X509Certificate cert,
                                     String initialStatus, ClientId.Conf memberId, boolean activate)
-            throws CertificateEncodingException, CertificateParsingException, IOException, OperatorCreationException {
+            throws CertificateEncodingException, CertificateParsingException, IOException {
         String publicKey = encodeBase64(cert.getPublicKey().getEncoded());
 
         // Find the key based on the public key of the cert
-        for (TokenInfo tokenInfo : TokenManager.listTokens()) {
+        for (TokenInfo tokenInfo : tokenLookup.listTokens()) {
             for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
                 if (matchesPublicKeyOrExistingCert(publicKey, cert, keyInfo)) {
                     String keyId = keyInfo.getId();
                     log.debug("Importing certificate under key '{}'", keyId);
 
-                    importCertificateToKey(keyInfo, cert, initialStatus,
-                            memberId, activate);
+                    importCertificateToKey(keyInfo, cert, initialStatus, memberId, activate);
                     return keyId;
                 }
             }
@@ -130,14 +134,12 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
 
     private boolean matchesPublicKeyOrExistingCert(String publicKey,
                                                    X509Certificate cert, KeyInfo keyInfo) throws CertificateEncodingException {
-        if (keyInfo.getPublicKey() != null
-                && keyInfo.getPublicKey().equals(publicKey)) {
+        if (keyInfo.getPublicKey() != null && keyInfo.getPublicKey().equals(publicKey)) {
             return true;
         }
 
         for (CertificateInfo certInfo : keyInfo.getCerts()) {
-            if (Arrays.equals(certInfo.getCertificateBytes(),
-                    cert.getEncoded())) {
+            if (Arrays.equals(certInfo.getCertificateBytes(), cert.getEncoded())) {
                 return true;
             }
         }
@@ -147,27 +149,24 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
 
     private void importCertificateToKey(KeyInfo keyInfo, X509Certificate cert,
                                         String initialStatus, ClientId.Conf memberId, boolean activate)
-            throws CertificateEncodingException, IOException, OperatorCreationException, CertificateParsingException {
+            throws CertificateEncodingException, IOException, CertificateParsingException {
         String certHash = calculateCertHexHash(cert);
 
-        CertificateInfo existingCert = TokenManager.getCertificateInfoForCertHash(certHash);
+        CertificateInfo existingCert = tokenLookup.getCertificateInfoForCertHash(certHash);
         if (existingCert != null && existingCert.isSavedToConfiguration()) {
-            throw CodedException.tr(X_CERT_EXISTS,
-                    "cert_exists_under_key",
-                    "Certificate already exists under key '%s'",
-                    keyInfo.getFriendlyName() == null
-                            ? keyInfo.getId()
-                            : keyInfo.getFriendlyName());
+            throw XrdRuntimeException.systemException(CERT_EXISTS,
+                    "Certificate already exists under key '%s'".formatted(
+                            keyInfo.getFriendlyName() == null
+                                    ? keyInfo.getId()
+                                    : keyInfo.getFriendlyName()));
         }
 
         boolean signing = CertUtils.isSigningCert(cert);
         boolean authentication = CertUtils.isAuthCert(cert);
 
         if (signing && authentication) {
-            throw CodedException.tr(X_WRONG_CERT_USAGE,
-                    "wrong_cert_usage.both",
-                    "Both signing and authentication, "
-                            + "only one of them allowed.");
+            throw XrdRuntimeException.systemException(WRONG_CERT_USAGE,
+                    "Both signing and authentication, only one of them allowed.");
         }
 
         KeyUsageInfo keyUsage = getKeyUsage(keyInfo, signing);
@@ -176,16 +175,15 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
         verifyCertChain(cert);
 
         if (existingCert != null) {
-            TokenManager.removeCert(existingCert.getId());
+            certManager.removeCert(existingCert.getId());
         }
 
         String certId = SignerUtil.randomId();
-        TokenManager.addCert(keyInfo.getId(), memberId, true, initialStatus, certId,
-                cert.getEncoded());
-        TokenManager.setKeyUsage(keyInfo.getId(), keyUsage);
+        certManager.addCert(keyInfo.getId(), memberId, initialStatus, certId, cert.getEncoded());
+        keyManager.setKeyUsage(keyInfo.getId(), keyUsage);
         boolean validOcspResponses = updateOcspResponseAndVerify(certId, cert);
         if (validOcspResponses && activate) {
-            TokenManager.setCertActive(certId, true);
+            certManager.setCertActive(certId, true);
         }
 
 
@@ -200,10 +198,10 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
             return true;
         }
         try {
-            ocspResponseManager.verifyOcspResponses(cert);
+            ocspResponseLookup.verifyOcspResponses(cert);
         } catch (Exception e) {
             log.error("Failed to verify OCSP responses for certificate {}", cert.getSerialNumber(), e);
-            TokenManager.setOcspVerifyBeforeActivationError(certId, e.getMessage());
+            certOcspManager.setOcspVerifyBeforeActivationError(certId, e.getMessage());
             return false;
         }
         return true;
@@ -212,26 +210,19 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
     private void validateCertKeyUsage(boolean signing, boolean authentication, KeyUsageInfo keyUsage) {
         // Check that the cert is a signing or auth cert
         if (!signing && !authentication) {
-            throw CodedException.tr(X_WRONG_CERT_USAGE,
-                    "wrong_cert_usage.none",
-                    "Certificate cannot be used for signing nor "
-                            + "authentication");
+            throw XrdRuntimeException.systemException(WRONG_CERT_USAGE, "Certificate cannot be used for signing nor authentication");
         }
 
         // Check that the key usage and cert usage match
         if (authentication && !signing
                 && keyUsage != KeyUsageInfo.AUTHENTICATION) {
-            throw CodedException.tr(X_WRONG_CERT_USAGE,
-                    "wrong_cert_usage.auth_to_sign",
-                    "Authentication certificate cannot be imported to "
-                            + "signing keys");
+            throw XrdRuntimeException.systemException(WRONG_CERT_USAGE,
+                    "Authentication certificate cannot be imported to signing keys");
         }
 
         if (signing && !authentication && keyUsage != KeyUsageInfo.SIGNING) {
-            throw CodedException.tr(X_WRONG_CERT_USAGE,
-                    "wrong_cert_usage.sign_to_auth",
-                    "Signing certificate cannot be imported to "
-                            + "authentication keys");
+            throw XrdRuntimeException.systemException(WRONG_CERT_USAGE,
+                    "Signing certificate cannot be imported to authentication keys");
         }
     }
 
@@ -243,18 +234,19 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
 
         globalConfProvider.verifyValidity();
         try {
-            CertChain chain = certChainFactory.create(
-                    globalConfProvider.getInstanceIdentifier(), cert, null);
-            new CertChainVerifier(globalConfProvider, chain).verifyChainOnly(new Date());
+            var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
+            CertChain chain = CertChainFactory.create(instanceIdentifier,
+                    globalConfProvider.getCaCert(instanceIdentifier, cert),
+                    cert, null);
+            new CertChainVerifier(globalConfProvider, ocspVerifierFactory, chain).verifyChainOnly(new Date());
         } catch (Exception e) {
             log.error("Failed to import certificate", e);
-            throw CodedException.tr(X_CERT_IMPORT_FAILED,
-                    "cert_import_failed", "%s", "Certificate is not valid");
+            throw XrdRuntimeException.systemException(CERT_IMPORT_FAILED, "Certificate is not valid");
         }
     }
 
     private void deleteCertRequest(String keyId, ClientId memberId) {
-        CertRequestInfo certReq = TokenManager.getCertRequestInfo(keyId, memberId);
+        CertRequestInfo certReq = tokenLookup.getCertRequestInfo(keyId, memberId);
         if (certReq != null) {
             deleteCertRequestReqHandler.deleteCertRequest(certReq.getId());
         }

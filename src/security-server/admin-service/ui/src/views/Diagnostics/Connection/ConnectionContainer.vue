@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,22 +25,19 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView title-key="tab.diagnostics.connectionTesting">
+  <XrdView data-test="diagnostics-view" title="tab.main.diagnostics">
+    <template #tabs>
+      <DiagnosticsTabs />
+    </template>
 
-    <ConnectionCentralServerView class="mt-0" />
-
-  </XrdTitledView>
+    <XrdSubView>
+      <ConnectionCentralServerView class="mt-0" />
+    </XrdSubView>
+  </XrdView>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { XrdTitledView } from '@niis/shared-ui';
-import ConnectionCentralServerView from "@/views/Diagnostics/Connection/CentralServerConnectionTestingView.vue";
-
-export default defineComponent({
-  components: {
-    XrdTitledView,
-    ConnectionCentralServerView
-  },
-});
+<script setup lang="ts">
+import { XrdSubView, XrdView } from '@niis/shared-ui';
+import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
+import ConnectionCentralServerView from '@/views/Diagnostics/Connection/CentralServerConnectionTestingView.vue';
 </script>

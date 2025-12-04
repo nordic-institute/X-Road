@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -167,7 +168,7 @@ export const useTokens = defineStore('tokens', {
       this.selectedToken = token;
     },
 
-    tokenLogout(id: string) {
+    async tokenLogout(id: string) {
       return api
         .put(`/tokens/${encodePathParameter(id)}/logout`, {})
         .then(() => {
@@ -180,18 +181,16 @@ export const useTokens = defineStore('tokens', {
           throw error;
         });
     },
-    updatePin(tokenId: string, oldPin: string, newPin: string) {
+    async updatePin(tokenId: string, oldPin: string, newPin: string) {
       const tokenPinUpdate: TokenPinUpdate = {
         old_pin: oldPin,
         new_pin: newPin,
       };
-      return api
-        .put(`/tokens/${encodePathParameter(tokenId)}/pin`, tokenPinUpdate)
-        .catch((error) => {
-          throw error;
-        });
+      return api.put(`/tokens/${encodePathParameter(tokenId)}/pin`, tokenPinUpdate).catch((error) => {
+        throw error;
+      });
     },
-    updateToken(token: Token) {
+    async updateToken(token: Token) {
       return api
         .patch<Token>(`/tokens/${encodePathParameter(token.id)}`, token)
         .then((res) => {
@@ -201,6 +200,11 @@ export const useTokens = defineStore('tokens', {
         .catch((error) => {
           throw error;
         });
+    },
+    async deleteToken(tokenId: string) {
+      const encodedId = encodePathParameter(tokenId);
+
+      return api.remove(`/tokens/${encodedId}`);
     },
   },
 });

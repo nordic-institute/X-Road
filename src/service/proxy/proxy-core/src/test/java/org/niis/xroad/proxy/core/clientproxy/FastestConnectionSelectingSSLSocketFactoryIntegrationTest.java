@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -45,11 +46,13 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.AuthKeyManager;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.DummySslServerProxy;
+import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 import org.niis.xroad.test.keyconf.TestKeyConf;
 
@@ -67,6 +70,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 
 import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
+import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 import static org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier.ID_PROVIDERNAME;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -99,8 +103,41 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     public void setup() {
         GlobalConfProvider globalConfProvider = new TestGlobalConf();
         keyConfProvider = new TestKeyConf(globalConfProvider);
-        authTrustVerifier = new AuthTrustVerifier(keyConfProvider, new CertHelper(globalConfProvider),
-                new CertChainFactory(globalConfProvider));
+        CertHashBasedOcspResponderClient ocspResponderClient = new CertHashBasedOcspResponderClient(
+                new ProxyProperties.OcspResponderProperties() {
+
+                    @Override
+                    public String listenAddress() {
+                        return "0.0.0.0";
+                    }
+
+                    @Override
+                    public int port() {
+                        return 5577;
+                    }
+
+                    @Override
+                    public int clientConnectTimeout() {
+                        return 20000;
+                    }
+
+                    @Override
+                    public int clientReadTimeout() {
+                        return 30000;
+                    }
+
+                    @Override
+                    public String jettyConfigurationFile() {
+                        return "src/test/ocsp-responder.xml";
+                    }
+
+                    @Override
+                    public ServicePrioritizationStrategy ocspPrioritizationStrategy() {
+                        return ServicePrioritizationStrategy.NONE;
+                    }
+                });
+        authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, globalConfProvider, keyConfProvider,
+                new CertHelper(globalConfProvider, new OcspVerifierFactory()));
 
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
     }
@@ -139,7 +176,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     }
 
     private void testWithSender(URI... addresses) throws Exception {
-        try (HttpSender sender = new HttpSender(client)) {
+        try (HttpSender sender = new HttpSender(client, false)) {
             sender.setAttribute(ID_TARGETS, addresses);
             sender.setAttribute(ID_PROVIDERNAME, ServiceId.Conf.create("INSTANCE", "CLASS", "CODE", "SUB", "SERVICE"));
             sender.setConnectionTimeout(1000);
@@ -149,7 +186,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
 
     private void createClient() throws Exception {
         RegistryBuilder<ConnectionSocketFactory> socketFactoryRegistry =
-                RegistryBuilder.<ConnectionSocketFactory>create();
+                RegistryBuilder.create();
 
         socketFactoryRegistry.register("http", PlainConnectionSocketFactory.INSTANCE);
         socketFactoryRegistry.register("https", createSSLSocketFactory());
@@ -182,7 +219,8 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                 new TrustManager[]{new NoopTrustManager()},
                 new SecureRandom());
 
-        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx.getSocketFactory());
+        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx.getSocketFactory(),
+                defaultConfiguration(ProxyProperties.class));
     }
 
     static class NoopTrustManager implements X509TrustManager {

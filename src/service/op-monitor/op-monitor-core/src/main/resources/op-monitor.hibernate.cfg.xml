@@ -7,6 +7,6 @@
   <session-factory>
       <property name="hikari.maximumPoolSize">4</property>
       <property name="hibernate.id.db_structure_naming_strategy">single</property>
-      <mapping class="org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity"/>
+      <mapping class="org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity"/>
   </session-factory>
 </hibernate-configuration>

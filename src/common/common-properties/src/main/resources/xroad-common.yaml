@@ -1,0 +1,53 @@
+# Common properties that are injected to all services
+config_ordinal: 220
+quarkus:
+  application:
+    version: 1.0.0
+  vault:
+    devservices:
+      enabled: false
+    url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
+    authentication:
+      client-token: "${XROAD_SECRET_STORE_TOKEN}"
+    connect-timeout: 15S
+    read-timeout: 10S
+    kv-secret-engine-version: 1
+    kv-secret-engine-mount-path: xrd-secret
+  live-reload:
+    enabled: false
+  http:
+    host-enabled: false
+spring:
+  main:
+    banner-mode: log
+  cloud:
+    vault:
+      enabled: true
+      host: ${XROAD_SECRET_STORE_HOST:127.0.0.1}
+      port: ${XROAD_SECRET_STORE_PORT:8200}
+      scheme: ${XROAD_SECRET_STORE_SCHEME:https}
+      token: ${XROAD_SECRET_STORE_TOKEN}
+      kv:
+        backend-version: 1
+        backend: xrd-secret
+
+"%containerized":
+  quarkus:
+    http:
+      port: 4099
+      host-enabled: true
+  xroad:
+    common-global-conf:
+      source: REMOTE
+
+logging:
+  level:
+    ROOT: INFO
+    org.springframework: INFO
+
+xroad:
+  common-rpc:
+    certificate-provisioning:
+      common-name: ${XROAD_HOST:localhost}
+      ip-subject-alt-names:
+        - 127.0.0.1

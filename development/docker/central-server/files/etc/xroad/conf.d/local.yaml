@@ -1,0 +1,3 @@
+xroad:
+  signer:
+    enforce-token-pin-policy: true

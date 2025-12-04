@@ -25,15 +25,18 @@
  */
 package org.niis.xroad.confproxy;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -45,7 +48,6 @@ import static ee.ria.xroad.common.SystemProperties.TEMP_FILES_PATH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -53,30 +55,32 @@ import static org.mockito.Mockito.when;
  * uses a pre-downloaded configuration.
  */
 @Slf4j
-public class ConfProxyTest {
-
+@ExtendWith(MockitoExtension.class)
+class ConfProxyTest {
+    @Mock
     SignerRpcClient signerRpcClient;
+    @Mock
+    SignerSignClient signerSignClient;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         System.setProperty(CONFIGURATION_PROXY_CONF_PATH, "src/test/resources/conf-proxy-conf");
         System.setProperty(CONFIGURATION_PROXY_GENERATED_CONF_PATH, "build/tmp/test/generated-conf");
         System.setProperty(CONFIGURATION_PATH, "src/test/resources/test-conf-simple");
         System.setProperty(TEMP_FILES_PATH, "build/tmp/test");
-        signerRpcClient = mock(SignerRpcClient.class);
     }
 
     @Test
-    public void cleanupTempDirectoriesWhenBuildingSignedDirectoryFails() throws Exception {
+    void cleanupTempDirectoriesWhenBuildingSignedDirectoryFails() throws Exception {
         ConfProxyProperties conf = new ConfProxyProperties("PROXY1");
         ConfProxyHelper.purgeOutdatedGenerations(conf);
         VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(conf.getConfigurationDownloadPath(2));
 
-        when(signerRpcClient.getSignMechanism(any())).thenThrow(new CodedException("internal_error", "Signer is unreachable"));
+        when(signerRpcClient.getSignMechanism(any())).thenThrow(XrdRuntimeException.systemInternalError("Signer is unreachable"));
 
-        try (OutputBuilder output = new OutputBuilder(signerRpcClient, confDir, conf, 2)) {
-            CodedException exception = assertThrows(CodedException.class, output::buildSignedDirectory);
-            assertEquals("Signer is unreachable", exception.getFaultString());
+        try (OutputBuilder output = new OutputBuilder(signerRpcClient, signerSignClient, confDir, conf, 2)) {
+            XrdRuntimeException exception = assertThrows(XrdRuntimeException.class, output::buildSignedDirectory);
+            assertEquals("Signer is unreachable", exception.getDetails());
         }
         assertEquals(0, Files.list(Paths.get("build/tmp/test/PROXY1")).count());
     }

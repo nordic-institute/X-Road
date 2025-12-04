@@ -105,13 +105,13 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
         tableHeader
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-up"))
+                .shouldHave(cssClass("arrow_upward"))
                 .click();
 
         tableHeader
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-down"))
+                .shouldHave(cssClass("arrow_downward"))
                 .click();
     }
 
@@ -155,7 +155,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     public void userIsAbleViewTheCertificate() {
         ocspRespondersPageObj.addEditDialog.btnViewCertificate().click();
         ocspRespondersPageObj.certificateView.certificateDetails().shouldBe(visible);
-        ocspRespondersPageObj.certificateView.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
     }
 
     @Step("User is able to change the certificate of OCSP responder with URL {}")

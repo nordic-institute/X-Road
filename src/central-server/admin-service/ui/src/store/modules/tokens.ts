@@ -101,11 +101,9 @@ export const useToken = defineStore('token', {
         });
     },
     loginToken(id: string, tokenPassword: TokenPassword) {
-      return axios
-        .put<Token>(`/tokens/${id}/login`, tokenPassword)
-        .catch((error) => {
-          throw error;
-        });
+      return axios.put<Token>(`/tokens/${id}/login`, tokenPassword).catch((error) => {
+        throw error;
+      });
     },
     logoutToken(id: string) {
       return axios.put<Token>(`/tokens/${id}/logout`).catch((error) => {
