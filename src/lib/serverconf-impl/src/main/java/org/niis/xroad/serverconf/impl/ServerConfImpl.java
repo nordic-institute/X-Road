@@ -84,7 +84,6 @@ import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.niis.xroad.serverconf.model.TimestampingService;
 
 import java.io.IOException;
-import java.net.URI;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
@@ -461,7 +460,13 @@ public class ServerConfImpl implements ServerConfProvider {
         if (path == null) {
             normalizedPath = null;
         } else {
-            normalizedPath = UriUtils.uriPathPercentDecode(URI.create(path).normalize().getRawPath(), true);
+            normalizedPath = UriUtils.decodeAndNormalize(path);
+
+            // Explicitly reject any remaining traversal sequences
+            if (normalizedPath.contains("..")) {
+                log.warn("Path traversal detected in request path: {}. Access will be rejected.", path);
+                return false;
+            }
         }
         return getAclEndpoints(session, clientId, serviceId).stream()
                 .anyMatch(ep -> ep.matches(method, normalizedPath));

@@ -172,7 +172,7 @@ public abstract class MessageProcessorBase {
     }
 
     private String getNormalizedServicePath(String servicePath) {
-        return Optional.of(UriUtils.uriPathPercentDecode(URI.create(servicePath).normalize().getRawPath(), true))
+        return Optional.of(UriUtils.decodeAndNormalize(servicePath))
                 .orElse(servicePath);
     }
 
