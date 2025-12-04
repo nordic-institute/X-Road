@@ -39,7 +39,7 @@ import java.util.ArrayList;
 
 /**
  * Object that knows an IP whitelist and can validate authentication requests against the whitelist.
- * Whitelist can contain individial IP addresses such as 192.168.1.1, or CIDR notation representations
+ * Whitelist can contain individual IP addresses such as 192.168.1.1, or CIDR notation representations
  * such as 192.168.1.0/24.
  * Whitelist can contain ipv4 or ipv6 items, for example 127.0.0.0/8 and ::1
  **/
@@ -76,7 +76,7 @@ public class AuthenticationIpWhitelist {
     }
 
     /**
-     * Sets whitelisted ips from an interable containing whitelist entries.
+     * Sets whitelisted ips from an iterable containing whitelist entries.
      * Entries are not trimmed for whitespace.
      * @param entries
      * @throws IllegalArgumentException if entries contains invalid entries

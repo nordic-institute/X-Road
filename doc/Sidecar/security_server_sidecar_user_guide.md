@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.19  
+Version: 1.20
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -27,6 +27,7 @@ Doc. ID: UG-SS-SIDECAR
 | 26.03.2025 | 1.17    | Syntax and styling                                      | Pauline Dimmek            |
 | 02.04.2025 | 1.18    | Added autologin paragraph                               | Mikk-Erik Bachmann        |
 | 28.08.2025 | 1.19    | Added paragraph about custom ACME challenge port number | Mikk-Erik Bachmann        |
+| 14.10.2025 | 1.20    | Document multiple token autologin support               | Raido Kaju                |
 
 ## License
 
@@ -374,9 +375,29 @@ The memory allocation for the Proxy Service can be configured using helper scrip
 
 ### 3.4 Autologin
 
-The Autologin feature logs onto the Signer keys' token automatically when the container has been restarted (for more info see [Autologin User Guide](../Manuals/Utils/ug-autologin_x-road_v6_autologin_user_guide.md)). 
+The Autologin feature logs onto the Signer keys' token automatically when the container has been restarted (for more info see [Autologin User Guide](../Manuals/Utils/ug-autologin_x-road_v6_autologin_user_guide.md)).
 
-For Sidecar, Autologin uses a custom script `custom-fetch-pin.sh` which looks at the environment variable `XROAD_TOKEN_PIN` first. This is set in the above example with a flag `-e XROAD_TOKEN_PIN=<token pin>`. When the Security Server is initialized for the first time, the token pin configured in the third step needs to match this variable. Given that for the autologin to succeed the token needs to be initialized and xroad-signer needs to be running, there can be retry statements in the logs when the autologin process starts before one of these things has happened. Eventually the autologin process should exit with a log message `xroad-autologin (exit status 0; expected)` which indicates that the autologin has succeeded. When the environment variable is not set, autologin might fail because by default the sidecar container doesn't have the token pin in its fallback location `/etc/xroad/autologin`. This file can be manually added with the correct pin if having the pin as plain text in that file is acceptable.
+For Sidecar, Autologin uses a custom script `custom-fetch-pin.sh` which supports both single and multiple token configurations:
+
+Single token configuration:
+
+* Set the environment variable `XROAD_TOKEN_PIN` (e.g., `-e XROAD_TOKEN_PIN=<token pin>`)
+* This PIN will be used for token ID 0
+* When the Security Server is initialized for the first time, the token pin configured needs to match this variable
+
+Multiple tokens configuration:
+
+* Set environment variables in the format `XROAD_TOKEN_<id>_PIN` where `<id>` is the token ID
+* Example: `-e XROAD_TOKEN_0_PIN=1234 -e XROAD_TOKEN_1_PIN=5678`
+* Each token will be logged in with its respective PIN
+* If using numbered tokens (other than 0), multiple token PINs must be provided
+
+Fallback configuration:
+
+* If no environment variables are set, the script will read from `/etc/xroad/autologin`
+* This file can contain either a single PIN (for token 0) or multiple lines in the format `token-id:token-pin`
+
+Given that for the autologin to succeed the token needs to be initialized and xroad-signer needs to be running, there can be retry statements in the logs when the autologin process starts before one of these things has happened. Eventually the autologin process should exit with a log message `xroad-autologin (exit status 0; expected)` which indicates that the autologin has succeeded.
 
 ## 4 Upgrading
 
