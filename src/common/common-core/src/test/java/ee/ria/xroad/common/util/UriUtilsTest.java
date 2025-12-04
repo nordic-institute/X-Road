@@ -98,6 +98,7 @@ public class UriUtilsTest {
         assertEquals("/a/b/c", UriUtils.decodeAndNormalize("/a/b/%2e/c"));
         assertEquals("/a/b/c", UriUtils.decodeAndNormalize("/a/b/d/%2e%2e/c"));
         assertEquals("/c", UriUtils.decodeAndNormalize("/a/b/%2e%2e/%2e%2e/c"));
+        assertEquals("/../c/d", UriUtils.decodeAndNormalize("/a/b/../../%2e%2e/c/d"));
     }
 
 }
