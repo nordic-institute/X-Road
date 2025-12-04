@@ -87,4 +87,18 @@ public class UriUtilsTest {
     public void shouldFailIfPathSeparatorPresent() {
         uriPathPercentDecode("zy%2dggy/", false);
     }
+
+    @Test
+    public void shouldSuccessfullyNormalizeTraversalPaths() {
+        assertEquals("/a/b/c", UriUtils.decodeAndNormalize("/a/b/c"));
+        assertEquals("/a/b/c", UriUtils.decodeAndNormalize("/a/b/./c"));
+        assertEquals("/a/b/c", UriUtils.decodeAndNormalize("/a/b/d/../c"));
+        assertEquals("/c", UriUtils.decodeAndNormalize("/a/b/../../c"));
+        //Encoded variants
+        assertEquals("/a/b/c", UriUtils.decodeAndNormalize("/a/b/%2e/c"));
+        assertEquals("/a/b/c", UriUtils.decodeAndNormalize("/a/b/d/%2e%2e/c"));
+        assertEquals("/c", UriUtils.decodeAndNormalize("/a/b/%2e%2e/%2e%2e/c"));
+        assertEquals("/../c/d", UriUtils.decodeAndNormalize("/a/b/../../%2e%2e/c/d"));
+    }
+
 }
