@@ -61,7 +61,7 @@ public final class UriUtils {
      *
      * @see <a href="https://tools.ietf.org/html/rfc3986#section-3.3">RFC 3986</a>
      */
-    public static String uriSegmentPercentDecode(final String src) {
+    public static String uriSegmentPercentDecode(@Nonnull final String src) {
         return uriPathPercentDecode(src, false);
     }
 
@@ -75,7 +75,7 @@ public final class UriUtils {
      * @see #uriSegmentPercentDecode(String)
      */
     @SuppressWarnings({"squid:S3776", "checkstyle:magicnumber"})
-    public static String uriPathPercentDecode(final String src, final boolean allowSeparator) {
+    public static String uriPathPercentDecode(@Nonnull final String src, final boolean allowSeparator) {
         final int length = src.length();
         if (length == 0) {
             return src;
