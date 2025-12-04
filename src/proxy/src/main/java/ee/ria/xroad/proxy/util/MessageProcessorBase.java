@@ -53,13 +53,19 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 @Slf4j
 public abstract class MessageProcessorBase {
 
-    /** The servlet request. */
+    /**
+     * The servlet request.
+     */
     protected final RequestWrapper jRequest;
 
-    /** The servlet response. */
+    /**
+     * The servlet response.
+     */
     protected final ResponseWrapper jResponse;
 
-    /** The http client instance. */
+    /**
+     * The http client instance.
+     */
     protected final HttpClient httpClient;
 
     protected MessageProcessorBase(RequestWrapper request,
@@ -93,6 +99,7 @@ public abstract class MessageProcessorBase {
 
     /**
      * Processes the incoming message.
+     *
      * @throws Exception in case of any errors
      */
     public abstract void process() throws Exception;
@@ -100,6 +107,7 @@ public abstract class MessageProcessorBase {
     /**
      * Update operational monitoring data with SOAP message header data and
      * the size of the message.
+     *
      * @param opMonitoringData monitoring data to update
      * @param soapMessage      SOAP message
      */
@@ -152,6 +160,7 @@ public abstract class MessageProcessorBase {
      * Validates SOAPAction header value.
      * Valid header values are: (empty string),(""),("URI-reference")
      * In addition, this implementation allows missing (null) header.
+     *
      * @return the argument as-is if it is valid
      * @throws CodedException if the the argument is invalid
      * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
@@ -177,6 +186,7 @@ public abstract class MessageProcessorBase {
 
     /**
      * Logs a warning if identifier contains invalid characters.
+     *
      * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
      * @see ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator;
      */

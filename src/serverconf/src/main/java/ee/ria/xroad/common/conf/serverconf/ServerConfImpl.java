@@ -68,6 +68,11 @@ import org.hibernate.Session;
 import org.hibernate.SharedSessionContract;
 
 import java.net.URI;
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -410,7 +415,13 @@ public class ServerConfImpl implements ServerConfProvider {
         if (path == null) {
             normalizedPath = null;
         } else {
-            normalizedPath = UriUtils.uriPathPercentDecode(URI.create(path).normalize().getRawPath(), true);
+            normalizedPath = UriUtils.decodeAndNormalize(path);
+
+            // Explicitly reject any remaining traversal sequences
+            if (normalizedPath.contains("..")) {
+                log.warn("Path traversal detected in request path: {}. Access will be rejected.", path);
+                return false;
+            }
         }
         return getAclEndpoints(session, client, service).stream()
                 .anyMatch(ep -> ep.matches(method, normalizedPath));
