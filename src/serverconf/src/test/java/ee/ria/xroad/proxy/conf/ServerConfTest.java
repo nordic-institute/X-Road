@@ -86,6 +86,7 @@ public class ServerConfTest {
 
     /**
      * Creates test database.
+     *
      * @throws Exception if an error occurs
      */
     @BeforeClass
@@ -244,9 +245,9 @@ public class ServerConfTest {
         assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "DELETE", "/api/test"));
         assertFalse(ServerConf.isQueryAllowed(client1, serviceRest));
 
-        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/%2e%2e/secret"));
-        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/%2e%2e/secret"));
-        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/test/%2e%2e/%2e%2e/secret"));
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "GET", "/%2e%2e/secret"));
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "GET", "/api/%2e%2e/secret"));
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "GET", "/api/test/%2e%2e/%2e%2e/secret"));
     }
 
     /**
@@ -278,6 +279,7 @@ public class ServerConfTest {
 
     /**
      * Tests getting IS certificates,
+     *
      * @throws Exception if an error coccurs
      */
     @Test
@@ -308,6 +310,7 @@ public class ServerConfTest {
 
     /**
      * Tests getting members.
+     *
      * @throws Exception if an error coccurs
      */
     @Test
@@ -319,6 +322,7 @@ public class ServerConfTest {
 
     /**
      * Tests getting TSPs.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -332,6 +336,7 @@ public class ServerConfTest {
 
     /**
      * Tests getting services.
+     *
      * @throws Exception if an error occurs
      */
     @Test
