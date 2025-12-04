@@ -106,20 +106,6 @@ public final class SystemProperties {
     /** Property name of enabling automatic approval of owner change requests. */
     public static final String CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = CENTER_PREFIX + "auto-approve-owner-change-requests";
 
-    // Admin-Service ----------------------------------------------------------
-
-    /*
-        Note that most of the [admin-service] properties are handled by the AdminServiceProperties class inside that
-        module. These properties are special because they are used to configure a common module using the centralised
-        getters in this file.
-     */
-
-    /** Property name of the whitelist for Center admin service API's key management API */
-    public static final String ADMIN_SERVICE_KEY_MANAGEMENT_API_WHITELIST = PREFIX + "admin-service.key-management-api-whitelist";
-
-    /** Property name of the whitelist for Center admin service API's regular APIs */
-    public static final String ADMIN_SERVICE_REGULAR_API_WHITELIST = PREFIX + "admin-service.regular-api-whitelist";
-
     // Misc -------------------------------------------------------------------
 
     /** Property name of the configuration files path. */
