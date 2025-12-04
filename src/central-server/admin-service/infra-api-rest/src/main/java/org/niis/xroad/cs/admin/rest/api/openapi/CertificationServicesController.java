@@ -198,8 +198,10 @@ public class CertificationServicesController implements CertificationServicesApi
                 .setAcmeServerDirectoryUrl(settings.getAcmeServerDirectoryUrl())
                 .setAcmeServerIpAddress(settings.getAcmeServerIpAddress())
                 .setAuthenticationCertificateProfileId(settings.getAuthenticationCertificateProfileId())
-                .setSigningCertificateProfileId(settings.getSigningCertificateProfileId())
-                .setDefaultCsrFormat(CsrFormat.valueOf(settings.getDefaultCsrFormat().name()));
+                .setSigningCertificateProfileId(settings.getSigningCertificateProfileId());
+        if (settings.getDefaultCsrFormat() != null) {
+            approvedCa.setDefaultCsrFormat(CsrFormat.valueOf(settings.getDefaultCsrFormat().name()));
+        }
 
         return ok(approvedCertificationServiceDtoConverter.convert(certificationServicesService.update(approvedCa)));
     }

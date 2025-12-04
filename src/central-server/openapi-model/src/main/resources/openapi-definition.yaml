@@ -3576,8 +3576,6 @@ components:
           format: text
           type: string
       type: object
-      required:
-        - default_csr_format
     DistinguishedName:
       type: object
       properties:
