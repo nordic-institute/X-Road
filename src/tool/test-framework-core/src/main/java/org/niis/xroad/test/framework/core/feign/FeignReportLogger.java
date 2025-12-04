@@ -31,6 +31,7 @@ import feign.Response;
 import feign.Util;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 import org.niis.xroad.test.framework.core.report.ReportFormatter;
 import org.springframework.stereotype.Component;
 
@@ -60,6 +61,7 @@ public class FeignReportLogger extends Logger {
     }
 
     @Override
+    @SuppressWarnings("squid:S3776")
     protected Response logAndRebufferResponse(
             String configKey, Level logLevel, Response response, long elapsedTime) throws IOException {
         var responseLog = new ArrayList<String>();
@@ -82,7 +84,7 @@ public class FeignReportLogger extends Logger {
                 }
 
                 int bodyLength = 0;
-                if (response.body() != null && !(status == 204 || status == 205)) {
+                if (response.body() != null && !(status == HttpStatus.SC_NO_CONTENT || status == HttpStatus.SC_RESET_CONTENT)) {
                     // HTTP 204 No Content "...response MUST NOT include a message-body"
                     // HTTP 205 Reset Content "...response MUST NOT include an entity"
                     if (logLevel.ordinal() >= Level.FULL.ordinal()) {
