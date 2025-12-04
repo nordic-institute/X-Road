@@ -25,6 +25,9 @@
  */
 package ee.ria.xroad.common.util;
 
+import jakarta.annotation.Nonnull;
+
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -33,6 +36,16 @@ import java.nio.charset.StandardCharsets;
 public final class UriUtils {
 
     private UriUtils() {
+    }
+
+    /**
+     * Percent-decodes and normalizes a URI path, assuming UTF-8 character set.
+     *
+     * @see #uriPathPercentDecode(String, boolean)
+     */
+    public static String decodeAndNormalize(@Nonnull final String path) {
+        String decoded = uriPathPercentDecode(path, true);
+        return URI.create(decoded).normalize().getPath();
     }
 
     /**
@@ -45,14 +58,16 @@ public final class UriUtils {
      * sub-delims    = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
      * pct-encoded   = "%" HEXDIG HEXDIG
      * </pre>
+     *
      * @see <a href="https://tools.ietf.org/html/rfc3986#section-3.3">RFC 3986</a>
      */
-    public static String uriSegmentPercentDecode(final String src) {
+    public static String uriSegmentPercentDecode(@Nonnull final String src) {
         return uriPathPercentDecode(src, false);
     }
 
     /**
      * Percent-decodes a URI path, assuming UTF-8 character set; optionally allows a path separator ('/').
+     *
      * @param src            URI path to percent-decode
      * @param allowSeparator If true, path separators are allowed and any %2d ('/') escape sequence is preserved
      *                       (normalized to %2D) so that it is possible to distinguish literal '/' from an encoded one.
@@ -60,7 +75,7 @@ public final class UriUtils {
      * @see #uriSegmentPercentDecode(String)
      */
     @SuppressWarnings({"squid:S3776", "checkstyle:magicnumber"})
-    public static String uriPathPercentDecode(final String src, final boolean allowSeparator) {
+    public static String uriPathPercentDecode(@Nonnull final String src, final boolean allowSeparator) {
         final int length = src.length();
         if (length == 0) {
             return src;
