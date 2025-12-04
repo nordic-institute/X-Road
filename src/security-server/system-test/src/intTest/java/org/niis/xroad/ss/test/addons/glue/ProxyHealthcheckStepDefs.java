@@ -29,6 +29,7 @@ package org.niis.xroad.ss.test.addons.glue;
 
 import feign.FeignException;
 import io.cucumber.java.en.Step;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.addons.api.FeignHealthcheckApi;
@@ -44,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
 @Slf4j
-@SuppressWarnings("checkstyle:MagicNumber")
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:SneakyThrowsCheck"})
 public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
 
     @Autowired
@@ -53,6 +54,7 @@ public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
     @Autowired
     private FeignHealthcheckApi healthcheckApi;
 
+    @SneakyThrows
     @Step("^service \"(.*)\" is \"(stopped|started|restarted)\"$")
     public void stopService(String service, String state) {
         switch (state) {
@@ -68,6 +70,8 @@ public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
             default:
                 throw new IllegalStateException("unexpected state: " + state);
         }
+        log.info("Grace period after service {} {}", service, state);
+        Thread.sleep(5000);
     }
 
     @Step("healthcheck has no errors")
@@ -114,16 +118,12 @@ public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
 
     @Step("HSM health check is enabled on proxy")
     public void hsmHealthCheckIsEnabled() {
-        systemTestContainerSetup.execInContainer(SsSystemTestContainerSetup.PROXY,
-                "sed", "-i", "s/hsm-health-check-enabled: false/hsm-health-check-enabled: true/",
-                "/etc/xroad/conf.d/local.yaml");
+        testDatabasePropertyService.putProperty("xroad.hsm-health-check-enabled", "true", "proxy");
     }
 
     @Step("HSM health check is disabled on proxy")
     public void hsmHealthCheckIsDisabled() {
-        systemTestContainerSetup.execInContainer(SsSystemTestContainerSetup.PROXY,
-                "sed", "-i", "s/hsm-health-check-enabled: true/hsm-health-check-enabled: false/",
-                "/etc/xroad/conf.d/local.yaml");
+        testDatabasePropertyService.putProperty("xroad.hsm-health-check-enabled", "false", "proxy");
     }
 
 }

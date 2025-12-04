@@ -169,6 +169,7 @@ public class EnvSetup extends BaseComposeSetup {
         await().pollDelay(gracePeriod).timeout(gracePeriod.plusMinutes(1)).until(() -> true);
     }
 
+    @Override
     public void destroy() {
         if (envSs0 != null) {
             envSs0.stop();

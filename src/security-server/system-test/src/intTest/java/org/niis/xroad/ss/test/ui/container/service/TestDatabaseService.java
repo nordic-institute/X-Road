@@ -87,7 +87,7 @@ public class TestDatabaseService implements DisposableBean {
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         if (messagelogDataSource != null) {
             messagelogDataSource.close();
         }

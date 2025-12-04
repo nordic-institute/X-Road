@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
+import org.niis.xroad.ss.test.ui.container.service.TestDatabasePropertyService;
 import org.niis.xroad.ss.test.ui.page.CommonPageObj;
 import org.niis.xroad.test.framework.core.context.CucumberScenarioProvider;
 import org.niis.xroad.test.framework.core.context.ScenarioContext;
@@ -61,6 +62,8 @@ public abstract class BaseUiStepDefs {
     protected TestReportService testReportService;
     @Autowired
     protected ClasspathFileResolver classpathFileResolver;
+    @Autowired
+    protected TestDatabasePropertyService testDatabasePropertyService;
 
     /**
      * Vue.JS adds additional elements on top of input and simple clear just does not work.
