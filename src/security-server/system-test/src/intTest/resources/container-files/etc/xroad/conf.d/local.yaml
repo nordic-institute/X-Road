@@ -1,3 +1,9 @@
+quarkus:
+  log:
+    level: INFO
+    category:
+      "org.niis.xroad.proxy.core.healthcheck":
+        level: DEBUG
 xroad:
   common-rpc:
     certificate-provisioning:
