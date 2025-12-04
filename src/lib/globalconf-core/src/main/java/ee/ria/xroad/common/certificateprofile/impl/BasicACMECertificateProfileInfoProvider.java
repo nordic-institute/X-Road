@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.certificateprofile.impl;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
@@ -36,6 +34,8 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -146,14 +146,16 @@ public class BasicACMECertificateProfileInfoProvider
 
             String memberClass = CertUtils.getRDNValue(x500name, BCStyle.BUSINESS_CATEGORY);
             if (memberClass == null) {
-                throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                        "Certificate subject name does not contain business category");
+                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
+                        .details("Certificate subject name does not contain business category")
+                        .build();
             }
 
             String memberCode = CertUtils.getRDNValue(x500name, BCStyle.SERIALNUMBER);
             if (memberCode == null) {
-                throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                        "Certificate subject name does not contain serial number");
+                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
+                        .details("Subject name does not contain serial number")
+                        .build();
             }
 
             return ClientId.Conf.create(instanceIdentifier, memberClass, memberCode);
