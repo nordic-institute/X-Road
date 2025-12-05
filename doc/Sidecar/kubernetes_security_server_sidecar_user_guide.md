@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.15  
+Version: 1.16  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -23,6 +23,7 @@ Doc. ID: UG-K-SS-SIDECAR
 | 23.12.2024 | 1.13    | Minor documentation updates                                   | Eneli Reimets             |
 | 21.03.2025 | 1.14    | Syntax and styling                                            | Pauline Dimmek            |
 | 01.09.2025 | 1.15    | Added link to "Enabling ACME Support" from Sidecar user guide | Mikk-Erik Bachmann        |
+| 14.10.2025 | 1.16    | Documented multiple token support for autologin               | Raido Kaju                |
 
 ## License
 
@@ -289,6 +290,7 @@ For example the following configuration could be stored as a Kubernetes secret:
 * Sensitive Sidecar environment variables:
   * Software token PIN code:
     * `XROAD_TOKEN_PIN`
+    * `XROAD_TOKEN_X_PIN` (in case of multiple tokens)
   * Security server GUI admin user:
     * `XROAD_ADMIN_USER`
     * `XROAD_ADMIN_PASSWORD`
